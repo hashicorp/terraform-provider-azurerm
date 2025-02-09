@@ -641,7 +641,6 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	props := *model.Properties
 
 	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes") {
-
 		log.Printf("\n\n\n\n\n\n\n\n\n\n\n\n0000/00/00 00:00:00 [DEBUG] *************************************************************************")
 
 		jsChallengeExpirationInMinutes := int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))
@@ -668,10 +667,10 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		log.Printf("  waf.SkuNamePremiumAzureFrontDoor: %s", waf.SkuNamePremiumAzureFrontDoor)
 
 		if *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
-			if jsChallengeExpirationInMinutes == 0 {
-				// if they removed it from the configuration file, set it back to the default value...
-				props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(30))
-			} else {
+			if jsChallengeExpirationInMinutes != 0 {
+				// 	// if they removed it from the configuration file, set it back to the default value...
+				// 	props.PolicySettings.JavascriptChallengeExpirationInMinutes = nil
+				// } else {
 				policyMinutes, err := validateJsChallengeExpirationInMinutes(jsChallengeExpirationInMinutes)
 				if err != nil {
 					return err
@@ -679,10 +678,13 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 				log.Printf("  policyMinutes                                              : %d", *policyMinutes)
 				props.PolicySettings.JavascriptChallengeExpirationInMinutes = policyMinutes
-			}
 
-			log.Printf("  jsChallengeExpirationInMinutes                             : %d", jsChallengeExpirationInMinutes)
-			log.Printf("  props.PolicySettings.JavascriptChallengeExpirationInMinutes: %d", *props.PolicySettings.JavascriptChallengeExpirationInMinutes)
+				log.Printf("  jsChallengeExpirationInMinutes                             : %d", jsChallengeExpirationInMinutes)
+				log.Printf("  props.PolicySettings.JavascriptChallengeExpirationInMinutes: %d", *props.PolicySettings.JavascriptChallengeExpirationInMinutes)
+			} else {
+				log.Printf("  props.PolicySettings.JavascriptChallengeExpirationInMinutes: Removed from config Set back to default")
+				props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(30))
+			}
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
