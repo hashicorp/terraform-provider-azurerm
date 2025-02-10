@@ -1,3 +1,18 @@
+## 4.19.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: `azurerm_mssql_job_step` [GH-28691]
+
+ENHANCEMENTS:
+
+* `azurerm_container_app`- add support for the `client_certificate_mode` property [GH-28523]
+* `azurerm_cdn_frontdoor_firewall_policy` - add support for `JSChallenge` for `custom` rules [GH-28717]
+
+BUG FIXES:
+
+* `azurerm_servicebus_topic` - prevent perma diff when provisioning a partitioned topic within a non-partitioned namespace [GH-26680]
+
 ## 4.18.0 (February 07, 2025)
 
 ENHANCEMENTS:
