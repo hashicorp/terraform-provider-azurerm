@@ -492,7 +492,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				managedRules := diff.Get("managed_rule").([]interface{})
 
 				if sku == string(waf.SkuNameStandardAzureFrontDoor) && len(managedRules) > 0 {
-					return fmt.Errorf("the 'managed_rule' code block is only supported with the '%q' sku, got %q", waf.SkuNamePremiumAzureFrontDoor, sku)
+					return fmt.Errorf("the 'managed_rule' code block is only supported with the %q sku, got %q", waf.SkuNamePremiumAzureFrontDoor, sku)
 				}
 
 				return nil
