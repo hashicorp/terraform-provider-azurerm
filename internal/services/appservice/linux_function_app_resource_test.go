@@ -1639,7 +1639,15 @@ func TestAccLinuxFunctionApp_corsUpdate(t *testing.T) {
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.withCorsSupportCredentialsOnly(data, SkuStandardPlan),
+			Config: r.withCorsSupportCredentialsOnly(data, SkuStandardPlan, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withCorsSupportCredentialsOnly(data, SkuStandardPlan, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1929,7 +1937,7 @@ resource "azurerm_linux_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppResource) withCorsSupportCredentialsOnly(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppResource) withCorsSupportCredentialsOnly(data acceptance.TestData, planSku string, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1948,11 +1956,11 @@ resource "azurerm_linux_function_app" "test" {
 
   site_config {
     cors {
-      support_credentials = true
+      support_credentials = %t
     }
   }
 }
-`, r.template(data, planSku), data.RandomInteger)
+`, r.template(data, planSku), data.RandomInteger, enabled)
 }
 
 func (r LinuxFunctionAppResource) runtimeScaleCheck(data acceptance.TestData, planSku string) string {
