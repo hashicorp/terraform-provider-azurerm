@@ -167,6 +167,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Private DNS Resolver is only available in certain locations
         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
 
+        // Qumulo asked to use canary env for testing
+        "qumulo" to testConfiguration(locationOverride = LocationConfiguration( "westeurope", "westus", "eastus2euap",true)),
+
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
 

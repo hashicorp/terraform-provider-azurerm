@@ -281,6 +281,9 @@ service/private-dns-resolver:
 service/purview:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_purview_account((.|\n)*)###'
 
+service/qumulo:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_qumulo_file_system((.|\n)*)###'
+
 service/recovery-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(backup_|recovery_services_vault|site_recovery_)((.|\n)*)###'
 
