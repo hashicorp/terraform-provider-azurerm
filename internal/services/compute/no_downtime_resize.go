@@ -61,7 +61,8 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 	virtualMachineId, err := virtualmachines.ParseVirtualMachineIDInsensitively(*virtualMachineIdRaw)
 	if err != nil {
 		log.Printf("[DEBUG] unable to parse Virtual Machine ID %q that the Managed Disk is attached too - skipping no-downtime-resize since we can't guarantee that's available", *virtualMachineIdRaw)
-		return pointer.To(false), nil // lint:ignore nilerr this is not an error as we just want to skip the check in this situation since we can't guarantee it's available
+		//nolint:nilerr // this is not an error as we just want to skip the check in this situation since we can't guarantee it's available
+		return pointer.To(false), nil
 	}
 
 	log.Printf("[DEBUG] Retrieving %s..", *virtualMachineId)
@@ -83,7 +84,6 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 			if model.Properties.StorageProfile != nil && model.Properties.StorageProfile.DiskControllerType != nil {
 				vmDiskControllerType = string(*model.Properties.StorageProfile.DiskControllerType)
 			}
-
 		}
 	}
 
