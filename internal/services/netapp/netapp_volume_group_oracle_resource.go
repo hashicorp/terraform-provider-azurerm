@@ -6,8 +6,6 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -28,23 +25,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type NetAppVolumeGroupSAPHanaResource struct{}
+type NetAppVolumeGroupOracleResource struct{}
 
-var _ sdk.Resource = NetAppVolumeGroupSAPHanaResource{}
+var _ sdk.Resource = NetAppVolumeGroupOracleResource{}
 
-func (r NetAppVolumeGroupSAPHanaResource) ModelObject() interface{} {
-	return &netAppModels.NetAppVolumeGroupSAPHanaModel{}
+func (r NetAppVolumeGroupOracleResource) ModelObject() interface{} {
+	return &netAppModels.NetAppVolumeGroupOracleModel{}
 }
 
-func (r NetAppVolumeGroupSAPHanaResource) ResourceType() string {
-	return "azurerm_netapp_volume_group_sap_hana"
+func (r NetAppVolumeGroupOracleResource) ResourceType() string {
+	return "azurerm_netapp_volume_group_oracle"
 }
 
-func (r NetAppVolumeGroupSAPHanaResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r NetAppVolumeGroupOracleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return volumegroups.ValidateVolumeGroupID
 }
 
-func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -82,7 +79,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 2,
-			MaxItems: 5,
+			MaxItems: 12,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -105,17 +102,18 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 					},
 
 					"proximity_placement_group_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ForceNew:     true,
-						ValidateFunc: azure.ValidateResourceID,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
 					},
+
+					"zone": commonschema.ZoneSingleOptionalForceNew(),
 
 					"volume_spec_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForVolumeSpecNameSAPHana(), false),
+						ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForVolumeSpecNameOracle(), false),
 					},
 
 					"volume_path": {
@@ -151,7 +149,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 						MaxItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForProtocolTypeVolumeGroupSAPHana(), false),
+							ValidateFunc: validation.StringInSlice(netAppValidate.PossibleValuesForProtocolTypeVolumeGroupOracle(), false),
 						},
 					},
 
@@ -232,42 +230,18 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 						ForceNew: true,
 					},
 
+					"network_features": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // O+C - This is Optional/Computed because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
+					},
+
 					"mount_ip_addresses": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
-						},
-					},
-
-					"data_protection_replication": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"endpoint_type": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									Default:      string(volumegroups.EndpointTypeDst),
-									ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEndpointType(), false),
-								},
-
-								"remote_volume_location": commonschema.LocationWithoutForceNew(),
-
-								"remote_volume_resource_id": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: azure.ValidateResourceID,
-								},
-
-								"replication_frequency": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validation.StringInSlice(netAppModels.PossibleValuesForReplicationSchedule(), false),
-								},
-							},
 						},
 					},
 
@@ -286,26 +260,40 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 							},
 						},
 					},
+
+					"encryption_key_source": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Computed:     true, // O+C - This is computed/optional since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API. This could cause drift if configuration is not updated
+						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
+					},
+
+					"key_vault_private_endpoint_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Computed:     true, // O+C - This is computed/optional since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API (tied to encryption_key_source). This could cause drift if configuration is not updated
+						ValidateFunc: azure.ValidateResourceID,
+					},
 				},
 			},
 		},
 	}
 }
 
-func (r NetAppVolumeGroupSAPHanaResource) Attributes() map[string]*pluginsdk.Schema {
+func (r NetAppVolumeGroupOracleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
+func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
-			replicationClient := metadata.Client.NetApp.VolumeReplicationClient
-
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model netAppModels.NetAppVolumeGroupSAPHanaModel
+			var model netAppModels.NetAppVolumeGroupOracleModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -322,25 +310,14 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			volumeList, err := expandNetAppVolumeGroupSAPHanaVolumes(model.Volumes)
+			volumeList, err := expandNetAppVolumeGroupOracleVolumes(model.Volumes)
 			if err != nil {
 				return err
 			}
 
 			// Performing some basic validations that are not possible in the schema
-			if errorList := netAppValidate.ValidateNetAppVolumeGroupSAPHanaVolumes(volumeList); len(errorList) > 0 {
+			if errorList := netAppValidate.ValidateNetAppVolumeGroupOracleVolumes(volumeList); len(errorList) > 0 {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
-			}
-
-			// Parse volume list to set secondary volumes for CRR
-			for i, volumeCrr := range pointer.From(volumeList) {
-				if volumeCrr.Properties.DataProtection != nil &&
-					volumeCrr.Properties.DataProtection.Replication != nil &&
-					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-					// Modify volumeType as data protection type on main volumeList
-					// so it gets created correctly as data protection volume
-					(pointer.From(volumeList))[i].Properties.VolumeType = utils.String("DataProtection")
-				}
 			}
 
 			parameters := volumegroups.VolumeGroupDetails{
@@ -348,7 +325,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 				Properties: &volumegroups.VolumeGroupProperties{
 					GroupMetaData: &volumegroups.VolumeGroupMetaData{
 						GroupDescription:      utils.String(model.GroupDescription),
-						ApplicationType:       pointer.To(volumegroups.ApplicationTypeSAPNegativeHANA),
+						ApplicationType:       pointer.To(volumegroups.ApplicationTypeORACLE),
 						ApplicationIdentifier: utils.String(model.ApplicationIdentifier),
 					},
 					Volumes: volumeList,
@@ -361,47 +338,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 
 			// Waiting for volume group be completely provisioned
 			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
-				return fmt.Errorf("waiting for create of %s: %+v", id, err)
-			}
-
-			// CRR - Authorizing secondaries from primary volumes
-			for _, volumeCrr := range pointer.From(volumeList) {
-				if volumeCrr.Properties.DataProtection != nil &&
-					volumeCrr.Properties.DataProtection.Replication != nil &&
-					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-					capacityPoolId, err := capacitypools.ParseCapacityPoolID(pointer.From(volumeCrr.Properties.CapacityPoolResourceId))
-					if err != nil {
-						return err
-					}
-
-					// Getting secondary volume resource id
-					secondaryId := volumes.NewVolumeID(subscriptionId,
-						model.ResourceGroupName,
-						model.AccountName,
-						capacityPoolId.CapacityPoolName,
-						getUserDefinedVolumeName(volumeCrr.Name),
-					)
-
-					// Getting primary resource id
-					primaryId, err := volumesreplication.ParseVolumeID(volumeCrr.Properties.DataProtection.Replication.RemoteVolumeResourceId)
-					if err != nil {
-						return err
-					}
-
-					// Authorizing
-					if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
-						RemoteVolumeResourceId: utils.String(secondaryId.ID()),
-					},
-					); err != nil {
-						return fmt.Errorf("cannot authorize volume replication: %v", err)
-					}
-
-					// Wait for volume replication authorization to complete
-					log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", id)
-					if err := waitForReplAuthorization(ctx, replicationClient, pointer.From(primaryId)); err != nil {
-						return err
-					}
-				}
+				return fmt.Errorf("waiting creation %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -411,7 +348,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
+func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -423,7 +360,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Decoding state for %s", id)
-			var state netAppModels.NetAppVolumeGroupSAPHanaModel
+			var state netAppModels.NetAppVolumeGroupOracleModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -431,7 +368,6 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Updating %s", id)
 
 			if metadata.ResourceData.HasChange("volume") {
-				// Iterating over each volume and performing individual patch
 				for i := 0; i < metadata.ResourceData.Get("volume.#").(int); i++ {
 					// Checking if individual volume has a change
 					volumeItem := fmt.Sprintf("volume.%v", i)
@@ -486,17 +422,6 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)) {
-							// Validating that snapshot policies are not being created in a data protection volume
-							dataProtectionReplicationRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_replication", volumeItem)).([]interface{})
-							dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
-
-							if dataProtectionReplication != nil &&
-								dataProtectionReplication.Replication != nil &&
-								dataProtectionReplication.Replication.EndpointType != nil &&
-								strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)
-							}
-
 							dataProtectionSnapshotPolicyRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)).([]interface{})
 							dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 							update.Properties.DataProtection = dataProtectionSnapshotPolicy
@@ -516,9 +441,9 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 							return fmt.Errorf("updating %s: %+v", volumeId, err)
 						}
 
-						// Waiting for volume be completely updated
+						// Waiting for volume to fully complete an update
 						if err := waitForVolumeCreateOrUpdate(ctx, volumeClient, volumeId); err != nil {
-							return fmt.Errorf("waiting for update of %s: %+v", volumeId, err)
+							return fmt.Errorf("waiting update %s: %+v", volumeId, err)
 						}
 					}
 				}
@@ -529,7 +454,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r NetAppVolumeGroupSAPHanaResource) Read() sdk.ResourceFunc {
+func (r NetAppVolumeGroupOracleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -541,7 +466,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("Decoding state for %s", id)
-			var state netAppModels.NetAppVolumeGroupSAPHanaModel
+			var state netAppModels.NetAppVolumeGroupOracleModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -554,7 +479,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			model := netAppModels.NetAppVolumeGroupSAPHanaModel{
+			model := netAppModels.NetAppVolumeGroupOracleModel{
 				Name:              id.VolumeGroupName,
 				AccountName:       id.NetAppAccountName,
 				Location:          location.NormalizeNilable(existing.Model.Location),
@@ -565,7 +490,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Read() sdk.ResourceFunc {
 				model.GroupDescription = pointer.From(props.GroupMetaData.GroupDescription)
 				model.ApplicationIdentifier = pointer.From(props.GroupMetaData.ApplicationIdentifier)
 
-				volumes, err := flattenNetAppVolumeGroupSAPHanaVolumes(ctx, props.Volumes, metadata)
+				volumes, err := flattenNetAppVolumeGroupOracleVolumes(ctx, props.Volumes, metadata)
 				if err != nil {
 					return fmt.Errorf("setting `volume`: %+v", err)
 				}
@@ -580,7 +505,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r NetAppVolumeGroupSAPHanaResource) Delete() sdk.ResourceFunc {
+func (r NetAppVolumeGroupOracleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -610,9 +535,13 @@ func (r NetAppVolumeGroupSAPHanaResource) Delete() sdk.ResourceFunc {
 				}
 			}
 
-			// Deleting Volume Group
 			if err = client.DeleteThenPoll(ctx, pointer.From(id)); err != nil {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
+			}
+
+			// Waiting for volume group be completely deleted
+			if err := waitForVolumeGroupDelete(ctx, client, pointer.From(id)); err != nil {
+				return fmt.Errorf("waiting delete %s: %+v", pointer.From(id), err)
 			}
 
 			return nil

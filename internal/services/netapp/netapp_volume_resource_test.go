@@ -136,6 +136,28 @@ func TestAccNetAppVolume_snapshotPolicy(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolume_snapshotPolicyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.snapshotPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.snapshotPolicyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_secondary")
 	r := NetAppVolumeResource{}
@@ -265,40 +287,6 @@ func TestAccNetAppVolume_update(t *testing.T) {
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("tags.bAr").HasValue("fOo"),
 				check.That(data.ResourceName).Key("throughput_in_mibps").HasValue("63"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccNetAppVolume_updateSubnet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
-	r := NetAppVolumeResource{}
-	resourceGroupName := fmt.Sprintf("acctestRG-netapp-%d", data.RandomInteger)
-	oldVNetName := fmt.Sprintf("acctest-VirtualNetwork-%d", data.RandomInteger)
-	oldSubnetName := fmt.Sprintf("acctest-Subnet-%d", data.RandomInteger)
-	newVNetName := fmt.Sprintf("acctest-updated-VirtualNetwork-%d", data.RandomInteger)
-	newSubnetName := fmt.Sprintf("acctest-updated-Subnet-%d", data.RandomInteger)
-	uriTemplate := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s"
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	oldSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, oldVNetName, oldSubnetName)
-	newSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, newVNetName, newSubnetName)
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("subnet_id").HasValue(oldSubnetId),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateSubnet(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("subnet_id").HasValue(newSubnetId),
 			),
 		},
 		data.ImportStep(),
@@ -774,6 +762,48 @@ resource "azurerm_netapp_volume" "test" {
 `, template, data.RandomInteger)
 }
 
+func (NetAppVolumeResource) snapshotPolicyUpdate(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_snapshot_policy" "test" {
+  name                = "acctest-NetAppSnapshotPolicy-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  enabled             = true
+
+  monthly_schedule {
+    snapshots_to_keep = 1
+    days_of_month     = [15, 30]
+    hour              = 23
+    minute            = 30
+  }
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-WithSnapshotPolicy-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
 func (NetAppVolumeResource) crossRegionReplication(data acceptance.TestData) string {
 	template := NetAppVolumeResource{}.templateForCrossRegionReplication(data)
 	return fmt.Sprintf(`
@@ -1146,59 +1176,6 @@ resource "azurerm_netapp_volume" "test" {
 `, r.templatePoolQosManual(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r NetAppVolumeResource) updateSubnet(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_network" "updated" {
-  name                = "acctest-updated-VirtualNetwork-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.1.0.0/16"]
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
-
-resource "azurerm_subnet" "updated" {
-  name                 = "acctest-updated-Subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.updated.name
-  address_prefixes     = ["10.1.3.0/24"]
-
-  delegation {
-    name = "testdelegation2"
-
-    service_delegation {
-      name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
-}
-
-resource "azurerm_netapp_volume" "test" {
-  name                = "acctest-updated-NetAppVolume-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_path         = "my-updated-unique-file-path-%d"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.updated.id
-  protocols           = ["NFSv3"]
-  storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func (r NetAppVolumeResource) updateExportPolicyRule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1241,7 +1218,7 @@ resource "azurerm_virtual_network" "test_secondary" {
   name                = "acctest-VirtualNetwork-secondary-%[2]d"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1253,7 +1230,7 @@ resource "azurerm_subnet" "test_secondary" {
   name                 = "acctest-Subnet-secondary-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test_secondary.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -1312,7 +1289,7 @@ resource "azurerm_virtual_network" "test" {
   name                = "acctest-VirtualNetwork-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1324,7 +1301,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-Subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -1395,7 +1372,7 @@ resource "azurerm_virtual_network" "test" {
   name                = "acctest-VirtualNetwork-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1407,7 +1384,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-Subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -1449,13 +1426,11 @@ resource "azurerm_netapp_pool" "test" {
 
 func (r NetAppVolumeResource) networkTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VirtualNetwork-%[2]d"
+  name                = "acctest-VirtualNetwork-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1464,10 +1439,10 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test-delegated" {
-  name                 = "acctest-Delegated-Subnet-%[2]d"
+  name                 = "acctest-Delegated-Subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.1.0/24"]
+  address_prefixes     = ["10.88.1.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -1480,12 +1455,12 @@ resource "azurerm_subnet" "test-delegated" {
 }
 
 resource "azurerm_subnet" "test-non-delegated" {
-  name                 = "acctest-Non-Delegated-Subnet-%[2]d"
+  name                 = "acctest-Non-Delegated-Subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.0.0/24"]
+  address_prefixes     = ["10.88.0.0/24"]
 }
-`, r.templateProviderFeatureFlags(), data.RandomInteger)
+`, data.RandomInteger)
 }
 
 func (NetAppVolumeResource) templateProviderFeatureFlags() string {
@@ -1495,8 +1470,14 @@ provider "azurerm" {
     resource_group {
       prevent_deletion_if_contains_resources = false
     }
-    netapp {
-      prevent_volume_destruction = false
+
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+
+	netapp {
+      prevent_volume_destruction            = false
       delete_backups_on_backup_vault_destroy = true
     } 
   }
