@@ -768,6 +768,10 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		expanded.WindowsFxVersion = pointer.To("")
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
+		expanded.MinimumElasticInstanceCount = pointer.To(windowsSlotSiteConfig.ElasticInstanceMinimum)
+	}
+
 	expanded.VnetRouteAllEnabled = pointer.To(windowsSlotSiteConfig.VnetRouteAllEnabled)
 
 	if metadata.ResourceData.HasChange("site_config.0.default_documents") {
@@ -1104,6 +1108,10 @@ func ExpandSiteConfigLinuxFunctionAppSlot(siteConfig []SiteConfigLinuxFunctionAp
 	}
 
 	expanded.AcrUseManagedIdentityCreds = pointer.To(linuxSlotSiteConfig.UseManagedIdentityACR)
+
+	if metadata.ResourceData.HasChange("site_config.0.elastic_instance_minimum") {
+		expanded.MinimumElasticInstanceCount = pointer.To(linuxSlotSiteConfig.ElasticInstanceMinimum)
+	}
 
 	expanded.VnetRouteAllEnabled = pointer.To(linuxSlotSiteConfig.VnetRouteAllEnabled)
 

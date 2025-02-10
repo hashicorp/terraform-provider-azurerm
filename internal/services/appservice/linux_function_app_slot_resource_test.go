@@ -346,6 +346,7 @@ func TestAccLinuxFunctionAppSlot_elasticPremiumCompleteWithVnetProperties(t *tes
 			Config: r.elasticCompleteWithVnetProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("2"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -2615,6 +2616,8 @@ resource "azurerm_linux_function_app_slot" "test" {
       "hostingstart.html",
     ]
 
+    elastic_instance_minimum = 2
+
     http2_enabled = true
 
     ip_restriction {
@@ -2633,7 +2636,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
