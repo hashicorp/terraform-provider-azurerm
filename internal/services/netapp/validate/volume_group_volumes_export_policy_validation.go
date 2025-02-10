@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
 )
 
-func ValidateNetAppVolumeGroupExportPolicyRuleSAPHanna(rule volumegroups.ExportPolicyRule, protocolType string) []error {
+func ValidateNetAppVolumeGroupExportPolicyRule(rule volumegroups.ExportPolicyRule, protocolType string) []error {
 	errors := make([]error, 0)
 
 	// Validating that nfsv3 and nfsv4.1 are not enabled in the same rule

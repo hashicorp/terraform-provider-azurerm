@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHana(t *testing.T) {
+func TestValidateNetAppVolumeGroupExportPolicyRuleOracle(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Protocol string
@@ -23,7 +23,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHana(t *testing.T) {
 			Protocol: string(ProtocolTypeNfsV41),
 			Rule: volumegroups.ExportPolicyRule{
 				Nfsv3:  pointer.To(false),
-				Nfsv41: utils.Bool(true),
+				Nfsv41: pointer.To(true),
 			},
 			Errors: 0,
 		},
@@ -97,7 +97,7 @@ func TestValidateNetAppVolumeGroupExportPolicyRuleSAPHana(t *testing.T) {
 			errors := ValidateNetAppVolumeGroupExportPolicyRule(tc.Rule, tc.Protocol)
 
 			if len(errors) != tc.Errors {
-				t.Fatalf("expected ValidateNetAppVolumeGroupSAPHanaVolumes to return %d error(s) not %d", tc.Errors, len(errors))
+				t.Fatalf("expected ValidateNetAppVolumeGroupOracleVolumes to return %d error(s) not %d", tc.Errors, len(errors))
 			}
 		})
 	}
