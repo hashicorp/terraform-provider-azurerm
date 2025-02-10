@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	azureResources "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/managementlocks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/resourcemanagementprivatelink"
@@ -14,16 +14,20 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-02-01/templatespecversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/providers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
+	DeploymentsClient                   *deployments.DeploymentsClient
 	DeploymentScriptsClient             *deploymentscripts.DeploymentScriptsClient
 	FeaturesClient                      *features.FeaturesClient
 	LocksClient                         *managementlocks.ManagementLocksClient
 	PrivateLinkAssociationClient        *privatelinkassociation.PrivateLinkAssociationClient
+	ResourcesClient                     *resources.ResourcesClient
 	ResourceGroupsClient                *resourcegroups.ResourceGroupsClient
 	ResourceManagementPrivateLinkClient *resourcemanagementprivatelink.ResourceManagementPrivateLinkClient
 	ResourceProvidersClient             *providers.ProvidersClient
@@ -32,15 +36,21 @@ type Client struct {
 
 	// TODO: these SDK clients use `Azure/azure-sdk-for-go` - we should migrate to `hashicorp/go-azure-sdk`
 	// (above) as time allows.
-	DeploymentsClient *resources.DeploymentsClient
-	ResourcesClient   *resources.Client
-	options           *common.ClientOptions
+	options                 *common.ClientOptions
+	LegacyResourcesClient   *azureResources.Client
+	LegacyDeploymentsClient *azureResources.DeploymentsClient
 
 	// Note that the Groups Client which requires additional coordination
-	GroupsClient *resources.GroupsClient
+	GroupsClient *azureResources.GroupsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	deploymentsClient, err := deployments.NewDeploymentsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Deployments client: %+v", err)
+	}
+	o.Configure(deploymentsClient.Client, o.Authorizers.ResourceManager)
+
 	deploymentScriptsClient, err := deploymentscripts.NewDeploymentScriptsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building DeploymentScripts client: %+v", err)
@@ -71,6 +81,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(privateLinkAssociationClient.Client, o.Authorizers.ResourceManager)
 
+	resourcesClient, err := resources.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Resource client: %+v", err)
+	}
+	o.Configure(resourcesClient.Client, o.Authorizers.ResourceManager)
+
 	resourceManagementPrivateLinkClient, err := resourcemanagementprivatelink.NewResourceManagementPrivateLinkClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ResourceManagementPrivateLink client: %+v", err)
@@ -95,21 +111,24 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(tagsClient.Client, o.Authorizers.ResourceManager)
 
-	// NOTE: these clients use `Azure/azure-sdk-for-go` and can be removed in time
-	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&deploymentsClient.Client, o.ResourceManagerAuthorizer)
-	groupsClient := resources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	// NOTE: This client uses `Azure/azure-sdk-for-go` and can be removed in time
+	legacyDeploymentsClient := azureResources.NewDeploymentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&legacyDeploymentsClient.Client, o.ResourceManagerAuthorizer)
+
+	legacyResourcesClient := azureResources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&legacyResourcesClient.Client, o.ResourceManagerAuthorizer)
+
+	groupsClient := azureResources.NewGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&groupsClient.Client, o.ResourceManagerAuthorizer)
-	resourcesClient := resources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&resourcesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		// These come from `hashicorp/go-azure-sdk`
-		DeploymentsClient:                   &deploymentsClient,
+		DeploymentsClient:                   deploymentsClient,
 		DeploymentScriptsClient:             deploymentScriptsClient,
 		FeaturesClient:                      featuresClient,
 		LocksClient:                         locksClient,
 		PrivateLinkAssociationClient:        privateLinkAssociationClient,
+		ResourcesClient:                     resourcesClient,
 		ResourceManagementPrivateLinkClient: resourceManagementPrivateLinkClient,
 		ResourceGroupsClient:                resourceGroupsClient,
 		ResourceProvidersClient:             resourceProvidersClient,
@@ -117,8 +136,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		TagsClient:                          tagsClient,
 
 		// These use `Azure/azure-sdk-for-go`
-		GroupsClient:    &groupsClient,
-		ResourcesClient: &resourcesClient,
-		options:         o,
+		LegacyDeploymentsClient: &legacyDeploymentsClient,
+		LegacyResourcesClient:   &legacyResourcesClient,
+		GroupsClient:            &groupsClient,
+		options:                 o,
 	}, nil
 }
