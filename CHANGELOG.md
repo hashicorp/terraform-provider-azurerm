@@ -13,6 +13,10 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_servicebus_topic` - prevent perma diff when provisioning a partitioned topic within a non-partitioned namespace [GH-26680]
+* `azurerm_linux_function_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
+* `azurerm_linux_web_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
+* `azurerm_windows_function_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
+* `azurerm_windows_web_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
 
 ## 4.18.0 (February 07, 2025)
 
