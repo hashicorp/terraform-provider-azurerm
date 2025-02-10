@@ -589,6 +589,7 @@ resource "azurerm_express_route_circuit" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
   bandwidth_in_gbps     = 5
+  rate_limiting_enabled = true
 
   sku {
     tier   = "Standard"
@@ -624,6 +625,7 @@ resource "azurerm_express_route_circuit" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
   bandwidth_in_gbps     = 5
+  rate_limiting_enabled = false
 
   sku {
     tier   = "Standard"
