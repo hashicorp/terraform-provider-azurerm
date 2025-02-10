@@ -321,6 +321,13 @@ func TestAccAppConfiguration_encryptionUpdated(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -954,7 +961,6 @@ provider "azurerm" {
     }
   }
 }
-
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appconfig-%[1]d"
