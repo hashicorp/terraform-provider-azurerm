@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -56,7 +58,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"authentication_type": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringInSlice(linkedservices.PossibleValuesForSftpAuthenticationType(), false),
 			},
 
 			"host": {
@@ -73,17 +75,33 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"username": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				Description:  "The user who has access to the SFTP server",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"password": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+			"additional_properties": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"annotations": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
 			},
 
 			"description": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"host_key_fingerprint": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -103,31 +121,43 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				},
 			},
 
+			"private_key_passphrase": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Description:   "Specify the pass phrase or password to decrypt the private key if the key file or the key content is protected by a pass phrase",
+				ConflictsWith: []string{"password"},
+			},
+
+			"password": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"private_key_content", "private_key_path", "private_key_passphrase"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+			},
+
+			"private_key_content": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				Description:   "Base64 encoded SSH private key content or Azure Key Vault Secret URL. SSH private key should be in OpenSSH format",
+				ValidateFunc:  validate.SSHPrivateKey,
+				ConflictsWith: []string{"private_key_path", "password"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+			},
+
+			"private_key_path": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Description:   "Specify the absolute path to the private key file that the integration runtime can access. This applies only when using a self-hosted integration runtime as opposed to the default Azure-hosted runtime, as indicated by providing a value for `integration_runtime_name`.",
+				ConflictsWith: []string{"private_key_content", "password"},
+				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+			},
+
 			"skip_host_key_validation": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-			},
-
-			"host_key_fingerprint": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"annotations": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"additional_properties": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
 			},
 		},
 	}
@@ -171,12 +201,26 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 		Type:  datafactory.TypeSecureString,
 	}
 
+	content := d.Get("private_key_content").(string)
+	privateKeyContent := datafactory.SecureString{
+		Value: pointer.To(content),
+		Type:  datafactory.TypeSecureString,
+	}
+
+	passphrase := datafactory.SecureString{
+		Value: pointer.To(d.Get("private_key_passphrase").(string)),
+		Type:  datafactory.TypeSecureString,
+	}
+
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
-		Host:               utils.String(host),
+		Host:               pointer.To(host),
 		Port:               port,
 		AuthenticationType: datafactory.SftpAuthenticationType(authenticationType),
-		UserName:           utils.String(username),
+		UserName:           pointer.To(username),
 		Password:           &passwordSecureString,
+		PrivateKeyContent:  &privateKeyContent,
+		PrivateKeyPath:     d.Get("private_key_path").(string),
+		PassPhrase:         &passphrase,
 	}
 
 	sftpProperties.SkipHostKeyValidation = d.Get("skip_host_key_validation").(bool)
@@ -253,6 +297,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 	d.Set("username", sftp.UserName)
 	d.Set("port", sftp.Port)
 	d.Set("host", sftp.Host)
+	d.Set("private_key_path", sftp.PrivateKeyPath)
 
 	d.Set("additional_properties", sftp.AdditionalProperties)
 	d.Set("description", sftp.Description)

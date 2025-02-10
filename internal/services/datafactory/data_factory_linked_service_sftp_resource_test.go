@@ -5,7 +5,12 @@ package datafactory_test
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -25,6 +30,50 @@ func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceSFTP_privateKeyContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+	privateKey, err := generatePrivateKey()
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %v", err)
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateKeyContent(data, privateKey),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password", "private_key_content"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceSFTP_privateKeyPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	privateKey, err := generatePrivateKey()
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %v", err)
+	}
+	privateKeyPath, err := writeToTempFile("private_key_*.pem", privateKey)
+	if err != nil {
+		t.Fatalf("Failed to save private key to temp file: %v", err)
+	}
+	defer os.Remove(privateKeyPath)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateKeyPath(data, privateKeyPath),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -186,4 +235,90 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceSFTPResource) privateKeyContent(data acceptance.TestData, keyContent []byte) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlsweb%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "SshPublicKey"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+  private_key_content = <<EOF
+%s
+EOF
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, keyContent)
+}
+
+func (LinkedServiceSFTPResource) privateKeyPath(data acceptance.TestData, privateKeyPath string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlsweb%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "SshPublicKey"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+  private_key_path    = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateKeyPath)
+}
+
+func writeToTempFile(fileNamePattern string, content []byte) (string, error) {
+	tempFile, err := os.CreateTemp("", fileNamePattern)
+	if err != nil {
+		return "", err
+	}
+	defer tempFile.Close()
+
+	if _, err := tempFile.Write(content); err != nil {
+		return "", err
+	}
+	return tempFile.Name(), nil
+}
+
+func generatePrivateKey() ([]byte, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return []byte(""), err
+	}
+
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}), nil
 }
