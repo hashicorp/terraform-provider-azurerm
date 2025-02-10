@@ -50,7 +50,6 @@ func (c RoleEligibilityScheduleRequestsClient) Validate(ctx context.Context, id 
 
 	var model RoleEligibilityScheduleRequest
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

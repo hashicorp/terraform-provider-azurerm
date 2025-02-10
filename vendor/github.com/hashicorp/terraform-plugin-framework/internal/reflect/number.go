@@ -132,9 +132,9 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 			return reflect.ValueOf(uintResult), diags
 		}
 	case reflect.Float32:
-		floatResult, _ := result.Float32()
+		float64Result, _ := result.Float64()
 
-		bf := big.NewFloat(float64(floatResult))
+		bf := big.NewFloat(float64Result)
 
 		if result.Text('f', -1) != bf.Text('f', -1) {
 			diags.Append(roundingErrorDiag)
@@ -142,7 +142,25 @@ func Number(ctx context.Context, typ attr.Type, val tftypes.Value, target reflec
 			return target, diags
 		}
 
-		return reflect.ValueOf(floatResult), diags
+		float32Result, accuracy := result.Float32()
+
+		// Underflow
+		// Reference: https://pkg.go.dev/math/big#Float.Float32
+		if float32Result == 0 && accuracy != big.Exact {
+			diags.Append(roundingErrorDiag)
+
+			return target, diags
+		}
+
+		// Overflow
+		// Reference: https://pkg.go.dev/math/big#Float.Float32
+		if math.IsInf(float64(float32Result), 0) {
+			diags.Append(roundingErrorDiag)
+
+			return target, diags
+		}
+
+		return reflect.ValueOf(float32Result), diags
 	case reflect.Float64:
 		floatResult, _ := result.Float64()
 

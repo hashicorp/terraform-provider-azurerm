@@ -14,6 +14,14 @@ type BlobReferenceInputDataSource struct {
 	Properties *BlobReferenceInputDataSourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from ReferenceInputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s BlobReferenceInputDataSource) ReferenceInputDataSource() BaseReferenceInputDataSourceImpl {
+	return BaseReferenceInputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = BlobReferenceInputDataSource{}
@@ -27,9 +35,10 @@ func (s BlobReferenceInputDataSource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling BlobReferenceInputDataSource: %+v", err)
 	}
+
 	decoded["type"] = "Microsoft.Storage/Blob"
 
 	encoded, err = json.Marshal(decoded)

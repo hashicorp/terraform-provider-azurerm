@@ -46,7 +46,6 @@ func (c HostPoolClient) RetrieveRegistrationToken(ctx context.Context, id HostPo
 
 	var model RegistrationInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

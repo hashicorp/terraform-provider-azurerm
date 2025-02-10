@@ -1,12 +1,12 @@
 # Best Practices
 
-Since it's inception the provider has undergone various iterations and changes in convention, as a result there can be legacy by-products within the provider which are inadvertently used as references. This section contains a miscellaneous assortment of current best practices to be aware of when contributing to the provider.
+Since its inception, the provider has undergone various iterations and changes in convention, as a result there can be legacy by-products within the provider which are inadvertently used as references. This section contains a miscellaneous assortment of current best practices to be aware of when contributing to the provider.
 
 ## Separate Create and Update Methods
 
 Historically the Provider has opted to combine the Create and Update methods due to the behaviour of the Azure API, where the same API is used for both Create and Update, meaning that the same payload has to be sent during both the Creation and Update of the resource.
 
-In order to properly support Terraform's `ignore_changes` feature, rather than using a combined method for Create and Update, we're now requiring that these are separate, and that in the Update partial/delta differences are performed, to only update the value for a field if it's marked as changed.
+In order to properly support Terraform's `ignore_changes` feature, rather than using a combined method for Create and Update, we're now requiring that these be separate, and that in the Update partial/delta differences are performed, to only update the value for a field if it's marked as changed.
 
 For example, whilst a Create method may look similar to below:
 

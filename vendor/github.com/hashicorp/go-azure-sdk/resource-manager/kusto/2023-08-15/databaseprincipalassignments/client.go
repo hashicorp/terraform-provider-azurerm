@@ -15,7 +15,7 @@ type DatabasePrincipalAssignmentsClient struct {
 }
 
 func NewDatabasePrincipalAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*DatabasePrincipalAssignmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "databaseprincipalassignments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "databaseprincipalassignments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DatabasePrincipalAssignmentsClient: %+v", err)
 	}

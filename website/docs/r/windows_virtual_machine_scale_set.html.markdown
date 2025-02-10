@@ -223,7 +223,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 -> **Note:** This can only be set to `true` when one or more `zones` are configured.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which this Windows Virtual Machine Scale Set should be located. Changing this forces a new Windows Virtual Machine Scale Set to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Windows Virtual Machine Scale Set should be located.
+
+-> **Note:** Updating `zones` to remove an existing zone forces a new Virtual Machine Scale Set to be created.
 
 ---
 

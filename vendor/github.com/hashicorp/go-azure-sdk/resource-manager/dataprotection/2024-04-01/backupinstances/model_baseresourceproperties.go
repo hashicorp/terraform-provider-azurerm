@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BaseResourceProperties interface {
+	BaseResourceProperties() BaseBaseResourcePropertiesImpl
 }
 
-// RawBaseResourcePropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ BaseResourceProperties = BaseBaseResourcePropertiesImpl{}
+
+type BaseBaseResourcePropertiesImpl struct {
+	ObjectType ResourcePropertiesObjectType `json:"objectType"`
+}
+
+func (s BaseBaseResourcePropertiesImpl) BaseResourceProperties() BaseBaseResourcePropertiesImpl {
+	return s
+}
+
+var _ BaseResourceProperties = RawBaseResourcePropertiesImpl{}
+
+// RawBaseResourcePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawBaseResourcePropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	baseResourceProperties BaseBaseResourcePropertiesImpl
+	Type                   string
+	Values                 map[string]interface{}
 }
 
-func unmarshalBaseResourcePropertiesImplementation(input []byte) (BaseResourceProperties, error) {
+func (s RawBaseResourcePropertiesImpl) BaseResourceProperties() BaseBaseResourcePropertiesImpl {
+	return s.baseResourceProperties
+}
+
+func UnmarshalBaseResourcePropertiesImplementation(input []byte) (BaseResourceProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalBaseResourcePropertiesImplementation(input []byte) (BaseResourcePr
 		return nil, fmt.Errorf("unmarshaling BaseResourceProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "DefaultResourceProperties") {
@@ -44,10 +61,15 @@ func unmarshalBaseResourcePropertiesImplementation(input []byte) (BaseResourcePr
 		return out, nil
 	}
 
-	out := RawBaseResourcePropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseBaseResourcePropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseBaseResourcePropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawBaseResourcePropertiesImpl{
+		baseResourceProperties: parent,
+		Type:                   value,
+		Values:                 temp,
+	}, nil
 
 }

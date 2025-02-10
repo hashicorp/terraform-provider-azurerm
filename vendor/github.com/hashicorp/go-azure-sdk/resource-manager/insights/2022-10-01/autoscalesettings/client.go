@@ -15,7 +15,7 @@ type AutoScaleSettingsClient struct {
 }
 
 func NewAutoScaleSettingsClientWithBaseURI(sdkApi sdkEnv.Api) (*AutoScaleSettingsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "autoscalesettings", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "autoscalesettings", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AutoScaleSettingsClient: %+v", err)
 	}

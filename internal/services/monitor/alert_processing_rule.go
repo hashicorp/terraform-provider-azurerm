@@ -71,7 +71,7 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ActionRuleName,
+			ValidateFunc: validate.AlertProcessingRuleName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -105,31 +105,39 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"alert_context": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"alert_rule_id": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"alert_rule_name": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"description": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"monitor_condition": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -140,10 +148,12 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							"Fired",
 							"Resolved",
 						},
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"monitor_service": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -174,10 +184,12 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							"Smart Detector",
 							"VM Insights - Health",
 						},
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"severity": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -191,10 +203,12 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							"Sev3",
 							"Sev4",
 						},
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"signal_type": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -207,24 +221,30 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							"Unknown",
 							"Health",
 						},
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"target_resource": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"target_resource_group": schemaAlertProcessingRuleCondition(
 						alertprocessingrules.PossibleValuesForOperator(), nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 					"target_resource_type": schemaAlertProcessingRuleCondition(
 						[]string{
@@ -232,10 +252,12 @@ func schemaAlertProcessingRule() map[string]*pluginsdk.Schema {
 							string(alertprocessingrules.OperatorNotEquals),
 						},
 						nil,
-						[]string{"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
+						[]string{
+							"condition.0.alert_context", "condition.0.alert_rule_id", "condition.0.alert_rule_name",
 							"condition.0.description", "condition.0.monitor_condition", "condition.0.monitor_service",
 							"condition.0.severity", "condition.0.signal_type", "condition.0.target_resource",
-							"condition.0.target_resource_group", "condition.0.target_resource_type"},
+							"condition.0.target_resource_group", "condition.0.target_resource_type",
+						},
 					),
 				},
 			},

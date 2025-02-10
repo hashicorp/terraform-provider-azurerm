@@ -15,7 +15,7 @@ type SAPAvailabilityZoneDetailsClient struct {
 }
 
 func NewSAPAvailabilityZoneDetailsClientWithBaseURI(sdkApi sdkEnv.Api) (*SAPAvailabilityZoneDetailsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sapavailabilityzonedetails", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sapavailabilityzonedetails", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SAPAvailabilityZoneDetailsClient: %+v", err)
 	}

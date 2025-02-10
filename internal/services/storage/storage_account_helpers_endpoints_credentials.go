@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -84,7 +84,7 @@ type accountEndpoints struct {
 	secondaryWebMicrosoftHostName string
 }
 
-func (a accountEndpoints) set(d *pluginsdk.ResourceData) error {
+func (a accountEndpoints) set(d *pluginsdk.ResourceData) {
 	d.Set("primary_blob_endpoint", a.primaryBlobEndpoint)
 	d.Set("primary_blob_host", a.primaryBlobHostName)
 	d.Set("primary_blob_internet_endpoint", a.primaryBlobInternetEndpoint)
@@ -154,8 +154,6 @@ func (a accountEndpoints) set(d *pluginsdk.ResourceData) error {
 	d.Set("secondary_web_internet_host", a.secondaryWebInternetHostName)
 	d.Set("secondary_web_microsoft_endpoint", a.secondaryWebMicrosoftEndpoint)
 	d.Set("secondary_web_microsoft_host", a.secondaryWebMicrosoftHostName)
-
-	return nil
 }
 
 func flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints *storageaccounts.Endpoints, routingPreference *storageaccounts.RoutingPreference) accountEndpoints {
@@ -239,15 +237,13 @@ type accountAccessKeysAndConnectionStrings struct {
 	secondaryAccessKey            string
 }
 
-func (a accountAccessKeysAndConnectionStrings) set(d *pluginsdk.ResourceData) error {
+func (a accountAccessKeysAndConnectionStrings) set(d *pluginsdk.ResourceData) {
 	d.Set("primary_connection_string", a.primaryConnectionString)
 	d.Set("secondary_connection_string", a.secondaryConnectionString)
 	d.Set("primary_blob_connection_string", a.primaryBlobConnectionString)
 	d.Set("secondary_blob_connection_string", a.secondaryBlobConnectionString)
 	d.Set("primary_access_key", a.primaryAccessKey)
 	d.Set("secondary_access_key", a.secondaryAccessKey)
-
-	return nil
 }
 
 func flattenAccountAccessKeysAndConnectionStrings(accountName, domainSuffix string, keys []storageaccounts.StorageAccountKey, endpoints accountEndpoints) accountAccessKeysAndConnectionStrings {

@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DataStoreParameters interface {
+	DataStoreParameters() BaseDataStoreParametersImpl
 }
 
-// RawDataStoreParametersImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ DataStoreParameters = BaseDataStoreParametersImpl{}
+
+type BaseDataStoreParametersImpl struct {
+	DataStoreType DataStoreTypes `json:"dataStoreType"`
+	ObjectType    string         `json:"objectType"`
+}
+
+func (s BaseDataStoreParametersImpl) DataStoreParameters() BaseDataStoreParametersImpl {
+	return s
+}
+
+var _ DataStoreParameters = RawDataStoreParametersImpl{}
+
+// RawDataStoreParametersImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDataStoreParametersImpl struct {
-	Type   string
-	Values map[string]interface{}
+	dataStoreParameters BaseDataStoreParametersImpl
+	Type                string
+	Values              map[string]interface{}
 }
 
-func unmarshalDataStoreParametersImplementation(input []byte) (DataStoreParameters, error) {
+func (s RawDataStoreParametersImpl) DataStoreParameters() BaseDataStoreParametersImpl {
+	return s.dataStoreParameters
+}
+
+func UnmarshalDataStoreParametersImplementation(input []byte) (DataStoreParameters, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalDataStoreParametersImplementation(input []byte) (DataStoreParamete
 		return nil, fmt.Errorf("unmarshaling DataStoreParameters into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureOperationalStoreParameters") {
@@ -44,10 +62,15 @@ func unmarshalDataStoreParametersImplementation(input []byte) (DataStoreParamete
 		return out, nil
 	}
 
-	out := RawDataStoreParametersImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDataStoreParametersImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDataStoreParametersImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDataStoreParametersImpl{
+		dataStoreParameters: parent,
+		Type:                value,
+		Values:              temp,
+	}, nil
 
 }

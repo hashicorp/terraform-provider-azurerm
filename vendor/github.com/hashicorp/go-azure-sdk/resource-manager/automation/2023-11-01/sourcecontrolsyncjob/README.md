@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/sourcecontrolsyncjob` Documentation
 
-The `sourcecontrolsyncjob` SDK allows for interaction with the Azure Resource Manager Service `automation` (API Version `2023-11-01`).
+The `sourcecontrolsyncjob` SDK allows for interaction with Azure Resource Manager `automation` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := sourcecontrolsyncjob.NewSourceControlSyncJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "sourceControlValue", "sourceControlSyncJobIdValue")
+id := sourcecontrolsyncjob.NewSourceControlSyncJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "sourceControlName", "sourceControlSyncJobId")
 
 payload := sourcecontrolsyncjob.SourceControlSyncJobCreateParameters{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := sourcecontrolsyncjob.NewSourceControlSyncJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "sourceControlValue", "sourceControlSyncJobIdValue")
+id := sourcecontrolsyncjob.NewSourceControlSyncJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "sourceControlName", "sourceControlSyncJobId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := sourcecontrolsyncjob.NewSourceControlID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "sourceControlValue")
+id := sourcecontrolsyncjob.NewSourceControlID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "sourceControlName")
 
 // alternatively `client.ListByAutomationAccount(ctx, id, sourcecontrolsyncjob.DefaultListByAutomationAccountOperationOptions())` can be used to do batched pagination
 items, err := client.ListByAutomationAccountComplete(ctx, id, sourcecontrolsyncjob.DefaultListByAutomationAccountOperationOptions())

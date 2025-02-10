@@ -47,7 +47,6 @@ func (c StorageSyncServicesResourceClient) StorageSyncServicesListByResourceGrou
 
 	var model StorageSyncServiceArray
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

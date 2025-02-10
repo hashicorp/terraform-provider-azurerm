@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-01-01/actiongroupsapis` Documentation
 
-The `actiongroupsapis` SDK allows for interaction with the Azure Resource Manager Service `insights` (API Version `2023-01-01`).
+The `actiongroupsapis` SDK allows for interaction with Azure Resource Manager `insights` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue")
+id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupName")
 
 payload := actiongroupsapis.NotificationRequestBody{
 	// ...
@@ -42,7 +42,7 @@ if err := client.ActionGroupsCreateNotificationsAtActionGroupResourceLevelThenPo
 
 ```go
 ctx := context.TODO()
-id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue")
+id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupName")
 
 payload := actiongroupsapis.ActionGroupResource{
 	// ...
@@ -63,7 +63,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue")
+id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupName")
 
 read, err := client.ActionGroupsDelete(ctx, id)
 if err != nil {
@@ -79,7 +79,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue")
+id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupName")
 
 payload := actiongroupsapis.EnableRequest{
 	// ...
@@ -100,7 +100,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue")
+id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupName")
 
 read, err := client.ActionGroupsGet(ctx, id)
 if err != nil {
@@ -116,7 +116,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := actiongroupsapis.NewNotificationStatusID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue", "notificationIdValue")
+id := actiongroupsapis.NewNotificationStatusID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupName", "notificationId")
 
 read, err := client.ActionGroupsGetTestNotificationsAtActionGroupResourceLevel(ctx, id)
 if err != nil {
@@ -166,7 +166,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupValue")
+id := actiongroupsapis.NewActionGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "actionGroupName")
 
 payload := actiongroupsapis.ActionGroupPatchBody{
 	// ...

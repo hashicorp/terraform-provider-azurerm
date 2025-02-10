@@ -4,5 +4,5 @@ package dicomservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type EncryptionCustomerManagedKeyEncryption struct {
-	KeyEncryptionKeyUrl *string `json:"keyEncryptionKeyUrl,omitempty"`
+	KeyEncryptionKeyURL *string `json:"keyEncryptionKeyUrl,omitempty"`
 }

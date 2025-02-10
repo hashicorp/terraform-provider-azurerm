@@ -22,8 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = DevCenterProjectEnvironmentTypeResource{}
-var _ sdk.ResourceWithUpdate = DevCenterProjectEnvironmentTypeResource{}
+var (
+	_ sdk.Resource           = DevCenterProjectEnvironmentTypeResource{}
+	_ sdk.ResourceWithUpdate = DevCenterProjectEnvironmentTypeResource{}
+)
 
 type DevCenterProjectEnvironmentTypeResource struct{}
 

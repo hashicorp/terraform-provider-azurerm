@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SingleServerCustomResourceNames interface {
+	SingleServerCustomResourceNames() BaseSingleServerCustomResourceNamesImpl
 }
 
-// RawSingleServerCustomResourceNamesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ SingleServerCustomResourceNames = BaseSingleServerCustomResourceNamesImpl{}
+
+type BaseSingleServerCustomResourceNamesImpl struct {
+	NamingPatternType NamingPatternType `json:"namingPatternType"`
+}
+
+func (s BaseSingleServerCustomResourceNamesImpl) SingleServerCustomResourceNames() BaseSingleServerCustomResourceNamesImpl {
+	return s
+}
+
+var _ SingleServerCustomResourceNames = RawSingleServerCustomResourceNamesImpl{}
+
+// RawSingleServerCustomResourceNamesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawSingleServerCustomResourceNamesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	singleServerCustomResourceNames BaseSingleServerCustomResourceNamesImpl
+	Type                            string
+	Values                          map[string]interface{}
 }
 
-func unmarshalSingleServerCustomResourceNamesImplementation(input []byte) (SingleServerCustomResourceNames, error) {
+func (s RawSingleServerCustomResourceNamesImpl) SingleServerCustomResourceNames() BaseSingleServerCustomResourceNamesImpl {
+	return s.singleServerCustomResourceNames
+}
+
+func UnmarshalSingleServerCustomResourceNamesImplementation(input []byte) (SingleServerCustomResourceNames, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalSingleServerCustomResourceNamesImplementation(input []byte) (Singl
 		return nil, fmt.Errorf("unmarshaling SingleServerCustomResourceNames into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["namingPatternType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["namingPatternType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "FullResourceName") {
@@ -44,10 +61,15 @@ func unmarshalSingleServerCustomResourceNamesImplementation(input []byte) (Singl
 		return out, nil
 	}
 
-	out := RawSingleServerCustomResourceNamesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSingleServerCustomResourceNamesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSingleServerCustomResourceNamesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSingleServerCustomResourceNamesImpl{
+		singleServerCustomResourceNames: parent,
+		Type:                            value,
+		Values:                          temp,
+	}, nil
 
 }

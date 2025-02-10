@@ -44,7 +44,7 @@ func ParseComputeID(input string) (*ComputeId, error) {
 	}
 
 	id := ComputeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseComputeIDInsensitively(input string) (*ComputeId, error) {
 	}
 
 	id := ComputeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id ComputeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMachineLearningServices", "Microsoft.MachineLearningServices", "Microsoft.MachineLearningServices"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceName", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceName", "workspaceName"),
 		resourceids.StaticSegment("staticComputes", "computes", "computes"),
-		resourceids.UserSpecifiedSegment("computeName", "computeValue"),
+		resourceids.UserSpecifiedSegment("computeName", "computeName"),
 	}
 }
 

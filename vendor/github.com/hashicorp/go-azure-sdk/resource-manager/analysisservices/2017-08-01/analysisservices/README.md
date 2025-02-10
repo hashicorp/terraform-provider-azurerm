@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/analysisservices` Documentation
 
-The `analysisservices` SDK allows for interaction with the Azure Resource Manager Service `analysisservices` (API Version `2017-08-01`).
+The `analysisservices` SDK allows for interaction with Azure Resource Manager `analysisservices` (API Version `2017-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 

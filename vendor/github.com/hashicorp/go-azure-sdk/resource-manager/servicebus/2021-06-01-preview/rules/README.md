@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/rules` Documentation
 
-The `rules` SDK allows for interaction with the Azure Resource Manager Service `servicebus` (API Version `2021-06-01-preview`).
+The `rules` SDK allows for interaction with Azure Resource Manager `servicebus` (API Version `2021-06-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := rules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue", "subscriptionValue", "ruleValue")
+id := rules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName", "subscriptionName", "ruleName")
 
 payload := rules.Rule{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := rules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue", "subscriptionValue", "ruleValue")
+id := rules.NewRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName", "subscriptionName", "ruleName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := rules.NewSubscriptions2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "topicValue", "subscriptionValue")
+id := rules.NewSubscriptions2ID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "topicName", "subscriptionName")
 
 // alternatively `client.ListBySubscriptions(ctx, id, rules.DefaultListBySubscriptionsOperationOptions())` can be used to do batched pagination
 items, err := client.ListBySubscriptionsComplete(ctx, id, rules.DefaultListBySubscriptionsOperationOptions())

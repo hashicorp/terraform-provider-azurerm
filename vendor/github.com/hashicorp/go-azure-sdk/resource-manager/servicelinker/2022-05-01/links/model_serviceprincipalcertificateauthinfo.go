@@ -16,6 +16,14 @@ type ServicePrincipalCertificateAuthInfo struct {
 	PrincipalId string `json:"principalId"`
 
 	// Fields inherited from AuthInfoBase
+
+	AuthType AuthType `json:"authType"`
+}
+
+func (s ServicePrincipalCertificateAuthInfo) AuthInfoBase() BaseAuthInfoBaseImpl {
+	return BaseAuthInfoBaseImpl{
+		AuthType: s.AuthType,
+	}
 }
 
 var _ json.Marshaler = ServicePrincipalCertificateAuthInfo{}
@@ -29,9 +37,10 @@ func (s ServicePrincipalCertificateAuthInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ServicePrincipalCertificateAuthInfo: %+v", err)
 	}
+
 	decoded["authType"] = "servicePrincipalCertificate"
 
 	encoded, err = json.Marshal(decoded)

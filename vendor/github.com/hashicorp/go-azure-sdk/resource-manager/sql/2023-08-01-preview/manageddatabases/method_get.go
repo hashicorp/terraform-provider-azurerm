@@ -46,7 +46,6 @@ func (c ManagedDatabasesClient) Get(ctx context.Context, id commonids.SqlManaged
 
 	var model ManagedDatabase
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

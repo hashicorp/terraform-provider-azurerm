@@ -46,7 +46,6 @@ func (c WorkflowsClient) ListSwagger(ctx context.Context, id WorkflowId) (result
 
 	var model interface{}
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

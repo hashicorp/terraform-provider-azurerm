@@ -42,7 +42,7 @@ func ParseDataCollectionEndpointID(input string) (*DataCollectionEndpointId, err
 	}
 
 	id := DataCollectionEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseDataCollectionEndpointIDInsensitively(input string) (*DataCollectionEn
 	}
 
 	id := DataCollectionEndpointId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id DataCollectionEndpointId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDataCollectionEndpoints", "dataCollectionEndpoints", "dataCollectionEndpoints"),
-		resourceids.UserSpecifiedSegment("dataCollectionEndpointName", "dataCollectionEndpointValue"),
+		resourceids.UserSpecifiedSegment("dataCollectionEndpointName", "dataCollectionEndpointName"),
 	}
 }
 

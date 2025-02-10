@@ -7,5 +7,5 @@ type EncryptionConfiguration struct {
 	Identity     *CMKIdentityDefinition `json:"identity,omitempty"`
 	KeyName      string                 `json:"keyName"`
 	KeyVersion   *string                `json:"keyVersion,omitempty"`
-	VaultBaseUrl string                 `json:"vaultBaseUrl"`
+	VaultBaseURL string                 `json:"vaultBaseUrl"`
 }

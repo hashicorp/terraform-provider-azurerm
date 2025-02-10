@@ -45,7 +45,6 @@ func (c TopicTypesClient) Get(ctx context.Context, id TopicTypeId) (result GetOp
 
 	var model TopicTypeInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -56,7 +57,6 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_complete(t *testi
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_update(t *testing.T) {
@@ -90,7 +90,6 @@ func TestAccPaloAltoNextGenerationFirewallVHubPanoramaResource_update(t *testing
 		},
 		data.ImportStep(),
 	})
-
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -111,6 +110,29 @@ func (r NextGenerationFirewallVHubPanoramaResource) Exists(ctx context.Context, 
 }
 
 func (r NextGenerationFirewallVHubPanoramaResource) basic(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test" {
+  name                   = "acctest-ngfwvh-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  panorama_base64_config = "%[3]s"
+  plan_id                = "panw-cngfw-payg"
+
+  network_profile {
+    virtual_hub_id               = azurerm_virtual_hub.test.id
+    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
+    public_ip_address_ids        = [azurerm_public_ip.test.id]
+  }
+}
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_PALO_ALTO_PANORAMA_CONFIG"))
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -145,6 +167,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama" "test
   name                   = "acctest-ngfwvh-%[2]d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
+  marketplace_offer_id   = "pan_swfw_cloud_ngfw"
+  plan_id                = "panw-cngfw-payg"
   panorama_base64_config = "%[3]s"
 
   network_profile {
@@ -201,10 +225,12 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  depends_on = [azurerm_public_ip.egress]
 }
 
 resource "azurerm_public_ip" "egress" {
-  name                = "acctestpublicip-%[1]d"
+  name                = "acctestpublicip-%[1]d-e"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"

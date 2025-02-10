@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdnsaliases` Documentation
 
-The `serverdnsaliases` SDK allows for interaction with the Azure Resource Manager Service `sql` (API Version `2023-08-01-preview`).
+The `serverdnsaliases` SDK allows for interaction with Azure Resource Manager `sql` (API Version `2023-08-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := serverdnsaliases.NewDnsAliasID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "dnsAliasValue")
+id := serverdnsaliases.NewDnsAliasID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "dnsAliasName")
 
 payload := serverdnsaliases.ServerDnsAliasAcquisition{
 	// ...
@@ -42,7 +42,7 @@ if err := client.AcquireThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serverdnsaliases.NewDnsAliasID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "dnsAliasValue")
+id := serverdnsaliases.NewDnsAliasID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "dnsAliasName")
 
 if err := client.CreateOrUpdateThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serverdnsaliases.NewDnsAliasID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "dnsAliasValue")
+id := serverdnsaliases.NewDnsAliasID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "dnsAliasName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -66,7 +66,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := serverdnsaliases.NewDnsAliasID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue", "dnsAliasValue")
+id := serverdnsaliases.NewDnsAliasID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName", "dnsAliasName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -82,7 +82,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverValue")
+id := commonids.NewSqlServerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serverName")
 
 // alternatively `client.ListByServer(ctx, id)` can be used to do batched pagination
 items, err := client.ListByServerComplete(ctx, id)

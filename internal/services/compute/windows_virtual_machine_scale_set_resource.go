@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -19,13 +20,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -57,6 +57,30 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
 		Schema: resourceWindowsVirtualMachineScaleSetSchema(),
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Removing existing zones is currently not supported for Virtual Machine Scale Sets
+			pluginsdk.ForceNewIfChange("zones", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldZones := zones.ExpandUntyped(old.(*schema.Set).List())
+				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
+
+				for _, ov := range oldZones {
+					found := false
+					for _, nv := range newZones {
+						if ov == nv {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						return true
+					}
+				}
+
+				return false
+			}),
+		),
 	}
 }
 
@@ -202,14 +226,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		if galleryApplications := expandVirtualMachineScaleSetGalleryApplications(d.Get("gallery_applications").([]interface{})); galleryApplications != nil {
-			virtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{
-				GalleryApplications: galleryApplications,
-			}
-		}
-	}
-
 	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{})); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{
 			GalleryApplications: galleryApplications,
@@ -240,13 +256,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 		}
 
-		if !features.FourPointOhBeta() {
-			if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
-				virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(v)
-			}
-		} else {
-			virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(v)
-		}
+		virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(v)
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -358,12 +368,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = pointer.To(v.(string))
 	}
 
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("terminate_notification"); ok {
-			virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
-		}
-	}
-
 	if v, ok := d.GetOk("termination_notification"); ok {
 		virtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(v.([]interface{}))
 	}
@@ -407,19 +411,6 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		scaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{
-			Rules:         &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault))},
-			ForceDeletion: pointer.To(false),
-		}
-
-		if v, ok := d.GetOk("scale_in_policy"); ok {
-			scaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(v.(string))}
-		}
-
-		props.Properties.ScaleInPolicy = scaleInPolicy
-
-	}
 	if v, ok := d.GetOk("scale_in"); ok {
 		if v := ExpandVirtualMachineScaleSetScaleInPolicy(v.([]interface{})); v != nil {
 			props.Properties.ScaleInPolicy = v
@@ -524,6 +515,11 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 			automaticOSUpgradeIsEnabled = *policy.AutomaticOSUpgradePolicy.EnableAutomaticOSUpgrade
 		}
 	}
+
+	if d.HasChange("zones") {
+		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
+	}
+
 	if d.HasChange("automatic_os_upgrade_policy") || d.HasChange("rolling_upgrade_policy") {
 		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
 		if existing.Model.Properties.UpgradePolicy == nil {
@@ -703,24 +699,6 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	if d.HasChange("scale_in") {
 		if updateScaleInPolicy := ExpandVirtualMachineScaleSetScaleInPolicy(d.Get("scale_in").([]interface{})); updateScaleInPolicy != nil {
 			updateProps.ScaleInPolicy = updateScaleInPolicy
-		}
-	}
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("scale_in_policy") {
-			updateScaleInPolicy := &virtualmachinescalesets.ScaleInPolicy{}
-
-			if d.HasChange("scale_in_policy") {
-				scaleInPolicy := d.Get("scale_in_policy").(string)
-				updateScaleInPolicy.Rules = &[]virtualmachinescalesets.VirtualMachineScaleSetScaleInRules{virtualmachinescalesets.VirtualMachineScaleSetScaleInRules(scaleInPolicy)}
-			}
-
-			updateProps.ScaleInPolicy = updateScaleInPolicy
-		}
-
-		if d.HasChange("terminate_notification") {
-			notificationRaw := d.Get("terminate_notification").([]interface{})
-			updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 		}
 	}
 
@@ -932,17 +910,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			d.Set("zone_balance", props.ZoneBalance)
 			d.Set("scale_in", FlattenVirtualMachineScaleSetScaleInPolicy(props.ScaleInPolicy))
 
-			if !features.FourPointOhBeta() {
-				rule := string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault)
-				if props.ScaleInPolicy != nil {
-					if rules := props.ScaleInPolicy.Rules; rules != nil && len(*rules) > 0 {
-						rule = string((*rules)[0])
-					}
-				}
-
-				d.Set("scale_in_policy", rule)
-			}
-
 			if props.SpotRestorePolicy != nil {
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
@@ -986,10 +953,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 
 				if profile.ApplicationProfile != nil && profile.ApplicationProfile.GalleryApplications != nil {
 					d.Set("gallery_application", flattenVirtualMachineScaleSetGalleryApplication(profile.ApplicationProfile.GalleryApplications))
-
-					if !features.FourPointOhBeta() {
-						d.Set("gallery_applications", flattenVirtualMachineScaleSetGalleryApplications(profile.ApplicationProfile.GalleryApplications))
-					}
 				}
 
 				// the service just return empty when this is not assigned when provisioned
@@ -1078,14 +1041,6 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 						healthProbeId = *nwProfile.HealthProbe.Id
 					}
 					d.Set("health_probe_id", healthProbeId)
-				}
-
-				if !features.FourPointOhBeta() {
-					if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
-						if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
-							return fmt.Errorf("setting `terminate_notification`: %+v", err)
-						}
-					}
 				}
 
 				if scheduleProfile := profile.ScheduledEventsProfile; scheduleProfile != nil {
@@ -1194,7 +1149,7 @@ func resourceWindowsVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta
 }
 
 func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
-	resourceSchema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1307,13 +1262,7 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"extension_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default: func() interface{} {
-				if !features.FourPointOhBeta() {
-					return nil
-				}
-				return true
-			}(),
-			Computed: !features.FourPointOhBeta(),
+			Default:  true,
 			ForceNew: true,
 		},
 
@@ -1498,31 +1447,11 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": commonschema.ZonesMultipleOptional(),
 
 		"unique_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resourceSchema["gallery_applications"] = VirtualMachineScaleSetGalleryApplicationsSchema()
-		resourceSchema["terminate_notification"] = VirtualMachineScaleSetTerminateNotificationSchema()
-
-		resourceSchema["scale_in_policy"] = &schema.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: !features.FourPointOhBeta(),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-				string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesNewestVM),
-				string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesOldestVM),
-			}, false),
-			Deprecated:    "`scale_in_policy` will be removed in favour of the `scale_in` code block in version 4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"scale_in"},
-		}
-	}
-
-	return resourceSchema
 }

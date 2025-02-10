@@ -579,6 +579,7 @@ TEMPLATE
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func (ResourceGroupTemplateDeploymentResource) inconsistentProviderCasingEmpty(data acceptance.TestData) string {
 	return `
 provider "azurerm" {

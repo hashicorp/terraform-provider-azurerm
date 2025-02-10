@@ -232,7 +232,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** This can only be set to `true` when one or more `zones` are configured.
 
-* `zones` - (Optional) Specifies a list of Availability Zones in which this Linux Virtual Machine Scale Set should be located. Changing this forces a new Linux Virtual Machine Scale Set to be created.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Linux Virtual Machine Scale Set should be located.
+
+-> **Note:** Updating `zones` to remove an existing zone forces a new Virtual Machine Scale Set to be created.
 
 ---
 
@@ -244,7 +246,7 @@ An `additional_capabilities` block supports the following:
 
 An `admin_ssh_key` block supports the following:
 
-* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be at least 2048-bit and in `ssh-rsa` format.
+* `public_key` - (Required) The Public Key which should be used for authentication, which needs to be in `ssh-rsa` format with at least 2048-bit or in `ssh-ed25519` format.
 
 * `username` - (Required) The Username for which this Public SSH Key should be configured.
 

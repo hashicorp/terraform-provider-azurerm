@@ -35,6 +35,7 @@ func (o ListClusterMonitoringUserCredentialsOperationOptions) ToHeaders() *clien
 
 func (o ListClusterMonitoringUserCredentialsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -75,7 +76,6 @@ func (c ManagedClustersClient) ListClusterMonitoringUserCredentials(ctx context.
 
 	var model CredentialResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -13,6 +13,14 @@ var _ OSConfiguration = WindowsConfiguration{}
 type WindowsConfiguration struct {
 
 	// Fields inherited from OSConfiguration
+
+	OsType OSType `json:"osType"`
+}
+
+func (s WindowsConfiguration) OSConfiguration() BaseOSConfigurationImpl {
+	return BaseOSConfigurationImpl{
+		OsType: s.OsType,
+	}
 }
 
 var _ json.Marshaler = WindowsConfiguration{}
@@ -26,9 +34,10 @@ func (s WindowsConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling WindowsConfiguration: %+v", err)
 	}
+
 	decoded["osType"] = "Windows"
 
 	encoded, err = json.Marshal(decoded)

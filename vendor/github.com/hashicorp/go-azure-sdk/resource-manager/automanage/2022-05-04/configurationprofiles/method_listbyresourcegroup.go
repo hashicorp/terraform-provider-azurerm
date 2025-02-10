@@ -47,7 +47,6 @@ func (c ConfigurationProfilesClient) ListByResourceGroup(ctx context.Context, id
 
 	var model ConfigurationProfileList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

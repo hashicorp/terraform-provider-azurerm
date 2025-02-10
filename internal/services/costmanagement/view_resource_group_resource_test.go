@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/views"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/views"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -192,6 +192,10 @@ resource "azurerm_resource_group_cost_management_view" "test" {
 
   dataset {
     granularity = "Daily"
+    aggregation {
+      name        = "totalCost"
+      column_name = "Cost"
+    }
     aggregation {
       name        = "totalCostUSD"
       column_name = "CostUSD"

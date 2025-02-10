@@ -71,7 +71,11 @@ The following arguments are supported:
 
 An `application_insights` block supports the following:
 
-* `instrumentation_key` - (Required) The instrumentation key used to push data to Application Insights.
+* `connection_string` - (Optional) The connection string of Application Insights.
+
+* `instrumentation_key` - (Optional) The instrumentation key used to push data to Application Insights.
+
+~> **Note:** Either `connection_string` or `instrumentation_key` have to be specified.
 
 ---
 

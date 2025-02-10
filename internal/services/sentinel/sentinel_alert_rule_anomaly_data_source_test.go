@@ -56,12 +56,12 @@ func TestAccSentinelAlertRuleAnomalyDataSource_basicWithSingleSelect(t *testing.
 				check.That(data.ResourceName).Key("description").Exists(),
 				check.That(data.ResourceName).Key("enabled").Exists(),
 				check.That(data.ResourceName).Key("frequency").Exists(),
-				check.That(data.ResourceName).Key("required_data_connector.#").HasValue("1"),
+				check.That(data.ResourceName).Key("required_data_connector.#").HasValue("5"),
 				check.That(data.ResourceName).Key("mode").Exists(),
 				check.That(data.ResourceName).Key("settings_definition_id").Exists(),
 				check.That(data.ResourceName).Key("tactics.#").HasValue("1"),
-				check.That(data.ResourceName).Key("techniques.#").HasValue("2"),
-				check.That(data.ResourceName).Key("single_select_observation.#").HasValue("2"),
+				check.That(data.ResourceName).Key("techniques.#").HasValue("1"),
+				check.That(data.ResourceName).Key("single_select_observation.#").HasValue("1"),
 			),
 		},
 	})
@@ -138,7 +138,7 @@ func (SentinelAlertRuleAnomalyDataSource) basic_withSingleSelect(data acceptance
 
 data "azurerm_sentinel_alert_rule_anomaly" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "Suspicious geography change in Palo Alto GlobalProtect account logins"
+  display_name               = "Unusual network volume anomaly"
 }
 `, SecurityInsightsSentinelOnboardingStateResource{}.basic(data))
 }

@@ -15,7 +15,7 @@ type ElasticPoolsClient struct {
 }
 
 func NewElasticPoolsClientWithBaseURI(sdkApi sdkEnv.Api) (*ElasticPoolsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "elasticpools", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "elasticpools", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ElasticPoolsClient: %+v", err)
 	}

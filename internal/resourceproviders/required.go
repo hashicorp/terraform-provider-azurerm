@@ -199,7 +199,6 @@ func Legacy() ResourceProviders {
 		"Microsoft.Sql":                     {},
 		"Microsoft.Storage":                 {},
 		"Microsoft.StreamAnalytics":         {},
-		"Microsoft.TimeSeriesInsights":      {},
 		"Microsoft.Web":                     {},
 		"microsoft.insights":                {},
 	}

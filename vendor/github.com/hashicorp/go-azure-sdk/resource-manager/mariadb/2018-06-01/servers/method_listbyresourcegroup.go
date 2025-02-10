@@ -47,7 +47,6 @@ func (c ServersClient) ListByResourceGroup(ctx context.Context, id commonids.Res
 
 	var model ServerListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

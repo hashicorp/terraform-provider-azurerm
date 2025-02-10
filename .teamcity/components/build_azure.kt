@@ -42,6 +42,5 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.ARM_TEST_LOCATION", locationsForEnv.primary, "The Primary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT", locationsForEnv.secondary, "The Secondary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT2", locationsForEnv.tertiary, "The Tertiary region which should be used for testing")
-    hiddenVariable("env.ARM_THREEPOINTZERO_BETA", "true", "Opt into the use of 3.0 beta resources")
-    hiddenVariable("env.ARM_FOURPOINTZERO_BETA", "true", "Opt into the use of 4.0 beta resources")
+    hiddenVariable("env.ARM_FIVEPOINTZERO_BETA", "false", "Opt into the 5.0 beta")
 }

@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments` Documentation
 
-The `policyassignments` SDK allows for interaction with the Azure Resource Manager Service `resources` (API Version `2022-06-01`).
+The `policyassignments` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2022-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentValue")
+id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentName")
 
 payload := policyassignments.PolicyAssignment{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewPolicyAssignmentIdID("policyAssignmentIdValue")
+id := policyassignments.NewPolicyAssignmentIdID("policyAssignmentId")
 
 payload := policyassignments.PolicyAssignment{
 	// ...
@@ -67,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentValue")
+id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -83,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewPolicyAssignmentIdID("policyAssignmentIdValue")
+id := policyassignments.NewPolicyAssignmentIdID("policyAssignmentId")
 
 read, err := client.DeleteById(ctx, id)
 if err != nil {
@@ -99,7 +99,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentValue")
+id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -115,7 +115,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewPolicyAssignmentIdID("policyAssignmentIdValue")
+id := policyassignments.NewPolicyAssignmentIdID("policyAssignmentId")
 
 read, err := client.GetById(ctx, id)
 if err != nil {
@@ -148,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewManagementGroupID("groupIdValue")
+id := commonids.NewManagementGroupID("groupId")
 
 // alternatively `client.ListForManagementGroup(ctx, id, policyassignments.DefaultListForManagementGroupOperationOptions())` can be used to do batched pagination
 items, err := client.ListForManagementGroupComplete(ctx, id, policyassignments.DefaultListForManagementGroupOperationOptions())
@@ -199,7 +199,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentValue")
+id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentName")
 
 payload := policyassignments.PolicyAssignmentUpdate{
 	// ...
@@ -220,7 +220,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := policyassignments.NewPolicyAssignmentIdID("policyAssignmentIdValue")
+id := policyassignments.NewPolicyAssignmentIdID("policyAssignmentId")
 
 payload := policyassignments.PolicyAssignmentUpdate{
 	// ...

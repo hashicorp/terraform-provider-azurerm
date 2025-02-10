@@ -44,7 +44,7 @@ func ParseDevBoxDefinitionID(input string) (*DevBoxDefinitionId, error) {
 	}
 
 	id := DevBoxDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseDevBoxDefinitionIDInsensitively(input string) (*DevBoxDefinitionId, er
 	}
 
 	id := DevBoxDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id DevBoxDefinitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevCenter", "Microsoft.DevCenter", "Microsoft.DevCenter"),
 		resourceids.StaticSegment("staticProjects", "projects", "projects"),
-		resourceids.UserSpecifiedSegment("projectName", "projectValue"),
+		resourceids.UserSpecifiedSegment("projectName", "projectName"),
 		resourceids.StaticSegment("staticDevBoxDefinitions", "devBoxDefinitions", "devBoxDefinitions"),
-		resourceids.UserSpecifiedSegment("devBoxDefinitionName", "devBoxDefinitionValue"),
+		resourceids.UserSpecifiedSegment("devBoxDefinitionName", "devBoxDefinitionName"),
 	}
 }
 

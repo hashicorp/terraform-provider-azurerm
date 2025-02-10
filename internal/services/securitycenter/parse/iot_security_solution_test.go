@@ -27,7 +27,6 @@ func TestIotSecuritySolutionID(t *testing.T) {
 		Error    bool
 		Expected *IotSecuritySolutionId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -120,7 +119,6 @@ func TestIotSecuritySolutionIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *IotSecuritySolutionId
 	}{
-
 		{
 			// empty
 			Input: "",

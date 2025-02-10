@@ -5,6 +5,7 @@ package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -116,7 +117,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 					return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
 				}
 			} else {
-				return fmt.Errorf(optedOutOfRecoveringSoftDeletedBackupProtectedVMFmt(parsedVmId.ID(), vaultName))
+				return errors.New(optedOutOfRecoveringSoftDeletedBackupProtectedVMFmt(parsedVmId.ID(), vaultName))
 			}
 		}
 
@@ -356,7 +357,9 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	if meta.(*clients.Client).Features.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy {
+	features := meta.(*clients.Client).Features.RecoveryService
+
+	if features.VMBackupStopProtectionAndRetainDataOnDestroy || features.VMBackupSuspendProtectionAndRetainDataOnDestroy {
 		log.Printf("[DEBUG] Retaining Data and Stopping Protection for %s", id)
 
 		existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
@@ -369,19 +372,24 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 			return fmt.Errorf("making Read request on %s: %+v", id, err)
 		}
 
+		desiredState := protecteditems.ProtectionStateProtectionStopped
+		if features.VMBackupSuspendProtectionAndRetainDataOnDestroy {
+			desiredState = protecteditems.ProtectionStateBackupsSuspended
+		}
+
 		if model := existing.Model; model != nil {
 			if properties := model.Properties; properties != nil {
 				if vm, ok := properties.(protecteditems.AzureIaaSComputeVMProtectedItem); ok {
 					updateInput := protecteditems.ProtectedItemResource{
 						Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-							ProtectionState:  pointer.To(protecteditems.ProtectionStateProtectionStopped),
+							ProtectionState:  pointer.To(desiredState),
 							SourceResourceId: vm.SourceResourceId,
 						},
 					}
 
 					resp, err := client.CreateOrUpdate(ctx, *id, updateInput)
 					if err != nil {
-						return fmt.Errorf("stopping protection and retaining data for %s: %+v", id, err)
+						return fmt.Errorf("setting protection to %s and retaining data for %s: %+v", desiredState, id, err)
 					}
 
 					operationId, err := parseBackupOperationId(resp.HttpResponse)
@@ -414,7 +422,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 	}
 
 	if err = resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, client, opResultClient, *id, operationId); err != nil {
-		return err
+		return fmt.Errorf("waiting for deletion %s: %+v", id, err)
 	}
 
 	return nil
@@ -441,8 +449,7 @@ func resourceRecoveryServicesBackupProtectedVMWaitForStateCreateUpdate(ctx conte
 		},
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 

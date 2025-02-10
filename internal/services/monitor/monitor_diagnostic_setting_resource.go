@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	authRuleParse "github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -110,7 +110,6 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"enabled_log": {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
-				Computed:     !features.FourPointOhBeta(),
 				AtLeastOneOf: []string{"enabled_log", "metric"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -195,62 +194,6 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 		},
 	}
-	if !features.FourPointOhBeta() {
-		resource.Schema["log"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeSet,
-			Optional:     true,
-			Computed:     true,
-			AtLeastOneOf: []string{"enabled_log", "log", "metric"},
-			Deprecated:   "`log` has been superseded by `enabled_log` and will be removed in version 4.0 of the AzureRM Provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"category": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"category_group": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  true,
-					},
-
-					"retention_policy": {
-						Type:       pluginsdk.TypeList,
-						Optional:   true,
-						MaxItems:   1,
-						Deprecated: "`retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more https://aka.ms/diagnostic_settings_log_retention",
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Required: true,
-								},
-
-								"days": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									ValidateFunc: validation.IntAtLeast(0),
-								},
-							},
-						},
-					},
-				},
-			},
-			Set: resourceMonitorDiagnosticLogSettingHash,
-		}
-
-		resource.Schema["metric"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
-		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "log", "metric"}
-		resource.Schema["enabled_log"].ConflictsWith = []string{"log"}
-	}
 
 	return resource
 }
@@ -280,23 +223,6 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 
 	var logs []diagnosticsettings.LogSettings
 	hasEnabledLogs := false
-	if !features.FourPointOhBeta() {
-		logsRaw, ok := d.GetOk("log")
-		if ok && len(logsRaw.(*pluginsdk.Set).List()) > 0 {
-			expendLogs, err := expandMonitorDiagnosticsSettingsLogs(logsRaw.(*pluginsdk.Set).List())
-			if err != nil {
-				return fmt.Errorf("expanding log: %+v", err)
-			}
-			logs = *expendLogs
-			for _, v := range logs {
-				if v.Enabled {
-					hasEnabledLogs = true
-					break
-				}
-			}
-		}
-	}
-
 	if enabledLogs, ok := d.GetOk("enabled_log"); ok {
 		enabledLogsList := enabledLogs.(*pluginsdk.Set).List()
 		if len(enabledLogsList) > 0 {
@@ -411,23 +337,6 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	var logs []diagnosticsettings.LogSettings
 	hasEnabledLogs := false
 	logChanged := false
-	if !features.FourPointOhBeta() {
-		if d.HasChange("log") {
-			logChanged = true
-			logsRaw := d.Get("log").(*pluginsdk.Set).List()
-			expandLogs, err := expandMonitorDiagnosticsSettingsLogs(logsRaw)
-			if err != nil {
-				return fmt.Errorf("expanding log: %+v", err)
-			}
-			logs = *expandLogs
-			for _, v := range logs {
-				if v.Enabled {
-					hasEnabledLogs = true
-					break
-				}
-			}
-		}
-	}
 
 	if d.HasChange("enabled_log") {
 		enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
@@ -535,7 +444,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("eventhub_name", props.EventHubName)
 			eventhubAuthorizationRuleId := ""
 			if props.EventHubAuthorizationRuleId != nil && *props.EventHubAuthorizationRuleId != "" {
-				authRuleId := utils.NormalizeNilableString(props.EventHubAuthorizationRuleId)
+				authRuleId := pointer.From(props.EventHubAuthorizationRuleId)
 				parsedId, err := authRuleParse.ParseAuthorizationRuleIDInsensitively(authRuleId)
 				if err != nil {
 					return err
@@ -555,21 +464,17 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 			d.Set("log_analytics_workspace_id", workspaceId)
 
-			storageAccountId := ""
 			if props.StorageAccountId != nil && *props.StorageAccountId != "" {
 				parsedId, err := commonids.ParseStorageAccountIDInsensitively(*props.StorageAccountId)
 				if err != nil {
 					return err
 				}
 
-				storageAccountId = parsedId.ID()
-				d.Set("storage_account_id", storageAccountId)
+				d.Set("storage_account_id", parsedId.ID())
 			}
 
-			partnerSolutionId := ""
 			if props.MarketplacePartnerId != nil && *props.MarketplacePartnerId != "" {
-				partnerSolutionId = *props.MarketplacePartnerId
-				d.Set("partner_solution_id", partnerSolutionId)
+				d.Set("partner_solution_id", props.MarketplacePartnerId)
 			}
 
 			logAnalyticsDestinationType := ""
@@ -581,12 +486,6 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			enabledLogs := flattenMonitorDiagnosticEnabledLogs(resp.Model.Properties.Logs)
 			if err = d.Set("enabled_log", enabledLogs); err != nil {
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
-			}
-
-			if !features.FourPointOhBeta() {
-				if err = d.Set("log", flattenMonitorDiagnosticLogs(resp.Model.Properties.Logs)); err != nil {
-					return fmt.Errorf("setting `log`: %+v", err)
-				}
 			}
 
 			if err := d.Set("metric", flattenMonitorDiagnosticMetrics(resp.Model.Properties.Metrics)); err != nil {
@@ -652,46 +551,6 @@ func monitorDiagnosticSettingRefreshFunc(ctx context.Context, client *diagnostic
 	}
 }
 
-func expandMonitorDiagnosticsSettingsLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
-	results := make([]diagnosticsettings.LogSettings, 0)
-
-	for _, raw := range input {
-		v := raw.(map[string]interface{})
-
-		category := v["category"].(string)
-		categoryGroup := v["category_group"].(string)
-		enabled := v["enabled"].(bool)
-		policiesRaw := v["retention_policy"].([]interface{})
-		var retentionPolicy *diagnosticsettings.RetentionPolicy
-		if len(policiesRaw) != 0 {
-			policyRaw := policiesRaw[0].(map[string]interface{})
-			retentionDays := policyRaw["days"].(int)
-			retentionEnabled := policyRaw["enabled"].(bool)
-			retentionPolicy = &diagnosticsettings.RetentionPolicy{
-				Days:    int64(retentionDays),
-				Enabled: retentionEnabled,
-			}
-		}
-
-		output := diagnosticsettings.LogSettings{
-			Enabled:         enabled,
-			RetentionPolicy: retentionPolicy,
-		}
-		switch {
-		case category != "":
-			output.Category = utils.String(category)
-		case categoryGroup != "":
-			output.CategoryGroup = utils.String(categoryGroup)
-		default:
-			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
-		}
-
-		results = append(results, output)
-	}
-
-	return &results, nil
-}
-
 func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagnosticsettings.LogSettings, error) {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
@@ -730,45 +589,6 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 	}
 
 	return &results, nil
-}
-
-func flattenMonitorDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, v := range *input {
-		output := make(map[string]interface{})
-
-		if v.Category != nil {
-			output["category"] = *v.Category
-		}
-
-		if v.CategoryGroup != nil {
-			output["category_group"] = *v.CategoryGroup
-		}
-
-		output["enabled"] = v.Enabled
-
-		policies := make([]interface{}, 0)
-
-		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			outputPolicy := make(map[string]interface{})
-
-			outputPolicy["days"] = int(inputPolicy.Days)
-
-			outputPolicy["enabled"] = inputPolicy.Enabled
-
-			policies = append(policies, outputPolicy)
-		}
-
-		output["retention_policy"] = policies
-
-		results = append(results, output)
-	}
-
-	return results
 }
 
 func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings) []interface{} {

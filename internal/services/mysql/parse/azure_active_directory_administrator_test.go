@@ -27,7 +27,6 @@ func TestAzureActiveDirectoryAdministratorID(t *testing.T) {
 		Error    bool
 		Expected *AzureActiveDirectoryAdministratorId
 	}{
-
 		{
 			// empty
 			Input: "",

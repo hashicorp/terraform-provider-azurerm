@@ -16,11 +16,24 @@ type ScheduledAlertRule struct {
 	Properties *ScheduledAlertRuleProperties `json:"properties,omitempty"`
 
 	// Fields inherited from AlertRule
+
 	Etag       *string                `json:"etag,omitempty"`
 	Id         *string                `json:"id,omitempty"`
+	Kind       AlertRuleKind          `json:"kind"`
 	Name       *string                `json:"name,omitempty"`
 	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
 	Type       *string                `json:"type,omitempty"`
+}
+
+func (s ScheduledAlertRule) AlertRule() BaseAlertRuleImpl {
+	return BaseAlertRuleImpl{
+		Etag:       s.Etag,
+		Id:         s.Id,
+		Kind:       s.Kind,
+		Name:       s.Name,
+		SystemData: s.SystemData,
+		Type:       s.Type,
+	}
 }
 
 var _ json.Marshaler = ScheduledAlertRule{}
@@ -34,9 +47,10 @@ func (s ScheduledAlertRule) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ScheduledAlertRule: %+v", err)
 	}
+
 	decoded["kind"] = "Scheduled"
 
 	encoded, err = json.Marshal(decoded)

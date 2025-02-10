@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants` Documentation
 
-The `tenants` SDK allows for interaction with the Azure Resource Manager Service `aadb2c` (API Version `2021-04-01-preview`).
+The `tenants` SDK allows for interaction with Azure Resource Manager `aadb2c` (API Version `2021-04-01-preview`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 

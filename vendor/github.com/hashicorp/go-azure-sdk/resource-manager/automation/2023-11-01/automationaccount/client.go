@@ -15,7 +15,7 @@ type AutomationAccountClient struct {
 }
 
 func NewAutomationAccountClientWithBaseURI(sdkApi sdkEnv.Api) (*AutomationAccountClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "automationaccount", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "automationaccount", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AutomationAccountClient: %+v", err)
 	}

@@ -47,7 +47,6 @@ func (c AppServiceEnvironmentsClient) ListOperations(ctx context.Context, id com
 
 	var model []Operation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

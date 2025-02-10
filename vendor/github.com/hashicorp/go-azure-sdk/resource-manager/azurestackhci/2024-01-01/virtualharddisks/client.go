@@ -15,7 +15,7 @@ type VirtualHardDisksClient struct {
 }
 
 func NewVirtualHardDisksClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualHardDisksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualharddisks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualharddisks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualHardDisksClient: %+v", err)
 	}

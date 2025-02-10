@@ -26,15 +26,15 @@ func importDataConnection(kind string) pluginsdk.ImporterFunc {
 		}
 
 		if dataConnection.Model != nil {
-			if dataCon, ok := (*dataConnection.Model).(dataconnections.EventHubDataConnection); ok && kind != "EventHub" {
+			if dataCon, ok := dataConnection.Model.(dataconnections.EventHubDataConnection); ok && kind != "EventHub" {
 				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
 			}
 
-			if dataCon, ok := (*dataConnection.Model).(dataconnections.IotHubDataConnection); ok && kind != "IotHub" {
+			if dataCon, ok := dataConnection.Model.(dataconnections.IotHubDataConnection); ok && kind != "IotHub" {
 				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
 			}
 
-			if dataCon, ok := (*dataConnection.Model).(dataconnections.EventGridDataConnection); ok && kind != "EventGrid" {
+			if dataCon, ok := dataConnection.Model.(dataconnections.EventGridDataConnection); ok && kind != "EventGrid" {
 				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
 			}
 		}

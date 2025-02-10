@@ -15,7 +15,7 @@ type DesktopClient struct {
 }
 
 func NewDesktopClientWithBaseURI(sdkApi sdkEnv.Api) (*DesktopClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "desktop", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "desktop", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DesktopClient: %+v", err)
 	}

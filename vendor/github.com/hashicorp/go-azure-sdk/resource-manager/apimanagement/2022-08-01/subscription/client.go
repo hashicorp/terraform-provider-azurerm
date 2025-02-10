@@ -15,7 +15,7 @@ type SubscriptionClient struct {
 }
 
 func NewSubscriptionClientWithBaseURI(sdkApi sdkEnv.Api) (*SubscriptionClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "subscription", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "subscription", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SubscriptionClient: %+v", err)
 	}

@@ -98,9 +98,6 @@ func userAgent(userAgent, tfVersion, partnerID string, disableTerraformPartnerID
 	tfUserAgent := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io)", tfVersion)
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
-	if features.FourPointOhBeta() {
-		providerUserAgent = fmt.Sprintf("%s terraform-provider-azurerm/%s+4.0-beta", tfUserAgent, version.ProviderVersion)
-	}
 	userAgent = strings.TrimSpace(fmt.Sprintf("%s %s", userAgent, providerUserAgent))
 
 	// append the CloudShell version to the user agent if it exists

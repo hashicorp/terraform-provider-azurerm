@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -752,6 +752,7 @@ resource "azurerm_public_ip" "test" {
   allocation_method       = "Static"
   sku                     = "Basic"
   domain_name_label       = "acctest-%d"
+  domain_name_label_scope = "TenantReuse"
   idle_timeout_in_minutes = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -894,7 +895,7 @@ resource "azurerm_public_ip" "test" {
   sku               = "Basic"
   domain_name_label = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, strings.ToLower(data.RandomStringOfLength(63)))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, fmt.Sprintf("test%s", strings.ToLower(data.RandomStringOfLength(59)))) // prepend with test (4+59) to ensure the string starts with a letter
 }
 
 func (PublicIPResource) standard_IpTags(data acceptance.TestData) string {
