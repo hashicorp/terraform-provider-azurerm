@@ -236,6 +236,26 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `logging_storage_account` block has been removed.
 * The deprecated `managed_resource_group` property has been removed.
 
+### `azurerm_servicebus_namespace_disaster_recovery_config`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+
+### `azurerm_servicebus_queue`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+* The deprecated `enable_express` property has been removed in favour of the `express_enabled` property.
+* The deprecated `enable_partitioning` property has been removed in favour of the `partitioning_enabled` property.
+
+### `azurerm_servicebus_subscription`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+* The deprecated `topic_name` property has been removed.
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+
 ### `azurerm_storage_container`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.

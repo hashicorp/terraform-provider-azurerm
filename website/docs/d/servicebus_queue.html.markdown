@@ -45,11 +45,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `duplicate_detection_history_time_window` - The ISO 8601 timespan duration during which duplicates can be detected.
 
-* `enable_batched_operations` - Boolean flag which controls whether server-side batched operations are enabled.
+* `batched_operations_enabled` - Boolean flag which controls whether server-side batched operations are enabled.
 
-* `enable_express` - Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage.
+* `express_enabled` - Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage.
 
-* `enable_partitioning` - Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers.
+* `partitioning_enabled` - Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers.
 
 * `forward_dead_lettered_messages_to` - The name of a Queue or Topic to automatically forward dead lettered messages to.
 
