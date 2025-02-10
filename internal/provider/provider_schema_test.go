@@ -183,11 +183,6 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 			"recommendations_enabled": {},
 		},
 	}
-	/* these fields should be look at post 4.0
-	if features.FourPointOhBeta() {
-		resourceFieldsWhichNeedToBeAddressed = map[string]map[string]struct{}{}
-	}
-	*/
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -329,12 +324,6 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 		},
 	}
 
-	/* these fields should be look at post 4.0
-	if features.FourPointOhBeta() {
-		resourceFieldsWhichNeedToBeAddressed = map[string]map[string]struct{}{}
-	}
-	*/
-
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
 		fieldsToBeAddressed := resourceFieldsWhichNeedToBeAddressed[resourceName]
@@ -444,12 +433,6 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 		"azurerm_snapshot":               {},
 		"azurerm_load_test":              {},
 	}
-
-	/* these fields should be look at post 4.0
-	if features.FourPointOhBeta() {
-		resourcesWhichNeedToBeAddressed = map[string]struct{}{}
-	}
-	*/
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
@@ -561,9 +544,6 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 		"azurerm_log_analytics_workspace": {},
 		"azurerm_search_service":          {},
 	}
-	/*if features.FourPointOhBeta() {
-		resourcesWhichNeedToBeAddressed = map[string]struct{}{}
-	}*/
 
 	for _, resourceName := range resourceNames {
 		resource := provider.ResourcesMap[resourceName]
