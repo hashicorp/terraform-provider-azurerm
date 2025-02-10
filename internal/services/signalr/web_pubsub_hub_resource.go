@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -95,12 +94,9 @@ func resourceWebPubSubHub() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"managed_identity_id": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.Any(
-											validation.IsUUID,
-											commonids.ValidateUserAssignedIdentityID,
-										),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
