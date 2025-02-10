@@ -29,12 +29,15 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		// todo: decide if this needs a data source
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		EventGridNamespaceResource{},
+		EventGridPartnerConfigurationResource{},
 	}
 }
 
