@@ -230,7 +230,7 @@ func TestAccServiceBusTopic_nonPartitionedPremiumNamespaceError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.nonPartitionedPremiumNamespaceError(data),
-			ExpectError: regexp.MustCompile("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation"),
+			ExpectError: regexp.MustCompile("topic partitioning is only available if the parent namespace is partitioned"),
 		},
 	})
 }
@@ -242,7 +242,7 @@ func TestAccServiceBusTopic_partitionedPremiumNamespace(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.PremiumNamespacePartitioned(data, false),
-			ExpectError: regexp.MustCompile("non-partitioned entities are not allowed in partitioned namespace"),
+			ExpectError: regexp.MustCompile("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned"),
 		},
 		{
 			Config: r.PremiumNamespacePartitioned(data, true),

@@ -218,7 +218,7 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		if isPremiumNamespacePartitioned && !enablePartitioning {
 			return fmt.Errorf("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned")
 		} else if !isPremiumNamespacePartitioned && enablePartitioning {
-			return fmt.Errorf("the parent premium namespace is not partitioned and the partitioning for premium namespace is only available at the namepsace creation")
+			return fmt.Errorf("topic partitioning is only available if the parent namespace is partitioned")
 		}
 	}
 
