@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -77,6 +78,21 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				oSku, nSku := diff.GetChange("sku_name")
+
+				if oSku != "" {
+					if oSku.(string) == string(profiles.SkuNamePremiumAzureFrontDoor) && nSku.(string) == string(profiles.SkuNameStandardAzureFrontDoor) {
+						return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", profiles.SkuNamePremiumAzureFrontDoor, profiles.SkuNameStandardAzureFrontDoor, nSku.(string))
+					}
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 

@@ -6,6 +6,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -127,7 +128,7 @@ func TestAccCdnFrontDoorProfile_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfileWithSystemIdentity_update(t *testing.T) {
+func TestAccCdnFrontDoorProfile_withSystemIdentity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -158,7 +159,7 @@ func TestAccCdnFrontDoorProfileWithSystemIdentity_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfileWithUserIdentity_update(t *testing.T) {
+func TestAccCdnFrontDoorProfile_withUserIdentity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -189,7 +190,7 @@ func TestAccCdnFrontDoorProfileWithUserIdentity_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfileWithSystemAndUserIdentity_update(t *testing.T) {
+func TestAccCdnFrontDoorProfile_withSystemAndUserIdentity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -217,6 +218,24 @@ func TestAccCdnFrontDoorProfileWithSystemAndUserIdentity_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorProfile_skuDowngradeError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicPremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.basic(data),
+			ExpectError: regexp.MustCompile(`downgrading from the "Premium_AzureFrontDoor" sku to the "Standard_AzureFrontDoor" sku is not supported`),
+		},
 	})
 }
 
@@ -250,6 +269,23 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorProfileResource) basicPremium(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestprofile-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
 }
 `, template, data.RandomInteger)
 }
