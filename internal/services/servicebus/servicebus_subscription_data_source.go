@@ -148,10 +148,12 @@ func dataSourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interf
 		rgName = topicId.ResourceGroupName
 		nsName = topicId.NamespaceName
 		topicName = topicId.TopicName
-	} else {
-		rgName = d.Get("resource_group_name").(string)
-		nsName = d.Get("namespace_name").(string)
-		topicName = d.Get("topic_name").(string)
+
+		if !features.FivePointOh() && topicId.SubscriptionId == "" {
+			rgName = d.Get("resource_group_name").(string)
+			nsName = d.Get("namespace_name").(string)
+			topicName = d.Get("topic_name").(string)
+		}
 	}
 
 	id := subscriptions.NewSubscriptions2ID(subscriptionId, rgName, nsName, topicName, d.Get("name").(string))
