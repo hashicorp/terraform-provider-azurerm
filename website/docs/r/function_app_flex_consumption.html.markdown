@@ -1,16 +1,14 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_linux_function_app"
+page_title: "Azure Resource Manager: azurerm_function_app_flex_consumption"
 description: |-
-  Manages a Linux Function App.
+  Manages a Function App Running on a Flex Consumption Plan.
 ---
 
-# azurerm_linux_function_app
+# azurerm_function_app_flex_consumption
 
-Manages a Linux Function App.
-
--> **Note:** This Terraform resource is specifically designed to provision the infrastructure for a Function App, which can host one or more individual functions. To package and deploy application code to the Function App, tools like [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) or Azure CLI can be utilized, however application code deployment must typically be performed individually for each Function App.
+Manages a Function App Running on a Flex Consumption Plan.
 
 ## Example Usage
 
@@ -25,31 +23,40 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "linuxfunctionappsa"
+  name                     = "examplelinuxfunctionappsa"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
+resource "azurerm_storage_container" "example" {
+  name                  = "example-flexcontainer"
+  storage_account_id    = azurerm_storage_account.example.id
+  container_access_type = "private"
+}
+
 resource "azurerm_service_plan" "example" {
   name                = "example-app-service-plan"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+  sku_name            = "FC1"
   os_type             = "Linux"
-  sku_name            = "B1"
 }
 
-resource "azurerm_linux_function_app" "example" {
+resource "azurerm_function_app_flex_consumption" "example" {
   name                = "example-linux-function-app"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  storage_account_name       = azurerm_storage_account.example.name
-  storage_account_access_key = azurerm_storage_account.example.primary_access_key
-  service_plan_id            = azurerm_service_plan.example.id
-
-  site_config {}
+  storage_container_type      = "blobContainer"
+  storage_container_endpoint  = azurerm_storage_container.example.id
+  storage_authentication_type = "StorageAccountConnectionString"
+  storage_access_key          = azurerm_storage_account.example.primary_access_key
+  runtime_name                = "node"
+  runtime_version             = "20"
+  maximum_instance_count      = 50
+  instance_memory_in_mb       = 2048
 }
 ```
 
@@ -57,41 +64,33 @@ resource "azurerm_linux_function_app" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Linux Function App should exist. Changing this forces a new Linux Function App to be created.
+* `location` - (Required) The Azure Region where the Function App should exist. Changing this forces a new Function App to be created.
 
-* `name` - (Required) The name which should be used for this Linux Function App. Changing this forces a new Linux Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
+* `name` - (Required) The name which should be used for this Function App. Changing this forces a new Function App to be created. Limit the function name to 32 characters to avoid naming collisions. For more information about [Function App naming rule](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules#microsoftweb) and [Host ID Collisions](https://github.com/Azure/azure-functions-host/wiki/Host-IDs#host-id-collisions)
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Linux Function App should exist. Changing this forces a new Linux Function App to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Function App should exist. Changing this forces a new Linux Function App to be created.
 
 * `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `flex_function_app_deployment` - (Optional) A `flex_consumption_app_deployment` block as defined below.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **Note:** For runtime related settings, please use `node_version` in `site_config` to set the node version and use `functions_extension_version` to set the function runtime version, terraform will assign the values to the key `WEBSITE_NODE_DEFAULT_VERSION` and `FUNCTIONS_EXTENSION_VERSION` in app setting.
+~> **NOTE:** For storage related settings, please use related properties that are available such as `storage_account_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
 
-~> **Note:** For storage related settings, please use related properties that are available such as `storage_account_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
+~> **NOTE:** For application insight related settings, please use `application_insights_connection_string` and `application_insights_key`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
 
-~> **Note:** For application insight related settings, please use `application_insights_connection_string` and `application_insights_key`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
+~> **NOTE:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
 
-~> **Note:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
-
-~> **Note:** Please create a predefined share if you are restricting your storage account to a virtual network by setting `WEBSITE_CONTENTOVERVNET` to 1 in app_setting.
+~> **NOTE:** For those app settings that are deprecated or replaced by another properties for flex consumption function app, please check https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `auth_settings_v2` - (Optional) An `auth_settings_v2` block as defined below.
 
 * `backup` - (Optional) A `backup` block as defined below.
-
-* `builtin_logging_enabled` - (Optional) Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting. Defaults to `true`.
-
-~> **Note:** `builtin_logging_enabled` is only supported for function app whose function runtime is running on version 1.x. Please don't use it for function app running on flex consumption plan.
 
 * `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
 
@@ -107,10 +106,6 @@ The following arguments are supported:
 
 * `content_share_force_disabled` - (Optional) Should the settings for linking the Function App to storage be suppressed.
 
-* `functions_extension_version` - (Optional) The runtime version associated with the Function App. Defaults to `~4`.
-
-* `ftp_publish_basic_authentication_enabled` - (Optional) Should the default FTP Basic Authentication publishing profile be enabled. Defaults to `true`. 
-
 * `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
@@ -119,23 +114,29 @@ The following arguments are supported:
 
 * `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
-* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
-
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
-* `storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `storage_uses_managed_identity`.
+* `storage_container_type` - (Optional) The storage container type used for the Function App. The current supported type is `blobContainer`.
 
-* `storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
+* `storage_container_endpoint` - (Optional) The backend storage container endpoint which will be used by this Function App.
 
-* `storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
+* `storage_authentication_type` - (Optional) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `storageaccountconnectionstring`, `systemassignedidentity`, and `userassignedidentity`.
 
-~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
+* `storage_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
 
-* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
+~> **NOTE:** The`storage_access_key` must be specified when `storage_authentication_type` sets to `storageaccountconnectionstring`.
 
-~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
+* `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
+~> **NOTE:** The`storage_user_assigned_identity_id` must be specified when `storage_authentication_type` sets to `userassignedidentity`.
+
+* `runtime_name` - (Optional) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
+
+* `runtime_version` - (Optional) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
+
+* `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
+
+* `instance_memory_in_mb` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
@@ -143,11 +144,7 @@ The following arguments are supported:
 
 ~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
 
-~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
-
-* `vnet_image_pull_enabled` - (Optional) Should the traffic for the image pull be routed over virtual network enabled. Defaults to `false`.
-
-~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.
+~> **NOTE:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
@@ -155,7 +152,7 @@ The following arguments are supported:
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
-~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+~> **NOTE:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
 
 ---
 
@@ -165,33 +162,11 @@ An `active_directory` block supports the following:
 
 * `allowed_audiences` - (Optional) Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
 
-~> **Note:** The `client_id` value is always considered an allowed audience.
+~> **NOTE:** The `client_id` value is always considered an allowed audience.
 
 * `client_secret` - (Optional) The Client Secret for the Client ID. Cannot be used with `client_secret_setting_name`.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client. Cannot be used with `client_secret`.
-
----
-
-A `application_stack` block supports the following:
-
-* `docker` - (Optional) One or more `docker` blocks as defined below.
-
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6.0`, `7.0`, `8.0` and `9.0`.
-
-* `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
-
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11`, `17`, `21`.
-
-~> **NOTE:** The value `21` is currently in Preview for `java_version`.
-
-* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18` `20` and `22`.
-
-* `python_version` - (Optional) The version of Python to run. Possible values are `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
-
-* `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, `7.2`, and `7.4`.
-
-* `use_custom_runtime` - (Optional) Should the Linux Function App use a custom runtime?
 
 ---
 
@@ -251,7 +226,7 @@ An `auth_settings_v2` block supports the following:
 
 * `config_file_path` - (Optional) The path to the App Auth settings.
 
-~> **Note:** Relative Paths are evaluated from the Site Root directory.
+~> **NOTE:** Relative Paths are evaluated from the Site Root directory.
 
 * `require_authentication` - (Optional) Should the authentication flow be used for all requests.
 
@@ -461,7 +436,7 @@ A `login` block supports the following:
 
 * `allowed_external_redirect_urls` - (Optional) External URLs that can be redirected to as part of logging in or logging out of the app. This is an advanced setting typically only needed by Windows Store application backends.
 
-~> **Note:** URLs within the current domain are always implicitly allowed.
+~> **NOTE:** URLs within the current domain are always implicitly allowed.
 
 * `cookie_expiration_convention` - (Optional) The method by which cookies expire. Possible values include: `FixedTime`, and `IdentityProviderDerived`. Defaults to `FixedTime`.
 
@@ -500,24 +475,6 @@ A `cors` block supports the following:
 * `allowed_origins` - (Optional) Specifies a list of origins that should be allowed to make cross-origin calls.
 
 * `support_credentials` - (Optional) Are credentials allowed in CORS requests? Defaults to `false`.
-
----
-
-A `docker` block supports the following:
-
-* `registry_url` - (Required) The URL of the docker registry.
-
-* `image_name` - (Required) The name of the Docker image to use.
-
-* `image_tag` - (Required) The image tag of the image to use.
-
-* `registry_username` - (Optional) The username to use for connections to the registry.
-
-~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
-
-* `registry_password` - (Optional) The password for the account to use to connect to the registry.
-
-~> **NOTE:** This value is required if `container_registry_use_managed_identity` is not set to `true`.
 
 ---
 
@@ -655,25 +612,15 @@ A `scm_ip_restriction` block supports the following:
 
 A `site_config` block supports the following:
 
-* `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `false`.
-
-~> **NOTE:** when running in a Consumption or Premium Plan, `always_on` feature should be turned off. Please turn it off before upgrading the service plan from standard to premium.
-
 * `api_definition_url` - (Optional) The URL of the API definition that describes this Linux Function App.
 
 * `api_management_api_id` - (Optional) The ID of the API Management API for this Linux Function App.
 
 * `app_command_line` - (Optional) The App command line to launch.
 
-* `app_scale_limit` - (Optional) The number of workers this function app can scale out to. Only applicable to apps on the Consumption and Premium plan.
-
 * `application_insights_connection_string` - (Optional) The Connection String for linking the Linux Function App to Application Insights.
 
 * `application_insights_key` - (Optional) The Instrumentation Key for connecting the Linux Function App to Application Insights.
-
-* `application_stack` - (Optional) An `application_stack` block as defined above.
-
-~> **Note:** If this is set, there must not be an application setting `FUNCTIONS_WORKER_RUNTIME`.
 
 * `app_service_logs` - (Optional) An `app_service_logs` block as defined above.
 
@@ -684,10 +631,6 @@ A `site_config` block supports the following:
 * `cors` - (Optional) A `cors` block as defined above.
 
 * `default_documents` - (Optional) Specifies a list of Default Documents for the Linux Web App.
-
-* `elastic_instance_minimum` - (Optional) The number of minimum instances for this Linux Function App. Only affects apps on Elastic Premium plans.
-
-* `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`. Defaults to `Disabled`.
 
 * `health_check_path` - (Optional) The path to be checked for this function app health.
 
@@ -705,8 +648,6 @@ A `site_config` block supports the following:
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
 
-* `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.
-
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
 * `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`.
@@ -719,47 +660,13 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
-
-* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker process. Defaults to `false`.
-
-* `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have NAT Gateways, Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux Function App.
-
----
-
-A `flex_function_app_deployment` block supports the following:
-
-* `storage_container_type` - (Required) The type of the storage container where the app's deployment package is hosted. Only `blobContainer` is supported for now. The default value is `blobContainer`.
-
-* `storage_container_endpoint` - (Required) The endpoint of the storage container where the app's deployment package is hosted.
-
-* `storage_connection_string_access_enabled` - (Optional) Whether to enable the storage container's connection string access. One of the `storage_connection_string_access_enabled`, `storage_user_assigned_identity_access_enabled`, `storage_system_assigned_identity_access_enabled` must be enabled. Defaults to `true`.  
-
-* `storage_access_key` - (Optional) The access key of the storage container where the app's deployment package is hosted. 
-
-* `storage_system_assigned_identity_access_enabled` - (Optional) Whether to use system assigned identity to access the storage container. One of the `storage_connection_string_access_enabled`, `storage_user_assigned_identity_access_enabled`, `storage_system_assigned_identity_access_enabled` must be enabled. Defaults to `false`.
-
-* `storage_user_assigned_identity_access_enabled` - (Optional) Whether to use user assigned identity to access the storage container. One of the `storage_connection_string_access_enabled`, `storage_user_assigned_identity_access_enabled`, `storage_system_assigned_identity_access_enabled` must be enabled. Defaults to `false`.
-
-* `storage_user_assigned_identity_id` - (Optional) Specifies the user assigned identity id when `storage_user_assigned_identity_access_enabled` sets to `true`.
-
-~> **NOTE:** When use system assigned identity or user assigned identity to access the storage account, please make sure the Storage Blob Data Contributor role scoped to the deployment storage account also gets assigned to the identity.
-
-* `runtime_name` - (Required) Specifies the runtime of the flex function app. The possible values are `custom`,`dotnet-isolated`,`java`,`node`,`powershell`,`python`.
-
-* `runtime_version` - (Required) Specifies the runtime version of the flex function app.
-
-~> **NOTE:** Please use `runtime_name` and `runtime_version` to configure the function app running in flex consumption plan, instead of the `application_stack` under `site_config`.
-
-* `maximum_instance_count` - (Optional) Specifies the maximum instance count of the flex function app. Accepted values are in the range `40` to `1000`. Defaults to `100`.
-
-* `instance_memory_in_mb` - (Optional) Specifies the instance memory of the flex function app.
 
 ---
 
@@ -841,15 +748,15 @@ A `site_credential` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Linux Function App.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Linux Function App.
-* `update` - (Defaults to 30 minutes) Used when updating the Linux Function App.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Linux Function App.
+* `create` - (Defaults to 30 minutes) Used when creating the Function Flex Consumption App.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Function Flex Consumption App.
+* `update` - (Defaults to 30 minutes) Used when updating the Function Flex Consumption App.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Function Flex Consumption App.
 
 ## Import
 
-Linux Function Apps can be imported using the `resource id`, e.g.
+The Function Apps can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_function_app.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
+terraform import azurerm_function_app_flex_consumption.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
 ```
