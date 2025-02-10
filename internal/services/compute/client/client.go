@@ -40,6 +40,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2024-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -68,6 +69,7 @@ type Client struct {
 	SkusClient                                  *skus.SkusClient
 	SSHPublicKeysClient                         *sshpublickeys.SshPublicKeysClient
 	SnapshotsClient                             *snapshots.SnapshotsClient
+	StandbyVirtualMachinePoolsClient            *standbyvirtualmachinepools.StandbyVirtualMachinePoolsClient
 	VirtualMachinesClient                       *virtualmachines.VirtualMachinesClient
 	VirtualMachineExtensionsClient              *virtualmachineextensions.VirtualMachineExtensionsClient
 	VirtualMachineRunCommandsClient             *virtualmachineruncommands.VirtualMachineRunCommandsClient
@@ -211,6 +213,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(sshPublicKeysClient.Client, o.Authorizers.ResourceManager)
 
+	standbyVirtualMachinePoolsClient, err := standbyvirtualmachinepools.NewStandbyVirtualMachinePoolsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Standby Virtual Machine Pools client: %+v", err)
+	}
+	o.Configure(standbyVirtualMachinePoolsClient.Client, o.Authorizers.ResourceManager)
+
 	virtualMachinesClient, err := virtualmachines.NewVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualMachines client: %+v", err)
@@ -282,6 +290,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		SkusClient:                                  skusClient,
 		SSHPublicKeysClient:                         sshPublicKeysClient,
 		SnapshotsClient:                             snapshotsClient,
+		StandbyVirtualMachinePoolsClient:            standbyVirtualMachinePoolsClient,
 		VirtualMachinesClient:                       virtualMachinesClient,
 		VirtualMachineExtensionsClient:              virtualMachineExtensionsClient,
 		VirtualMachineRunCommandsClient:             virtualMachineRunCommandsClient,
