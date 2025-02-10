@@ -177,10 +177,14 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			// NOTE: Since this is a O+C value, when the field is removed
+			// from the config it will get the last value from the state
+			// file so you need to verify that the last tests value is
+			// passed as the value for the field...
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("1440"),
 			),
 		},
 		data.ImportStep(),
@@ -452,7 +456,7 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyStandardSkuError(t *test
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.jsChallengePolicyStandardSkuError(data),
-			ExpectError: regexp.MustCompile(`the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the 'Premium_AzureFrontDoor' sku`),
+			ExpectError: regexp.MustCompile(`the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the "Premium_AzureFrontDoor" sku`),
 		},
 	})
 }
@@ -463,7 +467,7 @@ func TestAccCdnFrontDoorFirewallPolicy_standardSkuManagedRuleError(t *testing.T)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.standardSkuManagedRuleError(data),
-			ExpectError: regexp.MustCompile(`the 'managed_rule' code block is only supported with the 'Premium_AzureFrontDoor' sku`),
+			ExpectError: regexp.MustCompile(`the 'managed_rule' code block is only supported with the "Premium_AzureFrontDoor" sku`),
 		},
 	})
 }
@@ -474,7 +478,25 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengeStandardSkuCustomRuleActionErr
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.jsChallengeStandardSkuCustomRuleActionError(data),
-			ExpectError: regexp.MustCompile(`'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the 'Premium_AzureFrontDoor' sku, got action: "JSChallenge"`),
+			ExpectError: regexp.MustCompile(`'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the "Premium_AzureFrontDoor" sku`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_skuDowngradeError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.basicStandard(data),
+			ExpectError: regexp.MustCompile(`downgrading from the "Premium_AzureFrontDoor" sku to the "Standard_AzureFrontDoor" sku is not supported`),
 		},
 	})
 }
@@ -533,6 +555,20 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 
 func (r CdnFrontDoorFirewallPolicyResource) basic(data acceptance.TestData) string {
 	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) basicStandard(data acceptance.TestData) string {
+	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
