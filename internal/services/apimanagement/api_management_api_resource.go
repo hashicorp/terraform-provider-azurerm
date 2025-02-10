@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -355,8 +357,6 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
 	sourceApiId := d.Get("source_api_id").(string)
 
-	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
-
 	if version != "" && versionSetId == "" {
 		return errors.New("setting `version` without the required `version_set_id`")
 	}
@@ -365,16 +365,16 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 	}
 
-	newId := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
+	id := api.NewApiID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), apiId)
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, newId)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of an existing %s: %+v", newId, err)
+				return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api", newId.ID())
+			return tf.ImportAsExistsError("azurerm_api_management_api", id.ID())
 		}
 	}
 
@@ -393,6 +393,9 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	// If import is used, we need to send properties to Azure API in two operations.
 	// First we execute import and then updated the other props.
 	if vs, hasImport := d.GetOk("import"); hasImport {
+		// as `import` field won't return by API, we need to use `Partial` to avoid set to it state
+		// or the sequential apply will report no changes: https://github.com/hashicorp/terraform-provider-azurerm/issues/24379#issuecomment-1899251199
+		d.Partial(true)
 		importVs := vs.([]interface{})
 		importV := importVs[0].(map[string]interface{})
 		contentFormat := importV["content_format"].(string)
@@ -433,9 +436,19 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		if versionSetId != "" {
 			apiParams.Properties.ApiVersionSetId = pointer.To(versionSetId)
 		}
-		if err := client.CreateOrUpdateThenPoll(ctx, newId, apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
-			return fmt.Errorf("creating/updating %s: %+v", id, err)
+
+		result, err := client.CreateOrUpdate(ctx, id, apiParams, api.CreateOrUpdateOperationOptions{})
+		if err != nil {
+			return fmt.Errorf("creating/updating import of %s: %+v", id, err)
 		}
+
+		if pollerType := custompollers.NewAPIManagementAPIPoller(client, id, result.HttpResponse); pollerType != nil {
+			poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("polling import %s: %+v", id, err)
+			}
+		}
+		d.Partial(false)
 	}
 
 	description := d.Get("description").(string)
@@ -498,8 +511,17 @@ func resourceApiManagementApiCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		params.Properties.TermsOfServiceURL = pointer.To(v.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, newId, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+	result, err := client.CreateOrUpdate(ctx, id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")})
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	// custom poller to workaround https://github.com/hashicorp/go-azure-sdk/issues/962
+	if pollerType := custompollers.NewAPIManagementAPIPoller(client, id, result.HttpResponse); pollerType != nil {
+		poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("polling creating/updating %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
