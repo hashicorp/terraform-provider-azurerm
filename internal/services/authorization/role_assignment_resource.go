@@ -5,8 +5,10 @@ package authorization
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -219,7 +221,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
+		return tf.ImportAsExistsError("azurerm_role_assignment", parse.ConstructRoleAssignmentId(*existing.ID, tenantId))
 	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
@@ -263,6 +265,11 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	retryLinkedAuthorizationFailedError := len(delegatedManagedIdentityResourceID) > 0 && skipPrincipalCheck
 
 	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta, tenantId, retryLinkedAuthorizationFailedError)); err != nil {
+		var roleAssignmentExistsErr roleAssignmentExistsError
+		// if role assignment exists and no name given in configuration, we should prompt to import it
+		if errors.As(err, &roleAssignmentExistsErr) && d.Get("name").(string) == "" {
+			return tf.ImportAsExistsError("azurerm_role_assignment", parse.ConstructRoleAssignmentId(roleAssignmentExistsErr.roleAssignmentID, tenantId))
+		}
 		return err
 	}
 
@@ -356,6 +363,15 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
+type roleAssignmentExistsError struct {
+	name             string
+	roleAssignmentID string
+}
+
+func (r roleAssignmentExistsError) Error() string {
+	return fmt.Sprintf("role Assignment with name: %s already exists: %s", r.name, r.roleAssignmentID)
+}
+
 func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}, tenantId string, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
@@ -372,6 +388,15 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name st
 				return pluginsdk.RetryableError(err)
 			case retryLinkedAuthorizationFailedError && utils.ResponseWasForbidden(resp.Response) && strings.Contains(err.Error(), "LinkedAuthorizationFailed"):
 				return pluginsdk.RetryableError(err)
+			case utils.ResponseWasStatusCode(resp.Response, http.StatusConflict) && strings.Contains(err.Error(), "RoleAssignmentExists"):
+				// find the existing role assignment and output it in error message
+				if existing, _ := lookupRoleAssignment(ctx, roleAssignmentsClient, scope, *properties.RoleDefinitionID, *properties.PrincipalID, tenantId); existing != nil {
+					return pluginsdk.NonRetryableError(roleAssignmentExistsError{
+						roleAssignmentID: pointer.From(existing.ID),
+						name:             pointer.From(existing.Name),
+					})
+				}
+				return pluginsdk.NonRetryableError(err)
 			default:
 				return pluginsdk.NonRetryableError(err)
 			}
@@ -400,6 +425,24 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name st
 
 		return nil
 	}
+}
+
+func lookupRoleAssignment(ctx context.Context, client *authorization.RoleAssignmentsClient, scope, roleID, principal, tenantID string) (*authorization.RoleAssignment, error) {
+	listAssignments, err := client.ListComplete(ctx, fmt.Sprintf("principalId eq '%s'", principal), tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	for listAssignments.NotDone() {
+		val := listAssignments.Value()
+		if pointer.From(val.Scope) == scope && pointer.From(val.RoleDefinitionID) == roleID {
+			return &val, nil
+		}
+		if err := listAssignments.NextWithContext(ctx); err != nil {
+			return nil, err
+		}
+	}
+	return nil, nil
 }
 
 type roleAssignmentId struct {
