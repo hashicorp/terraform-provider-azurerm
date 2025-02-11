@@ -74,7 +74,7 @@ func TestAccAppServiceCertificateOrderKeyVaultStore_updateKeyVaultName(t *testin
 }
 
 func (r CertificateOrderCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := appservicecertificateorders.ParseCertificateID(state.ID)
+	id, err := appservicecertificateorders.ParseCertificateOrderCertificateIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -88,7 +88,7 @@ func (r CertificateOrderCertificateResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			id := appservicecertificateorders.NewCertificateID(subscriptionId, certificateOrderId.ResourceGroupName, certificateOrderId.CertificateOrderName, certificateOrderCertificate.Name)
+			id := appservicecertificateorders.NewCertificateOrderCertificateID(subscriptionId, certificateOrderId.ResourceGroupName, certificateOrderId.CertificateOrderName, certificateOrderCertificate.Name)
 
 			keyVaultId, err := commonids.ParseKeyVaultID(certificateOrderCertificate.KeyVaultId)
 			if err != nil {
@@ -127,7 +127,7 @@ func (r CertificateOrderCertificateResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.AppService.AppServiceCertificatesOrderClient
-			id, err := appservicecertificateorders.ParseCertificateID(metadata.ResourceData.Id())
+			id, err := appservicecertificateorders.ParseCertificateOrderCertificateIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -172,7 +172,7 @@ func (r CertificateOrderCertificateResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := appservicecertificateorders.ParseCertificateID(metadata.ResourceData.Id())
+			id, err := appservicecertificateorders.ParseCertificateOrderCertificateIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -192,7 +192,7 @@ func (r CertificateOrderCertificateResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := appservicecertificateorders.ParseCertificateID(metadata.ResourceData.Id())
+			id, err := appservicecertificateorders.ParseCertificateOrderCertificateIDInsensitively(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -229,5 +229,5 @@ func (r CertificateOrderCertificateResource) Update() sdk.ResourceFunc {
 }
 
 func (r CertificateOrderCertificateResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return appservicecertificateorders.ValidateCertificateID
+	return appservicecertificateorders.ValidateCertificateOrderCertificateID
 }
