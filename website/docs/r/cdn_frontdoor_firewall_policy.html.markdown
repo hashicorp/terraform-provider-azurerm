@@ -146,6 +146,25 @@ managed_rule {
   }
 }
 ```
+## Example Usage: JSChallenge Custom Rule
+
+```hcl
+custom_rule {
+  name                           = "CustomJSChallenge"
+  enabled                        = true
+  priority                       = 2
+  rate_limit_duration_in_minutes = 1
+  rate_limit_threshold           = 10
+  type                           = "MatchRule"
+  action                         = "JSChallenge"
+  match_condition {
+    match_variable     = "RemoteAddr"
+    operator           = "IPMatch"
+    negation_condition = false
+    match_values       = ["192.168.1.0/24"]
+  }
+}
+```
 
 ## Argument Reference
 
@@ -189,7 +208,9 @@ A `custom_rule` block supports the following:
 
 * `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
-* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, `Redirect`, or `JSChallenge`.
+* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, `Redirect` or `JSChallenge`.
+
+!> **Note:** Setting the `action` field to `JSChallenge` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
 

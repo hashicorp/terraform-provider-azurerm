@@ -361,6 +361,48 @@ func TestAccCdnFrontDoorFirewallPolicy_JSChallengeUpdate(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicy_jsChallengeCustomRuleUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.jsChallengeCustomRuleBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.jsChallengeCustomRuleUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.jsChallengeCustomRuleBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.jsChallengeCustomRuleRemove(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.jsChallengeCustomRuleBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
@@ -967,6 +1009,38 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, tmp, data.RandomInteger)
 }
 
+func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyStandardSku(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+  custom_rule {
+    name                           = "ShortUserAgents"
+    enabled                        = true
+    type                           = "MatchRule"
+    priority                       = 500
+    rate_limit_threshold           = 1
+    rate_limit_duration_in_minutes = 5
+    action                         = "Allow"
+    match_condition {
+      match_variable = "RequestHeader"
+      selector       = "User-Agent"
+      operator       = "LessThanOrEqual"
+      match_values   = ["15"]
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
 func (r CdnFrontDoorFirewallPolicyResource) JSChallengeBasic(data acceptance.TestData) string {
 	tmp := r.template(data)
 	return fmt.Sprintf(`
@@ -997,6 +1071,109 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
       }
     }
   }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleBasic(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  custom_rule {
+    name                           = "CustomJSChallenge"
+    enabled                        = true
+    priority                       = 2
+    rate_limit_duration_in_minutes = 1
+    rate_limit_threshold           = 10
+    type                           = "MatchRule"
+    action                         = "JSChallenge"
+
+    match_condition {
+      match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
+    }
+
+    match_condition {
+      match_variable     = "RequestHeader"
+      selector           = "UserAgent"
+      operator           = "Contains"
+      negation_condition = false
+      match_values       = ["windows"]
+      transforms         = ["Lowercase", "Trim"]
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleUpdate(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  custom_rule {
+    name                           = "CustomJSChallenge"
+    enabled                        = true
+    priority                       = 2
+    rate_limit_duration_in_minutes = 1
+    rate_limit_threshold           = 10
+    type                           = "MatchRule"
+    action                         = "Allow"
+
+    match_condition {
+      match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
+    }
+
+    match_condition {
+      match_variable     = "RequestHeader"
+      selector           = "UserAgent"
+      operator           = "Contains"
+      negation_condition = false
+      match_values       = ["windows"]
+      transforms         = ["Lowercase", "Trim"]
+    }
+  }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleRemove(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
 }
 `, tmp, data.RandomInteger)
 }
