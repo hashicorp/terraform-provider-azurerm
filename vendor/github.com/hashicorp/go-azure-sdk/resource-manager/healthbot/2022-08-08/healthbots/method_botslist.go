@@ -24,6 +24,18 @@ type BotsListCompleteResult struct {
 	Items              []HealthBot
 }
 
+type BotsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BotsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BotsList ...
 func (c HealthbotsClient) BotsList(ctx context.Context, id commonids.SubscriptionId) (result BotsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c HealthbotsClient) BotsList(ctx context.Context, id commonids.Subscriptio
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BotsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.HealthBot/healthBots", id.ID()),
 	}
 

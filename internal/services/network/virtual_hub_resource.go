@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -30,9 +30,9 @@ const virtualHubResourceName = "azurerm_virtual_hub"
 
 func resourceVirtualHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualHubCreateUpdate,
+		Create: resourceVirtualHubCreate,
 		Read:   resourceVirtualHubRead,
-		Update: resourceVirtualHubCreateUpdate,
+		Update: resourceVirtualHubUpdate,
 		Delete: resourceVirtualHubDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := virtualwans.ParseVirtualHubID(id)
@@ -145,10 +145,10 @@ func resourceVirtualHub() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	if _, ok := ctx.Deadline(); !ok {
@@ -160,16 +160,14 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	locks.ByName(id.VirtualHubName, virtualHubResourceName)
 	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
 
-	if d.IsNewResource() {
-		existing, err := client.VirtualHubsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.VirtualHubsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_hub", id.ID())
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_hub", id.ID())
 	}
 
 	parameters := virtualwans.VirtualHub{
@@ -219,7 +217,86 @@ func resourceVirtualHubCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for %s provisioning route: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceVirtualHubRead(d, meta)
+}
+
+func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	if _, ok := ctx.Deadline(); !ok {
+		return fmt.Errorf("deadline is not properly set for Virtual Hub")
+	}
+
+	id, err := virtualwans.ParseVirtualHubID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
+
+	existing, err := client.VirtualHubsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	payload := existing.Model
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	if d.HasChange("route") {
+		payload.Properties.RouteTable = expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("hub_routing_preference") {
+		payload.Properties.HubRoutingPreference = pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string)))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("virtual_router_auto_scale_min_capacity") {
+		if v, ok := d.GetOk("virtual_router_auto_scale_min_capacity"); ok {
+			payload.Properties.VirtualRouterAutoScaleConfiguration = &virtualwans.VirtualRouterAutoScaleConfiguration{
+				MinCapacity: pointer.To(int64(v.(int))),
+			}
+		}
+	}
+
+	if err := client.VirtualHubsCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// Hub returns provisioned while the routing state is still "provisioning". This might cause issues with following hubvnet connection operations.
+	// https://github.com/Azure/azure-rest-api-specs/issues/10391
+	// As a workaround, we will poll the routing state and ensure it is "Provisioned".
+
+	// deadline is checked at the entry point of this function
+	timeout, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"Provisioning"},
+		Target:                    []string{"Provisioned", "Failed", "None"},
+		Refresh:                   virtualHubCreateRefreshFunc(ctx, client, *id),
+		PollInterval:              15 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(timeout),
+	}
+	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for %s provisioning route: %+v", id, err)
 	}
@@ -258,7 +335,6 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
-
 			d.Set("address_prefix", props.AddressPrefix)
 			d.Set("sku", props.Sku)
 

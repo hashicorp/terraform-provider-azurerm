@@ -5,6 +5,7 @@ package clients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -23,16 +24,15 @@ type ClientBuilder struct {
 	AuthConfig *auth.Credentials
 	Features   features.UserFeatures
 
+	CustomCorrelationRequestID  string
 	DisableCorrelationRequestID bool
 	DisableTerraformPartnerID   bool
-	SkipProviderRegistration    bool
+	MetadataHost                string
+	PartnerID                   string
+	RegisteredResourceProviders resourceproviders.ResourceProviders
 	StorageUseAzureAD           bool
-
-	CustomCorrelationRequestID string
-	MetadataHost               string
-	PartnerID                  string
-	SubscriptionID             string
-	TerraformVersion           string
+	SubscriptionID              string
+	TerraformVersion            string
 }
 
 const azureStackEnvironmentError = `
@@ -49,7 +49,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	// point folks towards the separate Azure Stack Provider when using Azure Stack
 	if builder.AuthConfig.Environment.IsAzureStack() {
-		return nil, fmt.Errorf(azureStackEnvironmentError)
+		return nil, errors.New(azureStackEnvironmentError)
 	}
 
 	var resourceManagerAuth, storageAuth, synapseAuth, batchManagementAuth, keyVaultAuth auth.Authorizer
@@ -97,7 +97,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return authorizer, nil
 	})
 
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.SkipProviderRegistration)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, builder.SubscriptionID, builder.RegisteredResourceProviders)
 	if err != nil {
 		return nil, fmt.Errorf("building account: %+v", err)
 	}
@@ -114,7 +114,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	resourceManagerEndpoint, ok := builder.AuthConfig.Environment.ResourceManager.Endpoint()
 	if !ok {
-		return nil, fmt.Errorf("unable to determine resource manager endpoint for the current environment")
+		return nil, errors.New("unable to determine resource manager endpoint for the current environment")
 	}
 
 	client := Client{
@@ -150,7 +150,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		CustomCorrelationRequestID:  builder.CustomCorrelationRequestID,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
-		SkipProviderReg:             builder.SkipProviderRegistration,
+		SkipProviderReg:             len(builder.RegisteredResourceProviders) == 0,
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,

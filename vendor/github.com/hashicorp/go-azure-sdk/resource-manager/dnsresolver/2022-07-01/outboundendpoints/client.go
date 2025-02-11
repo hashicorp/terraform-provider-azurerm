@@ -15,7 +15,7 @@ type OutboundEndpointsClient struct {
 }
 
 func NewOutboundEndpointsClientWithBaseURI(sdkApi sdkEnv.Api) (*OutboundEndpointsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "outboundendpoints", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "outboundendpoints", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OutboundEndpointsClient: %+v", err)
 	}

@@ -23,6 +23,18 @@ type ListWorkerPoolInstanceMetricDefinitionsCompleteResult struct {
 	Items              []ResourceMetricDefinition
 }
 
+type ListWorkerPoolInstanceMetricDefinitionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListWorkerPoolInstanceMetricDefinitionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListWorkerPoolInstanceMetricDefinitions ...
 func (c AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricDefinitions(ctx context.Context, id WorkerPoolInstanceId) (result ListWorkerPoolInstanceMetricDefinitionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppServiceEnvironmentsClient) ListWorkerPoolInstanceMetricDefinitions(ct
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListWorkerPoolInstanceMetricDefinitionsCustomPager{},
 		Path:       fmt.Sprintf("%s/metricdefinitions", id.ID()),
 	}
 

@@ -50,7 +50,6 @@ func (c SAPAvailabilityZoneDetailsClient) SAPAvailabilityZoneDetails(ctx context
 
 	var model SAPAvailabilityZoneDetailsResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

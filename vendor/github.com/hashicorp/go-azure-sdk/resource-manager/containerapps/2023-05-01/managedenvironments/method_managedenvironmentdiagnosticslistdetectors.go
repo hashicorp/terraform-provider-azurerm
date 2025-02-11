@@ -23,6 +23,18 @@ type ManagedEnvironmentDiagnosticsListDetectorsCompleteResult struct {
 	Items              []Diagnostics
 }
 
+type ManagedEnvironmentDiagnosticsListDetectorsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ManagedEnvironmentDiagnosticsListDetectorsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ManagedEnvironmentDiagnosticsListDetectors ...
 func (c ManagedEnvironmentsClient) ManagedEnvironmentDiagnosticsListDetectors(ctx context.Context, id ManagedEnvironmentId) (result ManagedEnvironmentDiagnosticsListDetectorsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ManagedEnvironmentsClient) ManagedEnvironmentDiagnosticsListDetectors(ct
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ManagedEnvironmentDiagnosticsListDetectorsCustomPager{},
 		Path:       fmt.Sprintf("%s/detectors", id.ID()),
 	}
 

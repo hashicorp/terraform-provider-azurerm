@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -39,9 +39,10 @@ type ContainerAppModel struct {
 	Dapr         []helpers.Dapr              `tfschema:"dapr"`
 	Template     []helpers.ContainerTemplate `tfschema:"template"`
 
-	Identity            []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	WorkloadProfileName string                                     `tfschema:"workload_profile_name"`
-	Tags                map[string]interface{}                     `tfschema:"tags"`
+	Identity             []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	WorkloadProfileName  string                                     `tfschema:"workload_profile_name"`
+	MaxInactiveRevisions int64                                      `tfschema:"max_inactive_revisions"`
+	Tags                 map[string]interface{}                     `tfschema:"tags"`
 
 	OutboundIpAddresses        []string `tfschema:"outbound_ip_addresses"`
 	LatestRevisionName         string   `tfschema:"latest_revision_name"`
@@ -110,6 +111,12 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"max_inactive_revisions": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(0, 100),
 		},
 
 		"tags": commonschema.Tags(),
@@ -199,10 +206,11 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
 					Configuration: &containerapps.Configuration{
-						Ingress:    helpers.ExpandContainerAppIngress(app.Ingress, id.ContainerAppName),
-						Dapr:       helpers.ExpandContainerAppDapr(app.Dapr),
-						Secrets:    secrets,
-						Registries: registries,
+						Ingress:              helpers.ExpandContainerAppIngress(app.Ingress, id.ContainerAppName),
+						Dapr:                 helpers.ExpandContainerAppDapr(app.Dapr),
+						Secrets:              secrets,
+						Registries:           registries,
+						MaxInactiveRevisions: pointer.FromInt64(app.MaxInactiveRevisions),
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
 					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
@@ -257,11 +265,13 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
-				ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
-				if err != nil {
-					return err
+				if model.Identity != nil {
+					ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
+					if err != nil {
+						return err
+					}
+					state.Identity = pointer.From(ident)
 				}
-				state.Identity = pointer.From(ident)
 
 				if props := model.Properties; props != nil {
 					envId, err := managedenvironments.ParseManagedEnvironmentIDInsensitively(pointer.From(props.ManagedEnvironmentId))
@@ -277,6 +287,7 @@ func (r ContainerAppResource) Read() sdk.ResourceFunc {
 						state.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 						state.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
 						state.Dapr = helpers.FlattenContainerAppDapr(config.Dapr)
+						state.MaxInactiveRevisions = pointer.ToInt64(config.MaxInactiveRevisions)
 					}
 					state.LatestRevisionName = pointer.From(props.LatestRevisionName)
 					state.LatestRevisionFqdn = pointer.From(props.LatestRevisionFqdn)
@@ -373,9 +384,12 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("max_inactive_revisions") {
+				model.Properties.Configuration.MaxInactiveRevisions = pointer.FromInt64(state.MaxInactiveRevisions)
+			}
+
 			if metadata.ResourceData.HasChange("dapr") {
 				model.Properties.Configuration.Dapr = helpers.ExpandContainerAppDapr(state.Dapr)
-
 			}
 
 			if metadata.ResourceData.HasChange("template") {
@@ -403,7 +417,6 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 					return err
 				}
 				model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
-
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile_name") {
@@ -438,36 +451,10 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 			// Ingress traffic weight validations
 			if len(app.Ingress) != 0 {
 				ingress := app.Ingress[0]
-				if metadata.ResourceDiff.HasChange("name") {
-					// Validation for create time
-					// (Above is a trick to tell whether this is for a new create apply, as the "name" is a force new property)
-					if len(ingress.TrafficWeights) != 0 {
-						if len(ingress.TrafficWeights) > 1 {
-							return fmt.Errorf("at most one `ingress.0.traffic_weight` can be specified during creation")
-						}
-						tw := ingress.TrafficWeights[0]
-						if !tw.LatestRevision {
-							return fmt.Errorf("`ingress.0.traffic_weight.0.latest_revision` must be set to true during creation")
-						}
-						if tw.RevisionSuffix != "" {
-							return fmt.Errorf("`ingress.0.traffic_weight.0.revision_suffix` must not be set during creation")
-						}
-					}
-				} else {
-					// Validation for update time
-					var latestRevCount int
-					for i, tw := range ingress.TrafficWeights {
-						if tw.LatestRevision {
-							latestRevCount++
-							if tw.RevisionSuffix != "" {
-								return fmt.Errorf("`ingress.0.traffic_weight.%[1]d.revision_suffix` conflicts with `ingress.0.traffic_weight.%[1]d.latest_revision`", i)
-							}
-						} else if tw.RevisionSuffix == "" {
-							return fmt.Errorf("`ingress.0.traffic_weight.%[1]d.revision_suffix` is not specified", i)
-						}
-					}
-					if latestRevCount > 1 {
-						return fmt.Errorf("more than one `ingress.0.traffic_weight` has `latest_revision` set to `true`")
+
+				for i, tw := range ingress.TrafficWeights {
+					if !tw.LatestRevision && tw.RevisionSuffix == "" {
+						return fmt.Errorf("`either ingress.0.traffic_weight.%[1]d.revision_suffix` or `ingress.0.traffic_weight.%[1]d.latest_revision` should be specified", i)
 					}
 				}
 			}

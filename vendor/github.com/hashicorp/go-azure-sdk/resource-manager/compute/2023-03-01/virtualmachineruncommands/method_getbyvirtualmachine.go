@@ -34,6 +34,7 @@ func (o GetByVirtualMachineOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetByVirtualMachineOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c VirtualMachineRunCommandsClient) GetByVirtualMachine(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c VirtualMachineRunCommandsClient) GetByVirtualMachine(ctx context.Context
 
 	var model VirtualMachineRunCommand
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

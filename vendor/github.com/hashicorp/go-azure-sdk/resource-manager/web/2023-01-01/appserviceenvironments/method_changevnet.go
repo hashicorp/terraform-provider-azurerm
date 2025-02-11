@@ -27,6 +27,18 @@ type ChangeVnetCompleteResult struct {
 	Items              []Site
 }
 
+type ChangeVnetCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ChangeVnetCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ChangeVnet ...
 func (c AppServiceEnvironmentsClient) ChangeVnet(ctx context.Context, id commonids.AppServiceEnvironmentId, input VirtualNetworkProfile) (result ChangeVnetOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -36,6 +48,7 @@ func (c AppServiceEnvironmentsClient) ChangeVnet(ctx context.Context, id commoni
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ChangeVnetCustomPager{},
 		Path:       fmt.Sprintf("%s/changeVirtualNetwork", id.ID()),
 	}
 

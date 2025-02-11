@@ -14,7 +14,16 @@ type NumberLessThanOrEqualsAdvancedFilter struct {
 	Value *float64 `json:"value,omitempty"`
 
 	// Fields inherited from AdvancedFilter
-	Key *string `json:"key,omitempty"`
+
+	Key          *string                    `json:"key,omitempty"`
+	OperatorType AdvancedFilterOperatorType `json:"operatorType"`
+}
+
+func (s NumberLessThanOrEqualsAdvancedFilter) AdvancedFilter() BaseAdvancedFilterImpl {
+	return BaseAdvancedFilterImpl{
+		Key:          s.Key,
+		OperatorType: s.OperatorType,
+	}
 }
 
 var _ json.Marshaler = NumberLessThanOrEqualsAdvancedFilter{}
@@ -28,9 +37,10 @@ func (s NumberLessThanOrEqualsAdvancedFilter) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling NumberLessThanOrEqualsAdvancedFilter: %+v", err)
 	}
+
 	decoded["operatorType"] = "NumberLessThanOrEquals"
 
 	encoded, err = json.Marshal(decoded)

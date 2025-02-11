@@ -45,7 +45,7 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 }
 
 func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -53,7 +53,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: azValidate.TopicName(),
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"namespace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -74,53 +74,52 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 		"auto_delete_on_idle": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "P10675199DT2H48M5.4775807S", // Never
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
 		"default_message_ttl": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "P10675199DT2H48M5.4775807S", // Unbounded
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
 		"duplicate_detection_history_time_window": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "PT10M", // 10 minutes
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_batched_operations": {
+		"batched_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_express": {
+		"express_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_partitioning": {
+		"partitioning_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
 		},
 
 		"max_message_size_in_kilobytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 		},
@@ -136,6 +135,8 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
+
+	return schema
 }
 
 func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -166,14 +167,18 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
+	enableExpress := d.Get("express_enabled").(bool)
+	enablePartitioning := d.Get("partitioning_enabled").(bool)
+
 	status := topics.EntityStatus(d.Get("status").(string))
 	parameters := topics.SBTopic{
 		Name: utils.String(id.TopicName),
 		Properties: &topics.SBTopicProperties{
 			Status:                     &status,
-			EnableBatchedOperations:    utils.Bool(d.Get("enable_batched_operations").(bool)),
-			EnableExpress:              utils.Bool(d.Get("enable_express").(bool)),
-			EnablePartitioning:         utils.Bool(d.Get("enable_partitioning").(bool)),
+			EnableBatchedOperations:    utils.Bool(enableBatchedOperations),
+			EnableExpress:              utils.Bool(enableExpress),
+			EnablePartitioning:         utils.Bool(enablePartitioning),
 			MaxSizeInMegabytes:         utils.Int64(int64(d.Get("max_size_in_megabytes").(int))),
 			RequiresDuplicateDetection: utils.Bool(d.Get("requires_duplicate_detection").(bool)),
 			SupportOrdering:            utils.Bool(d.Get("support_ordering").(bool)),
@@ -198,6 +203,23 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	resp, err := namespacesClient.Get(ctx, namespaceId)
 	if err != nil {
 		return fmt.Errorf("retrieving ServiceBus Namespace %q (Resource Group %q): %+v", id.NamespaceName, id.ResourceGroupName, err)
+	}
+
+	isPremiumNamespacePartitioned := true
+	var sku namespaces.SkuName
+	if nsModel := resp.Model; nsModel != nil {
+		sku = nsModel.Sku.Name
+		if props := nsModel.Properties; props != nil && props.PremiumMessagingPartitions != nil && *props.PremiumMessagingPartitions == 1 {
+			isPremiumNamespacePartitioned = false
+		}
+	}
+
+	if sku == namespaces.SkuNamePremium {
+		if isPremiumNamespacePartitioned && !enablePartitioning {
+			return fmt.Errorf("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned")
+		} else if !isPremiumNamespacePartitioned && enablePartitioning {
+			return fmt.Errorf("topic partitioning is only available if the parent namespace is partitioned")
+		}
 	}
 
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
@@ -254,9 +276,10 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 				d.Set("duplicate_detection_history_time_window", window)
 			}
 
-			d.Set("enable_batched_operations", props.EnableBatchedOperations)
-			d.Set("enable_express", props.EnableExpress)
-			d.Set("enable_partitioning", props.EnablePartitioning)
+			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
+			d.Set("express_enabled", props.EnableExpress)
+			d.Set("partitioning_enabled", props.EnablePartitioning)
+
 			d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("support_ordering", props.SupportOrdering)

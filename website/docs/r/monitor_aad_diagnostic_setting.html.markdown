@@ -38,31 +38,15 @@ resource "azurerm_monitor_aad_diagnostic_setting" "example" {
   storage_account_id = azurerm_storage_account.example.id
   enabled_log {
     category = "SignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "AuditLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "NonInteractiveUserSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
   enabled_log {
     category = "ServicePrincipalSignInLogs"
-    retention_policy {
-      enabled = true
-      days    = 1
-    }
   }
 }
 ```
@@ -72,14 +56,8 @@ resource "azurerm_monitor_aad_diagnostic_setting" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Monitor Azure Active Directory Diagnostic Setting. Changing this forces a new Monitor Azure Active Directory Diagnostic Setting to be created.
-  
-* `log` - (Optional) One or more `log` blocks as defined below.
-
--> **NOTE:** `log` is deprecated in favour of the `enabled_log` property and will be removed in version 4.0 of the AzureRM Provider.
 
 * `enabled_log` - (Optional) One or more `enabled_log` blocks as defined below.
-
--> **NOTE:** At least one `log` or `enabled_log` block must be specified. At least one type of Log must be enabled.
 
 ---
 
@@ -97,29 +75,9 @@ The following arguments are supported:
 
 ---
 
-A `log` block supports the following:
-
-* `category` - (Required) The log category for the Azure Active Directory Diagnostic.
-
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
-
-* `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
- 
----
-
 A `enabled_log` block supports the following:
 
 * `category` - (Required) The log category for the Azure Active Directory Diagnostic.
-
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
-
----
-
-A `retention_policy` block supports the following:
-
-* `enabled` - (Optional) Is this Retention Policy enabled? Defaults to `false`.
-
-* `days` - (Optional) The number of days for which this Retention Policy should apply. Defaults to `0`.
 
 ## Attributes Reference
 

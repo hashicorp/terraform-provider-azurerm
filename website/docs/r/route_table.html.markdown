@@ -24,10 +24,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_route_table" "example" {
-  name                          = "example-route-table"
-  location                      = azurerm_resource_group.example.location
-  resource_group_name           = azurerm_resource_group.example.name
-  disable_bgp_route_propagation = false
+  name                = "example-route-table"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   route {
     name           = "route1"
@@ -55,7 +54,7 @@ The following arguments are supported:
 
 -> **NOTE** Since `route` can be configured both inline and via the separate `azurerm_route` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
-* `disable_bgp_route_propagation` - (Optional) Boolean flag which controls propagation of routes learned by BGP on that route table. True means disable.
+* `bgp_route_propagation_enabled` - (Optional) Boolean flag which controls propagation of routes learned by BGP on that route table. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -7,7 +7,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/firewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

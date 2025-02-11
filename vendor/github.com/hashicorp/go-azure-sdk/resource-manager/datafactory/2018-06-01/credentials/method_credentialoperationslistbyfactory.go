@@ -23,6 +23,18 @@ type CredentialOperationsListByFactoryCompleteResult struct {
 	Items              []CredentialResource
 }
 
+type CredentialOperationsListByFactoryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *CredentialOperationsListByFactoryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // CredentialOperationsListByFactory ...
 func (c CredentialsClient) CredentialOperationsListByFactory(ctx context.Context, id FactoryId) (result CredentialOperationsListByFactoryOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c CredentialsClient) CredentialOperationsListByFactory(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &CredentialOperationsListByFactoryCustomPager{},
 		Path:       fmt.Sprintf("%s/credentials", id.ID()),
 	}
 

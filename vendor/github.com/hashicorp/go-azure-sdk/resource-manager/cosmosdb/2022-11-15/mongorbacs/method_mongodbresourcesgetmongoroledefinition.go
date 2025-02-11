@@ -45,7 +45,6 @@ func (c MongorbacsClient) MongoDBResourcesGetMongoRoleDefinition(ctx context.Con
 
 	var model MongoRoleDefinitionGetResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

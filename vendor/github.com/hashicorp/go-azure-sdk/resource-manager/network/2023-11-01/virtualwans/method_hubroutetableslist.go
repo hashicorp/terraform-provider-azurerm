@@ -23,6 +23,18 @@ type HubRouteTablesListCompleteResult struct {
 	Items              []HubRouteTable
 }
 
+type HubRouteTablesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *HubRouteTablesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // HubRouteTablesList ...
 func (c VirtualWANsClient) HubRouteTablesList(ctx context.Context, id VirtualHubId) (result HubRouteTablesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) HubRouteTablesList(ctx context.Context, id VirtualHub
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &HubRouteTablesListCustomPager{},
 		Path:       fmt.Sprintf("%s/hubRouteTables", id.ID()),
 	}
 

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spacecraft.
 
+~> **Note:** The `azurerm_orbital_spacecraft` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl

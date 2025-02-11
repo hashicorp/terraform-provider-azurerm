@@ -23,6 +23,18 @@ type ListByDataBoxEdgeDeviceCompleteResult struct {
 	Items              []Order
 }
 
+type ListByDataBoxEdgeDeviceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDataBoxEdgeDeviceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDataBoxEdgeDevice ...
 func (c OrdersClient) ListByDataBoxEdgeDevice(ctx context.Context, id DataBoxEdgeDeviceId) (result ListByDataBoxEdgeDeviceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c OrdersClient) ListByDataBoxEdgeDevice(ctx context.Context, id DataBoxEdg
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDataBoxEdgeDeviceCustomPager{},
 		Path:       fmt.Sprintf("%s/orders", id.ID()),
 	}
 

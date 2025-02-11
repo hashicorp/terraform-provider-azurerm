@@ -11,8 +11,8 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.TypedServiceRegistration   = Registration{}
-	_ sdk.UntypedServiceRegistration = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
 
 // Name is the name of this Service
@@ -25,6 +25,10 @@ func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"ArcKubernetes",
 	}
+}
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/arc-kubernetes"
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
@@ -47,5 +51,6 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ArcKubernetesClusterExtensionResource{},
 		ArcKubernetesFluxConfigurationResource{},
+		ArcKubernetesProvisionedClusterResource{},
 	}
 }

@@ -23,6 +23,18 @@ type GatewayCustomDomainsListCompleteResult struct {
 	Items              []GatewayCustomDomainResource
 }
 
+type GatewayCustomDomainsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GatewayCustomDomainsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GatewayCustomDomainsList ...
 func (c AppPlatformClient) GatewayCustomDomainsList(ctx context.Context, id GatewayId) (result GatewayCustomDomainsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c AppPlatformClient) GatewayCustomDomainsList(ctx context.Context, id Gate
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GatewayCustomDomainsListCustomPager{},
 		Path:       fmt.Sprintf("%s/domains", id.ID()),
 	}
 

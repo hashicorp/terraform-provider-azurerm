@@ -49,7 +49,6 @@ func (c ArcSettingsClient) ArcSettingsUpdate(ctx context.Context, id ArcSettingI
 
 	var model ArcSetting
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

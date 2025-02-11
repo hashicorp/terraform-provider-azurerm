@@ -35,6 +35,7 @@ func (o SuspendOperationOptions) ToHeaders() *client.Headers {
 
 func (o SuspendOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -52,8 +53,8 @@ func (c JobClient) Suspend(ctx context.Context, id JobId, options SuspendOperati
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/suspend", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/suspend", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

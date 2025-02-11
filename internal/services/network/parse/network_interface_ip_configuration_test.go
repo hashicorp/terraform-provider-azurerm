@@ -27,7 +27,6 @@ func TestNetworkInterfaceIpConfigurationID(t *testing.T) {
 		Error    bool
 		Expected *NetworkInterfaceIpConfigurationId
 	}{
-
 		{
 			// empty
 			Input: "",

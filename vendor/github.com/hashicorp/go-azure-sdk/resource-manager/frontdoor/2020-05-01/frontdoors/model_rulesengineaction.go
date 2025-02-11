@@ -17,10 +17,12 @@ type RulesEngineAction struct {
 var _ json.Unmarshaler = &RulesEngineAction{}
 
 func (s *RulesEngineAction) UnmarshalJSON(bytes []byte) error {
-	type alias RulesEngineAction
-	var decoded alias
+	var decoded struct {
+		RequestHeaderActions  *[]HeaderAction `json:"requestHeaderActions,omitempty"`
+		ResponseHeaderActions *[]HeaderAction `json:"responseHeaderActions,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into RulesEngineAction: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.RequestHeaderActions = decoded.RequestHeaderActions
@@ -32,11 +34,12 @@ func (s *RulesEngineAction) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["routeConfigurationOverride"]; ok {
-		impl, err := unmarshalRouteConfigurationImplementation(v)
+		impl, err := UnmarshalRouteConfigurationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RouteConfigurationOverride' for 'RulesEngineAction': %+v", err)
 		}
 		s.RouteConfigurationOverride = impl
 	}
+
 	return nil
 }

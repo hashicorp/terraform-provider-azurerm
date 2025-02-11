@@ -92,7 +92,6 @@ func (d *DiffResult) ToString() string {
 					timeoutCount++
 				case forceNewDiff:
 					forceNewCount++
-
 				}
 			}
 		}
@@ -115,7 +114,7 @@ func (d *DiffResult) CostTime() time.Duration {
 }
 
 func DiffAll(regs Resources, dryRun bool) *DiffResult {
-	var dr = NewDiffResult()
+	dr := NewDiffResult()
 
 	// can not split to package in different goroutine which may cause data-race and mix shared pointer up
 	// register may repeat in typed and untyped, so use a map to remove the repeat entry

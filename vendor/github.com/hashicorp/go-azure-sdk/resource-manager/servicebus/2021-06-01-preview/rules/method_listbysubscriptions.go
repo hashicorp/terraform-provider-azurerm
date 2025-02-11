@@ -40,6 +40,7 @@ func (o ListBySubscriptionsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListBySubscriptionsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListBySubscriptionsOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListBySubscriptionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySubscriptions ...
 func (c RulesClient) ListBySubscriptions(ctx context.Context, id Subscriptions2Id, options ListBySubscriptionsOperationOptions) (result ListBySubscriptionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c RulesClient) ListBySubscriptions(ctx context.Context, id Subscriptions2I
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/rules", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListBySubscriptionsCustomPager{},
+		Path:          fmt.Sprintf("%s/rules", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

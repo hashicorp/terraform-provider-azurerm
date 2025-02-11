@@ -15,7 +15,7 @@ type TestJobStreamClient struct {
 }
 
 func NewTestJobStreamClientWithBaseURI(sdkApi sdkEnv.Api) (*TestJobStreamClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "testjobstream", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "testjobstream", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TestJobStreamClient: %+v", err)
 	}

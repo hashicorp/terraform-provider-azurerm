@@ -15,6 +15,14 @@ type StorageAccount struct {
 	AccountName string `json:"accountName"`
 
 	// Fields inherited from StorageProperties
+
+	StorageType StorageType `json:"storageType"`
+}
+
+func (s StorageAccount) StorageProperties() BaseStoragePropertiesImpl {
+	return BaseStoragePropertiesImpl{
+		StorageType: s.StorageType,
+	}
 }
 
 var _ json.Marshaler = StorageAccount{}
@@ -28,9 +36,10 @@ func (s StorageAccount) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling StorageAccount: %+v", err)
 	}
+
 	decoded["storageType"] = "StorageAccount"
 
 	encoded, err = json.Marshal(decoded)

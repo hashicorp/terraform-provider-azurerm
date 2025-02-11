@@ -24,6 +24,18 @@ type ListMultiRoleMetricDefinitionsCompleteResult struct {
 	Items              []ResourceMetricDefinition
 }
 
+type ListMultiRoleMetricDefinitionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListMultiRoleMetricDefinitionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListMultiRoleMetricDefinitions ...
 func (c AppServiceEnvironmentsClient) ListMultiRoleMetricDefinitions(ctx context.Context, id commonids.AppServiceEnvironmentId) (result ListMultiRoleMetricDefinitionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceEnvironmentsClient) ListMultiRoleMetricDefinitions(ctx context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListMultiRoleMetricDefinitionsCustomPager{},
 		Path:       fmt.Sprintf("%s/multiRolePools/default/metricdefinitions", id.ID()),
 	}
 

@@ -69,7 +69,8 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
-				Computed:     true,
+				// NOTE: O+C The API will use the value in `name` as the default
+				Computed: true,
 			},
 
 			"description": {
@@ -106,6 +107,7 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			"icon_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C The API will use the value in `path` as the default
 				Computed: true,
 			},
 

@@ -15,7 +15,7 @@ type Python3PackageClient struct {
 }
 
 func NewPython3PackageClientWithBaseURI(sdkApi sdkEnv.Api) (*Python3PackageClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "python3package", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "python3package", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating Python3PackageClient: %+v", err)
 	}

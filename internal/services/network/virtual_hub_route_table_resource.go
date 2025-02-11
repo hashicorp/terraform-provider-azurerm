@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,9 +24,9 @@ import (
 
 func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualHubRouteTableCreateUpdate,
+		Create: resourceVirtualHubRouteTableCreate,
 		Read:   resourceVirtualHubRouteTableRead,
-		Update: resourceVirtualHubRouteTableCreateUpdate,
+		Update: resourceVirtualHubRouteTableUpdate,
 		Delete: resourceVirtualHubRouteTableDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -116,9 +116,9 @@ func resourceVirtualHubRouteTable() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualHubRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualHubRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	virtHubId, err := virtualwans.ParseVirtualHubID(d.Get("virtual_hub_id").(string))
@@ -131,17 +131,15 @@ func resourceVirtualHubRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := virtualwans.NewHubRouteTableID(virtHubId.SubscriptionId, virtHubId.ResourceGroupName, virtHubId.VirtualHubName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.HubRouteTablesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.HubRouteTablesGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_hub_route_table", id.ID())
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_hub_route_table", id.ID())
 	}
 
 	parameters := virtualwans.HubRouteTable{
@@ -153,7 +151,58 @@ func resourceVirtualHubRouteTableCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceVirtualHubRouteTableRead(d, meta)
+}
+
+func resourceVirtualHubRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	virtHubId, err := virtualwans.ParseVirtualHubID(d.Get("virtual_hub_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(virtHubId.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(virtHubId.VirtualHubName, virtualHubResourceName)
+
+	id, err := virtualwans.ParseHubRouteTableID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.HubRouteTablesGet(ctx, *id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
+		}
+	}
+
+	payload := existing.Model
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	if d.HasChange("labels") {
+		payload.Properties.Labels = utils.ExpandStringSlice(d.Get("labels").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("route") {
+		payload.Properties.Routes = expandVirtualHubRouteTableHubRoutes(d.Get("route").(*pluginsdk.Set).List())
+	}
+
+	if err := client.HubRouteTablesCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	d.SetId(id.ID())

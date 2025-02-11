@@ -51,7 +51,6 @@ func (c ScriptsClient) CheckNameAvailability(ctx context.Context, id commonids.K
 
 	var model CheckNameResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -6,6 +6,7 @@ package cosmos
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
@@ -58,7 +59,6 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 			"default_ttl": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
@@ -67,7 +67,7 @@ func resourceCosmosDbCassandraTable() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.All(
-					validation.IntBetween(-1, 2147483647),
+					validation.IntBetween(-1, math.MaxInt32),
 					validation.IntNotInSlice([]int{0}),
 				),
 			},

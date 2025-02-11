@@ -95,9 +95,10 @@ func resourceAutomationWebhook() *pluginsdk.Resource {
 				},
 			},
 			"uri": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				// NOTE: O+C this is generated if omitted and cannot be updated so this should remain
 				Computed:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -205,7 +206,6 @@ func resourceAutomationWebhookRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-
 			d.Set("expiry_time", props.ExpiryTime)
 			d.Set("enabled", props.IsEnabled)
 

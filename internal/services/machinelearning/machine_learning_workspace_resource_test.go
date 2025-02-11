@@ -359,12 +359,16 @@ func TestAccMachineLearningWorkspace_serverlessCompute(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basic(data),
+		},
+		data.ImportStep(),
+		{
 			Config: r.serverlessCompute(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("serverless_compute.#").HasValue("1"),
 				check.That(data.ResourceName).Key("serverless_compute.0.subnet_id").Exists(),
-				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("serverless_compute.0.public_ip_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -473,7 +477,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomIntOfLength(16))
+`, template, data.RandomInteger)
 }
 
 func (r WorkspaceResource) complete(data acceptance.TestData) string {
@@ -622,6 +626,10 @@ resource "azurerm_machine_learning_workspace" "test" {
     key_id       = azurerm_key_vault_key.test.id
   }
 
+  managed_network {
+    isolation_mode = "AllowInternetOutbound"
+  }
+
   tags = {
     ENV = "Test"
     FOO = "Updated"
@@ -749,6 +757,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
+
 func (r WorkspaceResource) userAssignedIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -957,6 +966,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 func (r WorkspaceResource) userAssignedAndCustomManagedKey(data acceptance.TestData) string {
+	// nolint: dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -1086,8 +1096,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     azurerm_role_assignment.test_sa1,
     azurerm_key_vault_access_policy.test-policy1,
   ]
-}
-`, r.template(data), data.RandomInteger)
+}`, r.template(data), data.RandomInteger)
 }
 
 func (r WorkspaceResource) featureStore(data acceptance.TestData) string {
@@ -1205,6 +1214,10 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) serverlessCompute(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_virtual_network" "test" {
@@ -1221,15 +1234,17 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                    = "acctest-MLW-%[2]d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  application_insights_id = azurerm_application_insights.test.id
-  key_vault_id            = azurerm_key_vault.test.id
-  storage_account_id      = azurerm_storage_account.test.id
+  name                          = "acctest-MLW-%[2]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  application_insights_id       = azurerm_application_insights.test.id
+  key_vault_id                  = azurerm_key_vault.test.id
+  storage_account_id            = azurerm_storage_account.test.id
+  public_network_access_enabled = true
 
   serverless_compute {
-    subnet_id = azurerm_subnet.test.id
+    public_ip_enabled = true
+    subnet_id         = azurerm_subnet.test.id
   }
 
   identity {
@@ -1242,6 +1257,10 @@ resource "azurerm_machine_learning_workspace" "test" {
 func (r WorkspaceResource) serverlessComputeWithoutSubnet(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_virtual_network" "test" {
@@ -1268,6 +1287,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   serverless_compute {
     public_ip_enabled = true
   }
+
   identity {
     type = "SystemAssigned"
   }

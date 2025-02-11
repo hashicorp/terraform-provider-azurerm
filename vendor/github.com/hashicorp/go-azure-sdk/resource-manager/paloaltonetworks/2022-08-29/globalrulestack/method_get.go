@@ -45,7 +45,6 @@ func (c GlobalRulestackClient) Get(ctx context.Context, id GlobalRulestackId) (r
 
 	var model GlobalRulestackResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

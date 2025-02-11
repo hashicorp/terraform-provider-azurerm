@@ -10,8 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/machine-learning"
@@ -57,5 +59,8 @@ func (r Registration) Resources() []sdk.Resource {
 		MachineLearningDataStoreBlobStorage{},
 		MachineLearningDataStoreDataLakeGen2{},
 		MachineLearningDataStoreFileShare{},
+		WorkspaceNetworkOutboundRuleFqdn{},
+		WorkspaceNetworkOutboundRulePrivateEndpoint{},
+		WorkspaceNetworkOutboundRuleServiceTag{},
 	}
 }

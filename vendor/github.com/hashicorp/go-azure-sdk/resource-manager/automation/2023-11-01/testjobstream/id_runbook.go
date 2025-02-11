@@ -44,7 +44,7 @@ func ParseRunbookID(input string) (*RunbookId, error) {
 	}
 
 	id := RunbookId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseRunbookIDInsensitively(input string) (*RunbookId, error) {
 	}
 
 	id := RunbookId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id RunbookId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticRunbooks", "runbooks", "runbooks"),
-		resourceids.UserSpecifiedSegment("runbookName", "runbookValue"),
+		resourceids.UserSpecifiedSegment("runbookName", "runbookName"),
 	}
 }
 

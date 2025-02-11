@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints` Documentation
 
-The `managedprivateendpoints` SDK allows for interaction with the Azure Resource Manager Service `datafactory` (API Version `2018-06-01`).
+The `managedprivateendpoints` SDK allows for interaction with Azure Resource Manager `datafactory` (API Version `2018-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := managedprivateendpoints.NewManagedPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "factoryValue", "managedVirtualNetworkValue", "managedPrivateEndpointValue")
+id := managedprivateendpoints.NewManagedPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "factoryName", "managedVirtualNetworkName", "managedPrivateEndpointName")
 
 payload := managedprivateendpoints.ManagedPrivateEndpointResource{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedprivateendpoints.NewManagedPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "factoryValue", "managedVirtualNetworkValue", "managedPrivateEndpointValue")
+id := managedprivateendpoints.NewManagedPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "factoryName", "managedVirtualNetworkName", "managedPrivateEndpointName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedprivateendpoints.NewManagedPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "factoryValue", "managedVirtualNetworkValue", "managedPrivateEndpointValue")
+id := managedprivateendpoints.NewManagedPrivateEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "factoryName", "managedVirtualNetworkName", "managedPrivateEndpointName")
 
 read, err := client.Get(ctx, id, managedprivateendpoints.DefaultGetOperationOptions())
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := managedprivateendpoints.NewManagedVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "factoryValue", "managedVirtualNetworkValue")
+id := managedprivateendpoints.NewManagedVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "factoryName", "managedVirtualNetworkName")
 
 // alternatively `client.ListByFactory(ctx, id)` can be used to do batched pagination
 items, err := client.ListByFactoryComplete(ctx, id)

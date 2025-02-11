@@ -36,6 +36,7 @@ func (o GetByNameOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetByNameOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c SoftwareUpdateConfigurationClient) GetByName(ctx context.Context, id Sof
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c SoftwareUpdateConfigurationClient) GetByName(ctx context.Context, id Sof
 
 	var model SoftwareUpdateConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

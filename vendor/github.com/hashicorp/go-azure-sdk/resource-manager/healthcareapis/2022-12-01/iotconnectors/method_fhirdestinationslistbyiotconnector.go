@@ -23,6 +23,18 @@ type FhirDestinationsListByIotConnectorCompleteResult struct {
 	Items              []IotFhirDestination
 }
 
+type FhirDestinationsListByIotConnectorCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *FhirDestinationsListByIotConnectorCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // FhirDestinationsListByIotConnector ...
 func (c IotConnectorsClient) FhirDestinationsListByIotConnector(ctx context.Context, id IotConnectorId) (result FhirDestinationsListByIotConnectorOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c IotConnectorsClient) FhirDestinationsListByIotConnector(ctx context.Cont
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &FhirDestinationsListByIotConnectorCustomPager{},
 		Path:       fmt.Sprintf("%s/fhirDestinations", id.ID()),
 	}
 

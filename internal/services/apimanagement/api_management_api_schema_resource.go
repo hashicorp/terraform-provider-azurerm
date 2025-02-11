@@ -117,11 +117,21 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("components"); ok {
-		parameters.Properties.Document.Components = pointer.To(v)
+		var value interface{}
+		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
+			return fmt.Errorf("failed to unmarshal components %v: %+v", v.(string), err)
+		}
+
+		parameters.Properties.Document.Components = pointer.To(value)
 	}
 
 	if v, ok := d.GetOk("definitions"); ok {
-		parameters.Properties.Document.Definitions = pointer.To(v)
+		var value interface{}
+		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
+			return fmt.Errorf("failed to unmarshal definitions %v: %+v", v.(string), err)
+		}
+
+		parameters.Properties.Document.Definitions = pointer.To(value)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, apischema.CreateOrUpdateOperationOptions{}); err != nil {
@@ -206,7 +216,7 @@ func resourceApiManagementApiSchemaDelete(d *pluginsdk.ResourceData, meta interf
 }
 
 func convert2Str(rawVal interface{}) (string, error) {
-	value := ""
+	var value string
 	if val, ok := rawVal.(string); ok {
 		value = val
 	} else {

@@ -23,6 +23,18 @@ type ListByHostPoolCompleteResult struct {
 	Items              []ScalingPlan
 }
 
+type ListByHostPoolCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByHostPoolCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByHostPool ...
 func (c ScalingPlanClient) ListByHostPool(ctx context.Context, id HostPoolId) (result ListByHostPoolOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ScalingPlanClient) ListByHostPool(ctx context.Context, id HostPoolId) (r
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByHostPoolCustomPager{},
 		Path:       fmt.Sprintf("%s/scalingPlans", id.ID()),
 	}
 

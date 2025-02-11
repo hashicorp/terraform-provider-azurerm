@@ -50,7 +50,6 @@ func (c TopicsAuthorizationRuleClient) TopicsRegenerateKeys(ctx context.Context,
 
 	var model AccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

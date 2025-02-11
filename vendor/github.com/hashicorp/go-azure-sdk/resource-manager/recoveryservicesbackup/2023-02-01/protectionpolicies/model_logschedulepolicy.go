@@ -14,6 +14,14 @@ type LogSchedulePolicy struct {
 	ScheduleFrequencyInMins *int64 `json:"scheduleFrequencyInMins,omitempty"`
 
 	// Fields inherited from SchedulePolicy
+
+	SchedulePolicyType string `json:"schedulePolicyType"`
+}
+
+func (s LogSchedulePolicy) SchedulePolicy() BaseSchedulePolicyImpl {
+	return BaseSchedulePolicyImpl{
+		SchedulePolicyType: s.SchedulePolicyType,
+	}
 }
 
 var _ json.Marshaler = LogSchedulePolicy{}
@@ -27,9 +35,10 @@ func (s LogSchedulePolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling LogSchedulePolicy: %+v", err)
 	}
+
 	decoded["schedulePolicyType"] = "LogSchedulePolicy"
 
 	encoded, err = json.Marshal(decoded)

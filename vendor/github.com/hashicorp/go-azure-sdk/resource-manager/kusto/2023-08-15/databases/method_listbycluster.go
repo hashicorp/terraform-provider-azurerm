@@ -41,6 +41,7 @@ func (o ListByClusterOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByClusterOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -52,6 +53,18 @@ func (o ListByClusterOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByClusterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClusterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByCluster ...
 func (c DatabasesClient) ListByCluster(ctx context.Context, id commonids.KustoClusterId, options ListByClusterOperationOptions) (result ListByClusterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -60,8 +73,9 @@ func (c DatabasesClient) ListByCluster(ctx context.Context, id commonids.KustoCl
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/databases", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByClusterCustomPager{},
+		Path:          fmt.Sprintf("%s/databases", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -89,7 +103,7 @@ func (c DatabasesClient) ListByCluster(ctx context.Context, id commonids.KustoCl
 	temp := make([]Database, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalDatabaseImplementation(v)
+			val, err := UnmarshalDatabaseImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for Database (%q): %+v", i, v, err)
 				return result, err

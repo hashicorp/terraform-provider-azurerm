@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -83,6 +83,17 @@ func resourceRouteServer() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"hub_routing_preference": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(virtualwans.HubRoutingPreferenceExpressRoute),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(virtualwans.HubRoutingPreferenceASPath),
+					string(virtualwans.HubRoutingPreferenceExpressRoute),
+					string(virtualwans.HubRoutingPreferenceVpnGateway),
+				}, false),
+			},
+
 			"virtual_router_ips": {
 				Type:     pluginsdk.TypeSet,
 				Computed: true,
@@ -132,6 +143,7 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Properties: &virtualwans.VirtualHubProperties{
 			Sku:                        pointer.To(d.Get("sku").(string)),
 			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
+			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -194,7 +206,6 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	existing, err := client.VirtualHubsGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
-
 	}
 
 	payload := existing.Model
@@ -208,6 +219,10 @@ func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if d.HasChange("branch_to_branch_traffic_enabled") {
 		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool))
+	}
+
+	if d.HasChange("hub_routing_preference") {
+		payload.Properties.HubRoutingPreference = pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string)))
 	}
 
 	if d.HasChange("tags") {
@@ -273,6 +288,7 @@ func resourceRouteServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			if props.AllowBranchToBranchTraffic != nil {
 				d.Set("branch_to_branch_traffic_enabled", props.AllowBranchToBranchTraffic)
 			}
+			d.Set("hub_routing_preference", pointer.From(props.HubRoutingPreference))
 			if props.VirtualRouterAsn != nil {
 				d.Set("virtual_router_asn", props.VirtualRouterAsn)
 			}

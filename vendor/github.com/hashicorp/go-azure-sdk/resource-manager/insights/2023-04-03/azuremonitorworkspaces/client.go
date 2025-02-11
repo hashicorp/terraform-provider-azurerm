@@ -15,7 +15,7 @@ type AzureMonitorWorkspacesClient struct {
 }
 
 func NewAzureMonitorWorkspacesClientWithBaseURI(sdkApi sdkEnv.Api) (*AzureMonitorWorkspacesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "azuremonitorworkspaces", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "azuremonitorworkspaces", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AzureMonitorWorkspacesClient: %+v", err)
 	}

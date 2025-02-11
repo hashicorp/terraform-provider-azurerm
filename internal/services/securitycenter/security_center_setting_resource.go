@@ -8,14 +8,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2022-05-01/settings"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -24,12 +21,6 @@ import (
 
 func resourceSecurityCenterSetting() *pluginsdk.Resource {
 	validSettingName := settings.PossibleValuesForSettingName()
-
-	if !features.FourPointOhBeta() {
-		// This is for backward compatibility.. The swagger defines the valid enum to be "Sensinel" (see below), so this ("SENTINEL") shall be removed since 4.0.
-		// https://github.com/Azure/azure-rest-api-specs/blob/b52464f520b77222ac8b0bdeb80a030c0fdf5b1b/specification/security/resource-manager/Microsoft.Security/stable/2021-06-01/settings.json#L285
-		validSettingName = append(validSettingName, "SENTINEL")
-	}
 
 	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSettingUpdate,
@@ -56,16 +47,9 @@ func resourceSecurityCenterSetting() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"setting_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				DiffSuppressFunc: func() func(string, string, string, *schema.ResourceData) bool {
-					// This is a workaround for `SENTINEL` value.
-					if !features.FourPointOhBeta() {
-						return suppress.CaseDifference
-					}
-					return nil
-				}(),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(validSettingName, false),
 			},
 			"enabled": {
@@ -83,11 +67,6 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 
 	settingName := d.Get("setting_name").(string)
-
-	if !features.FourPointOhBeta() && settingName == "SENTINEL" {
-		settingName = "Sentinel"
-	}
-
 	id := settings.NewSettingID(subscriptionId, settings.SettingName(settingName))
 
 	if d.IsNewResource() {
@@ -97,10 +76,10 @@ func resourceSecurityCenterSettingUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		if existing.Model != nil {
-			if alertSyncSettings, ok := (*existing.Model).(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
+			if alertSyncSettings, ok := existing.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil && alertSyncSettings.Properties.Enabled {
 				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
 			}
-			if dataExportSettings, ok := (*existing.Model).(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
+			if dataExportSettings, ok := existing.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil && dataExportSettings.Properties.Enabled {
 				return tf.ImportAsExistsError("azurerm_security_center_setting", id.ID())
 			}
 		}
@@ -135,10 +114,10 @@ func resourceSecurityCenterSettingRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if resp.Model != nil {
-		if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil {
+		if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok && alertSyncSettings.Properties != nil {
 			d.Set("enabled", alertSyncSettings.Properties.Enabled)
 		}
-		if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok && dataExportSettings.Properties != nil {
+		if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok && dataExportSettings.Properties != nil {
 			d.Set("enabled", dataExportSettings.Properties.Enabled)
 		}
 	}

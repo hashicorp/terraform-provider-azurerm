@@ -24,6 +24,18 @@ type ComponentsListByResourceGroupCompleteResult struct {
 	Items              []ApplicationInsightsComponent
 }
 
+type ComponentsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ComponentsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ComponentsListByResourceGroup ...
 func (c ComponentsAPIsClient) ComponentsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ComponentsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ComponentsAPIsClient) ComponentsListByResourceGroup(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ComponentsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/components", id.ID()),
 	}
 

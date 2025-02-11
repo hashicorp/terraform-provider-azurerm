@@ -50,7 +50,9 @@ The following arguments are supported:
 
 * `allowed_tenants` - (Required) List of allowed AAD Tenants.
 
-* `signin_tenant` - (Optional) The AAD Tenant to use instead of Common when logging into Active Directory
+* `client_library` - (Optional) The client library to be used in the AAD Identity Provider.
+
+* `signin_tenant` - (Optional) The AAD Tenant to use instead of Common when logging into Active Directory.
 
 ---
 

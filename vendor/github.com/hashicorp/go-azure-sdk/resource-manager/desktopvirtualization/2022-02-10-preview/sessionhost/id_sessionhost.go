@@ -44,7 +44,7 @@ func ParseSessionHostID(input string) (*SessionHostId, error) {
 	}
 
 	id := SessionHostId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSessionHostIDInsensitively(input string) (*SessionHostId, error) {
 	}
 
 	id := SessionHostId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SessionHostId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDesktopVirtualization", "Microsoft.DesktopVirtualization", "Microsoft.DesktopVirtualization"),
 		resourceids.StaticSegment("staticHostPools", "hostPools", "hostPools"),
-		resourceids.UserSpecifiedSegment("hostPoolName", "hostPoolValue"),
+		resourceids.UserSpecifiedSegment("hostPoolName", "hostPoolName"),
 		resourceids.StaticSegment("staticSessionHosts", "sessionHosts", "sessionHosts"),
-		resourceids.UserSpecifiedSegment("sessionHostName", "sessionHostValue"),
+		resourceids.UserSpecifiedSegment("sessionHostName", "sessionHostName"),
 	}
 }
 

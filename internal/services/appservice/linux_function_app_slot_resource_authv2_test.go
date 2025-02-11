@@ -217,7 +217,7 @@ func TestAccLinuxFunctionAppSlot_authV2UpgradeFromV1(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardComplete(data),
+			Config: r.standardCompleteWithVnetProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -267,6 +267,7 @@ resource "azurerm_linux_function_app_slot" "test" {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_applications       = ["WhoopsMissedThisOne"]
     }
     login {}
   }
@@ -275,7 +276,6 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 
 func (r LinuxFunctionAppSlotResource) authV2AzureActiveDirectoryNoSecretName(data acceptance.TestData, planSku string) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -815,7 +815,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"

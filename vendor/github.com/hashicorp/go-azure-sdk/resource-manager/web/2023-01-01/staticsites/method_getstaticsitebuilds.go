@@ -23,6 +23,18 @@ type GetStaticSiteBuildsCompleteResult struct {
 	Items              []StaticSiteBuildARMResource
 }
 
+type GetStaticSiteBuildsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetStaticSiteBuildsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetStaticSiteBuilds ...
 func (c StaticSitesClient) GetStaticSiteBuilds(ctx context.Context, id StaticSiteId) (result GetStaticSiteBuildsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) GetStaticSiteBuilds(ctx context.Context, id StaticSit
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetStaticSiteBuildsCustomPager{},
 		Path:       fmt.Sprintf("%s/builds", id.ID()),
 	}
 

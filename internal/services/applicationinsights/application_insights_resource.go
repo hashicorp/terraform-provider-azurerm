@@ -27,7 +27,7 @@ import (
 )
 
 func resourceApplicationInsights() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceApplicationInsightsCreateUpdate,
 		Read:   resourceApplicationInsightsRead,
 		Update: resourceApplicationInsightsCreateUpdate,
@@ -119,14 +119,13 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			"daily_data_cap_in_gb": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
-				Computed:     true,
+				Default:      100,
 				ValidateFunc: validation.FloatAtLeast(0),
 			},
 
 			"daily_data_cap_notifications_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"app_id": {
@@ -170,6 +169,8 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -217,7 +218,7 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if !d.IsNewResource() {
 		oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
 		if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
-			return fmt.Errorf("`workspace_id` can not be removed after set")
+			return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value.")
 		}
 	}
 
@@ -266,6 +267,11 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if billingRead.Model == nil {
 		return fmt.Errorf("model is nil for billing features")
 	}
+
+	if billingRead.Model.DataVolumeCap == nil {
+		billingRead.Model.DataVolumeCap = &billing.ApplicationInsightsComponentDataVolumeCap{}
+	}
+
 	applicationInsightsComponentBillingFeatures := billing.ApplicationInsightsComponentBillingFeatures{
 		CurrentBillingFeatures: billingRead.Model.CurrentBillingFeatures,
 		DataVolumeCap:          billingRead.Model.DataVolumeCap,
@@ -310,7 +316,6 @@ func resourceApplicationInsightsCreateUpdate(d *pluginsdk.ResourceData, meta int
 							return pluginsdk.NonRetryableError(fmt.Errorf("issuing disable request for %s: %+v", ruleId, err))
 						}
 					}
-
 				}
 			}
 

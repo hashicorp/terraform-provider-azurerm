@@ -15,7 +15,7 @@ type HybridRunbookWorkerGroupClient struct {
 }
 
 func NewHybridRunbookWorkerGroupClientWithBaseURI(sdkApi sdkEnv.Api) (*HybridRunbookWorkerGroupClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "hybridrunbookworkergroup", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "hybridrunbookworkergroup", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating HybridRunbookWorkerGroupClient: %+v", err)
 	}

@@ -24,6 +24,18 @@ type ContainerRegistriesListCompleteResult struct {
 	Items              []ContainerRegistryResource
 }
 
+type ContainerRegistriesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ContainerRegistriesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ContainerRegistriesList ...
 func (c AppPlatformClient) ContainerRegistriesList(ctx context.Context, id commonids.SpringCloudServiceId) (result ContainerRegistriesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ContainerRegistriesList(ctx context.Context, id commo
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ContainerRegistriesListCustomPager{},
 		Path:       fmt.Sprintf("%s/containerRegistries", id.ID()),
 	}
 

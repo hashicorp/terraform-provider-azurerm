@@ -72,7 +72,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			"weight": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
@@ -120,7 +120,7 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 			"priority": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 

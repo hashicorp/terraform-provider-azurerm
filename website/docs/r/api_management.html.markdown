@@ -115,7 +115,7 @@ A `additional_location` block supports the following:
 
 * `capacity` - (Optional) The number of compute units in this region. Defaults to the capacity of the main region.
 
-* `zones` - (Optional) A list of availability zones. Changing this forces a new resource to be created.
+* `zones` - (Optional) A list of availability zones.
 
 * `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 

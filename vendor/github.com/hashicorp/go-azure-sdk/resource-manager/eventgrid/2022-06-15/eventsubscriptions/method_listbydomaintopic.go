@@ -40,6 +40,7 @@ func (o ListByDomainTopicOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByDomainTopicOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListByDomainTopicOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByDomainTopicCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDomainTopicCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDomainTopic ...
 func (c EventSubscriptionsClient) ListByDomainTopic(ctx context.Context, id DomainTopicId, options ListByDomainTopicOperationOptions) (result ListByDomainTopicOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c EventSubscriptionsClient) ListByDomainTopic(ctx context.Context, id Doma
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.EventGrid/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByDomainTopicCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.EventGrid/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

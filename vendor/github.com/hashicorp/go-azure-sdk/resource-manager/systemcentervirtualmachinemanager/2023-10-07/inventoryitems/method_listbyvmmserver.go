@@ -23,6 +23,18 @@ type ListByVMmServerCompleteResult struct {
 	Items              []InventoryItem
 }
 
+type ListByVMmServerCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByVMmServerCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByVMmServer ...
 func (c InventoryItemsClient) ListByVMmServer(ctx context.Context, id VMmServerId) (result ListByVMmServerOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c InventoryItemsClient) ListByVMmServer(ctx context.Context, id VMmServerI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByVMmServerCustomPager{},
 		Path:       fmt.Sprintf("%s/inventoryItems", id.ID()),
 	}
 

@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -456,30 +455,6 @@ func (r NetworkInterfaceResource) auxiliaryAcceleratedConnections(data acceptanc
 	// To not affect other testcases of `Network`, hard-code to that for now
 	data.Locations.Primary = "westus"
 
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = "%s"
-  resource_group_name           = azurerm_resource_group.test.name
-  auxiliary_mode                = "AcceleratedConnections"
-  auxiliary_sku                 = "A2"
-  enable_accelerated_networking = true
-
-  ip_configuration {
-    name                          = "primary"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-
-  tags = {
-    fastpathenabled = "true"
-  }
-}
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
-	}
 	return fmt.Sprintf(`
 %s
 
@@ -1022,6 +997,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
+
 }
 
 resource "azurerm_subnet" "test" {

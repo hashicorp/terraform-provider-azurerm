@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxcertificate"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -103,9 +103,9 @@ func (m CertificateResource) Create() sdk.ResourceFunc {
 
 			req := nginxcertificate.NginxCertificate{
 				Properties: &nginxcertificate.NginxCertificateProperties{
-					CertificateVirtualPath: pointer.FromString(model.CertificateVirtualPath),
-					KeyVaultSecretId:       pointer.FromString(model.KeyVaultSecretId),
-					KeyVirtualPath:         pointer.FromString(model.KeyVirtualPath),
+					CertificateVirtualPath: pointer.To(model.CertificateVirtualPath),
+					KeyVaultSecretId:       pointer.To(model.KeyVaultSecretId),
+					KeyVirtualPath:         pointer.To(model.KeyVirtualPath),
 				},
 			}
 
@@ -124,7 +124,6 @@ func (m CertificateResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-
 			client := meta.Client.Nginx.NginxCertificate
 			id, err := nginxcertificate.ParseCertificateID(meta.ResourceData.Id())
 			if err != nil {
@@ -148,7 +147,7 @@ func (m CertificateResource) Update() sdk.ResourceFunc {
 			// have to pass all existing properties to update
 			upd := existing.Model
 			if meta.ResourceData.HasChange("key_virtual_path") {
-				upd.Properties.KeyVirtualPath = pointer.FromString(model.KeyVirtualPath)
+				upd.Properties.KeyVirtualPath = pointer.To(model.KeyVirtualPath)
 			}
 
 			if meta.ResourceData.HasChange("certificate_virtual_path") {

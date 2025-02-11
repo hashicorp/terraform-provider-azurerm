@@ -24,6 +24,18 @@ type VpnGatewaysListCompleteResult struct {
 	Items              []VpnGateway
 }
 
+type VpnGatewaysListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VpnGatewaysListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VpnGatewaysList ...
 func (c VirtualWANsClient) VpnGatewaysList(ctx context.Context, id commonids.SubscriptionId) (result VpnGatewaysListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualWANsClient) VpnGatewaysList(ctx context.Context, id commonids.Sub
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VpnGatewaysListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/vpnGateways", id.ID()),
 	}
 

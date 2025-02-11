@@ -27,7 +27,6 @@ func TestGatewayID(t *testing.T) {
 		Error    bool
 		Expected *GatewayId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -10,7 +10,7 @@ type SecurityProfile struct {
 	Domain               *string        `json:"domain,omitempty"`
 	DomainUserPassword   *string        `json:"domainUserPassword,omitempty"`
 	DomainUsername       *string        `json:"domainUsername,omitempty"`
-	LdapsUrls            *[]string      `json:"ldapsUrls,omitempty"`
+	LdapsURLs            *[]string      `json:"ldapsUrls,omitempty"`
 	MsiResourceId        *string        `json:"msiResourceId,omitempty"`
 	OrganizationalUnitDN *string        `json:"organizationalUnitDN,omitempty"`
 }

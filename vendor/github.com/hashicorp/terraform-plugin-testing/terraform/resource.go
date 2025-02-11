@@ -11,8 +11,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/mitchellh/copystructure"
-	"github.com/mitchellh/reflectwalk"
 
 	"github.com/hashicorp/terraform-plugin-testing/internal/configs/configschema"
 	"github.com/hashicorp/terraform-plugin-testing/internal/configs/hcl2shim"
@@ -177,19 +175,31 @@ func (c *ResourceConfig) DeepCopy() *ResourceConfig {
 		return nil
 	}
 
-	// Copy, this will copy all the exported attributes
-	copiedConfig, err := copystructure.Config{Lock: true}.Copy(c)
-	if err != nil {
-		panic(err)
+	copied := &ResourceConfig{}
+
+	if c.ComputedKeys != nil {
+		copied.ComputedKeys = make([]string, len(c.ComputedKeys))
+
+		copy(copied.ComputedKeys, c.ComputedKeys)
 	}
 
-	// Force the type
-	result, ok := copiedConfig.(*ResourceConfig)
-	if !ok {
-		panic(fmt.Errorf("unexpected type %T for copiedConfig", copiedConfig))
+	if c.Config != nil {
+		copied.Config = make(map[string]any, len(c.Config))
+
+		for key, value := range c.Config {
+			copied.Config[key] = value
+		}
 	}
 
-	return result
+	if c.Raw != nil {
+		copied.Raw = make(map[string]any, len(c.Raw))
+
+		for key, value := range c.Raw {
+			copied.Raw[key] = value
+		}
+	}
+
+	return copied
 }
 
 // Equal checks the equality of two resource configs.
@@ -273,12 +283,7 @@ func (c *ResourceConfig) IsComputed(k string) bool {
 	}
 
 	// Test if the value contains an unknown value
-	var w unknownCheckWalker
-	if err := reflectwalk.Walk(v, &w); err != nil {
-		panic(err)
-	}
-
-	return w.Unknown
+	return unknownValueWalk(reflect.ValueOf(v))
 }
 
 func (c *ResourceConfig) get(
@@ -354,19 +359,4 @@ func (c *ResourceConfig) get(
 	}
 
 	return current, true
-}
-
-// unknownCheckWalker
-type unknownCheckWalker struct {
-	Unknown bool
-}
-
-// TODO: investigate why deleting this causes odd runtime test failures
-// must be some kind of interface implementation
-func (w *unknownCheckWalker) Primitive(v reflect.Value) error {
-	if v.Interface() == hcl2shim.UnknownVariableValue {
-		w.Unknown = true
-	}
-
-	return nil
 }

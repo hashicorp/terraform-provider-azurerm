@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -41,10 +41,10 @@ type NewRelicMonitorModel struct {
 }
 
 type PlanDataModel struct {
-	EffectiveDate string                `tfschema:"effective_date"`
-	BillingCycle  monitors.BillingCycle `tfschema:"billing_cycle"`
-	PlanDetails   string                `tfschema:"plan_id"`
-	UsageType     monitors.UsageType    `tfschema:"usage_type"`
+	EffectiveDate string             `tfschema:"effective_date"`
+	BillingCycle  string             `tfschema:"billing_cycle"`
+	PlanDetails   string             `tfschema:"plan_id"`
+	UsageType     monitors.UsageType `tfschema:"usage_type"`
 }
 
 type UserInfoModel struct {
@@ -101,15 +101,16 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc:     validation.IsRFC3339Time,
 					},
 
+					// Enum is removed https://github.com/Azure/azure-rest-api-specs/issues/31093
 					"billing_cycle": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ForceNew: true,
-						Default:  string(monitors.BillingCycleMONTHLY),
+						Default:  "MONTHLY",
 						ValidateFunc: validation.StringInSlice([]string{
-							string(monitors.BillingCycleMONTHLY),
-							string(monitors.BillingCycleWEEKLY),
-							string(monitors.BillingCycleYEARLY),
+							"MONTHLY",
+							"WEEKLY",
+							"YEARLY",
 						}, false),
 					},
 
@@ -268,8 +269,10 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			identityValue := expandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
-
+			identityValue, err := identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
 			// Currently the API does not accept `None` type: https://github.com/Azure/azure-rest-api-specs/issues/29257
 			if identityValue.Type != identity.TypeNone {
 				properties.Identity = identityValue
@@ -319,7 +322,7 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				if err := metadata.ResourceData.Set("identity", flattenSystemAssigned(model.Identity)); err != nil {
+				if err := metadata.ResourceData.Set("identity", identity.FlattenSystemAssigned(model.Identity)); err != nil {
 					return fmt.Errorf("setting `identity`: %+v", err)
 				}
 
@@ -533,35 +536,4 @@ func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
 	}
 
 	return append(outputList, output)
-}
-
-// Currently the API only supports `SystemAssigned` type: https://github.com/Azure/azure-rest-api-specs/issues/29256
-func expandSystemAssigned(input []interface{}) *identity.SystemAndUserAssignedMap {
-	if len(input) == 0 || input[0] == nil {
-		return &identity.SystemAndUserAssignedMap{
-			Type: identity.TypeNone,
-		}
-	}
-
-	return &identity.SystemAndUserAssignedMap{
-		Type: identity.TypeSystemAssigned,
-	}
-}
-
-func flattenSystemAssigned(input *identity.SystemAndUserAssignedMap) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	if input.Type == identity.TypeNone {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"type":         input.Type,
-			"principal_id": input.PrincipalId,
-			"tenant_id":    input.TenantId,
-		},
-	}
 }

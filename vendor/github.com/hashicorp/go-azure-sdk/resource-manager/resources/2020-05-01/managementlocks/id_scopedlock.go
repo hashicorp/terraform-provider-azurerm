@@ -40,7 +40,7 @@ func ParseScopedLockID(input string) (*ScopedLockId, error) {
 	}
 
 	id := ScopedLockId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedLockIDInsensitively(input string) (*ScopedLockId, error) {
 	}
 
 	id := ScopedLockId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedLockId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticLocks", "locks", "locks"),
-		resourceids.UserSpecifiedSegment("lockName", "lockValue"),
+		resourceids.UserSpecifiedSegment("lockName", "lockName"),
 	}
 }
 

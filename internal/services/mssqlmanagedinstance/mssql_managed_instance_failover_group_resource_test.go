@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/instancefailovergroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -23,13 +24,6 @@ func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 	r := MsSqlManagedInstanceFailoverGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: MsSqlManagedInstanceResource{}.dnsZonePartner(data),
-		},
-		{
-			// It speeds up deletion to remove the explicit dependency between the instances
-			Config: MsSqlManagedInstanceResource{}.emptyDnsZonePartner(data),
-		},
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -44,22 +38,18 @@ func TestAccMsSqlManagedInstanceFailoverGroup_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			// disconnect
-			Config: MsSqlManagedInstanceResource{}.emptyDnsZonePartner(data),
-		},
 	})
 }
 
 func (r MsSqlManagedInstanceFailoverGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ManagedInstanceFailoverGroupID(state.ID)
+	id, err := instancefailovergroups.ParseInstanceFailoverGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient.Get(ctx, id.ResourceGroup, id.LocationName, id.InstanceFailoverGroupName)
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceFailoverGroupsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
@@ -99,6 +89,7 @@ resource "azurerm_mssql_managed_instance_failover_group" "test" {
   location                    = "%[3]s"
   managed_instance_id         = azurerm_mssql_managed_instance.test.id
   partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
+  secondary_type              = "Standby"
 
   readonly_endpoint_failover_policy_enabled = true
 
@@ -135,6 +126,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -178,6 +170,7 @@ resource "azurerm_public_ip" "secondary" {
   location            = azurerm_resource_group.secondary.location
   resource_group_name = azurerm_resource_group.secondary.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_virtual_network_gateway" "secondary" {
@@ -208,5 +201,5 @@ resource "azurerm_virtual_network_gateway_connection" "secondary" {
 
   shared_key = var.shared_key
 }
-`, MsSqlManagedInstanceResource{}.emptyDnsZonePartner(data), data.RandomInteger)
+`, MsSqlManagedInstanceResource{}.dnsZonePartner(data), data.RandomInteger)
 }

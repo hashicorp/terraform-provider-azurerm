@@ -109,8 +109,10 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			},
 
 			"node_count": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C There is a bug in the API where this gets set when auto_scale is enabled resulting in a diff
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(3, 200),
 				ExactlyOneOf: []string{"node_count", "auto_scale"},
 			},
@@ -212,11 +214,8 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 
 			"spark_version": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  "2.4", // TODO: make this field Required in 4.0 since the default value changes over time
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"2.4",
-					"3.1",
 					"3.2",
 					"3.3",
 					"3.4",

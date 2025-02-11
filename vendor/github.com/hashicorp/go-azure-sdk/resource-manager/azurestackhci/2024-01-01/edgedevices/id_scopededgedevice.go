@@ -40,7 +40,7 @@ func ParseScopedEdgeDeviceID(input string) (*ScopedEdgeDeviceId, error) {
 	}
 
 	id := ScopedEdgeDeviceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedEdgeDeviceIDInsensitively(input string) (*ScopedEdgeDeviceId, er
 	}
 
 	id := ScopedEdgeDeviceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedEdgeDeviceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticEdgeDevices", "edgeDevices", "edgeDevices"),
-		resourceids.UserSpecifiedSegment("edgeDeviceName", "edgeDeviceValue"),
+		resourceids.UserSpecifiedSegment("edgeDeviceName", "edgeDeviceName"),
 	}
 }
 

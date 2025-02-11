@@ -4,7 +4,6 @@
 package logic
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -57,10 +56,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_logic_app_trigger_recurrence":                      resourceLogicAppTriggerRecurrence(),
 		"azurerm_logic_app_workflow":                                resourceLogicAppWorkflow(),
 		"azurerm_logic_app_standard":                                resourceLogicAppStandard(),
-	}
-
-	if !features.FourPointOhBeta() {
-		resources["azurerm_integration_service_environment"] = resourceIntegrationServiceEnvironment()
 	}
 
 	return resources

@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/monitors"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/tagrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -393,7 +393,7 @@ func (r NewRelicTagRuleResource) getEmail(ctx context.Context, monitorClient *mo
 }
 
 func expandFilteringTagModelArray(inputList []FilteringTagModel) *[]tagrules.FilteringTag {
-	var outputList []tagrules.FilteringTag
+	outputList := make([]tagrules.FilteringTag, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := tagrules.FilteringTag{

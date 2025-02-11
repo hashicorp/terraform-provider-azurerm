@@ -34,6 +34,7 @@ func (o GetOSOptionsOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOSOptionsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c ManagedClustersClient) GetOSOptions(ctx context.Context, id LocationId, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/osOptions/default", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/osOptions/default", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c ManagedClustersClient) GetOSOptions(ctx context.Context, id LocationId, 
 
 	var model OSOptionProfile
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

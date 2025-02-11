@@ -14,6 +14,14 @@ type SingleServerRecommendationResult struct {
 	VMSku *string `json:"vmSku,omitempty"`
 
 	// Fields inherited from SAPSizingRecommendationResult
+
+	DeploymentType SAPDeploymentType `json:"deploymentType"`
+}
+
+func (s SingleServerRecommendationResult) SAPSizingRecommendationResult() BaseSAPSizingRecommendationResultImpl {
+	return BaseSAPSizingRecommendationResultImpl{
+		DeploymentType: s.DeploymentType,
+	}
 }
 
 var _ json.Marshaler = SingleServerRecommendationResult{}
@@ -27,9 +35,10 @@ func (s SingleServerRecommendationResult) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SingleServerRecommendationResult: %+v", err)
 	}
+
 	decoded["deploymentType"] = "SingleServer"
 
 	encoded, err = json.Marshal(decoded)

@@ -91,6 +91,7 @@ func TestAccDevCenterProject_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r DevCenterProjectTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := projects.ParseProjectID(state.ID)
 	if err != nil {
@@ -104,6 +105,7 @@ func (r DevCenterProjectTestResource) Exists(ctx context.Context, clients *clien
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r DevCenterProjectTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

@@ -23,6 +23,18 @@ type VirtualHubIPConfigurationListCompleteResult struct {
 	Items              []HubIPConfiguration
 }
 
+type VirtualHubIPConfigurationListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VirtualHubIPConfigurationListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VirtualHubIPConfigurationList ...
 func (c VirtualWANsClient) VirtualHubIPConfigurationList(ctx context.Context, id VirtualHubId) (result VirtualHubIPConfigurationListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) VirtualHubIPConfigurationList(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VirtualHubIPConfigurationListCustomPager{},
 		Path:       fmt.Sprintf("%s/ipConfigurations", id.ID()),
 	}
 

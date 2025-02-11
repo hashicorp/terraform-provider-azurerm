@@ -24,6 +24,18 @@ type ListBySubscriptionIdCompleteResult struct {
 	Items              []Vault
 }
 
+type ListBySubscriptionIdCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionIdCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySubscriptionId ...
 func (c VaultsClient) ListBySubscriptionId(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionIdOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VaultsClient) ListBySubscriptionId(ctx context.Context, id commonids.Sub
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionIdCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.RecoveryServices/vaults", id.ID()),
 	}
 

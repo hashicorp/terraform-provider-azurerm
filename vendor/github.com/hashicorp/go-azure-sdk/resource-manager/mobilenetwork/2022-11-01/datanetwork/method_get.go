@@ -45,7 +45,6 @@ func (c DataNetworkClient) Get(ctx context.Context, id DataNetworkId) (result Ge
 
 	var model DataNetwork
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

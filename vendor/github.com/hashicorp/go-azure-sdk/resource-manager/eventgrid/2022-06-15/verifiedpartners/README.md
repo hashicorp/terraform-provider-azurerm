@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/verifiedpartners` Documentation
 
-The `verifiedpartners` SDK allows for interaction with the Azure Resource Manager Service `eventgrid` (API Version `2022-06-15`).
+The `verifiedpartners` SDK allows for interaction with Azure Resource Manager `eventgrid` (API Version `2022-06-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := verifiedpartners.NewVerifiedPartnerID("verifiedPartnerValue")
+id := verifiedpartners.NewVerifiedPartnerID("verifiedPartnerName")
 
 read, err := client.Get(ctx, id)
 if err != nil {

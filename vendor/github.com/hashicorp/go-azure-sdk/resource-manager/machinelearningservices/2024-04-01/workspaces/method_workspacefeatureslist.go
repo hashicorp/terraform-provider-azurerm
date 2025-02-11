@@ -23,6 +23,18 @@ type WorkspaceFeaturesListCompleteResult struct {
 	Items              []AmlUserFeature
 }
 
+type WorkspaceFeaturesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkspaceFeaturesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WorkspaceFeaturesList ...
 func (c WorkspacesClient) WorkspaceFeaturesList(ctx context.Context, id WorkspaceId) (result WorkspaceFeaturesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WorkspacesClient) WorkspaceFeaturesList(ctx context.Context, id Workspac
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WorkspaceFeaturesListCustomPager{},
 		Path:       fmt.Sprintf("%s/features", id.ID()),
 	}
 

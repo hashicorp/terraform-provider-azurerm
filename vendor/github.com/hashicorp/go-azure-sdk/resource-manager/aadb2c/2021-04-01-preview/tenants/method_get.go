@@ -45,7 +45,6 @@ func (c TenantsClient) Get(ctx context.Context, id B2CDirectoryId) (result GetOp
 
 	var model Tenant
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

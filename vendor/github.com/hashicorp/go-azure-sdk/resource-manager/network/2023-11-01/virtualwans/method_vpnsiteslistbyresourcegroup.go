@@ -24,6 +24,18 @@ type VpnSitesListByResourceGroupCompleteResult struct {
 	Items              []VpnSite
 }
 
+type VpnSitesListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VpnSitesListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VpnSitesListByResourceGroup ...
 func (c VirtualWANsClient) VpnSitesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result VpnSitesListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualWANsClient) VpnSitesListByResourceGroup(ctx context.Context, id c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VpnSitesListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/vpnSites", id.ID()),
 	}
 

@@ -23,6 +23,18 @@ type UsagesListCompleteResult struct {
 	Items              []SignalRUsage
 }
 
+type UsagesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *UsagesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // UsagesList ...
 func (c SignalRClient) UsagesList(ctx context.Context, id LocationId) (result UsagesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SignalRClient) UsagesList(ctx context.Context, id LocationId) (result Us
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &UsagesListCustomPager{},
 		Path:       fmt.Sprintf("%s/usages", id.ID()),
 	}
 

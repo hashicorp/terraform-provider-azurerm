@@ -23,6 +23,18 @@ type ListByFirewallsCompleteResult struct {
 	Items              []FirewallStatusResource
 }
 
+type ListByFirewallsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByFirewallsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByFirewalls ...
 func (c FirewallStatusClient) ListByFirewalls(ctx context.Context, id FirewallId) (result ListByFirewallsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c FirewallStatusClient) ListByFirewalls(ctx context.Context, id FirewallId
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByFirewallsCustomPager{},
 		Path:       fmt.Sprintf("%s/statuses", id.ID()),
 	}
 

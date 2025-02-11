@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `redis_cache_id` - (Required) The ID of the Redis Cache. Changing this forces a new Redis Cache Access Policy to be created.
 
-* `permissions` - (Required) Permissions that are going to be assigned to this Redis Cache Access Policy. Changing this forces a new Redis Cache Access Policy to be created.
+* `permissions` - (Required) Permissions that are going to be assigned to this Redis Cache Access Policy.
 
 ## Attributes Reference
 

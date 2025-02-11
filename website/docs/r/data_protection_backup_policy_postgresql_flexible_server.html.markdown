@@ -24,6 +24,10 @@ resource "azurerm_data_protection_backup_vault" "example" {
   location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "example" {
@@ -40,8 +44,11 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
   }
 
   retention_rule {
-    name     = "weekly"
-    duration = "P6M"
+    name = "weekly"
+    life_cycle {
+      duration        = "P6M"
+      data_store_type = "VaultStore"
+    }
     priority = 20
 
     criteria {
@@ -50,8 +57,11 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
   }
 
   retention_rule {
-    name     = "thursday"
-    duration = "P1W"
+    name = "thursday"
+    life_cycle {
+      duration        = "P1W"
+      data_store_type = "VaultStore"
+    }
     priority = 25
 
     criteria {
@@ -61,8 +71,11 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "exa
   }
 
   retention_rule {
-    name     = "monthly"
-    duration = "P1D"
+    name = "monthly"
+    life_cycle {
+      duration        = "P1D"
+      data_store_type = "VaultStore"
+    }
     priority = 15
 
     criteria {

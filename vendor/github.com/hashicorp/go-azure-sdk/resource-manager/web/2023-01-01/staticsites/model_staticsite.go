@@ -18,7 +18,7 @@ type StaticSite struct {
 	Provider                    *string                                                   `json:"provider,omitempty"`
 	PublicNetworkAccess         *string                                                   `json:"publicNetworkAccess,omitempty"`
 	RepositoryToken             *string                                                   `json:"repositoryToken,omitempty"`
-	RepositoryUrl               *string                                                   `json:"repositoryUrl,omitempty"`
+	RepositoryURL               *string                                                   `json:"repositoryUrl,omitempty"`
 	StagingEnvironmentPolicy    *StagingEnvironmentPolicy                                 `json:"stagingEnvironmentPolicy,omitempty"`
 	TemplateProperties          *StaticSiteTemplateOptions                                `json:"templateProperties,omitempty"`
 	UserProvidedFunctionApps    *[]StaticSiteUserProvidedFunctionApp                      `json:"userProvidedFunctionApps,omitempty"`

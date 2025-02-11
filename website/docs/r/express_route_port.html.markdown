@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `link2` - (Optional) A list of `link` blocks as defined below.
 
-* `billing_type` - (Optional) The billing type of the Express Route Port. Possible values are `MeteredData` and `UnlimitedData`.
+* `billing_type` - (Optional) The billing type of the Express Route Port. Possible values are `MeteredData` and `UnlimitedData`. Defaults to `MeteredData`.
 
 ---
 

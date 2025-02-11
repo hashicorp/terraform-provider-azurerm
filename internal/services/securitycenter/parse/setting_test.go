@@ -27,7 +27,6 @@ func TestSettingID(t *testing.T) {
 		Error    bool
 		Expected *SettingId
 	}{
-
 		{
 			// empty
 			Input: "",

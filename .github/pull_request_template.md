@@ -30,7 +30,7 @@ For example: “`resource_name_here` - description of change e.g. adding propert
 ## Changes to existing Resource / Data Source
 
 - [ ] I have added an explanation of what my changes do and why I'd like you to include them (This may be covered by linking to an issue above, but may benefit from additional explanation).
-- [ ] I have written new tests for my resource or datasource changes & updated any relevent documentation.
+- [ ] I have written new tests for my resource or datasource changes & updated any relevant documentation.
 - [ ] I have successfully run tests with my changes locally. If not, please provide details on testing challenges that prevented you running the tests.
 - [ ] (For changes that include a **state migration only**). I have manually tested the migration path between relevant versions of the provider.
 

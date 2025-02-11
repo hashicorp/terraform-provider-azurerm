@@ -40,6 +40,7 @@ func (o ListByNamespaceOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByNamespaceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListByNamespaceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByNamespaceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByNamespaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByNamespace ...
 func (c EventHubsClient) ListByNamespace(ctx context.Context, id NamespaceId, options ListByNamespaceOperationOptions) (result ListByNamespaceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c EventHubsClient) ListByNamespace(ctx context.Context, id NamespaceId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventhubs", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByNamespaceCustomPager{},
+		Path:          fmt.Sprintf("%s/eventhubs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

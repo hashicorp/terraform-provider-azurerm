@@ -22,6 +22,7 @@ resource "azurerm_dashboard_grafana" "example" {
   name                              = "example-dg"
   resource_group_name               = azurerm_resource_group.example.name
   location                          = "West Europe"
+  grafana_major_version             = 10
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
@@ -46,13 +47,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Dashboard Grafana should exist. Changing this forces a new Dashboard Grafana to be created.
 
+* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `9`, `10`. Changing this forces a new resource to be created.
+
 * `api_key_enabled` - (Optional) Whether to enable the api key setting of the Grafana instance. Defaults to `false`.
 
 * `auto_generated_domain_name_label_scope` - (Optional) Scope for dns deterministic name hash calculation. The only possible value is `TenantReuse`. Defaults to `TenantReuse`.
 
 * `deterministic_outbound_ip_enabled` - (Optional) Whether to enable the Grafana instance to use deterministic outbound IPs. Defaults to `false`.
-
-* `grafana_major_version` - (Optional) Which major version of Grafana to deploy. Defaults to `9`. Possible values are `9`, `10`. Changing this forces a new resource to be created.
 
 * `smtp` - (Optional) A `smtp` block as defined below.
 

@@ -23,6 +23,18 @@ type WebTestsListByComponentCompleteResult struct {
 	Items              []WebTest
 }
 
+type WebTestsListByComponentCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WebTestsListByComponentCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WebTestsListByComponent ...
 func (c WebTestsAPIsClient) WebTestsListByComponent(ctx context.Context, id ComponentId) (result WebTestsListByComponentOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WebTestsAPIsClient) WebTestsListByComponent(ctx context.Context, id Comp
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WebTestsListByComponentCustomPager{},
 		Path:       fmt.Sprintf("%s/webTests", id.ID()),
 	}
 

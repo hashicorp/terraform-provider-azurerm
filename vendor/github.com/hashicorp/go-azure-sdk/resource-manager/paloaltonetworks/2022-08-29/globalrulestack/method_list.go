@@ -23,6 +23,18 @@ type ListCompleteResult struct {
 	Items              []GlobalRulestackResource
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c GlobalRulestackClient) List(ctx context.Context) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c GlobalRulestackClient) List(ctx context.Context) (result ListOperationRe
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       "/providers/PaloAltoNetworks.Cloudngfw/globalRulestacks",
 	}
 

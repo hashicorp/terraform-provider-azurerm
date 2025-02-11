@@ -12,14 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-10-15/fleetupdatestrategies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = KubernetesFleetUpdateStrategyResource{}
-var _ sdk.ResourceWithUpdate = KubernetesFleetUpdateStrategyResource{}
+var (
+	_ sdk.Resource           = KubernetesFleetUpdateStrategyResource{}
+	_ sdk.ResourceWithUpdate = KubernetesFleetUpdateStrategyResource{}
+)
 
 type KubernetesFleetUpdateStrategyResource struct{}
 
@@ -217,6 +219,7 @@ func (r KubernetesFleetUpdateStrategyResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (r KubernetesFleetUpdateStrategyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -269,7 +272,6 @@ func flattenKubernetesFleetUpdateStrategyStage(input []fleetupdatestrategies.Upd
 		})
 	}
 	return output
-
 }
 
 func flattenKubernetesFleetUpdateStrategyGroup(input *[]fleetupdatestrategies.UpdateGroup) []KubernetesFleetUpdateStrategyResourceUpdateGroupSchema {

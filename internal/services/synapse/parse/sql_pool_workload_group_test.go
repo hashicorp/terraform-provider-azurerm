@@ -27,7 +27,6 @@ func TestSqlPoolWorkloadGroupID(t *testing.T) {
 		Error    bool
 		Expected *SqlPoolWorkloadGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -81,15 +80,6 @@ func testAccSecurityCenterSetting_update(t *testing.T) {
 		data.ImportStep(),
 	}
 
-	if !features.FourPointOhBeta() {
-		testcases = append(testcases, []acceptance.TestStep{{
-			Config: r.cfg("SENTINEL", true),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		}, {
-			Config: r.cfg("SENTINEL", false),
-			Check:  acceptance.ComposeTestCheckFunc(),
-		}}...)
-	}
 	data.ResourceSequentialTest(t, r, testcases)
 }
 
@@ -128,13 +118,13 @@ func (SecurityCenterSettingResource) Exists(ctx context.Context, clients *client
 		return utils.Bool(false), nil
 	}
 
-	if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok {
+	if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
 		if alertSyncSettings.Properties == nil {
 			return utils.Bool(false), nil
 		}
 		return utils.Bool(alertSyncSettings.Properties.Enabled), nil
 	}
-	if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok {
+	if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
 		if dataExportSettings.Properties == nil {
 			return utils.Bool(false), nil
 		}
@@ -170,12 +160,12 @@ func (SecurityCenterSettingResource) Destroy(ctx context.Context, clients *clien
 		return utils.Bool(false), nil
 	}
 
-	if alertSyncSettings, ok := (*resp.Model).(settings.AlertSyncSettings); ok {
+	if alertSyncSettings, ok := resp.Model.(settings.AlertSyncSettings); ok {
 		if alertSyncSettings.Properties == nil || !alertSyncSettings.Properties.Enabled {
 			return utils.Bool(false), nil
 		}
 	}
-	if dataExportSettings, ok := (*resp.Model).(settings.DataExportSettings); ok {
+	if dataExportSettings, ok := resp.Model.(settings.DataExportSettings); ok {
 		if dataExportSettings.Properties == nil || !dataExportSettings.Properties.Enabled {
 			return utils.Bool(false), nil
 		}

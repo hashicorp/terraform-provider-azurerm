@@ -24,6 +24,18 @@ type EurekaServersListCompleteResult struct {
 	Items              []EurekaServerResource
 }
 
+type EurekaServersListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *EurekaServersListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // EurekaServersList ...
 func (c AppPlatformClient) EurekaServersList(ctx context.Context, id commonids.SpringCloudServiceId) (result EurekaServersListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) EurekaServersList(ctx context.Context, id commonids.S
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &EurekaServersListCustomPager{},
 		Path:       fmt.Sprintf("%s/eurekaServers", id.ID()),
 	}
 

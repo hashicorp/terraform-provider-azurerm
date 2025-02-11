@@ -37,6 +37,7 @@ func (o RegisterUserProvidedFunctionAppWithStaticSiteBuildOperationOptions) ToHe
 
 func (o RegisterUserProvidedFunctionAppWithStaticSiteBuildOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -57,8 +58,8 @@ func (c StaticSitesClient) RegisterUserProvidedFunctionAppWithStaticSiteBuild(ct
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

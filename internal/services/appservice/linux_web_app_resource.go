@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -661,25 +660,14 @@ func (r LinuxWebAppResource) Read() sdk.ResourceFunc {
 				siteConfig.Flatten(webAppSiteConfig.Model.Properties)
 				siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 
-				// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
-				_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_image")
-
 				if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
-					if !features.FourPointOhBeta() {
-						siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
-					} else {
-						siteConfig.DecodeDockerAppStack(state.AppSettings)
-					}
+					siteConfig.DecodeDockerAppStack(state.AppSettings)
 				}
 
 				state.SiteConfig = []helpers.SiteConfigLinux{siteConfig}
 
 				// Filter out all settings we've consumed above
-				if !features.FourPointOhBeta() && usesDeprecatedDocker {
-					state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
-				} else {
-					state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
-				}
+				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
 
 				// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 				if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
@@ -780,6 +768,12 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 					}
 				}
 			}
+
+			webAppSiteConfig, err := client.GetConfiguration(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading Site Config for Linux %s: %+v", id, err)
+			}
+			model.Properties.SiteConfig = webAppSiteConfig.Model.Properties
 
 			if metadata.ResourceData.HasChange("enabled") {
 				model.Properties.Enabled = pointer.To(state.Enabled)

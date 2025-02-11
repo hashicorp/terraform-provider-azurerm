@@ -14,6 +14,14 @@ type EventHubEventSubscriptionDestination struct {
 	Properties *EventHubEventSubscriptionDestinationProperties `json:"properties,omitempty"`
 
 	// Fields inherited from EventSubscriptionDestination
+
+	EndpointType EndpointType `json:"endpointType"`
+}
+
+func (s EventHubEventSubscriptionDestination) EventSubscriptionDestination() BaseEventSubscriptionDestinationImpl {
+	return BaseEventSubscriptionDestinationImpl{
+		EndpointType: s.EndpointType,
+	}
 }
 
 var _ json.Marshaler = EventHubEventSubscriptionDestination{}
@@ -27,9 +35,10 @@ func (s EventHubEventSubscriptionDestination) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EventHubEventSubscriptionDestination: %+v", err)
 	}
+
 	decoded["endpointType"] = "EventHub"
 
 	encoded, err = json.Marshal(decoded)

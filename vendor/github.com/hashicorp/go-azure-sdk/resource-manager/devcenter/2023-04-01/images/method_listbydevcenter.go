@@ -39,6 +39,7 @@ func (o ListByDevCenterOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByDevCenterOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +51,18 @@ func (o ListByDevCenterOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByDevCenterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDevCenterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDevCenter ...
 func (c ImagesClient) ListByDevCenter(ctx context.Context, id DevCenterId, options ListByDevCenterOperationOptions) (result ListByDevCenterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c ImagesClient) ListByDevCenter(ctx context.Context, id DevCenterId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/images", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByDevCenterCustomPager{},
+		Path:          fmt.Sprintf("%s/images", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

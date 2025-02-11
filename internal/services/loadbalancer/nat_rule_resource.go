@@ -22,7 +22,7 @@ import (
 )
 
 func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmLoadBalancerNatRuleCreateUpdate,
 		Read:   resourceArmLoadBalancerNatRuleRead,
 		Update: resourceArmLoadBalancerNatRuleCreateUpdate,
@@ -131,7 +131,7 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			"idle_timeout_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      4,
 				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
@@ -146,6 +146,8 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceArmLoadBalancerNatRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

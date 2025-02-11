@@ -174,6 +174,10 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-consumption-2024_Monthly"
   elastic_cloud_email_address = "terraform-acctest@hashicorp.com"
+
+  lifecycle {
+    ignore_changes = [logs]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

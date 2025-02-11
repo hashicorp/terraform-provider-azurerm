@@ -61,10 +61,6 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A map of additional parameters to apply to the connection.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
--> **Note:** `tags` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

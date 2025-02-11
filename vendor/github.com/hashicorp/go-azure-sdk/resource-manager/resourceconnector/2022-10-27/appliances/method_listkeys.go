@@ -34,6 +34,7 @@ func (o ListKeysOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListKeysOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c AppliancesClient) ListKeys(ctx context.Context, id ApplianceId, options 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listKeys", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/listKeys", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c AppliancesClient) ListKeys(ctx context.Context, id ApplianceId, options 
 
 	var model ApplianceListKeysResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

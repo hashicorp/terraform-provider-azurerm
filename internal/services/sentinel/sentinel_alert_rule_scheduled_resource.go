@@ -24,7 +24,7 @@ import (
 )
 
 func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSentinelAlertRuleScheduledCreateUpdate,
 		Read:   resourceSentinelAlertRuleScheduledRead,
 		Update: resourceSentinelAlertRuleScheduledCreateUpdate,
@@ -114,17 +114,16 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO 4.0 - rename this to "incident"
-			"incident_configuration": {
+			"incident": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// NOTE: O+C The API creates an incident if omitted but overwriting this/reverting to the default can be done without issue so this can remain
 				Computed: true,
 				MaxItems: 1,
 				MinItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						// TODO 4.0 - rename this to "create_incident_enabled"
-						"create_incident": {
+						"create_incident_enabled": {
 							Required: true,
 							Type:     pluginsdk.TypeBool,
 						},
@@ -157,8 +156,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 										Default:      alertrules.MatchingMethodAnyAlert,
 										ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForMatchingMethod(), false),
 									},
-									// TODO 4.0 - rename this to "by_entities"
-									"group_by_entities": {
+									"by_entities": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -166,8 +164,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 											ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForEntityMappingType(), false),
 										},
 									},
-									// TODO 4.0 - rename this to "by_alert_details"
-									"group_by_alert_details": {
+									"by_alert_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -175,8 +172,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 											ValidateFunc: validation.StringInSlice(alertrules.PossibleValuesForAlertDetail(), false),
 										},
 									},
-									// TODO 4.0 - rename this to "by_custom_details"
-									"group_by_custom_details": {
+									"by_custom_details": {
 										Type:     pluginsdk.TypeList,
 										Optional: true,
 										Elem: &pluginsdk.Schema{
@@ -351,6 +347,8 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -400,13 +398,15 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
+	incident := expandAlertRuleIncidentConfiguration(d.Get("incident").([]interface{}), "create_incident_enabled", false)
+
 	param := alertrules.ScheduledAlertRule{
 		Properties: &alertrules.ScheduledAlertRuleProperties{
 			Description:           utils.String(d.Get("description").(string)),
 			DisplayName:           d.Get("display_name").(string),
 			Tactics:               expandAlertRuleTactics(d.Get("tactics").(*pluginsdk.Set).List()),
 			Techniques:            expandAlertRuleTechnicals(d.Get("techniques").(*pluginsdk.Set).List()),
-			IncidentConfiguration: expandAlertRuleIncidentConfiguration(d.Get("incident_configuration").([]interface{}), "create_incident", true),
+			IncidentConfiguration: incident,
 			Severity:              pointer.To(alertrules.AlertSeverity(d.Get("severity").(string))),
 			Enabled:               d.Get("enabled").(bool),
 			Query:                 pointer.To(d.Get("query").(string)),
@@ -497,52 +497,53 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule := modelPtr.(alertrules.ScheduledAlertRule)
+		if rule, ok := model.(alertrules.ScheduledAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		d.Set("name", id.RuleId)
+			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-		workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
+			if prop := rule.Properties; prop != nil {
+				d.Set("description", prop.Description)
+				d.Set("display_name", prop.DisplayName)
+				if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
+					return fmt.Errorf("setting `tactics`: %+v", err)
+				}
+				if err := d.Set("techniques", prop.Techniques); err != nil {
+					return fmt.Errorf("setting `techniques`: %+v", err)
+				}
 
-		if prop := rule.Properties; prop != nil {
-			d.Set("description", prop.Description)
-			d.Set("display_name", prop.DisplayName)
-			if err := d.Set("tactics", flattenAlertRuleTactics(prop.Tactics)); err != nil {
-				return fmt.Errorf("setting `tactics`: %+v", err)
-			}
-			if err := d.Set("techniques", prop.Techniques); err != nil {
-				return fmt.Errorf("setting `techniques`: %+v", err)
-			}
-			if err := d.Set("incident_configuration", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident", true)); err != nil {
-				return fmt.Errorf("setting `incident_configuration`: %+v", err)
-			}
-			d.Set("severity", string(pointer.From(prop.Severity)))
-			d.Set("enabled", prop.Enabled)
-			d.Set("query", prop.Query)
-			d.Set("query_frequency", prop.QueryFrequency)
-			d.Set("query_period", prop.QueryPeriod)
-			d.Set("trigger_operator", string(pointer.From(prop.TriggerOperator)))
-			d.Set("trigger_threshold", int(pointer.From(prop.TriggerThreshold)))
-			d.Set("suppression_enabled", prop.SuppressionEnabled)
-			d.Set("suppression_duration", prop.SuppressionDuration)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-			d.Set("alert_rule_template_version", prop.TemplateVersion)
+				if err := d.Set("incident", flattenAlertRuleIncidentConfiguration(prop.IncidentConfiguration, "create_incident_enabled", false)); err != nil {
+					return fmt.Errorf("setting `incident`: %+v", err)
+				}
 
-			if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
-				return fmt.Errorf("setting `event_grouping`: %+v", err)
-			}
-			if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
-				return fmt.Errorf("setting `alert_details_override`: %+v", err)
-			}
-			if err := d.Set("custom_details", utils.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
-				return fmt.Errorf("setting `custom_details`: %+v", err)
-			}
-			if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
-				return fmt.Errorf("setting `entity_mapping`: %+v", err)
-			}
-			if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
-				return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
+				d.Set("severity", string(pointer.From(prop.Severity)))
+				d.Set("enabled", prop.Enabled)
+				d.Set("query", prop.Query)
+				d.Set("query_frequency", prop.QueryFrequency)
+				d.Set("query_period", prop.QueryPeriod)
+				d.Set("trigger_operator", string(pointer.From(prop.TriggerOperator)))
+				d.Set("trigger_threshold", int(pointer.From(prop.TriggerThreshold)))
+				d.Set("suppression_enabled", prop.SuppressionEnabled)
+				d.Set("suppression_duration", prop.SuppressionDuration)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+				d.Set("alert_rule_template_version", prop.TemplateVersion)
+
+				if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+					return fmt.Errorf("setting `event_grouping`: %+v", err)
+				}
+				if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
+					return fmt.Errorf("setting `alert_details_override`: %+v", err)
+				}
+				if err := d.Set("custom_details", utils.FlattenPtrMapStringString(prop.CustomDetails)); err != nil {
+					return fmt.Errorf("setting `custom_details`: %+v", err)
+				}
+				if err := d.Set("entity_mapping", flattenAlertRuleEntityMapping(prop.EntityMappings)); err != nil {
+					return fmt.Errorf("setting `entity_mapping`: %+v", err)
+				}
+				if err := d.Set("sentinel_entity_mapping", flattenAlertRuleSentinelEntityMapping(prop.SentinelEntitiesMappings)); err != nil {
+					return fmt.Errorf("setting `sentinel_entity_mapping`: %+v", err)
+				}
 			}
 		}
 	}

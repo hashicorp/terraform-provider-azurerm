@@ -36,17 +36,17 @@ func importVirtualMachine(osType virtualmachines.OperatingSystemTypes, resourceT
 			}
 
 			if profile.OsDisk.Vhd != nil {
-				return []*pluginsdk.ResourceData{}, fmt.Errorf("The %q resource only supports Managed Disks - please use the `azurerm_virtual_machine` resource for Unmanaged Disks", resourceType)
+				return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource only supports Managed Disks - please use the `azurerm_virtual_machine` resource for Unmanaged Disks", resourceType)
 			}
 		}
 
 		if !isCorrectOS {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("The %q resource only supports %s Virtual Machines", resourceType, string(osType))
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource only supports %s Virtual Machines", resourceType, string(osType))
 		}
 
 		// we don't support VM's without an OS Profile / attach
 		if vm.Model.Properties.OsProfile == nil {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("The %q resource doesn't support attaching OS Disks - please use the `azurerm_virtual_machine` resource instead", resourceType)
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource doesn't support attaching OS Disks - please use the `azurerm_virtual_machine` resource instead", resourceType)
 		}
 
 		hasSshKeys := false

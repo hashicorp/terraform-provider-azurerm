@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
 )
 
 type StorageShareFileResource struct{}
@@ -325,14 +325,13 @@ func (r StorageShareFileResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "test"
+  name             = "file"
   storage_share_id = azurerm_storage_share.test.id
 
 
   content_type        = "test_content_type"
   content_encoding    = "test_encoding"
   content_disposition = "test_content_disposition"
-  content_md5         = "1234567890abcdef1234567890abcdef"
 
   metadata = {
     hello = "world"
@@ -349,7 +348,8 @@ resource "azurerm_storage_share_file" "test" {
   name             = "test"
   storage_share_id = azurerm_storage_share.test.id
 
-  source = "%s"
+  source      = "%[2]s"
+  content_md5 = filemd5(%[2]q)
 
   metadata = {
     hello = "world"

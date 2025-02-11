@@ -24,6 +24,18 @@ type ContainerGroupsListByResourceGroupCompleteResult struct {
 	Items              []ContainerGroup
 }
 
+type ContainerGroupsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ContainerGroupsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ContainerGroupsListByResourceGroup ...
 func (c ContainerInstanceClient) ContainerGroupsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ContainerGroupsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ContainerInstanceClient) ContainerGroupsListByResourceGroup(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ContainerGroupsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ContainerInstance/containerGroups", id.ID()),
 	}
 

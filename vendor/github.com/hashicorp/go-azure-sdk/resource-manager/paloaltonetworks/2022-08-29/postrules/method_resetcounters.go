@@ -34,6 +34,7 @@ func (o ResetCountersOperationOptions) ToHeaders() *client.Headers {
 
 func (o ResetCountersOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c PostRulesClient) ResetCounters(ctx context.Context, id PostRuleId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/resetCounters", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/resetCounters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c PostRulesClient) ResetCounters(ctx context.Context, id PostRuleId, optio
 
 	var model RuleCounterReset
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

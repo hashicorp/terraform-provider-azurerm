@@ -73,6 +73,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"compatibility_level": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C Best Practice from MSFT is to use the latest version 1.2, but API uses 1.0 as the default
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// values found in the other API the portal uses
@@ -85,7 +86,7 @@ func resourceStreamAnalyticsJob() *pluginsdk.Resource {
 			"data_locale": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      "en-US",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

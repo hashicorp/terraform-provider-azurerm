@@ -44,7 +44,7 @@ func ParseVpnSiteLinkID(input string) (*VpnSiteLinkId, error) {
 	}
 
 	id := VpnSiteLinkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseVpnSiteLinkIDInsensitively(input string) (*VpnSiteLinkId, error) {
 	}
 
 	id := VpnSiteLinkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id VpnSiteLinkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticVpnSites", "vpnSites", "vpnSites"),
-		resourceids.UserSpecifiedSegment("vpnSiteName", "vpnSiteValue"),
+		resourceids.UserSpecifiedSegment("vpnSiteName", "vpnSiteName"),
 		resourceids.StaticSegment("staticVpnSiteLinks", "vpnSiteLinks", "vpnSiteLinks"),
-		resourceids.UserSpecifiedSegment("vpnSiteLinkName", "vpnSiteLinkValue"),
+		resourceids.UserSpecifiedSegment("vpnSiteLinkName", "vpnSiteLinkName"),
 	}
 }
 

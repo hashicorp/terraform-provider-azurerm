@@ -41,6 +41,7 @@ func (o ListBillingMetersOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListBillingMetersOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o ListBillingMetersOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListBillingMetersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBillingMetersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBillingMeters ...
 func (c ResourceProvidersClient) ListBillingMeters(ctx context.Context, id commonids.SubscriptionId, options ListBillingMetersOperationOptions) (result ListBillingMetersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c ResourceProvidersClient) ListBillingMeters(ctx context.Context, id commo
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Web/billingMeters", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListBillingMetersCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Web/billingMeters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

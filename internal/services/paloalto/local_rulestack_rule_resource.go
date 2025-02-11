@@ -62,7 +62,7 @@ func (r LocalRuleStackRule) ResourceType() string {
 }
 
 func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -146,12 +146,20 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+
 		"protocol": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Default:       protocolApplicationDefault,
-			ValidateFunc:  validate.ProtocolWithPort,
-			ConflictsWith: []string{"protocol_ports"},
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.Any(
+				validate.ProtocolWithPort,
+				validation.StringInSlice([]string{protocolApplicationDefault}, false),
+			),
+			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 		},
 
 		"protocol_ports": {
@@ -162,19 +170,15 @@ func (r LocalRuleStackRule) Arguments() map[string]*pluginsdk.Schema {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.ProtocolWithPort,
 			},
-			ConflictsWith: []string{"protocol"},
-		},
-
-		"enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
+			ExactlyOneOf: []string{"protocol", "protocol_ports"},
 		},
 
 		"source": schema.SourceSchema(),
 
 		"tags": commonschema.Tags(),
 	}
+
+	return schema
 }
 
 func (r LocalRuleStackRule) Attributes() map[string]*pluginsdk.Schema {
@@ -341,11 +345,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 				}
 				state.NegateDestination = boolEnumAsBoolRule(props.NegateDestination)
 				state.NegateSource = boolEnumAsBoolRule(props.NegateSource)
-				if v := pointer.From(props.Protocol); !strings.EqualFold(v, protocolApplicationDefault) {
-					state.Protocol = pointer.From(props.Protocol)
-				} else {
-					state.Protocol = protocolApplicationDefault
-				}
+				state.Protocol = pointer.From(props.Protocol)
 				state.ProtocolPorts = pointer.From(props.ProtocolPortList)
 				state.RuleEnabled = stateEnumAsBool(props.RuleState)
 				state.Source = schema.FlattenSource(props.Source, *id)
@@ -470,11 +470,19 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("protocol") {
-				ruleEntry.Properties.Protocol = pointer.To(model.Protocol)
+				if model.Protocol != "" && !strings.EqualFold(model.Protocol, protocolApplicationDefault) && len(model.ProtocolPorts) == 0 {
+					ruleEntry.Properties.Protocol = pointer.To(model.Protocol)
+				} else {
+					ruleEntry.Properties.Protocol = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("protocol_ports") {
-				ruleEntry.Properties.ProtocolPortList = pointer.To(model.ProtocolPorts)
+				if len(model.ProtocolPorts) != 0 {
+					ruleEntry.Properties.ProtocolPortList = pointer.To(model.ProtocolPorts)
+				} else {
+					ruleEntry.Properties.ProtocolPortList = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {

@@ -23,6 +23,18 @@ type ComputeListNodesCompleteResult struct {
 	Items              []AmlComputeNodesInformation
 }
 
+type ComputeListNodesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ComputeListNodesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ComputeListNodes ...
 func (c MachineLearningComputesClient) ComputeListNodes(ctx context.Context, id ComputeId) (result ComputeListNodesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c MachineLearningComputesClient) ComputeListNodes(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ComputeListNodesCustomPager{},
 		Path:       fmt.Sprintf("%s/listNodes", id.ID()),
 	}
 

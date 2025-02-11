@@ -44,7 +44,7 @@ func ParseAttachedDatabaseConfigurationID(input string) (*AttachedDatabaseConfig
 	}
 
 	id := AttachedDatabaseConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseAttachedDatabaseConfigurationIDInsensitively(input string) (*AttachedD
 	}
 
 	id := AttachedDatabaseConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id AttachedDatabaseConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKusto", "Microsoft.Kusto", "Microsoft.Kusto"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticAttachedDatabaseConfigurations", "attachedDatabaseConfigurations", "attachedDatabaseConfigurations"),
-		resourceids.UserSpecifiedSegment("attachedDatabaseConfigurationName", "attachedDatabaseConfigurationValue"),
+		resourceids.UserSpecifiedSegment("attachedDatabaseConfigurationName", "attachedDatabaseConfigurationName"),
 	}
 }
 

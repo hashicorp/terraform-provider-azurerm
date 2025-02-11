@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,11 +21,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceConnectionCreate,
 		Read:   resourceConnectionRead,
 		Update: resourceConnectionUpdate,
@@ -62,7 +62,7 @@ func resourceConnection() *pluginsdk.Resource {
 			"display_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "Service Bus",
 				// @tombuildsstuff: this can't be patched in API version 2016-06-01 and there isn't Swagger for
 				// API version 2018-07-01-preview, so I guess this is ForceNew for now
 				//
@@ -90,6 +90,8 @@ func resourceConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	return resource
 }
 
 func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
@@ -114,20 +116,19 @@ func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("parsing `managed_app_id`: %+v", err)
 	}
 	location := location.Normalize(managedAppId.LocationName)
-	parameterValues := expandConnectionParameterValues(d.Get("parameter_values").(map[string]interface{}))
 	model := connections.ApiConnectionDefinition{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &connections.ApiConnectionDefinitionProperties{
 			Api: &connections.ApiReference{
-				Id: utils.String(managedAppId.ID()),
+				Id: pointer.To(managedAppId.ID()),
 			},
-			DisplayName:     utils.String(d.Get("display_name").(string)),
-			ParameterValues: parameterValues,
+			DisplayName:     pointer.To(d.Get("display_name").(string)),
+			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if v := d.Get("display_name").(string); v != "" {
-		model.Properties.DisplayName = utils.String(v)
+		model.Properties.DisplayName = pointer.To(v)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
@@ -170,8 +171,7 @@ func resourceConnectionRead(d *schema.ResourceData, meta interface{}) error {
 			}
 			d.Set("managed_api_id", apiId)
 
-			parameterValues := flattenConnectionParameterValues(props.ParameterValues)
-			if err := d.Set("parameter_values", parameterValues); err != nil {
+			if err := d.Set("parameter_values", props.ParameterValues); err != nil {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
 			}
 		}
@@ -226,22 +226,4 @@ func resourceConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func expandConnectionParameterValues(input map[string]interface{}) *map[string]string {
-	parameterValues := make(map[string]string)
-	for k, v := range input {
-		parameterValues[k] = v.(string)
-	}
-	return &parameterValues
-}
-
-func flattenConnectionParameterValues(input *map[string]string) map[string]interface{} {
-	parameterValues := make(map[string]interface{})
-	if input != nil {
-		for k, v := range *input {
-			parameterValues[k] = v
-		}
-	}
-	return parameterValues
 }

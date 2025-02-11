@@ -45,7 +45,6 @@ func (c HostPoolClient) Get(ctx context.Context, id HostPoolId) (result GetOpera
 
 	var model HostPool
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

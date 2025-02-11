@@ -23,6 +23,18 @@ type PowerShell72ModuleListByAutomationAccountCompleteResult struct {
 	Items              []Module
 }
 
+type PowerShell72ModuleListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *PowerShell72ModuleListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // PowerShell72ModuleListByAutomationAccount ...
 func (c ModuleClient) PowerShell72ModuleListByAutomationAccount(ctx context.Context, id AutomationAccountId) (result PowerShell72ModuleListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ModuleClient) PowerShell72ModuleListByAutomationAccount(ctx context.Cont
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &PowerShell72ModuleListByAutomationAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/powerShell72Modules", id.ID()),
 	}
 

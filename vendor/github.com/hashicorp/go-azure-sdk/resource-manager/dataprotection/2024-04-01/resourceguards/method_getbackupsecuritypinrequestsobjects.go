@@ -23,6 +23,18 @@ type GetBackupSecurityPINRequestsObjectsCompleteResult struct {
 	Items              []DppBaseResource
 }
 
+type GetBackupSecurityPINRequestsObjectsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetBackupSecurityPINRequestsObjectsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetBackupSecurityPINRequestsObjects ...
 func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjects(ctx context.Context, id ResourceGuardId) (result GetBackupSecurityPINRequestsObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ResourceGuardsClient) GetBackupSecurityPINRequestsObjects(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetBackupSecurityPINRequestsObjectsCustomPager{},
 		Path:       fmt.Sprintf("%s/getBackupSecurityPINRequests", id.ID()),
 	}
 

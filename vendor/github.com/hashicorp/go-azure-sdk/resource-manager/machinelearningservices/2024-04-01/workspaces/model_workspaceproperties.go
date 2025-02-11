@@ -9,7 +9,7 @@ type WorkspaceProperties struct {
 	AssociatedWorkspaces            *[]string                        `json:"associatedWorkspaces,omitempty"`
 	ContainerRegistry               *string                          `json:"containerRegistry,omitempty"`
 	Description                     *string                          `json:"description,omitempty"`
-	DiscoveryUrl                    *string                          `json:"discoveryUrl,omitempty"`
+	DiscoveryURL                    *string                          `json:"discoveryUrl,omitempty"`
 	EnableDataIsolation             *bool                            `json:"enableDataIsolation,omitempty"`
 	Encryption                      *EncryptionProperty              `json:"encryption,omitempty"`
 	FeatureStoreSettings            *FeatureStoreSettings            `json:"featureStoreSettings,omitempty"`

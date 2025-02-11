@@ -3,18 +3,18 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit_peering"
 description: |-
-  Provides information about an existing ExpressRoute Circuit Peering.
+  Gets information about an existing ExpressRoute Circuit Peering.
 ---
 
-# azurerm_express_route_circuit_peering
+# Data Source: azurerm_express_route_circuit_peering
 
-Manages an ExpressRoute Circuit Peering.
+Use this data source to access information about an existing ExpressRoute Circuit Peering.
 
-## Example Usage (Creating a Microsoft Peering)
+## Example Usage
 
 ```hcl
 data "azurerm_express_route_circuit_peering" "example" {
-  name                       = "example-peering"
+  peering_type               = "example-peering"
   express_route_circuit_name = "example-expressroute"
   resource_group_name        = "example-resources"
 }

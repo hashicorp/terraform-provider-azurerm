@@ -45,7 +45,6 @@ func (c SignalRClient) Get(ctx context.Context, id SignalRId) (result GetOperati
 
 	var model SignalRResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

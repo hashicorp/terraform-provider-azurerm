@@ -45,7 +45,6 @@ func (c DeviceupdatesClient) AccountsGet(ctx context.Context, id AccountId) (res
 
 	var model Account
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -24,6 +24,18 @@ type ListCompleteResult struct {
 	Items              []AlertRule
 }
 
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // List ...
 func (c AlertRulesClient) List(ctx context.Context, id WorkspaceId) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AlertRulesClient) List(ctx context.Context, id WorkspaceId) (result List
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.SecurityInsights/alertRules", id.ID()),
 	}
 
@@ -60,7 +73,7 @@ func (c AlertRulesClient) List(ctx context.Context, id WorkspaceId) (result List
 	temp := make([]AlertRule, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalAlertRuleImplementation(v)
+			val, err := UnmarshalAlertRuleImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for AlertRule (%q): %+v", i, v, err)
 				return result, err

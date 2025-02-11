@@ -15,7 +15,7 @@ type LoggerClient struct {
 }
 
 func NewLoggerClientWithBaseURI(sdkApi sdkEnv.Api) (*LoggerClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "logger", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "logger", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LoggerClient: %+v", err)
 	}

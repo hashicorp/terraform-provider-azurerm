@@ -29,7 +29,8 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.modify_request_header_action",
 						"global_delivery_rule.0.modify_response_header_action",
 						"global_delivery_rule.0.url_redirect_action",
-						"global_delivery_rule.0.url_rewrite_action"},
+						"global_delivery_rule.0.url_rewrite_action",
+					},
 				},
 
 				"cache_key_query_string_action": {
@@ -43,7 +44,8 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.modify_request_header_action",
 						"global_delivery_rule.0.modify_response_header_action",
 						"global_delivery_rule.0.url_redirect_action",
-						"global_delivery_rule.0.url_rewrite_action"},
+						"global_delivery_rule.0.url_rewrite_action",
+					},
 				},
 
 				"modify_request_header_action": {
@@ -56,7 +58,8 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.modify_request_header_action",
 						"global_delivery_rule.0.modify_response_header_action",
 						"global_delivery_rule.0.url_redirect_action",
-						"global_delivery_rule.0.url_rewrite_action"},
+						"global_delivery_rule.0.url_rewrite_action",
+					},
 				},
 
 				"modify_response_header_action": {
@@ -69,7 +72,8 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.modify_request_header_action",
 						"global_delivery_rule.0.modify_response_header_action",
 						"global_delivery_rule.0.url_redirect_action",
-						"global_delivery_rule.0.url_rewrite_action"},
+						"global_delivery_rule.0.url_rewrite_action",
+					},
 				},
 
 				"url_redirect_action": {
@@ -83,7 +87,8 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.modify_request_header_action",
 						"global_delivery_rule.0.modify_response_header_action",
 						"global_delivery_rule.0.url_redirect_action",
-						"global_delivery_rule.0.url_rewrite_action"},
+						"global_delivery_rule.0.url_rewrite_action",
+					},
 				},
 
 				"url_rewrite_action": {
@@ -97,7 +102,8 @@ func endpointGlobalDeliveryRule() *pluginsdk.Schema {
 						"global_delivery_rule.0.modify_request_header_action",
 						"global_delivery_rule.0.modify_response_header_action",
 						"global_delivery_rule.0.url_redirect_action",
-						"global_delivery_rule.0.url_rewrite_action"},
+						"global_delivery_rule.0.url_rewrite_action",
+					},
 				},
 			},
 		},

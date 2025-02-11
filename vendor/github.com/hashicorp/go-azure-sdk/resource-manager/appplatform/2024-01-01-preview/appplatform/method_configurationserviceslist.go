@@ -24,6 +24,18 @@ type ConfigurationServicesListCompleteResult struct {
 	Items              []ConfigurationServiceResource
 }
 
+type ConfigurationServicesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConfigurationServicesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConfigurationServicesList ...
 func (c AppPlatformClient) ConfigurationServicesList(ctx context.Context, id commonids.SpringCloudServiceId) (result ConfigurationServicesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ConfigurationServicesList(ctx context.Context, id com
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConfigurationServicesListCustomPager{},
 		Path:       fmt.Sprintf("%s/configurationServices", id.ID()),
 	}
 

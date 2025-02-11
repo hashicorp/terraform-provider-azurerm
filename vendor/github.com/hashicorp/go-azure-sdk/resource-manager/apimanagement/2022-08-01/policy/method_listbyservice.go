@@ -23,6 +23,18 @@ type ListByServiceCompleteResult struct {
 	Items              []PolicyContract
 }
 
+type ListByServiceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByServiceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByService ...
 func (c PolicyClient) ListByService(ctx context.Context, id ServiceId) (result ListByServiceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c PolicyClient) ListByService(ctx context.Context, id ServiceId) (result L
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByServiceCustomPager{},
 		Path:       fmt.Sprintf("%s/policies", id.ID()),
 	}
 

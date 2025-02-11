@@ -81,6 +81,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -105,6 +109,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -162,6 +167,10 @@ variable "shared_key" {
   default = "%s"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test_1" {
   name     = "acctestRG-${var.random1}"
   location = "%s"
@@ -186,6 +195,7 @@ resource "azurerm_public_ip" "test_1" {
   location            = azurerm_resource_group.test_1.location
   resource_group_name = azurerm_resource_group.test_1.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_virtual_network_gateway" "test_1" {
@@ -241,6 +251,7 @@ resource "azurerm_public_ip" "test_2" {
   location            = azurerm_resource_group.test_2.location
   resource_group_name = azurerm_resource_group.test_2.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_virtual_network_gateway" "test_2" {
@@ -288,6 +299,10 @@ func (VirtualNetworkGatewayConnectionDataSource) ipsecPolicy(data acceptance.Tes
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {

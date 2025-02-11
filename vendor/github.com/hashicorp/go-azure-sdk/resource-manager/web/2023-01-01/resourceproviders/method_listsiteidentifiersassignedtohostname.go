@@ -24,6 +24,18 @@ type ListSiteIdentifiersAssignedToHostNameCompleteResult struct {
 	Items              []Identifier
 }
 
+type ListSiteIdentifiersAssignedToHostNameCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSiteIdentifiersAssignedToHostNameCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSiteIdentifiersAssignedToHostName ...
 func (c ResourceProvidersClient) ListSiteIdentifiersAssignedToHostName(ctx context.Context, id commonids.SubscriptionId, input NameIdentifier) (result ListSiteIdentifiersAssignedToHostNameOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ResourceProvidersClient) ListSiteIdentifiersAssignedToHostName(ctx conte
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListSiteIdentifiersAssignedToHostNameCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Web/listSitesAssignedToHostName", id.ID()),
 	}
 

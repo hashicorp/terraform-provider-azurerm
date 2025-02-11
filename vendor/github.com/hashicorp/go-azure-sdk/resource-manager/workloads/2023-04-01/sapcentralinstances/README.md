@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapcentralinstances` Documentation
 
-The `sapcentralinstances` SDK allows for interaction with the Azure Resource Manager Service `workloads` (API Version `2023-04-01`).
+The `sapcentralinstances` SDK allows for interaction with Azure Resource Manager `workloads` (API Version `2023-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue", "centralInstanceValue")
+id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName", "centralInstanceName")
 
 payload := sapcentralinstances.SAPCentralServerInstance{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue", "centralInstanceValue")
+id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName", "centralInstanceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue", "centralInstanceValue")
+id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName", "centralInstanceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := sapcentralinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue")
+id := sapcentralinstances.NewSapVirtualInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName")
 
 // alternatively `client.List(ctx, id)` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id)
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue", "centralInstanceValue")
+id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName", "centralInstanceName")
 
 if err := client.StartInstanceThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -98,7 +98,7 @@ if err := client.StartInstanceThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue", "centralInstanceValue")
+id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName", "centralInstanceName")
 
 payload := sapcentralinstances.StopRequest{
 	// ...
@@ -115,7 +115,7 @@ if err := client.StopInstanceThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceValue", "centralInstanceValue")
+id := sapcentralinstances.NewCentralInstanceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "sapVirtualInstanceName", "centralInstanceName")
 
 payload := sapcentralinstances.UpdateSAPCentralInstanceRequest{
 	// ...

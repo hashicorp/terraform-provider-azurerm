@@ -45,7 +45,6 @@ func (c TopicsClient) Get(ctx context.Context, id TopicId) (result GetOperationR
 
 	var model SBTopic
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -24,6 +24,18 @@ type MarketplaceAgreementsListCompleteResult struct {
 	Items              []DatadogAgreementResource
 }
 
+type MarketplaceAgreementsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MarketplaceAgreementsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // MarketplaceAgreementsList ...
 func (c AgreementsClient) MarketplaceAgreementsList(ctx context.Context, id commonids.SubscriptionId) (result MarketplaceAgreementsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AgreementsClient) MarketplaceAgreementsList(ctx context.Context, id comm
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &MarketplaceAgreementsListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Datadog/agreements", id.ID()),
 	}
 

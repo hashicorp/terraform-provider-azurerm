@@ -23,6 +23,18 @@ type ListByPoolCompleteResult struct {
 	Items              []Schedule
 }
 
+type ListByPoolCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByPoolCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByPool ...
 func (c SchedulesClient) ListByPool(ctx context.Context, id PoolId) (result ListByPoolOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SchedulesClient) ListByPool(ctx context.Context, id PoolId) (result List
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByPoolCustomPager{},
 		Path:       fmt.Sprintf("%s/schedules", id.ID()),
 	}
 

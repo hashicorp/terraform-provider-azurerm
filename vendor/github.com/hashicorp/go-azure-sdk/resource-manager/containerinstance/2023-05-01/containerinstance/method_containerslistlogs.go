@@ -35,6 +35,7 @@ func (o ContainersListLogsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ContainersListLogsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -57,8 +58,8 @@ func (c ContainerInstanceClient) ContainersListLogs(ctx context.Context, id Cont
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/logs", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/logs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -78,7 +79,6 @@ func (c ContainerInstanceClient) ContainersListLogs(ctx context.Context, id Cont
 
 	var model Logs
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
