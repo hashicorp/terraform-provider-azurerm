@@ -1088,6 +1088,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/virtua
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines
+github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2024-03-01/standbyvirtualmachinepools
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/accountmigrations
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobcontainers
