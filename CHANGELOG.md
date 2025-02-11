@@ -8,11 +8,12 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `hashicorp/go-azure-sdk` update to `v0.20250211.1073809` [GH-28741]
+* Data Source: `azurerm_app_configuration` - add support for the `data_plane_proxy_authentication_mode` and `data_plane_proxy_private_link_delegation_enabled` properties [GH-28712]
+* `azurerm_app_configuration` - add support for the `data_plane_proxy_authentication_mode` and `data_plane_proxy_private_link_delegation_enabled` properties [GH-28712]
 * `azurerm_container_app` - add support for the `client_certificate_mode` property [GH-28523]
 * `azurerm_cdn_frontdoor_firewall_policy` - add support for `JSChallenge` for `custom` rules [GH-28717]
 * `azurerm_express_route_circuit` - add support for the `rate_limiting_enabled` property [GH-28659]
 * `azurerm_mssql_managed_instance_failover_group` - add support for `secondary_type` [GH-28633]
-
 
 BUG FIXES:
 
