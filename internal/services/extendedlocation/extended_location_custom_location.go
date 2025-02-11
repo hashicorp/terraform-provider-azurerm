@@ -22,35 +22,22 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.Resource           = ExtendedLocationCustomLocationResource{}
-	_ sdk.ResourceWithUpdate = ExtendedLocationCustomLocationResource{}
-)
-
-type ExtendedLocationCustomLocationResource struct{}
-
-func (r ExtendedLocationCustomLocationResource) ResourceType() string {
+// The resource name should be `azurerm_extended_location_custom_location` as in the resource doc,
+// but in source code it was named `azurerm_extended_custom_location`.
+// This resource is superseded by a new resource with the correct name, and will be removed in 5.0
+func (r CustomLocationResource) DeprecatedInFavourOfResource() string {
 	return "azurerm_extended_location_custom_location"
 }
 
-type ExtendedLocationCustomLocationResourceModel struct {
-	Name                string      `tfschema:"name"`
-	ResourceGroupName   string      `tfschema:"resource_group_name"`
-	Location            string      `tfschema:"location"`
-	Authentication      []AuthModel `tfschema:"authentication"`
-	ClusterExtensionIds []string    `tfschema:"cluster_extension_ids"`
-	DisplayName         string      `tfschema:"display_name"`
-	HostResourceId      string      `tfschema:"host_resource_id"`
-	HostType            string      `tfschema:"host_type"`
-	Namespace           string      `tfschema:"namespace"`
-}
+var (
+	_ sdk.Resource                          = CustomLocationResource{}
+	_ sdk.ResourceWithUpdate                = CustomLocationResource{}
+	_ sdk.ResourceWithDeprecationReplacedBy = CustomLocationResource{}
+)
 
-type AuthModel struct {
-	Type  string `tfschema:"type"`
-	Value string `tfschema:"value"`
-}
+type CustomLocationResource struct{}
 
-func (r ExtendedLocationCustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
+func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -127,15 +114,19 @@ func (r ExtendedLocationCustomLocationResource) Arguments() map[string]*pluginsd
 	}
 }
 
-func (r ExtendedLocationCustomLocationResource) Attributes() map[string]*pluginsdk.Schema {
+func (r CustomLocationResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ExtendedLocationCustomLocationResource) ModelObject() interface{} {
+func (r CustomLocationResource) ModelObject() interface{} {
 	return &ExtendedLocationCustomLocationResourceModel{}
 }
 
-func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
+func (r CustomLocationResource) ResourceType() string {
+	return "azurerm_extended_custom_location"
+}
+
+func (r CustomLocationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -190,7 +181,7 @@ func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r ExtendedLocationCustomLocationResource) Read() sdk.ResourceFunc {
+func (r CustomLocationResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -239,7 +230,7 @@ func (r ExtendedLocationCustomLocationResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r ExtendedLocationCustomLocationResource) Delete() sdk.ResourceFunc {
+func (r CustomLocationResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -260,7 +251,7 @@ func (r ExtendedLocationCustomLocationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r ExtendedLocationCustomLocationResource) Update() sdk.ResourceFunc {
+func (r CustomLocationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -315,6 +306,6 @@ func (r ExtendedLocationCustomLocationResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ExtendedLocationCustomLocationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r CustomLocationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return customlocations.ValidateCustomLocationID
 }

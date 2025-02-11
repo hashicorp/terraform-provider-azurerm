@@ -8,13 +8,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type CustomLocationDataSource struct{}
+type ExtendedLocationCustomLocationDataSource struct{}
 
 func TestAccCustomLocationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_extended_location_custom_location", "test")
-	d := CustomLocationDataSource{}
+	d := ExtendedLocationCustomLocationDataSource{}
 
-	credential, privateKey, publicKey := CustomLocationResource{}.getCredentials(t)
+	credential, privateKey, publicKey := ExtendedLocationCustomLocationResource{}.getCredentials(t)
 
 	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
@@ -31,7 +31,7 @@ func TestAccCustomLocationDataSource_basic(t *testing.T) {
 	})
 }
 
-func (d CustomLocationDataSource) basic(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+func (d ExtendedLocationCustomLocationDataSource) basic(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -39,5 +39,5 @@ data "azurerm_extended_location_custom_location" "test" {
   name                = azurerm_extended_location_custom_location.test.name
   resource_group_name = azurerm_extended_location_custom_location.test.resource_group_name
 }
-`, CustomLocationResource{}.complete(data, credential, privateKey, publicKey))
+`, ExtendedLocationCustomLocationResource{}.complete(data, credential, privateKey, publicKey))
 }

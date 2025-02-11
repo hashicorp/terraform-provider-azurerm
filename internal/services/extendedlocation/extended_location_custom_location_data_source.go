@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -15,23 +16,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.DataSource = CustomLocationDataSource{}
+var _ sdk.DataSource = ExtendedLocationCustomLocationDataSource{}
 
-type CustomLocationDataSource struct{}
+type ExtendedLocationCustomLocationDataSource struct{}
 
-type CustomLocationDataSourceModel struct {
-	Name                string      `tfschema:"name"`
-	ResourceGroupName   string      `tfschema:"resource_group_name"`
-	Location            string      `tfschema:"location"`
+type ExtendedLocationCustomLocationDataSourceModel struct {
 	Authentication      []AuthModel `tfschema:"authentication"`
 	ClusterExtensionIds []string    `tfschema:"cluster_extension_ids"`
 	DisplayName         string      `tfschema:"display_name"`
 	HostResourceId      string      `tfschema:"host_resource_id"`
 	HostType            string      `tfschema:"host_type"`
+	Location            string      `tfschema:"location"`
+	Name                string      `tfschema:"name"`
 	Namespace           string      `tfschema:"namespace"`
+	ResourceGroupName   string      `tfschema:"resource_group_name"`
 }
 
-func (r CustomLocationDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (r ExtendedLocationCustomLocationDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -46,38 +47,8 @@ func (r CustomLocationDataSource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r CustomLocationDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (r ExtendedLocationCustomLocationDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
-		"location": commonschema.LocationComputed(),
-
-		"namespace": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"host_resource_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"cluster_extension_ids": {
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-		},
-
-		"host_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"authentication": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -95,41 +66,71 @@ func (r CustomLocationDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"cluster_extension_ids": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"host_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"host_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"location": commonschema.LocationComputed(),
+
+		"namespace": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
-func (r CustomLocationDataSource) ModelObject() interface{} {
-	return &CustomLocationDataSourceModel{}
+func (r ExtendedLocationCustomLocationDataSource) ModelObject() interface{} {
+	return &ExtendedLocationCustomLocationDataSourceModel{}
 }
 
-func (r CustomLocationDataSource) ResourceType() string {
+func (r ExtendedLocationCustomLocationDataSource) ResourceType() string {
 	return "azurerm_extended_location_custom_location"
 }
 
-func (r CustomLocationDataSource) Read() sdk.ResourceFunc {
+func (r ExtendedLocationCustomLocationDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CustomLocationResourceModel
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			client := metadata.Client.ExtendedLocation.CustomLocationsClient
+
+			var model ExtendedLocationCustomLocationResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			client := metadata.Client.ExtendedLocation.CustomLocationsClient
-
 			id := customlocations.NewCustomLocationID(subscriptionId, model.ResourceGroupName, model.Name)
 			resp, err := client.Get(ctx, id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := CustomLocationDataSourceModel{
+			state := ExtendedLocationCustomLocationDataSourceModel{
 				Name:              id.CustomLocationName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 			if model := resp.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 
 				if props := model.Properties; props != nil {
 					state.ClusterExtensionIds = pointer.From(props.ClusterExtensionIds)
@@ -138,7 +139,6 @@ func (r CustomLocationDataSource) Read() sdk.ResourceFunc {
 					state.HostType = string(pointer.From(props.HostType))
 					state.Namespace = pointer.From(props.Namespace)
 
-					// API always returns an empty `authentication` block even it's not specified. Tracing the bug: https://github.com/Azure/azure-rest-api-specs/issues/30101
 					if props.Authentication != nil && props.Authentication.Type != nil && props.Authentication.Value != nil {
 						state.Authentication = []AuthModel{
 							{
