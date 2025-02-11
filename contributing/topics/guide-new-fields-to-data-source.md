@@ -80,4 +80,8 @@ func TestAccDataSourceSomeResource_basic(t *testing.T) {
 
 ## Docs
 
-* Lastly, don't forget to update the docs where the property ordering is determined alphabetically.
+Lastly, don't forget to update the docs. The property ordering is:
+
+* Standard properties first (e.g. Location, Resource Group)
+* Requried properties in alphabetical order
+* Optional properties in alphabetical order
