@@ -177,7 +177,7 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			// NOTE: Since this is a O+C value, when the field is removed
+			// NOTE: Since this is an O+C field, when the field is removed
 			// from the config it will get the last value from the state
 			// file so you need to verify that the last tests value is
 			// passed as the value for the field...
@@ -479,6 +479,17 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengeStandardSkuCustomRuleActionErr
 		{
 			Config:      r.jsChallengeStandardSkuCustomRuleActionError(data),
 			ExpectError: regexp.MustCompile(`'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the "Premium_AzureFrontDoor" sku`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyInvalidTimeSpanError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.jsChallengePolicyInvalidTimeSpanError(data),
+			ExpectError: regexp.MustCompile(`expected "js_challenge_cookie_expiration_in_minutes" to be in the range \(5 - 1440\), got 4`),
 		},
 	})
 }
@@ -1416,6 +1427,26 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
       transforms         = ["Lowercase", "Trim"]
     }
   }
+}
+`, tmp, data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyInvalidTimeSpanError(data acceptance.TestData) string {
+	tmp := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  js_challenge_cookie_expiration_in_minutes = 4
 }
 `, tmp, data.RandomInteger)
 }
