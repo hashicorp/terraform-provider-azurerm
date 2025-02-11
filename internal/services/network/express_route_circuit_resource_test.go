@@ -242,17 +242,17 @@ func testAccExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allowClassicOperations(data, "false"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("false"),
-			),
-		},
-		{
 			Config: r.allowClassicOperations(data, "true"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("true"),
+			),
+		},
+		{
+			Config: r.allowClassicOperations(data, "false"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("false"),
 			),
 		},
 	})
