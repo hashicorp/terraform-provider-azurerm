@@ -9,7 +9,7 @@ FEATURES:
 * New Resource: `azurerm_ai_services` ([#26008](https://github.com/hashicorp/terraform-provider-azurerm/issues/26008))
 * New Resource: `azurerm_communication_service_email_domain_association` ([#26432](https://github.com/hashicorp/terraform-provider-azurerm/issues/26432))
 * New Resource: `azurerm_dev_center_project_environment_type` ([#26941](https://github.com/hashicorp/terraform-provider-azurerm/issues/26941))
-* New Resource: `azurerm_extended_location_custom_location` ([#24267](https://github.com/hashicorp/terraform-provider-azurerm/issues/24267))
+* New Resource: `azurerm_extended_custom_location` ([#24267](https://github.com/hashicorp/terraform-provider-azurerm/issues/24267))
 * New Resource: `azurerm_postgresql_flexible_server_virtual_endpoint` ([#26708](https://github.com/hashicorp/terraform-provider-azurerm/issues/26708))
 
 ENHANCEMENTS:

@@ -1,12 +1,12 @@
 ---
 subcategory: "Extended Location"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_extended_location_custom_location"
+page_title: "Azure Resource Manager: azurerm_extended_custom_location"
 description: |-
   Manages a Custom Location within an Extended Location.
 ---
 
-# azurerm_extended_location_custom_location
+# azurerm_extended_custom_location
 
 Manages a Custom Location within an Extended Location.
 
@@ -69,7 +69,7 @@ resource "azurerm_arc_kubernetes_cluster_extension" "example" {
   extension_type = "microsoft.flux"
 }
 
-resource "azurerm_extended_location_custom_location" "example" {
+resource "azurerm_extended_custom_location" "example" {
   name                = "example-custom-location"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
@@ -133,6 +133,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Custom Locations can be imported using the resource id, e.g.
 
 ```shell
-terraform import azurerm_extended_location_custom_location.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ExtendedLocation/customLocations/example-custom-location
+terraform import azurerm_extended_custom_location.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ExtendedLocation/customLocations/example-custom-location
 ```
 
