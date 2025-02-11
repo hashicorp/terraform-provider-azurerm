@@ -55,8 +55,8 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[\-a-zA-Z0-9]{1,64}$`),
-				"name must be between 1 and 64 characters long and can only contain letters, numbers and hyphen(-).",
+				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
+				"name must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
 			),
 		},
 
@@ -68,8 +68,8 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[\-a-zA-Z0-9]{1,64}$`),
-				"display_name must be between 1 and 64 characters long and can only contain letters, numbers and hyphen(-).",
+				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
+				"display_name must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
 			),
 		},
 
@@ -88,8 +88,8 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[\-a-zA-Z0-9]{1,64}$`),
-				"parent_pool_name must be between 1 and 64 characters long and can only contain letters, numbers and hyphen(-).",
+				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
+				"parent_pool_name must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
 			),
 		},
 
