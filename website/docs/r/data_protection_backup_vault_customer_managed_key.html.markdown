@@ -10,6 +10,8 @@ description: |-
 
 Manages a Backup Vault Customer Managed Key.
 
+!> **Note:** It is not possible to remove the Customer Managed Key from the Backup Vault once it's been added. To remove the Customer Managed Key, the parent Data Protection Backup Vault must be deleted and recreated.
+
 ## Example Usage
 
 ```hcl
@@ -132,7 +134,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Vault Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Vault Customer Managed Key.
 * `update` - (Defaults to 30 minutes) Used when updating the Backup Vault Customer Managed Key.
-* `delete` - (Defaults to 5 minutes) Used when deleting the Backup Vault Customer Managed Key.
 
 ## Import
 

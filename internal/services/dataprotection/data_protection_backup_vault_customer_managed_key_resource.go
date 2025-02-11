@@ -88,34 +88,35 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` is nil", *id)
 			}
 
-			if model.Properties.SecuritySettings != nil && model.Properties.SecuritySettings.EncryptionSettings != nil {
+			if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
 				return metadata.ResourceRequiresImport(r.ResourceType(), *id)
 			}
+
+			payload := resp.Model
 
 			keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(cmk.KeyVaultKeyID)
 			if err != nil {
 				return err
 			}
 
-			model.Properties.SecuritySettings.EncryptionSettings = &backupvaults.EncryptionSettings{
+			payload.Properties.SecuritySettings.EncryptionSettings = &backupvaults.EncryptionSettings{
 				State: pointer.To(backupvaults.EncryptionStateEnabled),
 				KeyVaultProperties: &backupvaults.CmkKeyVaultProperties{
 					KeyUri: pointer.To(keyId.ID()),
 				},
 			}
 
-			model.Properties.SecuritySettings.EncryptionSettings.KekIdentity = &backupvaults.CmkKekIdentity{
+			payload.Properties.SecuritySettings.EncryptionSettings.KekIdentity = &backupvaults.CmkKekIdentity{
 				IdentityType: pointer.To(backupvaults.IdentityTypeSystemAssigned),
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, *model, backupvaults.DefaultCreateOrUpdateOperationOptions())
+			err = client.CreateOrUpdateThenPoll(ctx, *id, *payload, backupvaults.DefaultCreateOrUpdateOperationOptions())
 			if err != nil {
-				return fmt.Errorf("creating Data Protection Backup Vault Customer Managed Key %s: %+v", *id, err)
+				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}
 
 			metadata.SetID(id)
@@ -164,7 +165,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Delete() sdk.Resour
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			log.Printf(`[INFO] Customer Managed Keys cannot be removed from Data Protection Backup Vaults once added. To remove the Customer Managed Key delete and recreate the parent Data Protection Backup Vault`)
+			log.Printf(`[INFO] Customer Managed Keys cannot be removed from Data Protection Backup Vaults once added. To remove the Customer Managed Key, delete and recreate the parent Data Protection Backup Vault`)
 			return nil
 		},
 	}
@@ -192,29 +193,34 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Update() sdk.Resour
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("%s was not found", id)
+					return fmt.Errorf("%s was not found", *id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			model := resp.Model
-			if model == nil {
+			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` is nil", *id)
 			}
+
+			if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
+				return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+			}
+
+			payload := resp.Model
 
 			if metadata.ResourceData.HasChange("key_vault_key_id") {
 				keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(cmk.KeyVaultKeyID)
 				if err != nil {
 					return err
 				}
-				model.Properties.SecuritySettings.EncryptionSettings.KeyVaultProperties = &backupvaults.CmkKeyVaultProperties{
+				payload.Properties.SecuritySettings.EncryptionSettings.KeyVaultProperties = &backupvaults.CmkKeyVaultProperties{
 					KeyUri: pointer.To(keyId.ID()),
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, *model, backupvaults.DefaultCreateOrUpdateOperationOptions())
+			err = client.CreateOrUpdateThenPoll(ctx, *id, *payload, backupvaults.DefaultCreateOrUpdateOperationOptions())
 			if err != nil {
-				return fmt.Errorf("updating Data Protection Backup Vault Customer Managed Key for %s: %+v", *id, err)
+				return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
 			}
 
 			return nil
