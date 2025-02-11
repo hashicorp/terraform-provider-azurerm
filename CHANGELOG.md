@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: `hashicorp/go-azure-sdk` update to `v0.20250211.1073809` [GH-28741]
 * `azurerm_container_app` - add support for the `client_certificate_mode` property [GH-28523]
 * `azurerm_cdn_frontdoor_firewall_policy` - add support for `JSChallenge` for `custom` rules [GH-28717]
 * `azurerm_express_route_circuit` - add support for the `rate_limiting_enabled` property [GH-28659]
