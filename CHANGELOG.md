@@ -17,6 +17,7 @@ BUG FIXES:
 * `azurerm_linux_function_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
 * `azurerm_linux_function_app_slot` - fix issue where `site_config.0.elastic_instance_minimum` was not being set [GH-28725]
 * `azurerm_linux_web_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
+* `azurerm_postgresql_flexible_server_virtual_endpoint` - allow `source_server_id` and `replica_server_id` to reference the same server [GH-28733]
 * `azurerm_windows_function_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
 * `azurerm_windows_function_app_slot` - fix issue where `site_config.0.elastic_instance_minimum` was not being set [GH-28725]
 * `azurerm_windows_web_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
