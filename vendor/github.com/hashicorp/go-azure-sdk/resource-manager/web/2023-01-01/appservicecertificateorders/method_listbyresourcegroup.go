@@ -24,6 +24,18 @@ type ListByResourceGroupCompleteResult struct {
 	Items              []AppServiceCertificateOrder
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c AppServiceCertificateOrdersClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceCertificateOrdersClient) ListByResourceGroup(ctx context.Conte
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.CertificateRegistration/certificateOrders", id.ID()),
 	}
 

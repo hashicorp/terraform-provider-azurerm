@@ -50,7 +50,6 @@ func (c AppServiceCertificateOrdersClient) RetrieveSiteSeal(ctx context.Context,
 
 	var model SiteSeal
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

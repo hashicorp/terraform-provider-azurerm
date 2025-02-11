@@ -17,7 +17,7 @@ type DeleteCertificateOperationResponse struct {
 }
 
 // DeleteCertificate ...
-func (c AppServiceCertificateOrdersClient) DeleteCertificate(ctx context.Context, id CertificateId) (result DeleteCertificateOperationResponse, err error) {
+func (c AppServiceCertificateOrdersClient) DeleteCertificate(ctx context.Context, id CertificateOrderCertificateId) (result DeleteCertificateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

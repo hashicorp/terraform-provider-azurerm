@@ -22,7 +22,7 @@ type CreateOrUpdateCertificateOperationResponse struct {
 }
 
 // CreateOrUpdateCertificate ...
-func (c AppServiceCertificateOrdersClient) CreateOrUpdateCertificate(ctx context.Context, id CertificateId, input AppServiceCertificateResource) (result CreateOrUpdateCertificateOperationResponse, err error) {
+func (c AppServiceCertificateOrdersClient) CreateOrUpdateCertificate(ctx context.Context, id CertificateOrderCertificateId, input AppServiceCertificateResource) (result CreateOrUpdateCertificateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c AppServiceCertificateOrdersClient) CreateOrUpdateCertificate(ctx context
 }
 
 // CreateOrUpdateCertificateThenPoll performs CreateOrUpdateCertificate then polls until it's completed
-func (c AppServiceCertificateOrdersClient) CreateOrUpdateCertificateThenPoll(ctx context.Context, id CertificateId, input AppServiceCertificateResource) error {
+func (c AppServiceCertificateOrdersClient) CreateOrUpdateCertificateThenPoll(ctx context.Context, id CertificateOrderCertificateId, input AppServiceCertificateResource) error {
 	result, err := c.CreateOrUpdateCertificate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdateCertificate: %+v", err)

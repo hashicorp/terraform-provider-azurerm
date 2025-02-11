@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appservicecertificateorders` Documentation
 
-The `appservicecertificateorders` SDK allows for interaction with the Azure Resource Manager Service `web` (API Version `2023-01-01`).
+The `appservicecertificateorders` SDK allows for interaction with Azure Resource Manager `web` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 payload := appservicecertificateorders.AppServiceCertificateOrder{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue", "certificateValue")
+id := appservicecertificateorders.NewCertificateOrderCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName", "certificateName")
 
 payload := appservicecertificateorders.AppServiceCertificateResource{
 	// ...
@@ -59,7 +59,7 @@ if err := client.CreateOrUpdateCertificateThenPoll(ctx, id, payload); err != nil
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -75,7 +75,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue", "certificateValue")
+id := appservicecertificateorders.NewCertificateOrderCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName", "certificateName")
 
 read, err := client.DeleteCertificate(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -107,7 +107,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue", "certificateValue")
+id := appservicecertificateorders.NewCertificateOrderCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName", "certificateName")
 
 read, err := client.GetCertificate(ctx, id)
 if err != nil {
@@ -157,7 +157,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 // alternatively `client.ListCertificates(ctx, id)` can be used to do batched pagination
 items, err := client.ListCertificatesComplete(ctx, id)
@@ -174,7 +174,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 payload := appservicecertificateorders.ReissueCertificateOrderRequest{
 	// ...
@@ -195,7 +195,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 payload := appservicecertificateorders.RenewCertificateOrderRequest{
 	// ...
@@ -216,7 +216,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 read, err := client.ResendEmail(ctx, id)
 if err != nil {
@@ -232,7 +232,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 payload := appservicecertificateorders.NameIdentifier{
 	// ...
@@ -253,7 +253,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 read, err := client.RetrieveCertificateActions(ctx, id)
 if err != nil {
@@ -269,7 +269,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 read, err := client.RetrieveCertificateEmailHistory(ctx, id)
 if err != nil {
@@ -285,7 +285,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 payload := appservicecertificateorders.SiteSealRequest{
 	// ...
@@ -306,7 +306,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 payload := appservicecertificateorders.AppServiceCertificateOrderPatchResource{
 	// ...
@@ -327,7 +327,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue", "certificateValue")
+id := appservicecertificateorders.NewCertificateOrderCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName", "certificateName")
 
 payload := appservicecertificateorders.AppServiceCertificatePatchResource{
 	// ...
@@ -369,7 +369,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderValue")
+id := appservicecertificateorders.NewCertificateOrderID("12345678-1234-9876-4563-123456789012", "example-resource-group", "certificateOrderName")
 
 read, err := client.VerifyDomainOwnership(ctx, id)
 if err != nil {

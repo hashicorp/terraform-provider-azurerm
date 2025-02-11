@@ -15,7 +15,7 @@ type AppServiceCertificateOrdersClient struct {
 }
 
 func NewAppServiceCertificateOrdersClientWithBaseURI(sdkApi sdkEnv.Api) (*AppServiceCertificateOrdersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "appservicecertificateorders", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "appservicecertificateorders", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AppServiceCertificateOrdersClient: %+v", err)
 	}

@@ -92,7 +92,7 @@ resource "azurerm_app_service_certificate_order_key_vault_store" "test" {
 ```
 
 -> **Note:** Please make sure the domain ownership is verified before configure the key vault.
-
+    
 ## Argument Reference
 
 The following arguments are supported:
