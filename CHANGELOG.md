@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_stack_hci_storage_path` [GH-28602]
 * **New Resource**: `azurerm_mssql_job_step` [GH-28691]
 * **New Resource**: `azurerm_netapp_volume_group_oracle` [GH-28391]
 * **New Resource**: `azurerm_virtual_machine_scale_set_standby_pool` [GH-28441]
