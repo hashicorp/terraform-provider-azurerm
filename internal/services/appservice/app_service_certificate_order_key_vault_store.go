@@ -15,7 +15,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -49,8 +48,6 @@ func (r CertificateOrderCertificateResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: commonids.ValidateKeyVaultID,
-			// TODO -- remove when issue https://github.com/Azure/azure-rest-api-specs/issues/28498 is addressed
-			DiffSuppressFunc: suppress.CaseDifference,
 		},
 
 		"key_vault_secret_name": {
@@ -64,11 +61,6 @@ func (r CertificateOrderCertificateResource) Arguments() map[string]*pluginsdk.S
 func (r CertificateOrderCertificateResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
-
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 	}
 }
 
@@ -149,11 +141,9 @@ func (r CertificateOrderCertificateResource) Read() sdk.ResourceFunc {
 			}
 
 			state := CertificateOrderCertificateModel{
-				Name: id.CertificateName,
+				Name:               id.CertificateName,
+				CertificateOrderId: appservicecertificateorders.NewCertificateOrderID(id.SubscriptionId, id.ResourceGroupName, id.CertificateOrderName).ID(),
 			}
-
-			certificateOrderId := appservicecertificateorders.NewCertificateOrderID(id.SubscriptionId, id.ResourceGroupName, id.CertificateOrderName)
-			state.CertificateOrderId = certificateOrderId.ID()
 
 			// we need to parse the key vault id insensitively as the resource group part was changed https://github.com/Azure/azure-rest-api-specs/issues/new?assignees=&labels=bug&projects=&template=02_bug.yml&title=%5BBUG%5D
 			if model := certificateOrderCertificate.Model; model != nil {

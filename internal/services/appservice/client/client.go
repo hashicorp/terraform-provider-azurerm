@@ -16,12 +16,12 @@ import (
 )
 
 type Client struct {
+	AppServiceCertificatesOrderClient *appservicecertificateorders.AppServiceCertificateOrdersClient
 	AppServiceEnvironmentClient       *appserviceenvironments.AppServiceEnvironmentsClient
 	ResourceProvidersClient           *resourceproviders.ResourceProvidersClient
 	ServicePlanClient                 *appserviceplans.AppServicePlansClient
 	StaticSitesClient                 *staticsites.StaticSitesClient
 	WebAppsClient                     *webapps.WebAppsClient
-	AppServiceCertificatesOrderClient *appservicecertificateorders.AppServiceCertificateOrdersClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -62,11 +62,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(appServiceCertificatesOrderClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
+		AppServiceCertificatesOrderClient: appServiceCertificatesOrderClient,
 		AppServiceEnvironmentClient:       appServiceEnvironmentClient,
 		ResourceProvidersClient:           resourceProvidersClient,
 		ServicePlanClient:                 servicePlanClient,
 		StaticSitesClient:                 staticSitesClient,
 		WebAppsClient:                     webAppServiceClient,
-		AppServiceCertificatesOrderClient: appServiceCertificatesOrderClient,
 	}, nil
 }

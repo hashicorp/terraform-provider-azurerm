@@ -3,13 +3,13 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_certificate_order_key_vault_store"
 description: |-
-  Manages an App Service Certificate Order Certificate.
+  Manages an App Service Certificate Order for Storage in a Key Vault.
 
 ---
 
 # azurerm_app_service_certificate_order_key_vault_store
 
-Manages an App Service Certificate Order Certificate.
+Manages an App Service Certificate Order for Storage in a Key Vault.
 
 ## Example Usage
 
@@ -32,7 +32,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
-    object_id = "f8daea97-62e7-4026-becf-13c2ea98e8b4"
+    object_id = data.azurerm_client_config.test.object_id
 
     secret_permissions = [
       "Delete",
@@ -54,7 +54,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.test.tenant_id
-    object_id = "ed47c2a1-bd23-4341-b39c-f4fd69138dd3"
+    object_id = data.azurerm_client_config.test.object_id
 
     secret_permissions = [
       "Delete",
@@ -107,22 +107,20 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `location` - The location of the certificate.
-
-* `type` - The type of the certificate.
+* `location` - The location of the Certificate.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate Order Certificate.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate Order Certificate.
-* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Order Certificate.
-* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate Order Certificate.
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate Order Key Vault Store.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate Order Key Vault Store.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Order Key Vault Store.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate Order Key Vault Store.
 
 ## Import
 
-App Service Certificate Order Certificate can be imported using the `resource id`, e.g.
+An App Service Certificate Order Key Vault Store can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_app_service_certificate_order_key_vault_store.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1/certificates/certificates1
