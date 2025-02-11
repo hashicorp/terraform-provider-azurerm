@@ -87,12 +87,13 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 		}
 	}
 
-	// cannot expand a VM that's using NVMe controllers for Ultra or Premium SSD v2 disks without downtime
 	isUltraOrPremiumV2Disk := strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesPremiumVTwoLRS)) || strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesUltraSSDLRS))
-	if isUltraOrPremiumV2Disk && strings.EqualFold(vmDiskControllerType, string(virtualmachines.DiskControllerTypesNVMe)) {
-		return pointer.To(false), nil
+	if isUltraOrPremiumV2Disk {
+		// cannot expand a VM that's using NVMe controllers for Ultra or Premium SSD v2 disks without downtime
+		return pointer.To(!strings.EqualFold(vmDiskControllerType, string(virtualmachines.DiskControllerTypesNVMe))), nil
 	}
 
+	// The following limitation doesn't apply to Premium SSD v2 or Ultra Disks
 	if vmLocation == "" || vmSku == "" {
 		return pointer.To(false), nil
 	}
@@ -107,14 +108,9 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 		return nil, fmt.Errorf("retrieving information about the Resource SKUs to check if the Virtual Machine/Disk combination supports no-downtime-resizing: %+v", err)
 	}
 
-	supportsEphemeralOSDisks := false
-	supportsHyperVGen2 := false
-	supportsPremiumIO := false
+	result := false
 	for _, sku := range skusResponse.Items {
-		if sku.ResourceType == nil || !strings.EqualFold(*sku.ResourceType, "virtualMachines") {
-			continue
-		}
-		if sku.Capabilities == nil {
+		if !strings.EqualFold(pointer.From(sku.ResourceType), "virtualMachines") || sku.Capabilities == nil || !strings.EqualFold(pointer.From(sku.Name), vmSku) {
 			continue
 		}
 
@@ -122,6 +118,10 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 			if capability.Name == nil || capability.Value == nil {
 				continue
 			}
+
+			supportsEphemeralOSDisks := false
+			supportsHyperVGen2 := false
+			supportsPremiumIO := false
 
 			// this logic is based on:
 			// if (($capability.Name -eq "EphemeralOSDiskSupported" -and $capability.Value -eq "True") -or ($capability.Name -eq "PremiumIO" -and $capability.Value -eq "True") -or ($capability.Name -eq "HyperVGenerations" -and $capability.Value -match "V2"))
@@ -134,8 +134,17 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 			if strings.EqualFold(*capability.Name, "PremiumIO") && strings.EqualFold(*capability.Value, "True") {
 				supportsPremiumIO = true
 			}
+
+			result = supportsEphemeralOSDisks || supportsPremiumIO || supportsHyperVGen2
+			if result {
+				break
+			}
+		}
+
+		if result {
+			break
 		}
 	}
-	result := supportsEphemeralOSDisks || supportsPremiumIO || supportsHyperVGen2
+
 	return pointer.To(result), nil
 }
