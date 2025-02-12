@@ -94,10 +94,10 @@ github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-azure-helpers v0.71.0 h1:ra3aIRzg01g6MLKQ+yABcb6WJtrqRUDDgyuPLmyZ9lY=
 github.com/hashicorp/go-azure-helpers v0.71.0/go.mod h1:BmbF4JDYXK5sEmFeU5hcn8Br21uElcqLfdQxjatwQKw=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20241212.1154051 h1:jFgd3bzeRViGTzicIn9gDw2O/Gk6WjVJCTTefPNOGPY=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20241212.1154051/go.mod h1:XapOZ9HiCtXz3qb5yNFiCuWbOBj2I3WU1K2jwqgK2zA=
-github.com/hashicorp/go-azure-sdk/sdk v0.20241212.1154051 h1:4fCKJPSeLVvwl7ZCqU7MOUKyx/M7kl/J6wlw2O3xn40=
-github.com/hashicorp/go-azure-sdk/sdk v0.20241212.1154051/go.mod h1:oI5R0fTbBx3K/sJBK5R/OlEy8ozdQjvctxVU9v3EDkc=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20250211.1073809 h1:XgVRrHMf2+q4C8uN957Pih92oyaFpirr69xNmbXypw0=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20250211.1073809/go.mod h1:3hRm+0ZOvCR/5sFrz+Kw9xtfVfZqlZVjvbT4WHVinm8=
+github.com/hashicorp/go-azure-sdk/sdk v0.20250211.1073809 h1:wwSTIm9y50TCNH/FifHYN7txFLI3lDTFosf1LwuTaVs=
+github.com/hashicorp/go-azure-sdk/sdk v0.20250211.1073809/go.mod h1:oI5R0fTbBx3K/sJBK5R/OlEy8ozdQjvctxVU9v3EDkc=
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
@@ -152,6 +152,8 @@ github.com/hashicorp/terraform-svchost v0.1.1/go.mod h1:mNsjQfZyf/Jhz35v6/0LWcv2
 github.com/hashicorp/yamux v0.1.1 h1:yrQxtgseBDrq9Y652vSRDvsKCJKOUD+GzTS4Y0Y8pvE=
 github.com/hashicorp/yamux v0.1.1/go.mod h1:CtWFDAQgb7dxtzFs4tWbplKIe2jSi3+5vKbgIO0SLnQ=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
+github.com/jackofallops/giovanni v0.28.0 h1:fxn55SnxL2Rj3hgkkgQS9UKlIRXkkTZ5WcnE04JCBRE=
+github.com/jackofallops/giovanni v0.28.0/go.mod h1:CyzRgZyts4YSI/1iZF8poqdn9I6J8xpmg1iMpvhthTs=
 github.com/jackofallops/kermit v0.20241010.1180132 h1:3EwOQarDKNhtJ1zmtQAwtozYEayxN1AHT3/AMTDZNmw=
 github.com/jackofallops/kermit v0.20241010.1180132/go.mod h1:3Qf3rz0MOUsmzd3mxRb5ehTZ0+zhf7fOraV6jJxntLU=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=
@@ -233,8 +235,6 @@ github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/tombuildsstuff/giovanni v0.27.0 h1:3CDNjauK78FIhvvCp0SAHlvNcPTcofR6zQXvxwhk4zY=
-github.com/tombuildsstuff/giovanni v0.27.0/go.mod h1:SviBdlwdVn2HyArdRABBqMUODBJ2adQHi+RFEVaO05I=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobcontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -23,8 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 var containerAccessTypeConversionMap = map[string]string{
@@ -45,7 +45,7 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		Update: resourceStorageContainerUpdate,
 
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if strings.HasPrefix(id, "/subscriptions/") {
 					_, err := commonids.ParseStorageContainerID(id)
 					return err
@@ -126,7 +126,7 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -166,7 +166,7 @@ func resourceStorageContainerCreate(d *pluginsdk.ResourceData, meta interface{})
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := ExpandMetaData(metaDataRaw)
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
@@ -276,7 +276,7 @@ func resourceStorageContainerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -362,7 +362,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -441,7 +441,7 @@ func resourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 			d.Set("has_legal_hold", props.HasLegalHold)
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				d.Set("resource_manager_id", id.ID())
 			}
 		}
@@ -456,7 +456,7 @@ func resourceStorageContainerDelete(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		storageClient := meta.(*clients.Client).Storage
 
 		id, err := containers.ParseContainerID(d.Id(), storageClient.StorageDomainSuffix)
