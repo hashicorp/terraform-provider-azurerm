@@ -489,7 +489,7 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyInvalidTimeSpanError(t *
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.jsChallengePolicyInvalidTimeSpanError(data),
-			ExpectError: regexp.MustCompile(`expected "js_challenge_cookie_expiration_in_minutes" to be in the range \(5 - 1440\), got 4`),
+			ExpectError: regexp.MustCompile(`expected js_challenge_cookie_expiration_in_minutes to be in the range \(5 - 1440\), got 4`),
 		},
 	})
 }
