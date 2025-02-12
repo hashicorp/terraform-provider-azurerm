@@ -397,7 +397,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -861,30 +861,28 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	skuName := d.Get("sku_name").(string)
 
 	if v := raw["maxclients"].(int); v > 0 {
-		output.Maxclients = utils.String(strconv.Itoa(v))
+		output.Maxclients = pointer.To(strconv.Itoa(v))
 	}
 
 	if d.Get("sku_name").(string) != string(redis.SkuNameBasic) {
 		if v := raw["maxmemory_delta"].(int); v > 0 {
-			output.MaxmemoryDelta = utils.String(strconv.Itoa(v))
+			output.MaxmemoryDelta = pointer.To(strconv.Itoa(v))
 		}
 
 		if v := raw["maxmemory_reserved"].(int); v > 0 {
-			output.MaxmemoryReserved = utils.String(strconv.Itoa(v))
+			output.MaxmemoryReserved = pointer.To(strconv.Itoa(v))
 		}
 
 		if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
-			output.MaxfragmentationmemoryReserved = utils.String(strconv.Itoa(v))
+			output.MaxfragmentationmemoryReserved = pointer.To(strconv.Itoa(v))
 		}
 	}
 
 	if v := raw["maxmemory_policy"].(string); v != "" {
-		output.MaxmemoryPolicy = utils.String(v)
+		output.MaxmemoryPolicy = pointer.To(v)
 	}
 
-	if v := raw["data_persistence_authentication_method"].(string); v != "" {
-		output.PreferredDataPersistenceAuthMethod = utils.String(v)
-	}
+	output.PreferredDataPersistenceAuthMethod = pointer.To(raw["data_persistence_authentication_method"].(string))
 
 	// AAD/Entra support
 	// nolint : staticcheck

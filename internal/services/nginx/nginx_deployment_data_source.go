@@ -181,7 +181,7 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		dataSource["managed_resource_group"] = &pluginsdk.Schema{
 			Deprecated: "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
 			Type:       pluginsdk.TypeString,
@@ -261,7 +261,7 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
 					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
-					if !features.FivePointOhBeta() {
+					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
 							output.LoggingStorageAccount = []LoggingStorageAccount{
 								{
