@@ -279,7 +279,7 @@ func resourceIpamPoolWaitForDeleted(ctx context.Context, client ipampools.IPamPo
 	}
 
 	if _, err := state.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for the name from %s to become available: %+v", id, err)
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
 	}
 
 	return nil
