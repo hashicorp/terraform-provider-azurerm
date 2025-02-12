@@ -67,8 +67,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `flex_function_app_deployment` - (Optional) A `flex_consumption_app_deployment` block as defined below.
-
 ---
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
@@ -91,7 +89,7 @@ The following arguments are supported:
 
 * `builtin_logging_enabled` - (Optional) Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting. Defaults to `true`.
 
-~> **Note:** `builtin_logging_enabled` is only supported for function app whose function runtime is running on version 1.x. Please don't use it for function app running on flex consumption plan.
+~> **Note:** `builtin_logging_enabled` is only supported for function app whose function runtime is running on version 1.x.
 
 * `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
 
@@ -730,36 +728,6 @@ A `site_config` block supports the following:
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
 * `worker_count` - (Optional) The number of Workers for this Linux Function App.
-
----
-
-A `flex_function_app_deployment` block supports the following:
-
-* `storage_container_type` - (Required) The type of the storage container where the app's deployment package is hosted. Only `blobContainer` is supported for now. The default value is `blobContainer`.
-
-* `storage_container_endpoint` - (Required) The endpoint of the storage container where the app's deployment package is hosted.
-
-* `storage_connection_string_access_enabled` - (Optional) Whether to enable the storage container's connection string access. One of the `storage_connection_string_access_enabled`, `storage_user_assigned_identity_access_enabled`, `storage_system_assigned_identity_access_enabled` must be enabled. Defaults to `true`.  
-
-* `storage_access_key` - (Optional) The access key of the storage container where the app's deployment package is hosted. 
-
-* `storage_system_assigned_identity_access_enabled` - (Optional) Whether to use system assigned identity to access the storage container. One of the `storage_connection_string_access_enabled`, `storage_user_assigned_identity_access_enabled`, `storage_system_assigned_identity_access_enabled` must be enabled. Defaults to `false`.
-
-* `storage_user_assigned_identity_access_enabled` - (Optional) Whether to use user assigned identity to access the storage container. One of the `storage_connection_string_access_enabled`, `storage_user_assigned_identity_access_enabled`, `storage_system_assigned_identity_access_enabled` must be enabled. Defaults to `false`.
-
-* `storage_user_assigned_identity_id` - (Optional) Specifies the user assigned identity id when `storage_user_assigned_identity_access_enabled` sets to `true`.
-
-~> **NOTE:** When use system assigned identity or user assigned identity to access the storage account, please make sure the Storage Blob Data Contributor role scoped to the deployment storage account also gets assigned to the identity.
-
-* `runtime_name` - (Required) Specifies the runtime of the flex function app. The possible values are `custom`,`dotnet-isolated`,`java`,`node`,`powershell`,`python`.
-
-* `runtime_version` - (Required) Specifies the runtime version of the flex function app.
-
-~> **NOTE:** Please use `runtime_name` and `runtime_version` to configure the function app running in flex consumption plan, instead of the `application_stack` under `site_config`.
-
-* `maximum_instance_count` - (Optional) Specifies the maximum instance count of the flex function app. Accepted values are in the range `40` to `1000`. Defaults to `100`.
-
-* `instance_memory_in_mb` - (Optional) Specifies the instance memory of the flex function app.
 
 ---
 
