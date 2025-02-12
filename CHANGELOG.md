@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * `azurerm_cdn_frontdoor_firewall_policy` - add support for `JSChallenge` for `custom` rules [GH-28717]
 * `azurerm_express_route_circuit` - add support for the `rate_limiting_enabled` property [GH-28659]
 * `azurerm_mssql_managed_instance_failover_group` - add support for `secondary_type` [GH-28633]
+* `azurerm_service_plan` - support for `premium_plan_auto_scale_enabled` [GH-28524]
 
 BUG FIXES:
 
