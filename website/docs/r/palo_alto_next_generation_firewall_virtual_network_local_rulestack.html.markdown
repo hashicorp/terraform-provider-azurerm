@@ -143,7 +143,9 @@ The following arguments are supported:
 
 * `marketplace_offer_id` - (Optional) The marketplace offer ID. Defaults to `pan_swfw_cloud_ngfw`. Changing this forces a new resource to be created.
 
-* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cngfw-payg`.
+* `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cloud-ngfw-payg`.
+
+~> **NOTE:** Since the old planId `panw-cloud-ngfw-payg` is defined as stop sell, it cannot be specified when creating a resource. Users need to explicitly set `plan_id` to new planId `panw-cngfw-payg`.
 
 ---
 
