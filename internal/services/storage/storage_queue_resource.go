@@ -260,7 +260,7 @@ func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		payload.Properties.Metadata = pointer.To(ExpandMetaData(metaDataRaw))
 	}
 
-	if _, err := queueClient.QueueUpdate(ctx, *id, payload); err != nil {
+	if _, err := queueClient.QueueCreate(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %v", id, err)
 	}
 
