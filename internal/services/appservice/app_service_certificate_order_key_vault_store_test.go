@@ -51,6 +51,7 @@ func TestAccAppServiceCertificateOrderKeyVaultStore_updateKeyVaultId(t *testing.
 		data.ImportStep(),
 	})
 }
+
 func TestAccAppServiceCertificateOrderKeyVaultStore_updateKeyVaultName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order_key_vault_store", "test")
 	r := CertificateOrderCertificateResource{}
