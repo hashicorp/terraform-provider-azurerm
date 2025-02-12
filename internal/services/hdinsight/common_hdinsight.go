@@ -351,6 +351,19 @@ func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
 	return config
 }
 
+func expandHDInsightAvailabilityZones(input []interface{}) *[]string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	zones := make([]string, 0)
+	for _, v := range input {
+		zones = append(zones, v.(string))
+	}
+
+	return pointer.To(zones)
+}
+
 func flattenHDInsightsMetastores(d *pluginsdk.ResourceData, configurations map[string]map[string]string) {
 	result := map[string]interface{}{}
 

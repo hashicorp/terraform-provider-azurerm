@@ -89,7 +89,9 @@ The following arguments are supported:
 
 * `cluster_version` - (Required) Specifies the Version of HDInsights which should be used for this Cluster. Changing this forces a new resource to be created.
 
-* `component_version` - (Required) A `component_version` block as defined below.
+* `component_version` - (Required) A `component_version` block as defined below. Changing this forces a new resource to be created.
+
+* `availability_zones` - (Optional) Specifies the Availability Zones which this HDInsight Spark Cluster should exist.
 
 * `encryption_in_transit_enabled` - (Optional) Whether encryption in transit is enabled for this Cluster. Changing this forces a new resource to be created.
 

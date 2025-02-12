@@ -1327,7 +1327,7 @@ resource "azurerm_storage_container" "test" {
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, "east us", data.RandomString)
 }
 
 func (HDInsightSparkClusterResource) gen2template(data acceptance.TestData) string {
@@ -1780,12 +1780,27 @@ resource "azurerm_mssql_firewall_rule" "AzureServices" {
   start_ip_address = "0.0.0.0"
   end_ip_address   = "0.0.0.0"
 }
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
 resource "azurerm_hdinsight_spark_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_version     = "4.0"
   tier                = "Standard"
+  availability_zones  = ["1"]
+
   component_version {
     spark = "2.4"
   }
@@ -1800,20 +1815,26 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D3_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
+      vm_size            = "Standard_D3_V2"
+      username           = "acctestusrvm"
+      password           = "AccTestvdSC4daf986!"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
     }
     worker_node {
       vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
+      subnet_id             = azurerm_subnet.test.id
+      virtual_network_id    = azurerm_virtual_network.test.id
     }
     zookeeper_node {
-      vm_size  = "Standard_D3_V2"
-      username = "acctestusrvm"
-      password = "AccTestvdSC4daf986!"
+      vm_size            = "Standard_D3_V2"
+      username           = "acctestusrvm"
+      password           = "AccTestvdSC4daf986!"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
     }
   }
   metastores {
@@ -1837,7 +1858,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r HDInsightSparkClusterResource) hiveMetastore(data acceptance.TestData) string {
