@@ -146,25 +146,6 @@ managed_rule {
   }
 }
 ```
-## Example Usage: JSChallenge Custom Rule
-
-```hcl
-custom_rule {
-  name                           = "CustomJSChallenge"
-  enabled                        = true
-  priority                       = 2
-  rate_limit_duration_in_minutes = 1
-  rate_limit_threshold           = 10
-  type                           = "MatchRule"
-  action                         = "JSChallenge"
-  match_condition {
-    match_variable     = "RemoteAddr"
-    operator           = "IPMatch"
-    negation_condition = false
-    match_values       = ["192.168.1.0/24"]
-  }
-}
-```
 
 ## Example Usage: JSChallenge Custom Rule
 
@@ -186,6 +167,7 @@ custom_rule {
   }
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
