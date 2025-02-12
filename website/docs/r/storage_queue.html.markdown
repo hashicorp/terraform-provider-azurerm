@@ -38,7 +38,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Queue which should be created within the Storage Account. Must be unique within the storage account the queue is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) Specifies the Storage Account in which the Storage Queue should exist. Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) The name of the Storage Account where the Storage Queue should be created. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
+
+* `storage_account_id` - (Optional) The name of the Storage Account where the Storage Queue should be created. Changing this forces a new resource to be created.
+
+~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 * `metadata` - (Optional) A mapping of MetaData which should be assigned to this Storage Queue.
 
@@ -63,6 +67,14 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 Storage Queue's can be imported using the `resource id`, e.g.
 
+If `storage_account_name` is used:
+
 ```shell
 terraform import azurerm_storage_queue.queue1 https://example.queue.core.windows.net/queue1
+```
+
+If `storage_account_id` is used:
+
+```shell
+terraform import azurerm_storage_queue.queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/queueServices/default/queues
 ```
