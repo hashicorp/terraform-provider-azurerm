@@ -204,7 +204,7 @@ service/logic:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_logic_app_((.|\n)*)###'
 
 service/machine-learning:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_machine_learning_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_foundry|machine_learning_)((.|\n)*)###'
 
 service/maintenance:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(maintenance_|public_maintenance_configurations)((.|\n)*)###'
