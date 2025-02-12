@@ -1947,6 +1947,9 @@ resource "azurerm_app_service_plan" "test" {
 
 func (LogicAppStandardResource) templateLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2233,10 +2236,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) siteConfigPublicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
