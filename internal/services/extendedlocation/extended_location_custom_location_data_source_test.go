@@ -10,7 +10,7 @@ import (
 
 type ExtendedLocationCustomLocationDataSource struct{}
 
-func TestAccCustomLocationDataSource_basic(t *testing.T) {
+func TestAccExtendedLocationCustomLocationDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_extended_location_custom_location", "test")
 	d := ExtendedLocationCustomLocationDataSource{}
 

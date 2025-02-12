@@ -41,7 +41,7 @@ func (r ExtendedLocationCustomLocationResource) Exists(ctx context.Context, clie
 	return utils.Bool(true), nil
 }
 
-func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
+func TestAccExtendedLocationCustomLocation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
 	r := ExtendedLocationCustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
@@ -57,7 +57,7 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 	})
 }
 
-func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
+func TestAccExtendedLocationCustomLocation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
 	r := ExtendedLocationCustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
@@ -73,7 +73,7 @@ func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
 	})
 }
 
-func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
+func TestAccExtendedLocationCustomLocation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
 	r := ExtendedLocationCustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
