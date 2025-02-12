@@ -197,7 +197,6 @@ func resourceStorageQueueCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	d.SetId(id.ID())
 
 	return resourceStorageQueueRead(d, meta)
-
 }
 
 func resourceStorageQueueUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

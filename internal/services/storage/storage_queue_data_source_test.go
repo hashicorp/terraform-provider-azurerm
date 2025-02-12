@@ -28,6 +28,7 @@ func TestAccDataSourceStorageQueue_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccDataSourceStorageQueue_basicDeprecated(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
@@ -82,6 +83,7 @@ data "azurerm_storage_queue" "test" {
 }
 `, data.RandomString, data.Locations.Primary, data.RandomInteger)
 }
+
 func (d StorageQueueDataSource) basicDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
