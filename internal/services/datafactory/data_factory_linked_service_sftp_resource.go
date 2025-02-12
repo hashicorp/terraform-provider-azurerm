@@ -141,7 +141,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Sensitive:     true,
-				Description:   "Base64 encoded SSH private key content or Azure Key Vault Secret URL. SSH private key should be in OpenSSH format",
+				Description:   "SSH private key content in OpenSSH format",
 				ValidateFunc:  validate.SSHPrivateKey,
 				ConflictsWith: []string{"private_key_path", "password"},
 				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
@@ -194,33 +194,49 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 	host := d.Get("host").(string)
 	port := d.Get("port").(int)
 	username := d.Get("username").(string)
-	password := d.Get("password").(string)
 
-	passwordSecureString := datafactory.SecureString{
-		Value: &password,
-		Type:  datafactory.TypeSecureString,
-	}
-
-	content := d.Get("private_key_content").(string)
-	privateKeyContent := datafactory.SecureString{
-		Value: pointer.To(content),
-		Type:  datafactory.TypeSecureString,
-	}
-
-	passphrase := datafactory.SecureString{
-		Value: pointer.To(d.Get("private_key_passphrase").(string)),
-		Type:  datafactory.TypeSecureString,
-	}
+	//passphrase := datafactory.SecureString{
+	//	Value: pointer.To(d.Get("private_key_passphrase").(string)),
+	//	Type:  datafactory.TypeSecureString,
+	//}
 
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
 		Host:               pointer.To(host),
 		Port:               port,
 		AuthenticationType: datafactory.SftpAuthenticationType(authenticationType),
 		UserName:           pointer.To(username),
-		Password:           &passwordSecureString,
-		PrivateKeyContent:  &privateKeyContent,
-		PrivateKeyPath:     d.Get("private_key_path").(string),
-		PassPhrase:         &passphrase,
+		//Password:           &passwordSecureString,
+		//PrivateKeyContent:  &privateKeyContent,
+		//PrivateKeyPath:     d.Get("private_key_path").(string),
+		//PassPhrase:         &passphrase,
+	}
+
+	if v, ok := d.GetOk("password"); ok {
+		passwordSecureString := datafactory.SecureString{
+			Value: pointer.To(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+		sftpProperties.Password = &passwordSecureString
+	}
+
+	if v, ok := d.GetOk("private_key_content"); ok {
+		privateKeyContent := datafactory.SecureString{
+			Value: pointer.To(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+		sftpProperties.PrivateKeyContent = &privateKeyContent
+	}
+
+	if v, ok := d.GetOk("private_key_passphrase"); ok {
+		passphrase := datafactory.SecureString{
+			Value: pointer.To(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+		sftpProperties.PrivateKeyContent = &passphrase
+	}
+
+	if v, ok := d.GetOk("private_key_path"); ok {
+		sftpProperties.PrivateKeyPath = pointer.To(v.(string))
 	}
 
 	sftpProperties.SkipHostKeyValidation = d.Get("skip_host_key_validation").(bool)
