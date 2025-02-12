@@ -236,7 +236,7 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource["managed_resource_group"] = &pluginsdk.Schema{
 			Deprecated:   "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
 			Type:         pluginsdk.TypeString,
@@ -327,7 +327,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
 
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if len(model.LoggingStorageAccount) > 0 {
 					prop.Logging = &nginxdeployment.NginxLogging{
 						StorageAccount: &nginxdeployment.NginxStorageAccount{
@@ -470,7 +470,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
 					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
-					if !features.FivePointOhBeta() {
+					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
 							output.LoggingStorageAccount = []LoggingStorageAccount{
 								{
@@ -581,7 +581,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			req.Properties = &nginxdeployment.NginxDeploymentUpdateProperties{}
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
 					req.Properties.Logging = &nginxdeployment.NginxLogging{
 						StorageAccount: &nginxdeployment.NginxStorageAccount{

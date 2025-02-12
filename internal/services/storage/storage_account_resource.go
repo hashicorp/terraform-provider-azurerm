@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1119,7 +1119,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
-				if !features.FivePointOhBeta() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
+				if !features.FivePointOh() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
 					if _, ok := d.GetOk("queue_properties"); ok {
 						return errors.New("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
@@ -1148,7 +1148,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		// lintignore:XS003
 		resource.Schema["static_website"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
@@ -1275,7 +1275,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["min_tls_version"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -1490,7 +1490,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 	// Start of Data Plane access - this entire block can be removed for 5.0, as the data_plane_available flag becomes redundant at that time.
-	if !features.FivePointOhBeta() && dataPlaneAvailable {
+	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage
 		dataPlaneAccount, err := storageUtils.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 		if err != nil {
@@ -1918,7 +1918,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		dataPlaneClient := meta.(*clients.Client).Storage
 		if d.HasChange("queue_properties") {
 			if !supportLevel.supportQueue {
@@ -2244,7 +2244,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
 	}
 
-	if !features.FivePointOhBeta() && dataPlaneAvailable {
+	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage
 		queueProperties := make([]interface{}, 0)
 		if supportLevel.supportQueue {

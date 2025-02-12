@@ -313,7 +313,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		args["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:     schema.TypeString,
 			Optional: true,

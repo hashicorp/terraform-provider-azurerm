@@ -93,13 +93,23 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `tls.minimum_tls_version` property no longer accepts `TLS10` as a value.
 
+### `azurerm_container_app`
+
+* The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
+* The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
+
+### `azurerm_container_app_job`
+
+* The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
+* The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
+
 ### `azurerm_cosmosdb_account`
 
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
 
-### `azurerm_datadog_monitor_sso_configuration`
+### `azurerm_container_app_environment`
 
-* The `single_sign_on_enabled` property has been renamed to `single_sign_on` with the possible values `Enable`, `Disable`, `Initial`, and `Existing`.
+* The `logs_destination` property is no longer Computed and now must be set to `log-analytics` to be able to specify a value for `log_analytics_workspace_id`. It will now default to empty, meaning Streaming Only in the Azure Portal.
 
 ### `azurerm_eventhub`
 
@@ -149,6 +159,22 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `logging_storage_account` block has been removed in favour of the `azurerm_monitor_diagnostic_setting` resource.
 * The deprecated `managed_resource_group` property has been removed.
 
+### `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack`
+
+* The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama`
+
+* The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack`
+
+* The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama`
+
+* The `plan_id` property now defaults to `panw-cngfw-payg`.
+
 ### `azurerm_redis_cache`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
@@ -191,6 +217,11 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
 * The deprecated `example_property_with_no_replacement` property has been removed.
 ```
+
+### `azurerm_container_app`
+
+* The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
+* The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
 
 ### `azurerm_logic_app_standard`
 

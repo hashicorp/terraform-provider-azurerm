@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_ai_services
 
-Manages an AI Services account.
+Manages an AI Services Account.
 
 ## Example Usage
 

@@ -6,6 +6,7 @@ package logic
 import (
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -246,7 +247,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		// Due to the way the `site_config.public_network_access_enabled` property and the `public_network_access` property
 		// influence each other, the default needs to be handled in the Create for now until `site_config.public_network_access_enabled`
 		// is removed in v5.0
@@ -341,7 +342,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	publicNetworkAccess := d.Get("public_network_access").(string)
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
 		publicNetworkAccess = reconcilePNA(d)
 		if v := siteEnvelope.Properties.SiteConfig.PublicNetworkAccess; v != nil && *v == helpers.PublicNetworkAccessDisabled {
@@ -456,7 +457,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	if !features.FivePointOhBeta() { // Until 5.0 the site_config value of this must be reflected back into the top-level property if not set there
+	if !features.FivePointOh() { // Until 5.0 the site_config value of this must be reflected back into the top-level property if not set there
 		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(d))
 	}
 
@@ -489,7 +490,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if d.HasChange("site_config") || (d.HasChange("public_network_access") && !features.FivePointOhBeta()) { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
+	if d.HasChange("site_config") || (d.HasChange("public_network_access") && !features.FivePointOh()) { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
 		siteConfigResource := webapps.SiteConfigResource{
 			Properties: &siteConfig,
 		}
@@ -911,7 +912,7 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
@@ -1003,7 +1004,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 
 				"action": {
@@ -1144,7 +1145,7 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []interface{} 
 		publicNetworkAccessEnabled = !strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		result["public_network_access_enabled"] = publicNetworkAccessEnabled
 	}
 
@@ -1371,7 +1372,7 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (webapps.SiteCo
 		siteConfig.VnetRouteAllEnabled = pointer.To(v.(bool))
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(d))
 	}
 

@@ -79,6 +79,21 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossRegion(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServerVirtualEndpoint_identicalSourceAndReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
+	r := PostgresqlFlexibleServerVirtualEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identicalSourceAndReplica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PostgresqlFlexibleServerVirtualEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualendpoints.ParseVirtualEndpointID(state.ID)
 	if err != nil {
@@ -441,4 +456,38 @@ resource "azurerm_postgresql_flexible_server" "west" {
   }
 }
 `, data.RandomInteger)
+}
+
+func (PostgresqlFlexibleServerVirtualEndpointResource) identicalSourceAndReplica(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-ve-rg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                          = "acctest-ve-primary-%[1]d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  version                       = "16"
+  public_network_access_enabled = false
+  administrator_login           = "psqladmin"
+  administrator_password        = "H@Sh1CoR3!"
+  zone                          = "1"
+  storage_mb                    = 32768
+  storage_tier                  = "P30"
+  sku_name                      = "GP_Standard_D2ads_v5"
+}
+
+resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
+  name              = "acctest-ve-%[1]d"
+  source_server_id  = azurerm_postgresql_flexible_server.test.id
+  replica_server_id = azurerm_postgresql_flexible_server.test.id
+  type              = "ReadWrite"
+}
+`, data.RandomInteger, "eastus") // force region due to SKU constraints
 }
