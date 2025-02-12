@@ -358,11 +358,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("premium_plan_auto_scale_enabled") {
-				if !helpers.PlanIsPremium(state.Sku) {
-					return fmt.Errorf("`premium_plan_auto_scale_enabled` can only be set for premium app service plan")
-				} else {
-					model.Properties.ElasticScaleEnabled = pointer.To(state.PremiumPlanAutoScaleEnabled)
-				}
+				model.Properties.ElasticScaleEnabled = pointer.To(state.PremiumPlanAutoScaleEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
