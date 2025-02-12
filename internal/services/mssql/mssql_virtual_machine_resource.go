@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,8 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
@@ -470,8 +469,8 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 		resource.Schema["auto_backup"].Elem.(*pluginsdk.Resource).Schema["encryption_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
-			Default:    false,
-			Deprecated: "This argument is no longer used. Encryption is enabled when encryption_password is set; otherwise disabled.",
+			Computed:   true,
+			Deprecated: "`encryption_enabled` has been deprecated and will be removed in v5.0 of the AzureRM Provider. Encryption is enabled when `encryption_password` is set; otherwise disabled.",
 		}
 	}
 
@@ -941,7 +940,7 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 	encryptionPassword := ""
 
 	// Copy password from config only if encryption is enabled in Azure
-	if autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption {
+	if pointer.From(autoBackup.EnableEncryption) {
 		encryptionPassword = d.Get("auto_backup.0.encryption_password").(string)
 	}
 
