@@ -75,7 +75,7 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `private_key_passphrase` - (Optional) The passphrase for the private key if the key is encrypted.
 
-~> **Note:** One of `private_key_content` or `private_key_path` is required when `authentication_type` is set to `SshPublicKey`. `private_key_path`.
+~> **Note:** One of `private_key_content` or `private_key_path` is required when `authentication_type` is set to `SshPublicKey`.
 
 * `host_key_fingerprint` - (Optional) The host key fingerprint of the SFTP server.
 
