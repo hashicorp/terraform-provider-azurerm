@@ -167,7 +167,6 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateKustoClusterID,
 			Deprecated:   "`cluster_resource_id` has been deprecated in favour of the `cluster_id` property and will be removed in v5.0 of the AzureRM Provider.",
 			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
