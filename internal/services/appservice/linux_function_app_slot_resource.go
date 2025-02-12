@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -94,7 +93,7 @@ func (r LinuxFunctionAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidat
 }
 
 func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -282,16 +281,13 @@ func (r LinuxFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
-	}
-	if features.FourPointOhBeta() {
-		s["vnet_image_pull_enabled"] = &pluginsdk.Schema{
+		"vnet_image_pull_enabled": {
 			Type:        pluginsdk.TypeBool,
 			Optional:    true,
 			Default:     false,
 			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
-		}
+		},
 	}
-	return s
 }
 
 func (r LinuxFunctionAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -438,15 +434,16 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 					availabilityRequest.Name = fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix)
 					availabilityRequest.IsFqdn = pointer.To(true)
-					if features.FourPointOhBeta() {
-						if !functionAppSlot.VnetImagePullEnabled {
-							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
-						}
+
+					if !functionAppSlot.VnetImagePullEnabled {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
 				}
 			}
-			// Only send for ElasticPremium
-			sendContentSettings := helpers.PlanIsElastic(planSKU) && !functionAppSlot.ForceDisableContentShare
+
+			// Only send for ElasticPremium and Consumption plan
+			elasticOrConsumptionPlan := helpers.PlanIsElastic(planSKU) || helpers.PlanIsConsumption(planSKU)
+			sendContentSettings := elasticOrConsumptionPlan && !functionAppSlot.ForceDisableContentShare
 
 			existing, err := client.GetSlot(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -531,12 +528,9 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					VnetImagePullEnabled: pointer.To(functionAppSlot.VnetImagePullEnabled),
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled, // (@jackofallops) - Value appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				},
-			}
-
-			if features.FourPointOhBeta() {
-				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(functionAppSlot.VnetImagePullEnabled)
 			}
 
 			pan := helpers.PublicNetworkAccessEnabled
@@ -755,10 +749,8 @@ func (r LinuxFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
-					if features.FourPointOhBeta() {
-						state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
-					}
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
 					}
@@ -946,7 +938,7 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") && features.FourPointOhBeta() {
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
 				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
@@ -1220,7 +1212,7 @@ func (r LinuxFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			appClient := metadata.Client.AppService.WebAppsClient
 			rd := metadata.ResourceDiff
-			if rd.HasChange("vnet_image_pull_enabled") && features.FourPointOhBeta() {
+			if rd.HasChange("vnet_image_pull_enabled") {
 				appId := rd.Get("function_app_id")
 				if appId.(string) == "" {
 					return nil

@@ -37,6 +37,37 @@ func (WindowsVirtualMachineScaleSetResource) vmName(data acceptance.TestData) st
 
 func (r WindowsVirtualMachineScaleSetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  vm_name = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+`, r.vmName(data), data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r WindowsVirtualMachineScaleSetResource) templateWithOutProvider(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 locals {
   vm_name = "%s"
 }

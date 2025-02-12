@@ -29,7 +29,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return []sdk.Resource{
 			CustomLocationResource{}, // this resource is renamed and should be removed in 5.0
 			ExtendedLocationCustomLocationResource{},

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -339,6 +339,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -417,6 +421,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -486,6 +494,10 @@ func (VirtualNetworkGatewayConnectionResource) expressRoute(data acceptance.Test
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -593,6 +605,10 @@ func (VirtualNetworkGatewayConnectionResource) expressRouteWithFastPath(data acc
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -717,6 +733,10 @@ resource "azurerm_virtual_network_gateway_connection" "import" {
 
 func (VirtualNetworkGatewayConnectionResource) vnetToVnet(data acceptance.TestData, rInt1 int, rInt2 int, sharedKey string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 variable "random1" {
   default = "%d"
 }
@@ -849,6 +869,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -935,6 +959,10 @@ variable "random" {
   default = "%d"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-${var.random}"
   location = "%s"
@@ -1017,6 +1045,10 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
 func (VirtualNetworkGatewayConnectionResource) connectionProtocol(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 variable "random" {
   default = "%d"
 }
@@ -1105,6 +1137,10 @@ func (VirtualNetworkGatewayConnectionResource) trafficSelectorPolicy(data accept
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1198,6 +1234,10 @@ func (VirtualNetworkGatewayConnectionResource) trafficSelectorPolicyMultiple(dat
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1294,6 +1334,10 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
 func (VirtualNetworkGatewayConnectionResource) useLocalAzureIpAddressEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1365,6 +1409,10 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
 func (VirtualNetworkGatewayConnectionResource) useLocalAzureIpAddressEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -1436,6 +1484,10 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
 func (VirtualNetworkGatewayConnectionResource) useCustomBgpAddresses(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

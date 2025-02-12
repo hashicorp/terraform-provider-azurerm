@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -135,6 +136,8 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"ip_configuration": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			// Each type gateway requires exact number of `ip_configuration`, and overwriting an existing one is not allowed.
+			ForceNew: true,
 			MaxItems: 3,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -403,7 +406,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								"sa_data_size_in_kilobytes": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1024, 2147483647),
+									ValidateFunc: validation.IntBetween(1024, math.MaxInt32),
 								},
 							},
 						},
@@ -1091,7 +1094,7 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetG
 		addresses = append(addresses, addr.(string))
 	}
 
-	rootCertsConf := conf["root_certificate"].([]interface{})
+	rootCertsConf := conf["root_certificate"].(*pluginsdk.Set).List()
 	rootCerts := make([]virtualnetworkgateways.VpnClientRootCertificate, 0, len(rootCertsConf))
 	for _, rootCertSet := range rootCertsConf {
 		rootCert := rootCertSet.(map[string]interface{})
@@ -1104,7 +1107,7 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetG
 		rootCerts = append(rootCerts, r)
 	}
 
-	revokedCertsConf := conf["revoked_certificate"].([]interface{})
+	revokedCertsConf := conf["revoked_certificate"].(*pluginsdk.Set).List()
 	revokedCerts := make([]virtualnetworkgateways.VpnClientRevokedCertificate, 0, len(revokedCertsConf))
 	for _, revokedCertSet := range revokedCertsConf {
 		revokedCert := revokedCertSet.(map[string]interface{})

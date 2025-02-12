@@ -9,9 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -158,6 +159,7 @@ type Ingress struct {
 	TrafficWeights         []TrafficWeight         `tfschema:"traffic_weight"`
 	Transport              string                  `tfschema:"transport"`
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
+	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -213,6 +215,17 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					Default:      string(containerapps.IngressTransportMethodAuto),
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
 					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
+				},
+
+				"client_certificate_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(containerapps.IngressClientCertificateModeAccept),
+						string(containerapps.IngressClientCertificateModeRequire),
+						string(containerapps.IngressClientCertificateModeIgnore),
+					}, false),
+					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
 			},
 		},
@@ -289,6 +302,10 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
+	if ingress.ClientCertificateMode != "" {
+		clientCertificateMode := containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode)
+		result.ClientCertificateMode = &clientCertificateMode
+	}
 
 	return result
 }
@@ -312,6 +329,10 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	if ingress.Transport != nil {
 		result.Transport = strings.ToLower(string(*ingress.Transport))
+	}
+
+	if ingress.ClientCertificateMode != nil {
+		result.ClientCertificateMode = string(*ingress.ClientCertificateMode)
 	}
 
 	return []Ingress{result}
@@ -813,16 +834,17 @@ func ContainerAppEnvironmentDaprMetadataSchema() *pluginsdk.Schema {
 }
 
 type ContainerTemplate struct {
-	Containers           []Container           `tfschema:"container"`
-	InitContainers       []BaseContainer       `tfschema:"init_container"`
-	Suffix               string                `tfschema:"revision_suffix"`
-	MinReplicas          int64                 `tfschema:"min_replicas"`
-	MaxReplicas          int64                 `tfschema:"max_replicas"`
-	AzureQueueScaleRules []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
-	CustomScaleRules     []CustomScaleRule     `tfschema:"custom_scale_rule"`
-	HTTPScaleRules       []HTTPScaleRule       `tfschema:"http_scale_rule"`
-	TCPScaleRules        []TCPScaleRule        `tfschema:"tcp_scale_rule"`
-	Volumes              []ContainerVolume     `tfschema:"volume"`
+	Containers             []Container           `tfschema:"container"`
+	InitContainers         []BaseContainer       `tfschema:"init_container"`
+	Suffix                 string                `tfschema:"revision_suffix"`
+	MinReplicas            int64                 `tfschema:"min_replicas"`
+	MaxReplicas            int64                 `tfschema:"max_replicas"`
+	AzureQueueScaleRules   []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
+	CustomScaleRules       []CustomScaleRule     `tfschema:"custom_scale_rule"`
+	HTTPScaleRules         []HTTPScaleRule       `tfschema:"http_scale_rule"`
+	TCPScaleRules          []TCPScaleRule        `tfschema:"tcp_scale_rule"`
+	Volumes                []ContainerVolume     `tfschema:"volume"`
+	TerminationGracePeriod int64                 `tfschema:"termination_grace_period_seconds"`
 }
 
 func ContainerTemplateSchema() *pluginsdk.Schema {
@@ -868,6 +890,14 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Computed:    true, // Note: O+C This value is always present and non-zero but if not user specified, then the service will generate a value.
 					Description: "The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.",
 				},
+
+				"termination_grace_period_seconds": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      0,
+					ValidateFunc: validation.IntBetween(0, 600),
+					Description:  "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+				},
 			},
 		},
 	}
@@ -909,6 +939,11 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"termination_grace_period_seconds": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -931,6 +966,10 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 			template.Scale = &containerapps.Scale{}
 		}
 		template.Scale.MaxReplicas = pointer.To(config.MaxReplicas)
+	}
+
+	if config.TerminationGracePeriod != 0 {
+		template.TerminationGracePeriodSeconds = pointer.To(config.TerminationGracePeriod)
 	}
 
 	if config.MinReplicas != 0 {
@@ -962,10 +1001,11 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 		return []ContainerTemplate{}
 	}
 	result := ContainerTemplate{
-		Containers:     flattenContainerAppContainers(input.Containers),
-		InitContainers: flattenInitContainerAppContainers(input.InitContainers),
-		Suffix:         pointer.From(input.RevisionSuffix),
-		Volumes:        flattenContainerAppVolumes(input.Volumes),
+		Containers:             flattenContainerAppContainers(input.Containers),
+		InitContainers:         flattenInitContainerAppContainers(input.InitContainers),
+		Suffix:                 pointer.From(input.RevisionSuffix),
+		TerminationGracePeriod: pointer.From(input.TerminationGracePeriodSeconds),
+		Volumes:                flattenContainerAppVolumes(input.Volumes),
 	}
 
 	if scale := input.Scale; scale != nil {
@@ -1513,8 +1553,9 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 }
 
 type ContainerVolumeMount struct {
-	Name string `tfschema:"name"`
-	Path string `tfschema:"path"`
+	Name    string `tfschema:"name"`
+	Path    string `tfschema:"path"`
+	SubPath string `tfschema:"sub_path"`
 }
 
 func ContainerVolumeMountSchema() *pluginsdk.Schema {
@@ -1535,6 +1576,13 @@ func ContainerVolumeMountSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The path in the container at which to mount this volume.",
+				},
+
+				"sub_path": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The sub path of the volume to be mounted in the container.",
 				},
 			},
 		},
@@ -1558,6 +1606,12 @@ func ContainerVolumeMountSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The path in the container at which to mount this volume.",
 				},
+
+				"sub_path": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The sub path of the volume to be mounted in the container.",
+				},
 			},
 		},
 	}
@@ -1573,6 +1627,7 @@ func expandContainerVolumeMounts(input []ContainerVolumeMount) *[]containerapps.
 		volumeMounts = append(volumeMounts, containerapps.VolumeMount{
 			MountPath:  pointer.To(v.Path),
 			VolumeName: pointer.To(v.Name),
+			SubPath:    pointer.To(v.SubPath),
 		})
 	}
 
@@ -1587,8 +1642,9 @@ func flattenContainerVolumeMounts(input *[]containerapps.VolumeMount) []Containe
 	result := make([]ContainerVolumeMount, 0)
 	for _, v := range *input {
 		result = append(result, ContainerVolumeMount{
-			Name: pointer.From(v.VolumeName),
-			Path: pointer.From(v.MountPath),
+			Name:    pointer.From(v.VolumeName),
+			Path:    pointer.From(v.MountPath),
+			SubPath: pointer.From(v.SubPath),
 		})
 	}
 
@@ -2014,11 +2070,11 @@ type ContainerAppLivenessProbe struct {
 	Interval               int64        `tfschema:"interval_seconds"`
 	Timeout                int64        `tfschema:"timeout"`
 	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds"`
+	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds,removedInNextMajorVersion"`
 }
 
 func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MinItems: 1,
@@ -2107,19 +2163,23 @@ func ContainerAppLivenessProbeSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 30),
 					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
-
-				"termination_grace_period_seconds": {
-					Type:        pluginsdk.TypeInt,
-					Computed:    true,
-					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
+			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+		}
+	}
+
+	return schema
 }
 
 func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -2191,15 +2251,19 @@ func ContainerAppLivenessProbeSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
-
-				"termination_grace_period_seconds": {
-					Type:        pluginsdk.TypeInt,
-					Computed:    true,
-					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
+			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+		}
+	}
+
+	return schema
 }
 
 func expandContainerAppLivenessProbe(input ContainerAppLivenessProbe) containerapps.ContainerAppProbe {
@@ -2293,11 +2357,11 @@ type ContainerAppStartupProbe struct {
 	Interval               int64        `tfschema:"interval_seconds"`
 	Timeout                int64        `tfschema:"timeout"`
 	FailureThreshold       int64        `tfschema:"failure_count_threshold"`
-	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds"`
+	TerminationGracePeriod int64        `tfschema:"termination_grace_period_seconds,removedInNextMajorVersion"`
 }
 
 func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MinItems: 1,
@@ -2386,19 +2450,23 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 30),
 					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
-
-				"termination_grace_period_seconds": {
-					Type:        pluginsdk.TypeInt,
-					Computed:    true,
-					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
+			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+		}
+	}
+
+	return schema
 }
 
 func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -2466,15 +2534,19 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
 				},
-
-				"termination_grace_period_seconds": {
-					Type:        pluginsdk.TypeInt,
-					Computed:    true,
-					Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
-				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["termination_grace_period_seconds"] = &pluginsdk.Schema{
+			Type:        pluginsdk.TypeInt,
+			Computed:    true,
+			Description: "The time in seconds after the container is sent the termination signal before the process if forcibly killed.",
+		}
+	}
+
+	return schema
 }
 
 func expandContainerAppStartupProbe(input ContainerAppStartupProbe) containerapps.ContainerAppProbe {

@@ -136,6 +136,10 @@ func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
 
 func (MonitorScheduledQueryRulesResource) AlertingActionAutoMitigate(data acceptance.TestData, ts string, autoMitigate bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
   location = "%s"
@@ -176,6 +180,10 @@ QUERY
 
 func (MonitorScheduledQueryRulesResource) AlertingActionQueryTypeNumber(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
   location = "%s"
@@ -219,6 +227,10 @@ QUERY
 
 func (MonitorScheduledQueryRulesResource) AlertingActionConfigBasic(data acceptance.TestData, ts string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
   location = "%s"
@@ -266,6 +278,10 @@ QUERY
 
 func (MonitorScheduledQueryRulesResource) AlertingActionConfigUpdate(data acceptance.TestData, ts string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
   location = "%s"
@@ -318,6 +334,10 @@ func (MonitorScheduledQueryRulesResource) AlertingActionConfigComplete(data acce
 	ts := time.Now().Format(time.RFC3339)
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
   location = "%s"
@@ -378,6 +398,10 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
 
 func (MonitorScheduledQueryRulesResource) AlertingActionCrossResourceConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
   location = "%s"
