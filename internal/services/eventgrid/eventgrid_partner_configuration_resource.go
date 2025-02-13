@@ -268,9 +268,9 @@ func flattenAuthorizedPartnersList(partner *[]partnerconfigurations.Partner) []P
 
 	for _, partnerAuth := range *partner {
 		partnerAuthorizations = append(partnerAuthorizations, PartnerAuthorization{
-			PartnerName:                      *partnerAuth.PartnerName,
-			PartnerRegistrationId:            *partnerAuth.PartnerRegistrationImmutableId,
-			AuthorizationExpirationTimeInUtc: *partnerAuth.AuthorizationExpirationTimeInUtc,
+			PartnerName:                      pointer.From(partnerAuth.PartnerName),
+			PartnerRegistrationId:            pointer.From(partnerAuth.PartnerRegistrationImmutableId),
+			AuthorizationExpirationTimeInUtc: pointer.From(partnerAuth.AuthorizationExpirationTimeInUtc),
 		})
 	}
 
