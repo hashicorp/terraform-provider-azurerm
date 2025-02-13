@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/sharedprivatelinkresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -131,6 +132,9 @@ func (r SharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 				parameters.Properties.RequestMessage = utils.String(model.RequestMessage)
 			}
 
+			locks.ByName(id.SearchServiceName, searchServiceResourceType)
+			defer locks.UnlockByName(id.SearchServiceName, searchServiceResourceType)
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("creating/ updating %s: %+v", id, err)
 			}
@@ -213,6 +217,8 @@ func (r SharedPrivateLinkServiceResource) Update() sdk.ResourceFunc {
 						RequestMessage: utils.String(state.RequestMessage),
 					},
 				}
+				locks.ByName(id.SearchServiceName, searchServiceResourceType)
+				defer locks.UnlockByName(id.SearchServiceName, searchServiceResourceType)
 				if err := client.CreateOrUpdateThenPoll(ctx, *id, props, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}

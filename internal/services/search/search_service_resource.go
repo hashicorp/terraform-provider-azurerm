@@ -27,6 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+var searchServiceResourceType = "azurerm_search_service"
+
 func resourceSearchService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSearchServiceCreate,
