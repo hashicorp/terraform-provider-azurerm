@@ -11,6 +11,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -190,4 +191,42 @@ func getPolicyRoleDefinitionIDs(ruleStr string) (res []string, err error) {
 	err = json.Unmarshal([]byte(ruleStr), &ins)
 	res = ins.Then.Details.RoleDefinitionIds
 	return
+}
+
+func policyParamtersCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+	// `parameters` cannot have values removed or changed so we'll ForceNew if there are differences between Terraform runs
+	if d.HasChange("parameters") {
+		oldParametersRaw, newParametersRaw := d.GetChange("parameters")
+		if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
+			newParametersString := newParametersRaw.(string)
+			if newParametersString == "" {
+				return d.ForceNew("parameters")
+			}
+
+			oldParameters, err := expandParameterDefinitionsValueFromString(oldParametersString)
+			if err != nil {
+				return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+			}
+
+			newParameters, err := expandParameterDefinitionsValueFromString(newParametersString)
+			if err != nil {
+				return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+			}
+
+			if len(newParameters) < len(oldParameters) {
+				return d.ForceNew("parameters")
+			}
+
+			if len(newParameters) == len(oldParameters) {
+				for oldKey := range oldParameters {
+					_, ok := newParameters[oldKey]
+					if !ok {
+						return d.ForceNew("parameters")
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
