@@ -12,12 +12,14 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `hashicorp/go-azure-sdk` update to `v0.20250213.1092825` [GH-28767]
+* dependencies: `sentinel` partial update to `2023-12-01-preview` [GH-28195]
 * Data Source: `azurerm_app_configuration` - add support for the `data_plane_proxy_authentication_mode` and `data_plane_proxy_private_link_delegation_enabled` properties [GH-28712]
 * `azurerm_app_configuration` - add support for the `data_plane_proxy_authentication_mode` and `data_plane_proxy_private_link_delegation_enabled` properties [GH-28712]
 * `azurerm_container_app` - add support for the `client_certificate_mode` property [GH-28523]
 * `azurerm_cdn_frontdoor_firewall_policy` - add support for `JSChallenge` for `custom` rules [GH-28717]
 * `azurerm_express_route_circuit` - add support for the `rate_limiting_enabled` property [GH-28659]
 * `azurerm_mssql_managed_instance_failover_group` - add support for `secondary_type` [GH-28633]
+* `azurerm_sentinal_alert_rule_scheduled` - increase combined limit of `entity_mapping` and `sentinal_entity_mapping` to 10 [GH-28195]
 * `azurerm_service_plan` - support for `premium_plan_auto_scale_enabled` [GH-28524]
 
 BUG FIXES:
