@@ -327,7 +327,7 @@ func flattenDataFactoryPipelineParameters(input *map[string]pipelines.ParameterS
 			continue
 		}
 
-		output[k] = (*v.DefaultValue).(string)
+		output[k] = pointer.From(v.DefaultValue)
 	}
 
 	return output
@@ -359,7 +359,7 @@ func flattenDataFactoryPipelineVariables(input *map[string]pipelines.VariableSpe
 			continue
 		}
 
-		output[k] = (*v.DefaultValue).(string)
+		output[k] = pointer.From(v.DefaultValue)
 	}
 
 	return output
