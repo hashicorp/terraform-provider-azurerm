@@ -84,6 +84,14 @@ Please follow the format in the example below for listing breaking changes in re
 * The `example_property_with_changed_default` property now defaults to `NewDefault`.
 ```
 
+### `azurerm_app_service`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_app_service_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
 ### `azurerm_cdn_endpoint_custom_domain`
 
 * The `cdn_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
@@ -123,6 +131,22 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_express_route_connection`
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
+
+### `azurerm_linux_function_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_function_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_web_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_web_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
 ### `azurerm_logic_app_standard`
 
@@ -206,6 +230,22 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
+### `azurerm_windows_function_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_function_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_web_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_web_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
 ## Breaking Changes in Data Sources
 
