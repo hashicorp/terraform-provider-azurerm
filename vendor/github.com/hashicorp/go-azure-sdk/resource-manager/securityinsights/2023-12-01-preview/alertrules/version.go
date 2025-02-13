@@ -3,8 +3,8 @@ package alertrules
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-const defaultApiVersion = "2022-10-01-preview"
+const defaultApiVersion = "2023-12-01-preview"
 
 func userAgent() string {
-	return "hashicorp/go-azure-sdk/alertrules/2022-10-01-preview"
+	return "hashicorp/go-azure-sdk/alertrules/2023-12-01-preview"
 }
