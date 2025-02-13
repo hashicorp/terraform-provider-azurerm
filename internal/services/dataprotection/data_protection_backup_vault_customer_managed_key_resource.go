@@ -202,8 +202,8 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Update() sdk.Resour
 				return fmt.Errorf("retrieving %s: `model` is nil", *id)
 			}
 
-			if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), *id)
+			if resp.Model.Properties.SecuritySettings == nil || resp.Model.Properties.SecuritySettings.EncryptionSettings == nil {
+				return fmt.Errorf("retrieving %s: Customer Managed Key was not found", *id)
 			}
 
 			payload := resp.Model
