@@ -121,7 +121,7 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
   default_maximum_expiration_time_in_days = 180
 
   partner_authorization {
-    partner_registration_immutable_id    = "804a11ca-ce9b-4158-8e94-3c8dc7a072ec"
+    partner_registration_id              = "804a11ca-ce9b-4158-8e94-3c8dc7a072ec"
     partner_name                         = "Auth0"
     authorization_expiration_time_in_utc = "%s"
   }

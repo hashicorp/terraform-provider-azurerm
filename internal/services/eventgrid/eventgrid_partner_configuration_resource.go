@@ -29,7 +29,7 @@ type EventGridPartnerConfigurationResourceModel struct {
 }
 
 type PartnerAuthorization struct {
-	PartnerRegistrationImmutableId   string `tfschema:"partner_registration_immutable_id"`
+	PartnerRegistrationImmutableId   string `tfschema:"partner_registration_id"`
 	PartnerName                      string `tfschema:"partner_name"`
 	AuthorizationExpirationTimeInUtc string `tfschema:"authorization_expiration_time_in_utc"`
 }
@@ -49,7 +49,7 @@ func (EventGridPartnerConfigurationResource) Arguments() map[string]*pluginsdk.S
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"partner_registration_immutable_id": &schema.Schema{
+					"partner_registration_id": &schema.Schema{
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsUUID,

@@ -23,7 +23,7 @@ resource "azurerm_eventgrid_partner_configuration" "example" {
   default_maximum_expiration_time_in_days = 14
 
   partner_authorization {
-    partner_registration_immutable_id    = "804a11ca-ce9b-4158-8e94-3c8dc7a072ec"
+    partner_registration_id              = "804a11ca-ce9b-4158-8e94-3c8dc7a072ec"
     partner_name                         = "Auth0"
     authorization_expiration_time_in_utc = "2025-02-05T00:00:00Z"
   }
@@ -54,7 +54,7 @@ A `partner_authorization` block supports the following:
 
 * `partner_name` - (Required) The partner name.
 
-* `partner_registration_immutable_id` - (Required) The immutable id of the corresponding partner registration.
+* `partner_registration_id` - (Required) The immutable id of the corresponding partner registration.
 
 * `authorization_expiration_time_in_utc` - (Optional) Expiration time of the partner authorization. If this timer expires, any request from this partner to create, update or delete resources in subscriber's context will fail. Value should be in RFC 3339 format in UTC time zone, for example: "2025-02-04T00:00:00Z". If not specified, the authorization will expire after `default_maximum_expiration_time_in_days`.
 
