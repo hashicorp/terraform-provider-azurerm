@@ -1136,6 +1136,22 @@ func TestAccWindowsFunctionApp_appStackNode20(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_appStackNode22(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackNode(data, SkuConsumptionPlan, "~22"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
