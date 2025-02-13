@@ -22,6 +22,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cdn_frontdoor_firewall_policy` - fixed issue where the `js_challenge_cookie_expiration_in_minutes` policies `default` value caused `Standard_AzureFrontDoor` skus to receive a `BadRequest` error [GH-28726]
 * `azurerm_servicebus_topic` - prevent perma diff when provisioning a partitioned topic within a non-partitioned namespace [GH-26680]
 * `azurerm_linux_function_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
 * `azurerm_linux_function_app_slot` - fix issue where `site_config.0.elastic_instance_minimum` was not being set [GH-28725]
