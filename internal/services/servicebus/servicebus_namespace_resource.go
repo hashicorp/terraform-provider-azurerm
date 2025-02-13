@@ -604,25 +604,15 @@ func expandServiceBusNamespaceEncryption(input []interface{}) *namespaces.Encryp
 		RequireInfrastructureEncryption: pointer.To(v["infrastructure_encryption_enabled"].(bool)),
 	}
 
-	if v["identity_id"].(string) == "" {
-		encryption.KeyVaultProperties = &[]namespaces.KeyVaultProperties{
-			{
-				KeyName:     pointer.To(keyId.Name),
-				KeyVersion:  pointer.To(keyId.Version),
-				KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+	encryption.KeyVaultProperties = &[]namespaces.KeyVaultProperties{
+		{
+			KeyName:     pointer.To(keyId.Name),
+			KeyVersion:  pointer.To(keyId.Version),
+			KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+			Identity: &namespaces.UserAssignedIdentityProperties{
+				UserAssignedIdentity: pointer.To(v["identity_id"].(string)),
 			},
-		}
-	} else {
-		encryption.KeyVaultProperties = &[]namespaces.KeyVaultProperties{
-			{
-				KeyName:     pointer.To(keyId.Name),
-				KeyVersion:  pointer.To(keyId.Version),
-				KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
-				Identity: &namespaces.UserAssignedIdentityProperties{
-					UserAssignedIdentity: pointer.To(v["identity_id"].(string)),
-				},
-			},
-		}
+		},
 	}
 
 	return &encryption
