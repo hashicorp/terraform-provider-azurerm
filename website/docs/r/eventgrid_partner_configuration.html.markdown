@@ -56,7 +56,9 @@ A `partner_authorization` block supports the following:
 
 * `partner_registration_id` - (Required) The immutable id of the corresponding partner registration.
 
-* `authorization_expiration_time_in_utc` - (Optional) Expiration time of the partner authorization. If this timer expires, any request from this partner to create, update or delete resources in subscriber's context will fail. Value should be in RFC 3339 format in UTC time zone, for example: "2025-02-04T00:00:00Z". If not specified, the authorization will expire after `default_maximum_expiration_time_in_days`.
+* `authorization_expiration_time_in_utc` - (Optional) Expiration time of the partner authorization. Value should be in RFC 3339 format in UTC time zone, for example: "2025-02-04T00:00:00Z".
+
+-> **Note:** If the time from `authorization_expiration_time_in_utc` expires, any request from this partner to create, update or delete resources in the subscriber's context will fail. If not specified, the authorization will expire after `default_maximum_expiration_time_in_days`.
 
 ## Attributes Reference
 
@@ -69,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Event Grid Partner Configuration.
-* `read` - (Defaults to 30 minutes) Used when retrieving the Event Grid Partner Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Event Grid Partner Configuration.
 * `update` - (Defaults to 30 minutes) Used when updating the Event Grid Partner Configuration.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Event Grid Partner Configuration.
 
