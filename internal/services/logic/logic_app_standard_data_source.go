@@ -332,9 +332,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if props := ftpBasicAuth.Model.Properties; props != nil {
-		if err := d.Set("ftp_publish_basic_authentication_enabled", props.Allow); err != nil {
-			return err
-		}
+		d.Set("ftp_publish_basic_authentication_enabled", props.Allow)
 	}
 
 	scmBasicAuth, err := client.GetScmAllowed(ctx, id)
@@ -343,9 +341,7 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if props := scmBasicAuth.Model.Properties; props != nil {
-		if err := d.Set("scm_publish_basic_authentication_enabled", props.Allow); err != nil {
-			return err
-		}
+		d.Set("scm_publish_basic_authentication_enabled", props.Allow)
 	}
 
 	configResp, err := client.GetConfiguration(ctx, id)

@@ -393,6 +393,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
+	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
 	if ftpAuth := d.Get("ftp_publish_basic_authentication_enabled").(bool); !ftpAuth {
 		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
 			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
@@ -405,6 +406,7 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
 	if scmAuth := d.Get("scm_publish_basic_authentication_enabled").(bool); !scmAuth {
 		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
 			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
@@ -555,6 +557,8 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	// HasChange will return `true` when config specifies this argument as `true` during initial creation.
+	// To avoid unnecessary updates, check if the resource is new.
 	if d.HasChange("ftp_publish_basic_authentication_enabled") && !d.IsNewResource() {
 		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
 			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
@@ -567,6 +571,8 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	// HasChange will return `true` when config specifies this argument as `true` during initial creation.
+	// To avoid unnecessary updates, check if the resource is new.
 	if d.HasChange("scm_publish_basic_authentication_enabled") && !d.IsNewResource() {
 		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
 			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
@@ -719,9 +725,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if props := ftpBasicAuth.Model.Properties; props != nil {
-		if err := d.Set("ftp_publish_basic_authentication_enabled", props.Allow); err != nil {
-			return err
-		}
+		d.Set("ftp_publish_basic_authentication_enabled", props.Allow)
 	}
 
 	scmBasicAuth, err := client.GetScmAllowed(ctx, *id)
@@ -730,9 +734,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if props := scmBasicAuth.Model.Properties; props != nil {
-		if err := d.Set("scm_publish_basic_authentication_enabled", props.Allow); err != nil {
-			return err
-		}
+		d.Set("scm_publish_basic_authentication_enabled", props.Allow)
 	}
 
 	siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
