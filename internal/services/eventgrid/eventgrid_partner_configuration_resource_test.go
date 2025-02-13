@@ -93,14 +93,13 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
 }
 
 func (r EventGridPartnerConfigurationsTestResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_eventgrid_partner_configuration" "import" {
   resource_group_name = azurerm_resource_group.test.name
 }
-`, template)
+`, r.basic(data))
 }
 
 func (EventGridPartnerConfigurationsTestResource) complete(data acceptance.TestData) string {
