@@ -262,7 +262,6 @@ func resourceDataFactoryPipelineRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if folder := props.Folder; folder != nil {
 			d.Set("folder", pointer.From(folder.Name))
-
 		}
 
 		variables := flattenDataFactoryPipelineVariables(props.Variables)
