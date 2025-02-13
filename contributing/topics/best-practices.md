@@ -15,6 +15,7 @@ payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
     Tags: tags.Expand(d.Get("tags").(map[string]interface{}),
 }
+
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
   return fmt.Errorf("creating %s: %+v", id, err)
 }
@@ -32,6 +33,7 @@ if d.HasChanges("tags") {
   // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
   payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{}))
 }
+
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
   return fmt.Errorf("updating %s: %+v", id, err)
 }
@@ -44,13 +46,16 @@ resp, err := client.Get(ctx, id)
 if err != nil {
   return fmt.Errorf("retrieving %s: %+v", id, err)
 }
+
 if resp.Model == nil {
   return fmt.Errorf("retrieving %s: model was nil", id)
 }
+
 payload := *resp.Model
 if d.HasChanges("tags") {
   payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{})
 }
+
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
   return fmt.Errorf("updating %s: %+v", id, err)
 }
@@ -69,7 +74,7 @@ Data Sources and Resources built using the Typed SDK have a number of benefits o
 
 * The Typed SDK requires that a number of Azure specific behaviours are present in each Data Source/Resource. For example, the `interface` defining the Typed SDK includes a `IDValidationFunc()` function, which is used during `terraform import` to ensure the Resource ID being specified matches what we're expecting. Whilst this is possible using the Untyped SDK, it's more work to do so, as such using the Typed SDK ensures that these behaviours become common across the provider.
 * The Typed SDK exposes an `Encode()` and `Decode()` method, allowing the marshalling/unmarshalling of the Terraform Configuration into a Go Object - which both:
-    1. Avoids logic errors when an incorrect key is used in `d.Get` and `d.Set`, since we can (TODO: https://github.com/hashicorp/terraform-provider-azurerm/blob/5652afa601d33368ebefb4a549584e214e9729cb/internal/sdk/wrapper_validate.go#L21) validate that each of the HCL keys used for the models (to get and set these from the Terraform Config) is present within the Schema via a unit test, rather than failing during the `Read` function, which takes considerably longer.
+    1. Avoids logic errors when an incorrect key is used in `d.Get` and `d.Set`, since we can <!-- (TODO: https://github.com/hashicorp/terraform-provider-azurerm/blob/5652afa601d33368ebefb4a549584e214e9729cb/internal/sdk/wrapper_validate.go#L21) --> validate that each of the HCL keys used for the models (to get and set these from the Terraform Config) is present within the Schema via a unit test, rather than failing during the `Read` function, which takes considerably longer.
     2. Default values can be implied for fields, rather than requiring an explicit `d.Set` in the Read function for every field - this allows us to ensure that an empty value/list is set for a field, rather than being `null` and thus unreferenceable in user configs.
 * Using the Typed SDK allows Data Sources and Resources to (in the future) be migrated across to using `hashicorp/terraform-plugin-framework` rather than `hashicorp/terraform-plugin-sdk` without rewriting the resource - which will unlock a number of benefits to end-users, but does involve some configuration changes (and as such will need to be done in a major release).
 * Using the Typed SDK means that these Data Sources/Resources can be more easily swapped out for generated versions down the line (since the code changes will be far smaller).
