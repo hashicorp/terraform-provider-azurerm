@@ -61,6 +61,28 @@ func TestAccEventGridPartnerConfiguration_complete(t *testing.T) {
 	})
 }
 
+func TestAccEventGridPartnerConfiguration_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_partner_configuration", "test")
+	r := EventGridPartnerConfigurationsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridPartnerConfigurationsTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseResourceGroupID(state.ID)
 	if err != nil {
@@ -125,7 +147,9 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
     authorization_expiration_time_in_utc = "%s"
   }
 
-  tags = { "foo" = "bar" }
+  tags = {
+    "foo" = "bar"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, expiryTime)
 }
