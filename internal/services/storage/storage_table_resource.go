@@ -320,7 +320,11 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 	if model := existing.Model; model != nil {
 		if prop := model.Properties; prop != nil {
 			if acls := prop.SignedIdentifiers; acls != nil {
-				if err := d.Set("acl", flattenStorageTableACLs(*acls)); err != nil {
+				acl, err := flattenStorageTableACLs(*acls)
+				if err != nil {
+					return fmt.Errorf("flattening `acl`: %v", err)
+				}
+				if err := d.Set("acl", acl); err != nil {
 					return fmt.Errorf("setting `acl`: %s", err)
 				}
 			}
@@ -498,16 +502,25 @@ func expandStorageTableACLsDeprecated(input []interface{}) []tables.SignedIdenti
 	return results
 }
 
-func flattenStorageTableACLs(input []tableservice.TableSignedIdentifier) []interface{} {
+func flattenStorageTableACLs(input []tableservice.TableSignedIdentifier) ([]interface{}, error) {
 	result := make([]interface{}, 0)
 	for _, v := range input {
 		var startTime, expiryTime string
+		var err error
 		if policy := v.AccessPolicy; policy != nil {
 			if policy.StartTime != nil {
 				startTime = *policy.StartTime
+				startTime, err = convertTimeFormat(startTime)
+				if err != nil {
+					return nil, err
+				}
 			}
 			if policy.ExpiryTime != nil {
 				expiryTime = *policy.ExpiryTime
+				expiryTime, err = convertTimeFormat(expiryTime)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 		output := map[string]interface{}{
@@ -524,7 +537,7 @@ func flattenStorageTableACLs(input []tableservice.TableSignedIdentifier) []inter
 		result = append(result, output)
 	}
 
-	return result
+	return result, nil
 }
 
 func flattenStorageTableACLsDeprecated(input *[]tables.SignedIdentifier) []interface{} {
@@ -549,4 +562,15 @@ func flattenStorageTableACLsDeprecated(input *[]tables.SignedIdentifier) []inter
 	}
 
 	return result
+}
+
+// convertTimeFormat converts the ISO8601 time format from "2006-01-02T15:04:05Z" to "2006-01-02T15:04:05.0000000Z".
+// The storage table data plane API accepts multiple formats, but always return "2006-01-02T15:04:05.0000000Z".
+// The storage table mgmt plane API accepts multiple formats, but always return "2006-01-02T15:04:05Z".
+func convertTimeFormat(input string) (string, error) {
+	t, err := time.Parse("2006-01-02T15:04:05Z", input)
+	if err != nil {
+		return "", fmt.Errorf("parsing time %q: %v", input, err)
+	}
+	return t.Format("2006-01-02T15:04:05.0000000Z"), nil
 }

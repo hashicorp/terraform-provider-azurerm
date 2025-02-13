@@ -40,7 +40,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the storage table. Only Alphanumeric characters allowed, starting with a letter. Must be unique within the storage account the table is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) Specifies the storage account in which to create the storage table. Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) The name of the Storage Account where the Storage Table should be created. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
+
+* `storage_account_id` - (Optional) The name of the Storage Account where the Storage Table should be created. Changing this forces a new resource to be created.
+
+~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
@@ -81,6 +85,13 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 Table's within a Storage Account can be imported using the `resource id`, e.g.
 
+If `storage_account_name` is used:
+
 ```shell
 terraform import azurerm_storage_table.table1 "https://example.table.core.windows.net/Tables('replace-with-table-name')"
 ```
+
+If `storage_account_id` is used:
+
+```shell
+terraform import azurerm_storage_table.table1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/tableServices/default/tables

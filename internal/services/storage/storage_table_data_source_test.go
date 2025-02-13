@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type StorageTableDataSource struct{}
@@ -28,6 +29,25 @@ func TestAccDataSourceStorageTable_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceStorageTable_basicDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as not valid in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableDataSource{}.basicWithDataSourceDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("acl.#").HasValue("1"),
+				check.That(data.ResourceName).Key("acl.0.id").HasValue("MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"),
+				check.That(data.ResourceName).Key("acl.0.access_policy.0.permissions").HasValue("raud"),
+			),
+		},
+	})
+}
+
 func (d StorageTableDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -35,7 +55,46 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "tabledstest-%s"
+  name     = "acctest-tableds-%s"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctesttedsc%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_table" "test" {
+  name               = "tabletesttedsc%s"
+  storage_account_id = azurerm_storage_account.test.id
+
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+}
+
+
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (d StorageTableDataSource) basicDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-tableds-%s"
   location = "%s"
 }
 
@@ -68,6 +127,18 @@ resource "azurerm_storage_table" "test" {
 
 func (d StorageTableDataSource) basicWithDataSource(data acceptance.TestData) string {
 	config := d.basic(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_storage_table" "test" {
+  name               = azurerm_storage_table.test.name
+  storage_account_id = azurerm_storage_table.test.storage_account_id
+}
+`, config)
+}
+
+func (d StorageTableDataSource) basicWithDataSourceDeprecated(data acceptance.TestData) string {
+	config := d.basicDeprecated(data)
 	return fmt.Sprintf(`
 %s
 
