@@ -153,19 +153,29 @@ func (r EventGridPartnerConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
+			}
+
+			payload := existing.Model
+
+			if payload.Properties.PartnerAuthorization == nil {
+				payload.Properties.PartnerAuthorization = &partnerconfigurations.PartnerAuthorization{}
+			}
+
 			if metadata.ResourceData.HasChange("default_maximum_expiration_time_in_days") {
-				existing.Model.Properties.PartnerAuthorization.DefaultMaximumExpirationTimeInDays = pointer.To(config.DefaultMaximumExpirationTimeInDays)
+				payload.Properties.PartnerAuthorization.DefaultMaximumExpirationTimeInDays = pointer.To(config.DefaultMaximumExpirationTimeInDays)
 			}
 
 			if metadata.ResourceData.HasChange("partner_authorization") {
-				existing.Model.Properties.PartnerAuthorization.AuthorizedPartnersList = expandAuthorizedPartnersList(config.PartnerAuthorizations)
+				payload.Properties.PartnerAuthorization.AuthorizedPartnersList = expandAuthorizedPartnersList(config.PartnerAuthorizations)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = pointer.To(config.Tags)
+				payload.Tags = pointer.To(config.Tags)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
@@ -198,8 +208,10 @@ func (r EventGridPartnerConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.DefaultMaximumExpirationTimeInDays = *model.Properties.PartnerAuthorization.DefaultMaximumExpirationTimeInDays
-				state.PartnerAuthorizations = flattenAuthorizedPartnersList(model.Properties.PartnerAuthorization.AuthorizedPartnersList)
+				if model.Properties != nil && model.Properties.PartnerAuthorization != nil {
+					state.DefaultMaximumExpirationTimeInDays = *model.Properties.PartnerAuthorization.DefaultMaximumExpirationTimeInDays
+					state.PartnerAuthorizations = flattenAuthorizedPartnersList(model.Properties.PartnerAuthorization.AuthorizedPartnersList)
+				}
 
 				if model.Tags != nil {
 					state.Tags = *model.Tags
