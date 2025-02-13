@@ -113,7 +113,7 @@ func (r EventGridPartnerConfigurationResource) Create() sdk.ResourceFunc {
 				Properties: &partnerconfigurations.PartnerConfigurationProperties{
 					PartnerAuthorization: &partnerconfigurations.PartnerAuthorization{
 						DefaultMaximumExpirationTimeInDays: pointer.To(config.DefaultMaximumExpirationTimeInDays),
-						AuthorizedPartnersList:             expandAuthorizedPartnersList(&config.PartnerAuthorizations),
+						AuthorizedPartnersList:             expandAuthorizedPartnersList(config.PartnerAuthorizations),
 					},
 				},
 				Tags: pointer.To(config.Tags),
@@ -158,7 +158,7 @@ func (r EventGridPartnerConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("partner_authorization") {
-				existing.Model.Properties.PartnerAuthorization.AuthorizedPartnersList = expandAuthorizedPartnersList(&config.PartnerAuthorizations)
+				existing.Model.Properties.PartnerAuthorization.AuthorizedPartnersList = expandAuthorizedPartnersList(config.PartnerAuthorizations)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -233,14 +233,10 @@ func (EventGridPartnerConfigurationResource) IDValidationFunc() pluginsdk.Schema
 	return commonids.ValidateResourceGroupID
 }
 
-func expandAuthorizedPartnersList(partnerAuthorization *[]PartnerAuthorization) *[]partnerconfigurations.Partner {
+func expandAuthorizedPartnersList(partnerAuthorization []PartnerAuthorization) *[]partnerconfigurations.Partner {
 	partners := []partnerconfigurations.Partner{}
 
-	if partnerAuthorization == nil {
-		return &partners
-	}
-
-	for _, partnerAuth := range *partnerAuthorization {
+	for _, partnerAuth := range partnerAuthorization {
 		partners = append(partners, partnerconfigurations.Partner{
 			PartnerName:                      pointer.To(partnerAuth.PartnerName),
 			PartnerRegistrationImmutableId:   pointer.To(partnerAuth.PartnerRegistrationId),
