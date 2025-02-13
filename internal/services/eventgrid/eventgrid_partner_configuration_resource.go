@@ -260,7 +260,7 @@ func expandAuthorizedPartnersList(partnerAuthorization []PartnerAuthorization) *
 }
 
 func flattenAuthorizedPartnersList(partner *[]partnerconfigurations.Partner) []PartnerAuthorization {
-	partnerAuthorizations := []PartnerAuthorization{}
+	partnerAuthorizations := make([]PartnerAuthorization, 0)
 
 	if partner == nil {
 		return partnerAuthorizations
