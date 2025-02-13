@@ -29,7 +29,7 @@ type EventGridPartnerConfigurationResourceModel struct {
 }
 
 type PartnerAuthorization struct {
-	PartnerRegistrationImmutableId   string `tfschema:"partner_registration_id"`
+	PartnerRegistrationId            string `tfschema:"partner_registration_id"`
 	PartnerName                      string `tfschema:"partner_name"`
 	AuthorizationExpirationTimeInUtc string `tfschema:"authorization_expiration_time_in_utc"`
 }
@@ -243,7 +243,7 @@ func expandAuthorizedPartnersList(partnerAuthorization *[]PartnerAuthorization) 
 	for _, partnerAuth := range *partnerAuthorization {
 		partners = append(partners, partnerconfigurations.Partner{
 			PartnerName:                      pointer.To(partnerAuth.PartnerName),
-			PartnerRegistrationImmutableId:   pointer.To(partnerAuth.PartnerRegistrationImmutableId),
+			PartnerRegistrationImmutableId:   pointer.To(partnerAuth.PartnerRegistrationId),
 			AuthorizationExpirationTimeInUtc: pointer.To(partnerAuth.AuthorizationExpirationTimeInUtc),
 		})
 	}
@@ -261,7 +261,7 @@ func flattenAuthorizedPartnersList(partner *[]partnerconfigurations.Partner) []P
 	for _, partnerAuth := range *partner {
 		partnerAuthorizations = append(partnerAuthorizations, PartnerAuthorization{
 			PartnerName:                      *partnerAuth.PartnerName,
-			PartnerRegistrationImmutableId:   *partnerAuth.PartnerRegistrationImmutableId,
+			PartnerRegistrationId:            *partnerAuth.PartnerRegistrationImmutableId,
 			AuthorizationExpirationTimeInUtc: *partnerAuth.AuthorizationExpirationTimeInUtc,
 		})
 	}
