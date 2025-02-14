@@ -177,7 +177,7 @@ The following example follows a fictional resource that will have the following 
             Computed:      true,
             Default:       false,
             ConflictsWith: []string{"scaling_enabled"},
-			Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v5.0 of the AzureRM Provider",
+            Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v5.0 of the AzureRM Provider",
          }
          // When renaming a property both properties need to have `Computed` set on them until the old property is removed in the next major release
          // We also need to remember to set ConflictsWith on both the old and the renamed property to ensure users don't set both in their config
