@@ -59,15 +59,17 @@ resource "azurerm_virtual_network" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created. 
+* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual network. Changing this forces a new resource to be created.
 
-* `address_space` - (Required) The address space that is used the virtual network. You can supply more than one address space.
-
-* `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created. 
+* `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
 ---
+
+* `address_space` - (Optional) The address space that is used the virtual network. You can supply more than one address space.
+
+-> **NOTE** Exactly one of `address_space` or `ip_address_pool` must be specified. If `address_space` is not specified but you encounter a diff, this might indicate the `address_space` is allocated from the IP Address Pool. If this is the case, you may need to add this to [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes).
 
 * `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
 
@@ -84,6 +86,10 @@ The following arguments are supported:
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network should exist. Changing this forces a new Virtual Network to be created.
 
 * `flow_timeout_in_minutes` - (Optional) The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between `4` and `30` minutes.
+
+* `ip_address_pool` - (Optional) One or more `ip_address_pool` blocks as defined below.
+
+-> **NOTE** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
 * `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields documented below.
 
@@ -108,6 +114,14 @@ A `encryption` block supports the following:
 * `enforcement` - (Required) Specifies if the encrypted Virtual Network allows VM that does not support encryption. Possible values are `DropUnencrypted` and `AllowUnencrypted`.
 
 -> **NOTE:** Currently `AllowUnencrypted` is the only supported value for the `enforcement` property as `DropUnencrypted` is not yet in public preview or general availability. Please see the [official documentation](https://learn.microsoft.com/en-us/azure/virtual-network/virtual-network-encryption-overview#limitations) for more information.
+
+---
+
+An `ip_address_pool` block supports the following:
+
+* `id` - (Required) The ID of the Network Manager IPAM Pool.
+
+* `ip_address_number` - (Required) The number of IP addresses to allocated to the Virtual Network. The value should be positive integer but in string format, e.g., `"100"`.
 
 ---
 
@@ -165,19 +179,19 @@ A `service_delegation` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The virtual NetworkConfiguration ID.
+* `id` - The Virtual Network ID.
 
-* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created.
+* `guid` - The GUID of the Virtual Network.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the virtual network.
-
-* `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
-
-* `address_space` - (Required) The list of address spaces used by the virtual network.
-
-* `guid` - The GUID of the virtual network.
+* `ip_address_pool` - One or more `ip_address_pool` blocks as defined below.
 
 * `subnet` - One or more `subnet` blocks as defined below.
+
+---
+
+The `ip_address_pool` block exports:
+
+* `allocated_ip_address_prefixes` - The list of IP address prefixes allocated to the Virtual Network.
 
 ---
 
