@@ -18,6 +18,7 @@ type FusionAlertRuleProperties struct {
 	ScenarioExclusionPatterns *[]FusionScenarioExclusionPattern `json:"scenarioExclusionPatterns,omitempty"`
 	Severity                  *AlertSeverity                    `json:"severity,omitempty"`
 	SourceSettings            *[]FusionSourceSettings           `json:"sourceSettings,omitempty"`
+	SubTechniques             *[]string                         `json:"subTechniques,omitempty"`
 	Tactics                   *[]AttackTactic                   `json:"tactics,omitempty"`
 	Techniques                *[]string                         `json:"techniques,omitempty"`
 }
