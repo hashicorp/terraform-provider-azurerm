@@ -180,8 +180,13 @@ The following example follows a fictional resource that will have the following 
          }
          // When renaming a property both properties need to have `Computed` set on them until the old property is removed in the next major release
          // We also need to remember to set ConflictsWith on both the old and the renamed property to ensure users don't set both in their config
-         args["scaling_enabled"].Computed = true
-         args["scaling_enabled"].ConflictsWith = []string{"enable_scaling"}
+         args["scaling_enabled"] = &pluginsdk.Schema{
+            Type:     pluginsdk.TypeBool,
+            Optional: true,
+            Computed: true,
+            Default:  false,
+            ConflictsWith: []string{"enable_scaling"},
+         }
          
          args["version"].Default = 1
       }
