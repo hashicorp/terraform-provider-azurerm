@@ -815,6 +815,14 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 							return resp, "Pending", nil
 						}
 					default:
+						// To be removed in 5.0:
+						// When `encryption_enabled` is not set in config, but `encryption_password` is, `v != val` will always be `true`.
+						// This causes an infinite loop until the resource creation times out. To avoid this, continue to the next iteration of the loop if
+						// `prop` is `encryption_enabled`.
+						if !features.FivePointOh() && prop == "encryption_enabled" {
+							continue
+						}
+
 						if v != val {
 							return resp, "Pending", nil
 						}
