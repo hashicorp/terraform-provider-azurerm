@@ -455,9 +455,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/synchronizationsetting
-github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/applicationgroup
-github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/hostpool
-github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2021-09-03-preview/workspace
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/application
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup
 github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/desktop
