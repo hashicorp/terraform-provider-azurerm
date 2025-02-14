@@ -208,8 +208,8 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 
 	hostPoolReferences := []scalingplan.ScalingHostPoolReference{}
 	hostPoolId := id.HostPool.ID()
-	if props := model.Properties; props.HostPoolReferences != nil {
-		for _, referenceId := range *props.HostPoolReferences {
+	if v := model.Properties.HostPoolReferences; v != nil {
+		for _, referenceId := range *v {
 			if referenceId.HostPoolArmPath != nil {
 				if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
 					referenceId.ScalingPlanEnabled = utils.Bool(d.Get("enabled").(bool))
