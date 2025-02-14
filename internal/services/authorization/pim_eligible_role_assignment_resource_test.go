@@ -121,6 +121,22 @@ func TestAccPimEligibleRoleAssignment_expirationByDate(t *testing.T) {
 	})
 }
 
+func TestAccPimEligibleRoleAssignment_condition(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.condition(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("condition").Exists(),
+				check.That(data.ResourceName).Key("condition_version").HasValue("2.0"),
+			),
+		},
+	})
+}
+
 func (r PimEligibleRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PimRoleAssignmentID(state.ID)
 	if err != nil {
@@ -415,4 +431,48 @@ resource "azurerm_pim_eligible_role_assignment" "import" {
   principal_id       = azurerm_pim_eligible_role_assignment.test.principal_id
 }
 `, r.importSetup(data))
+}
+
+func (r PimEligibleRoleAssignmentResource) condition(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name = "Storage Blob Data Contributor"
+}
+
+%[1]s
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[3]s"
+}
+
+resource "time_static" "test" {}
+
+resource "azurerm_pim_eligible_role_assignment" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+  principal_id       = azuread_user.test.object_id
+
+  schedule {
+    start_date_time = time_static.test.rfc3339
+    expiration {
+      duration_hours = 8
+    }
+  }
+
+  justification = "Expiration Duration Set"
+
+  condition_version = "2.0"
+  condition         = "((!(ActionMatches{'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/read'})) OR (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringEquals 'test'))"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
