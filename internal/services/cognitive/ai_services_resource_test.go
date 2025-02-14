@@ -639,7 +639,7 @@ resource "azurerm_ai_services" "test" {
 `, r.networkACLsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r AzureAIServicesResource) networkACLsBypassUpdated(data acceptance.TestData) string {
+func (r AIServices) networkACLsBypassUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_ai_services" "test" {
