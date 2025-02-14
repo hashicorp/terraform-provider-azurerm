@@ -46,9 +46,9 @@ resource "azurerm_network_manager_verifier_workspace" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Network Manager Verifier Workspace should exist. Changing this forces a new Network Manager Verifier Workspace to be created.
-
 * `name` - (Required) The name which should be used for this Network Manager Verifier Workspace. Changing this forces a new Network Manager Verifier Workspace to be created.
+
+* `location` - (Required) The Azure Region where the Network Manager Verifier Workspace should exist. Changing this forces a new Network Manager Verifier Workspace to be created.
 
 * `network_manager_id` - (Required) The ID of the Network Manager. Changing this forces a new Network Manager Verifier Workspace to be created.
 
@@ -80,4 +80,3 @@ Network Manager Verifier Workspaces can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_network_manager_verifier_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Network/networkManagers/manager1/verifierWorkspaces/workspace1
 ```
-
