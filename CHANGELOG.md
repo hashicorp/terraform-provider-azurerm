@@ -1,5 +1,9 @@
 ## 4.20.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_data_protection_backup_vault_customer_managed_key` [GH-28679]
+
 ## 4.19.0 (February 14, 2025)
 
 FEATURES:
