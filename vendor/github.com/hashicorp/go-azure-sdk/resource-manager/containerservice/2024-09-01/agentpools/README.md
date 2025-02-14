@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools` Documentation
 
-The `agentpools` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-05-01`).
+The `agentpools` SDK allows for interaction with Azure Resource Manager `containerservice` (API Version `2024-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
 ```
 
 
@@ -44,7 +44,7 @@ payload := agentpools.AgentPool{
 }
 
 
-if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+if err := client.CreateOrUpdateThenPoll(ctx, id, payload, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 	// handle the error
 }
 ```
@@ -56,7 +56,24 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ctx := context.TODO()
 id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "agentPoolName")
 
-if err := client.DeleteThenPoll(ctx, id); err != nil {
+if err := client.DeleteThenPoll(ctx, id, agentpools.DefaultDeleteOperationOptions()); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `AgentPoolsClient.DeleteMachines`
+
+```go
+ctx := context.TODO()
+id := agentpools.NewAgentPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "managedClusterName", "agentPoolName")
+
+payload := agentpools.AgentPoolDeleteMachinesParameter{
+	// ...
+}
+
+
+if err := client.DeleteMachinesThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

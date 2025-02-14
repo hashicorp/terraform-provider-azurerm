@@ -1252,6 +1252,47 @@ func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
 	return &out, nil
 }
 
+type RestrictionLevel string
+
+const (
+	RestrictionLevelReadOnly     RestrictionLevel = "ReadOnly"
+	RestrictionLevelUnrestricted RestrictionLevel = "Unrestricted"
+)
+
+func PossibleValuesForRestrictionLevel() []string {
+	return []string{
+		string(RestrictionLevelReadOnly),
+		string(RestrictionLevelUnrestricted),
+	}
+}
+
+func (s *RestrictionLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRestrictionLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseRestrictionLevel(input string) (*RestrictionLevel, error) {
+	vals := map[string]RestrictionLevel{
+		"readonly":     RestrictionLevelReadOnly,
+		"unrestricted": RestrictionLevelUnrestricted,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := RestrictionLevel(input)
+	return &out, nil
+}
+
 type ScaleDownMode string
 
 const (
