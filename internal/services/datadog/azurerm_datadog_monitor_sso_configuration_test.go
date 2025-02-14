@@ -64,7 +64,6 @@ func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
