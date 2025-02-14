@@ -23,7 +23,7 @@ import (
 )
 
 func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
-	res := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterSubscriptionPricingCreate,
 		Read:   resourceSecurityCenterSubscriptionPricingRead,
 		Update: resourceSecurityCenterSubscriptionPricingUpdate,
@@ -109,17 +109,13 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 		},
 	}
 
-	return res
 }
 
 func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
-
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
 	id := pricings_v2023_01_01.NewPricingID(subscriptionId, d.Get("resource_type").(string))
 
 	pricing := pricings_v2023_01_01.Pricing{
@@ -195,7 +191,6 @@ func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, 
 
 func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.PricingClient
-
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -249,12 +244,12 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 		requiredAdditionalUpdate = currentlyFreeTier
 	}
 
-	updateResponse, updateErr := client.Update(ctx, *id, update)
-	if updateErr != nil {
-		return fmt.Errorf("setting %s: %+v", id, updateErr)
+	updateResponse, err := client.Update(ctx, *id, update)
+	if err != nil {
+		return fmt.Errorf("setting %s: %+v", id, err)
 	}
 
-	// The extensions list from backend might vary after `tier` changed, thus we need to retire it again.
+	// The extensions list from backend might vary after `tier` changed, thus we need to retrieve it again.
 	if updateResponse.Model != nil && updateResponse.Model.Properties != nil {
 		if updateResponse.Model.Properties.Extensions != nil {
 			extensionsStatusFromBackend = *updateResponse.Model.Properties.Extensions
@@ -264,9 +259,9 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	if requiredAdditionalUpdate {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		update.Properties.Extensions = extensions
-		_, updateErr := client.Update(ctx, *id, update)
-		if updateErr != nil {
-			return fmt.Errorf("setting %s: %+v", id, updateErr)
+		_, err := client.Update(ctx, *id, update)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
 
