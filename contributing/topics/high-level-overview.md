@@ -57,7 +57,7 @@ At a high-level, the Provider structure is:
 * `./website`
     * Contains the guides and documentation for each resource (in `./website/docs/r`) and data source (in `./website/docs/d`) that are published to the Terraform [registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs).
 
-**Note:** Due to the size of the codebase and open Pull Requests - when functionality is moved we use aliasing to try and avoid breaking open Pull Requests / big-bang migrations. These aliases stick around for a few weeks to allow open PRs to be merged without extra out of scope changes - at which point these aliases are removed.
+> **Note:** Due to the size of the codebase and open Pull Requests - when functionality is moved we use aliasing to try and avoid breaking open Pull Requests / big-bang migrations. These aliases stick around for a few weeks to allow open PRs to be merged without extra out of scope changes - at which point these aliases are removed.
 
 Each Service Package consists of (to take `appconfiguration` as an example):
 
@@ -89,7 +89,7 @@ Some Service Packages may also contain:
 * Resources use the filename format: `{name}_resource.go`
 * Acceptance Tests for Resources use the filename format: `{name}_resource_test.go` (note: Golang requires that Tests are contained within a `test.go` file)
 
-**Note:** there are a handful of exceptions to these to reduce stuttering (e.g. Resource Provider Registration Resource)
+> **Note:** there are a handful of exceptions to these to reduce stuttering (e.g. Resource Provider Registration Resource)
 
 ## Types of Data Sources/Resources within the Provider
 

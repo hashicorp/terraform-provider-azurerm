@@ -189,7 +189,7 @@ The following example follows a fictional resource that will have the following 
       return args
    }
    ```
-   **Note:** In the past we've accepted in-lined functions to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
+> **Note:** In the past we've accepted in-lined functions to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
 
 2. Update the Create/Read/Update methods if necessary.
 
@@ -235,7 +235,7 @@ The following example follows a fictional resource that will have the following 
    `, data.RandomInteger, data.Locations.Primary)
    }
    ```
-   **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
+> **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
 
 4. Update the upgrade guide under `website/docs/5.0-upgrade-guide.markdown`
    
