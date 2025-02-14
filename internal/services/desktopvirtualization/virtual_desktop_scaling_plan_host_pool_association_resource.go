@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -98,12 +98,12 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	model := *existing.Model
 
 	hostPoolAssociations := []scalingplan.ScalingHostPoolReference{}
-	if props := model.Properties; props != nil && props.HostPoolReferences != nil {
-		hostPoolAssociations = *props.HostPoolReferences
+	if v := model.Properties.HostPoolReferences; v != nil {
+		hostPoolAssociations = *v
 	}
 
 	hostPoolStr := hostPoolId.ID()
-	if scalingPlanHostPoolAssociationExists(model.Properties, hostPoolStr) {
+	if scalingPlanHostPoolAssociationExists(&model.Properties, hostPoolStr) {
 		return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
 	}
 	hostPoolAssociations = append(hostPoolAssociations, scalingplan.ScalingHostPoolReference{
@@ -149,14 +149,14 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.Resou
 	}
 	if model := scalingPlan.Model; model != nil {
 		hostPoolId := id.HostPool.ID()
-		exists := scalingPlanHostPoolAssociationExists(model.Properties, hostPoolId)
+		exists := scalingPlanHostPoolAssociationExists(&model.Properties, hostPoolId)
 		if !exists {
 			log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.ScalingPlan, id.HostPool)
 			d.SetId("")
 			return nil
 		}
-		if props := model.Properties; props != nil && props.HostPoolReferences != nil {
-			for _, referenceId := range *props.HostPoolReferences {
+		if v := model.Properties.HostPoolReferences; v != nil {
+			for _, referenceId := range *v {
 				if referenceId.HostPoolArmPath != nil {
 					if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
 						d.Set("enabled", referenceId.ScalingPlanEnabled)
@@ -200,7 +200,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 		return fmt.Errorf("retrieving %s: model was nil", id.ScalingPlan)
 	}
 	model := *existing.Model
-	if !scalingPlanHostPoolAssociationExists(model.Properties, id.HostPool.ID()) {
+	if !scalingPlanHostPoolAssociationExists(&model.Properties, id.HostPool.ID()) {
 		log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.ScalingPlan, id.HostPool)
 		d.SetId("")
 		return nil
@@ -208,7 +208,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 
 	hostPoolReferences := []scalingplan.ScalingHostPoolReference{}
 	hostPoolId := id.HostPool.ID()
-	if props := model.Properties; props != nil && props.HostPoolReferences != nil {
+	if props := model.Properties; props.HostPoolReferences != nil {
 		for _, referenceId := range *props.HostPoolReferences {
 			if referenceId.HostPoolArmPath != nil {
 				if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
@@ -264,8 +264,8 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.Res
 
 	hostPoolReferences := []scalingplan.ScalingHostPoolReference{}
 	hostPoolId := id.HostPool.ID()
-	if props := model.Properties; props != nil && props.HostPoolReferences != nil {
-		for _, referenceId := range *props.HostPoolReferences {
+	if v := model.Properties.HostPoolReferences; v != nil {
+		for _, referenceId := range *v {
 			if referenceId.HostPoolArmPath != nil {
 				if strings.EqualFold(*referenceId.HostPoolArmPath, hostPoolId) {
 					continue
