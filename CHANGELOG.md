@@ -4,6 +4,11 @@ FEATURES:
 
 * **New Resource**: `azurerm_data_protection_backup_vault_customer_managed_key` [GH-28679]
 
+ENHANCEMENTS:
+
+* Data Source: `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties #28763
+* `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties #28763
+
 ## 4.19.0 (February 14, 2025)
 
 FEATURES:
