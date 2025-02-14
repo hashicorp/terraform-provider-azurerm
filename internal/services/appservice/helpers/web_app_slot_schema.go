@@ -927,38 +927,6 @@ func (s *SiteConfigLinuxWebAppSlot) DecodeDockerAppStack(input map[string]string
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
 
-func (s *SiteConfigLinuxWebAppSlot) DecodeDockerDeprecatedAppStack(input map[string]string, usesDeprecated bool) {
-	applicationStack := ApplicationStackLinux{}
-	if len(s.ApplicationStack) == 1 {
-		applicationStack = s.ApplicationStack[0]
-	}
-	if !usesDeprecated {
-		if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
-			applicationStack.DockerRegistryUrl = v
-		}
-
-		if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
-			applicationStack.DockerRegistryUsername = v
-		}
-
-		if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
-			applicationStack.DockerRegistryPassword = v
-		}
-
-		registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
-		dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
-		applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
-	} else {
-		parts := strings.Split(s.LinuxFxVersion, "|")
-		if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
-			applicationStack.DockerImage = dockerParts[0]
-			applicationStack.DockerImageTag = dockerParts[1]
-		}
-	}
-
-	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
-}
-
 func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]string) (*webapps.SiteConfig, error) {
 	expanded := &webapps.SiteConfig{}
 
@@ -1018,9 +986,6 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForCreate(appSettings map[string]str
 			} else {
 				expanded.PhpVersion = pointer.To("")
 			}
-		}
-		if winAppStack.PythonVersion != "" || winAppStack.Python {
-			expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
 		}
 		if winAppStack.JavaVersion != "" {
 			expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
@@ -1157,9 +1122,6 @@ func (s *SiteConfigWindowsWebAppSlot) ExpandForUpdate(metadata sdk.ResourceMetaD
 			} else {
 				expanded.PhpVersion = pointer.To("")
 			}
-		}
-		if winAppStack.PythonVersion != "" || winAppStack.Python {
-			expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
 		}
 		if winAppStack.JavaVersion != "" {
 			expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
@@ -1361,7 +1323,6 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	if winAppStack.PhpVersion == "" {
 		winAppStack.PhpVersion = PhpVersionOff
 	}
-	winAppStack.PythonVersion = pointer.From(appSiteSlotConfig.PythonVersion) // This _should_ always be `""`
 	winAppStack.Python = currentStack == CurrentStackPython
 	winAppStack.JavaVersion = pointer.From(appSiteSlotConfig.JavaVersion)
 	switch pointer.From(appSiteSlotConfig.JavaContainer) {
@@ -1418,46 +1379,6 @@ func (s *SiteConfigWindowsWebAppSlot) DecodeDockerAppStack(input map[string]stri
 	registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
 	dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
 	applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
-
-	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
-}
-
-func (s *SiteConfigWindowsWebAppSlot) DecodeDockerDeprecatedAppStack(input map[string]string, usesDeprecated bool) {
-	applicationStack := ApplicationStackWindows{}
-	if len(s.ApplicationStack) == 1 {
-		applicationStack = s.ApplicationStack[0]
-	}
-
-	if !usesDeprecated {
-		if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
-			applicationStack.DockerRegistryUrl = v
-		}
-
-		if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
-			applicationStack.DockerRegistryUsername = v
-		}
-
-		if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
-			applicationStack.DockerRegistryPassword = v
-		}
-
-		registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
-		dockerString := strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|")
-		dockerString = strings.TrimPrefix(dockerString, registryHost)
-		applicationStack.DockerImageName = strings.TrimPrefix(dockerString, "/")
-	} else {
-		parts := strings.Split(strings.TrimPrefix(s.WindowsFxVersion, "DOCKER|"), ":")
-		if len(parts) == 2 {
-			applicationStack.DockerContainerTag = parts[1]
-			path := strings.Split(parts[0], "/")
-			if len(path) > 1 {
-				applicationStack.DockerContainerRegistry = path[0]
-				applicationStack.DockerContainerName = strings.TrimPrefix(parts[0], fmt.Sprintf("%s/", path[0]))
-			} else {
-				applicationStack.DockerContainerName = path[0]
-			}
-		}
-	}
 
 	s.ApplicationStack = []ApplicationStackWindows{applicationStack}
 }
