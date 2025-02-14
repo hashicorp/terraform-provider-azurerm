@@ -40,26 +40,16 @@ func FlattenDynatraceEnvironmentProperties(input *monitors.DynatraceEnvironmentP
 	if input == nil {
 		return []EnvironmentProperties{}
 	}
-
-	environmentInfo := FlattenDynatraceEnvironmentInfo(input.EnvironmentInfo)
-
-	return []EnvironmentProperties{
-		{
-			EnvironmentInfo: environmentInfo,
-		},
+	var properties EnvironmentProperties
+	if input.EnvironmentInfo.EnvironmentId != nil {
+		environmentId := pointer.From(input.EnvironmentInfo.EnvironmentId)
+		properties.EnvironmentInfo = []EnvironmentInfo{
+			{
+				EnvironmentId: environmentId,
+			},
+		}
 	}
-}
-
-func FlattenDynatraceEnvironmentInfo(input *monitors.EnvironmentInfo) []EnvironmentInfo {
-	if input == nil {
-		return []EnvironmentInfo{}
-	}
-
-	return []EnvironmentInfo{
-		{
-			EnvironmentId: pointer.From(input.EnvironmentId),
-		},
-	}
+	return []EnvironmentProperties{properties}
 }
 
 func FlattenDynatracePlanData(input *monitors.PlanData) []PlanData {
