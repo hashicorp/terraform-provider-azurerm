@@ -1,38 +1,38 @@
-## 4.19.0 (Unreleased)
+## 4.19.0 (February 14, 2025)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_stack_hci_storage_path` [GH-28602]
-* **New Resource**: `azurerm_ai_foundry` [GH-27424]
-* **New Resource**: `azurerm_ai_foundry_project` [GH-27424]
-* **New Resource**: `azurerm_mssql_job_step` [GH-28691]
-* **New Resource**: `azurerm_netapp_volume_group_oracle` [GH-28391]
-* **New Resource**: `azurerm_virtual_machine_scale_set_standby_pool` [GH-28441]
+* **New Data Source**: `azurerm_stack_hci_storage_path` ([#28602](https://github.com/hashicorp/terraform-provider-azurerm/issues/28602))
+* **New Resource**: `azurerm_ai_foundry` ([#27424](https://github.com/hashicorp/terraform-provider-azurerm/issues/27424))
+* **New Resource**: `azurerm_ai_foundry_project` ([#27424](https://github.com/hashicorp/terraform-provider-azurerm/issues/27424))
+* **New Resource**: `azurerm_mssql_job_step` ([#28691](https://github.com/hashicorp/terraform-provider-azurerm/issues/28691))
+* **New Resource**: `azurerm_netapp_volume_group_oracle` ([#28391](https://github.com/hashicorp/terraform-provider-azurerm/issues/28391))
+* **New Resource**: `azurerm_virtual_machine_scale_set_standby_pool` ([#28441](https://github.com/hashicorp/terraform-provider-azurerm/issues/28441))
 
 ENHANCEMENTS:
 
-* dependencies: `hashicorp/go-azure-sdk` update to `v0.20250213.1092825` [GH-28767]
-* dependencies: `sentinel` partial update to `2023-12-01-preview` [GH-28195]
-* Data Source: `azurerm_app_configuration` - add support for the `data_plane_proxy_authentication_mode` and `data_plane_proxy_private_link_delegation_enabled` properties [GH-28712]
-* `azurerm_app_configuration` - add support for the `data_plane_proxy_authentication_mode` and `data_plane_proxy_private_link_delegation_enabled` properties [GH-28712]
-* `azurerm_container_app` - add support for the `client_certificate_mode` property [GH-28523]
-* `azurerm_cdn_frontdoor_firewall_policy` - add support for `JSChallenge` for `custom` rules [GH-28717]
-* `azurerm_express_route_circuit` - add support for the `rate_limiting_enabled` property [GH-28659]
-* `azurerm_mssql_managed_instance_failover_group` - add support for `secondary_type` [GH-28633]
-* `azurerm_sentinal_alert_rule_scheduled` - increase combined limit of `entity_mapping` and `sentinal_entity_mapping` to 10 [GH-28195]
-* `azurerm_service_plan` - support for `premium_plan_auto_scale_enabled` [GH-28524]
+* dependencies: `hashicorp/go-azure-sdk` update to `v0.20250213.1092825` ([#28767](https://github.com/hashicorp/terraform-provider-azurerm/issues/28767))
+* dependencies: `sentinel` partial update to `2023-12-01-preview` ([#28195](https://github.com/hashicorp/terraform-provider-azurerm/issues/28195))
+* Data Source: `azurerm_app_configuration` - add support for the `data_plane_proxy_authentication_mode` and `data_plane_proxy_private_link_delegation_enabled` properties ([#28712](https://github.com/hashicorp/terraform-provider-azurerm/issues/28712))
+* `azurerm_app_configuration` - add support for the `data_plane_proxy_authentication_mode` and `data_plane_proxy_private_link_delegation_enabled` properties ([#28712](https://github.com/hashicorp/terraform-provider-azurerm/issues/28712))
+* `azurerm_container_app` - add support for the `client_certificate_mode` property ([#28523](https://github.com/hashicorp/terraform-provider-azurerm/issues/28523))
+* `azurerm_cdn_frontdoor_firewall_policy` - add support for `JSChallenge` for `custom` rules ([#28717](https://github.com/hashicorp/terraform-provider-azurerm/issues/28717))
+* `azurerm_express_route_circuit` - add support for the `rate_limiting_enabled` property ([#28659](https://github.com/hashicorp/terraform-provider-azurerm/issues/28659))
+* `azurerm_mssql_managed_instance_failover_group` - add support for `secondary_type` ([#28633](https://github.com/hashicorp/terraform-provider-azurerm/issues/28633))
+* `azurerm_sentinal_alert_rule_scheduled` - increase combined limit of `entity_mapping` and `sentinal_entity_mapping` to 10 ([#28195](https://github.com/hashicorp/terraform-provider-azurerm/issues/28195))
+* `azurerm_service_plan` - support for `premium_plan_auto_scale_enabled` ([#28524](https://github.com/hashicorp/terraform-provider-azurerm/issues/28524))
 
 BUG FIXES:
 
-* `azurerm_cdn_frontdoor_firewall_policy` - fixed issue where the `js_challenge_cookie_expiration_in_minutes` policies `default` value caused `Standard_AzureFrontDoor` skus to receive a `BadRequest` error [GH-28726]
-* `azurerm_servicebus_topic` - prevent perma diff when provisioning a partitioned topic within a non-partitioned namespace [GH-26680]
-* `azurerm_linux_function_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
-* `azurerm_linux_function_app_slot` - fix issue where `site_config.0.elastic_instance_minimum` was not being set [GH-28725]
-* `azurerm_linux_web_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
-* `azurerm_postgresql_flexible_server_virtual_endpoint` - allow `source_server_id` and `replica_server_id` to reference the same server [GH-28733]
-* `azurerm_windows_function_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
-* `azurerm_windows_function_app_slot` - fix issue where `site_config.0.elastic_instance_minimum` was not being set [GH-28725]
-* `azurerm_windows_web_app` - will no longer plan when `site_config.0.cors` is the default value [GH-28703]
+* `azurerm_cdn_frontdoor_firewall_policy` - fixed issue where the `js_challenge_cookie_expiration_in_minutes` policies `default` value caused `Standard_AzureFrontDoor` skus to receive a `BadRequest` error ([#28726](https://github.com/hashicorp/terraform-provider-azurerm/issues/28726))
+* `azurerm_servicebus_topic` - prevent perma diff when provisioning a partitioned topic within a non-partitioned namespace ([#26680](https://github.com/hashicorp/terraform-provider-azurerm/issues/26680))
+* `azurerm_linux_function_app` - will no longer plan when `site_config.0.cors` is the default value ([#28703](https://github.com/hashicorp/terraform-provider-azurerm/issues/28703))
+* `azurerm_linux_function_app_slot` - fix issue where `site_config.0.elastic_instance_minimum` was not being set ([#28725](https://github.com/hashicorp/terraform-provider-azurerm/issues/28725))
+* `azurerm_linux_web_app` - will no longer plan when `site_config.0.cors` is the default value ([#28703](https://github.com/hashicorp/terraform-provider-azurerm/issues/28703))
+* `azurerm_postgresql_flexible_server_virtual_endpoint` - allow `source_server_id` and `replica_server_id` to reference the same server ([#28733](https://github.com/hashicorp/terraform-provider-azurerm/issues/28733))
+* `azurerm_windows_function_app` - will no longer plan when `site_config.0.cors` is the default value ([#28703](https://github.com/hashicorp/terraform-provider-azurerm/issues/28703))
+* `azurerm_windows_function_app_slot` - fix issue where `site_config.0.elastic_instance_minimum` was not being set ([#28725](https://github.com/hashicorp/terraform-provider-azurerm/issues/28725))
+* `azurerm_windows_web_app` - will no longer plan when `site_config.0.cors` is the default value ([#28703](https://github.com/hashicorp/terraform-provider-azurerm/issues/28703))
 
 ## 4.18.0 (February 07, 2025)
 
