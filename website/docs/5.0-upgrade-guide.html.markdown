@@ -84,6 +84,14 @@ Please follow the format in the example below for listing breaking changes in re
 * The `example_property_with_changed_default` property now defaults to `NewDefault`.
 ```
 
+### `azurerm_app_service`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_app_service_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
 ### `azurerm_cdn_endpoint_custom_domain`
 
 * The `cdn_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
@@ -132,6 +140,22 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_kusto_attached_database_configuration`
 
 * The deprecated `cluster_resource_id` property has been removed in favour of the `cluster_id` property.
+
+### `azurerm_linux_function_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_function_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_web_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_web_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
 ### `azurerm_logic_app_standard`
 
