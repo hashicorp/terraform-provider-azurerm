@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
 
-* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z'). Removing this forces a new resource to be created.
 
 ## Attributes Reference
 
