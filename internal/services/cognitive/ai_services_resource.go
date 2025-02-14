@@ -67,11 +67,11 @@ type VirtualNetworkRules struct {
 	IgnoreMissingVnetServiceEndpoint bool   `tfschema:"ignore_missing_vnet_service_endpoint"`
 }
 
-type AzureAIServicesNetworkACLs struct {
-	Bypass              string                               `tfschema:"bypass"`
-	DefaultAction       string                               `tfschema:"default_action"`
-	IpRules             []string                             `tfschema:"ip_rules"`
-	VirtualNetworkRules []AzureAIServicesVirtualNetworkRules `tfschema:"virtual_network_rules"`
+type NetworkACLs struct {
+	Bypass              string                `tfschema:"bypass"`
+	DefaultAction       string                `tfschema:"default_action"`
+	IpRules             []string              `tfschema:"ip_rules"`
+	VirtualNetworkRules []VirtualNetworkRules `tfschema:"virtual_network_rules"`
 }
 
 type CustomerManagedKey struct {
@@ -786,7 +786,7 @@ func flattenNetworkACLs(input *cognitiveservicesaccounts.NetworkRuleSet) []Netwo
 		}
 	}
 
-	return []AzureAIServicesNetworkACLs{{
+	return []NetworkACLs{{
 		Bypass:              string(*input.Bypass),
 		DefaultAction:       string(*input.DefaultAction),
 		IpRules:             ipRules,
