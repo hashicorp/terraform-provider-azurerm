@@ -6,8 +6,12 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties #28763
-* `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties #28763
+* Data Source: `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties [GH-28763]
+* `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties [GH-28763]
+
+BUG FIXES:
+
+`azurerm_mssql_virtual_machine` - fix an issue that prevented users from using values only known during apply as the value for `auto_backup.encryption_password` [GH-28223]
 
 ## 4.19.0 (February 14, 2025)
 
