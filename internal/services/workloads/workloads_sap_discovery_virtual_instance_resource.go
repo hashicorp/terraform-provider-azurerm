@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
@@ -141,7 +141,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 			parameters := &sapvirtualinstances.SAPVirtualInstance{
 				Identity: identity,
 				Location: location.Normalize(model.Location),
-				Properties: sapvirtualinstances.SAPVirtualInstanceProperties{
+				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
 					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
 					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
@@ -245,7 +245,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = pointer.From(identity)
 
-				props := &model.Properties
+				props := model.Properties
 				state.Environment = string(props.Environment)
 				state.SapProduct = string(props.SapProduct)
 				state.Tags = pointer.From(model.Tags)

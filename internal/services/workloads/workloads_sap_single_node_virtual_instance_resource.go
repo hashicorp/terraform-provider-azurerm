@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -461,7 +461,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 			parameters := &sapvirtualinstances.SAPVirtualInstance{
 				Identity: identity,
 				Location: location.Normalize(model.Location),
-				Properties: sapvirtualinstances.SAPVirtualInstanceProperties{
+				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
 					Configuration: sapvirtualinstances.DeploymentWithOSConfiguration{
 						AppLocation:                 utils.String(location.Normalize(model.AppLocation)),
 						InfrastructureConfiguration: expandSingleServerConfiguration(model.SingleServerConfiguration),
@@ -562,7 +562,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = pointer.From(identity)
 
-				props := &model.Properties
+				props := model.Properties
 				state.Environment = string(props.Environment)
 				state.SapProduct = string(props.SapProduct)
 				state.Tags = pointer.From(model.Tags)

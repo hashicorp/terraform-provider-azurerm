@@ -1166,18 +1166,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplan
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01
 github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/monitors
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/providerinstances
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapapplicationserverinstances
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapavailabilityzonedetails
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapcentralinstances
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapdatabaseinstances
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapdiskconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saplandscapemonitor
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/saprecommendations
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapsupportedsku
-github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapapplicationserverinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
+github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
 # github.com/hashicorp/go-azure-sdk/sdk v0.20250213.1092825
 ## explicit; go 1.22
 github.com/hashicorp/go-azure-sdk/sdk/auth
