@@ -107,8 +107,6 @@ The following arguments are supported:
 
 * `frontend_public` - (Optional) A `frontend_public` block as defined below. Changing this forces a new NGINX Deployment to be created.
 
-* `logging_storage_account` - (Optional) One or more `logging_storage_account` blocks as defined below.
-
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new NGINX Deployment to be created.
 
 * `automatic_upgrade_channel` - (Optional) Specify the automatic upgrade channel for the NGINX deployment. Defaults to `stable`. The possible values are `stable` and `preview`.
@@ -143,14 +141,6 @@ A `frontend_public` block supports the following:
 
 ---
 
-A `logging_storage_account` block supports the following:
-
-* `container_name` - (Optional) Specify the container name in the Storage Account for logging.
-
-* `name` - (Optional) The name of the StorageAccount for NGINX Logging.
-
----
-
 A `network_interface` block supports the following:
 
 * `subnet_id` - (Required) Specify The Subnet Resource ID for this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
@@ -173,9 +163,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the NGINX Deployment.
 
-* `ip_address` - The IP address of the deployment.
+* `ip_address` - The IP address of the NGINX Deployment.
 
-* `nginx_version` - The version of deployed NGINX.
+* `nginx_version` - The version of the NGINX Deployment.
+
+* `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
 
 ## Timeouts
 

@@ -14,9 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/flowlogs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networksecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/flowlogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -177,7 +177,7 @@ func resourceNetworkWatcherFlowLog() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["network_security_group_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -218,7 +218,7 @@ func resourceNetworkWatcherFlowLogCreate(d *pluginsdk.ResourceData, meta interfa
 
 	targetResourceId := ""
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
 			targetResourceId = v.(string)
 		}
@@ -319,7 +319,7 @@ func resourceNetworkWatcherFlowLogUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	targetResourceId := ""
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
 			targetResourceId = v.(string)
 		}
@@ -430,7 +430,7 @@ func resourceNetworkWatcherFlowLogRead(d *pluginsdk.ResourceData, meta interface
 				targetResourceId = nicId.ID()
 			}
 
-			if !features.FivePointOhBeta() && targetIsNSG {
+			if !features.FivePointOh() && targetIsNSG {
 				d.Set("network_security_group_id", targetResourceId)
 			}
 
@@ -558,6 +558,10 @@ func flattenNetworkWatcherFlowLogTrafficAnalytics(input *flowlogs.TrafficAnalyti
 
 func expandNetworkWatcherFlowLogTrafficAnalytics(d *pluginsdk.ResourceData) *flowlogs.TrafficAnalyticsProperties {
 	vs := d.Get("traffic_analytics").([]interface{})
+
+	if len(vs) == 0 {
+		return nil
+	}
 
 	v := vs[0].(map[string]interface{})
 	enabled := v["enabled"].(bool)

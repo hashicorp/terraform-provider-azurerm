@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxconfiguration"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-09-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -34,6 +34,7 @@ func (c ConfigFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
 type ProtectedFile struct {
 	Content     string `tfschema:"content"`
 	VirtualPath string `tfschema:"virtual_path"`
+	ContentHash string `tfschema:"content_hash"`
 }
 
 func (c ProtectedFile) toSDKModel() nginxconfiguration.NginxConfigurationProtectedFileRequest {
@@ -142,6 +143,11 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"content_hash": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
@@ -267,13 +273,14 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				// GET returns protected files with virtual_path only without content
 				if files := prop.ProtectedFiles; files != nil {
 					configs := []ProtectedFile{}
 					for _, file := range *files {
 						config := ProtectedFile{
 							VirtualPath: pointer.ToString(file.VirtualPath),
+							ContentHash: pointer.ToString(file.ContentHash),
 						}
+						// GET returns protected files without content, so fill in from state
 						for _, protectedFile := range output.ProtectedFile {
 							if protectedFile.VirtualPath == pointer.ToString(file.VirtualPath) {
 								config.Content = protectedFile.Content
@@ -317,12 +324,24 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil for %v", *id)
 			}
 
+			// full update - fill in the existing fields from the API and then patch it
 			upd := nginxconfiguration.NginxConfigurationRequest{
 				Name: pointer.To(defaultConfigurationName),
 				Properties: &nginxconfiguration.NginxConfigurationRequestProperties{
-					// root file is required in update
 					RootFile: existing.Model.Properties.RootFile,
+					Files:    existing.Model.Properties.Files,
+					Package:  existing.Model.Properties.Package,
 				},
+			}
+
+			if existing.Model.Properties.ProtectedFiles != nil {
+				var pfs []nginxconfiguration.NginxConfigurationProtectedFileRequest
+				for _, f := range *existing.Model.Properties.ProtectedFiles {
+					pfs = append(pfs, nginxconfiguration.NginxConfigurationProtectedFileRequest{
+						VirtualPath: f.VirtualPath,
+					})
+				}
+				upd.Properties.ProtectedFiles = pointer.To(pfs)
 			}
 
 			if meta.ResourceData.HasChange("root_file") {
@@ -333,8 +352,9 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				upd.Properties.Files = model.toSDKFiles()
 			}
 
-			// API does not return protected file field, so always set this field
-			upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
+			if meta.ResourceData.HasChange("protected_file") {
+				upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
+			}
 
 			if meta.ResourceData.HasChange("package_data") {
 				upd.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{
