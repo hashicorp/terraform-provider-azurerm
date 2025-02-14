@@ -392,7 +392,6 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	if importVs, ok := d.GetOk("import"); ok {
 		if apiParams := expandApiManagementApiImport(importVs.([]interface{}), apiType, soapApiType,
 			path, d.Get("service_url").(string), version, versionSetId); apiParams != nil {
-
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -497,7 +496,6 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if vs, hasImport := d.GetOk("import"); hasImport {
 			if apiParams := expandApiManagementApiImport(vs.([]interface{}), apiType, soapApiType,
 				path, serviceUrl, version, versionSetId); apiParams != nil {
-
 				if err := client.CreateOrUpdateThenPoll(ctx, *id, *apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
 					return fmt.Errorf("creating/updating %s: %+v", *id, err)
 				}
