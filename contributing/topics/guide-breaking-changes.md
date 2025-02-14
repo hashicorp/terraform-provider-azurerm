@@ -391,3 +391,11 @@ Our tests were failing because the Azure API was returning this value as true wh
 ```
 
 There are many ways to accidentally add a breaking change when looking at properties with a Default or lack thereof so extra work needs to be done to confirm what Terraform and the Azure API are returning before deciding how best to incorporate the Default tag.
+
+## Major Release Feature Flag Removal
+
+Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. `if !features.FivePointOh() { ... }`) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for.
+
+1. For typed resources, if you are removing a property, make sure you also remove it from the model(s). The fields should have a `removedInNextMajorVersion` tag. 
+2. For typed resources, there may be properties that were only included once the major version was released, make sure you remove the `addedInNextMajorVersion` tag from these properties in the model(s).
+3. Confirm the documentation is up-to-date with what is in code, generally this should already be the case, but it's good to double check.

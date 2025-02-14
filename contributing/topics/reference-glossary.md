@@ -38,7 +38,7 @@ These are generally (but not always) auto-generated - see [Terraform Managed Res
 
 ### Resource ID Parser
 
-A Resource ID Parser parses an (Azure) Resource ID into a Resource ID Struct - generally case-sensitively (since both Terraform Core and some downstream Azure API’s are case sensitive), but optionally case-insensitively where required.
+A Resource ID Parser parses an (Azure) Resource ID into a Resource ID Struct - generally case-sensitively (since both Terraform Core and some downstream Azure APIs are case sensitive), but optionally case-insensitively where required.
 
 These are generally (but not always) auto-generated - see [Terraform Managed Resource ID](#terraform-managed-resource-id) for more information.
 
@@ -92,7 +92,7 @@ A State Migration is used when a resource has been changed to expect something d
 
 A Terraform Managed Resource ID is a Resource ID defined in Terraform, rather than set by the Remote API.
 
-The Azure Provider is moving to use Terraform Managed Resource ID’s for all resources, since these are known ahead of time - which avoids issues with APIs changing these Resource ID’s over time (either in casing, or renaming segments altogether).
+The Azure Provider is moving to use Terraform Managed Resource IDs for all resources, since these are known ahead of time - which avoids issues with APIs changing these Resource IDs over time (either in casing, or renaming segments altogether).
 
 At present these are defined in a `resourceids.go` file within each Service Package, which generates a Resource ID Formatter, Parser and Validator for this Resource ID.
 
@@ -100,7 +100,7 @@ At present these are defined in a `resourceids.go` file within each Service Pack
 
 Terraform Resource Data is a wrapper around the values within either the Terraform Configuration/State, depending on when this is called.
 
-Values within the Resource Data can be accessed using `d.Get` (for example `d.Get(“some_field”).(string)`) and set using `d.Set` (for example `d.Set(“some_field”, “hello”)`.
+Values within the Resource Data can be accessed using `d.Get` (for example `d.Get(“some_field”).(string)`) and set using `d.Set` (for example `d.Set(“some_field”, “hello”)`).
 
 ### Terraform Resource ID
 

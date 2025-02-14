@@ -6,7 +6,7 @@ Following typical Go conventions, error variables within the AzureRM Provider co
 err := someMethodWhichReturnsAnError(...)
 ```
 
-.. or in the case of a method which returns multiple return types:
+Or in the case of a method which returns multiple return types:
 
 ```go
 model, err := someMethodWhichReturnsAnObjectAndAnError(...)
