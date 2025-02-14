@@ -562,7 +562,7 @@ func UnmarshalLinkedServiceImplementation(input []byte) (LinkedService, error) {
 		return out, nil
 	}
 
-	if strings.EqualFold(value, "LakeHouse") {
+	if strings.EqualFold(value, "Lakehouse") {
 		var out LakeHouseLinkedService
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into LakeHouseLinkedService: %+v", err)

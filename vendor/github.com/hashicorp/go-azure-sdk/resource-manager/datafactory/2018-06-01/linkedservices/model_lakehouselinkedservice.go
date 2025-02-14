@@ -49,7 +49,7 @@ func (s LakeHouseLinkedService) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("unmarshaling LakeHouseLinkedService: %+v", err)
 	}
 
-	decoded["type"] = "LakeHouse"
+	decoded["type"] = "Lakehouse"
 
 	encoded, err = json.Marshal(decoded)
 	if err != nil {
