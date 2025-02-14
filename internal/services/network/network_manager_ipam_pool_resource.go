@@ -112,6 +112,7 @@ func (r ManagerIpamPoolResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.IPamPools
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config ManagerIpamPoolResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -123,7 +124,6 @@ func (r ManagerIpamPoolResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing `network_manager_id`: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := ipampools.NewIPamPoolID(subscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, config.Name)
 
 			existing, err := client.Get(ctx, id)
