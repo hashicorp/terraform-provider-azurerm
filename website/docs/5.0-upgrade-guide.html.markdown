@@ -240,6 +240,26 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
 
+### `azurerm_mssql_virtual_machine`
+
+* The deprecated `auto_backup.encryption_enabled` property has been removed.
+
+### `azurerm_windows_function_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_function_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_web_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_web_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:
@@ -268,6 +288,26 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `logging_storage_account` block has been removed.
 * The deprecated `managed_resource_group` property has been removed.
+
+### `azurerm_servicebus_namespace_disaster_recovery_config`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+
+### `azurerm_servicebus_queue`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+* The deprecated `enable_express` property has been removed in favour of the `express_enabled` property.
+* The deprecated `enable_partitioning` property has been removed in favour of the `partitioning_enabled` property.
+
+### `azurerm_servicebus_subscription`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+* The deprecated `topic_name` property has been removed.
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
 
 ### `azurerm_storage_container`
 
