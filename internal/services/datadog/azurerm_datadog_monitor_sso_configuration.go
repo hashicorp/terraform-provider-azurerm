@@ -169,7 +169,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 			d.Set("enterprise_application_id", props.EnterpriseAppId)
 
 			if !features.FivePointOh() {
-				d.Set("single_sign_on_enabled", props.SingleSignOnState)
+				d.Set("single_sign_on_enabled", string(*props.SingleSignOnState))
 			}
 		}
 	}
