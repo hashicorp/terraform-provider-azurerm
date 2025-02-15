@@ -47,7 +47,6 @@ func (c WebAppsClient) GetContainerLogsZipSlot(ctx context.Context, id SlotId) (
 
 	var model []byte
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

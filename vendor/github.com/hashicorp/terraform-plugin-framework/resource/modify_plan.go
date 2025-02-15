@@ -10,6 +10,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
+// ModifyPlanClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the PlanResourceChange RPC,
+// such as forward-compatible Terraform behavior changes.
+type ModifyPlanClientCapabilities struct {
+	// DeferralAllowed indicates whether the Terraform client initiating
+	// the request allows a deferral response.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	DeferralAllowed bool
+}
+
 // ModifyPlanRequest represents a request for the provider to modify the
 // planned new state that Terraform has generated for the resource.
 type ModifyPlanRequest struct {
@@ -39,6 +51,10 @@ type ModifyPlanRequest struct {
 	// Use the GetKey method to read data. Use the SetKey method on
 	// ModifyPlanResponse.Private to update or remove a value.
 	Private *privatestate.ProviderData
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// PlanResourceChange RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities ModifyPlanClientCapabilities
 }
 
 // ModifyPlanResponse represents a response to a
@@ -65,4 +81,14 @@ type ModifyPlanResponse struct {
 	// indicates a successful plan modification with no warnings or errors
 	// generated.
 	Diagnostics diag.Diagnostics
+
+	// Deferred indicates that Terraform should defer importing this
+	// resource until a followup apply operation.
+	//
+	// This field can only be set if
+	// `(resource.ModifyPlanRequest).ClientCapabilities.DeferralAllowed` is true.
+	//
+	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
+	// to change or break without warning. It is not protected by version compatibility guarantees.
+	Deferred *Deferred
 }

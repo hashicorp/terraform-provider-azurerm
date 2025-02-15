@@ -16,6 +16,14 @@ type AksComputeSecrets struct {
 	UserKubeConfig      *string `json:"userKubeConfig,omitempty"`
 
 	// Fields inherited from ComputeSecrets
+
+	ComputeType ComputeType `json:"computeType"`
+}
+
+func (s AksComputeSecrets) ComputeSecrets() BaseComputeSecretsImpl {
+	return BaseComputeSecretsImpl{
+		ComputeType: s.ComputeType,
+	}
 }
 
 var _ json.Marshaler = AksComputeSecrets{}
@@ -29,9 +37,10 @@ func (s AksComputeSecrets) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AksComputeSecrets: %+v", err)
 	}
+
 	decoded["computeType"] = "AKS"
 
 	encoded, err = json.Marshal(decoded)

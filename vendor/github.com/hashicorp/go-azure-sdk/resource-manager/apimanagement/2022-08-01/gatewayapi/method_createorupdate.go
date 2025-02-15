@@ -50,7 +50,6 @@ func (c GatewayApiClient) CreateOrUpdate(ctx context.Context, id GatewayApiId, i
 
 	var model ApiContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

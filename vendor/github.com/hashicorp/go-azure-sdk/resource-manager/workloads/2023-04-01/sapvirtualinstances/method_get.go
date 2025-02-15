@@ -45,7 +45,6 @@ func (c SAPVirtualInstancesClient) Get(ctx context.Context, id SapVirtualInstanc
 
 	var model SAPVirtualInstance
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

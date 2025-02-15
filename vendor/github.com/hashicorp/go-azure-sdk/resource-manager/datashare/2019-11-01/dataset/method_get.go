@@ -15,7 +15,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DataSet
+	Model        DataSet
 }
 
 // Get ...
@@ -48,11 +48,11 @@ func (c DataSetClient) Get(ctx context.Context, id DataSetId) (result GetOperati
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalDataSetImplementation(respObj)
+	model, err := UnmarshalDataSetImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

@@ -33,6 +33,7 @@ func (o DeleteSourceControlSlotOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteSourceControlSlotOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

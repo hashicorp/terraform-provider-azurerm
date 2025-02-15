@@ -12,7 +12,6 @@ func TestRewriteRuleSetID(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			// empty
 			Input: "",

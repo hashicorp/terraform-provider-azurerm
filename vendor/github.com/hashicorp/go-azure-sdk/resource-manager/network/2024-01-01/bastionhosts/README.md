@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts` Documentation
 
-The `bastionhosts` SDK allows for interaction with the Azure Resource Manager Service `network` (API Version `2024-01-01`).
+The `bastionhosts` SDK allows for interaction with Azure Resource Manager `network` (API Version `2024-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionhosts.BastionHost{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionhosts.BastionShareableLinkListRequest{
 	// ...
@@ -71,7 +71,7 @@ if err := client.DeleteBastionShareableLinkThenPoll(ctx, id, payload); err != ni
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionhosts.BastionShareableLinkTokenListRequest{
 	// ...
@@ -88,7 +88,7 @@ if err := client.DeleteBastionShareableLinkByTokenThenPoll(ctx, id, payload); er
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionhosts.SessionIds{
 	// ...
@@ -110,7 +110,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -126,7 +126,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 // alternatively `client.GetActiveSessions(ctx, id)` can be used to do batched pagination
 items, err := client.GetActiveSessionsComplete(ctx, id)
@@ -143,7 +143,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionhosts.BastionShareableLinkListRequest{
 	// ...
@@ -199,7 +199,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionhosts.BastionShareableLinkListRequest{
 	// ...
@@ -221,7 +221,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostValue")
+id := bastionhosts.NewBastionHostID("12345678-1234-9876-4563-123456789012", "example-resource-group", "bastionHostName")
 
 payload := bastionhosts.TagsObject{
 	// ...

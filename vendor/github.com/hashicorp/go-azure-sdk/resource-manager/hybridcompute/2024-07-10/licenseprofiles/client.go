@@ -15,7 +15,7 @@ type LicenseProfilesClient struct {
 }
 
 func NewLicenseProfilesClientWithBaseURI(sdkApi sdkEnv.Api) (*LicenseProfilesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "licenseprofiles", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "licenseprofiles", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LicenseProfilesClient: %+v", err)
 	}

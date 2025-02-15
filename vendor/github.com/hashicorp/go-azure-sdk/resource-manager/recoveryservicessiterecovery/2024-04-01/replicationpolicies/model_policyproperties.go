@@ -16,10 +16,11 @@ type PolicyProperties struct {
 var _ json.Unmarshaler = &PolicyProperties{}
 
 func (s *PolicyProperties) UnmarshalJSON(bytes []byte) error {
-	type alias PolicyProperties
-	var decoded alias
+	var decoded struct {
+		FriendlyName *string `json:"friendlyName,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into PolicyProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.FriendlyName = decoded.FriendlyName
@@ -30,11 +31,12 @@ func (s *PolicyProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["providerSpecificDetails"]; ok {
-		impl, err := unmarshalPolicyProviderSpecificDetailsImplementation(v)
+		impl, err := UnmarshalPolicyProviderSpecificDetailsImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'ProviderSpecificDetails' for 'PolicyProperties': %+v", err)
 		}
 		s.ProviderSpecificDetails = impl
 	}
+
 	return nil
 }

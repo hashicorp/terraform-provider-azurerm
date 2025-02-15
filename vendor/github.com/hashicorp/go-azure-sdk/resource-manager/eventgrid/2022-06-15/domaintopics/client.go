@@ -15,7 +15,7 @@ type DomainTopicsClient struct {
 }
 
 func NewDomainTopicsClientWithBaseURI(sdkApi sdkEnv.Api) (*DomainTopicsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "domaintopics", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "domaintopics", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DomainTopicsClient: %+v", err)
 	}

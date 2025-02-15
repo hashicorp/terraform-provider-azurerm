@@ -46,7 +46,6 @@ func (c AuthorizationServerClient) ListSecrets(ctx context.Context, id Authoriza
 
 	var model AuthorizationServerSecretsContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

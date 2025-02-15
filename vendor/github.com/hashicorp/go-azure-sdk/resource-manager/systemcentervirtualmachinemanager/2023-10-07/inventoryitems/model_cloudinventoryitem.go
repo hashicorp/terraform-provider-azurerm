@@ -13,10 +13,22 @@ var _ InventoryItemProperties = CloudInventoryItem{}
 type CloudInventoryItem struct {
 
 	// Fields inherited from InventoryItemProperties
+
 	InventoryItemName *string            `json:"inventoryItemName,omitempty"`
+	InventoryType     InventoryType      `json:"inventoryType"`
 	ManagedResourceId *string            `json:"managedResourceId,omitempty"`
 	ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
 	Uuid              *string            `json:"uuid,omitempty"`
+}
+
+func (s CloudInventoryItem) InventoryItemProperties() BaseInventoryItemPropertiesImpl {
+	return BaseInventoryItemPropertiesImpl{
+		InventoryItemName: s.InventoryItemName,
+		InventoryType:     s.InventoryType,
+		ManagedResourceId: s.ManagedResourceId,
+		ProvisioningState: s.ProvisioningState,
+		Uuid:              s.Uuid,
+	}
 }
 
 var _ json.Marshaler = CloudInventoryItem{}
@@ -30,9 +42,10 @@ func (s CloudInventoryItem) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling CloudInventoryItem: %+v", err)
 	}
+
 	decoded["inventoryType"] = "Cloud"
 
 	encoded, err = json.Marshal(decoded)

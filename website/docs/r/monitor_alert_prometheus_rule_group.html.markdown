@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the Alert Management Prometheus Rule Group should exist. Changing this forces a new resource to be created.
 
-* `rule` - (Required) A `rule` block as defined below.
+* `rule` - (Required) One or more `rule` blocks as defined below.
 
 * `scopes` - (Required) Specifies the resource ID of the Azure Monitor Workspace.
 

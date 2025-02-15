@@ -45,7 +45,6 @@ func (c WebAppsClient) GetContinuousWebJobSlot(ctx context.Context, id SlotConti
 
 	var model ContinuousWebJob
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

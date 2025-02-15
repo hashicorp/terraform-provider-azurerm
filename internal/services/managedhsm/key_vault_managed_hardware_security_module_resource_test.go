@@ -35,20 +35,12 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 		"roleAssignments": {
 			"builtInRole": testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_builtInRole,
 			"customRole":  testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_customRole,
-
-			// TODO: uses `vault_base_url`, these 2 can be removed in 4.0
-			"legacyBuiltInRole": testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyBuiltInRole,
-			"legacyCustomRole":  testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_legacyCustomRole,
 		},
 		"roleDefinitions": {
 			"basic": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
-
-			// TODO: uses `vault_base_url`, this can be removed in 4.0
-			"legacyWithUpdate": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacyWithUpdate,
 		},
 		"roleDefinitionDataSource": {
-			"basic":  testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
-			"legacy": testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_legacy,
+			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
 		},
 		"keys": {
 			"basic":              testAccKeyVaultMHSMKey_basic,
@@ -56,6 +48,7 @@ func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
 			"purge":              testAccKeyVaultHSMKey_purge,
 			"softDeleteRecovery": testAccKeyVaultHSMKey_softDeleteRecovery,
 			"rotationPolicy":     testAccMHSMKeyRotationPolicy_all,
+			"data_source":        testAccKeyVaultMHSMKeyDataSource_basic,
 		},
 	})
 }

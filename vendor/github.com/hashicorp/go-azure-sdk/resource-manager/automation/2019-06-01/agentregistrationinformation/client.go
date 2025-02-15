@@ -15,7 +15,7 @@ type AgentRegistrationInformationClient struct {
 }
 
 func NewAgentRegistrationInformationClientWithBaseURI(sdkApi sdkEnv.Api) (*AgentRegistrationInformationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "agentregistrationinformation", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "agentregistrationinformation", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AgentRegistrationInformationClient: %+v", err)
 	}

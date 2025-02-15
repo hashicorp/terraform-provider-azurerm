@@ -51,7 +51,6 @@ func (c NamespacesClient) Update(ctx context.Context, id NamespaceId, input SBNa
 
 	var model SBNamespace
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

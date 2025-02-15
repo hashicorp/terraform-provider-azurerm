@@ -40,7 +40,7 @@ func ParseScopedConfigurationAssignmentID(input string) (*ScopedConfigurationAss
 	}
 
 	id := ScopedConfigurationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +57,7 @@ func ParseScopedConfigurationAssignmentIDInsensitively(input string) (*ScopedCon
 	}
 
 	id := ScopedConfigurationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -106,7 +106,7 @@ func (id ScopedConfigurationAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMaintenance", "Microsoft.Maintenance", "Microsoft.Maintenance"),
 		resourceids.StaticSegment("staticConfigurationAssignments", "configurationAssignments", "configurationAssignments"),
-		resourceids.UserSpecifiedSegment("configurationAssignmentName", "configurationAssignmentValue"),
+		resourceids.UserSpecifiedSegment("configurationAssignmentName", "configurationAssignmentName"),
 	}
 }
 

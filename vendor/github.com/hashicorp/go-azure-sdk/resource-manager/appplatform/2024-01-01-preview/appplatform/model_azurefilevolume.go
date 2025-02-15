@@ -14,10 +14,22 @@ type AzureFileVolume struct {
 	ShareName *string `json:"shareName,omitempty"`
 
 	// Fields inherited from CustomPersistentDiskProperties
+
 	EnableSubPath *bool     `json:"enableSubPath,omitempty"`
 	MountOptions  *[]string `json:"mountOptions,omitempty"`
 	MountPath     string    `json:"mountPath"`
 	ReadOnly      *bool     `json:"readOnly,omitempty"`
+	Type          Type      `json:"type"`
+}
+
+func (s AzureFileVolume) CustomPersistentDiskProperties() BaseCustomPersistentDiskPropertiesImpl {
+	return BaseCustomPersistentDiskPropertiesImpl{
+		EnableSubPath: s.EnableSubPath,
+		MountOptions:  s.MountOptions,
+		MountPath:     s.MountPath,
+		ReadOnly:      s.ReadOnly,
+		Type:          s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureFileVolume{}
@@ -31,9 +43,10 @@ func (s AzureFileVolume) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureFileVolume: %+v", err)
 	}
+
 	decoded["type"] = "AzureFileVolume"
 
 	encoded, err = json.Marshal(decoded)

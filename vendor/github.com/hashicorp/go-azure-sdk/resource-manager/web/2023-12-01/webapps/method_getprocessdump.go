@@ -46,7 +46,6 @@ func (c WebAppsClient) GetProcessDump(ctx context.Context, id ProcessId) (result
 
 	var model []byte
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

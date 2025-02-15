@@ -18,10 +18,13 @@ type RecoveryPlanAction struct {
 var _ json.Unmarshaler = &RecoveryPlanAction{}
 
 func (s *RecoveryPlanAction) UnmarshalJSON(bytes []byte) error {
-	type alias RecoveryPlanAction
-	var decoded alias
+	var decoded struct {
+		ActionName         string                              `json:"actionName"`
+		FailoverDirections []PossibleOperationsDirections      `json:"failoverDirections"`
+		FailoverTypes      []ReplicationProtectedItemOperation `json:"failoverTypes"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into RecoveryPlanAction: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ActionName = decoded.ActionName
@@ -34,11 +37,12 @@ func (s *RecoveryPlanAction) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["customDetails"]; ok {
-		impl, err := unmarshalRecoveryPlanActionDetailsImplementation(v)
+		impl, err := UnmarshalRecoveryPlanActionDetailsImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'CustomDetails' for 'RecoveryPlanAction': %+v", err)
 		}
 		s.CustomDetails = impl
 	}
+
 	return nil
 }

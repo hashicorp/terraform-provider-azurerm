@@ -15,7 +15,7 @@ type DevBoxDefinitionsClient struct {
 }
 
 func NewDevBoxDefinitionsClientWithBaseURI(sdkApi sdkEnv.Api) (*DevBoxDefinitionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "devboxdefinitions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "devboxdefinitions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DevBoxDefinitionsClient: %+v", err)
 	}

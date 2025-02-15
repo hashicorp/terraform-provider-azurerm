@@ -15,7 +15,7 @@ type CustomResourceProviderClient struct {
 }
 
 func NewCustomResourceProviderClientWithBaseURI(sdkApi sdkEnv.Api) (*CustomResourceProviderClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "customresourceprovider", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "customresourceprovider", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CustomResourceProviderClient: %+v", err)
 	}

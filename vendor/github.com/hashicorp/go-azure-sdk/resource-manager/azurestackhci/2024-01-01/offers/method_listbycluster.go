@@ -39,6 +39,7 @@ func (o ListByClusterOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByClusterOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

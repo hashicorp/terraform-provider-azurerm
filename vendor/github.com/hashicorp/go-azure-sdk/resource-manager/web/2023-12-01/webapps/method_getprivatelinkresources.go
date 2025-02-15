@@ -47,7 +47,6 @@ func (c WebAppsClient) GetPrivateLinkResources(ctx context.Context, id commonids
 
 	var model PrivateLinkResourcesWrapper
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

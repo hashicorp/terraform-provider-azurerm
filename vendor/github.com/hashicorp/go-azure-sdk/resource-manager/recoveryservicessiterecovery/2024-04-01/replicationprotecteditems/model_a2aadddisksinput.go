@@ -15,6 +15,14 @@ type A2AAddDisksInput struct {
 	VMManagedDisks *[]A2AVMManagedDiskInputDetails `json:"vmManagedDisks,omitempty"`
 
 	// Fields inherited from AddDisksProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2AAddDisksInput) AddDisksProviderSpecificInput() BaseAddDisksProviderSpecificInputImpl {
+	return BaseAddDisksProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2AAddDisksInput{}
@@ -28,9 +36,10 @@ func (s A2AAddDisksInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2AAddDisksInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

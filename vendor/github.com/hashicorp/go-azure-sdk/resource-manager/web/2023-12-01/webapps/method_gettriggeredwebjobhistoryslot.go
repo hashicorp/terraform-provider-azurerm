@@ -45,7 +45,6 @@ func (c WebAppsClient) GetTriggeredWebJobHistorySlot(ctx context.Context, id Tri
 
 	var model TriggeredJobHistory
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

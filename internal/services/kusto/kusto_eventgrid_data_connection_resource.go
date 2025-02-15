@@ -254,36 +254,37 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 	d.Set("database_name", id.DatabaseName)
 
 	if resp.Model != nil {
-		dataConnection := (*resp.Model).(dataconnections.EventGridDataConnection)
-		d.Set("location", location.NormalizeNilable(dataConnection.Location))
-		if props := dataConnection.Properties; props != nil {
-			d.Set("storage_account_id", props.StorageAccountResourceId)
-			d.Set("eventhub_id", props.EventHubResourceId)
-			d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
-			d.Set("skip_first_record", props.IgnoreFirstRecord)
-			d.Set("blob_storage_event_type", string(pointer.From(props.BlobStorageEventType)))
-			d.Set("table_name", props.TableName)
-			d.Set("mapping_rule_name", props.MappingRuleName)
-			d.Set("data_format", string(pointer.From(props.DataFormat)))
-			d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
-			d.Set("eventgrid_resource_id", props.EventGridResourceId)
+		if dataConnection, ok := resp.Model.(dataconnections.EventGridDataConnection); ok {
+			d.Set("location", location.NormalizeNilable(dataConnection.Location))
+			if props := dataConnection.Properties; props != nil {
+				d.Set("storage_account_id", props.StorageAccountResourceId)
+				d.Set("eventhub_id", props.EventHubResourceId)
+				d.Set("eventhub_consumer_group_name", props.ConsumerGroup)
+				d.Set("skip_first_record", props.IgnoreFirstRecord)
+				d.Set("blob_storage_event_type", string(pointer.From(props.BlobStorageEventType)))
+				d.Set("table_name", props.TableName)
+				d.Set("mapping_rule_name", props.MappingRuleName)
+				d.Set("data_format", string(pointer.From(props.DataFormat)))
+				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
+				d.Set("eventgrid_resource_id", props.EventGridResourceId)
 
-			managedIdentityResourceId := ""
-			if props.ManagedIdentityResourceId != nil && *props.ManagedIdentityResourceId != "" {
-				managedIdentityResourceId = *props.ManagedIdentityResourceId
-				clusterId, clusterIdErr := commonids.ParseKustoClusterIDInsensitively(managedIdentityResourceId)
-				if clusterIdErr == nil {
-					managedIdentityResourceId = clusterId.ID()
-				} else {
-					userAssignedIdentityId, userAssignedIdentityIdErr := commonids.ParseUserAssignedIdentityIDInsensitively(managedIdentityResourceId)
-					if userAssignedIdentityIdErr == nil {
-						managedIdentityResourceId = userAssignedIdentityId.ID()
+				managedIdentityResourceId := ""
+				if props.ManagedIdentityResourceId != nil && *props.ManagedIdentityResourceId != "" {
+					managedIdentityResourceId = *props.ManagedIdentityResourceId
+					clusterId, clusterIdErr := commonids.ParseKustoClusterIDInsensitively(managedIdentityResourceId)
+					if clusterIdErr == nil {
+						managedIdentityResourceId = clusterId.ID()
 					} else {
-						return fmt.Errorf("parsing `managed_identity_resource_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+						userAssignedIdentityId, userAssignedIdentityIdErr := commonids.ParseUserAssignedIdentityIDInsensitively(managedIdentityResourceId)
+						if userAssignedIdentityIdErr == nil {
+							managedIdentityResourceId = userAssignedIdentityId.ID()
+						} else {
+							return fmt.Errorf("parsing `managed_identity_resource_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+						}
 					}
 				}
+				d.Set("managed_identity_resource_id", managedIdentityResourceId)
 			}
-			d.Set("managed_identity_resource_id", managedIdentityResourceId)
 		}
 	}
 

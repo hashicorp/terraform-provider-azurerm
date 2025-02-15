@@ -50,7 +50,6 @@ func (c WebAppsClient) UpdateConfigurationSlot(ctx context.Context, id SlotId, i
 
 	var model SiteConfigResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

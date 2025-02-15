@@ -49,7 +49,6 @@ func (c AppServicePlansClient) UpdateVnetGateway(ctx context.Context, id Virtual
 
 	var model VnetGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

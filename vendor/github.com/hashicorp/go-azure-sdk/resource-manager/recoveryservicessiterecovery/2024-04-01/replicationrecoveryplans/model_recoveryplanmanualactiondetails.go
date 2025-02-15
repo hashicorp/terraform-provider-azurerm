@@ -14,6 +14,14 @@ type RecoveryPlanManualActionDetails struct {
 	Description *string `json:"description,omitempty"`
 
 	// Fields inherited from RecoveryPlanActionDetails
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s RecoveryPlanManualActionDetails) RecoveryPlanActionDetails() BaseRecoveryPlanActionDetailsImpl {
+	return BaseRecoveryPlanActionDetailsImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = RecoveryPlanManualActionDetails{}
@@ -27,9 +35,10 @@ func (s RecoveryPlanManualActionDetails) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RecoveryPlanManualActionDetails: %+v", err)
 	}
+
 	decoded["instanceType"] = "ManualActionDetails"
 
 	encoded, err = json.Marshal(decoded)

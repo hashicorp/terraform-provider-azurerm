@@ -24,6 +24,14 @@ type HyperVReplicaAzureUpdateReplicationProtectedItemInput struct {
 	VMDisks                         *[]UpdateDiskInput    `json:"vmDisks,omitempty"`
 
 	// Fields inherited from UpdateReplicationProtectedItemProviderInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s HyperVReplicaAzureUpdateReplicationProtectedItemInput) UpdateReplicationProtectedItemProviderInput() BaseUpdateReplicationProtectedItemProviderInputImpl {
+	return BaseUpdateReplicationProtectedItemProviderInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = HyperVReplicaAzureUpdateReplicationProtectedItemInput{}
@@ -37,9 +45,10 @@ func (s HyperVReplicaAzureUpdateReplicationProtectedItemInput) MarshalJSON() ([]
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HyperVReplicaAzureUpdateReplicationProtectedItemInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "HyperVReplicaAzure"
 
 	encoded, err = json.Marshal(decoded)

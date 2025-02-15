@@ -15,7 +15,7 @@ type RegisteredServerResourceClient struct {
 }
 
 func NewRegisteredServerResourceClientWithBaseURI(sdkApi sdkEnv.Api) (*RegisteredServerResourceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "registeredserverresource", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "registeredserverresource", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RegisteredServerResourceClient: %+v", err)
 	}

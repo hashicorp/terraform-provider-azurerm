@@ -45,7 +45,6 @@ func (c ManagedIdentitiesClient) FederatedIdentityCredentialsGet(ctx context.Con
 
 	var model FederatedIdentityCredential
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

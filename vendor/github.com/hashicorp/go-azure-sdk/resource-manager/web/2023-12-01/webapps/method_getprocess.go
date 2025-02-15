@@ -45,7 +45,6 @@ func (c WebAppsClient) GetProcess(ctx context.Context, id ProcessId) (result Get
 
 	var model ProcessInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

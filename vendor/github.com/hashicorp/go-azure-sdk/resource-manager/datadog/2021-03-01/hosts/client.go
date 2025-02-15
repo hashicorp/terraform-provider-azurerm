@@ -15,7 +15,7 @@ type HostsClient struct {
 }
 
 func NewHostsClientWithBaseURI(sdkApi sdkEnv.Api) (*HostsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "hosts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "hosts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating HostsClient: %+v", err)
 	}

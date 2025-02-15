@@ -49,7 +49,6 @@ func (c Python2PackageClient) Update(ctx context.Context, id Python2PackageId, i
 
 	var model Module
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

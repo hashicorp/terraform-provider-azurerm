@@ -46,7 +46,6 @@ func (c CloudEndpointResourceClient) CloudEndpointsListBySyncGroup(ctx context.C
 
 	var model CloudEndpointArray
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

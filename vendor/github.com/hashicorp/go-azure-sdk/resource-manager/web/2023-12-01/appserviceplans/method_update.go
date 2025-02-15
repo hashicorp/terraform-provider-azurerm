@@ -51,7 +51,6 @@ func (c AppServicePlansClient) Update(ctx context.Context, id commonids.AppServi
 
 	var model AppServicePlan
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

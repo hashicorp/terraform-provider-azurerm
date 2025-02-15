@@ -42,7 +42,7 @@ func ParseExperimentID(input string) (*ExperimentId, error) {
 	}
 
 	id := ExperimentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseExperimentIDInsensitively(input string) (*ExperimentId, error) {
 	}
 
 	id := ExperimentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func (id ExperimentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftChaos", "Microsoft.Chaos", "Microsoft.Chaos"),
 		resourceids.StaticSegment("staticExperiments", "experiments", "experiments"),
-		resourceids.UserSpecifiedSegment("experimentName", "experimentValue"),
+		resourceids.UserSpecifiedSegment("experimentName", "experimentName"),
 	}
 }
 

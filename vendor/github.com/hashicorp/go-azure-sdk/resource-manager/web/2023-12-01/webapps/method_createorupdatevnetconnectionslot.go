@@ -49,7 +49,6 @@ func (c WebAppsClient) CreateOrUpdateVnetConnectionSlot(ctx context.Context, id 
 
 	var model VnetInfoResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

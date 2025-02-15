@@ -50,7 +50,6 @@ func (c ScheduledQueryRulesClient) CreateOrUpdate(ctx context.Context, id Schedu
 
 	var model ScheduledQueryRuleResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

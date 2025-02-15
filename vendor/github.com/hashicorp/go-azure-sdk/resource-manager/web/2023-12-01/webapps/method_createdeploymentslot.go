@@ -49,7 +49,6 @@ func (c WebAppsClient) CreateDeploymentSlot(ctx context.Context, id SlotDeployme
 
 	var model Deployment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

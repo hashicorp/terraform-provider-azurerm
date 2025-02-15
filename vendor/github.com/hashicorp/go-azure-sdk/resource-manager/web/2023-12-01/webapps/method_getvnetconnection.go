@@ -45,7 +45,6 @@ func (c WebAppsClient) GetVnetConnection(ctx context.Context, id VirtualNetworkC
 
 	var model VnetInfoResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

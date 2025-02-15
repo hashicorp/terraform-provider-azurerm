@@ -42,7 +42,7 @@ func ParseB2CDirectoryID(input string) (*B2CDirectoryId, error) {
 	}
 
 	id := B2CDirectoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func ParseB2CDirectoryIDInsensitively(input string) (*B2CDirectoryId, error) {
 	}
 
 	id := B2CDirectoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 

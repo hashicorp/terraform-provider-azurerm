@@ -15,7 +15,7 @@ type TrustedAccessClient struct {
 }
 
 func NewTrustedAccessClientWithBaseURI(sdkApi sdkEnv.Api) (*TrustedAccessClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "trustedaccess", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "trustedaccess", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TrustedAccessClient: %+v", err)
 	}

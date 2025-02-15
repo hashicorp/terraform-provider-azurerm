@@ -34,6 +34,7 @@ func (o DeleteSourceControlOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteSourceControlOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

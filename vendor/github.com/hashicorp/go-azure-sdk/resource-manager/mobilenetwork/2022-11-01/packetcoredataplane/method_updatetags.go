@@ -49,7 +49,6 @@ func (c PacketCoreDataPlaneClient) UpdateTags(ctx context.Context, id PacketCore
 
 	var model PacketCoreDataPlane
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

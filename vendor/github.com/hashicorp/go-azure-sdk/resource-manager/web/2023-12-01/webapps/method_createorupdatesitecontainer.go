@@ -50,7 +50,6 @@ func (c WebAppsClient) CreateOrUpdateSiteContainer(ctx context.Context, id Sitec
 
 	var model SiteContainer
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

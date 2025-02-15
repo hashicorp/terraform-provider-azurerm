@@ -40,6 +40,7 @@ func (o LedgerListBySubscriptionOperationOptions) ToHeaders() *client.Headers {
 
 func (o LedgerListBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

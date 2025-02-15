@@ -50,7 +50,6 @@ func (c WebAppsClient) UpdateBackupConfigurationSlot(ctx context.Context, id Slo
 
 	var model BackupRequest
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

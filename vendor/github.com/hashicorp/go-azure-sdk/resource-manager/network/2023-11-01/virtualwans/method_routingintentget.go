@@ -45,7 +45,6 @@ func (c VirtualWANsClient) RoutingIntentGet(ctx context.Context, id RoutingInten
 
 	var model RoutingIntent
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

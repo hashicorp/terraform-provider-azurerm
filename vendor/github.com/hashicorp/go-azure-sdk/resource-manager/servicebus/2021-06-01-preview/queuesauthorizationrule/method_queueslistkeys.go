@@ -46,7 +46,6 @@ func (c QueuesAuthorizationRuleClient) QueuesListKeys(ctx context.Context, id Qu
 
 	var model AccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

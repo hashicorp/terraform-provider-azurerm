@@ -17,6 +17,14 @@ type A2APolicyCreationInput struct {
 	RecoveryPointHistory              *int64               `json:"recoveryPointHistory,omitempty"`
 
 	// Fields inherited from PolicyProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2APolicyCreationInput) PolicyProviderSpecificInput() BasePolicyProviderSpecificInputImpl {
+	return BasePolicyProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2APolicyCreationInput{}
@@ -30,9 +38,10 @@ func (s A2APolicyCreationInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2APolicyCreationInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2A"
 
 	encoded, err = json.Marshal(decoded)

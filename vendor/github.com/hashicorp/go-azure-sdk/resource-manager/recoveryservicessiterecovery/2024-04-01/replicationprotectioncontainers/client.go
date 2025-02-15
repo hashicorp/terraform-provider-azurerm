@@ -15,7 +15,7 @@ type ReplicationProtectionContainersClient struct {
 }
 
 func NewReplicationProtectionContainersClientWithBaseURI(sdkApi sdkEnv.Api) (*ReplicationProtectionContainersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "replicationprotectioncontainers", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "replicationprotectioncontainers", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ReplicationProtectionContainersClient: %+v", err)
 	}

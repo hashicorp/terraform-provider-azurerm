@@ -19,6 +19,14 @@ type VMwareCbtContainerMappingInput struct {
 	TargetLocation                       string  `json:"targetLocation"`
 
 	// Fields inherited from ReplicationProviderSpecificContainerMappingInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s VMwareCbtContainerMappingInput) ReplicationProviderSpecificContainerMappingInput() BaseReplicationProviderSpecificContainerMappingInputImpl {
+	return BaseReplicationProviderSpecificContainerMappingInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = VMwareCbtContainerMappingInput{}
@@ -32,9 +40,10 @@ func (s VMwareCbtContainerMappingInput) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling VMwareCbtContainerMappingInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "VMwareCbt"
 
 	encoded, err = json.Marshal(decoded)

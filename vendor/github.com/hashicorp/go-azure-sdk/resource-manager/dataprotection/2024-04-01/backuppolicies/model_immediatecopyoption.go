@@ -13,6 +13,14 @@ var _ CopyOption = ImmediateCopyOption{}
 type ImmediateCopyOption struct {
 
 	// Fields inherited from CopyOption
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s ImmediateCopyOption) CopyOption() BaseCopyOptionImpl {
+	return BaseCopyOptionImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = ImmediateCopyOption{}
@@ -26,9 +34,10 @@ func (s ImmediateCopyOption) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling ImmediateCopyOption: %+v", err)
 	}
+
 	decoded["objectType"] = "ImmediateCopyOption"
 
 	encoded, err = json.Marshal(decoded)

@@ -50,7 +50,6 @@ func (c DataCollectionRuleAssociationsClient) Create(ctx context.Context, id Sco
 
 	var model DataCollectionRuleAssociationProxyOnlyResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

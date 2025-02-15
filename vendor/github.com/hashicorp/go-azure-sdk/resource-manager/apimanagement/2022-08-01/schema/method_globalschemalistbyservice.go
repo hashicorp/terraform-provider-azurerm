@@ -41,6 +41,7 @@ func (o GlobalSchemaListByServiceOperationOptions) ToHeaders() *client.Headers {
 
 func (o GlobalSchemaListByServiceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

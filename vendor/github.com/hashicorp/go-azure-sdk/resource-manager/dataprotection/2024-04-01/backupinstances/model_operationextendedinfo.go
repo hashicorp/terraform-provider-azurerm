@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type OperationExtendedInfo interface {
+	OperationExtendedInfo() BaseOperationExtendedInfoImpl
 }
 
-// RawOperationExtendedInfoImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ OperationExtendedInfo = BaseOperationExtendedInfoImpl{}
+
+type BaseOperationExtendedInfoImpl struct {
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseOperationExtendedInfoImpl) OperationExtendedInfo() BaseOperationExtendedInfoImpl {
+	return s
+}
+
+var _ OperationExtendedInfo = RawOperationExtendedInfoImpl{}
+
+// RawOperationExtendedInfoImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawOperationExtendedInfoImpl struct {
-	Type   string
-	Values map[string]interface{}
+	operationExtendedInfo BaseOperationExtendedInfoImpl
+	Type                  string
+	Values                map[string]interface{}
 }
 
-func unmarshalOperationExtendedInfoImplementation(input []byte) (OperationExtendedInfo, error) {
+func (s RawOperationExtendedInfoImpl) OperationExtendedInfo() BaseOperationExtendedInfoImpl {
+	return s.operationExtendedInfo
+}
+
+func UnmarshalOperationExtendedInfoImplementation(input []byte) (OperationExtendedInfo, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalOperationExtendedInfoImplementation(input []byte) (OperationExtend
 		return nil, fmt.Errorf("unmarshaling OperationExtendedInfo into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "OperationJobExtendedInfo") {
@@ -44,10 +61,15 @@ func unmarshalOperationExtendedInfoImplementation(input []byte) (OperationExtend
 		return out, nil
 	}
 
-	out := RawOperationExtendedInfoImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseOperationExtendedInfoImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseOperationExtendedInfoImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawOperationExtendedInfoImpl{
+		operationExtendedInfo: parent,
+		Type:                  value,
+		Values:                temp,
+	}, nil
 
 }

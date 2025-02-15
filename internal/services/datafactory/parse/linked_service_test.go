@@ -27,7 +27,6 @@ func TestLinkedServiceID(t *testing.T) {
 		Error    bool
 		Expected *LinkedServiceId
 	}{
-
 		{
 			// empty
 			Input: "",

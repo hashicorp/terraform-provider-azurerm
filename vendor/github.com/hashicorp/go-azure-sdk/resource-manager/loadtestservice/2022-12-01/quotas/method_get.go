@@ -45,7 +45,6 @@ func (c QuotasClient) Get(ctx context.Context, id QuotaId) (result GetOperationR
 
 	var model QuotaResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

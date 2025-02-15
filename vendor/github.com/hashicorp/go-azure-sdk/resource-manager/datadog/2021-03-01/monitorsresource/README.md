@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource` Documentation
 
-The `monitorsresource` SDK allows for interaction with the Azure Resource Manager Service `datadog` (API Version `2021-03-01`).
+The `monitorsresource` SDK allows for interaction with Azure Resource Manager `datadog` (API Version `2021-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := monitorsresource.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitorsresource.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitorsresource.DatadogMonitorResource{
 	// ...
@@ -42,7 +42,7 @@ if err := client.MonitorsCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := monitorsresource.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitorsresource.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 if err := client.MonitorsDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.MonitorsDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := monitorsresource.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitorsresource.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 read, err := client.MonitorsGet(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := monitorsresource.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorValue")
+id := monitorsresource.NewMonitorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "monitorName")
 
 payload := monitorsresource.DatadogMonitorResourceUpdateParameters{
 	// ...

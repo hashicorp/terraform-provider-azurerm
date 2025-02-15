@@ -144,7 +144,7 @@ func resourceKustoDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: response was nil", *id)
 	}
 
-	database, ok := (*resp.Model).(databases.ReadWriteDatabase)
+	database, ok := resp.Model.(databases.ReadWriteDatabase)
 	if !ok {
 		return fmt.Errorf("%s was not a Read/Write Database", *id)
 	}

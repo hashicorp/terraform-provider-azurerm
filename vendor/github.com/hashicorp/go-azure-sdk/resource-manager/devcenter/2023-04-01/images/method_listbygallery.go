@@ -39,6 +39,7 @@ func (o ListByGalleryOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByGalleryOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

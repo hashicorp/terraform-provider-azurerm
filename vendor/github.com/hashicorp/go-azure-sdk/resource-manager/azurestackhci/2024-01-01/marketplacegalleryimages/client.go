@@ -15,7 +15,7 @@ type MarketplaceGalleryImagesClient struct {
 }
 
 func NewMarketplaceGalleryImagesClientWithBaseURI(sdkApi sdkEnv.Api) (*MarketplaceGalleryImagesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "marketplacegalleryimages", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "marketplacegalleryimages", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MarketplaceGalleryImagesClient: %+v", err)
 	}

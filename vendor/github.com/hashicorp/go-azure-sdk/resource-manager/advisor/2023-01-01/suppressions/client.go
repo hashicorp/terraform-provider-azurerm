@@ -15,7 +15,7 @@ type SuppressionsClient struct {
 }
 
 func NewSuppressionsClientWithBaseURI(sdkApi sdkEnv.Api) (*SuppressionsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "suppressions", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "suppressions", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SuppressionsClient: %+v", err)
 	}

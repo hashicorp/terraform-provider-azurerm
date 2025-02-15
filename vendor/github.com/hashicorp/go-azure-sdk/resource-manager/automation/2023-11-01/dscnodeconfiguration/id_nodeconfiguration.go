@@ -44,7 +44,7 @@ func ParseNodeConfigurationID(input string) (*NodeConfigurationId, error) {
 	}
 
 	id := NodeConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseNodeConfigurationIDInsensitively(input string) (*NodeConfigurationId, 
 	}
 
 	id := NodeConfigurationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id NodeConfigurationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticNodeConfigurations", "nodeConfigurations", "nodeConfigurations"),
-		resourceids.UserSpecifiedSegment("nodeConfigurationName", "nodeConfigurationValue"),
+		resourceids.UserSpecifiedSegment("nodeConfigurationName", "nodeConfigurationName"),
 	}
 }
 

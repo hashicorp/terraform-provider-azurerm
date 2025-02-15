@@ -47,7 +47,6 @@ func (c WebAppsClient) ListSyncFunctionTriggers(ctx context.Context, id commonid
 
 	var model FunctionSecrets
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -27,7 +27,6 @@ func TestStorageShareResourceManagerID(t *testing.T) {
 		Error    bool
 		Expected *StorageShareResourceManagerId
 	}{
-
 		{
 			// empty
 			Input: "",

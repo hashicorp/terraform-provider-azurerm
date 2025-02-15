@@ -45,7 +45,6 @@ func (c WebAppsClient) GetAppSettingKeyVaultReferenceSlot(ctx context.Context, i
 
 	var model ApiKVReference
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

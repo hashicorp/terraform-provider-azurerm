@@ -1,0 +1,311 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: 5.0 Upgrade Guide"
+description: |-
+Azure Resource Manager: 5.0 Upgrade Guide
+
+---
+
+# Azure Provider
+
+## Azure Provider Version 5.0
+
+TODO
+
+### Pinning your Provider Version
+
+TODO
+
+## What's available in Version 5.0 of the Azure Provider?
+
+* [Removed Resources](#removed-resources)
+* [Removed Data Sources](#removed-data-sources)
+* [Breaking Changes in Resources](#breaking-changes-in-resources)
+* [Breaking Changes in Data Sources](#breaking-changes-in-data-sources)
+
+
+## Removed Resources
+
+Please follow the format in the example below for adding removed resources:
+
+```markdown
+### `azurerm_example_resource`
+
+This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
+```
+
+### `azurerm_network_packet_capture`
+
+* This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure Provider.
+
+### `azurerm_orbital_contact`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_orbital_contact_profile`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_orbital_spacecraft`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_security_center_auto_provisioning`
+
+* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
+
+### `azurerm_maps_creator`
+
+* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://aka.ms/AzureMapsCreatorDeprecation).
+
+## Removed Data Sources
+
+Please follow the format in the example below for adding removed data sources:
+
+```markdown
+### `azurerm_example_resource`
+
+This deprecated data source has been superseded/retired and has been removed from the Azure Provider.
+```
+
+### `azurerm_logic_app_standard`
+
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+## Breaking Changes in Resources
+
+Please follow the format in the example below for listing breaking changes in resources:
+
+```markdown
+### `azurerm_example_resource`
+
+* The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
+* The deprecated `example_property_with_no_replacement` property has been removed.
+* The `example_property_with_changed_default` property now defaults to `NewDefault`.
+```
+
+### `azurerm_app_service`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_app_service_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_cdn_endpoint_custom_domain`
+
+* The `cdn_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
+* The `user_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
+
+### `azurerm_cdn_frontdoor_custom_domain`
+
+* The `tls.minimum_tls_version` property no longer accepts `TLS10` as a value.
+
+### `azurerm_container_app`
+
+* The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
+* The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
+
+### `azurerm_container_app_job`
+
+* The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
+* The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
+
+### `azurerm_cosmosdb_account`
+
+* The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
+
+### `azurerm_container_app_environment`
+
+* The `logs_destination` property is no longer Computed and now must be set to `log-analytics` to be able to specify a value for `log_analytics_workspace_id`. It will now default to empty, meaning Streaming Only in the Azure Portal.
+
+### `azurerm_eventhub`
+
+* The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
+* The deprecated `resource_group_name` property has been removed in favour of the `namespace_id` property.
+
+### `azurerm_eventhub_namespace`
+
+* The `minimum_tls_version` property no longer accepts `1.0` and `1.1` as a value.
+
+### `azurerm_express_route_connection`
+
+* The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
+
+### `azurerm_linux_function_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_function_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_web_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_web_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_logic_app_standard`
+
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+* The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_monitor_aad_diagnostic_setting`
+
+* The deprecated `enabled_log.retention_policy` block has been removed.
+
+### `azurerm_mssql_database`
+
+* The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
+
+### `azurerm_mssql_managed_database`
+
+* The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
+
+### `azurerm_mssql_managed_instance`
+
+* The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_mssql_server`
+
+* The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
+
+## `azurerm_network_watcher_flow_log`
+
+* The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
+
+### `azurerm_nginx_deployment`
+
+* The deprecated `logging_storage_account` block has been removed in favour of the `azurerm_monitor_diagnostic_setting` resource.
+* The deprecated `managed_resource_group` property has been removed.
+
+### `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack`
+
+* The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama`
+
+* The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack`
+
+* The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama`
+
+* The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_redis_cache`
+
+* The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_redis_enterprise_cluster`
+
+* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_sentinel_alert_rule_fusion`
+
+* The deprecated `name` property has been removed.
+
+### `azurerm_servicebus_namespace`
+
+* The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_storage_account`
+
+* The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
+* The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
+* The property `minimum_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
+
+### `azurerm_storage_container`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
+### `azurerm_storage_share`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
+### `azurerm_mssql_virtual_machine`
+
+* The deprecated `auto_backup.encryption_enabled` property has been removed.
+
+### `azurerm_windows_function_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_function_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_web_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_web_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+## Breaking Changes in Data Sources
+
+Please follow the format in the example below for listing breaking changes in data sources:
+
+```markdown
+### `azurerm_example_resource`
+
+* The deprecated `example_old_property` property has been removed in favour of the `example_new_property` property.
+* The deprecated `example_property_with_no_replacement` property has been removed.
+```
+
+### `azurerm_container_app`
+
+* The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
+* The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
+
+### `azurerm_logic_app_standard`
+
+* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+### `azurerm_nginx_configuration`
+
+* The deprecated `protected_file.content` property has been removed.
+
+### `azurerm_nginx_deployment`
+
+* The deprecated `logging_storage_account` block has been removed.
+* The deprecated `managed_resource_group` property has been removed.
+
+### `azurerm_servicebus_namespace_disaster_recovery_config`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+
+### `azurerm_servicebus_queue`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+* The deprecated `enable_express` property has been removed in favour of the `express_enabled` property.
+* The deprecated `enable_partitioning` property has been removed in favour of the `partitioning_enabled` property.
+
+### `azurerm_servicebus_subscription`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+* The deprecated `topic_name` property has been removed.
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+
+### `azurerm_storage_container`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
+### `azurerm_storage_share`
+
+* The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
+* The deprecated `resource_manager_id` property has been removed in favour of the `id` property.

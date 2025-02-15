@@ -50,7 +50,6 @@ func (c SourceControlClient) CreateOrUpdate(ctx context.Context, id SourceContro
 
 	var model SourceControl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

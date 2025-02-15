@@ -46,7 +46,6 @@ func (c EventSubscriptionsClient) DomainEventSubscriptionsGetDeliveryAttributes(
 
 	var model DeliveryAttributeListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

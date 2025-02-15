@@ -13,6 +13,14 @@ var _ ApplyRecoveryPointProviderSpecificInput = A2ACrossClusterMigrationApplyRec
 type A2ACrossClusterMigrationApplyRecoveryPointInput struct {
 
 	// Fields inherited from ApplyRecoveryPointProviderSpecificInput
+
+	InstanceType string `json:"instanceType"`
+}
+
+func (s A2ACrossClusterMigrationApplyRecoveryPointInput) ApplyRecoveryPointProviderSpecificInput() BaseApplyRecoveryPointProviderSpecificInputImpl {
+	return BaseApplyRecoveryPointProviderSpecificInputImpl{
+		InstanceType: s.InstanceType,
+	}
 }
 
 var _ json.Marshaler = A2ACrossClusterMigrationApplyRecoveryPointInput{}
@@ -26,9 +34,10 @@ func (s A2ACrossClusterMigrationApplyRecoveryPointInput) MarshalJSON() ([]byte, 
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling A2ACrossClusterMigrationApplyRecoveryPointInput: %+v", err)
 	}
+
 	decoded["instanceType"] = "A2ACrossClusterMigration"
 
 	encoded, err = json.Marshal(decoded)

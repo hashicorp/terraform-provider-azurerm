@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -110,8 +110,7 @@ func (r SentinelAlertRuleMLBehaviorAnalyticsResource) Exists(ctx context.Context
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.MLBehaviorAnalyticsAlertRule)
+		rule, ok := model.(alertrules.MLBehaviorAnalyticsAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}

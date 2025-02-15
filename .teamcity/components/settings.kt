@@ -39,6 +39,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // App Service Plans for Linux are currently unavailable in WestUS2
         "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
 
+        // Arc Kubernetes Provisioned Cluster is only available in certain locations
+        "arckubernetes" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
+
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
 
@@ -66,7 +69,7 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Container App Managed Environments are limited to 20 per location, using 10 as they can take some time to clear
         // Enable rotation test to mitigate resource burden in a single region
-        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","northcentralus", true)),
+        "containerapps" to testConfiguration(parallelism = 10, locationOverride = LocationConfiguration("eastus2","westus2","southcentralus", true)),
 
         // The AKS API has a low rate limit
         "containers" to testConfiguration(parallelism = 5, locationOverride = LocationConfiguration("eastus","westeurope","eastus2", false), timeout = 18),
@@ -102,7 +105,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "iotcentral" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // IoT Hub Device Update is only available in certain locations
-        "iothub" to testConfiguration(locationOverride = LocationConfiguration("northeurope", "eastus2", "westus2", false)),
+        "iothub" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false)),
 
         // Lab Service is only available in certain locations
         "labservice" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
@@ -124,6 +127,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // MobileNetwork is only available in certain locations
         "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false)),
+
+        // Mongocluster free tier is currently only available in southindia
+        "mongocluster" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "southindia", false)),
 
         // MSSQl uses app service which is only available in certain locations
         "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),

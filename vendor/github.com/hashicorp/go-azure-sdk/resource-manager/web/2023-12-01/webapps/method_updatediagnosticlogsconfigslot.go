@@ -50,7 +50,6 @@ func (c WebAppsClient) UpdateDiagnosticLogsConfigSlot(ctx context.Context, id Sl
 
 	var model SiteLogsConfig
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

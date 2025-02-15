@@ -18,7 +18,7 @@ type CreateOrUpdateDomainOwnershipIdentifierOperationResponse struct {
 }
 
 // CreateOrUpdateDomainOwnershipIdentifier ...
-func (c WebAppsClient) CreateOrUpdateDomainOwnershipIdentifier(ctx context.Context, id DomainOwnershipIdentifierId, input Identifier) (result CreateOrUpdateDomainOwnershipIdentifierOperationResponse, err error) {
+func (c WebAppsClient) CreateOrUpdateDomainOwnershipIdentifier(ctx context.Context, id SiteDomainOwnershipIdentifierId, input Identifier) (result CreateOrUpdateDomainOwnershipIdentifierOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -49,7 +49,6 @@ func (c WebAppsClient) CreateOrUpdateDomainOwnershipIdentifier(ctx context.Conte
 
 	var model Identifier
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

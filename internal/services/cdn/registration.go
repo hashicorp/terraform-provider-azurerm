@@ -4,7 +4,6 @@
 package cdn
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -67,10 +66,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_cdn_frontdoor_rule_set":                  resourceCdnFrontDoorRuleSet(),
 		"azurerm_cdn_frontdoor_secret":                    resourceCdnFrontDoorSecret(),
 		"azurerm_cdn_frontdoor_security_policy":           resourceCdnFrontDoorSecurityPolicy(),
-	}
-
-	if !features.FourPointOhBeta() {
-		resources["azurerm_cdn_frontdoor_route_disable_link_to_default_domain"] = resourceCdnFrontDoorRouteDisableLinkToDefaultDomain()
 	}
 
 	return resources

@@ -27,7 +27,6 @@ func TestCertificateVersionlessID(t *testing.T) {
 		Error    bool
 		Expected *CertificateVersionlessId
 	}{
-
 		{
 			// empty
 			Input: "",

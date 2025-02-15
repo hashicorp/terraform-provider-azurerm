@@ -45,7 +45,6 @@ func (c WebAppsClient) GetSiteExtension(ctx context.Context, id SiteExtensionId)
 
 	var model SiteExtensionInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -45,7 +45,6 @@ func (c ComponentsAPIsClient) ComponentsGetPurgeStatus(ctx context.Context, id O
 
 	var model ComponentPurgeStatusResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

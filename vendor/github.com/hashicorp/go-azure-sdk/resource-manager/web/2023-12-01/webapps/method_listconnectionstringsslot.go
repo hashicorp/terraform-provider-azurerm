@@ -46,7 +46,6 @@ func (c WebAppsClient) ListConnectionStringsSlot(ctx context.Context, id SlotId)
 
 	var model ConnectionStringDictionary
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

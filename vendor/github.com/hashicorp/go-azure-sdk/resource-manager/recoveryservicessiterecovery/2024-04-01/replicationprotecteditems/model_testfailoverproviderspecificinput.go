@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type TestFailoverProviderSpecificInput interface {
+	TestFailoverProviderSpecificInput() BaseTestFailoverProviderSpecificInputImpl
 }
 
-// RawTestFailoverProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ TestFailoverProviderSpecificInput = BaseTestFailoverProviderSpecificInputImpl{}
+
+type BaseTestFailoverProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseTestFailoverProviderSpecificInputImpl) TestFailoverProviderSpecificInput() BaseTestFailoverProviderSpecificInputImpl {
+	return s
+}
+
+var _ TestFailoverProviderSpecificInput = RawTestFailoverProviderSpecificInputImpl{}
+
+// RawTestFailoverProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawTestFailoverProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	testFailoverProviderSpecificInput BaseTestFailoverProviderSpecificInputImpl
+	Type                              string
+	Values                            map[string]interface{}
 }
 
-func unmarshalTestFailoverProviderSpecificInputImplementation(input []byte) (TestFailoverProviderSpecificInput, error) {
+func (s RawTestFailoverProviderSpecificInputImpl) TestFailoverProviderSpecificInput() BaseTestFailoverProviderSpecificInputImpl {
+	return s.testFailoverProviderSpecificInput
+}
+
+func UnmarshalTestFailoverProviderSpecificInputImplementation(input []byte) (TestFailoverProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalTestFailoverProviderSpecificInputImplementation(input []byte) (Tes
 		return nil, fmt.Errorf("unmarshaling TestFailoverProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -76,10 +93,15 @@ func unmarshalTestFailoverProviderSpecificInputImplementation(input []byte) (Tes
 		return out, nil
 	}
 
-	out := RawTestFailoverProviderSpecificInputImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseTestFailoverProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseTestFailoverProviderSpecificInputImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawTestFailoverProviderSpecificInputImpl{
+		testFailoverProviderSpecificInput: parent,
+		Type:                              value,
+		Values:                            temp,
+	}, nil
 
 }

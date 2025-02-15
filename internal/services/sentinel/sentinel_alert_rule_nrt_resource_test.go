@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -141,8 +141,7 @@ func (t SentinelAlertRuleNrtResource) Exists(ctx context.Context, clients *clien
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.NrtAlertRule)
+		rule, ok := model.(alertrules.NrtAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}

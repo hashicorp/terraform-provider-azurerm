@@ -50,7 +50,6 @@ func (c WebAppsClient) UpdateScmAllowedSlot(ctx context.Context, id SlotId, inpu
 
 	var model CsmPublishingCredentialsPoliciesEntity
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

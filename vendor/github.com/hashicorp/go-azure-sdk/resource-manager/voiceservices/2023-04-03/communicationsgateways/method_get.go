@@ -45,7 +45,6 @@ func (c CommunicationsGatewaysClient) Get(ctx context.Context, id Communications
 
 	var model CommunicationsGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

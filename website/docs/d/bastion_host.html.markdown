@@ -56,9 +56,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tunneling_enabled` - Is Tunneling feature enabled for the Bastion Host.
 
+* `session_recording_enabled` - Is Session Recording feature enabled for the Bastion Host.
+
 * `dns_name` - The FQDN for the Bastion Host.
 
 * `tags` - A mapping of tags assigned to the Bastion Host.
+
+* `zones` - A list of Availability Zones in which this Bastion Host is located.
 
 ---
 

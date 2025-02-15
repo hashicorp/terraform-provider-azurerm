@@ -10,18 +10,39 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DataConnection interface {
+	DataConnection() BaseDataConnectionImpl
 }
 
-// RawDataConnectionImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ DataConnection = BaseDataConnectionImpl{}
+
+type BaseDataConnectionImpl struct {
+	Id       *string            `json:"id,omitempty"`
+	Kind     DataConnectionKind `json:"kind"`
+	Location *string            `json:"location,omitempty"`
+	Name     *string            `json:"name,omitempty"`
+	Type     *string            `json:"type,omitempty"`
+}
+
+func (s BaseDataConnectionImpl) DataConnection() BaseDataConnectionImpl {
+	return s
+}
+
+var _ DataConnection = RawDataConnectionImpl{}
+
+// RawDataConnectionImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDataConnectionImpl struct {
-	Type   string
-	Values map[string]interface{}
+	dataConnection BaseDataConnectionImpl
+	Type           string
+	Values         map[string]interface{}
 }
 
-func unmarshalDataConnectionImplementation(input []byte) (DataConnection, error) {
+func (s RawDataConnectionImpl) DataConnection() BaseDataConnectionImpl {
+	return s.dataConnection
+}
+
+func UnmarshalDataConnectionImplementation(input []byte) (DataConnection, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +52,9 @@ func unmarshalDataConnectionImplementation(input []byte) (DataConnection, error)
 		return nil, fmt.Errorf("unmarshaling DataConnection into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "CosmosDb") {
@@ -68,10 +89,15 @@ func unmarshalDataConnectionImplementation(input []byte) (DataConnection, error)
 		return out, nil
 	}
 
-	out := RawDataConnectionImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDataConnectionImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDataConnectionImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDataConnectionImpl{
+		dataConnection: parent,
+		Type:           value,
+		Values:         temp,
+	}, nil
 
 }

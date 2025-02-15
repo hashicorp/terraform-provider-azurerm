@@ -16,10 +16,11 @@ type Branch struct {
 var _ json.Unmarshaler = &Branch{}
 
 func (s *Branch) UnmarshalJSON(bytes []byte) error {
-	type alias Branch
-	var decoded alias
+	var decoded struct {
+		Name string `json:"name"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into Branch: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Name = decoded.Name
@@ -37,7 +38,7 @@ func (s *Branch) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]Action, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalActionImplementation(val)
+			impl, err := UnmarshalActionImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Actions' for 'Branch': %+v", i, err)
 			}
@@ -45,5 +46,6 @@ func (s *Branch) UnmarshalJSON(bytes []byte) error {
 		}
 		s.Actions = output
 	}
+
 	return nil
 }

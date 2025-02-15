@@ -47,7 +47,6 @@ func (c WebAppsClient) GetOneDeployStatus(ctx context.Context, id commonids.AppS
 
 	var model interface{}
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

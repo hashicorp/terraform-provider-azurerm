@@ -71,7 +71,9 @@ The following arguments are supported:
 
 * `partition_key_kind` - (Optional) Define a partition key kind. Possible values are `Hash` and `MultiHash`. Defaults to `Hash`. Changing this forces a new resource to be created.
 
-* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
+* `partition_key_version` - (Optional) Define a partition key version. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
+
+-> **Note:** If `partition_key_version` is not specified when creating a new resource, you can update `partition_key_version` to `1`, updating to `2` forces a new resource to be created.
 
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 

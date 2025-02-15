@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobcontainers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 type storageContainersDataSource struct{}
@@ -140,7 +140,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 }
 
 func flattenStorageContainersContainers(l []blobcontainers.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
-	var output []containerModel
+	output := make([]containerModel, 0, len(l))
 	for _, item := range l {
 		var name string
 		if item.Name != nil {

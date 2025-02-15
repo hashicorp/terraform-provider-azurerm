@@ -34,6 +34,7 @@ func (o GetOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c NetworkSecurityGroupsClient) Get(ctx context.Context, id NetworkSecurity
 
 	var model NetworkSecurityGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

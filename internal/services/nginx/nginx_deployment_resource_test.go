@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-06-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -41,6 +41,7 @@ func TestAccNginxDeployment_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("capacity").HasValue("10"),
 				check.That(data.ResourceName).Key("email").HasValue("test@test.com"),
+				check.That(data.ResourceName).Key("dataplane_api_endpoint").Exists(),
 			),
 		},
 		data.ImportStep(),

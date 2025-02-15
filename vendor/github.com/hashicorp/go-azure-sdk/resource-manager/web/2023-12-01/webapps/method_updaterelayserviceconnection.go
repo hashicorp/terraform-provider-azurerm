@@ -49,7 +49,6 @@ func (c WebAppsClient) UpdateRelayServiceConnection(ctx context.Context, id Hybr
 
 	var model RelayServiceConnectionEntity
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -39,6 +39,7 @@ func (r VMWareReplicationPolicyResource) ModelObject() interface{} {
 func (r VMWareReplicationPolicyResource) ResourceType() string {
 	return "azurerm_site_recovery_vmware_replication_policy"
 }
+
 func (r VMWareReplicationPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return validate.ReplicationPolicyID
 }
@@ -222,7 +223,6 @@ func (r VMWareReplicationPolicyResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-
 }
 
 func (r VMWareReplicationPolicyResource) Delete() sdk.ResourceFunc {

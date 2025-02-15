@@ -41,6 +41,7 @@ func (o ListAdvancedSecurityObjectsOperationOptions) ToHeaders() *client.Headers
 
 func (o ListAdvancedSecurityObjectsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

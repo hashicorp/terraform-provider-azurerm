@@ -51,7 +51,6 @@ func (c WebAppsClient) UpdateConnectionStrings(ctx context.Context, id commonids
 
 	var model ConnectionStringDictionary
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

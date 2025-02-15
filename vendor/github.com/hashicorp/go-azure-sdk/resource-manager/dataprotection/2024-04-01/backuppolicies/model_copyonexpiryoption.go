@@ -13,6 +13,14 @@ var _ CopyOption = CopyOnExpiryOption{}
 type CopyOnExpiryOption struct {
 
 	// Fields inherited from CopyOption
+
+	ObjectType string `json:"objectType"`
+}
+
+func (s CopyOnExpiryOption) CopyOption() BaseCopyOptionImpl {
+	return BaseCopyOptionImpl{
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = CopyOnExpiryOption{}
@@ -26,9 +34,10 @@ func (s CopyOnExpiryOption) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling CopyOnExpiryOption: %+v", err)
 	}
+
 	decoded["objectType"] = "CopyOnExpiryOption"
 
 	encoded, err = json.Marshal(decoded)

@@ -18,7 +18,6 @@ import (
 
 func dataSourceSiteRecoveryReplicationPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-
 		Read: dataSourceSiteRecoveryReplicationPolicyRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{

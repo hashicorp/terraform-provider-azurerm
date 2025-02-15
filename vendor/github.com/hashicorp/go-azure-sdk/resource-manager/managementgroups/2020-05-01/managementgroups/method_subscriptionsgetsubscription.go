@@ -36,6 +36,7 @@ func (o SubscriptionsGetSubscriptionOperationOptions) ToHeaders() *client.Header
 
 func (o SubscriptionsGetSubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c ManagementGroupsClient) SubscriptionsGetSubscription(ctx context.Context
 
 	var model SubscriptionUnderManagementGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

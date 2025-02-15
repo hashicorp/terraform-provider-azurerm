@@ -51,7 +51,6 @@ func (c ManagementGroupsClient) HierarchySettingsCreateOrUpdate(ctx context.Cont
 
 	var model HierarchySettings
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

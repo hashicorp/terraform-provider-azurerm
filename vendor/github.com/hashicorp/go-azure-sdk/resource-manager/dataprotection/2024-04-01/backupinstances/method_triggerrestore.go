@@ -39,6 +39,7 @@ func (o TriggerRestoreOperationOptions) ToHeaders() *client.Headers {
 
 func (o TriggerRestoreOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

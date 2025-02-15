@@ -38,7 +38,7 @@ func ParseGlobalRulestackID(input string) (*GlobalRulestackId, error) {
 	}
 
 	id := GlobalRulestackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseGlobalRulestackIDInsensitively(input string) (*GlobalRulestackId, erro
 	}
 
 	id := GlobalRulestackId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id GlobalRulestackId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
 		resourceids.StaticSegment("staticGlobalRulestacks", "globalRulestacks", "globalRulestacks"),
-		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackValue"),
+		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackName"),
 	}
 }
 

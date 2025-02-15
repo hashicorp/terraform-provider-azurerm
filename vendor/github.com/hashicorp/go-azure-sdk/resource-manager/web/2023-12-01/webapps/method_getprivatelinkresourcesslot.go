@@ -46,7 +46,6 @@ func (c WebAppsClient) GetPrivateLinkResourcesSlot(ctx context.Context, id SlotI
 
 	var model PrivateLinkResourcesWrapper
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

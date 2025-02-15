@@ -15,7 +15,7 @@ type WebAppsClient struct {
 }
 
 func NewWebAppsClientWithBaseURI(sdkApi sdkEnv.Api) (*WebAppsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "webapps", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "webapps", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WebAppsClient: %+v", err)
 	}

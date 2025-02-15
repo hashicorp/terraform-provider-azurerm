@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory"
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory"
 )
 
 // TODO4.0: check if the workaround could be removed.

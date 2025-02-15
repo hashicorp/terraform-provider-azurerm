@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -68,24 +68,23 @@ func TestAccContainerAppResource_smallerGranularityCPUMemoryCombinations(t *test
 func TestAccContainerAppResource_workloadProfileUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.withMultipleWorkloadProfiles(data, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.withWorkloadProfile(data),
+			Config: r.withMultipleWorkloadProfiles(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.withMultipleWorkloadProfiles(data, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -573,6 +572,28 @@ func TestAccContainerAppResource_ingressTrafficValidation(t *testing.T) {
 			Config:      r.ingressTrafficValidation(data, r.latestRevisionFalseRevisionSuffixEmpty()),
 			ExpectError: regexp.MustCompile("`either ingress.0.traffic_weight.0.revision_suffix` or `ingress.0.traffic_weight.0.latest_revision` should be specified"),
 		},
+	})
+}
+
+func TestAccContainerAppResource_maxInactiveRevisionsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.maxInactiveRevisionsChange(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1304,6 +1325,7 @@ resource "azurerm_container_app" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
+  max_inactive_revisions       = 25
 
   template {
     container {
@@ -1339,8 +1361,9 @@ resource "azurerm_container_app" "test" {
       }
 
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/tmp/testdata"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/tmp/testdata"
+        sub_path = "subdirectory"
       }
     }
 
@@ -1350,8 +1373,9 @@ resource "azurerm_container_app" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/tmp/testdata"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/tmp/testdata"
+        sub_path = "subdirectory"
       }
     }
 
@@ -1365,6 +1389,8 @@ resource "azurerm_container_app" "test" {
     max_replicas = 3
 
     revision_suffix = "%[3]s"
+
+    termination_grace_period_seconds = 60
   }
 
   ingress {
@@ -1372,6 +1398,7 @@ resource "azurerm_container_app" "test" {
     external_enabled           = true
     target_port                = 5000
     transport                  = "http"
+    client_certificate_mode    = "accept"
     traffic_weight {
       latest_revision = true
       percentage      = 100
@@ -1445,6 +1472,50 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.templateWorkloadProfile(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) withMultipleWorkloadProfiles(data acceptance.TestData, workloadProfileIndex int) string {
+	return fmt.Sprintf(`
+%s
+
+locals {
+  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
+}
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  workload_profile_name = local.workload_profiles.%[3]d.name
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    allow_insecure_connections = true
+    external_enabled           = true
+    target_port                = 5000
+    transport                  = "http"
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+
+  tags = {
+    foo     = "Bar"
+    accTest = "1"
+  }
+}
+`, r.templateMultipleWorkloadProfiles(data), data.RandomInteger, workloadProfileIndex)
 }
 
 func (r ContainerAppResource) withSmallerGranularityCPUMemoryCombinations(data acceptance.TestData) string {
@@ -2112,6 +2183,7 @@ resource "azurerm_container_app" "test" {
     external_enabled           = true
     target_port                = 5000
     transport                  = "auto"
+    client_certificate_mode    = "ignore"
 
     traffic_weight {
       latest_revision = true
@@ -2176,6 +2248,7 @@ resource "azurerm_container_app" "test" {
         transport               = "HTTP"
         port                    = 5000
         path                    = "/uptime"
+        initial_delay           = 5
         timeout                 = 2
         failure_count_threshold = 1
         success_count_threshold = 1
@@ -2204,6 +2277,7 @@ resource "azurerm_container_app" "test" {
       startup_probe {
         transport               = "TCP"
         port                    = 5000
+        initial_delay           = 5
         timeout                 = 5
         failure_count_threshold = 1
       }
@@ -2633,6 +2707,10 @@ func (ContainerAppResource) templateWorkloadProfile(data acceptance.TestData) st
 	return ContainerAppEnvironmentResource{}.complete(data)
 }
 
+func (ContainerAppResource) templateMultipleWorkloadProfiles(data acceptance.TestData) string {
+	return ContainerAppEnvironmentResource{}.completeMultipleWorkloadProfiles(data)
+}
+
 func (ContainerAppResource) templateWithVnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -2831,4 +2909,27 @@ traffic_weight {
   percentage = 100
 }
 `
+}
+
+func (r ContainerAppResource) maxInactiveRevisionsChange(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+  max_inactive_revisions       = 50
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

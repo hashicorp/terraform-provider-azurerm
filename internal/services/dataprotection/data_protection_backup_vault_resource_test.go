@@ -38,7 +38,14 @@ func TestAccDataProtectionBackupVault_crossRegionRestore(t *testing.T) {
 	r := DataProtectionBackupVaultResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.crossRegionRestore(data),
+			Config: r.crossRegionRestore(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.crossRegionRestore(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -192,7 +199,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupVaultResource) crossRegionRestore(data acceptance.TestData) string {
+func (r DataProtectionBackupVaultResource) crossRegionRestore(data acceptance.TestData, enabled bool) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -203,9 +210,9 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location                     = azurerm_resource_group.test.location
   datastore_type               = "VaultStore"
   redundancy                   = "GeoRedundant"
-  cross_region_restore_enabled = true
+  cross_region_restore_enabled = %t
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, enabled)
 }
 
 func (r DataProtectionBackupVaultResource) requiresImport(data acceptance.TestData) string {
@@ -234,11 +241,15 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
   identity {
     type = "SystemAssigned"
   }
+
+  immutability               = "Disabled"
   soft_delete                = "Off"
   retention_duration_in_days = 14
+
   tags = {
     ENV = "Test"
   }
@@ -257,11 +268,15 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
   identity {
     type = "SystemAssigned"
   }
+
+  immutability               = "Locked"
   soft_delete                = "On"
   retention_duration_in_days = 15
+
   tags = {
     ENV = "Test"
   }
@@ -280,6 +295,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
   tags = {
     ENV = "Test"
   }

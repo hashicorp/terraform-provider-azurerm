@@ -14,6 +14,14 @@ type RawOutputDatasource struct {
 	Properties *RawOutputDatasourceProperties `json:"properties,omitempty"`
 
 	// Fields inherited from OutputDataSource
+
+	Type string `json:"type"`
+}
+
+func (s RawOutputDatasource) OutputDataSource() BaseOutputDataSourceImpl {
+	return BaseOutputDataSourceImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = RawOutputDatasource{}
@@ -27,9 +35,10 @@ func (s RawOutputDatasource) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RawOutputDatasource: %+v", err)
 	}
+
 	decoded["type"] = "Raw"
 
 	encoded, err = json.Marshal(decoded)

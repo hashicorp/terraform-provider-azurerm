@@ -45,7 +45,6 @@ func (c JobsClient) JobExecution(ctx context.Context, id ExecutionId) (result Jo
 
 	var model JobExecution
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

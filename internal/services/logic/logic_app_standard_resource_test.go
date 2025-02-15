@@ -9,13 +9,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogicAppStandardResource struct{}
@@ -30,15 +31,74 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				acceptance.TestCheckResourceAttr(data.ResourceName, "kind", "functionapp,workflowapp"),
-				func() pluginsdk.TestCheckFunc {
-					if features.FourPointOhBeta() {
-						return check.That(data.ResourceName).Key("version").HasValue("~4")
-					}
-					return check.That(data.ResourceName).Key("version").HasValue("~3")
-				}(),
+				check.That(data.ResourceName).Key("version").HasValue("~4"),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_publishBasicAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicAuth(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicAuth(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_publicNetworkAccessDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.publicNetworkAccess(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("public_network_access").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -928,12 +988,15 @@ func TestAccLogicAppStandard_vNetIntegrationUpdate(t *testing.T) {
 }
 
 func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping since `site_config.public_network_access_enabled` is removed in v5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccessEnabled(data, false),
+			Config: r.siteConfigPublicNetworkAccessEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("false"),
@@ -941,7 +1004,7 @@ func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.publicNetworkAccessEnabled(data, true),
+			Config: r.siteConfigPublicNetworkAccessEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.public_network_access_enabled").HasValue("true"),
@@ -952,25 +1015,17 @@ func TestAccLogicAppStandard_publicNetworkAccessEnabled(t *testing.T) {
 }
 
 func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.LogicAppStandardID(state.ID)
+	id, err := commonids.ParseLogicAppId(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// The SDK defines 404 as an "ok" status code..
-	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
@@ -1002,10 +1057,6 @@ func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool)
 
 func (r LogicAppStandardResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1019,12 +1070,42 @@ resource "azurerm_logic_app_standard" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LogicAppStandardResource) containerized(data acceptance.TestData) string {
+func (r LogicAppStandardResource) basicAuth(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  ftp_publish_basic_authentication_enabled = %[3]t
+  scm_publish_basic_authentication_enabled = %[3]t
+}
+`, r.template(data), data.RandomInteger, enabled)
 }
 
+func (r LogicAppStandardResource) publicNetworkAccess(data acceptance.TestData, status string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  public_network_access      = "%s"
+}
+`, r.template(data), data.RandomInteger, status)
+}
+
+func (r LogicAppStandardResource) containerized(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1044,10 +1125,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) extensionBundle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1065,10 +1142,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) siteConfigVnetRouteAllEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1087,9 +1160,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) appSettingsVnetRouteAllEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1107,7 +1177,6 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 func (r LogicAppStandardResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1119,15 +1188,11 @@ resource "azurerm_logic_app_standard" "import" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
-`, template)
+`, r.basic(data))
 }
 
 func (r LogicAppStandardResource) tags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1148,11 +1213,8 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) tagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
+
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
@@ -1171,10 +1233,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) version(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1195,10 +1253,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) appSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1220,16 +1274,12 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) customShare(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_storage_share" "custom" {
-  name                 = "customshare"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "customshare"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1251,11 +1301,8 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) siteConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
+
 resource "azurerm_logic_app_standard" "test" {
   name                       = "acctest-%d-func"
   location                   = azurerm_resource_group.test.location
@@ -1285,10 +1332,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) healthCheck(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1308,10 +1351,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) connectionStrings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1333,10 +1372,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) app64bit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1356,10 +1391,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) httpsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1376,10 +1407,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) basicIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1399,10 +1426,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -1432,10 +1455,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) corsSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1464,10 +1483,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) enableHttp2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1487,10 +1502,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) minTlsVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1510,10 +1521,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) ftpsState(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1533,10 +1540,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) preWarmedInstanceCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1556,10 +1559,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) computedPreWarmedInstanceCount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1575,10 +1574,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) oneIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1600,10 +1595,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) oneServiceTagIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1625,10 +1616,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) oneVNetSubnetIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_virtual_network" "test" {
@@ -1664,10 +1651,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) manyIpRestrictions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1701,10 +1684,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) ipRestrictionRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1724,10 +1703,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) scmType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1747,10 +1722,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) scmUseMainIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1773,10 +1744,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) scmIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1798,10 +1765,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) unsetScmIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1821,10 +1784,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) scmMinTlsVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1844,10 +1803,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) updateStorageAccountKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1863,10 +1818,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) clientCertMode(data acceptance.TestData, modeValue string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1883,10 +1834,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) elasticInstanceMinimum(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1906,10 +1853,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) appScaleLimit(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1929,10 +1872,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) runtimeScaleMonitoringEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1954,10 +1893,6 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (r LogicAppStandardResource) dotnetVersion(data acceptance.TestData, functionVersion string, version string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {
@@ -1979,6 +1914,9 @@ resource "azurerm_logic_app_standard" "test" {
 
 func (LogicAppStandardResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2009,6 +1947,9 @@ resource "azurerm_app_service_plan" "test" {
 
 func (LogicAppStandardResource) templateLinux(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2040,7 +1981,9 @@ resource "azurerm_app_service_plan" "test" {
 
 func (LogicAppStandardResource) vNetIntegration_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2116,12 +2059,16 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (LogicAppStandardResource) vNetIntegration_subnet1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2198,12 +2145,16 @@ resource "azurerm_logic_app_standard" "test" {
 }
 
 
+
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (LogicAppStandardResource) vNetIntegration_subnet2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2283,12 +2234,8 @@ resource "azurerm_logic_app_standard" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r LogicAppStandardResource) publicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
+func (r LogicAppStandardResource) siteConfigPublicNetworkAccessEnabled(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_logic_app_standard" "test" {

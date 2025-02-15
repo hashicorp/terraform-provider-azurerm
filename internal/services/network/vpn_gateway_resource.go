@@ -13,11 +13,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -28,7 +27,7 @@ import (
 var VPNGatewayResourceName = "azurerm_vpn_gateway"
 
 func resourceVPNGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceVPNGatewayCreate,
 		Read:   resourceVPNGatewayRead,
 		Update: resourceVPNGatewayUpdate,
@@ -198,21 +197,6 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["routing_preference"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Microsoft Network",
-				"Internet",
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -267,7 +251,6 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		props := resp.Model.Properties
 
 		if props.BgpSettings != nil && props.BgpSettings.BgpPeeringAddresses != nil {
-
 			val := bgpSettingsRaw[0].(map[string]interface{})
 			input0 := val["instance_0_bgp_peering_address"].([]interface{})
 			input1 := val["instance_1_bgp_peering_address"].([]interface{})

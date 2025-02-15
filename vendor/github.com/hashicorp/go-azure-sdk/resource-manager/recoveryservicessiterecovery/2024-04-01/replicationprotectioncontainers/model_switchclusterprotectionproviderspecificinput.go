@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SwitchClusterProtectionProviderSpecificInput interface {
+	SwitchClusterProtectionProviderSpecificInput() BaseSwitchClusterProtectionProviderSpecificInputImpl
 }
 
-// RawSwitchClusterProtectionProviderSpecificInputImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ SwitchClusterProtectionProviderSpecificInput = BaseSwitchClusterProtectionProviderSpecificInputImpl{}
+
+type BaseSwitchClusterProtectionProviderSpecificInputImpl struct {
+	InstanceType string `json:"instanceType"`
+}
+
+func (s BaseSwitchClusterProtectionProviderSpecificInputImpl) SwitchClusterProtectionProviderSpecificInput() BaseSwitchClusterProtectionProviderSpecificInputImpl {
+	return s
+}
+
+var _ SwitchClusterProtectionProviderSpecificInput = RawSwitchClusterProtectionProviderSpecificInputImpl{}
+
+// RawSwitchClusterProtectionProviderSpecificInputImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawSwitchClusterProtectionProviderSpecificInputImpl struct {
-	Type   string
-	Values map[string]interface{}
+	switchClusterProtectionProviderSpecificInput BaseSwitchClusterProtectionProviderSpecificInputImpl
+	Type                                         string
+	Values                                       map[string]interface{}
 }
 
-func unmarshalSwitchClusterProtectionProviderSpecificInputImplementation(input []byte) (SwitchClusterProtectionProviderSpecificInput, error) {
+func (s RawSwitchClusterProtectionProviderSpecificInputImpl) SwitchClusterProtectionProviderSpecificInput() BaseSwitchClusterProtectionProviderSpecificInputImpl {
+	return s.switchClusterProtectionProviderSpecificInput
+}
+
+func UnmarshalSwitchClusterProtectionProviderSpecificInputImplementation(input []byte) (SwitchClusterProtectionProviderSpecificInput, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalSwitchClusterProtectionProviderSpecificInputImplementation(input [
 		return nil, fmt.Errorf("unmarshaling SwitchClusterProtectionProviderSpecificInput into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["instanceType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["instanceType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "A2A") {
@@ -44,10 +61,15 @@ func unmarshalSwitchClusterProtectionProviderSpecificInputImplementation(input [
 		return out, nil
 	}
 
-	out := RawSwitchClusterProtectionProviderSpecificInputImpl{
+	var parent BaseSwitchClusterProtectionProviderSpecificInputImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSwitchClusterProtectionProviderSpecificInputImpl: %+v", err)
+	}
+
+	return RawSwitchClusterProtectionProviderSpecificInputImpl{
+		switchClusterProtectionProviderSpecificInput: parent,
 		Type:   value,
 		Values: temp,
-	}
-	return out, nil
+	}, nil
 
 }

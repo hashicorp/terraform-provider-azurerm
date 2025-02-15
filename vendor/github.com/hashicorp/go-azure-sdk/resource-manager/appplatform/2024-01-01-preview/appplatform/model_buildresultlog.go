@@ -4,5 +4,5 @@ package appplatform
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BuildResultLog struct {
-	BlobUrl *string `json:"blobUrl,omitempty"`
+	BlobURL *string `json:"blobUrl,omitempty"`
 }

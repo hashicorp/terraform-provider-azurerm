@@ -45,7 +45,6 @@ func (c ConfigurationsClient) GetNode(ctx context.Context, id NodeConfigurationI
 
 	var model ServerConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

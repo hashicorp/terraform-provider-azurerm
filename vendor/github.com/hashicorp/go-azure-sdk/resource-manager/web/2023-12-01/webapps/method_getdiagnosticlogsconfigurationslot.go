@@ -46,7 +46,6 @@ func (c WebAppsClient) GetDiagnosticLogsConfigurationSlot(ctx context.Context, i
 
 	var model SiteLogsConfig
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

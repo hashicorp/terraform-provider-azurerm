@@ -51,7 +51,6 @@ func (c WebAppsClient) UpdateDiagnosticLogsConfig(ctx context.Context, id common
 
 	var model SiteLogsConfig
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

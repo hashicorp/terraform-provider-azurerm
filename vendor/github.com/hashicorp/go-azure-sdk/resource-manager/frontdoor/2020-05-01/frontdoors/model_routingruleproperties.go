@@ -22,10 +22,17 @@ type RoutingRuleProperties struct {
 var _ json.Unmarshaler = &RoutingRuleProperties{}
 
 func (s *RoutingRuleProperties) UnmarshalJSON(bytes []byte) error {
-	type alias RoutingRuleProperties
-	var decoded alias
+	var decoded struct {
+		AcceptedProtocols                *[]FrontDoorProtocol                                         `json:"acceptedProtocols,omitempty"`
+		EnabledState                     *RoutingRuleEnabledState                                     `json:"enabledState,omitempty"`
+		FrontendEndpoints                *[]SubResource                                               `json:"frontendEndpoints,omitempty"`
+		PatternsToMatch                  *[]string                                                    `json:"patternsToMatch,omitempty"`
+		ResourceState                    *FrontDoorResourceState                                      `json:"resourceState,omitempty"`
+		RulesEngine                      *SubResource                                                 `json:"rulesEngine,omitempty"`
+		WebApplicationFirewallPolicyLink *RoutingRuleUpdateParametersWebApplicationFirewallPolicyLink `json:"webApplicationFirewallPolicyLink,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into RoutingRuleProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.AcceptedProtocols = decoded.AcceptedProtocols
@@ -42,11 +49,12 @@ func (s *RoutingRuleProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["routeConfiguration"]; ok {
-		impl, err := unmarshalRouteConfigurationImplementation(v)
+		impl, err := UnmarshalRouteConfigurationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RouteConfiguration' for 'RoutingRuleProperties': %+v", err)
 		}
 		s.RouteConfiguration = impl
 	}
+
 	return nil
 }

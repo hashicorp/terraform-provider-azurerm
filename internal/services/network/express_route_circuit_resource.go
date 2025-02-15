@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -140,6 +140,12 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				ValidateFunc:  expressrouteports.ValidateExpressRoutePortID,
 			},
 
+			"rate_limiting_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"service_provider_provisioning_state": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -195,6 +201,10 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 
 	erc.Properties = &expressroutecircuits.ExpressRouteCircuitPropertiesFormat{
 		AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
+	}
+
+	if v, ok := d.GetOk("rate_limiting_enabled"); ok {
+		erc.Properties.EnableDirectPortRateLimit = pointer.To(v.(bool))
 	}
 
 	// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
@@ -267,7 +277,6 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s : %s", id, err)
-
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
@@ -293,6 +302,10 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("allow_classic_operations") {
 		payload.Properties.AllowClassicOperations = pointer.To(d.Get("allow_classic_operations").(bool))
+	}
+
+	if d.HasChange("rate_limiting_enabled") {
+		payload.Properties.EnableDirectPortRateLimit = pointer.To(d.Get("rate_limiting_enabled").(bool))
 	}
 
 	if d.HasChange("bandwidth_in_gbps") {
@@ -374,6 +387,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
 			d.Set("service_key", props.ServiceKey)
 			d.Set("allow_classic_operations", props.AllowClassicOperations)
+			d.Set("rate_limiting_enabled", props.EnableDirectPortRateLimit)
 
 			if serviceProviderProps := props.ServiceProviderProperties; serviceProviderProps != nil {
 				d.Set("service_provider_name", serviceProviderProps.ServiceProviderName)

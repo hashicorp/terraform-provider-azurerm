@@ -46,7 +46,6 @@ func (c ResourceGroupsClient) Get(ctx context.Context, id commonids.ResourceGrou
 
 	var model ResourceGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

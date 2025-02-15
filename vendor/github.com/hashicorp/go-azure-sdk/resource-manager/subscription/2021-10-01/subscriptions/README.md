@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions` Documentation
 
-The `subscriptions` SDK allows for interaction with the Azure Resource Manager Service `subscription` (API Version `2021-10-01`).
+The `subscriptions` SDK allows for interaction with Azure Resource Manager `subscription` (API Version `2021-10-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewAliasID("aliasValue")
+id := subscriptions.NewAliasID("aliasName")
 
 payload := subscriptions.PutAliasRequest{
 	// ...
@@ -42,7 +42,7 @@ if err := client.AliasCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewAliasID("aliasValue")
+id := subscriptions.NewAliasID("aliasName")
 
 read, err := client.AliasDelete(ctx, id)
 if err != nil {
@@ -58,7 +58,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewAliasID("aliasValue")
+id := subscriptions.NewAliasID("aliasName")
 
 read, err := client.AliasGet(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewBillingAccountID("billingAccountIdValue")
+id := subscriptions.NewBillingAccountID("billingAccountId")
 
 read, err := client.BillingAccountGetPolicy(ctx, id)
 if err != nil {
@@ -172,7 +172,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := subscriptions.NewSubscriptionOperationID("operationIdValue")
+id := subscriptions.NewSubscriptionOperationID("operationId")
 
 read, err := client.SubscriptionOperationGet(ctx, id)
 if err != nil {

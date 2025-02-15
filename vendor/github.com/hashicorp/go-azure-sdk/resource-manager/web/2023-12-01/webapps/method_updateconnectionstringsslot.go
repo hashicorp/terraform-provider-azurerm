@@ -50,7 +50,6 @@ func (c WebAppsClient) UpdateConnectionStringsSlot(ctx context.Context, id SlotI
 
 	var model ConnectionStringDictionary
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

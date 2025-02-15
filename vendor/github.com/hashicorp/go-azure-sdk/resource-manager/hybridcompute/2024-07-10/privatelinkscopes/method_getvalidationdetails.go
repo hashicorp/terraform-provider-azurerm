@@ -45,7 +45,6 @@ func (c PrivateLinkScopesClient) GetValidationDetails(ctx context.Context, id Pr
 
 	var model PrivateLinkScopeValidationDetails
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

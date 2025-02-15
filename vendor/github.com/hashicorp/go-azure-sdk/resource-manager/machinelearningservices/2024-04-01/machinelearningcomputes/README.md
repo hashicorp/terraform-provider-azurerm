@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes` Documentation
 
-The `machinelearningcomputes` SDK allows for interaction with the Azure Resource Manager Service `machinelearningservices` (API Version `2024-04-01`).
+The `machinelearningcomputes` SDK allows for interaction with Azure Resource Manager `machinelearningservices` (API Version `2024-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 payload := machinelearningcomputes.ComputeResource{
 	// ...
@@ -41,7 +41,7 @@ if err := client.ComputeCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 if err := client.ComputeDeleteThenPoll(ctx, id, machinelearningcomputes.DefaultComputeDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.ComputeDeleteThenPoll(ctx, id, machinelearningcomputes.DefaultC
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 read, err := client.ComputeGet(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := machinelearningcomputes.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 // alternatively `client.ComputeList(ctx, id, machinelearningcomputes.DefaultComputeListOperationOptions())` can be used to do batched pagination
 items, err := client.ComputeListComplete(ctx, id, machinelearningcomputes.DefaultComputeListOperationOptions())
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 read, err := client.ComputeListKeys(ctx, id)
 if err != nil {
@@ -102,7 +102,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 // alternatively `client.ComputeListNodes(ctx, id)` can be used to do batched pagination
 items, err := client.ComputeListNodesComplete(ctx, id)
@@ -119,7 +119,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 if err := client.ComputeRestartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -131,7 +131,7 @@ if err := client.ComputeRestartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 if err := client.ComputeStartThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -143,7 +143,7 @@ if err := client.ComputeStartThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 if err := client.ComputeStopThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -155,7 +155,7 @@ if err := client.ComputeStopThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "computeValue")
+id := machinelearningcomputes.NewComputeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "computeName")
 
 payload := machinelearningcomputes.ClusterUpdateParameters{
 	// ...

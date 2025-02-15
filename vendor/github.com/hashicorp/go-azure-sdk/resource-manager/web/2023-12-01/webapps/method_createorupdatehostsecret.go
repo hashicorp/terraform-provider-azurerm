@@ -50,7 +50,6 @@ func (c WebAppsClient) CreateOrUpdateHostSecret(ctx context.Context, id DefaultI
 
 	var model KeyInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

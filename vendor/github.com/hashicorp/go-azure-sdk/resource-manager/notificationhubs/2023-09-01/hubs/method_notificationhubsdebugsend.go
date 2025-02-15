@@ -46,7 +46,6 @@ func (c HubsClient) NotificationHubsDebugSend(ctx context.Context, id Notificati
 
 	var model DebugSendResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

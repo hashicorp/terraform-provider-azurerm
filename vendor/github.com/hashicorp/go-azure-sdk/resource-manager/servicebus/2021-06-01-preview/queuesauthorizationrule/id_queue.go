@@ -44,7 +44,7 @@ func ParseQueueID(input string) (*QueueId, error) {
 	}
 
 	id := QueueId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseQueueIDInsensitively(input string) (*QueueId, error) {
 	}
 
 	id := QueueId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id QueueId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftServiceBus", "Microsoft.ServiceBus", "Microsoft.ServiceBus"),
 		resourceids.StaticSegment("staticNamespaces", "namespaces", "namespaces"),
-		resourceids.UserSpecifiedSegment("namespaceName", "namespaceValue"),
+		resourceids.UserSpecifiedSegment("namespaceName", "namespaceName"),
 		resourceids.StaticSegment("staticQueues", "queues", "queues"),
-		resourceids.UserSpecifiedSegment("queueName", "queueValue"),
+		resourceids.UserSpecifiedSegment("queueName", "queueName"),
 	}
 }
 

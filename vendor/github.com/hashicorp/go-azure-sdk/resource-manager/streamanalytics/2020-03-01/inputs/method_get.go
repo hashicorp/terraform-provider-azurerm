@@ -45,7 +45,6 @@ func (c InputsClient) Get(ctx context.Context, id InputId) (result GetOperationR
 
 	var model Input
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

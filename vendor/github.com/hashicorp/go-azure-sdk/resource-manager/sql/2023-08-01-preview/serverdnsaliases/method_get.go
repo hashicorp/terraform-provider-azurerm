@@ -45,7 +45,6 @@ func (c ServerDnsAliasesClient) Get(ctx context.Context, id DnsAliasId) (result 
 
 	var model ServerDnsAlias
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

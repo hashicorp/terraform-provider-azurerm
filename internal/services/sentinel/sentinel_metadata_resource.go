@@ -748,6 +748,7 @@ func expandMetadataSupportModel(input []MetadataSupportModel) *sentinelmetadata.
 	}
 	return &output
 }
+
 func flattenMetadataSupportModel(input *sentinelmetadata.MetadataSupport) []MetadataSupportModel {
 	if input == nil {
 		return []MetadataSupportModel{}

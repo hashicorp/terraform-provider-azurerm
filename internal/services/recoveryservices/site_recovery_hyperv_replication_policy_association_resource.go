@@ -105,15 +105,11 @@ func (h HyperVReplicationPolicyAssociationResource) Create() sdk.ResourceFunc {
 
 			id := replicationprotectioncontainermappings.NewReplicationProtectionContainerMappingID(subscriptionId, parsedContainerId.ResourceGroupName, parsedContainerId.VaultName, parsedContainerId.ReplicationFabricName, parsedContainerId.ReplicationProtectionContainerName, plan.Name)
 
-			type hyperVMappingSpecificInput struct { // a workaround for https://github.com/Azure/azure-rest-api-specs/issues/22769
-				InstanceType string `json:"instanceType"`
-			}
-
 			param := replicationprotectioncontainermappings.CreateProtectionContainerMappingInput{
 				Properties: &replicationprotectioncontainermappings.CreateProtectionContainerMappingInputProperties{
 					PolicyId:                    &plan.PolicyId,
 					TargetProtectionContainerId: utils.String(TargetContainerIdAzure),
-					ProviderSpecificInput:       hyperVMappingSpecificInput{},
+					ProviderSpecificInput:       replicationprotectioncontainermappings.BaseReplicationProviderSpecificContainerMappingInputImpl{},
 				},
 			}
 			if err := client.CreateThenPoll(ctx, id, param); err != nil {
