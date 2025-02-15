@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_dynatrace_monitor` [GH-28381]
 * **New Resource**: `azurerm_data_protection_backup_vault_customer_managed_key` [GH-28679]
 
 ENHANCEMENTS:
