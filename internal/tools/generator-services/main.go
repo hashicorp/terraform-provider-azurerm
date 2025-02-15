@@ -304,6 +304,7 @@ func (githubIssueLabelsGenerator) run(outputFileName string, _ map[string]struct
 			names = append(names, ds.ResourceType())
 		}
 
+		names = removeDuplicateNames(names)
 		labelToNames = appendToSliceWithinMap(labelToNames, names, label)
 	}
 	for _, service := range provider.SupportedUntypedServices() {
