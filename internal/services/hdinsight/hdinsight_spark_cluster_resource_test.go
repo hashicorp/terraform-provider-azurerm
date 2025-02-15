@@ -40,6 +40,26 @@ func TestAccHDInsightSparkCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccHDInsightSparkCluster_availabilityZones(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
+	r := HDInsightSparkClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.availabilityZones(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("roles.0.head_node.0.password",
+			"roles.0.head_node.0.vm_size",
+			"roles.0.worker_node.0.password",
+			"roles.0.worker_node.0.vm_size",
+			"roles.0.zookeeper_node.0.password",
+			"roles.0.zookeeper_node.0.vm_size",
+			"storage_account"),
+	})
+}
+
 func TestAccHDInsightSparkCluster_roleScriptActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_spark_cluster", "test")
 	r := HDInsightSparkClusterResource{}
@@ -740,6 +760,135 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r HDInsightSparkClusterResource) availabilityZones(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsql-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "sql_admin"
+  administrator_login_password = "TerrAform123!"
+  version                      = "12.0"
+}
+
+resource "azurerm_mssql_database" "hive" {
+  name        = "hive"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
+}
+
+resource "azurerm_mssql_database" "oozie" {
+  name        = "oozie"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
+}
+
+resource "azurerm_mssql_database" "ambari" {
+  name        = "ambari"
+  server_id   = azurerm_mssql_server.test.id
+  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode = "Default"
+}
+
+resource "azurerm_mssql_firewall_rule" "AzureServices" {
+  name             = "allow-azure-services"
+  server_id        = azurerm_mssql_server.test.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.16.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["172.16.11.0/26"]
+}
+
+resource "azurerm_hdinsight_spark_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+  availability_zones  = ["1"]
+
+  component_version {
+    spark = "2.4"
+  }
+
+  gateway {
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account_gen2 {
+    storage_resource_id          = azurerm_storage_account.gen2test.id
+    filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
+    managed_identity_resource_id = azurerm_user_assigned_identity.test.id
+    is_default                   = true
+  }
+
+  roles {
+    head_node {
+      vm_size            = "Standard_A4_V2"
+      username           = "acctestusrvm"
+      password           = "AccTestvdSC4daf986!"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
+    }
+
+    worker_node {
+      vm_size               = "Standard_A4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 3
+      subnet_id             = azurerm_subnet.test.id
+      virtual_network_id    = azurerm_virtual_network.test.id
+    }
+
+    zookeeper_node {
+      vm_size            = "Medium"
+      username           = "acctestusrvm"
+      password           = "AccTestvdSC4daf986!"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
+    }
+  }
+  metastores {
+    hive {
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.hive.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
+    }
+    oozie {
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.oozie.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
+    }
+    ambari {
+      server        = azurerm_mssql_server.test.fully_qualified_domain_name
+      database_name = azurerm_mssql_database.ambari.name
+      username      = azurerm_mssql_server.test.administrator_login
+      password      = azurerm_mssql_server.test.administrator_login_password
+    }
+  }
+}
+`, r.gen2template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r HDInsightSparkClusterResource) gen2basic(data acceptance.TestData) string {
