@@ -75,6 +75,14 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
+			"availability_zones": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"cluster_version": SchemaHDInsightClusterVersion(),
 
 			"tier": SchemaHDInsightTier(),
@@ -172,6 +180,9 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	componentVersionsRaw := d.Get("component_version").([]interface{})
 	componentVersions := expandHDInsightSparkComponentVersion(componentVersionsRaw)
 
+	availabilityZonesRaw := d.Get("availability_zones").([]interface{})
+	availabilityZones := expandHDInsightAvailabilityZones(availabilityZonesRaw)
+
 	gatewayRaw := d.Get("gateway").([]interface{})
 	configurations := ExpandHDInsightsConfigurations(gatewayRaw)
 
@@ -246,6 +257,7 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			},
 			ComputeIsolationProperties: computeIsolationProperties,
 		},
+		Zones:    availabilityZones,
 		Tags:     tags.Expand(t),
 		Identity: expandedIdentity,
 	}
@@ -349,6 +361,7 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
+		d.Set("availability_zones", pointer.From(model.Zones))
 
 		// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
 		if props := model.Properties; props != nil {
