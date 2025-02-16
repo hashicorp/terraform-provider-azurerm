@@ -338,12 +338,13 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				if d.Get("version").(string) != "" && d.Get("version_set_id").(string) == "" {
+				values := d.GetRawConfig().AsValueMap()
+				if d.Get("version").(string) != "" && values["version_set_id"].IsNull() {
 					return errors.New("setting `version` without the required `version_set_id`")
 				}
 
 				protocols := expandApiManagementApiProtocols(d.Get("protocols").(*pluginsdk.Set).List())
-				if d.Get("source_api_id").(string) == "" && (d.Get("display_name").(string) == "" || protocols == nil || len(*protocols) == 0) {
+				if values["source_api_id"].IsNull() && (values["display_name"].IsNull() || protocols == nil || len(*protocols) == 0) {
 					return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 				}
 				return nil
@@ -513,6 +514,9 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	existing := resp.Model.Properties
+	if existing.Type != nil {
+		soapApiType = soapApiTypeFromApiType(pointer.From(existing.Type))
+	}
 	prop := &api.ApiCreateOrUpdateProperties{
 		Path:                          existing.Path,
 		Protocols:                     existing.Protocols,
@@ -531,6 +535,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		ApiVersionSetId:               existing.ApiVersionSetId,
 		TermsOfServiceURL:             existing.TermsOfServiceURL,
 		Type:                          existing.Type,
+		ApiType:                       pointer.To(soapApiType),
 	}
 
 	if d.HasChange("path") {
