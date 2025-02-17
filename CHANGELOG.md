@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: `hashicorp/terraform-plugin-sdk/v2` - update to `v2.36.0` [GH-28788]
 * dependencies: `azurerm_data_factory_pipeline` - update to use `hashicorp/go-azure-sdk` [GH-28768]
 * Data Source: `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties [GH-28763]
 * `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties [GH-28763]
