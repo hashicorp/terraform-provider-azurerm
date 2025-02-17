@@ -6,11 +6,11 @@ package authorization
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2020-10-01/rolemanagementpolicies"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
+	"github.com/hashicorp/go-cty/cty/gocty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -74,6 +74,47 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 	}
 	updatedRules := make([]rolemanagementpolicies.RoleManagementPolicyRule, 0)
+
+	// Since we're using the same function to build the PATCH payload in both the create and update we need to use the check below
+	if !metadata.ResourceData.IsNewResource() {
+		// Last I tried the `IsNull` method on this was not returning the correct value (would return false instead of true)
+		// checking the length for 0 was the only way to determine that `notification_rules` is absent in the config
+		notificationRulesLength := metadata.ResourceData.GetRawConfig().AsValueMap()["notification_rules"].Length()
+
+		var length int32
+		if err := gocty.FromCtyValue(notificationRulesLength, &length); err != nil {
+			return nil, err
+		}
+
+		if length == 0 {
+			// We
+			if notificationApproverAdminEligibilityBase, ok := existingRules["Notification_Approver_Admin_Eligibility"]; ok {
+				if notificationApproverAdminEligibility, ok := notificationApproverAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+					updatedRules = append(updatedRules, expandNotificationSettings(
+						notificationApproverAdminEligibility,
+						// This appears to be the default notification setting for all three notification types for a resource group:
+						// * `active_assignments`
+						// * `eligible_activations`
+						// * `eligible_assignments`
+
+						// I think it's safe to assume that these defaults apply across the supported role management scopes:
+						// * management groups
+						// * subscription
+						// * resources
+						// But it is probably worth checking a sample of these to confirm that assumption
+						RoleManagementPolicyNotificationSettings{
+							NotificationLevel:    "All",
+							DefaultRecipients:    true,
+							AdditionalRecipients: []string{},
+						},
+						true,
+					))
+				}
+			}
+			// Steve said this would fix the diff I was getting, it did not
+			metadata.ResourceData.Set("notification_rules", []interface{}{map[string]interface{}{}})
+		}
+	}
 
 	if metadata.ResourceData.HasChange("eligible_assignment_rules") {
 		if expirationAdminEligibilityBase, ok := existingRules["Expiration_Admin_Eligibility"]; ok {

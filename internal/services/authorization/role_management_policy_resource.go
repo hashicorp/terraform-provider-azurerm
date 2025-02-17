@@ -23,7 +23,7 @@ import (
 
 type RoleManagementPolicyResource struct{}
 
-var _ sdk.Resource = RoleManagementPolicyResource{}
+var _ sdk.ResourceWithCustomizeDiff = RoleManagementPolicyResource{}
 
 type RoleManagementPolicyModel struct {
 	Scope                   string                                        `tfschema:"scope"`
@@ -88,6 +88,37 @@ type RoleManagementPolicyNotificationSettings struct {
 
 func (r RoleManagementPolicyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return parse.ValidateRoleManagementPolicyId
+}
+
+func (r RoleManagementPolicyResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// This CustomizeDiff is needed to be able to detect when the `notification_rules` block has been removed from the config because it is Optional+Computed.
+			// Without it the update method is never triggered when removing `notification_rules` from the config is the only change that's been made.
+			rd := metadata.ResourceDiff
+			if rd.HasChange("notification_rules") {
+				rulePlan := rd.GetRawPlan().AsValueMap()["notification_rules"].AsValueSlice()
+				if rulePlan == nil {
+					if !rd.GetRawState().IsNull() {
+						ruleState := rd.GetRawState().AsValueMap()["notification_rules"].AsValueSlice()
+						if len(ruleState) > 0 {
+							// `notification_rules` actually contains 3 levels of nesting - I've only gone down one level of nesting
+							// since that was the minimum level of nesting required to achieve the behaviour described in the comment above
+							if err := rd.SetNew("notification_rules", []interface{}{map[string]interface{}{
+								"active_assignments":   []interface{}{},
+								"eligible_activations": []interface{}{},
+								"eligible_assignments": []interface{}{},
+							}}); err != nil {
+								return err
+							}
+						}
+					}
+				}
+			}
+			return nil
+		},
+	}
 }
 
 func (r RoleManagementPolicyResource) ResourceType() string {
