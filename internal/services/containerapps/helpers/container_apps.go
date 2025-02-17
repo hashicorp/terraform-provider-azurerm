@@ -1459,9 +1459,10 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 				},
 
 				"mount_options": {
-					Type:        pluginsdk.TypeString,
-					Required:    false,
-					Description: "Mount options used while mounting the AzureFile. Must be a comma-separated string.",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Mount options used while mounting the AzureFile. Must be a comma-separated string.",
 				},
 			},
 		},
@@ -1516,6 +1517,9 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 			storageType := containerapps.StorageType(v.StorageType)
 			volume.StorageType = &storageType
 		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
+		}
 		volumes = append(volumes, volume)
 	}
 
@@ -1535,6 +1539,9 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 		}
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
+		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
 
 		result = append(result, containerVolume)

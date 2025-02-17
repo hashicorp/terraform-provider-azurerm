@@ -310,7 +310,7 @@ A `volume` block supports the following:
 
 * `storage_name` - (Optional) The name of the storage to use for the volume.
 
-* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string.
+* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
 
 ---
 

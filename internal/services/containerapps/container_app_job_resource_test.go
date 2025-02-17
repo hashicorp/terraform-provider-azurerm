@@ -1250,7 +1250,7 @@ resource "azurerm_container_app_job" "test" {
       name          = azurerm_container_app_environment_storage.test.name
       storage_type  = "AzureFile"
       storage_name  = azurerm_container_app_environment_storage.test.name,
-      mount_options = "dir_mode=0777,file_mode=0666
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
     container {
       args = [
