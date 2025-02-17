@@ -108,7 +108,6 @@ func resourceSecurityCenterSubscriptionPricing() *pluginsdk.Resource {
 			},
 		},
 	}
-
 }
 
 func resourceSecurityCenterSubscriptionPricingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
