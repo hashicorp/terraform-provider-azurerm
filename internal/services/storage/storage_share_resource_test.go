@@ -596,7 +596,7 @@ func TestAccStorageShare_migrateFromStorageIDShouldFail(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
-				check.That(data.ResourceName).Key("storage_account_name").DoesNotExist(),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
 			),
 		},
 		data.ImportStep(),

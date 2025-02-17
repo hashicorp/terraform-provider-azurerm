@@ -446,7 +446,7 @@ func TestAccStorageContainer_migrateFromStorageIDShouldFail(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config:      r.basic(data),
+			Config:      r.withAccountName(data),
 			ExpectError: regexp.MustCompile("expected action to not be Replace"),
 		},
 	})

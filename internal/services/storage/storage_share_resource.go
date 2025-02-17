@@ -203,9 +203,6 @@ func resourceStorageShare() *pluginsdk.Resource {
 					return diff.ForceNew("storage_account_name")
 				}
 			}
-			if diff.GetRawConfig().AsValueMap()["storage_account_name"].IsNull() {
-				diff.SetNewComputed("storage_account_name")
-			}
 
 			return nil
 		}
