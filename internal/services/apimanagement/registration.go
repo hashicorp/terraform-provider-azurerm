@@ -42,6 +42,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_group":                           dataSourceApiManagementGroup(),
 		"azurerm_api_management_product":                         dataSourceApiManagementProduct(),
 		"azurerm_api_management_user":                            dataSourceApiManagementUser(),
+		"azurerm_api_management_workspace":                       dataSourceApiManagementWorkspace(),
 	}
 }
 
@@ -93,6 +94,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_subscription":                    resourceApiManagementSubscription(),
 		"azurerm_api_management_tag":                             resourceApiManagementTag(),
 		"azurerm_api_management_user":                            resourceApiManagementUser(),
+		"azurerm_api_management_workspace":                       resourceApiManagementWorkspace(),
 	}
 }
 
