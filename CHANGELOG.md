@@ -13,7 +13,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_data_factory_pipeline` - fix unmarshaling error when unmarshaling the headers for a web activity [GH-28768]
+* `azurerm_data_factory_pipeline` - fix error when unmarshaling the headers for a web activity [GH-28768]
 * `azurerm_mssql_virtual_machine` - fix an issue that prevented users from using values only known during apply as the value for `auto_backup.encryption_password` [GH-28223]
 
 ## 4.19.0 (February 14, 2025)
