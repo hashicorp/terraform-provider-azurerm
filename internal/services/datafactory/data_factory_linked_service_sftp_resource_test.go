@@ -61,19 +61,9 @@ func TestAccDataFactoryLinkedServiceSFTP_privateKeyPath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
 	r := LinkedServiceSFTPResource{}
 
-	privateKey, err := generatePrivateKey()
-	if err != nil {
-		t.Fatalf("Failed to generate private key: %v", err)
-	}
-	privateKeyPath, err := writeToTempFile("private_key_*.pem", privateKey)
-	if err != nil {
-		t.Fatalf("Failed to save private key to temp file: %v", err)
-	}
-	defer os.Remove(privateKeyPath)
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.privateKeyPath(data, privateKeyPath),
+			Config: r.privateKeyPath(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -295,7 +285,7 @@ EOF
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, keyContent)
 }
 
-func (LinkedServiceSFTPResource) privateKeyPath(data acceptance.TestData, privateKeyPath string) string {
+func (LinkedServiceSFTPResource) privateKeyPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -319,9 +309,9 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   host                = "http://www.bing.com"
   port                = 22
   username            = "foo"
-  private_key_path    = "%s"
+  private_key_path    = "C:\myprivatekey.pem"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateKeyPath)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func writeToTempFile(fileNamePattern string, content []byte) (string, error) {
