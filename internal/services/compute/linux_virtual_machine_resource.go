@@ -234,6 +234,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"None",
 					"RHEL_BYOS",
 					"RHEL_BASE",
 					"RHEL_EUS",
@@ -246,6 +247,13 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					"SLES_HPC",
 					"UBUNTU_PRO",
 				}, false),
+				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+					if old == "None" && new == "" || old == "" && new == "None" {
+						return true
+					}
+
+					return false
+				},
 			},
 
 			"max_bid_price": {
