@@ -7,10 +7,11 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 )
 
+// GetWriteOnly gets a write only attribute, checking that it is of an expected type and subsequently returns it
 func GetWriteOnly(d *ResourceData, name string, attributeType cty.Type) (*cty.Value, error) {
 	value, diags := d.GetRawConfigAt(cty.GetAttrPath(name))
 	if diags.HasError() {
-		return nil, fmt.Errorf("blah")
+		return nil, fmt.Errorf("retrieving write-only attribute `%s`: %+v", name, diags)
 	}
 
 	if !value.Type().Equals(attributeType) {

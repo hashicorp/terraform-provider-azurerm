@@ -4,8 +4,8 @@ import (
 	"fmt"
 )
 
-// WriteOnlyKeyVaultSecretTemplate is testing template specific for write-only attributes
-// it provisions a Key Vault, a Key Vault secret, and references the secret using the Key Vault Secret
+// WriteOnlyKeyVaultSecretTemplate is a testing template specific for write-only attributes.
+// It provisions a Key Vault, a Key Vault secret, and references the secret using the Key Vault Secret
 // ephemeral resource.
 func WriteOnlyKeyVaultSecretTemplate(data TestData, secret string) string {
 	return fmt.Sprintf(`
