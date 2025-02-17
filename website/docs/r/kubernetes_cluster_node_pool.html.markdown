@@ -224,6 +224,8 @@ A `node_network_profile` block supports the following:
 
 * `node_public_ip_tags` - (Optional) Specifies a mapping of tags to the instance-level public IPs. Changing this forces a new resource to be created.
 
+-> **Note:** To set the application security group, you must allow at least one host port. Without this, the configuration will fail silently. For more details, refer to the [official documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster#allowed_host_ports-1).
+
 ---
 
 An `allowed_host_ports` block supports the following:
