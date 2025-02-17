@@ -141,6 +141,15 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 
+### `azurerm_kusto_eventgrid_data_connection`
+
+* The deprecated `eventgrid_resource_id` property has been removed in favour of the `eventgrid_event_subscription_id` property.
+* The deprecated `managed_identity_resource_id` property has been removed in favour of the `managed_identity_id` property.
+
+### `azurerm_kusto_attached_database_configuration`
+
+* The deprecated `cluster_resource_id` property has been removed in favour of the `cluster_id` property.
+
 ### `azurerm_linux_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
