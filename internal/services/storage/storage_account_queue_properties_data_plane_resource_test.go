@@ -158,7 +158,7 @@ func (r AccountQueuePropertiesResource) Exists(ctx context.Context, client *clie
 		return nil, err
 	}
 
-	account, err := client.Storage.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+	account, err := client.Storage.GetAccount(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

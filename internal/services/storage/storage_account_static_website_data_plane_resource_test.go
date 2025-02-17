@@ -105,7 +105,7 @@ func (r AccountStaticWebsiteResource) Exists(ctx context.Context, client *client
 		return nil, err
 	}
 
-	accountDetails, err := client.Storage.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+	accountDetails, err := client.Storage.GetAccount(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
