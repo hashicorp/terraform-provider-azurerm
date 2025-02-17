@@ -150,12 +150,12 @@ func resourceStorageContainer() *pluginsdk.Resource {
 		}
 
 		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
-			// Resource Manager ID in use, but change to `storage_account_id` should recreate
+			// Resource Manager ID in use, but change to `storage_account_id` should recreate - won't trigger on create as diff.Id() will be ""
 			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
 				return diff.ForceNew("storage_account_id")
 			}
 
-			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate
+			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate - won't trigger on create as diff.Id() will be ""
 			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
 				// converting from storage_account_id to the deprecated storage_account_name is not supported
 				oldAccountId, _ := diff.GetChange("storage_account_id")
