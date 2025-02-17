@@ -65,12 +65,9 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			},
 
 			"single_sign_on": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(singlesignon.SingleSignOnStatesEnable),
-					string(singlesignon.SingleSignOnStatesDisable),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(singlesignon.PossibleValuesForSingleSignOnStates(), false),
 			},
 
 			"login_url": {
@@ -81,8 +78,12 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["single_sign_on"].Required = false
-		resource.Schema["single_sign_on"].Optional = true
+		resource.Schema["single_sign_on"] = &pluginsdk.Schema{
+			Optional:     true,
+			Type:         pluginsdk.TypeString,
+			ValidateFunc: validation.StringInSlice(singlesignon.PossibleValuesForSingleSignOnStates(), false),
+		}
+
 		resource.Schema["single_sign_on_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
