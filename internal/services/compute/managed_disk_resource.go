@@ -727,7 +727,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
 				diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
 
-				vmSkuSupportsNoDowntimeResize, err := determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient, skusClient)
+				vmSupportsNoDowntimeResize, err := determineIfVirtualMachineSupportsNoDowntimeResize(ctx, disk.Model, virtualMachinesClient, skusClient)
 				if err != nil {
 					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
 				}
@@ -735,7 +735,7 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without detaching it from the VM.
 				shouldDetach = oldSize.(int) < 4096 && newSize.(int) >= 4096
 
-				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
+				canBeResizedWithoutDowntime = *vmSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
 			}
 			if !canBeResizedWithoutDowntime {
 				log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
@@ -828,8 +828,8 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		// check instanceView State
 
-		locks.ByName(name, VirtualMachineResourceName)
-		defer locks.UnlockByName(name, VirtualMachineResourceName)
+		locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+		defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 
 		vm, err := virtualMachinesClient.Get(ctx, *virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 		if err != nil {
