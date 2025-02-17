@@ -91,7 +91,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 				string(singlesignon.SingleSignOnStatesDisable),
 			}, false),
 			ExactlyOneOf: []string{"single_sign_on", "single_sign_on_enabled"},
-			Deprecated:   "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `single_sign_on` property instead.",
+			Deprecated:   "`single_sign_on_enabled ` has been deprecated in favour of the `single_sign_on ` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 	}
 
@@ -164,12 +164,12 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			// per the create func
-			d.Set("single_sign_on", string(*props.SingleSignOnState))
+			d.Set("single_sign_on", string(pointer.From(props.SingleSignOnState)))
 			d.Set("login_url", props.SingleSignOnURL)
 			d.Set("enterprise_application_id", props.EnterpriseAppId)
 
 			if !features.FivePointOh() {
-				d.Set("single_sign_on_enabled", string(*props.SingleSignOnState))
+				d.Set("single_sign_on_enabled", string(pointer.From(props.SingleSignOnState)))
 			}
 		}
 	}
