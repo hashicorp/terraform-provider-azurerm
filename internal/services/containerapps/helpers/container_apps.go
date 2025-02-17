@@ -1442,9 +1442,10 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 }
 
 type ContainerVolume struct {
-	Name        string `tfschema:"name"`
-	StorageName string `tfschema:"storage_name"`
-	StorageType string `tfschema:"storage_type"`
+	Name         string `tfschema:"name"`
+	StorageName  string `tfschema:"storage_name"`
+	StorageType  string `tfschema:"storage_type"`
+	MountOptions string `tfschema:"mount_options"`
 }
 
 func ContainerVolumeSchema() *pluginsdk.Schema {
@@ -1477,6 +1478,13 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					ValidateFunc: validate.ManagedEnvironmentStorageName,
 					Description:  "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`",
 				},
+
+				"mount_options": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Mount options used while mounting the AzureFile. Must be a comma-separated string.",
+				},
 			},
 		},
 	}
@@ -1502,6 +1510,11 @@ func ContainerVolumeSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
+				"mount_options": {
+					Type:     pluginsdk.TypeString,
+					Required: false,
+				},
 			},
 		},
 	}
@@ -1525,6 +1538,9 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 			storageType := containerapps.StorageType(v.StorageType)
 			volume.StorageType = &storageType
 		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
+		}
 		volumes = append(volumes, volume)
 	}
 
@@ -1544,6 +1560,9 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 		}
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
+		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
 
 		result = append(result, containerVolume)
