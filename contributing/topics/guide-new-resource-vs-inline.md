@@ -22,11 +22,11 @@ resource "azurerm_example_resource" "example" {
 }
 ```
 
-### Category 2: child resources which cannot be sparated
-- It has a strict `1:1` relation with it's parent resource
+### Category 2: child resources which cannot be separated
+- It has a strict `1:1` relation with its parent resource
 - It cannot be deleted, only returned to a default state (i.e. you might find an API, but only to update the resource)
-- It doesn't have it's own unique Resource ID or name (i.e. `<parentId>/default` or `<parentId>/keyrotationpolicy`, not something like `<parentId>/subResource/MySubResourceName`)
-- It does not have it's own API endpoint but uses the parent resource endpoint
+- It doesn't have its own unique Resource ID or name (i.e. `<parentId>/default` or `<parentId>/keyrotationpolicy`, not something like `<parentId>/subResource/MySubResourceName`)
+- It does not have its own API endpoint but uses the parent resource endpoint
 - It does not cross security/team boundaries in the most common client situation
 - It does not contain backwards compatibility issues
 
@@ -50,15 +50,15 @@ While inlining might make a lot of sense for many APIs, there are also good reas
 - Its functionality and therefore the scope of the resource crosses team/security boundaries (i.e. Infra team vs Application team).
 
 ### Category 3: relations between resources (_"It is complicated "_)
-- It is a mediator: there is a seperate endpoint to create a relation between two existing resources
+- It is a mediator: there is a separate endpoint to create a relation between two existing resources
 - It requires more permissions on another resource to create the connection than to create the resource itself (i.e. connecting a NSG resource to a Subnet)
 
 ## Both inline and separate
-It might be that there are multiple use-cases and scenarios necessary. Sometimes it makes sense to create it inline, sometimes it makes more sense to seperate them.
+It might be that there are multiple use-cases and scenarios necessary. Sometimes it makes sense to create it inline, sometimes it makes more sense to separate them.
 
-This requires cautiousness from both the implementer and the user. In most cases it should be explained with some notes in the `docs`. Within the inline resource implementation it requires that it doesn't delete or update properties created externally when it is not explicitly configured in the resource. For the user this might have the drawback that the inlined resource is not strict in enforcing the existing inlined properties. Mixed use within the same context might end up in a mess and is adviced not to do.
+This requires cautiousness from both the implementer and the user. In most cases it should be explained with some notes in the `docs`. Within the inline resource implementation it requires that it doesn't delete or update properties created externally when it is not explicitly configured in the resource. For the user this might have the drawback that the inlined resource is not strict in enforcing the existing inlined properties. Mixed use within the same context might end up in a mess and is advised not to do.
 
-A few examples of resources which are both inlined and seperate resources:
+A few examples of resources which are both inlined and separate resources:
 - Subnets (part of VNet resource as well)
 - NSG rules (part of NSG resource as well)
 - Key Vault permissions (part of Key Vault resource as well)

@@ -105,5 +105,5 @@ Running `make generate` - will output the following files:
 * `./internal/service/resource/parse/resource_group_example_test.go` - contains tests for those ^.
 * `./internal/service/resource/validate/resource_group_example_id.go` - contains Terraform validation functions for the Resource ID.
 
-**NOTE:** This is an outdated way of handling resource IDs in the provider and is being phased out. This method should only be used in exceptional cases.
+> **Note:** This is an outdated way of handling resource IDs in the provider and is being phased out. This method should only be used in exceptional cases.
 
