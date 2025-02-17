@@ -21,6 +21,7 @@ type ApiManagementWorkspaceTestResource struct{}
 func TestAccApiManagementWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
 	r := ApiManagementWorkspaceTestResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,6 +36,7 @@ func TestAccApiManagementWorkspace_basic(t *testing.T) {
 func TestAccApiManagementWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
 	r := ApiManagementWorkspaceTestResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
