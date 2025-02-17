@@ -99,7 +99,7 @@ func TestAccStorageContainerImmutabilityPolicy_completeLocked(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.completeLocked(data),
+			Config: r.completeLocked(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -109,6 +109,17 @@ func TestAccStorageContainerImmutabilityPolicy_completeLocked(t *testing.T) {
 			Config:      r.basic(data),
 			ExpectError: regexp.MustCompile("unable to set `locked = false` - once an immutability policy locked it cannot be unlocked"),
 		},
+		{
+			Config:      r.completeLocked(data, 1),
+			ExpectError: regexp.MustCompile("`immutability_period_in_days` cannot be decreased once an immutability policy has been locked"),
+		},
+		{
+			Config: r.completeLocked(data, 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -154,20 +165,20 @@ resource "azurerm_storage_container_immutability_policy" "test" {
 `, template)
 }
 
-func (r StorageContainerImmutabilityPolicyResource) completeLocked(data acceptance.TestData) string {
+func (r StorageContainerImmutabilityPolicyResource) completeLocked(data acceptance.TestData, period uint) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_storage_container_immutability_policy" "test" {
   storage_container_resource_manager_id = azurerm_storage_container.test.resource_manager_id
-  immutability_period_in_days           = 2
+  immutability_period_in_days           = %d
   protected_append_writes_all_enabled   = true
   protected_append_writes_enabled       = false
 
   locked = true
 }
-`, template)
+`, template, period)
 }
 
 func (r StorageContainerImmutabilityPolicyResource) template(data acceptance.TestData) string {
