@@ -6,6 +6,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -393,6 +394,61 @@ func TestAccStorageContainer_web(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_migrateToStorageID(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAccountName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsSet(),
+				check.That(data.ResourceName).Key("storage_account_id").DoesNotExist(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("https:*")),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+				check.That(data.ResourceName).Key("id").MatchesRegex(regexp.MustCompile("/subscriptions/*")),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageContainer_migrateFromStorageIDShouldFail(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+	r := StorageContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_account_name").IsEmpty(),
+				check.That(data.ResourceName).Key("storage_account_id").IsSet(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.basic(data),
+			ExpectError: regexp.MustCompile("expected action to not be Replace"),
+		},
 	})
 }
 
@@ -847,4 +903,17 @@ func TestValidateStorageContainerName(t *testing.T) {
 			t.Fatalf("%q should be an invalid Storage Container Name", v)
 		}
 	}
+}
+
+func (r StorageContainerResource) withAccountName(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+`, template)
 }
