@@ -6,11 +6,13 @@ package apimanagement
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -38,9 +40,14 @@ func resourceApiManagementWorkspace() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"workspace_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`),
+					"Workspace ID must be 1 - 80 characters long, contain only letters, numbers and hyphens.",
+				),
+				Description: "The ID of the API Management Workspace.",
 			},
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
@@ -49,11 +56,14 @@ func resourceApiManagementWorkspace() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				Description:  "The display name of the API Management Workspace.",
 			},
 			"service_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				Description:  "The name of the API Management Service in which this Workspace should be created.",
 			},
 		},
 	}
@@ -67,26 +77,39 @@ func resourceApiManagementWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta 
 
 	log.Printf("[INFO] preparing arguments for API Management Workspace creation.")
 
-	id := workspace.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").string, d.Get("workspace_id").(string))
+	id := workspace.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("workspace_id").(string))
 
-	//...
-	//TODO ctx
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+			}
+		}
+
+		if !response.WasNotFound(existing.HttpResponse) {
+			return tf.ImportAsExistsError("azurerm_api_management_workspace", id.ID())
+		}
+	}
 
 	properties := workspace.WorkspaceContract{
-		//TODO
+		Properties: &workspace.WorkspaceContractProperties{
+			DisplayName: d.Get("workspace_name").(string),
+		},
 	}
-	//...
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties, workspace.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
-	return resourceApiManagementWorkspaceDelete(d, meta)
+	d.SetId(id.ID())
+
+	return resourceApiManagementWorkspaceRead(d, meta)
 }
 
 func resourceApiManagementWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.WorkspaceClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := workspace.ParseWorkspaceID(d.Id())
@@ -104,13 +127,36 @@ func resourceApiManagementWorkspaceRead(d *pluginsdk.ResourceData, meta interfac
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
 	d.Set("workspace_id", id.WorkspaceId)
-	d.Set("api_management_name", id.ServiceName)
+	d.Set("service_name", id.ServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("workspace_name", props.DisplayName)
+		}
+	}
 
 	return nil
 }
 
 func resourceApiManagementWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.WorkspaceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := workspace.ParseWorkspaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Delete(ctx, *id, workspace.DefaultDeleteOperationOptions())
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
+		}
+	}
+
 	return nil
 }
