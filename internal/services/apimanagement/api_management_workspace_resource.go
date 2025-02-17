@@ -98,7 +98,7 @@ func resourceApiManagementWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta 
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, properties, workspace.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -130,7 +130,7 @@ func resourceApiManagementWorkspaceRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.Set("workspace_id", id.WorkspaceId)
 	d.Set("service_name", id.ServiceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -151,7 +151,7 @@ func resourceApiManagementWorkspaceDelete(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id, workspace.DefaultDeleteOperationOptions())
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
