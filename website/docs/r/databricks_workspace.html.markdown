@@ -48,21 +48,15 @@ The following arguments are supported:
 
 ~> **Note:** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 
-* `managed_services_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_services_cmk_key_vault_key_id` key.
+* `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties using a versioned Key Vaule Key ID for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
 
--> **Note:** The `managed_services_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_services_cmk_key_vault_id` field is not specified it is assumed that the `managed_services_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
-
--> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
-
-* `managed_disk_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_disk_cmk_key_vault_key_id` key.
-
--> **Note:** The `managed_disk_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_disk_cmk_key_vault_id` field is not specified it is assumed that the `managed_disk_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
+* `managed_services_cmk_managed_hsm_key_id` - (Optional) Customer managed encryption properties using a versioned Managed Hardware Security Key ID for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
 
 -> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
 
-* `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
+* `managed_disk_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties using a versioned Key Vaule Key ID for the Databricks Workspace managed disks.
 
-* `managed_disk_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties for the Databricks Workspace managed disks.
+* `managed_disk_cmk_managed_hsm_key_id` - (Optional) Customer managed encryption properties using a versioned Managed Hardware Security Key ID for the Databricks Workspace managed disks.
 
 * `managed_disk_cmk_rotation_to_latest_version_enabled` - (Optional) Whether customer managed keys for disk encryption will automatically be rotated to the latest version.
 
@@ -78,7 +72,7 @@ The following arguments are supported:
 
 * `default_storage_firewall_enabled` - (Optional) Disallow public access to default storage account. Defaults to `false`.
 
-* `access_connector_id` - (Optional) Access Connector ID to use when default storage account firewall is enabled. 
+* `access_connector_id` - (Optional) Access Connector ID to use when default storage account firewall is enabled.
 
 -> **Note:** The `access_connector_id` field is only required if `default_storage_firewall_enabled` is set to `true`.
 
