@@ -6,6 +6,7 @@ package datadog_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"os"
 	"testing"
 
@@ -48,7 +49,24 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("single_sign_on_enabled").HasValue("Enable"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDatadogMonitorSSO_singleSignOnEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as single_sign_on_enabled is not supported in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
+	r := SSODatadogMonitorResource{}
+	r.populateValuesFromEnvironment(t)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleSignOnEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -153,6 +171,22 @@ provider "azurerm" {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
+  single_sign_on            = "Enable"
+  enterprise_application_id = %q
+}
+`, r.template(data), r.enterpriseAppId)
+}
+
+func (r SSODatadogMonitorResource) singleSignOnEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_datadog_monitor_sso_configuration" "test" {
+  datadog_monitor_id        = azurerm_datadog_monitor.test.id
   single_sign_on_enabled    = "Enable"
   enterprise_application_id = %q
 }
@@ -165,7 +199,7 @@ func (r SSODatadogMonitorResource) requiresImport(data acceptance.TestData) stri
 
 resource "azurerm_datadog_monitor_sso_configuration" "import" {
   datadog_monitor_id        = azurerm_datadog_monitor_sso_configuration.test.datadog_monitor_id
-  single_sign_on_enabled    = azurerm_datadog_monitor_sso_configuration.test.single_sign_on_enabled
+  single_sign_on            = azurerm_datadog_monitor_sso_configuration.test.single_sign_on
   enterprise_application_id = azurerm_datadog_monitor_sso_configuration.test.enterprise_application_id
 }
 `, r.basic(data))
@@ -181,7 +215,7 @@ provider "azurerm" {
 
 resource "azurerm_datadog_monitor_sso_configuration" "test" {
   datadog_monitor_id        = azurerm_datadog_monitor.test.id
-  single_sign_on_enabled    = "Disable"
+  single_sign_on            = "Disable"
   enterprise_application_id = %q
 }
 `, r.template(data), r.enterpriseAppId)

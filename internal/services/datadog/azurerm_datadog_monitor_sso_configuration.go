@@ -79,20 +79,22 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["single_sign_on"] = &pluginsdk.Schema{
-			Optional:     true,
 			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.StringInSlice(singlesignon.PossibleValuesForSingleSignOnStates(), false),
 		}
 
 		resource.Schema["single_sign_on_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(singlesignon.SingleSignOnStatesEnable),
 				string(singlesignon.SingleSignOnStatesDisable),
 			}, false),
 			ExactlyOneOf: []string{"single_sign_on", "single_sign_on_enabled"},
-			Deprecated:   "`single_sign_on_enabled ` has been deprecated in favour of the `single_sign_on ` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated:   "`single_sign_on_enabled` has been deprecated in favour of the `single_sign_on` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 	}
 
@@ -194,7 +196,7 @@ func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if v, ok := d.GetOk("single_sign_on"); ok {
+	if v, ok := d.GetOk("single_sign_on"); ok && d.HasChange("single_sign_on") {
 		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(v.(string)))
 	} else if !features.FivePointOh() {
 		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(d.Get("single_sign_on_enabled").(string)))
