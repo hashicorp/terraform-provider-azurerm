@@ -4,6 +4,7 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedClusterOperationPredicate struct {
+	ETag     *string
 	Id       *string
 	Location *string
 	Name     *string
@@ -11,6 +12,10 @@ type ManagedClusterOperationPredicate struct {
 }
 
 func (p ManagedClusterOperationPredicate) Matches(input ManagedCluster) bool {
+
+	if p.ETag != nil && (input.ETag == nil || *p.ETag != *input.ETag) {
+		return false
+	}
 
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
 		return false

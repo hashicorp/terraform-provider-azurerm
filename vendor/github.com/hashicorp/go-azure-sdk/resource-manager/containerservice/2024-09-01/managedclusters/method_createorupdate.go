@@ -22,16 +22,49 @@ type CreateOrUpdateOperationResponse struct {
 	Model        *ManagedCluster
 }
 
+type CreateOrUpdateOperationOptions struct {
+	IfMatch     *string
+	IfNoneMatch *string
+}
+
+func DefaultCreateOrUpdateOperationOptions() CreateOrUpdateOperationOptions {
+	return CreateOrUpdateOperationOptions{}
+}
+
+func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+	if o.IfMatch != nil {
+		out.Append("If-Match", fmt.Sprintf("%v", *o.IfMatch))
+	}
+	if o.IfNoneMatch != nil {
+		out.Append("If-None-Match", fmt.Sprintf("%v", *o.IfNoneMatch))
+	}
+	return &out
+}
+
+func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+
+	return &out
+}
+
+func (o CreateOrUpdateOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+
+	return &out
+}
+
 // CreateOrUpdate ...
-func (c ManagedClustersClient) CreateOrUpdate(ctx context.Context, id commonids.KubernetesClusterId, input ManagedCluster) (result CreateOrUpdateOperationResponse, err error) {
+func (c ManagedClustersClient) CreateOrUpdate(ctx context.Context, id commonids.KubernetesClusterId, input ManagedCluster, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
-		Path:       id.ID(),
+		HttpMethod:    http.MethodPut,
+		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -62,8 +95,8 @@ func (c ManagedClustersClient) CreateOrUpdate(ctx context.Context, id commonids.
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c ManagedClustersClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input ManagedCluster) error {
-	result, err := c.CreateOrUpdate(ctx, id, input)
+func (c ManagedClustersClient) CreateOrUpdateThenPoll(ctx context.Context, id commonids.KubernetesClusterId, input ManagedCluster, options CreateOrUpdateOperationOptions) error {
+	result, err := c.CreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
 	}
