@@ -98,17 +98,21 @@ output "sas_url_query_string" {
 
 A `permissions` block contains:
 
-* `read` - Should Read permissions be enabled for this SAS?
+* `read` - (Optional) Should Read permissions be enabled for this SAS?
+* `add` - (Optional) Should Add permissions be enabled for this SAS?
+* `create` - (Optional) Should Create permissions be enabled for this SAS?
+* `write` - (Optional) Should Write permissions be enabled for this SAS?
+* `delete` - (Optional) Should Delete permissions be enabled for this SAS?
+* `delete_version` - (Optional) Should Delete version permissions be enabled for this SAS?
+* `list` - (Optional) Should List permissions be enabled for this SAS?
+* `tags` - (Optional) Should Tags permissions be enabled for this SAS?
+* `find` - (Optional) Should Find permissions be enabled for this SAS?
+* `move` - (Optional) Should Move permissions be enabled for this SAS?
+* `execute` - (Optional) Should Execute permissions be enabled for this SAS?
+* `ownership` - (Optional) Should Ownership permissions be enabled for this SAS?
+* `permissions` - (Optional) Should Permissions permissions be enabled for this SAS?
+* `set_immutability_policy` - (Optional) Should Set Immutability Policy permissions be enabled for this SAS?
 
-* `add` - Should Add permissions be enabled for this SAS?
-
-* `create` - Should Create permissions be enabled for this SAS?
-
-* `write` - Should Write permissions be enabled for this SAS?
-
-* `delete` - Should Delete permissions be enabled for this SAS?
-
-* `list` - Should List permissions be enabled for this SAS?
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/create-service-sas)
 for additional details on the fields above.
