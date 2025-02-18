@@ -30,6 +30,8 @@ A new WO attribute must be accompanied by the addition of a regular attribute wh
 As a result we add two new properties to the schema, `password_wo` and `password_wo_version`.
 
 ```go
+... // omitted for brevity
+
 "password": {
 	Type:          pluginsdk.TypeString,
 	Optional:      true,
@@ -51,6 +53,7 @@ As a result we add two new properties to the schema, `password_wo` and `password
 	RequiredWith: []string{"password_wo"} // this must be set to ensure the "trigger" property is provided with the wo attribute
 }
 
+... // omitted for brevity
 ```
 
 ## Updating the Create, Read and Update functions
@@ -61,9 +64,7 @@ In the `Create` function we make use of the helper function `pluginsdk.GetWriteO
 func (SomeDatabase) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			...
-			// omitted for brevity
-			...
+			... // omitted for brevity
 			
 			// use the GetWriteOnly helper to retrieve the WO attribute
 			woPassword, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "password_wo", cty.String)
@@ -76,9 +77,7 @@ func (SomeDatabase) Create() sdk.ResourceFunc {
 			    payload.Properties.Password = woPassword.AsString()
 			}
 			
-			...
-			// omitted for brevity
-			...
+			... // omitted for brevity
 		}
 	}
 }
@@ -90,18 +89,14 @@ The only update in the `Read` function is to retrieve the value for the WO attri
 func (SomeDatabase) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			...
-			// omitted for brevity
-			...
+			... // omitted for brevity
 
 			// since WO attributes are not persisted in state we do not need to write it back to state
 			// but we do need to retrieve the value for the trigger attribute from the config and set that into
 			// state to prevent a perma diff
 			state.PasswordWOVersion = metadata.ResourceData.Get("password_wo_version").(int)
 			
-			...
-			// omitted for brevity
-			...
+			... // omitted for brevity
 		}
 	}
 }
@@ -113,9 +108,7 @@ In the `Update` function we rely on changes to the trigger attribute `password_w
 func (SomeDatabase) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			...
-			// omitted for brevity
-			...
+			... // omitted for brevity
 
 			// check if the trigger attribute has any changes
 			if metadata.ResourceData.HasChange("password_wo_version") {
@@ -130,9 +123,7 @@ func (SomeDatabase) Update() sdk.ResourceFunc {
 				}
 			}
 			
-			...
-			// omitted for brevity
-			...
+			... // omitted for brevity
 		}
 	}
 }
@@ -140,7 +131,7 @@ func (SomeDatabase) Update() sdk.ResourceFunc {
 
 ## Adding Validation
 
-The `terraform-plugin-sdk@v2` provides a helpful validation for WO attributes that surfaces a warning to users if they are on a version of Terraform that support WO attributes, but are using the non WO attribute version of a sensitive property.
+The `terraform-plugin-sdk@v2` provides a helpful validation for WO attributes that surfaces a warning to users if they are on a version of Terraform that support WO attributes but are using the non-WO attribute version of a sensitive property.
 
 ```go
 // update the interface that the resource should implement
@@ -153,9 +144,7 @@ func (r SomeDatabase) ValidateRawResourceConfig() []schema.ValidateRawResourceCo
 	}
 }
 
-...
-// omitted for brevity
-...
+... // omitted for brevity
 ```
 
 ## Adding Tests
