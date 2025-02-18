@@ -50,7 +50,7 @@ func testAccNetorkManagerVerifierWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateAgain(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -111,7 +111,6 @@ func (r ManagerVerifierWorkspaceResource) Exists(ctx context.Context, client *cl
 }
 
 func (r ManagerVerifierWorkspaceResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -124,12 +123,10 @@ resource "azurerm_network_manager_verifier_workspace" "test" {
   network_manager_id = azurerm_network_manager.test.id
   location           = azurerm_resource_group.test.location
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagerVerifierWorkspaceResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-
 	return fmt.Sprintf(`
 %s
 
@@ -138,11 +135,10 @@ resource "azurerm_network_manager_verifier_workspace" "import" {
   network_manager_id = azurerm_network_manager.test.id
   location           = azurerm_resource_group.test.location
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r ManagerVerifierWorkspaceResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -160,34 +156,10 @@ resource "azurerm_network_manager_verifier_workspace" "test" {
     foo = "bar"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func (r ManagerVerifierWorkspaceResource) updateAgain(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_network_manager_verifier_workspace" "test" {
-  name               = "acctest-vw-%[2]d"
-  network_manager_id = azurerm_network_manager.test.id
-  location           = azurerm_resource_group.test.location
-  description        = "This is a test verifier workspace"
-
-  tags = {
-    foo = "bar"
-    env = "preview"
-  }
-}
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagerVerifierWorkspaceResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -206,7 +178,7 @@ resource "azurerm_network_manager_verifier_workspace" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagerVerifierWorkspaceResource) template(data acceptance.TestData) string {

@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -11,18 +10,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/verifierworkspaces"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.Resource           = ManagerVerifierWorkspaceResource{}
-	_ sdk.ResourceWithUpdate = ManagerVerifierWorkspaceResource{}
-)
+var _ sdk.ResourceWithUpdate = ManagerVerifierWorkspaceResource{}
 
 type ManagerVerifierWorkspaceResource struct{}
 
@@ -39,11 +36,11 @@ func (ManagerVerifierWorkspaceResource) ModelObject() interface{} {
 }
 
 type ManagerVerifierWorkspaceResourceModel struct {
-	Description      string                 `tfschema:"description"`
-	Location         string                 `tfschema:"location"`
-	Name             string                 `tfschema:"name"`
-	NetworkManagerId string                 `tfschema:"network_manager_id"`
-	Tags             map[string]interface{} `tfschema:"tags"`
+	Description      string            `tfschema:"description"`
+	Location         string            `tfschema:"location"`
+	Name             string            `tfschema:"name"`
+	NetworkManagerId string            `tfschema:"network_manager_id"`
+	Tags             map[string]string `tfschema:"tags"`
 }
 
 func (ManagerVerifierWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -89,7 +86,7 @@ func (r ManagerVerifierWorkspaceResource) Create() sdk.ResourceFunc {
 
 			networkManagerId, err := verifierworkspaces.ParseNetworkManagerID(config.NetworkManagerId)
 			if err != nil {
-				return fmt.Errorf("parsing `network_manager_id`: %+v", err)
+				return err
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -106,14 +103,14 @@ func (r ManagerVerifierWorkspaceResource) Create() sdk.ResourceFunc {
 			payload := verifierworkspaces.VerifierWorkspace{
 				Name:     pointer.To(config.Name),
 				Location: location.Normalize(config.Location),
-				Tags:     tags.Expand(config.Tags),
+				Tags:     pointer.To(config.Tags),
 				Properties: &verifierworkspaces.VerifierWorkspaceProperties{
 					Description: pointer.To(config.Description),
 				},
 			}
 
 			if _, err := client.Create(ctx, id, payload); err != nil {
-				return fmt.Errorf("performing create %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -151,7 +148,7 @@ func (r ManagerVerifierWorkspaceResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				schema.Location = location.Normalize(model.Location)
-				schema.Tags = tags.Flatten(model.Tags)
+				schema.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
 					schema.Description = pointer.From(props.Description)
@@ -184,7 +181,7 @@ func (r ManagerVerifierWorkspaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = tags.Expand(model.Tags)
+				parameters.Tags = pointer.To(model.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -215,50 +212,13 @@ func (r ManagerVerifierWorkspaceResource) Delete() sdk.ResourceFunc {
 			}
 
 			// https://github.com/Azure/azure-rest-api-specs/issues/31688
-			if err := resourceVerifierWorkspaceWaitForDeleted(ctx, *client, *id); err != nil {
-				return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+			pollerType := custompollers.NewNetworkManagerVerifierWorkspacePoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			return nil
 		},
-	}
-}
-
-func resourceVerifierWorkspaceWaitForDeleted(ctx context.Context, client verifierworkspaces.VerifierWorkspacesClient, id verifierworkspaces.VerifierWorkspaceId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: context had no deadline")
-	}
-
-	state := &pluginsdk.StateChangeConf{
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 3,
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   resourceVerifierWorkspaceRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := state.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
-	}
-
-	return nil
-}
-
-func resourceVerifierWorkspaceRefreshFunc(ctx context.Context, client verifierworkspaces.VerifierWorkspacesClient, id verifierworkspaces.VerifierWorkspaceId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking %s status ..", id)
-
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			}
-
-			return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		return resp, "Exists", nil
 	}
 }

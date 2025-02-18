@@ -33,7 +33,7 @@ resource "azurerm_network_manager_verifier_workspace" "example" {
   name               = "example"
   network_manager_id = azurerm_network_manager.example.id
   location           = azurerm_resource_group.example.location
-  description        = "This is a example verifier workspace"
+  description        = "This is an example verifier workspace"
 
   tags = {
     foo = "bar"
@@ -80,4 +80,3 @@ Network Manager Verifier Workspaces can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_network_manager_verifier_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Network/networkManagers/manager1/verifierWorkspaces/workspace1
 ```
-
