@@ -699,7 +699,7 @@ resource "azurerm_virtual_hub_connection" "test" {
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
   routing {
-    static_vnet_propagate_static_routes = true
+    static_vnet_propagate_static_routes_enabled = true
 
     static_vnet_route {
       name                = "testvnetroute6"
