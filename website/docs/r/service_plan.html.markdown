@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `app_service_environment_id` - (Optional) The ID of the App Service Environment to create this Service Plan in.
 
-~> **NOTE:** Requires an Isolated SKU. Use one of `I1`, `I2`, `I3` for `azurerm_app_service_environment`, or `I1v2`, `I1mv2`, `I2v2`, `I2mv2`, `I3v2`, `I3mv2` for `azurerm_app_service_environment_v3`
+~> **NOTE:** Requires an Isolated SKU for `azurerm_app_service_environment_v3`, supported values include `I1v2`, `I1mv2`, `I2v2`, `I2mv2`, `I3v2`, `I3mv2`, `I4v2`, `I4mv2`, `I5v2`, `I5mv2`, and `I6v2`.
 
 * `maximum_elastic_worker_count` - (Optional) The maximum number of workers to use in an Elastic SKU Plan. Cannot be set unless using an Elastic SKU.
 
