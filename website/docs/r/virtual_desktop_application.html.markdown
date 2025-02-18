@@ -66,6 +66,42 @@ resource "azurerm_virtual_desktop_application" "chrome" {
 }
 ```
 
+With MSIX application type, associated to a MSIX package.
+
+```hcl
+resource "azurerm_virtual_desktop_msix_package" "example" {
+  name                = "example-msix-package"
+  host_pool_name      = azurerm_virtual_desktop_host_pool.pooledbreadthfirst.name
+  resource_group_name = azurerm_resource_group.example.name
+  image_path          = "\\path\to\image.vhd"
+  last_updated_in_utc = "2021-09-01T00:00:00"
+
+  package_application {
+    app_id            = "my-app-1"
+    app_user_model_id = "user-model-id"
+    description       = "Description of my app 1"
+    friendly_name     = "App1"
+    icon_image_name   = "icon.ico"
+    raw_png           = "VGhpcyBpcyBhIHN0cmluZyB0byBoYXNo"
+    raw_icon          = "VGhpcyBpcyBhIHN0cmluZyB0byBoYXNo"
+  }
+
+  package_family_name   = "example-package-family-name"
+  package_name          = "example-package-name"
+  package_relative_path = "relative\\path"
+  version               = "0.0.0.1"
+}
+
+resource "azurerm_virtual_desktop_application" "example" {
+  name                         = "example-msix-app"
+  application_group_id         = azurerm_virtual_desktop_application_group.remoteapp.id
+  command_line_argument_policy = "DoNotAllow"
+  msix_package_app_id          = azurerm_virtual_desktop_msix_package.example.package_application[0].app_id
+  msix_package_family_name     = azurerm_virtual_desktop_msix_package.example.package_family_name
+  application_type             = "MsixApplication"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -78,7 +114,7 @@ The following arguments are supported:
 
 * `description` - (Optional) Option to set a description for the Virtual Desktop Application.
 
-* `path` - (Required) The file path location of the app on the Virtual Desktop OS.
+* `path` - (Optional) The file path location of the app on the Virtual Desktop OS. Required for `InBuilt` application type, but should not be specified for `MsixApplication`.
 
 * `command_line_argument_policy` - (Required) Specifies whether this published application can be launched with command line arguments provided by the client, command line arguments specified at publish time, or no command line arguments at all. Possible values include: `DoNotAllow`, `Allow`, `Require`.
 
@@ -89,6 +125,12 @@ The following arguments are supported:
 * `icon_path` - (Optional) Specifies the path for an icon which will be used for this Virtual Desktop Application.
 
 * `icon_index` - (Optional) The index of the icon you wish to use.
+
+* `application_type` - (Optional) The remote application type. Possible values include: `InBuilt`, `MsixApplication`. Defaults to `InBuilt`.
+
+* `msix_package_app_id` - (Optional) The package application id for MSIX applications. This corresponds to the `app_id` argument in `package_application` block in `azurerm_virtual_desktop_msix_package`.
+
+* `msix_package_family_name` - (Optional) The package family name for MSIX applications. This corresponds to the `package_family_name` argument in `azurerm_virtual_desktop_msix_package`.
 
 ## Attributes Reference
 
