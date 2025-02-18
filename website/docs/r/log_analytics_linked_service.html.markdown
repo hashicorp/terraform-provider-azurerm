@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Log Analytics Linked Service is created. Changing this forces a new resource to be created.
 
-* `workspace_id` - (Required) The ID of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource. 
+* `workspace_id` - (Required) The ID of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource.
 
 * `read_access_id` - (Optional) The ID of the readable Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.
 
@@ -80,5 +80,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Log Analytics Workspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/Automation
+terraform import azurerm_log_analytics_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/cluster
 ```
