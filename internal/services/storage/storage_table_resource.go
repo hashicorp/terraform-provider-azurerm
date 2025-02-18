@@ -98,6 +98,11 @@ func resourceStorageTable() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"resource_manager_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -216,6 +221,8 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	d.Set("name", id.TableName)
 	d.Set("storage_account_name", id.AccountId.AccountName)
+	rmid := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/tables/%s", subscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, id.TableName)
+	d.Set("resource_manager_id", rmid)
 
 	if err = d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
 		return fmt.Errorf("setting `acl`: %v", err)
