@@ -10,7 +10,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -312,19 +311,6 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   private_key_path    = "C:\\myprivatekey.pem"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func writeToTempFile(fileNamePattern string, content []byte) (string, error) {
-	tempFile, err := os.CreateTemp("", fileNamePattern)
-	if err != nil {
-		return "", err
-	}
-	defer tempFile.Close()
-
-	if _, err := tempFile.Write(content); err != nil {
-		return "", err
-	}
-	return tempFile.Name(), nil
 }
 
 func generatePrivateKey() ([]byte, error) {
