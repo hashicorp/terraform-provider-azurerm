@@ -449,8 +449,8 @@ func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration)
 	}
 
 	staticVnetPropagateStaticRoutes := false
-	if input.VnetRoutes != nil && input.VnetRoutes.StaticRoutesConfig != nil && input.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes != nil {
-		staticVnetPropagateStaticRoutes = *input.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes
+	if input.VnetRoutes != nil && input.VnetRoutes.StaticRoutesConfig != nil {
+		staticVnetPropagateStaticRoutes = pointer.From(input.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes)
 	}
 
 	return []interface{}{
