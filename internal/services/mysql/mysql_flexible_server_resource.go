@@ -6,8 +6,6 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
@@ -22,6 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	pluginSdkValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -99,7 +99,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				RequiredWith:  []string{"administrator_password_wo_version"},
 			},
 
-			// getting a bit wordy, would `wo_password_version` be better or is that less clear
 			"administrator_password_wo_version": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
