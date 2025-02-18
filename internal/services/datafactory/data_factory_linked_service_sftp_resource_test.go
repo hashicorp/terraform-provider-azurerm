@@ -309,7 +309,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   host                = "http://www.bing.com"
   port                = 22
   username            = "foo"
-  private_key_path    = "C:\myprivatekey.pem"
+  private_key_path    = "C:\\myprivatekey.pem"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
