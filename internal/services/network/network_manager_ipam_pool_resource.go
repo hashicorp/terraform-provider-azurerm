@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -11,17 +10,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.Resource           = ManagerIpamPoolResource{}
-	_ sdk.ResourceWithUpdate = ManagerIpamPoolResource{}
-)
+var _ sdk.ResourceWithUpdate = ManagerIpamPoolResource{}
 
 type ManagerIpamPoolResource struct{}
 
@@ -38,14 +35,14 @@ func (ManagerIpamPoolResource) ModelObject() interface{} {
 }
 
 type ManagerIpamPoolResourceModel struct {
-	AddressPrefixes  []string               `tfschema:"address_prefixes"`
-	Description      string                 `tfschema:"description"`
-	DisplayName      string                 `tfschema:"display_name"`
-	Location         string                 `tfschema:"location"`
-	Name             string                 `tfschema:"name"`
-	NetworkManagerId string                 `tfschema:"network_manager_id"`
-	ParentPoolName   string                 `tfschema:"parent_pool_name"`
-	Tags             map[string]interface{} `tfschema:"tags"`
+	AddressPrefixes  []string          `tfschema:"address_prefixes"`
+	Description      string            `tfschema:"description"`
+	DisplayName      string            `tfschema:"display_name"`
+	Location         string            `tfschema:"location"`
+	Name             string            `tfschema:"name"`
+	NetworkManagerId string            `tfschema:"network_manager_id"`
+	ParentPoolName   string            `tfschema:"parent_pool_name"`
+	Tags             map[string]string `tfschema:"tags"`
 }
 
 func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
@@ -121,7 +118,7 @@ func (r ManagerIpamPoolResource) Create() sdk.ResourceFunc {
 
 			networkManagerId, err := ipampools.ParseNetworkManagerID(config.NetworkManagerId)
 			if err != nil {
-				return fmt.Errorf("parsing `network_manager_id`: %+v", err)
+				return err
 			}
 
 			id := ipampools.NewIPamPoolID(subscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, config.Name)
@@ -137,7 +134,7 @@ func (r ManagerIpamPoolResource) Create() sdk.ResourceFunc {
 			payload := ipampools.IPamPool{
 				Name:     pointer.To(config.Name),
 				Location: location.Normalize(config.Location),
-				Tags:     tags.Expand(config.Tags),
+				Tags:     pointer.To(config.Tags),
 				Properties: ipampools.IPamPoolProperties{
 					AddressPrefixes: config.AddressPrefixes,
 					Description:     pointer.To(config.Description),
@@ -147,7 +144,7 @@ func (r ManagerIpamPoolResource) Create() sdk.ResourceFunc {
 			}
 
 			if err := client.CreateThenPoll(ctx, id, payload); err != nil {
-				return fmt.Errorf("performing create %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -185,7 +182,7 @@ func (r ManagerIpamPoolResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				schema.Location = location.Normalize(model.Location)
-				schema.Tags = tags.Flatten(model.Tags)
+				schema.Tags = pointer.From(model.Tags)
 
 				props := model.Properties
 				schema.AddressPrefixes = props.AddressPrefixes
@@ -220,7 +217,7 @@ func (r ManagerIpamPoolResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = tags.Expand(model.Tags)
+				parameters.Tags = pointer.To(model.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -255,49 +252,13 @@ func (r ManagerIpamPoolResource) Delete() sdk.ResourceFunc {
 			}
 
 			// https://github.com/Azure/azure-rest-api-specs/issues/31688
-			if err := resourceIpamPoolWaitForDeleted(ctx, *client, *id); err != nil {
-				return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
+			pollerType := custompollers.NewNetworkManagerIPAMPoolPoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			return nil
 		},
-	}
-}
-
-func resourceIpamPoolWaitForDeleted(ctx context.Context, client ipampools.IPamPoolsClient, id ipampools.IPamPoolId) error {
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal error: context had no deadline")
-	}
-	state := &pluginsdk.StateChangeConf{
-		MinTimeout:                5 * time.Second,
-		ContinuousTargetOccurence: 3,
-		Pending:                   []string{"Exists"},
-		Target:                    []string{"NotFound"},
-		Refresh:                   resourceIpamPoolRefreshFunc(ctx, client, id),
-		Timeout:                   time.Until(deadline),
-	}
-
-	if _, err := state.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", id, err)
-	}
-
-	return nil
-}
-
-func resourceIpamPoolRefreshFunc(ctx context.Context, client ipampools.IPamPoolsClient, id ipampools.IPamPoolId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		log.Printf("[DEBUG] Checking %s status ..", id)
-
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return resp, "NotFound", nil
-			}
-
-			return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-
-		return resp, "Exists", nil
 	}
 }

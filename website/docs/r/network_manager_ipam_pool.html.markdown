@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `network_manager_id` - (Required) The ID of the parent Network Manager. Changing this forces a new Network Manager IPAM Pool to be created.
 
-* `address_prefixes` - (Required) Specifies a list of IPv4 and IPv6 IP address prefixes. Changing this forces a new Network Manager IPAM Pool to be created.
+* `address_prefixes` - (Required) Specifies a list of IPv4 or IPv6 IP address prefixes. Changing this forces a new Network Manager IPAM Pool to be created.
 
 * `display_name` - (Required) The display name for the Network Manager IPAM Pool.
 

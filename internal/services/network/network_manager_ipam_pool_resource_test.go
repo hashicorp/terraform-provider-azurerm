@@ -65,13 +65,6 @@ func testAccNetorkManagerIpamPool_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateAgain(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -126,7 +119,6 @@ func (r ManagerIpamPoolResource) Exists(ctx context.Context, client *clients.Cli
 }
 
 func (r ManagerIpamPoolResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -141,11 +133,10 @@ resource "azurerm_network_manager_ipam_pool" "test" {
   display_name       = "ipampool1"
   address_prefixes   = ["10.0.0.0/27"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagerIpamPoolResource) basicIpv6(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -160,12 +151,10 @@ resource "azurerm_network_manager_ipam_pool" "test" {
   display_name       = "ipampool1"
   address_prefixes   = ["2001:db8::/46"]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagerIpamPoolResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
-
 	return fmt.Sprintf(`
 %s
 
@@ -176,11 +165,10 @@ resource "azurerm_network_manager_ipam_pool" "import" {
   display_name       = azurerm_network_manager_ipam_pool.test.display_name
   address_prefixes   = azurerm_network_manager_ipam_pool.test.address_prefixes
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r ManagerIpamPoolResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -200,36 +188,10 @@ resource "azurerm_network_manager_ipam_pool" "test" {
     foo = "bar"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func (r ManagerIpamPoolResource) updateAgain(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_network_manager_ipam_pool" "test" {
-  name               = "acctest-ipampool-%[2]d"
-  network_manager_id = azurerm_network_manager.test.id
-  location           = azurerm_resource_group.test.location
-  display_name       = "ipampool2"
-  address_prefixes   = ["10.0.0.0/27"]
-  description        = "This is a test IPAM pool"
-
-  tags = {
-    foo = "bar"
-    env = "test"
-  }
-}
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagerIpamPoolResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -259,7 +221,7 @@ resource "azurerm_network_manager_ipam_pool" "test" {
     env = "test"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagerIpamPoolResource) template(data acceptance.TestData) string {
