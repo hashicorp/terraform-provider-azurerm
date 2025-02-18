@@ -282,6 +282,8 @@ An `ingress` block supports the following:
 
 * `transport` - The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
 
+* `client_certificate_mode` - The client certificate mode for the Ingress.
+
 ---
 
 A `custom_domain` block supports the following:
