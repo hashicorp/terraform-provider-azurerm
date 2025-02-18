@@ -46,9 +46,9 @@ resource "azurerm_network_manager_verifier_workspace" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Network Manager Verifier Workspace should exist. Changing this forces a new Network Manager Verifier Workspace to be created.
-
 * `name` - (Required) The name which should be used for this Network Manager Verifier Workspace. Changing this forces a new Network Manager Verifier Workspace to be created.
+
+* `location` - (Required) The Azure Region where the Network Manager Verifier Workspace should exist. Changing this forces a new Network Manager Verifier Workspace to be created.
 
 * `network_manager_id` - (Required) The ID of the Network Manager. Changing this forces a new Network Manager Verifier Workspace to be created.
 

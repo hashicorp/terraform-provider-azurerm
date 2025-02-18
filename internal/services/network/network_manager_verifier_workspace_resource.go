@@ -78,6 +78,7 @@ func (r ManagerVerifierWorkspaceResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.VerifierWorkspaces
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config ManagerVerifierWorkspaceResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -89,7 +90,6 @@ func (r ManagerVerifierWorkspaceResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := verifierworkspaces.NewVerifierWorkspaceID(subscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, config.Name)
 
 			existing, err := client.Get(ctx, id)
