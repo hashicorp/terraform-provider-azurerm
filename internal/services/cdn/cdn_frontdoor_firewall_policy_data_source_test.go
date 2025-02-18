@@ -28,13 +28,13 @@ func TestAccCdnFrontDoorFirewallPolicyDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorFirewallPolicyDataSourceJsChallenge_basic(t *testing.T) {
+func TestAccCdnFrontDoorFirewallPolicyDataSource_jsChallengeBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_firewall_policy", "test")
 	d := CdnFrontDoorFirewallPolicyDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: d.basicJsChallenge(data),
+			Config: d.jsChallengePolicyBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("redirect_url").MatchesOtherKey(check.That("azurerm_cdn_frontdoor_firewall_policy.test").Key("redirect_url")),
 				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("45"),
@@ -54,7 +54,7 @@ data "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, CdnFrontDoorFirewallPolicyResource{}.basic(data))
 }
 
-func (CdnFrontDoorFirewallPolicyDataSource) basicJsChallenge(data acceptance.TestData) string {
+func (CdnFrontDoorFirewallPolicyDataSource) jsChallengePolicyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -62,5 +62,5 @@ data "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                = azurerm_cdn_frontdoor_firewall_policy.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, CdnFrontDoorFirewallPolicyResource{}.basicJsChallenge(data))
+`, CdnFrontDoorFirewallPolicyResource{}.jSChallengePolicyBasic(data))
 }
