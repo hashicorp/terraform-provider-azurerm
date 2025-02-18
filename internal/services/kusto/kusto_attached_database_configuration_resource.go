@@ -286,9 +286,10 @@ func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceDat
 	if clusterResourceID, ok := d.GetOk("cluster_id"); ok {
 		AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
 	}
-
-	if clusterResourceID, ok := d.GetOk("cluster_resource_id"); !features.FivePointOh() && ok {
-		AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
+	if !features.FivePointOh() {
+		if clusterResourceID, ok := d.GetOk("cluster_resource_id"); ok {
+			AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
+		}
 	}
 
 	if databaseName, ok := d.GetOk("database_name"); ok {
