@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
----
+gst---
 
 A `acl` block supports the following:
 
@@ -67,6 +67,8 @@ A `access_policy` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Table within the Storage Account.
+
+* `resource_manager_id` - The ID of the Table in the Resource Manager format, e.g. "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myRG/providers/Microsoft.Storage/storageAccounts/myAccount/tableServices/default/tables/myTable/". Useful for cases like IAM that do not use the Data Plane ID.
 
 ## Timeouts
 

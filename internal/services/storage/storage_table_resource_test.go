@@ -82,6 +82,21 @@ func TestAccStorageTable_acl(t *testing.T) {
 	})
 }
 
+func TestAccStorageTable_resourceManagerId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resourceManagerId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r StorageTableResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := tables.ParseTableID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
@@ -258,6 +273,44 @@ resource "azurerm_storage_table" "test" {
       expiry      = "2019-07-02T10:38:21.0000000Z"
     }
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r StorageTableResource) resourceManagerId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+data "azurerm_client_config" "current" { }
+
+resource "azurerm_role_assignment" "access" {
+  scope                = azurerm_storage_table.test.resource_manager_id
+  principal_id         = data.azurerm_client_config.current.object_id
+  role_definition_name = "Storage Table Data Contributor"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
