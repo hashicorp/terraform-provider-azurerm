@@ -279,31 +279,7 @@ resource "azurerm_storage_table" "test" {
 
 func (r StorageTableResource) resourceManagerId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  tags = {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_table" "test" {
-  name                 = "acctestst%d"
-  storage_account_name = azurerm_storage_account.test.name
-}
+%s
 
 data "azurerm_client_config" "current" {}
 
@@ -312,5 +288,5 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = data.azurerm_client_config.current.object_id
   role_definition_name = "Storage Table Data Contributor"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+`, r.basic(data))
 }
