@@ -445,7 +445,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 				}
 				if defaultTopicRetainChanged {
 					// Bug with `go-azure-sdk` library: you can't set retain to null because empty string will cause
-					// ARM to throw validation error (retain must be one of the possible enum values),
+					// ARM to throw validation error (retain must be one of the property's possible enum values),
 					// and go-azure-sdk library will ignore the retain field if it's set to nil, even if explicitly set.
 					param.Properties.DefaultTopic.Retain = pointer.To(assets.TopicRetainType(config.DefaultTopicRetain))
 				}
@@ -457,6 +457,10 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("display_name") {
 				param.Properties.DisplayName = pointer.To(config.DisplayName)
+			}
+
+			if metadata.ResourceData.HasChange("documentation_uri") {
+				param.Properties.DocumentationUri = pointer.To(config.DocumentationUri)
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
