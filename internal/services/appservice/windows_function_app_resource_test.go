@@ -3547,7 +3547,7 @@ resource "azurerm_storage_account" "test" {
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
   account_tier                    = "Standard"
-  account_replication_type 		  = "LRS"
+  account_replication_type        = "LRS"
   allow_nested_items_to_be_public = false
 }
 
@@ -3649,7 +3649,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_storage_account" "update" {
@@ -3913,7 +3912,6 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  allow_nested_items_to_be_public = true
 }
 
 resource "azurerm_windows_function_app" "test" {
