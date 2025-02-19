@@ -31,7 +31,6 @@ func TestAccDataProtectionBackupPolicyPostgreSQL_basicFourPointOh(t *testing.T) 
 		},
 		data.ImportStep(),
 	})
-	return
 }
 
 func TestAccDataProtectionBackupPolicyPostgreSQL_basicFivePointOh(t *testing.T) {
