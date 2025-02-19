@@ -167,7 +167,7 @@ func TestAccAsset_update(t *testing.T) {
 				check.That(data.ResourceName).Key("default_topic_path").HasValue("/path/defaultTopic"),
 				check.That(data.ResourceName).Key("default_topic_retain").HasValue("Keep"),
 				check.That(data.ResourceName).Key("description").HasValue("this is my asset"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.#").HasValue("0"),
+				check.That(data.ResourceName).Key("discovered_asset_refs.#").HasValue("0"), // discovered_asset_refs is not updatable after creation
 				check.That(data.ResourceName).Key("documentation_uri").HasValue("https://example.com/about"),
 				check.That(data.ResourceName).Key("hardware_revision").HasValue("1.0"),
 				check.That(data.ResourceName).Key("manufacturer").HasValue("Contoso"),
