@@ -89,7 +89,7 @@ func TestAccNginxDeploymentDataSource_nginxappprotect(t *testing.T) {
 		{
 			Config: r.basicNginxAppProtect(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("web_application_firewall.0.activation_state").HasValue("Enabled"),
+				check.That(data.ResourceName).Key("web_application_firewall.0.activation_state_enabled").HasValue("true"),
 			),
 		},
 	})
