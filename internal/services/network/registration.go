@@ -175,7 +175,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_web_application_firewall_policy":           resourceWebApplicationFirewallPolicy(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resources["azurerm_network_packet_capture"] = resourceNetworkPacketCapture()
 	}
 

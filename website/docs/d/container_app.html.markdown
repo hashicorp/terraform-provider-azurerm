@@ -161,8 +161,6 @@ A `liveness_probe` block supports the following:
 
 * `port` - The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 * `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
@@ -235,8 +233,6 @@ A `startup_probe` block supports the following:
 
 * `port` - The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 * `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
@@ -257,6 +253,7 @@ A `volume_mounts` block supports the following:
 
 * `path` - The path in the container at which to mount this volume.
 
+* `sub_path` - The sub path of the volume to be mounted in the container.
 ---
 
 An `identity` block supports the following:

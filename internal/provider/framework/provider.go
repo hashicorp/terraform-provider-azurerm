@@ -125,11 +125,17 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
-			// OIDC specifc fields
+			"ado_pipeline_service_connection_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "The Azure DevOps Pipeline Service Connection ID.",
+			},
+
+			// OIDC specific fields
 			"oidc_request_token": schema.StringAttribute{
 				Optional:    true,
 				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
+
 			"oidc_request_url": schema.StringAttribute{
 				Optional:    true,
 				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",

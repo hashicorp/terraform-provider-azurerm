@@ -82,7 +82,7 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -120,7 +120,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	shareName := d.Get("name").(string)
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
@@ -201,7 +201,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.ID())
 	}
 
