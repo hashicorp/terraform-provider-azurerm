@@ -36,6 +36,10 @@ func TestAccAsset_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("asset_endpoint_profile_ref").HasValue("myAssetEndpointProfile"),
+				check.That(data.ResourceName).Key("discovered_asset_refs.#").HasValue("3"),
+				check.That(data.ResourceName).Key("discovered_asset_refs.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("discovered_asset_refs.1").HasValue("bar"),
+				check.That(data.ResourceName).Key("discovered_asset_refs.2").HasValue("baz"),
 				check.That(data.ResourceName).Key("display_name").HasValue("my asset"),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("external_asset_id").HasValue("8ZBA6LRHU0A458969"),
@@ -167,7 +171,10 @@ func TestAccAsset_update(t *testing.T) {
 				check.That(data.ResourceName).Key("default_topic_path").HasValue("/path/defaultTopic"),
 				check.That(data.ResourceName).Key("default_topic_retain").HasValue("Keep"),
 				check.That(data.ResourceName).Key("description").HasValue("this is my asset"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.#").HasValue("0"), // discovered_asset_refs is not updatable after creation
+				check.That(data.ResourceName).Key("discovered_asset_refs.#").HasValue("3"),
+				check.That(data.ResourceName).Key("discovered_asset_refs.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("discovered_asset_refs.1").HasValue("bar"),
+				check.That(data.ResourceName).Key("discovered_asset_refs.2").HasValue("baz"),
 				check.That(data.ResourceName).Key("documentation_uri").HasValue("https://example.com/about"),
 				check.That(data.ResourceName).Key("hardware_revision").HasValue("1.0"),
 				check.That(data.ResourceName).Key("manufacturer").HasValue("Contoso"),
@@ -236,6 +243,11 @@ resource "azurerm_device_registry_asset" "test" {
 	extended_location_name		 = local.custom_location_name
 	extended_location_type     = "CustomLocation"
 	asset_endpoint_profile_ref = "myAssetEndpointProfile"
+	discovered_asset_refs      = [
+		"foo",
+		"bar",
+		"baz",
+	]
 	display_name               = "my asset"
 	enabled                    = false
 	external_asset_id          = "8ZBA6LRHU0A458969"
