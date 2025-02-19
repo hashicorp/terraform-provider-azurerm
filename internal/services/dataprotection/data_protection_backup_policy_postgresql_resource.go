@@ -294,40 +294,16 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			if !features.FivePointOhBeta() {
-				retentionRules := diff.Get("retention_rule")
-				defaultRetentionDuration := diff.Get("default_retention_duration")
-				defaultRetentionRule := diff.Get("default_retention_rule")
-
-				for i, rule := range retentionRules.([]interface{}) {
-					v := rule.(map[string]interface{})
-					if v["duration"].(string) == "" && len(v["life_cycle"].([]interface{})) == 0 || v["duration"].(string) != "" && len(v["life_cycle"].([]interface{})) > 0 {
-						return fmt.Errorf(`one of "retention_rule.%s.duration", "retention_rule.%s.life_cycle" must be specified`, strconv.Itoa(i), strconv.Itoa(i))
-					}
-
-					if defaultRetentionDuration != "" && v["duration"].(string) == "" {
-						return fmt.Errorf(`"default_retention_duration", "retention_rule.%s.duration" must be specified at the same time`, strconv.Itoa(i))
-					}
-
-					if len(defaultRetentionRule.([]interface{})) > 0 && len(v["life_cycle"].([]interface{})) == 0 {
-						return fmt.Errorf(`"default_retention_rule", "retention_rule.%s.life_cycle" must be specified at the same time`, strconv.Itoa(i))
-					}
-				}
-			}
-			return nil
-		}),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["default_retention_duration"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
 			Computed:      true,
 			ConflictsWith: []string{"default_retention_rule"},
-			Deprecated:    "`default_retention_duration` should be removed in favour of the `default_retention_rule.0.life_cycle.#.duration` property in version 5.0 of the AzureRM Provider.",
+			Deprecated:    "`default_retention_duration` has been deprecated  in favour of the `default_retention_rule.0.life_cycle.#.duration` and will be removed in version 5.0 of the AzureRM Provider.",
 			ValidateFunc:  validate.ISO8601Duration,
 		}
 
@@ -337,7 +313,7 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 			Optional:     true,
 			ForceNew:     true,
 			Computed:     true,
-			Deprecated:   "`retention_rule.#.duration` should be removed in favour of the `retention_rule.#.life_cycle.#.duration` property in version 5.0 of the AzureRM Provider.",
+			Deprecated:   "`retention_rule.#.duration` has been deprecated in favour of the `retention_rule.#.life_cycle.#.duration` and will be removed in version 5.0 of the AzureRM Provider.",
 			ValidateFunc: validate.ISO8601Duration,
 		}
 
@@ -349,6 +325,28 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 		resource.Schema["default_retention_rule"].Optional = true
 		resource.Schema["default_retention_rule"].Computed = true
 		resource.Schema["default_retention_rule"].ConflictsWith = []string{"default_retention_duration"}
+
+		pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			retentionRules := diff.Get("retention_rule")
+			defaultRetentionDuration := diff.Get("default_retention_duration")
+			defaultRetentionRule := diff.Get("default_retention_rule")
+
+			for i, rule := range retentionRules.([]interface{}) {
+				v := rule.(map[string]interface{})
+				if v["duration"].(string) == "" && len(v["life_cycle"].([]interface{})) == 0 || v["duration"].(string) != "" && len(v["life_cycle"].([]interface{})) > 0 {
+					return fmt.Errorf(`one of "retention_rule.%s.duration", "retention_rule.%s.life_cycle" must be specified`, strconv.Itoa(i), strconv.Itoa(i))
+				}
+
+				if defaultRetentionDuration != "" && v["duration"].(string) == "" {
+					return fmt.Errorf(`"default_retention_duration", "retention_rule.%s.duration" must be specified at the same time`, strconv.Itoa(i))
+				}
+
+				if len(defaultRetentionRule.([]interface{})) > 0 && len(v["life_cycle"].([]interface{})) == 0 {
+					return fmt.Errorf(`"default_retention_rule", "retention_rule.%s.life_cycle" must be specified at the same time`, strconv.Itoa(i))
+				}
+			}
+			return nil
+		})
 	}
 
 	return resource
@@ -384,9 +382,14 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 	policyRules := make([]backuppolicies.BasePolicyRule, 0)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
 
-	if v, ok := d.GetOk("default_retention_duration"); ok && !features.FivePointOhBeta() {
-		policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(v))
-		policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("default_retention_duration"); ok {
+			policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(v))
+			policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
+		} else {
+			policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultRetentionRule(d.Get("default_retention_rule").([]interface{})))
+			policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRules(d.Get("retention_rule").([]interface{}))...)
+		}
 	} else {
 		policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultRetentionRule(d.Get("default_retention_rule").([]interface{})))
 		policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRules(d.Get("retention_rule").([]interface{}))...)
@@ -437,11 +440,19 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 					return fmt.Errorf("setting `backup_rule`: %+v", err)
 				}
 
-				if _, ok := d.GetOk("default_retention_duration"); ok && !features.FivePointOhBeta() {
+				if !features.FivePointOh() {
 					if err := d.Set("default_retention_duration", flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(&props.PolicyRules)); err != nil {
 						return fmt.Errorf("setting `default_retention_duration`: %+v", err)
 					}
 					if err := d.Set("retention_rule", flattenBackupPolicyPostgreSQLRetentionRuleArray(&props.PolicyRules)); err != nil {
+						return fmt.Errorf("setting `retention_rule`: %+v", err)
+					}
+
+					if err := d.Set("default_retention_rule", flattenBackupPolicyPostgreSQLDefaultRetentionRule(&props.PolicyRules)); err != nil {
+						return fmt.Errorf("setting `default_retention_rule`: %+v", err)
+					}
+
+					if err := d.Set("retention_rule", flattenBackupPolicyPostgreSQLRetentionRules(&props.PolicyRules)); err != nil {
 						return fmt.Errorf("setting `retention_rule`: %+v", err)
 					}
 				} else {
