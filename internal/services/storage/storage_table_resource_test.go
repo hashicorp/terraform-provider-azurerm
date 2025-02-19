@@ -305,7 +305,7 @@ resource "azurerm_storage_table" "test" {
   storage_account_name = azurerm_storage_account.test.name
 }
 
-data "azurerm_client_config" "current" { }
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_role_assignment" "access" {
   scope                = azurerm_storage_table.test.resource_manager_id

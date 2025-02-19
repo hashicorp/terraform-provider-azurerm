@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
-gst---
+---
 
 A `acl` block supports the following:
 
