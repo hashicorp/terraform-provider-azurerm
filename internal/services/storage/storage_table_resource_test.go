@@ -307,7 +307,7 @@ resource "azurerm_storage_table" "test" {
 
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_role_assignment" "access" {
+resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_table.test.resource_manager_id
   principal_id         = data.azurerm_client_config.current.object_id
   role_definition_name = "Storage Table Data Contributor"
