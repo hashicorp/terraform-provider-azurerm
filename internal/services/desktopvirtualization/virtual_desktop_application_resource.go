@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/application"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
@@ -81,7 +82,7 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 
 			"path": {
 				Type:     pluginsdk.TypeString,
-				Required: true,
+				Optional: true,
 			},
 
 			"command_line_argument_policy": {
@@ -115,6 +116,26 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 			},
+
+			"msix_package_app_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			"msix_package_family_name": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
+			"application_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(application.RemoteApplicationTypeInBuilt),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(application.RemoteApplicationTypeInBuilt),
+					string(application.RemoteApplicationTypeMsixApplication),
+				}, false),
+			},
 		},
 	}
 }
@@ -147,17 +168,34 @@ func resourceVirtualDesktopApplicationCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
+	properties := application.ApplicationProperties{
+		FriendlyName:         utils.String(d.Get("friendly_name").(string)),
+		Description:          utils.String(d.Get("description").(string)),
+		CommandLineSetting:   application.CommandLineSetting(d.Get("command_line_argument_policy").(string)),
+		CommandLineArguments: utils.String(d.Get("command_line_arguments").(string)),
+		ShowInPortal:         utils.Bool(d.Get("show_in_portal").(bool)),
+		IconIndex:            utils.Int64(int64(d.Get("icon_index").(int))),
+		ApplicationType:      pointer.To(application.RemoteApplicationType(d.Get("application_type").(string))),
+	}
+
+	if value, isSet := d.GetOk("msix_package_app_id"); isSet {
+		properties.MsixPackageApplicationId = utils.String(value.(string))
+	}
+
+	if value, isSet := d.GetOk("msix_package_family_name"); isSet {
+		properties.MsixPackageFamilyName = utils.String(value.(string))
+	}
+
+	if value, isSet := d.GetOk("path"); isSet {
+		properties.FilePath = utils.String(value.(string))
+	}
+
+	if value, isSet := d.GetOk("icon_path"); isSet {
+		properties.IconPath = utils.String(value.(string))
+	}
+
 	payload := application.Application{
-		Properties: application.ApplicationProperties{
-			FriendlyName:         utils.String(d.Get("friendly_name").(string)),
-			Description:          utils.String(d.Get("description").(string)),
-			FilePath:             utils.String(d.Get("path").(string)),
-			CommandLineSetting:   application.CommandLineSetting(d.Get("command_line_argument_policy").(string)),
-			CommandLineArguments: utils.String(d.Get("command_line_arguments").(string)),
-			ShowInPortal:         utils.Bool(d.Get("show_in_portal").(bool)),
-			IconPath:             utils.String(d.Get("icon_path").(string)),
-			IconIndex:            utils.Int64(int64(d.Get("icon_index").(int))),
-		},
+		Properties: properties,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
@@ -203,6 +241,9 @@ func resourceVirtualDesktopApplicationRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("show_in_portal", props.ShowInPortal)
 		d.Set("icon_path", props.IconPath)
 		d.Set("icon_index", props.IconIndex)
+		d.Set("msix_package_app_id", props.MsixPackageApplicationId)
+		d.Set("msix_package_family_name", props.MsixPackageFamilyName)
+		d.Set("application_type", pointer.From(props.ApplicationType))
 	}
 
 	return nil
