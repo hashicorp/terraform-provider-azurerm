@@ -148,9 +148,7 @@ func TestAccAssetEndpointProfile_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport(data)
-		}),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -237,91 +235,91 @@ func (AssetEndpointProfileTestResource) Exists(ctx context.Context, client *clie
 }
 
 func (r AssetEndpointProfileTestResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template()
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-	name                                  = "acctest-assetendpointprofile-%[2]d"
-	resource_group_name                   = local.resource_group_name
-	extended_location_name								= local.custom_location_name
-	extended_location_type                = "CustomLocation"
-	target_address                        = "opc.tcp://foo"
-	endpoint_profile_type                 = "OpcUa"
-	discovered_asset_endpoint_profile_ref = "discoveredAssetEndpointProfile123"
-	location                              = "%[3]s"
+  name                                  = "acctest-assetendpointprofile-%[2]d"
+  resource_group_name                   = local.resource_group_name
+  extended_location_name                = local.custom_location_name
+  extended_location_type                = "CustomLocation"
+  target_address                        = "opc.tcp://foo"
+  endpoint_profile_type                 = "OpcUa"
+  discovered_asset_endpoint_profile_ref = "discoveredAssetEndpointProfile123"
+  location                              = "%[3]s"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AssetEndpointProfileTestResource) completeCertificate(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template()
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-	name                                     = "acctest-assetendpointprofile-%[2]d"
-	resource_group_name                      = local.resource_group_name
-	extended_location_name						    	 = local.custom_location_name
-	extended_location_type                   = "CustomLocation"
-	target_address                           = "opc.tcp://foo"
-	endpoint_profile_type                    = "OpcUa"
-	discovered_asset_endpoint_profile_ref    = "discoveredAssetEndpointProfile123"
-	additional_configuration                 = "{\"foo\": \"bar\"}"
-	authentication_method                    = "Certificate"
-	x509_credentials_certificate_secret_name = "myCertificateRef"
-	tags                           				   = {
-		"sensor" = "temperature,humidity"
-	}
-	location                                 = "%[3]s"
+  name                                     = "acctest-assetendpointprofile-%[2]d"
+  resource_group_name                      = local.resource_group_name
+  extended_location_name                   = local.custom_location_name
+  extended_location_type                   = "CustomLocation"
+  target_address                           = "opc.tcp://foo"
+  endpoint_profile_type                    = "OpcUa"
+  discovered_asset_endpoint_profile_ref    = "discoveredAssetEndpointProfile123"
+  additional_configuration                 = "{\"foo\": \"bar\"}"
+  authentication_method                    = "Certificate"
+  x509_credentials_certificate_secret_name = "myCertificateRef"
+  tags = {
+    "sensor" = "temperature,humidity"
+  }
+  location = "%[3]s"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AssetEndpointProfileTestResource) completeUsernamePassword(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template()
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-	name                                               = "acctest-assetendpointprofile-%[2]d"
-	resource_group_name                                = local.resource_group_name
-	extended_location_name								             = local.custom_location_name
-	extended_location_type                             = "CustomLocation"
-	target_address                                     = "opc.tcp://foo"
-	endpoint_profile_type                              = "OpcUa"
-	discovered_asset_endpoint_profile_ref              = "discoveredAssetEndpointProfile123"
-	additional_configuration                           = "{\"foo\": \"bar\"}"
-	authentication_method                              = "UsernamePassword"
-	username_password_credentials_username_secret_name = "myUsernameRef"
-	username_password_credentials_password_secret_name = "myPasswordRef"
-	tags                           				             = {
-		"sensor" = "temperature,humidity"
-	}
-	location                                           = "%[3]s"
+  name                                               = "acctest-assetendpointprofile-%[2]d"
+  resource_group_name                                = local.resource_group_name
+  extended_location_name                             = local.custom_location_name
+  extended_location_type                             = "CustomLocation"
+  target_address                                     = "opc.tcp://foo"
+  endpoint_profile_type                              = "OpcUa"
+  discovered_asset_endpoint_profile_ref              = "discoveredAssetEndpointProfile123"
+  additional_configuration                           = "{\"foo\": \"bar\"}"
+  authentication_method                              = "UsernamePassword"
+  username_password_credentials_username_secret_name = "myUsernameRef"
+  username_password_credentials_password_secret_name = "myPasswordRef"
+  tags = {
+    "sensor" = "temperature,humidity"
+  }
+  location = "%[3]s"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AssetEndpointProfileTestResource) completeAnonymous(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template()
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-	name                                  = "acctest-assetendpointprofile-%[2]d"
+  name                                  = "acctest-assetendpointprofile-%[2]d"
   resource_group_name                   = local.resource_group_name
-	extended_location_name								= local.custom_location_name
-	extended_location_type                = "CustomLocation"
-	target_address                        = "opc.tcp://foo"
-	endpoint_profile_type                 = "OpcUa"
-	discovered_asset_endpoint_profile_ref = "discoveredAssetEndpointProfile123"
-	additional_configuration              = "{\"foo\": \"bar\"}"
-	authentication_method                 = "Anonymous"
-	tags                           				= {
-		"sensor" = "temperature,humidity"
-	}
-	location                              = "%[3]s"
+  extended_location_name                = local.custom_location_name
+  extended_location_type                = "CustomLocation"
+  target_address                        = "opc.tcp://foo"
+  endpoint_profile_type                 = "OpcUa"
+  discovered_asset_endpoint_profile_ref = "discoveredAssetEndpointProfile123"
+  additional_configuration              = "{\"foo\": \"bar\"}"
+  authentication_method                 = "Anonymous"
+  tags = {
+    "sensor" = "temperature,humidity"
+  }
+  location = "%[3]s"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -332,15 +330,16 @@ func (r AssetEndpointProfileTestResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_device_registry_asset_endpoint_profile" "import" {
-	name 					                        = azurerm_device_registry_asset_endpoint_profile.test.name
-	resource_group_name                   = azurerm_device_registry_asset_endpoint_profile.test.resource_group_name
-	extended_location_name                = azurerm_device_registry_asset_endpoint_profile.test.extended_location_name
-	extended_location_type                = azurerm_device_registry_asset_endpoint_profile.test.extended_location_type
-	target_address                        = azurerm_device_registry_asset_endpoint_profile.test.target_address
-	endpoint_profile_type                 = azurerm_device_registry_asset_endpoint_profile.test.endpoint_profile_type
-	discovered_asset_endpoint_profile_ref = azurerm_device_registry_asset_endpoint_profile.test.discovered_asset_endpoint_profile_ref
-	location                              = azurerm_device_registry_asset_endpoint_profile.test.location
+  name                                  = azurerm_device_registry_asset_endpoint_profile.test.name
+  resource_group_name                   = azurerm_device_registry_asset_endpoint_profile.test.resource_group_name
+  extended_location_name                = azurerm_device_registry_asset_endpoint_profile.test.extended_location_name
+  extended_location_type                = azurerm_device_registry_asset_endpoint_profile.test.extended_location_type
+  target_address                        = azurerm_device_registry_asset_endpoint_profile.test.target_address
+  endpoint_profile_type                 = azurerm_device_registry_asset_endpoint_profile.test.endpoint_profile_type
+  discovered_asset_endpoint_profile_ref = azurerm_device_registry_asset_endpoint_profile.test.discovered_asset_endpoint_profile_ref
+  location                              = azurerm_device_registry_asset_endpoint_profile.test.location
 }
+
 
 `, template)
 }
@@ -348,14 +347,14 @@ resource "azurerm_device_registry_asset_endpoint_profile" "import" {
 /*
 Creates the terraform template for AzureRm provider and needed constants
 */
-func (AssetEndpointProfileTestResource) template(data acceptance.TestData) string {
+func (AssetEndpointProfileTestResource) template() string {
 	customLocation := os.Getenv(ASSET_ENDPOINT_PROFILE_CUSTOM_LOCATION_NAME)
 	resourceGroup := os.Getenv(ASSET_ENDPOINT_PROFILE_RESOURCE_GROUP_NAME)
 
 	return fmt.Sprintf(`
 locals {
-	custom_location_name      = "%[1]s"
-	resource_group_name       = "%[2]s"
+  custom_location_name = "%[1]s"
+  resource_group_name  = "%[2]s"
 }
 
 provider "azurerm" {

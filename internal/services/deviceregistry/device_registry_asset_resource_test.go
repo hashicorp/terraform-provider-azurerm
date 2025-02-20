@@ -134,9 +134,7 @@ func TestAccAsset_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport(data)
-		}),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -233,148 +231,148 @@ func (AssetTestResource) Exists(ctx context.Context, client *clients.Client, sta
 }
 
 func (r AssetTestResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template()
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_device_registry_asset" "test" {
-	name                       = "acctest-asset-%[2]d"
-	resource_group_name        = local.resource_group_name
-	extended_location_name		 = local.custom_location_name
-	extended_location_type     = "CustomLocation"
-	asset_endpoint_profile_ref = "myAssetEndpointProfile"
-	discovered_asset_refs      = [
-		"foo",
-		"bar",
-		"baz",
-	]
-	display_name               = "my asset"
-	enabled                    = false
-	external_asset_id          = "8ZBA6LRHU0A458969"
-	location                   = "%[3]s"
+  name                       = "acctest-asset-%[2]d"
+  resource_group_name        = local.resource_group_name
+  extended_location_name     = local.custom_location_name
+  extended_location_type     = "CustomLocation"
+  asset_endpoint_profile_ref = "myAssetEndpointProfile"
+  discovered_asset_refs = [
+    "foo",
+    "bar",
+    "baz",
+  ]
+  display_name      = "my asset"
+  enabled           = false
+  external_asset_id = "8ZBA6LRHU0A458969"
+  location          = "%[3]s"
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AssetTestResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
+	template := r.template()
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_device_registry_asset" "test" {
-	name                           = "acctest-asset-%[2]d"
-	resource_group_name            = local.resource_group_name
-	extended_location_name         = local.custom_location_name
-	extended_location_type         = "CustomLocation"
-	location                       = "%[3]s"
-	asset_endpoint_profile_ref     = "myAssetEndpointProfile"
-	display_name                   = "my asset"
-	enabled                        = true
-	external_asset_id              = "8ZBA6LRHU0A458969"
-	attributes                     = {
-		"foo" = "bar"
-		"x"   = "y"
-	}
-	default_datasets_configuration = jsonencode(
-		{
-			defaultPublishingInterval = 200
-			defaultQueueSize          = 10
-			defaultSamplingInterval   = 500
-		}
-	)
-	default_events_configuration   = jsonencode(
-		{
-			defaultPublishingInterval = 200
-			defaultQueueSize          = 10
-			defaultSamplingInterval   = 500
-		}
-	)
-	default_topic_path             = "/path/defaultTopic"
-	default_topic_retain           = "Keep"
-	description                    = "this is my asset"
-	discovered_asset_refs          = [
-		"foo",
-		"bar",
-		"baz",
-	]
-	documentation_uri              = "https://example.com/about"
-	hardware_revision              = "1.0"
-	manufacturer                   = "Contoso"
-	manufacturer_uri               = "https://www.contoso.com/manufacturerUri"
-	model                          = "ContosoModel"
-	product_code                   = "SA34VDG"
-	serial_number                  = "64-103816-519918-8"
-	software_revision              = "2.0"
-	tags                           = {
-		"site" = "building-1"
-	}
+  name                       = "acctest-asset-%[2]d"
+  resource_group_name        = local.resource_group_name
+  extended_location_name     = local.custom_location_name
+  extended_location_type     = "CustomLocation"
+  location                   = "%[3]s"
+  asset_endpoint_profile_ref = "myAssetEndpointProfile"
+  display_name               = "my asset"
+  enabled                    = true
+  external_asset_id          = "8ZBA6LRHU0A458969"
+  attributes = {
+    "foo" = "bar"
+    "x"   = "y"
+  }
+  default_datasets_configuration = jsonencode(
+    {
+      defaultPublishingInterval = 200
+      defaultQueueSize          = 10
+      defaultSamplingInterval   = 500
+    }
+  )
+  default_events_configuration = jsonencode(
+    {
+      defaultPublishingInterval = 200
+      defaultQueueSize          = 10
+      defaultSamplingInterval   = 500
+    }
+  )
+  default_topic_path   = "/path/defaultTopic"
+  default_topic_retain = "Keep"
+  description          = "this is my asset"
+  discovered_asset_refs = [
+    "foo",
+    "bar",
+    "baz",
+  ]
+  documentation_uri = "https://example.com/about"
+  hardware_revision = "1.0"
+  manufacturer      = "Contoso"
+  manufacturer_uri  = "https://www.contoso.com/manufacturerUri"
+  model             = "ContosoModel"
+  product_code      = "SA34VDG"
+  serial_number     = "64-103816-519918-8"
+  software_revision = "2.0"
+  tags = {
+    "site" = "building-1"
+  }
 
-	datasets {
-		dataset_configuration = jsonencode(
-			{
-				publishingInterval = 7
-				queueSize          = 8
-				samplingInterval   = 1000
-			}
-		)
-		name                  = "dataset1"
-		topic_path            = "/path/dataset1"
-		topic_retain          = "Keep"
+  datasets {
+    dataset_configuration = jsonencode(
+      {
+        publishingInterval = 7
+        queueSize          = 8
+        samplingInterval   = 1000
+      }
+    )
+    name         = "dataset1"
+    topic_path   = "/path/dataset1"
+    topic_retain = "Keep"
 
-		data_points {
-			data_point_configuration = jsonencode(
-				{
-					publishingInterval = 7
-					queueSize          = 8
-					samplingInterval   = 1000
-				}
-			)
-			data_source              = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"
-			name                     = "datapoint1"
-			observability_mode       = "Counter"
-		}
-		data_points {
-			data_point_configuration = jsonencode(
-				{
-					publishingInterval = 7
-					queueSize          = 8
-					samplingInterval   = 1000
-				}
-			)
-			data_source              = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
-			name                     = "datapoint2"
-			observability_mode       = "None"
-		}
-	}
+    data_points {
+      data_point_configuration = jsonencode(
+        {
+          publishingInterval = 7
+          queueSize          = 8
+          samplingInterval   = 1000
+        }
+      )
+      data_source        = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"
+      name               = "datapoint1"
+      observability_mode = "Counter"
+    }
+    data_points {
+      data_point_configuration = jsonencode(
+        {
+          publishingInterval = 7
+          queueSize          = 8
+          samplingInterval   = 1000
+        }
+      )
+      data_source        = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"
+      name               = "datapoint2"
+      observability_mode = "None"
+    }
+  }
 
-	events {
-		event_configuration = jsonencode(
-			{
-				publishingInterval = 7
-				queueSize          = 8
-				samplingInterval   = 1000
-			}
-		)
-		event_notifier      = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"
-		name                = "event1"
-		observability_mode  = "Log"
-		topic_path          = "/path/event1"
-		topic_retain        = "Never"
-	}
-	events {
-		event_configuration = jsonencode(
-			{
-				publishingInterval = 7
-				queueSize          = 8
-				samplingInterval   = 1000
-			}
-		)
-		event_notifier      = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"
-		name                = "event2"
-		observability_mode  = "None"
-		topic_path          = "/path/event2"
-		topic_retain        = "Keep"
-	}
+  events {
+    event_configuration = jsonencode(
+      {
+        publishingInterval = 7
+        queueSize          = 8
+        samplingInterval   = 1000
+      }
+    )
+    event_notifier     = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"
+    name               = "event1"
+    observability_mode = "Log"
+    topic_path         = "/path/event1"
+    topic_retain       = "Never"
+  }
+  events {
+    event_configuration = jsonencode(
+      {
+        publishingInterval = 7
+        queueSize          = 8
+        samplingInterval   = 1000
+      }
+    )
+    event_notifier     = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"
+    name               = "event2"
+    observability_mode = "None"
+    topic_path         = "/path/event2"
+    topic_retain       = "Keep"
+  }
 }
 `, template, data.RandomInteger, data.Locations.Primary)
 }
@@ -385,16 +383,17 @@ func (r AssetTestResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_device_registry_asset" "import" {
-	name 					             = azurerm_device_registry_asset.test.name
-	resource_group_name        = azurerm_device_registry_asset.test.resource_group_name
-	extended_location_name     = azurerm_device_registry_asset.test.extended_location_name
-	extended_location_type     = azurerm_device_registry_asset.test.extended_location_type
-	asset_endpoint_profile_ref = azurerm_device_registry_asset.test.asset_endpoint_profile_ref
-	display_name							 = azurerm_device_registry_asset.test.display_name
-	enabled									   = azurerm_device_registry_asset.test.enabled
-	external_asset_id					 = azurerm_device_registry_asset.test.external_asset_id
-	location                   = azurerm_device_registry_asset.test.location
+  name                       = azurerm_device_registry_asset.test.name
+  resource_group_name        = azurerm_device_registry_asset.test.resource_group_name
+  extended_location_name     = azurerm_device_registry_asset.test.extended_location_name
+  extended_location_type     = azurerm_device_registry_asset.test.extended_location_type
+  asset_endpoint_profile_ref = azurerm_device_registry_asset.test.asset_endpoint_profile_ref
+  display_name               = azurerm_device_registry_asset.test.display_name
+  enabled                    = azurerm_device_registry_asset.test.enabled
+  external_asset_id          = azurerm_device_registry_asset.test.external_asset_id
+  location                   = azurerm_device_registry_asset.test.location
 }
+
 
 `, template)
 }
@@ -402,14 +401,14 @@ resource "azurerm_device_registry_asset" "import" {
 /*
 Creates the terraform template for AzureRm provider and needed constants
 */
-func (AssetTestResource) template(data acceptance.TestData) string {
+func (AssetTestResource) template() string {
 	customLocation := os.Getenv(ASSET_CUSTOM_LOCATION_NAME)
 	resourceGroup := os.Getenv(ASSET_RESOURCE_GROUP_NAME)
 
 	return fmt.Sprintf(`
 locals {
-	custom_location_name      = "%[1]s"
-	resource_group_name       = "%[2]s"
+  custom_location_name = "%[1]s"
+  resource_group_name  = "%[2]s"
 }
 
 provider "azurerm" {

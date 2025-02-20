@@ -15,51 +15,51 @@ Manages a Device Registry Asset Endpoint Profile.
 ### Asset Endpoint Profile with Certificate authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  	name             = "myassetendpointprofile"
-	resource_group_name = "my-resource-group"
-	extended_location_name = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-	extended_location_type = "CustomLocation"
-	target_address = "opc.tcp://foo"
-	endpoint_profile_type = "OpcUa"
-	authentication_method = "Certificate"
-	x509_credentials_certificate_secret_name = "mycertificate"
-	discovered_asset_endpoint_profile_ref = "myDiscoveredAssetEndpointProfile"
-	additional_configuration = "{\"foo\": \"bar\"}"
-	location         = "westus2"
+  name                                     = "myassetendpointprofile"
+  resource_group_name                      = "my-resource-group"
+  extended_location_name                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  extended_location_type                   = "CustomLocation"
+  target_address                           = "opc.tcp://foo"
+  endpoint_profile_type                    = "OpcUa"
+  authentication_method                    = "Certificate"
+  x509_credentials_certificate_secret_name = "mycertificate"
+  discovered_asset_endpoint_profile_ref    = "myDiscoveredAssetEndpointProfile"
+  additional_configuration                 = "{\"foo\": \"bar\"}"
+  location                                 = "westus2"
 }
 ```
 
 ### Asset Endpoint Profile with UsernamePassword authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  	name             = "myassetendpointprofile"
-	resource_group_name = "my-resource-group"
-	extended_location_name = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-	extended_location_type = "CustomLocation"
-	target_address = "opc.tcp://foo"
-	endpoint_profile_type = "OpcUa"
-	authentication_method = "UsernamePassword"
-	username_password_credentials_username_secret_name = "myusername"
-	username_password_credentials_password_secret_name = "mypassword" 
-	discovered_asset_endpoint_profile_ref = "myDiscoveredAssetEndpointProfile"
-	additional_configuration = "{\"foo\": \"bar\"}"
-	location         = "westus2"
+  name                                               = "myassetendpointprofile"
+  resource_group_name                                = "my-resource-group"
+  extended_location_name                             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  extended_location_type                             = "CustomLocation"
+  target_address                                     = "opc.tcp://foo"
+  endpoint_profile_type                              = "OpcUa"
+  authentication_method                              = "UsernamePassword"
+  username_password_credentials_username_secret_name = "myusername"
+  username_password_credentials_password_secret_name = "mypassword"
+  discovered_asset_endpoint_profile_ref              = "myDiscoveredAssetEndpointProfile"
+  additional_configuration                           = "{\"foo\": \"bar\"}"
+  location                                           = "westus2"
 }
 ```
 
 ### Asset Endpoint Profile with Anonymous authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  	name             = "myassetendpointprofile"
-	resource_group_name = "my-resource-group"
-	extended_location_name = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-	extended_location_type = "CustomLocation"
-	target_address = "opc.tcp://foo"
-	endpoint_profile_type = "OpcUa"
-	authentication_method = "Anonymous"
-	discovered_asset_endpoint_profile_ref = "myDiscoveredAssetEndpointProfile"
-	additional_configuration = "{\"foo\": \"bar\"}"
-	location         = "westus2"
+  name                                  = "myassetendpointprofile"
+  resource_group_name                   = "my-resource-group"
+  extended_location_name                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  extended_location_type                = "CustomLocation"
+  target_address                        = "opc.tcp://foo"
+  endpoint_profile_type                 = "OpcUa"
+  authentication_method                 = "Anonymous"
+  discovered_asset_endpoint_profile_ref = "myDiscoveredAssetEndpointProfile"
+  additional_configuration              = "{\"foo\": \"bar\"}"
+  location                              = "westus2"
 }
 ```
 
