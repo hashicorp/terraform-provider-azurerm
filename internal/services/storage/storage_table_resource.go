@@ -103,7 +103,7 @@ func resourceStorageTable() *pluginsdk.Resource {
 			"resource_manager_id": {
 				Type:        pluginsdk.TypeString,
 				Computed:    true,
-				Description: "The ID of the Table in the Resource Manager format. Useful for cases like IAM that do not use the Data Plane ID.",
+				Description: "The Resource Manager ID of this Storage Table.",
 			},
 		},
 	}

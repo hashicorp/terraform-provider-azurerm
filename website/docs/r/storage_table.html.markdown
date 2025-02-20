@@ -68,7 +68,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Table within the Storage Account.
 
-* `resource_manager_id` - The ID of the Table in the Resource Manager format. Useful for cases like IAM that do not use the Data Plane ID.
+* `resource_manager_id` - The Resource Manager ID of this Storage Table.
 
 ## Timeouts
 
