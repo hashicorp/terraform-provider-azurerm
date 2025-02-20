@@ -2245,17 +2245,29 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if d.HasChange("workload_autoscaler_profile") {
-		updateCluster = true
+		updateCluster = false
 		workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
 		workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
+
 		if workloadAutoscalerProfile == nil {
-			existing.Model.Properties.WorkloadAutoScalerProfile = &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
-				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
-					Enabled: false,
-				},
+			if existing.Model.Properties.WorkloadAutoScalerProfile != nil {
+				if existing.Model.Properties.WorkloadAutoScalerProfile.Keda != nil && existing.Model.Properties.WorkloadAutoScalerProfile.Keda.Enabled {
+					existing.Model.Properties.WorkloadAutoScalerProfile.Keda.Enabled = false
+					updateCluster = true
+				}
+				if existing.Model.Properties.WorkloadAutoScalerProfile.VerticalPodAutoscaler != nil && existing.Model.Properties.WorkloadAutoScalerProfile.VerticalPodAutoscaler.Enabled {
+					existing.Model.Properties.WorkloadAutoScalerProfile.VerticalPodAutoscaler.Enabled = false
+					updateCluster = true
+				}
 			}
 		} else {
-			existing.Model.Properties.WorkloadAutoScalerProfile = workloadAutoscalerProfile
+			if existing.Model.Properties.WorkloadAutoScalerProfile == nil {
+				if (workloadAutoscalerProfile.Keda != nil && workloadAutoscalerProfile.Keda.Enabled) ||
+					(workloadAutoscalerProfile.VerticalPodAutoscaler != nil && workloadAutoscalerProfile.VerticalPodAutoscaler.Enabled) {
+					updateCluster = true
+					existing.Model.Properties.WorkloadAutoScalerProfile = workloadAutoscalerProfile
+				}
+			}
 		}
 	}
 
