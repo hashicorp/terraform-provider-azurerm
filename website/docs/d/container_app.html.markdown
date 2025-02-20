@@ -268,6 +268,8 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - Should this ingress allow insecure connections?
 
+* `client_certificate_mode` - The client certificate mode for the Ingress.
+
 * `custom_domain` - One or more `custom_domain` block as detailed below.
 
 * `fqdn` -  The FQDN of the ingress.
@@ -281,8 +283,6 @@ An `ingress` block supports the following:
 * `traffic_weight` - A `traffic_weight` block as detailed below.
 
 * `transport` - The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
-
-* `client_certificate_mode` - The client certificate mode for the Ingress.
 
 ---
 
