@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties [GH-28763]
 * `azurerm_storage_container` - add support for migrating from deprecated `storage_account_name` to  `storage_account_id` [GH-28784]
 * `azurerm_storage_share` - add support for migrating from deprecated `storage_account_name` to  `storage_account_id` [GH-28784]
+* `azurerm_pim_active_role_assignment` - add support for Azure RBAC conditions [GH-27947]
 * `azurerm_windows_function_app` - add support for node `~22` [GH-28815]
 * `azurerm_windows_function_app_slot` - add support for node `~22` [GH-28815]
 
