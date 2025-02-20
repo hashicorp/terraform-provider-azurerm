@@ -1055,7 +1055,6 @@ resource "azurerm_kusto_cluster" "test" {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
-  public_network_access_enabled = false
   depends_on = [
     azurerm_subnet_route_table_association.test,
     azurerm_subnet_network_security_group_association.test,
