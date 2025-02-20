@@ -29,6 +29,7 @@ type ManagedClusterProperties struct {
 	MetricsProfile            *ManagedClusterMetricsProfile              `json:"metricsProfile,omitempty"`
 	NetworkProfile            *ContainerServiceNetworkProfile            `json:"networkProfile,omitempty"`
 	NodeResourceGroup         *string                                    `json:"nodeResourceGroup,omitempty"`
+	NodeResourceGroupProfile  *ManagedClusterNodeResourceGroupProfile    `json:"nodeResourceGroupProfile,omitempty"`
 	OidcIssuerProfile         *ManagedClusterOIDCIssuerProfile           `json:"oidcIssuerProfile,omitempty"`
 	PodIdentityProfile        *ManagedClusterPodIdentityProfile          `json:"podIdentityProfile,omitempty"`
 	PowerState                *PowerState                                `json:"powerState,omitempty"`

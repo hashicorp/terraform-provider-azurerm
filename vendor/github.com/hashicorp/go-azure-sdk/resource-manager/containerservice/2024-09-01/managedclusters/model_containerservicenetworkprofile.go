@@ -4,6 +4,7 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ContainerServiceNetworkProfile struct {
+	AdvancedNetworking  *AdvancedNetworking                `json:"advancedNetworking,omitempty"`
 	DnsServiceIP        *string                            `json:"dnsServiceIP,omitempty"`
 	IPFamilies          *[]IPFamily                        `json:"ipFamilies,omitempty"`
 	LoadBalancerProfile *ManagedClusterLoadBalancerProfile `json:"loadBalancerProfile,omitempty"`
