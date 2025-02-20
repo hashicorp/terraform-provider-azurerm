@@ -125,7 +125,6 @@ func resourceAksInferenceCluster() *pluginsdk.Resource {
 							Type:          pluginsdk.TypeBool,
 							Optional:      true,
 							ForceNew:      true,
-							Default:       "",
 							ConflictsWith: []string{"ssl.0.cert", "ssl.0.key", "ssl.0.cname"},
 						},
 					},

@@ -22,7 +22,7 @@ const (
 // This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
 func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
-	sasSignedVersion := "2022-11-02"
+	const sasSignedVersion = "2022-11-02"
 	return &pluginsdk.Resource{
 		Read: dataSourceStorageAccountSasRead,
 
