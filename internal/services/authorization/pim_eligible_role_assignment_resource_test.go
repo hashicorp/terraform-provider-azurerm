@@ -130,10 +130,9 @@ func TestAccPimEligibleRoleAssignment_condition(t *testing.T) {
 			Config: r.condition(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("condition").Exists(),
-				check.That(data.ResourceName).Key("condition_version").HasValue("2.0"),
 			),
 		},
+		data.ImportStep("schedule.0.start_date_time"),
 	})
 }
 
