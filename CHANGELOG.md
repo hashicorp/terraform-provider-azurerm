@@ -1,3 +1,29 @@
+## 4.20.0 (February 20, 2025)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_dynatrace_monitor` ([#28381](https://github.com/hashicorp/terraform-provider-azurerm/issues/28381))
+* **New Resource**: `azurerm_data_protection_backup_vault_customer_managed_key` ([#28679](https://github.com/hashicorp/terraform-provider-azurerm/issues/28679))
+
+ENHANCEMENTS:
+
+* dependencies: `hashicorp/terraform-plugin-sdk/v2` - update to `v2.36.0` ([#28788](https://github.com/hashicorp/terraform-provider-azurerm/issues/28788))
+* dependencies: `azurerm_data_factory_pipeline` - update to use `hashicorp/go-azure-sdk` ([#28768](https://github.com/hashicorp/terraform-provider-azurerm/issues/28768))
+* Data Source: `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties ([#28763](https://github.com/hashicorp/terraform-provider-azurerm/issues/28763))
+* `azurerm_logic_app_standard` - add support for the `ftp_publish_basic_authentication_enabled` and `scm_publish_basic_authentication_enabled` properties ([#28763](https://github.com/hashicorp/terraform-provider-azurerm/issues/28763))
+* `azurerm_pim_active_role_assignment` - add support for Azure RBAC conditions ([#27947](https://github.com/hashicorp/terraform-provider-azurerm/issues/27947))
+* `azurerm_storage_container` - add support for migrating from deprecated `storage_account_name` to  `storage_account_id` ([#28784](https://github.com/hashicorp/terraform-provider-azurerm/issues/28784))
+* `azurerm_storage_share` - add support for migrating from deprecated `storage_account_name` to  `storage_account_id` ([#28784](https://github.com/hashicorp/terraform-provider-azurerm/issues/28784))
+* `azurerm_storage_table` - add attribute `resource_manager_id` ([#28809](https://github.com/hashicorp/terraform-provider-azurerm/issues/28809))
+* `azurerm_windows_function_app` - add support for node `~22` ([#28815](https://github.com/hashicorp/terraform-provider-azurerm/issues/28815))
+* `azurerm_windows_function_app_slot` - add support for node `~22` ([#28815](https://github.com/hashicorp/terraform-provider-azurerm/issues/28815))
+
+BUG FIXES:
+
+* Data Source: `azurerm_container_app` - add missing `ingress.client_certificate_mode` property that caused an error when retrieving data ([#28793](https://github.com/hashicorp/terraform-provider-azurerm/issues/28793))
+* `azurerm_data_factory_pipeline` - fix error when unmarshaling the headers for a web activity ([#28768](https://github.com/hashicorp/terraform-provider-azurerm/issues/28768))
+* `azurerm_mssql_virtual_machine` - fix an issue that prevented users from using values only known during apply as the value for `auto_backup.encryption_password` ([#28223](https://github.com/hashicorp/terraform-provider-azurerm/issues/28223))
+
 ## 4.19.0 (February 14, 2025)
 
 FEATURES:
