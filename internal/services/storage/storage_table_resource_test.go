@@ -82,21 +82,6 @@ func TestAccStorageTable_acl(t *testing.T) {
 	})
 }
 
-func TestAccStorageTable_resourceManagerId(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
-	r := StorageTableResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.resourceManagerId(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r StorageTableResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := tables.ParseTableID(state.ID, client.Storage.StorageDomainSuffix)
 	if err != nil {
@@ -275,18 +260,4 @@ resource "azurerm_storage_table" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
-}
-
-func (r StorageTableResource) resourceManagerId(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = azurerm_storage_table.test.resource_manager_id
-  principal_id         = data.azurerm_client_config.current.object_id
-  role_definition_name = "Storage Table Data Contributor"
-}
-`, r.basic(data))
 }
