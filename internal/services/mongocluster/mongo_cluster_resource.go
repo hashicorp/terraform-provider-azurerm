@@ -99,7 +99,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 			ForceNew: true,
 			Elem: &schema.Schema{
 				Type:         schema.TypeString,
-				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPreviewFeature(), false),
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
