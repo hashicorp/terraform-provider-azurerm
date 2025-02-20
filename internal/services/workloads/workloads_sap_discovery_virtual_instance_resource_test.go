@@ -28,10 +28,10 @@ func TestAccWorkloadsSAPDiscoveryVirtualInstanceSequential(t *testing.T) {
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"sapVirtualInstance": {
-			"basic": testAccWorkloadsSAPDiscoveryVirtualInstance_basic,
-			//"requiresImport": testAccWorkloadsSAPDiscoveryVirtualInstance_requiresImport,
-			//"complete":       testAccWorkloadsSAPDiscoveryVirtualInstance_complete,
-			//"update":         testAccWorkloadsSAPDiscoveryVirtualInstance_update,
+			"basic":          testAccWorkloadsSAPDiscoveryVirtualInstance_basic,
+			"requiresImport": testAccWorkloadsSAPDiscoveryVirtualInstance_requiresImport,
+			"complete":       testAccWorkloadsSAPDiscoveryVirtualInstance_complete,
+			"update":         testAccWorkloadsSAPDiscoveryVirtualInstance_update,
 		},
 	})
 }
