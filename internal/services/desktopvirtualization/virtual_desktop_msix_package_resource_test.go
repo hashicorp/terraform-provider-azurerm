@@ -127,11 +127,11 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 }
 
 resource "azurerm_virtual_desktop_msix_package" "test" {
-  name                  = "acctestMSIXPackage"
-  host_pool_name        = azurerm_virtual_desktop_host_pool.test.name
-  resource_group_name   = azurerm_resource_group.test.name
-  image_path            = "//path/to/image.vhd"
-  last_updated_in_utc   = "2021-09-01T00:00:00"
+  name                = "acctestMSIXPackage"
+  host_pool_name      = azurerm_virtual_desktop_host_pool.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  image_path          = "//path/to/image.vhd"
+  last_updated_in_utc = "2021-09-01T00:00:00"
 
   package_application {
     app_id            = "app-1"
@@ -158,11 +158,11 @@ func (r VirtualDesktopMSIXPackageTestResource) requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_virtual_desktop_msix_package" "import" {
-  name                  = "acctestMSIXPackage"
-  host_pool_name        = azurerm_virtual_desktop_host_pool.test.name
-  resource_group_name   = azurerm_resource_group.test.name
-  image_path            = "//path/to/image.vhd"
-  last_updated_in_utc   = "2021-09-01T00:00:00"
+  name                = "acctestMSIXPackage"
+  host_pool_name      = azurerm_virtual_desktop_host_pool.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  image_path          = "//path/to/image.vhd"
+  last_updated_in_utc = "2021-09-01T00:00:00"
 
   package_application {
     app_id            = "app-1"
@@ -202,11 +202,11 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 }
 
 resource "azurerm_virtual_desktop_msix_package" "test" {
-  name                  = "acctestMSIXPackage"
-  host_pool_name        = azurerm_virtual_desktop_host_pool.test.name
-  resource_group_name   = azurerm_resource_group.test.name
-  image_path            = "//path/to/image.vhd"
-  last_updated_in_utc   = "2021-09-01T00:00:00"
+  name                = "acctestMSIXPackage"
+  host_pool_name      = azurerm_virtual_desktop_host_pool.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  image_path          = "//path/to/image.vhd"
+  last_updated_in_utc = "2021-09-01T00:00:00"
 
   package_application {
     app_id            = "app-1"
@@ -224,8 +224,8 @@ resource "azurerm_virtual_desktop_msix_package" "test" {
   version               = "0.0.0.1"
 
   display_name = "acctestMSIXPackage"
-  enabled = true
-  
+  enabled      = true
+
   package_dependency {
     dependency_name = "dependency-1"
     min_version     = "0.0.0.2"

@@ -73,7 +73,7 @@ resource "azurerm_virtual_desktop_msix_package" "example" {
   name                = "example-msix-package"
   host_pool_name      = azurerm_virtual_desktop_host_pool.pooledbreadthfirst.name
   resource_group_name = azurerm_resource_group.example.name
-  image_path          = "\\path\to\image.vhd"
+  image_path          = "\\\\path\\to\\image.vhd"
   last_updated_in_utc = "2021-09-01T00:00:00"
 
   package_application {
