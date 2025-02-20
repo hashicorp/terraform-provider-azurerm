@@ -72,7 +72,7 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 		"log_analytics_workspace_name": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to.",
+			Description: "The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to. (Only available if workspace is in same subscription)",
 		},
 
 		"infrastructure_subnet_id": {
@@ -208,5 +208,5 @@ func findLogAnalyticsWorkspaceName(ctx context.Context, client *workspaces.Works
 		}
 	}
 
-	return "", fmt.Errorf("no matching workspace found")
+	return "", nil
 }
