@@ -1181,7 +1181,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Update() sdk.ResourceFunc 
 				parameters.Tags = &model.Tags
 			}
 
-			if _, err := client.Update(ctx, *id, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
