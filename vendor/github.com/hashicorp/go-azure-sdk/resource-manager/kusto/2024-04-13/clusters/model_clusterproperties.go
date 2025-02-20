@@ -7,6 +7,7 @@ type ClusterProperties struct {
 	AcceptedAudiences                  *[]AcceptedAudiences         `json:"acceptedAudiences,omitempty"`
 	AllowedFqdnList                    *[]string                    `json:"allowedFqdnList,omitempty"`
 	AllowedIPRangeList                 *[]string                    `json:"allowedIpRangeList,omitempty"`
+	CalloutPolicies                    *[]CalloutPolicy             `json:"calloutPolicies,omitempty"`
 	DataIngestionUri                   *string                      `json:"dataIngestionUri,omitempty"`
 	EnableAutoStop                     *bool                        `json:"enableAutoStop,omitempty"`
 	EnableDiskEncryption               *bool                        `json:"enableDiskEncryption,omitempty"`
@@ -29,4 +30,5 @@ type ClusterProperties struct {
 	Uri                                *string                      `json:"uri,omitempty"`
 	VirtualClusterGraduationProperties *string                      `json:"virtualClusterGraduationProperties,omitempty"`
 	VirtualNetworkConfiguration        *VirtualNetworkConfiguration `json:"virtualNetworkConfiguration,omitempty"`
+	ZoneStatus                         *ZoneStatus                  `json:"zoneStatus,omitempty"`
 }

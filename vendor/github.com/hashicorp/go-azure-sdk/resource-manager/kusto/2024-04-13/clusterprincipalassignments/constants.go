@@ -12,13 +12,15 @@ import (
 type ClusterPrincipalRole string
 
 const (
-	ClusterPrincipalRoleAllDatabasesAdmin  ClusterPrincipalRole = "AllDatabasesAdmin"
-	ClusterPrincipalRoleAllDatabasesViewer ClusterPrincipalRole = "AllDatabasesViewer"
+	ClusterPrincipalRoleAllDatabasesAdmin   ClusterPrincipalRole = "AllDatabasesAdmin"
+	ClusterPrincipalRoleAllDatabasesMonitor ClusterPrincipalRole = "AllDatabasesMonitor"
+	ClusterPrincipalRoleAllDatabasesViewer  ClusterPrincipalRole = "AllDatabasesViewer"
 )
 
 func PossibleValuesForClusterPrincipalRole() []string {
 	return []string{
 		string(ClusterPrincipalRoleAllDatabasesAdmin),
+		string(ClusterPrincipalRoleAllDatabasesMonitor),
 		string(ClusterPrincipalRoleAllDatabasesViewer),
 	}
 }
@@ -38,8 +40,9 @@ func (s *ClusterPrincipalRole) UnmarshalJSON(bytes []byte) error {
 
 func parseClusterPrincipalRole(input string) (*ClusterPrincipalRole, error) {
 	vals := map[string]ClusterPrincipalRole{
-		"alldatabasesadmin":  ClusterPrincipalRoleAllDatabasesAdmin,
-		"alldatabasesviewer": ClusterPrincipalRoleAllDatabasesViewer,
+		"alldatabasesadmin":   ClusterPrincipalRoleAllDatabasesAdmin,
+		"alldatabasesmonitor": ClusterPrincipalRoleAllDatabasesMonitor,
+		"alldatabasesviewer":  ClusterPrincipalRoleAllDatabasesViewer,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

@@ -321,6 +321,74 @@ func parseAzureSkuTier(input string) (*AzureSkuTier, error) {
 	return &out, nil
 }
 
+type CalloutType string
+
+const (
+	CalloutTypeAzureDigitalTwins CalloutType = "azure_digital_twins"
+	CalloutTypeAzureOpenai       CalloutType = "azure_openai"
+	CalloutTypeCosmosdb          CalloutType = "cosmosdb"
+	CalloutTypeExternalData      CalloutType = "external_data"
+	CalloutTypeGenevametrics     CalloutType = "genevametrics"
+	CalloutTypeKusto             CalloutType = "kusto"
+	CalloutTypeMysql             CalloutType = "mysql"
+	CalloutTypePostgresql        CalloutType = "postgresql"
+	CalloutTypeSandboxArtifacts  CalloutType = "sandbox_artifacts"
+	CalloutTypeSql               CalloutType = "sql"
+	CalloutTypeWebapi            CalloutType = "webapi"
+)
+
+func PossibleValuesForCalloutType() []string {
+	return []string{
+		string(CalloutTypeAzureDigitalTwins),
+		string(CalloutTypeAzureOpenai),
+		string(CalloutTypeCosmosdb),
+		string(CalloutTypeExternalData),
+		string(CalloutTypeGenevametrics),
+		string(CalloutTypeKusto),
+		string(CalloutTypeMysql),
+		string(CalloutTypePostgresql),
+		string(CalloutTypeSandboxArtifacts),
+		string(CalloutTypeSql),
+		string(CalloutTypeWebapi),
+	}
+}
+
+func (s *CalloutType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCalloutType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseCalloutType(input string) (*CalloutType, error) {
+	vals := map[string]CalloutType{
+		"azure_digital_twins": CalloutTypeAzureDigitalTwins,
+		"azure_openai":        CalloutTypeAzureOpenai,
+		"cosmosdb":            CalloutTypeCosmosdb,
+		"external_data":       CalloutTypeExternalData,
+		"genevametrics":       CalloutTypeGenevametrics,
+		"kusto":               CalloutTypeKusto,
+		"mysql":               CalloutTypeMysql,
+		"postgresql":          CalloutTypePostgresql,
+		"sandbox_artifacts":   CalloutTypeSandboxArtifacts,
+		"sql":                 CalloutTypeSql,
+		"webapi":              CalloutTypeWebapi,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CalloutType(input)
+	return &out, nil
+}
+
 type ClusterNetworkAccessFlag string
 
 const (
@@ -489,6 +557,8 @@ type LanguageExtensionImageName string
 
 const (
 	LanguageExtensionImageNamePythonCustomImage         LanguageExtensionImageName = "PythonCustomImage"
+	LanguageExtensionImageNamePythonThreeOneOneSeven    LanguageExtensionImageName = "Python3_11_7"
+	LanguageExtensionImageNamePythonThreeOneOneSevenDL  LanguageExtensionImageName = "Python3_11_7_DL"
 	LanguageExtensionImageNamePythonThreeOneZeroEight   LanguageExtensionImageName = "Python3_10_8"
 	LanguageExtensionImageNamePythonThreeOneZeroEightDL LanguageExtensionImageName = "Python3_10_8_DL"
 	LanguageExtensionImageNamePythonThreeSixFive        LanguageExtensionImageName = "Python3_6_5"
@@ -498,6 +568,8 @@ const (
 func PossibleValuesForLanguageExtensionImageName() []string {
 	return []string{
 		string(LanguageExtensionImageNamePythonCustomImage),
+		string(LanguageExtensionImageNamePythonThreeOneOneSeven),
+		string(LanguageExtensionImageNamePythonThreeOneOneSevenDL),
 		string(LanguageExtensionImageNamePythonThreeOneZeroEight),
 		string(LanguageExtensionImageNamePythonThreeOneZeroEightDL),
 		string(LanguageExtensionImageNamePythonThreeSixFive),
@@ -521,6 +593,8 @@ func (s *LanguageExtensionImageName) UnmarshalJSON(bytes []byte) error {
 func parseLanguageExtensionImageName(input string) (*LanguageExtensionImageName, error) {
 	vals := map[string]LanguageExtensionImageName{
 		"pythoncustomimage": LanguageExtensionImageNamePythonCustomImage,
+		"python3_11_7":      LanguageExtensionImageNamePythonThreeOneOneSeven,
+		"python3_11_7_dl":   LanguageExtensionImageNamePythonThreeOneOneSevenDL,
 		"python3_10_8":      LanguageExtensionImageNamePythonThreeOneZeroEight,
 		"python3_10_8_dl":   LanguageExtensionImageNamePythonThreeOneZeroEightDL,
 		"python3_6_5":       LanguageExtensionImageNamePythonThreeSixFive,
@@ -614,6 +688,47 @@ func parseMigrationClusterRole(input string) (*MigrationClusterRole, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := MigrationClusterRole(input)
+	return &out, nil
+}
+
+type OutboundAccess string
+
+const (
+	OutboundAccessAllow OutboundAccess = "Allow"
+	OutboundAccessDeny  OutboundAccess = "Deny"
+)
+
+func PossibleValuesForOutboundAccess() []string {
+	return []string{
+		string(OutboundAccessAllow),
+		string(OutboundAccessDeny),
+	}
+}
+
+func (s *OutboundAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOutboundAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseOutboundAccess(input string) (*OutboundAccess, error) {
+	vals := map[string]OutboundAccess{
+		"allow": OutboundAccessAllow,
+		"deny":  OutboundAccessDeny,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := OutboundAccess(input)
 	return &out, nil
 }
 
@@ -899,5 +1014,49 @@ func parseVnetState(input string) (*VnetState, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := VnetState(input)
+	return &out, nil
+}
+
+type ZoneStatus string
+
+const (
+	ZoneStatusNonZonal           ZoneStatus = "NonZonal"
+	ZoneStatusZonal              ZoneStatus = "Zonal"
+	ZoneStatusZonalInconsistency ZoneStatus = "ZonalInconsistency"
+)
+
+func PossibleValuesForZoneStatus() []string {
+	return []string{
+		string(ZoneStatusNonZonal),
+		string(ZoneStatusZonal),
+		string(ZoneStatusZonalInconsistency),
+	}
+}
+
+func (s *ZoneStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseZoneStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseZoneStatus(input string) (*ZoneStatus, error) {
+	vals := map[string]ZoneStatus{
+		"nonzonal":           ZoneStatusNonZonal,
+		"zonal":              ZoneStatusZonal,
+		"zonalinconsistency": ZoneStatusZonalInconsistency,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ZoneStatus(input)
 	return &out, nil
 }

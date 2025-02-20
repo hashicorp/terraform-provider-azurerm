@@ -21,6 +21,23 @@ client.Client.Authorizer = authorizer
 ```
 
 
+### Example Usage: `ClustersClient.AddCalloutPolicies`
+
+```go
+ctx := context.TODO()
+id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+
+payload := clusters.CalloutPoliciesList{
+	// ...
+}
+
+
+if err := client.AddCalloutPoliciesThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
 ### Example Usage: `ClustersClient.AddLanguageExtensions`
 
 ```go
@@ -165,6 +182,23 @@ if model := read.Model; model != nil {
 ```
 
 
+### Example Usage: `ClustersClient.ListCalloutPolicies`
+
+```go
+ctx := context.TODO()
+id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+
+// alternatively `client.ListCalloutPolicies(ctx, id)` can be used to do batched pagination
+items, err := client.ListCalloutPoliciesComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
 ### Example Usage: `ClustersClient.ListFollowerDatabases`
 
 ```go
@@ -177,6 +211,23 @@ if err != nil {
 }
 if model := read.Model; model != nil {
 	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ClustersClient.ListFollowerDatabasesGet`
+
+```go
+ctx := context.TODO()
+id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+
+// alternatively `client.ListFollowerDatabasesGet(ctx, id)` can be used to do batched pagination
+items, err := client.ListFollowerDatabasesGetComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
 }
 ```
 
@@ -225,6 +276,23 @@ payload := clusters.ClusterMigrateRequest{
 
 
 if err := client.MigrateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `ClustersClient.RemoveCalloutPolicy`
+
+```go
+ctx := context.TODO()
+id := commonids.NewKustoClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "clusterName")
+
+payload := clusters.CalloutPolicyToRemove{
+	// ...
+}
+
+
+if err := client.RemoveCalloutPolicyThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
