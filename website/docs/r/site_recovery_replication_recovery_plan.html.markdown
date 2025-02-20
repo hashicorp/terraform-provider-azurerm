@@ -246,17 +246,11 @@ The following arguments are supported:
 
 * `target_recovery_fabric_id` - (Required) ID of target fabric to recover. Changing this forces a new Replication Plan to be created.
 
-* `shutdown_recovery_group` - (Optional) One `shutdown_recovery_group` block as defined below.
+* `shutdown_recovery_group` - (Required) One `shutdown_recovery_group` block as defined below.
 
--> **NOTE:** `shutdown_recovery_group` will be required in the next major version of the AzureRM Provider.
+* `failover_recovery_group` - (Required) One `failover_recovery_group` block as defined below.
 
-* `failover_recovery_group` - (Optional) One `failover_recovery_group` block as defined below.
-
--> **NOTE:** `failover_recovery_group` will be required in the next major version of the AzureRM Provider.
-
-* `boot_recovery_group` - (Optional) One or more `boot_recovery_group` blocks as defined below.
-
--> **NOTE:** At least one `boot_recovery_group` block will be required in the next major version of the AzureRM Provider.
+* `boot_recovery_group` - (Required) One or more `boot_recovery_group` blocks as defined below.
 
 * `azure_to_azure_settings` - (Optional) An `azure_to_azure_settings` block as defined below.
 
@@ -280,7 +274,7 @@ A `failover_recovery_group` block supports the following:
 
 A `boot_recovery_group` block supports the following:
 
-* `replicated_protected_items` - (Optional) One or more protected VM IDs. It must not be specified when `type` is `Shutdown`.
+* `replicated_protected_items` - (Optional) One or more protected VM IDs.
 
 * `pre_action` - (Optional) one or more `action` block as defined below. which will be executed before the group recovery.
 
@@ -341,8 +335,8 @@ In addition to the arguments above, the following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Replication Plan.
-* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Replication Plan.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replication Plan.
+* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Replication Plan.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Site Recovery Replication Plan.
 
 ## Import

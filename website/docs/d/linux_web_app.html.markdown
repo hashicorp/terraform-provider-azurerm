@@ -643,10 +643,6 @@ A `slow_request` block exports the following:
 
 * `interval` - The time interval.
 
-* `path` - The App Path for which this rule applies.
-
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
-
 * `time_taken` - The amount of time that qualifies as slow for this rule.
 
 ---

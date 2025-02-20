@@ -73,7 +73,7 @@ type WindowsFunctionAppSlotModel struct {
 	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
-	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
+	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
