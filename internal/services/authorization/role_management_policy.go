@@ -87,7 +87,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 
 		if length == 0 {
-			// We
+			// TODO: In here we want to add a similar (or copy) of the switch in the role_management_policy_resource.go > Read()
 			if notificationApproverAdminEligibilityBase, ok := existingRules["Notification_Approver_Admin_Eligibility"]; ok {
 				if notificationApproverAdminEligibility, ok := notificationApproverAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
 					updatedRules = append(updatedRules, expandNotificationSettings(
@@ -112,7 +112,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 				}
 			}
 			// Steve said this would fix the diff I was getting, it did not
-			metadata.ResourceData.Set("notification_rules", []interface{}{map[string]interface{}{}})
+			//metadata.ResourceData.Set("notification_rules", []interface{}{map[string]interface{}{}})
 		}
 	}
 
