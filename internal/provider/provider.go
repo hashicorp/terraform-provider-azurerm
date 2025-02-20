@@ -237,16 +237,24 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Description: "Allow OpenID Connect to be used for authentication",
 			},
 
+			"ado_pipeline_service_connection_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, nil),
+				Description: "The Azure DevOps Pipeline Service Connection ID.",
+			},
+
 			"oidc_request_token": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"}, nil),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "SYSTEM_ACCESSTOKEN"}, nil),
 				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
+
 			"oidc_request_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL"}, nil),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL", "SYSTEM_OIDCREQUESTURI"}, nil),
 				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
 
@@ -466,9 +474,11 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			ClientCertificatePassword: d.Get("client_certificate_password").(string),
 			ClientSecret:              *clientSecret,
 
-			OIDCAssertionToken:          *oidcToken,
-			GitHubOIDCTokenRequestURL:   d.Get("oidc_request_url").(string),
-			GitHubOIDCTokenRequestToken: d.Get("oidc_request_token").(string),
+			OIDCAssertionToken:    *oidcToken,
+			OIDCTokenRequestURL:   d.Get("oidc_request_url").(string),
+			OIDCTokenRequestToken: d.Get("oidc_request_token").(string),
+
+			ADOPipelineServiceConnectionID: d.Get("ado_pipeline_service_connection_id").(string),
 
 			CustomManagedIdentityEndpoint: d.Get("msi_endpoint").(string),
 
@@ -480,6 +490,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			EnableAuthenticatingUsingManagedIdentity:   enableManagedIdentity,
 			EnableAuthenticationUsingOIDC:              enableOidc,
 			EnableAuthenticationUsingGitHubOIDC:        enableOidc,
+			EnableAuthenticationUsingADOPipelineOIDC:   enableOidc,
 		}
 
 		return buildClient(ctx, p, d, authConfig)

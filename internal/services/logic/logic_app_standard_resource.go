@@ -6,6 +6,7 @@ package logic
 import (
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -108,6 +109,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"ftp_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -115,6 +122,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"scm_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -380,6 +393,32 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
+	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
+	if ftpAuth := d.Get("ftp_publish_basic_authentication_enabled").(bool); !ftpAuth {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: ftpAuth,
+			},
+		}
+
+		if _, err := client.UpdateFtpAllowed(ctx, id, policy); err != nil {
+			return fmt.Errorf("updating FTP publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
+	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
+	if scmAuth := d.Get("scm_publish_basic_authentication_enabled").(bool); !scmAuth {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: scmAuth,
+			},
+		}
+
+		if _, err := client.UpdateScmAllowed(ctx, id, policy); err != nil {
+			return fmt.Errorf("updating SCM publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
 	return resourceLogicAppStandardUpdate(d, meta)
 }
 
@@ -518,6 +557,34 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	// HasChange will return `true` when config specifies this argument as `true` during initial creation.
+	// To avoid unnecessary updates, check if the resource is new.
+	if d.HasChange("ftp_publish_basic_authentication_enabled") && !d.IsNewResource() {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: d.Get("ftp_publish_basic_authentication_enabled").(bool),
+			},
+		}
+
+		if _, err := client.UpdateFtpAllowed(ctx, *id, policy); err != nil {
+			return fmt.Errorf("updating FTP publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
+	// HasChange will return `true` when config specifies this argument as `true` during initial creation.
+	// To avoid unnecessary updates, check if the resource is new.
+	if d.HasChange("scm_publish_basic_authentication_enabled") && !d.IsNewResource() {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: d.Get("scm_publish_basic_authentication_enabled").(bool),
+			},
+		}
+
+		if _, err := client.UpdateScmAllowed(ctx, *id, policy); err != nil {
+			return fmt.Errorf("updating SCM publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
 	return resourceLogicAppStandardRead(d, meta)
 }
 
@@ -650,6 +717,24 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err = d.Set("connection_string", flattenLogicAppStandardConnectionStrings(model.Properties)); err != nil {
 			return err
 		}
+	}
+
+	ftpBasicAuth, err := client.GetFtpAllowed(ctx, *id)
+	if err != nil || ftpBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving FTP publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := ftpBasicAuth.Model.Properties; props != nil {
+		d.Set("ftp_publish_basic_authentication_enabled", props.Allow)
+	}
+
+	scmBasicAuth, err := client.GetScmAllowed(ctx, *id)
+	if err != nil || scmBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving SCM publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := scmBasicAuth.Model.Properties; props != nil {
+		d.Set("scm_publish_basic_authentication_enabled", props.Allow)
 	}
 
 	siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
@@ -1003,7 +1088,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 
 				"action": {
