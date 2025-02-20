@@ -144,6 +144,7 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 						"static_vnet_propagate_static_routes_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 
 						// lintignore:XS003
