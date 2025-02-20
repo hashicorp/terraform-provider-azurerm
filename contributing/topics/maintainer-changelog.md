@@ -20,13 +20,13 @@ When adding a changelog entry the following rules should be followed:
 * entries should start with a lower case, not end in a period, and always use the [serial (oxford) comma](https://en.wikipedia.org/wiki/Serial_comma).
 * each resource affected should be listed in full, i.e. do not use something like `azurerm_cosmosdb_*`.
 * each entry should link to the pull request with the placeholder `[GH-{number}]` (e.g. `[GH-1234]`), this will be replaced with a link during the release process.
-* entries should read as complete sentences such as `support for the property ```new_feature``` ` or `improve validation of the property ```old_feature``` ` not `support ```new_feature``` `.
+* entries should read as complete sentences such as ``add support for the property `new_feature` `` or ``improve validation of the property `old_feature` `` not ``support `new_feature` ``.
 
 And finally when making the edit commit, the PR number should be included in the commit message so the edit is linked to the PR, and the entry from the pr. For example `CHANGELOG.md for #1234`.
 
 Here is a list of common changelog entries and how they should be formatted:
 
-```go
+```
 # X.YY.0 (Unreleased)
 
 FEATURES:
@@ -36,12 +36,12 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependencies: updating to `v63.4.0` of `github.com/Azure/azure-sdk-for-go` [GH-12345]
-* dependencies: updating `api` to `2021-12-01` [GH-12345]
+* dependencies: `go-azure-sdk` - update to `v0.20250101.1123456` [GH-12345]
+* dependencies: `service` - update API version to `2021-12-01` [GH-12345]
 * Data Source: `azurerm_data_source` - export the `value` attribute [GH-12345]
 * `azurerm_resource` - the `sku` property can now be updated to `Basic` or `Standard` without recreating the resource [GH-12345]
-* `azurerm_resource` - support for the `thing1` property [GH-12345]
-* `azurerm_resource` - support for the `thing2`, `thing3`, and `thing4` properties [GH-12345]
+* `azurerm_resource` - add support for the `thing1` property [GH-12345]
+* `azurerm_resource` - add support for the `thing2`, `thing3`, and `thing4` properties [GH-12345]
 * `azurerm_resource` - improve validation for the `timeout` property within the `termination_notification` block [GH-12345]
 
 BUG FIXES:

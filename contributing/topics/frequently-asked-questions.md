@@ -21,8 +21,6 @@ As a general rule the Provider is typically released weekly on a Thursday, howev
 
 Whilst we do our best to review pull requests as they come in, unfortunately there are cases where it can take some time and merge conflicts can result if they have been sitting for a while. Generally speaking we recommend rebasing/merging from `main` only once a maintainer has taken a look through the PR and explicitly requested it.  
 
-TODO.
-
 ### Once a major release is published, will new features and fixes be backported to previous versions?
 
 Generally new features and fixes will only be added to the most recent major version.
