@@ -344,6 +344,7 @@ func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ForceNew: true,
 		MinItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
