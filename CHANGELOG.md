@@ -18,6 +18,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_container_app` - add missing `ingress.client_certificate_mode` property that caused an error when retrieving data [GH-28793]
 * `azurerm_data_factory_pipeline` - fix error when unmarshaling the headers for a web activity [GH-28768]
 * `azurerm_mssql_virtual_machine` - fix an issue that prevented users from using values only known during apply as the value for `auto_backup.encryption_password` [GH-28223]
 
