@@ -279,6 +279,12 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
 				},
+
+				"client_certificate_mode": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
+				},
 			},
 		},
 	}
