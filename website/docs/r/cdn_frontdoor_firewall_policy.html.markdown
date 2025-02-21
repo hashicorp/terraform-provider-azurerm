@@ -318,7 +318,11 @@ A `log_rule` block supports the following:
 
 * `operator` - (Required) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `log_rule` applies to. Possible values are `Equals` or `EqualsAny`.
 
+-> **Note:** A `log_rule` with a `match_variable` of `RequestIPAddress` or `RequestUri` is required to use the `EqualsAny` operator.
+
 * `selector` - (Required) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `log_rule` applies to.
+
+-> **Note:** The `selector` field is required for all `match_variables` except `RequestIPAddress` and `RequestUri`.
 
 * `enabled` - (Optional) Is this `log_rule` enabled? Defaults to `true`.
 
@@ -337,8 +341,6 @@ The following table shows examples of `log_rule`'s that can be used to protect s
 | `QueryStringArgNames`        | Equals         | foo           | {"matchVariableName":"QueryParamValue:foo","matchVariableValue":"****"}       |
 | `RequestIPAddress`           | Equals Any     | Not Supported | {"matchVariableName":"ClientIP","matchVariableValue":"****"}                  |
 | `RequestUri`                 | Equals Any     | Not Supported | {"matchVariableName":"URI","matchVariableValue":"****"}                       |
-
--> **Note:** `RequestIPAddress` and `RequestUri` `log_rule`'s only support the `EqualsAny` operator and scrubs all instances of the requestor's IP address that appears in the WAF logs.
 
 ---
 

@@ -462,8 +462,8 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Default:  true,
 						},
 
-						// NOTE: I named this a 'log_rule' instead of just 'rule' because
-						// 'rule' is already used above by another code block and I felt it would be
+						// NOTE: I named this 'log_rule' instead of just 'rule' because 'rule' is
+						// already used above by another code block and I felt it would be
 						// confusing in the documentation for the end user...
 						"log_rule": {
 							Type:     pluginsdk.TypeList,
