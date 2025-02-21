@@ -450,6 +450,65 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				},
 			},
 
+			"log_scrubbing": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						// NOTE: I named this 'log_rule' instead of just 'rule' because 'rule' is
+						// already used above by another code block and I felt it would be
+						// confusing in the documentation for the end user...
+						"log_rule": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 100,
+							Required: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"match_variable": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+											false),
+									},
+
+									// NOTE: The 'operator' must be 'EqualsAny' for the 'RequestIPAddress' and 'RequestUri'
+									// 'match_variable' which is validated in the 'CustomizeDiff' below...
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForScrubbingRuleEntryMatchOperator(),
+											false),
+									},
+
+									// NOTE: The 'selector' needs to be optional here because the 'RequestIPAddress' and 'RequestUri'
+									// 'match_variable' do not support passing a 'selector'. However, for all other 'match_variable's
+									// the 'selector' is a required field. These conditions are validated in the
+									// 'CustomizeDiff' below...
+									"selector": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"frontend_endpoint_ids": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
