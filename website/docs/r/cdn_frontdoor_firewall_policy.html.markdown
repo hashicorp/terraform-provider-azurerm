@@ -330,13 +330,13 @@ The following table shows examples of `log_rule`'s that can be used to protect s
 
 | Match Variable               | Operator       | Selector      | What gets scrubbed                                                            |
 | :--------------------------- | :------------- | :------------ | :---------------------------------------------------------------------------- |
-| `RequestHeaderNames`	       | Equals	        | keyToBlock    | {"matchVariableName":"HeaderValue:keyToBlock","matchVariableValue":"****"}    |
-| `RequestCookieNames`	       | Equals	        | cookieToBlock	| {"matchVariableName":"CookieValue:cookieToBlock","matchVariableValue":"****"} |
+| `RequestHeaderNames`         | Equals	        | keyToBlock    | {"matchVariableName":"HeaderValue:keyToBlock","matchVariableValue":"****"}    |
+| `RequestCookieNames`         | Equals	        | cookieToBlock	| {"matchVariableName":"CookieValue:cookieToBlock","matchVariableValue":"****"} |
 | `RequestBodyPostArgNames`    | Equals	        | var	          | {"matchVariableName":"PostParamValue:var","matchVariableValue":"****"}        |
 | `RequestBodyJsonArgNames`    | Equals	        | JsonValue     | {"matchVariableName":"JsonValue:key","matchVariableValue":"****"}             |
 | `QueryStringArgNames`        | Equals	        | foo	          | {"matchVariableName":"QueryParamValue:foo","matchVariableValue":"****"}       |
-| `RequestIPAddress` 	         | Equals Any     | Not Supported | {"matchVariableName":"ClientIP","matchVariableValue":"****"}                  |
-| `RequestUri` 	               | Equals Any     | Not Supported | {"matchVariableName":"URI","matchVariableValue":"****"}                       |
+| `RequestIPAddress`           | Equals Any     | Not Supported | {"matchVariableName":"ClientIP","matchVariableValue":"****"}                  |
+| `RequestUri`                 | Equals Any     | Not Supported | {"matchVariableName":"URI","matchVariableValue":"****"}                       |
 
 -> **Note:** `RequestIPAddress` and `RequestUri` `log_rule`'s only support the `EqualsAny` operator and scrubs all instances of the requestor's IP address that appears in the WAF logs.
 
