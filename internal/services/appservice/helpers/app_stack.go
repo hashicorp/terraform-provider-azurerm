@@ -418,6 +418,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"16-lts",
 						"18-lts",
 						"20-lts",
+						"22-lts",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
