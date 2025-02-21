@@ -314,13 +314,31 @@ An `exclusion` block supports the following:
 
 A `log_rule` block supports the following:
 
-* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `QueryStringArgNames`, `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
 
 * `operator` - (Required) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `log_rule` applies to. Possible values are `Equals` or `EqualsAny`.
 
 * `selector` - (Required) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `log_rule` applies to.
 
 * `enabled` - (Optional) Is this `log_rule` enabled? Defaults to `true`.
+
+---
+
+## `log_rule` Examples:
+
+The following table shows examples of `log_rule`'s that can be used to protect sensitive data:
+
+| Match Variable               | Operator       | Selector      | What gets scrubbed                                                            |
+| :--------------------------- | :------------- | :------------ | :---------------------------------------------------------------------------- |
+| `RequestHeaderNames`	       | Equals	        | keyToBlock    | {"matchVariableName":"HeaderValue:keyToBlock","matchVariableValue":"****"}    |
+| `RequestCookieNames`	       | Equals	        | cookieToBlock	| {"matchVariableName":"CookieValue:cookieToBlock","matchVariableValue":"****"} |
+| `RequestBodyPostArgNames`    | Equals	        | var	          | {"matchVariableName":"PostParamValue:var","matchVariableValue":"****"}        |
+| `RequestBodyJsonArgNames`    | Equals	        | JsonValue     | {"matchVariableName":"JsonValue:key","matchVariableValue":"****"}             |
+| `QueryStringArgNames`        | Equals	        | foo	          | {"matchVariableName":"QueryParamValue:foo","matchVariableValue":"****"}       |
+| `RequestIPAddress` 	         | Equals Any     | Not Supported | {"matchVariableName":"ClientIP","matchVariableValue":"****"}                  |
+| `RequestUri` 	               | Equals Any     | Not Supported | {"matchVariableName":"URI","matchVariableValue":"****"}                       |
+
+-> **Note:** `RequestIPAddress` and `RequestUri` `log_rule`'s only support the `EqualsAny` operator and scrubs all instances of the requestor's IP address that appears in the WAF logs.
 
 ---
 
