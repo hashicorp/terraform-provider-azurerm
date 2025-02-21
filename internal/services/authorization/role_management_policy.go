@@ -87,30 +87,57 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		}
 
 		if length == 0 {
-			// TODO: In here we want to add a similar (or copy) of the switch in the role_management_policy_resource.go > Read()
-			if notificationApproverAdminEligibilityBase, ok := existingRules["Notification_Approver_Admin_Eligibility"]; ok {
-				if notificationApproverAdminEligibility, ok := notificationApproverAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
-					updatedRules = append(updatedRules, expandNotificationSettings(
-						notificationApproverAdminEligibility,
-						// This appears to be the default notification setting for all three notification types for a resource group:
-						// * `active_assignments`
-						// * `eligible_activations`
-						// * `eligible_assignments`
+			for _, r := range existingRules {
+				switch rule := r.(type) {
+				case rolemanagementpolicies.RoleManagementPolicyNotificationRule:
+					if rule.Id != nil {
+						updatedRules = append(updatedRules, expandNotificationSettings(
+							rule,
+							// This appears to be the default notification setting for all three notification types for a resource group:
+							// * `active_assignments`
+							// * `eligible_activations`
+							// * `eligible_assignments`
 
-						// I think it's safe to assume that these defaults apply across the supported role management scopes:
-						// * management groups
-						// * subscription
-						// * resources
-						// But it is probably worth checking a sample of these to confirm that assumption
-						RoleManagementPolicyNotificationSettings{
-							NotificationLevel:    "All",
-							DefaultRecipients:    true,
-							AdditionalRecipients: []string{},
-						},
-						true,
-					))
+							// I think it's safe to assume that these defaults apply across the supported role management scopes:
+							// * management groups
+							// * subscription
+							// * resources
+							// But it is probably worth checking a sample of these to confirm that assumption
+							RoleManagementPolicyNotificationSettings{
+								NotificationLevel:    "All",
+								DefaultRecipients:    true,
+								AdditionalRecipients: []string{},
+							},
+							true,
+						))
+					}
 				}
 			}
+			// TODO: In here we want to add a similar (or copy) of the switch in the role_management_policy_resource.go > Read()
+			//if notificationApproverAdminEligibilityBase, ok := existingRules["Notification_Approver_Admin_Eligibility"]; ok {
+			//	if notificationApproverAdminEligibility, ok := notificationApproverAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+			//
+			//		updatedRules = append(updatedRules, expandNotificationSettings(
+			//			notificationApproverAdminEligibility,
+			//			// This appears to be the default notification setting for all three notification types for a resource group:
+			//			// * `active_assignments`
+			//			// * `eligible_activations`
+			//			// * `eligible_assignments`
+			//
+			//			// I think it's safe to assume that these defaults apply across the supported role management scopes:
+			//			// * management groups
+			//			// * subscription
+			//			// * resources
+			//			// But it is probably worth checking a sample of these to confirm that assumption
+			//			RoleManagementPolicyNotificationSettings{
+			//				NotificationLevel:    "All",
+			//				DefaultRecipients:    true,
+			//				AdditionalRecipients: []string{},
+			//			},
+			//			true,
+			//		))
+			//	}
+			//}
 			// Steve said this would fix the diff I was getting, it did not
 			//metadata.ResourceData.Set("notification_rules", []interface{}{map[string]interface{}{}})
 		}
@@ -409,6 +436,26 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 									metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications.0.additional_recipients"),
 								),
 							)
+						} else {
+							updatedRules = append(updatedRules, expandNotificationSettings(
+								notificationRequestorAdminEligibility,
+								// This appears to be the default notification setting for all three notification types for a resource group:
+								// * `active_assignments`
+								// * `eligible_activations`
+								// * `eligible_assignments`
+
+								// I think it's safe to assume that these defaults apply across the supported role management scopes:
+								// * management groups
+								// * subscription
+								// * resources
+								// But it is probably worth checking a sample of these to confirm that assumption
+								RoleManagementPolicyNotificationSettings{
+									NotificationLevel:    "All",
+									DefaultRecipients:    true,
+									AdditionalRecipients: []string{},
+								},
+								true,
+							))
 						}
 					}
 				}

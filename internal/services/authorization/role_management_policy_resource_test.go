@@ -59,21 +59,29 @@ func TestAccRoleManagementPolicy_resourceGroup(t *testing.T) {
 			Config: r.resourceGroupNotificationRulesRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				//check.That(data.ResourceName).Key("notification_rules.#").HasValue("0"),
+				check.That(data.ResourceName).Key("notification_rules.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
-		//{
-		//	Config: r.resourceGroupUpdate(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//		check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P15D"),
-		//		check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("true"),
-		//		check.That(data.ResourceName).Key("activation_rules.0.approval_stage.0.primary_approver.0.type").HasValue("Group"),
-		//		check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.resourceGroupUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P15D"),
+				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("true"),
+				check.That(data.ResourceName).Key("activation_rules.0.approval_stage.0.primary_approver.0.type").HasValue("Group"),
+				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resourceGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("notification_rules.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
