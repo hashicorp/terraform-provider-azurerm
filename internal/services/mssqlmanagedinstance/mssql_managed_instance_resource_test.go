@@ -1143,6 +1143,11 @@ resource "azuread_user" "test" {
   password            = "TerrAform321!"
 }
 
+resource "random_password" "test" {
+  length  = 16
+  special = true
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1155,7 +1160,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   vcores             = 4
 
   administrator_login          = "missadministrator"
-  administrator_login_password = "NCC-1701-D"
+  administrator_login_password = random_password.test.result
 
   identity {
     type = "SystemAssigned"
