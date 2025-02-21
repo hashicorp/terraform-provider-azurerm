@@ -202,6 +202,10 @@ The following arguments are supported:
 
 * `custom_block_response_body` - (Optional) If a `custom_rule` block's action type is `block`, this is the response body. The body must be specified in base64 encoding.
 
+* `log_scrubbing` - (Optional) A `log_scrubbing` block as defined below.
+
+!> **Note:** Setting the`log_scrubbing` block is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
+
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Front Door Firewall Policy.
@@ -260,6 +264,14 @@ A `managed_rule` block supports the following:
 
 ---
 
+A `log_scrubbing` block supports the following:
+
+* `enabled` - (Optional) Is log scrubbing enabled? Possible values are `true` or `false`. Defaults to `true`.
+
+* `log_rule` - (Required) One or more `log_rule` blocks as defined below.
+
+---
+
 An `override` block supports the following:
 
 * `rule_group_name` - (Required) The managed rule group to override.
@@ -297,6 +309,20 @@ An `exclusion` block supports the following:
 * `selector` - (Required) Selector for the value in the `match_variable` attribute this exclusion applies to.
 
 -> **Note:** `selector` must be set to `*` if `operator` is set to `EqualsAny`.
+
+---
+
+A `log_rule` block supports the following:
+
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
+
+* `operator` - (Required) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `log_rule` applies to. Possible values are `Equals` or `EqualsAny`.
+
+* `selector` - (Required) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `log_rule` applies to.
+
+* `enabled` - (Optional) Is this `log_rule` enabled? Defaults to `true`.
+
+---
 
 ## Attributes Reference
 
