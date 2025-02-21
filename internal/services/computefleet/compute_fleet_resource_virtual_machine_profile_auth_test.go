@@ -176,10 +176,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
 
@@ -212,10 +212,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.windows_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.windows_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -270,10 +270,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
 
@@ -306,10 +306,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.windows_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.windows_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -363,10 +363,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
 
@@ -398,10 +398,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -455,10 +455,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
 
@@ -490,10 +490,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -546,10 +546,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
 
@@ -580,10 +580,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -636,10 +636,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
   additional_location_profile {
@@ -669,10 +669,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -727,10 +727,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
   additional_location_profile {
@@ -762,10 +762,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -820,10 +820,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
   additional_location_profile {
@@ -855,10 +855,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -913,10 +913,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
   additional_location_profile {
@@ -949,10 +949,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }
@@ -1007,10 +1007,10 @@ resource "azurerm_compute_fleet" "test" {
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
   additional_location_profile {
@@ -1042,10 +1042,10 @@ resource "azurerm_compute_fleet" "test" {
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
-        primary = true
+        primary_network_interface_enabled = true
       }
     }
   }

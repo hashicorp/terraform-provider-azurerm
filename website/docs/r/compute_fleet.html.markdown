@@ -101,10 +101,10 @@ resource "azurerm_compute_fleet" "example" {
       ip_configuration {
         name                                   = "ipConfig"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.example.id
       }
-      primary = true
+      primary_network_interface_enabled = true
     }
   }
 }
@@ -121,9 +121,9 @@ The following arguments are supported:
 
 * `virtual_machine_profile` - (Required) A `virtual_machine_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `additional_capabilities_hibernation_enabled` - (Optional) Should the hibernation capability to be enabled on the Compute Fleet?  Defaults to `false`. Changing this forces a new resource to be created.
+* `additional_capabilities_hibernation_enabled` - (Optional) Whether to enable the hibernation capability on the Compute Fleet.  Defaults to `false`. Changing this forces a new resource to be created.
 
-* `additional_capabilities_ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Compute Fleet? Defaults to `false`. Changing this forces a new resource to be created.
+* `additional_capabilities_ultra_ssd_enabled` - (Optional) Whether to enable Data Disks of the `UltraSSD_LRS` storage account type on this Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `additional_location_profile` - (Optional) One or more `additional_location_profile` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `vm_attributes` - (Optional) A `vm_attributes` block as defined below. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) Specifies a list of availability zones which the Compute Fleet is available. Changing this forces a new resource to be created.
+* `zones` - (Optional) Specifies a list of availability zones in which the Compute Fleet is available. Changing this forces a new resource to be created.
 
 * `compute_api_version` - (Optional) Specifies the `Microsoft.Compute` API version to use when creating the Compute Fleet.
 
@@ -145,7 +145,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Compute Fleet.
 
-* `vm_sizes_profile` - (Optional) One or more `vm_sizes_profile` blocks as defined below. Conflicts with `vm_attributes.0.excluded_vm_sizes`.
+* `vm_sizes_profile` - (Optional) One or more `vm_sizes_profile` blocks as defined below.
 
 -> **Note:** If `spot_priority_profile` is specified, `regular_priority_profile` is not specified and `spot_priority_profile.0.maintain_enabled` is specified as to `false`, changing `vm_sizes_profile` forces a new resource to be created.
 
@@ -153,13 +153,13 @@ The following arguments are supported:
 
 A `virtual_machine_profile` block supports the following:
 
-* `os_profile` - (Required) A `os_profile` block as defined above.
-
 * `network_api_version` - (Required) Specifies the Microsoft.Network API version used when creating networking resources in the network interface configurations for the Compute Fleet.
 
 * `network_interface` - (Required) One or more `network_interface` blocks as defined above.
 
-* `boot_diagnostic_enabled` - (Optional) Should the boot diagnostics be enabled on the virtual machine? Defaults to `false`.
+* `os_profile` - (Required) A `os_profile` block as defined above.
+
+* `boot_diagnostic_enabled` - (Optional) Whether to enable the boot diagnostics on the virtual machine. Defaults to `false`.
 
 * `boot_diagnostic_storage_account_endpoint` - (Optional) Specifies endpoint of the storage account to use for placing the console output and screenshot.
 
@@ -167,11 +167,11 @@ A `virtual_machine_profile` block supports the following:
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined above.
 
-* `encryption_at_host_enabled` - (Optional) Should disks attached to the Compute Fleet be encrypted by enabling encryption at host? Defaults to `false`.
+* `encryption_at_host_enabled` - (Optional) Whether to enable encryption at host on disks attached to the Compute Fleet. Defaults to `false`.
 
 * `extension` - (Optional) One or more `extension` blocks as defined above.
 
-* `extension_operations_enabled` - (Optional) Should extension operations be allowed on the Compute Fleet?  Defaults to `true`.
+* `extension_operations_enabled` - (Optional) Whether to enable extension operations on the Compute Fleet.  Defaults to `true`.
 
 * `extensions_time_budget` - (Optional) Specifies the time alloted for all extensions to start.
 
@@ -181,11 +181,11 @@ A `virtual_machine_profile` block supports the following:
 
 * `os_disk` - (Optional) A `os_disk` block as defined above.
 
-* `scheduled_event_os_image_timeout` - (Optional) Specifies the length of time a virtual machine being deleted will have to potentially approve the terminate scheduled event before the event is auto approved (timed out). The configuration must be specified in ISO 8601 format. Only possible value is `PT15M`.
+* `scheduled_event_os_image_timeout` - (Optional) Specifies the length of time a virtual machine being deleted will have to potentially approve the terminate scheduled event before the event is auto approved (timed out). The configuration must be specified in ISO 8601 format. The only possible value is `PT15M`.
 
-* `scheduled_event_termination_timeout` - (Optional) Specifies the length of time a virtual machine being re-imaged or having its OS upgraded will have to potentially approve the OS image scheduled event before the event is auto approved (timed out). The configuration is specified in ISO 8601 format. Possible values are `PT5M` and `PT15M`.
+* `scheduled_event_termination_timeout` - (Optional) Specifies the length of time a virtual machine being reimaged or having its OS upgraded will have to potentially approve the OS image scheduled event before the event is auto approved (timed out). The configuration is specified in ISO 8601 format. Possible values are `PT5M` and `PT15M`.
 
-* `secure_boot_enabled` - (Optional) Should the secure boot be enabled the virtual machine? Defaults to `false`.
+* `secure_boot_enabled` - (Optional) Whether to enable the secure boot on the virtual machine. Defaults to `false`.
 
 * `source_image_id` - (Optional) The ID of an image which each virtual machine in the Compute Fleet should be based on. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
 
@@ -193,7 +193,7 @@ A `virtual_machine_profile` block supports the following:
 
 * `user_data_base64` - (Optional) The base64-encoded User Data which should be used for the Compute Fleet.
 
-* `vtpm_enabled` - (Optional) Should the vTPM be enabled on the virtual machine? Defaults to `false`.
+* `vtpm_enabled` - (Optional) Whether to enable the vTPM on the virtual machine. Defaults to `false`.
 
 ---
 
@@ -203,7 +203,7 @@ A `network_interface` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above.
 
-* `accelerated_networking_enabled` - (Optional) Should the network interface support accelerated networking be enabled? Defaults to `false`.
+* `accelerated_networking_enabled` - (Optional) Whether to enable accelerated networking on the network interface. Defaults to `false`.
 
 * `auxiliary_mode` - (Optional) Specifies the auxiliary mode for the network interface. Possible values are `AcceleratedConnections` and `Floating`.
 
@@ -213,17 +213,17 @@ A `network_interface` block supports the following:
 
 * `dns_servers` - (Optional) Specifies a list of IP addresses of DNS servers which should be assigned to the network interface.
 
-* `ip_forwarding_enabled` - (Optional) Should the network interface support IP forwarding be enabled? Defaults to `false`.
+* `ip_forwarding_enabled` - (Optional) Whether to enable IP forwarding on the network interface. Defaults to `false`.
 
 * `network_security_group_id` - (Optional) The ID of the network security group which should be assigned to the network interface.
 
-* `primary` - (Optional) Is this the primary network interface? Defaults to `false`.
+* `primary_network_interface_enabled` - (Optional) Whether to set it as the primary network interface. Defaults to `false`.
 
 ---
 
 A `os_profile` block supports the following:
 
-* `custom_data_base64` - (Optional) The base64-encoded custom data which should be used for the Compute Fleet.
+* `custom_data_base64` - (Optional) The base64-encoded Custom Data which should be used for the Compute Fleet.
 
 * `linux_configuration` - (Optional) A `linux_configuration` block as defined above. Changing this forces a new resource to be created.
 
@@ -263,7 +263,6 @@ A (Windows) `certificate` block supports the following:
 
 ---
 
-
 A (Linux) `certificate` block supports the following:
 
 * `url` - (Required) The secret URL of a key vault certificate.
@@ -282,13 +281,17 @@ A `data_disk` block supports the following:
 
 * `disk_encryption_set_id` - (Optional) The ID of the disk encryption set which should be used to encrypt the data disk.
 
-* `disk_size_in_gb` - (Optional) The size of the data disk which should be created. Required if `create_option` is specified as `Empty`.
+* `disk_size_in_gb` - (Optional) The size of the data disk which should be created. 
 
-* `lun` - (Optional) The logical unit number of the data disk, which must be unique within the virtual machine. Required if `create_option` is specified as `Empty`.
+-> **Note:** Required if `create_option` is specified as `Empty`.
+
+* `lun` - (Optional) The logical unit number of the data disk, which must be unique within the virtual machine.
+
+-> **Note:** Required if `create_option` is specified as `Empty`.
 
 * `storage_account_type` - (Optional)  The type of storage account which should back the data disk. Possible values include `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`.
 
-* `write_accelerator_enabled` - (Optional) Should the write accelerator be enabled on the data disk? Defaults to `false`.
+* `write_accelerator_enabled` - (Optional) Whether to enable the write accelerator on the data disk. Defaults to `false`.
 
 ---
 
@@ -310,13 +313,13 @@ A `extension` block supports the following:
 
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 
-* `auto_upgrade_minor_version_enabled` - (Optional) Should the latest version of the extension be used at deployment time, if one is available? This won't auto-update the extension on existing installation. Defaults to `false`.
+* `auto_upgrade_minor_version_enabled` - (Optional) Whether to use the latest version of the extension at deployment time if one is available. This won't auto-update the extension on existing installation. Defaults to `false`.
 
-* `automatic_upgrade_enabled` - (Optional) Should the extension be automatically upgraded by the platform, if there is a newer version of the extension available? Defaults to `false`.
+* `automatic_upgrade_enabled` - (Optional) Whether to automatically upgrade the extension if there is a newer version of the extension available. Defaults to `false`.
 
 * `extensions_to_provision_after_vm_creation` - (Optional) Specifies an ordered list of extension names which Compute Fleet should provision after virtual machine creation.
 
-* `failure_suppression_enabled` - (Optional) Should the failures from the extension be suppressed? Defaults to `false`.
+* `failure_suppression_enabled` - (Optional) Whether to suppress the failures from the extension. Defaults to `false`.
 
 -> **Note:** Operational failures such as not connecting to the virtual machine will not be suppressed regardless of the `failure_suppression_enabled` value.
 
@@ -336,7 +339,7 @@ A `gallery_application` block supports the following:
 
 * `version_id` - (Required) Specifies the gallery application version resource ID.
 
-* `automatic_upgrade_enabled` - (Optional) Should the gallery application be automatically upgraded, if there is a newer version of the gallery application available? Defaults to `false`.
+* `automatic_upgrade_enabled` - (Optional) Whether to automatically upgrade the gallery application if there is a newer version of the gallery application available. Defaults to `false`.
 
 * `configuration_blob_uri` - (Optional) Specifies the URI to an azure blob that will replace the default configuration for the package if provided.
 
@@ -344,13 +347,13 @@ A `gallery_application` block supports the following:
 
 * `tag` - (Optional) Specifies a passthrough value for more generic context.
 
-* `treat_failure_as_deployment_failure_enabled` - (Optional) Should any failure for any operation in the virtual machine application will fail the deployment be enabled? Defaults to `false`.
+* `treat_failure_as_deployment_failure_enabled` - (Optional) Whether to treat any failure for any operation in the virtual machine application as a deployment failure. Defaults to `false`.
 
 ---
 
 A `identity` block supports the following:
 
-* `type` - (Required)  The type of managed identity that should be configured on the Compute Fleet. Only possible value is `UserAssigned`.
+* `type` - (Required)  The type of managed identity that should be configured on the Compute Fleet. The only possible value is `UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity IDs to be assigned to the Compute Fleet.
 
@@ -368,7 +371,7 @@ A `ip_configuration` block supports the following:
 
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies a list of backend address pools IDs from a load balancer which the Compute Fleet should be connected to.
 
-* `primary` - (Optional) Is this the primary IP configuration? Defaults to `false`.
+* `primary_ip_configuration_enabled` - (Optional) Whether to set it as the primary IP configuration. Defaults to `false`.
 
 * `public_ip_address` - (Optional) One or more `public_ip_address` blocks as defined below.
 
@@ -394,21 +397,23 @@ A `linux_configuration` block supports the following:
 
 * `admin_ssh_keys` - (Optional) Specifies a list of the public key which should be used for authentication, which needs to be in `ssh-rsa` format with at least 2048-bit or in `ssh-ed25519` format.
 
-* `bypass_platform_safety_checks_enabled` - (Optional) Should the customer to schedule patching without accidental upgrades be enabled? Defaults to `false`.
+* `bypass_platform_safety_checks_enabled` - (Optional) Whether to bypass platform safety checks. Defaults to `false`.
 
-* `password_authentication_enabled` - (Optional) When an `admin_password` is specified `password_authentication_enabled` must be set to `true`. Defaults to `false`.
+* `password_authentication_enabled` - (Optional) Whether to enable the password authentication. Defaults to `false`.
 
-* `patch_assessment_mode` - (Optional) Specifies the mode of virtual machine Guest Patching for the virtual machines that are associated to the Compute Fleet. Only possible value is `ImageDefault`.
+-> **Note:** When an `admin_password` is specified `password_authentication_enabled` must be set to `true`. 
+
+* `patch_assessment_mode` - (Optional) Specifies the mode of virtual machine Guest Patching for the virtual machines that are associated to the Compute Fleet. The only possible value is `ImageDefault`.
 
 * `patch_mode` - (Optional)  Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByPlatform` and `ImageDefault`.
 
-* `provision_vm_agent_enabled` - (Optional) Should the virtual machine agent be provisioned on each virtual machine in the Scale Set? Defaults to `true`.
+* `provision_vm_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`.
 
 * `reboot_setting` - (Optional) Specifies the reboot setting for all `AutomaticByPlatform` patch installation operations. Possible values are `Always`, `IfRequired`, `Never` and `Unknown`.
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
-* `vm_agent_platform_updates_enabled` - (Optional) Should the virtual machine agent be provisioned on each linux virtual machine in the Compute Fleet? Defaults to `false`.
+* `vm_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the linux virtual machine in the Compute Fleet. Defaults to `false`.
 
 ---
 
@@ -444,29 +449,6 @@ A `network_bandwidth_in_mbps` block supports the following:
 
 ---
 
-A `network_interface` block supports the following:
-
-* `name` - (Required)  The name which should be used for the network interface.
-
-* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above.
-
-* `accelerated_networking_enabled` - (Optional) Should the network interface support accelerated networking be enabled? Defaults to `false`.
-
-* `auxiliary_mode` - (Optional) Specifies the auxiliary mode for the network interface. Possible values are `AcceleratedConnections` and `Floating`.
-
-* `auxiliary_sku` - (Optional) Specifies the auxiliary sku for the network interface. Possible values are `A8`, `A4`, `A1` and `A2`.
-
-* `delete_option` - (Optional) Specify what happens to the network interface when the virtual machine is deleted. Possible values are `Delete` and `Detach`.
-
-* `dns_servers` - (Optional) Specifies a list of IP addresses of DNS servers which should be assigned to the network interface.
-
-* `ip_forwarding_enabled` - (Optional) Should the network interface support IP forwarding be enabled? Defaults to `false`.
-
-* `network_security_group_id` - (Optional) The ID of the network security group which should be assigned to the network interface.
-
-* `primary` - (Optional) Is this the primary network interface? Defaults to `false`.
-
----
 
 A `network_interface_count` block supports the following:
 
@@ -484,7 +466,7 @@ A `os_disk` block supports the following:
 
 * `delete_option` - (Optional) Specify what happens to the os disk when the virtual machine is deleted. Possible values are `Delete` and `Detach`.
 
-* `diff_disk_option` - (Optional) Specifies the Ephemeral Disk Settings for the OS Disk. Only possible value is `Local`.
+* `diff_disk_option` - (Optional) Specifies the Ephemeral Disk Settings for the OS Disk. The only possible value is `Local`.
 
 * `diff_disk_placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk`, `NvmeDisk` and `ResourceDisk`.
 
@@ -496,17 +478,7 @@ A `os_disk` block supports the following:
 
 * `storage_account_type` - (Optional) The Type of Storage Account which should back the OS Disk. Possible values include `Premium_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS` and `StandardSSD_ZRS`.
 
-* `write_accelerator_enabled` - (Optional) Should the write accelerator be enabled on the OS Disk? Defaults to `false`.
-
----
-
-A `os_profile` block supports the following:
-
-* `custom_data_base64` - (Optional) The base64-encoded Custom Data which should be used for the Compute Fleet.
-
-* `linux_configuration` - (Optional) A `linux_configuration` block as defined above. Changing this forces a new resource to be created.
-
-* `windows_configuration` - (Optional) A `windows_configuration` block as defined below. Changing this forces a new resource to be created.
+* `write_accelerator_enabled` - (Optional) Whether to enable the write accelerator on the OS Disk. Defaults to `false`.
 
 ---
 
@@ -596,7 +568,7 @@ A `spot_priority_profile` block supports the following:
 
 * `eviction_policy` - (Optional) The policy which should be used by spot virtual machines that are evicted from the Compute Fleet. Defaults to `Delete`. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
-* `maintain_enabled` - (Optional) Should the continuous goal seeking for the desired capacity and restoration of evicted spot virtual machines be enabled? Defaults to `true`. Changing this forces a new resource to be created.
+* `maintain_enabled` - (Optional) Whether to enable the continuous goal seeking for the desired capacity and restoration of evicted spot virtual machines. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `max_hourly_price_per_vm` - (Optional) The maximum price per hour of each spot virtual machine. Defaults to `-1`. Changing this forces a new resource to be created.
 
@@ -611,52 +583,6 @@ A `vcpu_count` block supports the following:
 * `max` - (Optional) The maximum value of vCPU count.
 
 * `min` - (Optional) The minimum value of vCPU count.
-
----
-
-A `virtual_machine_profile` block supports the following:
-
-* `os_profile` - (Required) A `os_profile` block as defined above.
-
-* `network_api_version` - (Required) Specifies the Microsoft.Network API version used when creating networking resources in the network interface configurations for the Compute Fleet.
-
-* `network_interface` - (Required) One or more `network_interface` blocks as defined above.
-
-* `boot_diagnostic_enabled` - (Optional) Should the boot diagnostics be enabled on the virtual machine? Defaults to `false`.
-
-* `boot_diagnostic_storage_account_endpoint` - (Optional) Specifies endpoint of the storage account to use for placing the console output and screenshot.
-
-* `capacity_reservation_group_id` - (Optional) Specifies the ID of the capacity reservation group which the Compute Fleet should be allocated to.
-
-* `data_disk` - (Optional) One or more `data_disk` blocks as defined above.
-
-* `encryption_at_host_enabled` - (Optional) Should disks attached to the Compute Fleet be encrypted by enabling encryption at host? Defaults to `false`.
-
-* `extension` - (Optional) One or more `extension` blocks as defined above.
-
-* `extension_operations_enabled` - (Optional) Should extension operations be allowed on the Compute Fleet?  Defaults to `true`.
-
-* `extensions_time_budget` - (Optional) Specifies the time alloted for all extensions to start.
-
-* `gallery_application` - (Optional) One or more `gallery_application` blocks as defined above.
-
-* `license_type` - (Optional) Specifies the type of on-premise license (also known as Azure Hybrid Use Benefit) which should be used for the Compute Fleet. Possible values are `RHEL_BYOS`, `SLES_BYOS`, `Windows_Client` and `Windows_Server`.
-
-* `os_disk` - (Optional) A `os_disk` block as defined above.
-
-* `scheduled_event_os_image_timeout` - (Optional) Specifies the length of time a virtual machine being deleted will have to potentially approve the terminate scheduled event before the event is auto approved (timed out). The configuration must be specified in ISO 8601 format. Only possible value is `PT15M`.
-
-* `scheduled_event_termination_timeout` - (Optional) Specifies the length of time a virtual machine being reimaged or having its OS upgraded will have to potentially approve the OS image scheduled event before the event is auto approved (timed out). The configuration is specified in ISO 8601 format. Possible values are `PT5M` and `PT15M`.
-
-* `secure_boot_enabled` - (Optional) Should the secure boot be enabled the virtual machine? Defaults to `false`.
-
-* `source_image_id` - (Optional) The ID of an image which each virtual machine in the Compute Fleet should be based on. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
-
-* `source_image_reference` - (Optional) A `source_image_reference` block as defined above.
-
-* `user_data_base64` - (Optional) The base64-encoded User Data which should be used for the Compute Fleet.
-
-* `vtpm_enabled` - (Optional) Should the vTPM be enabled on the virtual machine? Defaults to `false`.
 
 ---
 
@@ -758,17 +684,17 @@ A `windows_configuration` block supports the following:
 
 * `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined above.
 
-* `automatic_updates_enabled` - (Optional) Should the automatic updates of the virtual machines be enabled? Defaults to `true`.
+* `automatic_updates_enabled` - (Optional) Whether to enable the automatic updates of the virtual machines. Defaults to `true`.
 
-* `bypass_platform_safety_checks_enabled` - (Optional) Should the customer to schedule patching without accidental upgrades be enabled? Defaults to `false`.
+* `bypass_platform_safety_checks_enabled` - (Optional) Whether to bypass platform safety checks. Defaults to `false`.
 
-* `hot_patching_enabled` - (Optional) Should the customers to patch the virtual machines without requiring a reboot be enabled? Defaults to `false`.
+* `hot_patching_enabled` - (Optional) Whether to enable the customers to patch the virtual machines without requiring a reboot. Defaults to `false`.
 
-* `patch_assessment_mode` - (Optional) Specifies the mode of virtual machine Guest Patching for the virtual machines that are associated to the Compute Fleet. Only possible value is `ImageDefault`.
+* `patch_assessment_mode` - (Optional) Specifies the mode of virtual machine Guest Patching for the virtual machines that are associated to the Compute Fleet. The only possible value is `ImageDefault`.
 
 * `patch_mode` - (Optional)  Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByOS`, `AutomaticByPlatform` and `Manual`.
 
-* `provision_vm_agent_enabled` - (Optional) Should the virtual machine agent be provisioned on each virtual machine in the Scale Set? Defaults to `true`.
+* `provision_vm_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`.
 
 * `reboot_setting` - (Optional) Specifies the reboot setting for all `AutomaticByPlatform` patch installation operations. Possible values are `Always`, `IfRequired`, `Never` and `Unknown`.
 
@@ -776,7 +702,7 @@ A `windows_configuration` block supports the following:
 
 * `time_zone` - (Optional) Specifies the time zone of the windows virtual machine. Changing this forces a new resource to be created.
 
-* `vm_agent_platform_updates_enabled` - (Optional) Should the virtual machine agent platform updates be enabled for the windows virtual machine? Defaults to `false`.
+* `vm_agent_platform_updates_enabled` - (Optional) Whether to enable the virtual machine agent platform updates for the windows virtual machine in the Compute Fleet. Defaults to `false`.
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.  Changing this forces a new resource to be created.
 

@@ -60,6 +60,43 @@ func TestAccComputeFleet_completeExceptVMSS(t *testing.T) {
 	})
 }
 
+func TestAccComputeFleet_multipleAdditionalLocationProfiles(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
+	r := ComputeFleetTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.additionalLocationProfiles(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
+			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password",
+			"additional_location_profile.1.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.additionalLocationProfilesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
+			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password",
+			"additional_location_profile.1.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.additionalLocationProfiles(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
+			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password",
+			"additional_location_profile.1.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
 func TestAccComputeFleet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
 	r := ComputeFleetTestResource{}
@@ -419,12 +456,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -480,12 +517,12 @@ resource "azurerm_compute_fleet" "import" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -640,12 +677,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -803,12 +840,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -851,11 +888,11 @@ virtual_machine_profile {
 
 	network_interface {
 		name                            = "networkProTest"
-   	primary 												= true
+   	primary_network_interface_enabled 												= true
 		ip_configuration {
 			name      = "TestIPConfiguration"
         subnet_id = azurerm_subnet.test.id
-        primary   = true
+        primary_ip_configuration_enabled   = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -892,10 +929,10 @@ virtual_machine_profile {
 
 	network_interface {
 		name                            = "networkProTest"
-   	primary 												= true
+   	primary_network_interface_enabled 												= true
 		ip_configuration {
 			name      = "TestIPConfiguration"
-      primary   = true
+      primary_ip_configuration_enabled   = true
       subnet_id = azurerm_subnet.test.id
       public_ip_address {
         name                    = "TestPublicIPConfiguration"
@@ -910,4 +947,292 @@ lifecycle {
 	ignore_changes = [virtual_machine_profile.0.os_disk, additional_location_profile[0].virtual_machine_profile_override.0.os_disk]
 }
 `
+}
+
+func (r ComputeFleetTestResource) additionalLocationProfiles(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "linux_test2" {
+  name     = "acctest-rg-fleet-al2-%[2]d"
+  location = "%[6]s"
+}
+
+resource "azurerm_virtual_network" "linux_test2" {
+  name                = "acctvn-al2-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.linux_test2.location
+  resource_group_name = azurerm_resource_group.linux_test2.name
+}
+
+resource "azurerm_subnet" "linux_test2" {
+  name                 = "acctsub-%[2]d"
+  resource_group_name  = azurerm_resource_group.linux_test2.name
+  virtual_network_name = azurerm_virtual_network.linux_test2.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "linux_test2" {
+  name                = "acctestpublicIP%[2]d"
+  location            = azurerm_resource_group.linux_test2.location
+  resource_group_name = azurerm_resource_group.linux_test2.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1"]
+}
+
+resource "azurerm_lb" "linux_test2" {
+  name                = "acctest-loadbalancer2-%[2]d"
+  location            = azurerm_resource_group.linux_test2.location
+  resource_group_name = azurerm_resource_group.linux_test2.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.linux_test2.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "linux_test2" {
+  name            = "internal"
+  loadbalancer_id = azurerm_lb.linux_test2.id
+}
+
+resource "azurerm_compute_fleet" "test" {
+  name                = "acctest-fleet-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  compute_api_version = "2024-03-01"
+
+  spot_priority_profile {
+    min_capacity     = 1
+    maintain_enabled = false
+    capacity         = 1
+  }
+
+  vm_sizes_profile {
+    name = "Standard_DS1_v2"
+  }
+
+  %[4]s
+
+  additional_location_profile {
+    location = "%[5]s"
+    virtual_machine_profile_override {
+      network_api_version = "2020-11-01"
+      source_image_reference {
+        offer     = "0001-com-ubuntu-server-focal"
+        publisher = "canonical"
+        sku       = "20_04-lts-gen2"
+        version   = "latest"
+      }
+
+      os_profile {
+        linux_configuration {
+          computer_name_prefix            = "testvmal1"
+          admin_username                  = "testal1admin1234"
+          admin_password                  = "Passwordal11234"
+          password_authentication_enabled = true
+        }
+      }
+
+      network_interface {
+        name                              = "networkProAl1Test"
+        primary_network_interface_enabled = true
+        ip_configuration {
+          name                             = "TestIPConfigurationAl1"
+          subnet_id                        = azurerm_subnet.linux_test.id
+          primary_ip_configuration_enabled = true
+          public_ip_address {
+            name                    = "TestPublicIPConfigurationAl1"
+            domain_name_label       = "test-domain-label"
+            idle_timeout_in_minutes = 4
+          }
+        }
+      }
+    }
+  }
+
+  additional_location_profile {
+    location = "%[6]s"
+    virtual_machine_profile_override {
+      network_api_version = "2020-11-01"
+      source_image_reference {
+        offer     = "0001-com-ubuntu-server-focal"
+        publisher = "canonical"
+        sku       = "20_04-lts-gen2"
+        version   = "latest"
+      }
+
+      os_profile {
+        linux_configuration {
+          computer_name_prefix            = "testvmal2"
+          admin_username                  = "testal2admin1234"
+          admin_password                  = "Passwordal21234"
+          password_authentication_enabled = true
+        }
+      }
+
+      network_interface {
+        name                              = "networkProAl2Test"
+        primary_network_interface_enabled = true
+        ip_configuration {
+          name                             = "TestIPConfigurationAl2"
+          subnet_id                        = azurerm_subnet.linux_test2.id
+          primary_ip_configuration_enabled = true
+          public_ip_address {
+            name                    = "TestPublicIPConfigurationAl2"
+            domain_name_label       = "test-domain-label"
+            idle_timeout_in_minutes = 4
+          }
+        }
+      }
+    }
+  }
+}
+`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, r.basicBaseLinuxVirtualMachineProfile(), data.Locations.Secondary, data.Locations.Ternary)
+}
+
+func (r ComputeFleetTestResource) additionalLocationProfilesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_resource_group" "linux_test2" {
+  name     = "acctest-rg-fleet-al2-%[2]d"
+  location = "%[6]s"
+}
+
+resource "azurerm_virtual_network" "linux_test2" {
+  name                = "acctvn-al2-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.linux_test2.location
+  resource_group_name = azurerm_resource_group.linux_test2.name
+}
+
+resource "azurerm_subnet" "linux_test2" {
+  name                 = "acctsub-%[2]d"
+  resource_group_name  = azurerm_resource_group.linux_test2.name
+  virtual_network_name = azurerm_virtual_network.linux_test2.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_public_ip" "linux_test2" {
+  name                = "acctestpublicIP%[2]d"
+  location            = azurerm_resource_group.linux_test2.location
+  resource_group_name = azurerm_resource_group.linux_test2.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1"]
+}
+
+resource "azurerm_lb" "linux_test2" {
+  name                = "acctest-loadbalancer2-%[2]d"
+  location            = azurerm_resource_group.linux_test2.location
+  resource_group_name = azurerm_resource_group.linux_test2.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.linux_test2.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "linux_test2" {
+  name            = "internal"
+  loadbalancer_id = azurerm_lb.linux_test2.id
+}
+
+resource "azurerm_compute_fleet" "test" {
+  name                = "acctest-fleet-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  compute_api_version = "2024-03-01"
+
+  spot_priority_profile {
+    min_capacity     = 1
+    maintain_enabled = false
+    capacity         = 1
+  }
+
+  vm_sizes_profile {
+    name = "Standard_DS1_v2"
+  }
+
+  %[4]s
+
+  additional_location_profile {
+    location = "%[5]s"
+    virtual_machine_profile_override {
+      network_api_version = "2020-11-01"
+      source_image_reference {
+        offer     = "0001-com-ubuntu-server-focal"
+        publisher = "canonical"
+        sku       = "20_04-lts-gen2"
+        version   = "latest"
+      }
+
+      os_profile {
+        linux_configuration {
+          computer_name_prefix            = "testvmal1update"
+          admin_username                  = "testal1updateadmin1234"
+          admin_password                  = "Passwordalupdate11234"
+          password_authentication_enabled = true
+        }
+      }
+
+      network_interface {
+        name                              = "networkProAl1UpdateTest"
+        primary_network_interface_enabled = true
+        ip_configuration {
+          name                             = "TestIPConfigurationAl1Update"
+          subnet_id                        = azurerm_subnet.linux_test.id
+          primary_ip_configuration_enabled = true
+          public_ip_address {
+            name                    = "TestPublicIPConfigurationAl1Update"
+            domain_name_label       = "test-domain-label"
+            idle_timeout_in_minutes = 4
+          }
+        }
+      }
+    }
+  }
+
+  additional_location_profile {
+    location = "%[6]s"
+    virtual_machine_profile_override {
+      network_api_version = "2020-11-01"
+      source_image_reference {
+        offer     = "0001-com-ubuntu-server-focal"
+        publisher = "canonical"
+        sku       = "20_04-lts-gen2"
+        version   = "latest"
+      }
+
+      os_profile {
+        linux_configuration {
+          computer_name_prefix            = "testvmal2update"
+          admin_username                  = "testal2updateadmin1234"
+          admin_password                  = "Passwordal2update1234"
+          password_authentication_enabled = true
+        }
+      }
+
+      network_interface {
+        name                              = "networkProAl2UpdateTest"
+        primary_network_interface_enabled = true
+        ip_configuration {
+          name                             = "TestIPConfigurationAl2Update"
+          subnet_id                        = azurerm_subnet.linux_test2.id
+          primary_ip_configuration_enabled = true
+          public_ip_address {
+            name                    = "TestPublicIPConfigurationAl2Update"
+            domain_name_label       = "test-domain-label"
+            idle_timeout_in_minutes = 4
+          }
+        }
+      }
+    }
+  }
+}
+`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, r.basicBaseLinuxVirtualMachineProfile(), data.Locations.Secondary, data.Locations.Ternary)
 }
