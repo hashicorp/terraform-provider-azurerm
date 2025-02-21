@@ -178,12 +178,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "nic-test"
-      primary = true
+      name                              = "nic-test"
+      primary_network_interface_enabled = true
 
       ip_configuration {
         name                                   = "primary"
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       }
@@ -216,12 +216,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "nic-test"
-        primary = true
+        name                              = "nic-test"
+        primary_network_interface_enabled = true
 
         ip_configuration {
           name                                   = "primary"
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
         }
@@ -279,12 +279,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "nic-test"
-      primary = true
+      name                              = "nic-test"
+      primary_network_interface_enabled = true
 
       ip_configuration {
         name                                   = "primary"
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       }
@@ -344,18 +344,18 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name                           = "nic-test"
-      primary                        = true
-      accelerated_networking_enabled = true
-      ip_forwarding_enabled          = true
-      auxiliary_mode                 = "AcceleratedConnections"
-      auxiliary_sku                  = "A2"
-      delete_option                  = "Delete"
-      network_security_group_id      = azurerm_network_security_group.test.id
-      dns_servers                    = ["8.8.8.8", "8.8.4.4"]
+      name                              = "nic-test"
+      primary_network_interface_enabled = true
+      accelerated_networking_enabled    = true
+      ip_forwarding_enabled             = true
+      auxiliary_mode                    = "AcceleratedConnections"
+      auxiliary_sku                     = "A2"
+      delete_option                     = "Delete"
+      network_security_group_id         = azurerm_network_security_group.test.id
+      dns_servers                       = ["8.8.8.8", "8.8.4.4"]
       ip_configuration {
         name                                         = "first"
-        primary                                      = true
+        primary_ip_configuration_enabled             = true
         subnet_id                                    = azurerm_subnet.test.id
         application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
         application_security_group_ids               = [azurerm_application_security_group.test.id]
@@ -439,18 +439,18 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name                           = "nic-test"
-      primary                        = true
-      accelerated_networking_enabled = true
-      ip_forwarding_enabled          = true
-      auxiliary_mode                 = "AcceleratedConnections"
-      auxiliary_sku                  = "A2"
-      delete_option                  = "Delete"
-      network_security_group_id      = azurerm_network_security_group.test.id
-      dns_servers                    = ["8.8.8.8", "8.8.4.4"]
+      name                              = "nic-test"
+      primary_network_interface_enabled = true
+      accelerated_networking_enabled    = true
+      ip_forwarding_enabled             = true
+      auxiliary_mode                    = "AcceleratedConnections"
+      auxiliary_sku                     = "A2"
+      delete_option                     = "Delete"
+      network_security_group_id         = azurerm_network_security_group.test.id
+      dns_servers                       = ["8.8.8.8", "8.8.4.4"]
       ip_configuration {
         name                                         = "first"
-        primary                                      = true
+        primary_ip_configuration_enabled             = true
         subnet_id                                    = azurerm_subnet.test.id
         application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
         application_security_group_ids               = [azurerm_application_security_group.test.id]
@@ -510,18 +510,18 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name                           = "nic-test"
-        primary                        = true
-        accelerated_networking_enabled = true
-        ip_forwarding_enabled          = true
-        auxiliary_mode                 = "AcceleratedConnections"
-        auxiliary_sku                  = "A2"
-        delete_option                  = "Delete"
-        network_security_group_id      = azurerm_network_security_group.linux_test.id
-        dns_servers                    = ["8.8.8.8", "8.8.4.4"]
+        name                              = "nic-test"
+        primary_network_interface_enabled = true
+        accelerated_networking_enabled    = true
+        ip_forwarding_enabled             = true
+        auxiliary_mode                    = "AcceleratedConnections"
+        auxiliary_sku                     = "A2"
+        delete_option                     = "Delete"
+        network_security_group_id         = azurerm_network_security_group.linux_test.id
+        dns_servers                       = ["8.8.8.8", "8.8.4.4"]
         ip_configuration {
           name                                         = "first"
-          primary                                      = true
+          primary_ip_configuration_enabled             = true
           subnet_id                                    = azurerm_subnet.linux_test.id
           application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.linux_test.backend_address_pool)[0].id]
           application_security_group_ids               = [azurerm_application_security_group.linux_test.id]
@@ -608,16 +608,16 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name                           = "nic-test"
-      primary                        = false
-      accelerated_networking_enabled = false
-      ip_forwarding_enabled          = false
-      delete_option                  = "Detach"
-      network_security_group_id      = azurerm_network_security_group.other.id
-      dns_servers                    = ["8.8.8.8"]
+      name                              = "nic-test"
+      primary_network_interface_enabled = false
+      accelerated_networking_enabled    = false
+      ip_forwarding_enabled             = false
+      delete_option                     = "Detach"
+      network_security_group_id         = azurerm_network_security_group.other.id
+      dns_servers                       = ["8.8.8.8"]
       ip_configuration {
         name                                         = "first"
-        primary                                      = true
+        primary_ip_configuration_enabled             = true
         subnet_id                                    = azurerm_subnet.test.id
         application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
         application_security_group_ids               = [azurerm_application_security_group.test.id, azurerm_application_security_group.other.id]
@@ -650,12 +650,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "nic-test-multiple"
-      primary = true
+      name                              = "nic-test-multiple"
+      primary_network_interface_enabled = true
 
       ip_configuration {
         name                                   = "primary"
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       }
@@ -713,16 +713,16 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name                           = "nic-test"
-      primary                        = false
-      accelerated_networking_enabled = false
-      ip_forwarding_enabled          = false
-      delete_option                  = "Detach"
-      network_security_group_id      = azurerm_network_security_group.other.id
-      dns_servers                    = ["8.8.8.8"]
+      name                              = "nic-test"
+      primary_network_interface_enabled = false
+      accelerated_networking_enabled    = false
+      ip_forwarding_enabled             = false
+      delete_option                     = "Detach"
+      network_security_group_id         = azurerm_network_security_group.other.id
+      dns_servers                       = ["8.8.8.8"]
       ip_configuration {
         name                                         = "first"
-        primary                                      = true
+        primary_ip_configuration_enabled             = true
         subnet_id                                    = azurerm_subnet.test.id
         application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.test.backend_address_pool)[0].id]
         application_security_group_ids               = [azurerm_application_security_group.test.id, azurerm_application_security_group.other.id]
@@ -755,12 +755,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "nic-test-multiple"
-      primary = true
+      name                              = "nic-test-multiple"
+      primary_network_interface_enabled = true
 
       ip_configuration {
         name                                   = "primary"
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
       }
@@ -794,16 +794,16 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name                           = "nic-test"
-        primary                        = false
-        accelerated_networking_enabled = false
-        ip_forwarding_enabled          = false
-        delete_option                  = "Detach"
-        network_security_group_id      = azurerm_network_security_group.linux_test_other.id
-        dns_servers                    = ["8.8.8.8"]
+        name                              = "nic-test"
+        primary_network_interface_enabled = false
+        accelerated_networking_enabled    = false
+        ip_forwarding_enabled             = false
+        delete_option                     = "Detach"
+        network_security_group_id         = azurerm_network_security_group.linux_test_other.id
+        dns_servers                       = ["8.8.8.8"]
         ip_configuration {
           name                                         = "first"
-          primary                                      = true
+          primary_ip_configuration_enabled             = true
           subnet_id                                    = azurerm_subnet.linux_test.id
           application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.linux_test.backend_address_pool)[0].id]
           application_security_group_ids               = [azurerm_application_security_group.linux_test.id, azurerm_application_security_group.linux_test_other.id]
@@ -836,12 +836,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "nic-test-multiple"
-        primary = true
+        name                              = "nic-test-multiple"
+        primary_network_interface_enabled = true
 
         ip_configuration {
           name                                   = "primary"
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
         }

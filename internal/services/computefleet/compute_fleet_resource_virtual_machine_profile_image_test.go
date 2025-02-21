@@ -353,12 +353,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -394,12 +394,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          subnet_id = azurerm_subnet.linux_test.id
-          primary   = true
+          name                             = "TestIPConfiguration"
+          subnet_id                        = azurerm_subnet.linux_test.id
+          primary_ip_configuration_enabled = true
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
@@ -456,12 +456,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -497,12 +497,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          subnet_id = azurerm_subnet.linux_test.id
-          primary   = true
+          name                             = "TestIPConfiguration"
+          subnet_id                        = azurerm_subnet.linux_test.id
+          primary_ip_configuration_enabled = true
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
@@ -569,14 +569,14 @@ resource "azurerm_compute_fleet" "image_id" {
     }
 
     network_interface {
-      name                           = "networkProTest"
-      primary                        = true
-      accelerated_networking_enabled = false
-      ip_forwarding_enabled          = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
+      accelerated_networking_enabled    = false
+      ip_forwarding_enabled             = true
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
     }
@@ -602,14 +602,14 @@ resource "azurerm_compute_fleet" "image_id" {
       }
 
       network_interface {
-        name                           = "networkProTest"
-        primary                        = true
-        accelerated_networking_enabled = false
-        ip_forwarding_enabled          = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
+        accelerated_networking_enabled    = false
+        ip_forwarding_enabled             = true
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
       }
@@ -740,14 +740,14 @@ resource "azurerm_compute_fleet" "image_id" {
     }
 
     network_interface {
-      name                           = "networkProTest"
-      primary                        = true
-      accelerated_networking_enabled = false
-      ip_forwarding_enabled          = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
+      accelerated_networking_enabled    = false
+      ip_forwarding_enabled             = true
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
     }
@@ -774,14 +774,14 @@ resource "azurerm_compute_fleet" "image_id" {
       }
 
       network_interface {
-        name                           = "networkProTest"
-        primary                        = true
-        accelerated_networking_enabled = false
-        ip_forwarding_enabled          = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
+        accelerated_networking_enabled    = false
+        ip_forwarding_enabled             = true
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
       }
@@ -915,14 +915,14 @@ resource "azurerm_compute_fleet" "image_id" {
     }
 
     network_interface {
-      name                           = "networkProTest"
-      primary                        = true
-      accelerated_networking_enabled = false
-      ip_forwarding_enabled          = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
+      accelerated_networking_enabled    = false
+      ip_forwarding_enabled             = true
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
     }
@@ -948,14 +948,14 @@ resource "azurerm_compute_fleet" "image_id" {
       }
 
       network_interface {
-        name                           = "networkProTest"
-        primary                        = true
-        accelerated_networking_enabled = false
-        ip_forwarding_enabled          = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
+        accelerated_networking_enabled    = false
+        ip_forwarding_enabled             = true
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
       }
@@ -1107,14 +1107,14 @@ resource "azurerm_compute_fleet" "image_id" {
     }
 
     network_interface {
-      name                           = "networkProTest"
-      primary                        = true
-      accelerated_networking_enabled = false
-      ip_forwarding_enabled          = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
+      accelerated_networking_enabled    = false
+      ip_forwarding_enabled             = true
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
     }
@@ -1141,14 +1141,14 @@ resource "azurerm_compute_fleet" "image_id" {
       }
 
       network_interface {
-        name                           = "networkProTest"
-        primary                        = true
-        accelerated_networking_enabled = false
-        ip_forwarding_enabled          = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
+        accelerated_networking_enabled    = false
+        ip_forwarding_enabled             = true
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
       }
@@ -1301,14 +1301,14 @@ resource "azurerm_compute_fleet" "image_id" {
     }
 
     network_interface {
-      name                           = "networkProTest"
-      primary                        = true
-      accelerated_networking_enabled = false
-      ip_forwarding_enabled          = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
+      accelerated_networking_enabled    = false
+      ip_forwarding_enabled             = true
       ip_configuration {
         name                                   = "ipConfigTest"
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-        primary                                = true
+        primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
       }
     }
@@ -1335,14 +1335,14 @@ resource "azurerm_compute_fleet" "image_id" {
       }
 
       network_interface {
-        name                           = "networkProTest"
-        primary                        = true
-        accelerated_networking_enabled = false
-        ip_forwarding_enabled          = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
+        accelerated_networking_enabled    = false
+        ip_forwarding_enabled             = true
         ip_configuration {
           name                                   = "ipConfigTest"
           load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary                                = true
+          primary_ip_configuration_enabled       = true
           subnet_id                              = azurerm_subnet.linux_test.id
         }
       }
