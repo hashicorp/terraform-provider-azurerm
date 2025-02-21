@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-10-01-preview/machinelearningcomputes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -112,12 +112,6 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
-			},
-
-			"root_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
 			},
 
 			"ssh": {
@@ -238,7 +232,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
 			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
-			EnableRootAccess:                pointer.To(d.Get("root_access_enabled").(bool)),
 		},
 		Description:      utils.String(d.Get("description").(string)),
 		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
@@ -322,7 +315,6 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("authorization_type", string(pointer.From(props.Properties.ComputeInstanceAuthorizationType)))
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
-		d.Set("root_access_enabled", props.Properties.EnableRootAccess)
 
 		if props.Properties.Subnet != nil {
 			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
