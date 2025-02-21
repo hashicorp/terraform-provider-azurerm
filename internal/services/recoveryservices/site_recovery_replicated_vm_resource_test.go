@@ -2604,12 +2604,12 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   }
 
   network_interface {
-    source_network_interface_id                    = azurerm_network_interface.test.id
-    target_subnet_name                             = azurerm_subnet.test2.name
-    recovery_public_ip_address_id                  = azurerm_public_ip.test-recovery.id
-    failover_test_subnet_name                      = azurerm_subnet.tfo.name
-    failover_test_public_ip_address_id             = azurerm_public_ip.tfo.id
-    target_subnet_name_secondary                   = azurerm_subnet.secondary.name
+    source_network_interface_id             = azurerm_network_interface.test.id
+    target_subnet_name                      = azurerm_subnet.test2.name
+    recovery_public_ip_address_id           = azurerm_public_ip.test-recovery.id
+    failover_test_subnet_name               = azurerm_subnet.tfo.name
+    failover_test_public_ip_address_id      = azurerm_public_ip.tfo.id
+    target_subnet_name_secondary            = azurerm_subnet.secondary.name
     recovery_public_ip_address_id_secondary = azurerm_public_ip.secondary.id
   }
 
