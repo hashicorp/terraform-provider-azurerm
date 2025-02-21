@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -39,8 +38,6 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"os_profile": osProfileSchema(),
-
 				"network_api_version": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
@@ -48,6 +45,8 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				},
 
 				"network_interface": networkInterfaceSchema(),
+
+				"os_profile": osProfileSchema(),
 
 				"boot_diagnostic_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -61,11 +60,7 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
-				"capacity_reservation_group_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
-				},
+				"capacity_reservation_group_id": commonschema.ResourceIDReferenceOptional(&capacityreservationgroups.CapacityReservationGroupId{}),
 
 				"data_disk": storageProfileDataDiskSchema(),
 
@@ -364,13 +359,9 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"network_security_group_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
-				},
+				"network_security_group_id": commonschema.ResourceIDReferenceOptional(&networksecuritygroups.NetworkSecurityGroupId{}),
 
-				"primary": {
+				"primary_network_interface_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -423,7 +414,7 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 					Set:      pluginsdk.HashString,
 				},
 
-				"primary": {
+				"primary_ip_configuration_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
@@ -548,7 +539,7 @@ func osProfileSchema() *pluginsdk.Schema {
 							"admin_username": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: validateAdminUsernameLinux,
+								ValidateFunc: computeValidate.LinuxAdminUsername,
 							},
 
 							"computer_name_prefix": {
@@ -561,7 +552,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								Sensitive:    true,
-								ValidateFunc: validatePasswordComplexityLinux,
+								ValidateFunc: computeValidate.LinuxAdminPassword,
 							},
 
 							"admin_ssh_keys": {
@@ -656,14 +647,14 @@ func osProfileSchema() *pluginsdk.Schema {
 							"admin_username": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: validateAdminUsernameWindows,
+								ValidateFunc: computeValidate.WindowsAdminUsername,
 							},
 
 							"admin_password": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
 								Sensitive:    true,
-								ValidateFunc: validatePasswordComplexityWindows,
+								ValidateFunc: computeValidate.WindowsAdminPassword,
 							},
 
 							"computer_name_prefix": {
@@ -983,7 +974,11 @@ func storageProfileSourceImageReferenceSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d *schema.ResourceData, isAdditional bool, withVMAttributes bool) (*fleets.BaseVirtualMachineProfile, error) {
+func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d *schema.ResourceData, isAdditional bool, index int, withVMAttributes bool) (*fleets.BaseVirtualMachineProfile, error) {
+	if len(inputList) == 0 {
+		return nil, nil
+	}
+
 	input := &inputList[0]
 	output := fleets.BaseVirtualMachineProfile{
 		OsProfile:          expandOSProfileModel(inputList),
@@ -993,6 +988,15 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 				Enabled:    pointer.To(input.BootDiagnosticEnabled),
 				StorageUri: pointer.To(input.BootDiagnosticStorageAccountEndpoint),
 			},
+		},
+		NetworkProfile: &fleets.VirtualMachineScaleSetNetworkProfile{
+			NetworkApiVersion:              pointer.To(fleets.NetworkApiVersion(input.NetworkApiVersion)),
+			NetworkInterfaceConfigurations: expandNetworkInterfaceModel(input.NetworkInterface),
+		},
+		StorageProfile: &fleets.VirtualMachineScaleSetStorageProfile{
+			ImageReference: expandImageReference(input.SourceImageReference, input.SourceImageId),
+			OsDisk:         expandOSDiskModel(input, withVMAttributes, isAdditional),
+			DataDisks:      expandDataDiskModel(input.DataDisks),
 		},
 	}
 
@@ -1022,10 +1026,12 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 	}
 
 	if isAdditional {
-		encryptionAtHostEnabledExist := d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[0].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["encryption_at_host_enabled"]
-		if !encryptionAtHostEnabledExist.IsNull() {
-			output.SecurityProfile = &fleets.SecurityProfile{
-				EncryptionAtHost: pointer.To(input.EncryptionAtHostEnabled),
+		if v := d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice(); len(v) > index {
+			encryptionAtHostEnabledExist := v[index].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["encryption_at_host_enabled"]
+			if !encryptionAtHostEnabledExist.IsNull() {
+				output.SecurityProfile = &fleets.SecurityProfile{
+					EncryptionAtHost: pointer.To(input.EncryptionAtHostEnabled),
+				}
 			}
 		}
 	} else {
@@ -1070,11 +1076,6 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 		}
 	}
 
-	output.NetworkProfile = &fleets.VirtualMachineScaleSetNetworkProfile{
-		NetworkApiVersion:              pointer.To(fleets.NetworkApiVersion(input.NetworkApiVersion)),
-		NetworkInterfaceConfigurations: expandNetworkInterfaceModel(input.NetworkInterface),
-	}
-
 	extensionProfileValue, err := expandExtensionModel(input.Extension, input.ExtensionsTimeBudget)
 	if err != nil {
 		return nil, err
@@ -1090,14 +1091,6 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 		output.UserData = pointer.To(input.UserDataBase64)
 	}
 
-	storageProfile := &fleets.VirtualMachineScaleSetStorageProfile{
-		ImageReference: expandImageReference(input.SourceImageReference, input.SourceImageId),
-		OsDisk:         expandOSDiskModel(input, withVMAttributes, isAdditional),
-		DataDisks:      expandDataDiskModel(input.DataDisks),
-	}
-
-	output.StorageProfile = storageProfile
-
 	return &output, nil
 }
 
@@ -1107,8 +1100,7 @@ func expandApplicationProfileModel(inputList []GalleryApplicationModel) *fleets.
 	}
 
 	outputList := make([]fleets.VMGalleryApplication, 0)
-	for _, v := range inputList {
-		input := v
+	for _, input := range inputList {
 		output := fleets.VMGalleryApplication{
 			EnableAutomaticUpgrade:          pointer.To(input.AutomaticUpgradeEnabled),
 			Order:                           pointer.To(input.Order),
@@ -1146,9 +1138,7 @@ func expandSubResources(inputList []string) *[]fleets.SubResource {
 		return nil
 	}
 	outputList := make([]fleets.SubResource, 0)
-	for _, v := range inputList {
-		input := v
-
+	for _, input := range inputList {
 		output := expandSubResource(input)
 		if output != nil {
 			outputList = append(outputList, pointer.From(output))
@@ -1166,27 +1156,24 @@ func expandExtensionModel(inputList []ExtensionModel, timeBudget string) (*fleet
 	output := fleets.VirtualMachineScaleSetExtensionProfile{}
 	extensions := make([]fleets.VirtualMachineScaleSetExtension, 0)
 	for _, v := range inputList {
-		extension := fleets.VirtualMachineScaleSetExtension{}
-
-		if v.Name != "" {
-			extension.Name = pointer.To(v.Name)
-		}
-
-		propertiesValue := fleets.VirtualMachineScaleSetExtensionProperties{
-			AutoUpgradeMinorVersion: pointer.To(v.AutoUpgradeMinorVersionEnabled),
-			SuppressFailures:        pointer.To(v.FailureSuppressionEnabled),
-			EnableAutomaticUpgrade:  pointer.To(v.AutomaticUpgradeEnabled),
+		extension := fleets.VirtualMachineScaleSetExtension{
+			Name: pointer.To(v.Name),
+			Properties: &fleets.VirtualMachineScaleSetExtensionProperties{
+				AutoUpgradeMinorVersion: pointer.To(v.AutoUpgradeMinorVersionEnabled),
+				SuppressFailures:        pointer.To(v.FailureSuppressionEnabled),
+				EnableAutomaticUpgrade:  pointer.To(v.AutomaticUpgradeEnabled),
+			},
 		}
 
 		if len(v.ProtectedSettingsFromKeyVault) > 0 {
-			propertiesValue.ProtectedSettingsFromKeyVault = &fleets.KeyVaultSecretReference{
+			extension.Properties.ProtectedSettingsFromKeyVault = &fleets.KeyVaultSecretReference{
 				SecretURL:   v.ProtectedSettingsFromKeyVault[0].SecretUrl,
 				SourceVault: pointer.From(expandSubResource(v.ProtectedSettingsFromKeyVault[0].SourceVaultId)),
 			}
 		}
 
 		if v.ForceExtensionExecutionOnChange != "" {
-			propertiesValue.ForceUpdateTag = pointer.To(v.ForceExtensionExecutionOnChange)
+			extension.Properties.ForceUpdateTag = pointer.To(v.ForceExtensionExecutionOnChange)
 		}
 
 		if v.ProtectedSettingsJson != "" {
@@ -1195,15 +1182,15 @@ func expandExtensionModel(inputList []ExtensionModel, timeBudget string) (*fleet
 			if err != nil {
 				return nil, fmt.Errorf("unmarshaling `protected_settings_json`: %+v", err)
 			}
-			propertiesValue.ProtectedSettings = pointer.To(protectedSettingsValue)
+			extension.Properties.ProtectedSettings = pointer.To(protectedSettingsValue)
 		}
 
 		if len(v.ExtensionsToProvisionAfterVmCreation) > 0 {
-			propertiesValue.ProvisionAfterExtensions = pointer.To(v.ExtensionsToProvisionAfterVmCreation)
+			extension.Properties.ProvisionAfterExtensions = pointer.To(v.ExtensionsToProvisionAfterVmCreation)
 		}
 
 		if v.Publisher != "" {
-			propertiesValue.Publisher = pointer.To(v.Publisher)
+			extension.Properties.Publisher = pointer.To(v.Publisher)
 		}
 
 		if v.SettingsJson != "" {
@@ -1212,17 +1199,17 @@ func expandExtensionModel(inputList []ExtensionModel, timeBudget string) (*fleet
 			if err != nil {
 				return nil, fmt.Errorf("unmarshaling `settings_json`: %+v", err)
 			}
-			propertiesValue.Settings = pointer.To(result)
+			extension.Properties.Settings = pointer.To(result)
 		}
 
 		if v.Type != "" {
-			propertiesValue.Type = pointer.To(v.Type)
+			extension.Properties.Type = pointer.To(v.Type)
 		}
 
 		if v.TypeHandlerVersion != "" {
-			propertiesValue.TypeHandlerVersion = pointer.To(v.TypeHandlerVersion)
+			extension.Properties.TypeHandlerVersion = pointer.To(v.TypeHandlerVersion)
 		}
-		extension.Properties = &propertiesValue
+
 		extensions = append(extensions, extension)
 	}
 
@@ -1243,7 +1230,8 @@ func expandNetworkInterfaceModel(inputList []NetworkInterfaceModel) *[]fleets.Vi
 				EnableAcceleratedNetworking: pointer.To(v.AcceleratedNetworkingEnabled),
 				EnableIPForwarding:          pointer.To(v.IPForwardingEnabled),
 				NetworkSecurityGroup:        expandSubResource(v.NetworkSecurityGroupId),
-				Primary:                     pointer.To(v.Primary),
+				Primary:                     pointer.To(v.PrimaryNetworkInterfaceEnabled),
+				IPConfigurations:            pointer.From(expandIPConfigurationModel(v.IPConfiguration)),
 			},
 		}
 
@@ -1269,8 +1257,6 @@ func expandNetworkInterfaceModel(inputList []NetworkInterfaceModel) *[]fleets.Vi
 		}
 		output.Properties.AuxiliarySku = pointer.To(auxiliarySku)
 
-		output.Properties.IPConfigurations = pointer.From(expandIPConfigurationModel(v.IPConfiguration))
-
 		outputList = append(outputList, output)
 	}
 	return &outputList
@@ -1278,15 +1264,14 @@ func expandNetworkInterfaceModel(inputList []NetworkInterfaceModel) *[]fleets.Vi
 
 func expandIPConfigurationModel(inputList []IPConfigurationModel) *[]fleets.VirtualMachineScaleSetIPConfiguration {
 	outputList := make([]fleets.VirtualMachineScaleSetIPConfiguration, 0)
-	for _, v := range inputList {
-		input := v
+	for _, input := range inputList {
 		output := fleets.VirtualMachineScaleSetIPConfiguration{
 			Name: input.Name,
 			Properties: &fleets.VirtualMachineScaleSetIPConfigurationProperties{
 				ApplicationGatewayBackendAddressPools: expandSubResources(input.ApplicationGatewayBackendAddressPoolIds),
 				ApplicationSecurityGroups:             expandSubResources(input.ApplicationSecurityGroupIds),
 				LoadBalancerBackendAddressPools:       expandSubResources(input.LoadBalancerBackendAddressPoolIds),
-				Primary:                               pointer.To(input.Primary),
+				Primary:                               pointer.To(input.PrimaryIpConfigurationEnabled),
 				PublicIPAddressConfiguration:          expandPublicIPAddressModel(input.PublicIPAddress),
 			},
 		}
@@ -1355,8 +1340,7 @@ func expandPublicIPAddressModel(inputList []PublicIPAddressModel) *fleets.Virtua
 
 func expandIPTagModel(inputList []IPTagModel) *[]fleets.VirtualMachineScaleSetIPTag {
 	outputList := make([]fleets.VirtualMachineScaleSetIPTag, 0)
-	for _, v := range inputList {
-		input := v
+	for _, input := range inputList {
 		output := fleets.VirtualMachineScaleSetIPTag{}
 
 		if input.Type != "" {
@@ -1500,7 +1484,7 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 	return &output
 }
 
-func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.ResourceDiff, isAdditional bool) error {
+func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.ResourceDiff, isAdditional bool, index int) error {
 	if len(inputList) == 0 || len(inputList[0].OsProfile) == 0 {
 		return nil
 	}
@@ -1514,8 +1498,8 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 
 		rebootSetting := v[0].RebootSetting
 		bypassPlatformSafetyChecksEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["windows_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
-		if isAdditional {
-			bypassPlatformSafetyChecksEnabledExist = d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[0].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["windows_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
+		if isAdditional && len(d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()) > index {
+			bypassPlatformSafetyChecksEnabledExist = d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[index].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["windows_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
 		}
 		if !bypassPlatformSafetyChecksEnabledExist.IsNull() || rebootSetting != "" {
 			if patchMode != string(fleets.WindowsVMGuestPatchModeAutomaticByPlatform) {
@@ -1591,7 +1575,7 @@ func validateSecuritySetting(inputList []VirtualMachineProfileModel) error {
 	return nil
 }
 
-func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.ResourceDiff, isAdditional bool) error {
+func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.ResourceDiff, isAdditional bool, index int) error {
 	if len(inputList) == 0 || len(inputList[0].OsProfile) == 0 {
 		return nil
 	}
@@ -1604,8 +1588,8 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 
 		rebootSetting := v[0].RebootSetting
 		bypassPlatformSafetyChecksEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["linux_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
-		if isAdditional {
-			bypassPlatformSafetyChecksEnabledExist = d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[0].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["linux_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
+		if isAdditional && len(d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()) > index {
+			bypassPlatformSafetyChecksEnabledExist = d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[index].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["linux_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
 		}
 		if !bypassPlatformSafetyChecksEnabledExist.IsNull() || rebootSetting != "" {
 			if patchMode != string(fleets.LinuxVMGuestPatchModeAutomaticByPlatform) {
@@ -1725,12 +1709,10 @@ func expandAdditionalUnAttendContentModel(inputList []AdditionalUnattendContentM
 	}
 
 	outputList := make([]fleets.AdditionalUnattendContent, 0)
-	for _, v := range inputList {
-		input := v
+	for _, input := range inputList {
 		output := fleets.AdditionalUnattendContent{
 			SettingName: pointer.To(fleets.SettingNames(input.Setting)),
 			Content:     pointer.To(input.Content),
-
 			// no other possible values
 			ComponentName: pointer.To(fleets.ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 			PassName:      pointer.To(fleets.PassNameOobeSystem),
@@ -1892,7 +1874,7 @@ func expandOSDiskModel(input *VirtualMachineProfileModel, withVMAttributes bool,
 	return &output
 }
 
-func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, metadata sdk.ResourceMetaData, isAdditional bool) ([]VirtualMachineProfileModel, error) {
+func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, metadata sdk.ResourceMetaData, isAdditional bool, index int) ([]VirtualMachineProfileModel, error) {
 	outputList := make([]VirtualMachineProfileModel, 0)
 	if input == nil {
 		return outputList, nil
@@ -1900,6 +1882,7 @@ func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, 
 	output := VirtualMachineProfileModel{
 		GalleryApplicationProfile: flattenApplicationProfileModel(input.ApplicationProfile),
 		NetworkInterface:          flattenNetworkInterfaceModel(input.NetworkProfile),
+		UserDataBase64:            pointer.From(input.UserData),
 	}
 
 	if v := input.NetworkProfile; v != nil {
@@ -1914,7 +1897,7 @@ func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, 
 	}
 
 	if v := input.OsProfile; v != nil {
-		osProfile, err := flattenOSProfileModel(v, metadata.ResourceData, isAdditional)
+		osProfile, err := flattenOSProfileModel(v, metadata.ResourceData, isAdditional, index)
 		if err != nil {
 			return outputList, err
 		}
@@ -1963,11 +1946,12 @@ func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, 
 		}
 	}
 
-	extensionProfileValue, err := flattenExtensionModel(input.ExtensionProfile, metadata, isAdditional)
+	extensionProfileValue, err := flattenExtensionModel(input.ExtensionProfile, metadata, isAdditional, index)
 	if err != nil {
 		return nil, err
 	}
 	output.Extension = extensionProfileValue
+
 	if input.ExtensionProfile != nil {
 		output.ExtensionsTimeBudget = pointer.From(input.ExtensionProfile.ExtensionsTimeBudget)
 	}
@@ -1977,10 +1961,6 @@ func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, 
 		licenseType = v
 	}
 	output.LicenseType = licenseType
-
-	if input.UserData != nil {
-		output.UserDataBase64 = *input.UserData
-	}
 
 	return append(outputList, output), nil
 }
@@ -2031,14 +2011,14 @@ func flattenApplicationProfileModel(input *fleets.ApplicationProfile) []GalleryA
 	}
 
 	for _, input := range *input.GalleryApplications {
-		output := GalleryApplicationModel{}
-		output.VersionId = input.PackageReferenceId
-		output.ConfigurationBlobUri = pointer.From(input.ConfigurationReference)
-		output.AutomaticUpgradeEnabled = pointer.From(input.EnableAutomaticUpgrade)
-		output.Order = pointer.From(input.Order)
-		output.Tag = pointer.From(input.Tags)
-		output.TreatFailureAsDeploymentFailureEnabled = pointer.From(input.TreatFailureAsDeploymentFailure)
-
+		output := GalleryApplicationModel{
+			VersionId:                              input.PackageReferenceId,
+			ConfigurationBlobUri:                   pointer.From(input.ConfigurationReference),
+			AutomaticUpgradeEnabled:                pointer.From(input.EnableAutomaticUpgrade),
+			Order:                                  pointer.From(input.Order),
+			Tag:                                    pointer.From(input.Tags),
+			TreatFailureAsDeploymentFailureEnabled: pointer.From(input.TreatFailureAsDeploymentFailure),
+		}
 		outputList = append(outputList, output)
 	}
 
@@ -2081,7 +2061,7 @@ func flattenNetworkInterfaceModel(input *fleets.VirtualMachineScaleSetNetworkPro
 				output.NetworkSecurityGroupId = pointer.From(v.Id)
 			}
 
-			output.Primary = pointer.From(props.Primary)
+			output.PrimaryNetworkInterfaceEnabled = pointer.From(props.Primary)
 		}
 
 		outputList = append(outputList, output)
@@ -2126,7 +2106,7 @@ func flattenOsProfileWindowsSecretsModel(inputList *[]fleets.VaultSecretGroup) [
 	return outputList
 }
 
-func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *schema.ResourceData, isAdditional bool) ([]OSProfileModel, error) {
+func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *schema.ResourceData, isAdditional bool, index int) ([]OSProfileModel, error) {
 	outputList := make([]OSProfileModel, 0)
 	if input == nil {
 		return outputList, nil
@@ -2137,7 +2117,7 @@ func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *sch
 		output.CustomDataBase64 = pointer.From(input.CustomData)
 	} else {
 		if isAdditional {
-			output.CustomDataBase64 = utils.Base64EncodeIfNot(d.Get("additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.custom_data_base64").(string))
+			output.CustomDataBase64 = utils.Base64EncodeIfNot(d.Get("additional_location_profile." + strconv.Itoa(index) + ".virtual_machine_profile_override.0.os_profile.0.custom_data_base64").(string))
 		} else {
 			output.CustomDataBase64 = utils.Base64EncodeIfNot(d.Get("virtual_machine_profile.0.os_profile.0.custom_data_base64").(string))
 		}
@@ -2146,7 +2126,7 @@ func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *sch
 	windowsConfigs := make([]WindowsConfigurationModel, 0)
 	if v := input.WindowsConfiguration; v != nil {
 		windowsConfig := WindowsConfigurationModel{
-			AdditionalUnattendContent:     flattenAdditionalUnAttendContentModel(v.AdditionalUnattendContent, d, isAdditional),
+			AdditionalUnattendContent:     flattenAdditionalUnAttendContentModel(v.AdditionalUnattendContent, d, isAdditional, index),
 			WinRM:                         flattenWinRMModel(v.WinRM),
 			AdminUsername:                 pointer.From(input.AdminUsername),
 			AutomaticUpdatesEnabled:       pointer.From(v.EnableAutomaticUpdates),
@@ -2157,7 +2137,7 @@ func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *sch
 			Secret:                        flattenOsProfileWindowsSecretsModel(input.Secrets),
 		}
 		if isAdditional {
-			windowsConfig.AdminPassword = d.Get("additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.admin_password").(string)
+			windowsConfig.AdminPassword = d.Get("additional_location_profile." + strconv.Itoa(index) + ".virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.admin_password").(string)
 		} else {
 			windowsConfig.AdminPassword = d.Get("virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password").(string)
 		}
@@ -2187,7 +2167,7 @@ func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *sch
 		}
 
 		if isAdditional {
-			linuxConfig.AdminPassword = d.Get("additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password").(string)
+			linuxConfig.AdminPassword = d.Get("additional_location_profile." + strconv.Itoa(index) + ".virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password").(string)
 		} else {
 			linuxConfig.AdminPassword = d.Get("virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password").(string)
 		}
@@ -2222,9 +2202,9 @@ func flattenLinuxVaultCertificateModel(inputList *[]fleets.VaultCertificate) []L
 	}
 
 	for _, input := range *inputList {
-		output := LinuxCertificateModel{}
-		output.Url = pointer.From(input.CertificateURL)
-
+		output := LinuxCertificateModel{
+			Url: pointer.From(input.CertificateURL),
+		}
 		outputList = append(outputList, output)
 	}
 	return outputList
@@ -2237,24 +2217,28 @@ func flattenWindowsVaultCertificateModel(inputList *[]fleets.VaultCertificate) [
 	}
 
 	for _, input := range *inputList {
-		output := WindowsCertificateModel{}
-		output.Store = pointer.From(input.CertificateStore)
-		output.Url = pointer.From(input.CertificateURL)
+		output := WindowsCertificateModel{
+			Store: pointer.From(input.CertificateStore),
+			Url:   pointer.From(input.CertificateURL),
+		}
+
 		outputList = append(outputList, output)
 	}
 	return outputList
 }
 
-func flattenAdditionalUnAttendContentModel(inputList *[]fleets.AdditionalUnattendContent, d *schema.ResourceData, isAdditional bool) []AdditionalUnattendContentModel {
+func flattenAdditionalUnAttendContentModel(inputList *[]fleets.AdditionalUnattendContent, d *schema.ResourceData, isAdditional bool, index int) []AdditionalUnattendContentModel {
 	outputList := make([]AdditionalUnattendContentModel, 0)
 	if inputList == nil {
 		return outputList
 	}
 	for i, input := range *inputList {
-		output := AdditionalUnattendContentModel{}
+		output := AdditionalUnattendContentModel{
+			Setting: string(pointer.From(input.SettingName)),
+		}
 		existing := make([]interface{}, 0)
 		if isAdditional {
-			if v, ok := d.GetOk("additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.additional_unattend_content"); ok {
+			if v, ok := d.GetOk("additional_location_profile." + strconv.Itoa(index) + ".virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.additional_unattend_content"); ok {
 				existing = v.([]interface{})
 			}
 		} else {
@@ -2275,7 +2259,7 @@ func flattenAdditionalUnAttendContentModel(inputList *[]fleets.AdditionalUnatten
 			}
 		}
 		output.Content = content
-		output.Setting = string(pointer.From(input.SettingName))
+
 		outputList = append(outputList, output)
 	}
 	return outputList
@@ -2288,9 +2272,11 @@ func flattenWinRMModel(input *fleets.WinRMConfiguration) []WinRMModel {
 	}
 
 	for _, input := range *input.Listeners {
-		output := WinRMModel{}
-		output.CertificateUrl = pointer.From(input.CertificateURL)
-		output.Protocol = string(pointer.From(input.Protocol))
+		output := WinRMModel{
+			CertificateUrl: pointer.From(input.CertificateURL),
+			Protocol:       string(pointer.From(input.Protocol)),
+		}
+
 		outputList = append(outputList, output)
 	}
 
@@ -2304,8 +2290,11 @@ func flattenDataDiskModel(inputList *[]fleets.VirtualMachineScaleSetDataDisk) []
 	}
 	for _, input := range *inputList {
 		output := DataDiskModel{
-			CreateOption: string(input.CreateOption),
-			Lun:          input.Lun,
+			CreateOption:            string(input.CreateOption),
+			Lun:                     input.Lun,
+			DeleteOption:            string(pointer.From(input.DeleteOption)),
+			DiskSizeInGB:            pointer.From(input.DiskSizeGB),
+			WriteAcceleratorEnabled: pointer.From(input.WriteAcceleratorEnabled),
 		}
 
 		caching := ""
@@ -2313,9 +2302,6 @@ func flattenDataDiskModel(inputList *[]fleets.VirtualMachineScaleSetDataDisk) []
 			caching = string(*v)
 		}
 		output.Caching = caching
-		output.DeleteOption = string(pointer.From(input.DeleteOption))
-		output.DiskSizeInGB = pointer.From(input.DiskSizeGB)
-		output.WriteAcceleratorEnabled = pointer.From(input.WriteAcceleratorEnabled)
 
 		if md := input.ManagedDisk; md != nil {
 			if v := md.DiskEncryptionSet; v != nil {
@@ -2335,11 +2321,12 @@ func flattenImageReference(input *fleets.ImageReference, hasImageId bool) []Sour
 	if input == nil || hasImageId {
 		return outputList
 	}
-	output := SourceImageReferenceModel{}
-	output.Publisher = pointer.From(input.Publisher)
-	output.Offer = pointer.From(input.Offer)
-	output.Sku = pointer.From(input.Sku)
-	output.Version = pointer.From(input.Version)
+	output := SourceImageReferenceModel{
+		Publisher: pointer.From(input.Publisher),
+		Offer:     pointer.From(input.Offer),
+		Sku:       pointer.From(input.Sku),
+		Version:   pointer.From(input.Version),
+	}
 
 	return append(outputList, output)
 }
@@ -2350,7 +2337,11 @@ func flattenOSDiskModel(input *fleets.VirtualMachineScaleSetOSDisk) []OSDiskMode
 		return outputList
 	}
 
-	output := OSDiskModel{}
+	output := OSDiskModel{
+		DeleteOption:            string(pointer.From(input.DeleteOption)),
+		WriteAcceleratorEnabled: pointer.From(input.WriteAcceleratorEnabled),
+	}
+
 	if v := input.DiffDiskSettings; v != nil {
 		output.DiffDiskOption = string(pointer.From(v.Option))
 		output.DiffDiskPlacement = string(pointer.From(v.Placement))
@@ -2361,8 +2352,6 @@ func flattenOSDiskModel(input *fleets.VirtualMachineScaleSetOSDisk) []OSDiskMode
 		caching = string(*v)
 	}
 	output.Caching = caching
-
-	output.DeleteOption = string(pointer.From(input.DeleteOption))
 
 	if input.DiskSizeGB != nil {
 		output.DiskSizeInGB = pointer.From(input.DiskSizeGB)
@@ -2378,21 +2367,18 @@ func flattenOSDiskModel(input *fleets.VirtualMachineScaleSetOSDisk) []OSDiskMode
 		output.StorageAccountType = string(pointer.From(md.StorageAccountType))
 	}
 
-	output.WriteAcceleratorEnabled = pointer.From(input.WriteAcceleratorEnabled)
-
 	return append(outputList, output)
 }
 
-func flattenExtensionModel(input *fleets.VirtualMachineScaleSetExtensionProfile, metadata sdk.ResourceMetaData, isAdditional bool) ([]ExtensionModel, error) {
+func flattenExtensionModel(input *fleets.VirtualMachineScaleSetExtensionProfile, metadata sdk.ResourceMetaData, isAdditional bool, index int) ([]ExtensionModel, error) {
 	outputList := make([]ExtensionModel, 0)
 	if input == nil || input.Extensions == nil {
 		return outputList, nil
 	}
 
 	for i, input := range *input.Extensions {
-		output := ExtensionModel{}
-		if input.Name != nil {
-			output.Name = pointer.From(input.Name)
+		output := ExtensionModel{
+			Name: pointer.From(input.Name),
 		}
 
 		if props := input.Properties; props != nil {
@@ -2405,7 +2391,7 @@ func flattenExtensionModel(input *fleets.VirtualMachineScaleSetExtensionProfile,
 			output.ForceExtensionExecutionOnChange = pointer.From(props.ForceUpdateTag)
 			// Sensitive data isn't returned, so we get it from config
 			if isAdditional {
-				output.ProtectedSettingsJson = metadata.ResourceData.Get("additional_location_profile.0.virtual_machine_profile_override.0.extension." + strconv.Itoa(i) + ".protected_settings_json").(string)
+				output.ProtectedSettingsJson = metadata.ResourceData.Get("additional_location_profile." + strconv.Itoa(index) + ".virtual_machine_profile_override.0.extension." + strconv.Itoa(i) + ".protected_settings_json").(string)
 			} else {
 				output.ProtectedSettingsJson = metadata.ResourceData.Get("virtual_machine_profile.0.extension." + strconv.Itoa(i) + ".protected_settings_json").(string)
 			}
@@ -2453,7 +2439,7 @@ func flattenIPConfigurationModel(inputList []fleets.VirtualMachineScaleSetIPConf
 			Name: input.Name,
 		}
 		if props := input.Properties; props != nil {
-			output.Primary = pointer.From(props.Primary)
+			output.PrimaryIpConfigurationEnabled = pointer.From(props.Primary)
 			output.Version = string(pointer.From(props.PrivateIPAddressVersion))
 
 			addressPools := make([]string, 0)
@@ -2519,132 +2505,29 @@ func flattenPublicIPAddressModel(input *fleets.VirtualMachineScaleSetPublicIPAdd
 	return append(outputList, output)
 }
 
-func validateAdminUsernameLinux(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
+func flattenSubResourceId(inputList []fleets.SubResource) []string {
+	outputList := make([]string, 0)
+	if len(inputList) == 0 {
+		return outputList
+	}
+	for _, input := range inputList {
+		outputList = append(outputList, pointer.From(input.Id))
+	}
+	return outputList
+}
+
+func flattenIPTagModel(inputList *[]fleets.VirtualMachineScaleSetIPTag) []IPTagModel {
+	outputList := make([]IPTagModel, 0)
+	if inputList == nil {
+		return outputList
 	}
 
-	// **Disallowed values:**
-	invalidUserNames := []string{
-		" ", "abrt", "adm", "admin", "audio", "backup", "bin", "cdrom", "cgred", "console", "crontab", "daemon", "dbus", "dialout", "dip",
-		"disk", "fax", "floppy", "ftp", "fuse", "games", "gnats", "gopher", "haldaemon", "halt", "irc", "kmem", "landscape", "libuuid", "list",
-		"lock", "lp", "mail", "maildrop", "man", "mem", "messagebus", "mlocate", "modem", "netdev", "news", "nfsnobody", "nobody", "nogroup",
-		"ntp", "operator", "oprofile", "plugdev", "polkituser", "postdrop", "postfix", "proxy", "public", "qpidd", "root", "rpc", "rpcuser",
-		"sasl", "saslauth", "shadow", "shutdown", "slocate", "src", "ssh", "sshd", "staff", "stapdev", "stapusr", "sudo", "sync", "sys", "syslog",
-		"tape", "tcpdump", "test", "trusted", "tty", "users", "utempter", "utmp", "uucp", "uuidd", "vcsa", "video", "voice", "wheel", "whoopsie",
-		"www", "www-data", "wwwrun", "xok",
-	}
-
-	for _, str := range invalidUserNames {
-		if strings.EqualFold(v, str) {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(invalidUserNames), v))
-			return warnings, errors
+	for _, input := range *inputList {
+		output := IPTagModel{
+			Type: pointer.From(input.IPTagType),
+			Tag:  pointer.From(input.Tag),
 		}
+		outputList = append(outputList, output)
 	}
-
-	if len(v) < 1 || len(v) > 64 {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 64 characters in length, got %q(%d characters)", key, v, len(v)))
-		return warnings, errors
-	}
-
-	return
-}
-
-func validatePasswordComplexityWindows(input interface{}, key string) (warnings []string, errors []error) {
-	return validatePasswordComplexity(input, key, 8, 123)
-}
-
-func validatePasswordComplexityLinux(input interface{}, key string) (warnings []string, errors []error) {
-	return validatePasswordComplexity(input, key, 6, 72)
-}
-
-func validatePasswordComplexity(input interface{}, key string, min int, max int) (warnings []string, errors []error) {
-	password, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return warnings, errors
-	}
-
-	complexityMatch := 0
-	re := regexp.MustCompile(`[a-z]{1,}`)
-	if re != nil && re.MatchString(password) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[A-Z]{1,}`)
-	if re != nil && re.MatchString(password) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[0-9]{1,}`)
-	if re != nil && re.MatchString(password) {
-		complexityMatch++
-	}
-
-	re = regexp.MustCompile(`[\W_]{1,}`)
-	if re != nil && re.MatchString(password) {
-		complexityMatch++
-	}
-
-	if complexityMatch < 3 {
-		errors = append(errors, fmt.Errorf("%q did not meet minimum password complexity requirements. A password must contain at least 3 of the 4 following conditions: a lower case character, a upper case character, a digit and/or a special character. Got %q", key, password))
-		return warnings, errors
-	}
-
-	if len(password) < min || len(password) > max {
-		errors = append(errors, fmt.Errorf("%q must be at least 6 characters long and less than 72 characters long. Got %q(%d characters)", key, password, len(password)))
-		return warnings, errors
-	}
-
-	// NOTE: I realize that some of these will not pass the above complexity checks, but they are in the API so I am checking
-	// the same values that the API is...
-	disallowedValues := []string{
-		"abc@123", "P@$$w0rd", "P@ssw0rd", "P@ssword123", "Pa$$word", "pass@word1", "Password!", "Password1", "Password22", "iloveyou!",
-	}
-
-	for _, str := range disallowedValues {
-		if password == str {
-			errors = append(errors, fmt.Errorf("%q can not be one of %s, got %q", key, azure.QuotedStringSlice(disallowedValues), password))
-			return warnings, errors
-		}
-	}
-
-	return warnings, errors
-}
-
-func validateAdminUsernameWindows(input interface{}, key string) (warnings []string, errors []error) {
-	v, ok := input.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-		return
-	}
-
-	// **Disallowed values:**
-	invalidUserNames := []string{
-		" ", "administrator", "admin", "user", "user1", "test", "user2", "test1", "user3", "admin1", "1", "123", "a",
-		"actuser", "adm", "admin2", "aspnet", "backup", "console", "david", "guest", "john", "owner", "root", "server",
-		"sql", "support", "support_388945a0", "sys", "test2", "test3", "user4", "user5",
-	}
-
-	for _, str := range invalidUserNames {
-		if strings.EqualFold(v, str) {
-			errors = append(errors, fmt.Errorf("%q can not be one of %v, got %q", key, invalidUserNames, v))
-			return warnings, errors
-		}
-	}
-
-	// Cannot end in "."
-	if strings.HasSuffix(input.(string), ".") {
-		errors = append(errors, fmt.Errorf("%q can not end with a `.`, got %q", key, v))
-		return warnings, errors
-	}
-
-	if len(v) < 1 || len(v) > 20 {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 20 characters in length, got %q(%d characters)", key, v, len(v)))
-		return warnings, errors
-	}
-
-	return
+	return outputList
 }

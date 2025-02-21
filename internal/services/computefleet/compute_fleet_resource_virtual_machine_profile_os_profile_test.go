@@ -229,12 +229,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          primary   = true
-          subnet_id = azurerm_subnet.windows_test.id
+          name                             = "TestIPConfiguration"
+          primary_ip_configuration_enabled = true
+          subnet_id                        = azurerm_subnet.windows_test.id
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
@@ -333,12 +333,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        primary   = true
-        subnet_id = azurerm_subnet.test.id
+        name                             = "TestIPConfiguration"
+        primary_ip_configuration_enabled = true
+        subnet_id                        = azurerm_subnet.test.id
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -414,12 +414,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          primary   = true
-          subnet_id = azurerm_subnet.windows_test.id
+          name                             = "TestIPConfiguration"
+          primary_ip_configuration_enabled = true
+          subnet_id                        = azurerm_subnet.windows_test.id
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
@@ -518,12 +518,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        primary   = true
-        subnet_id = azurerm_subnet.test.id
+        name                             = "TestIPConfiguration"
+        primary_ip_configuration_enabled = true
+        subnet_id                        = azurerm_subnet.test.id
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -600,12 +600,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          primary   = true
-          subnet_id = azurerm_subnet.windows_test.id
+          name                             = "TestIPConfiguration"
+          primary_ip_configuration_enabled = true
+          subnet_id                        = azurerm_subnet.windows_test.id
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
@@ -670,12 +670,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          subnet_id = azurerm_subnet.linux_test.id
-          primary   = true
+          name                             = "TestIPConfiguration"
+          subnet_id                        = azurerm_subnet.linux_test.id
+          primary_ip_configuration_enabled = true
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
@@ -759,12 +759,12 @@ resource "azurerm_compute_fleet" "test" {
       })
     }
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -824,12 +824,12 @@ resource "azurerm_compute_fleet" "test" {
         })
       }
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          subnet_id = azurerm_subnet.linux_test.id
-          primary   = true
+          name                             = "TestIPConfiguration"
+          subnet_id                        = azurerm_subnet.linux_test.id
+          primary_ip_configuration_enabled = true
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
@@ -915,12 +915,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -984,12 +984,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          subnet_id = azurerm_subnet.linux_test.id
-          primary   = true
+          name                             = "TestIPConfiguration"
+          subnet_id                        = azurerm_subnet.linux_test.id
+          primary_ip_configuration_enabled = true
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
