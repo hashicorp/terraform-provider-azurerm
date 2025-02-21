@@ -308,6 +308,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 	}
 }
 
+// To avoid breaking change and fix #28773, we added `secondary` suffix.
 func networkInterfaceResource() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
@@ -326,7 +327,22 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"failover_test_static_ip_secondary": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"target_static_ip": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"target_static_ip_secondary": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     false,
@@ -341,6 +357,14 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"failover_test_subnet_name_secondary": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"target_subnet_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -348,7 +372,22 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"target_subnet_name_secondary": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"failover_test_public_ip_address_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     false,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"failover_test_public_ip_address_id_secondary": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
@@ -365,7 +404,23 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				},
 			},
 
+			"recovery_load_balancer_backend_address_pool_ids_secondary": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
+				},
+			},
+
 			"recovery_public_ip_address_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"recovery_public_ip_address_id_secondary": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     false,
@@ -564,15 +619,26 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		vmNicInput := raw.(map[string]interface{})
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
 		targetStaticIp := vmNicInput["target_static_ip"].(string)
+		targetStaticIpSecondary := vmNicInput["target_static_ip_secondary"].(string)
 		targetSubnetName := vmNicInput["target_subnet_name"].(string)
+		targetSubnetNameSecondary := vmNicInput["target_subnet_name_secondary"].(string)
 		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
+		recoveryPublicIPAddressIDSecondary := vmNicInput["recovery_public_ip_address_id_secondary"].(string)
 		testStaticIp := vmNicInput["failover_test_static_ip"].(string)
+		testStaticIpSecondary := vmNicInput["failover_test_static_ip_secondary"].(string)
 		testSubNetName := vmNicInput["failover_test_subnet_name"].(string)
+		testSubNetNameSecondary := vmNicInput["failover_test_subnet_name_secondary"].(string)
 		testPublicIpAddressID := vmNicInput["failover_test_public_ip_address_id"].(string)
+		testPublicIpAddressIDSecondary := vmNicInput["failover_test_public_ip_address_id_secondary"].(string)
 
 		var recoveryLoadBalancerBackendPoolIds *[]string
 		if ids, ok := vmNicInput["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
 			recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
+		}
+
+		var recoveryLoadBalancerBackendPoolIdsSecondary *[]string
+		if ids, ok := vmNicInput["recovery_load_balancer_backend_address_pool_ids_secondary"].(*schema.Set); ok && ids.Len() > 0 {
+			recoveryLoadBalancerBackendPoolIdsSecondary = utils.ExpandStringSlice(ids.List())
 		}
 
 		nicId := findNicId(state, sourceNicId)
@@ -588,7 +654,17 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 				TfoStaticIPAddress:              &testStaticIp,
 				TfoPublicIPAddressId:            &testPublicIpAddressID,
 				TfoSubnetName:                   &testSubNetName,
-				IsPrimary:                       utils.Bool(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
+				IsPrimary:                       utils.Bool(true),
+			},
+			{
+				RecoverySubnetName:              &targetSubnetNameSecondary,
+				RecoveryStaticIPAddress:         &targetStaticIpSecondary,
+				RecoveryLBBackendAddressPoolIds: recoveryLoadBalancerBackendPoolIdsSecondary,
+				RecoveryPublicIPAddressId:       &recoveryPublicIPAddressIDSecondary,
+				TfoStaticIPAddress:              &testStaticIpSecondary,
+				TfoPublicIPAddressId:            &testPublicIpAddressIDSecondary,
+				TfoSubnetName:                   &testSubNetNameSecondary,
+				IsPrimary:                       utils.Bool(true),
 			},
 		}
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
