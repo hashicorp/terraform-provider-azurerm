@@ -462,10 +462,10 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Default:  true,
 						},
 
-						// NOTE: I named this 'log_rule' instead of just 'rule' because 'rule' is
+						// NOTE: I named this 'scrubbing_rule' instead of just 'rule' because 'rule' is
 						// already used above by another code block and I felt it would be
 						// confusing in the documentation for the end user...
-						"log_rule": {
+						"scrubbing_rule": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 100,
 							Required: true,
@@ -1132,7 +1132,7 @@ func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*waf.Pol
 
 	inputRaw := input[0].(map[string]interface{})
 	enabled := inputRaw["enabled"].(bool)
-	logRules := inputRaw["log_rule"].([]interface{})
+	logRules := inputRaw["scrubbing_rule"].([]interface{})
 
 	policyEnabled := waf.WebApplicationFirewallScrubbingStateEnabled
 	if !enabled {
@@ -1389,8 +1389,8 @@ func flattenCdnFrontDoorFirewallLogScrubbingPolicy(input *waf.PolicySettingsLogS
 	}
 
 	result = append(result, map[string]interface{}{
-		"enabled":  policyEnabled,
-		"log_rule": scrubbingRules,
+		"enabled":        policyEnabled,
+		"scrubbing_rule": scrubbingRules,
 	})
 
 	return result
