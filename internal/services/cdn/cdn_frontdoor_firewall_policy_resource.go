@@ -471,6 +471,12 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Required: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+
 									"match_variable": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
@@ -495,12 +501,6 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  true,
 									},
 								},
 							},
@@ -573,6 +573,17 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 				return nil
 			}),
+
+			// Verify that the log_scrubbing log_rule's are valid...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(diff.Get("log_scrubbing").([]interface{}))
+
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}),
 		),
 	}
 }
@@ -617,9 +628,15 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
+
 	managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("expanding managed_rule: %+v", err)
+		return fmt.Errorf("expanding 'managed_rule': %+v", err)
+	}
+
+	logScrubbingRules, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(d.Get("log_scrubbing").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding 'log_scrubbing': %+v", err)
 	}
 
 	if sku != string(waf.SkuNamePremiumAzureFrontDoor) && managedRules != nil {
@@ -670,6 +687,10 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 
 	if customBlockResponseStatusCode > 0 {
 		payload.Properties.PolicySettings.CustomBlockResponseStatusCode = pointer.To(int64(customBlockResponseStatusCode))
+	}
+
+	if logScrubbingRules != nil {
+		payload.Properties.PolicySettings.LogScrubbing = logScrubbingRules
 	}
 
 	err = client.PoliciesCreateOrUpdateThenPoll(ctx, id, payload)
@@ -836,6 +857,10 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 				// for Premium_AzureFrontDoor skus, else it will be 'nil'...
 				if policy.JavascriptChallengeExpirationInMinutes != nil {
 					d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+				}
+
+				if err := d.Set("log_scrubbing", flattenCdnFrontDoorFirewallLogScrubbingPolicy(policy.LogScrubbing)); err != nil {
+					return fmt.Errorf("flattening 'log_scrubbing': %+v", err)
 				}
 			}
 		}
@@ -1100,6 +1125,70 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 	return &result, nil
 }
 
+func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*waf.PolicySettingsLogScrubbing, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	inputRaw := input[0].(map[string]interface{})
+	enabled := inputRaw["enabled"].(bool)
+	logRules := inputRaw["log_rule"].([]interface{})
+
+	policyEnabled := waf.WebApplicationFirewallScrubbingStateEnabled
+	if !enabled {
+		policyEnabled = waf.WebApplicationFirewallScrubbingStateDisabled
+	}
+
+	scrubbingRules := make([]waf.WebApplicationFirewallScrubbingRules, 0)
+	for _, lr := range logRules {
+		scrubbingRule := lr.(map[string]interface{})
+
+		matchVariable := scrubbingRule["match_variable"].(string)
+		operator := scrubbingRule["operator"].(string)
+		selector := scrubbingRule["selector"].(string)
+		enabled := scrubbingRule["enabled"].(bool)
+
+		// NOTE: The 'RequestIPAddress' and 'RequestUri' 'match_variable'
+		// do not support passing a 'selector', however for all other
+		// 'match_variable's the 'selector' is a required field...
+		switch {
+		case matchVariable == string(waf.ScrubbingRuleEntryMatchVariableRequestIPAddress) || matchVariable == string(waf.ScrubbingRuleEntryMatchVariableRequestUri):
+			if len(selector) > 0 {
+				return nil, fmt.Errorf("%q and %q 'match_variable's do not support setting a 'selector', got ('match_variable': %q, 'selector': %q)", waf.ScrubbingRuleEntryMatchVariableRequestIPAddress, waf.ScrubbingRuleEntryMatchVariableRequestUri, matchVariable, selector)
+			}
+
+			if operator != string(waf.ScrubbingRuleEntryMatchOperatorEqualsAny) {
+				return nil, fmt.Errorf("'log_rule's with a 'match_variable' of %q or %q are required to use the %q 'operator', got %q", waf.ScrubbingRuleEntryMatchVariableRequestIPAddress, waf.ScrubbingRuleEntryMatchVariableRequestUri, waf.ScrubbingRuleEntryMatchOperatorEqualsAny, operator)
+			}
+
+		case len(selector) == 0:
+			if matchVariable != string(waf.ScrubbingRuleEntryMatchVariableRequestIPAddress) && matchVariable != string(waf.ScrubbingRuleEntryMatchVariableRequestUri) {
+				return nil, fmt.Errorf("'selector' is a required field for the 'match_variable' %q, got 'selector': %q", matchVariable, selector)
+			}
+
+		}
+
+		ruleEnabled := waf.ScrubbingRuleEntryStateEnabled
+		if !enabled {
+			ruleEnabled = waf.ScrubbingRuleEntryStateDisabled
+		}
+
+		v := waf.WebApplicationFirewallScrubbingRules{
+			MatchVariable:         waf.ScrubbingRuleEntryMatchVariable(matchVariable),
+			Selector:              pointer.To(selector),
+			SelectorMatchOperator: waf.ScrubbingRuleEntryMatchOperator(operator),
+			State:                 pointer.To(ruleEnabled),
+		}
+
+		scrubbingRules = append(scrubbingRules, v)
+	}
+
+	return &waf.PolicySettingsLogScrubbing{
+		State:          pointer.To(policyEnabled),
+		ScrubbingRules: pointer.To(scrubbingRules),
+	}, nil
+}
+
 func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interface{} {
 	if input == nil || input.Rules == nil {
 		return []interface{}{}
@@ -1262,4 +1351,47 @@ func flattenCdnFrontDoorFirewallRules(input *[]waf.ManagedRuleOverride) []interf
 	}
 
 	return results
+}
+
+func flattenCdnFrontDoorFirewallLogScrubbingPolicy(input *waf.PolicySettingsLogScrubbing) []interface{} {
+	if input == nil || input.ScrubbingRules == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0)
+
+	policyEnabled := true
+	if input.State != nil {
+		policyEnabled = pointer.From(input.State) == waf.WebApplicationFirewallScrubbingStateEnabled
+	}
+
+	scrubbingRules := make([]interface{}, 0)
+	for _, v := range *input.ScrubbingRules {
+		matchVariable := string(v.MatchVariable)
+		operator := string(v.SelectorMatchOperator)
+
+		var selector string
+		if v.Selector != nil {
+			selector = pointer.From(v.Selector)
+		}
+
+		enabled := true
+		if v.State != nil {
+			enabled = pointer.From(v.State) == waf.ScrubbingRuleEntryStateEnabled
+		}
+
+		scrubbingRules = append(scrubbingRules, map[string]interface{}{
+			"match_variable": matchVariable,
+			"selector":       selector,
+			"operator":       operator,
+			"enabled":        enabled,
+		})
+	}
+
+	result = append(result, map[string]interface{}{
+		"enabled":  policyEnabled,
+		"log_rule": scrubbingRules,
+	})
+
+	return result
 }
