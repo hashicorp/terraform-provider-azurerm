@@ -1165,7 +1165,6 @@ func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*waf.Pol
 			if matchVariable != string(waf.ScrubbingRuleEntryMatchVariableRequestIPAddress) && matchVariable != string(waf.ScrubbingRuleEntryMatchVariableRequestUri) {
 				return nil, fmt.Errorf("'selector' is a required field for the 'match_variable' %q, got 'selector': %q", matchVariable, selector)
 			}
-
 		}
 
 		ruleEnabled := waf.ScrubbingRuleEntryStateEnabled
