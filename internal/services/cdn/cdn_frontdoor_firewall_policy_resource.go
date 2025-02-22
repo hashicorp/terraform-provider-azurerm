@@ -574,7 +574,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				return nil
 			}),
 
-			// Verify that the log_scrubbing log_rule's are valid...
+			// Verify that the scrubbing_rule's are valid...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(diff.Get("log_scrubbing").([]interface{}))
 
@@ -1158,7 +1158,7 @@ func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*waf.Pol
 			}
 
 			if operator != string(waf.ScrubbingRuleEntryMatchOperatorEqualsAny) {
-				return nil, fmt.Errorf("'log_rule's with a 'match_variable' of %q or %q are required to use the %q 'operator', got %q", waf.ScrubbingRuleEntryMatchVariableRequestIPAddress, waf.ScrubbingRuleEntryMatchVariableRequestUri, waf.ScrubbingRuleEntryMatchOperatorEqualsAny, operator)
+				return nil, fmt.Errorf("'scrubbing_rule's with a 'match_variable' of %q or %q are required to use the %q 'operator', got %q", waf.ScrubbingRuleEntryMatchVariableRequestIPAddress, waf.ScrubbingRuleEntryMatchVariableRequestUri, waf.ScrubbingRuleEntryMatchOperatorEqualsAny, operator)
 			}
 
 		case len(selector) == 0:
