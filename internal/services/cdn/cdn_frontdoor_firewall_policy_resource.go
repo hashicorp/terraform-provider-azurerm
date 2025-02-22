@@ -577,7 +577,6 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			// Verify that the scrubbing_rule's are valid...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(diff.Get("log_scrubbing").([]interface{}))
-
 				if err != nil {
 					return err
 				}
