@@ -268,7 +268,7 @@ A `log_scrubbing` block supports the following:
 
 * `enabled` - (Optional) Is log scrubbing enabled? Possible values are `true` or `false`. Defaults to `true`.
 
-* `log_rule` - (Required) One or more `log_rule` blocks as defined below.
+* `scrubbing_rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
 
 ---
 
@@ -312,25 +312,25 @@ An `exclusion` block supports the following:
 
 ---
 
-A `log_rule` block supports the following:
+A `scrubbing_rule` block supports the following:
 
-* `enabled` - (Optional) Is this `log_rule` enabled? Defaults to `true`.
+* `enabled` - (Optional) Is this `scrubbing_rule` enabled? Defaults to `true`.
 
 * `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `QueryStringArgNames`, `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
 
-* `operator` - (Required) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `log_rule` applies to. Possible values are `Equals` or `EqualsAny`.
+* `operator` - (Required) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `scrubbing_rule` applies to. Possible values are `Equals` or `EqualsAny`.
 
--> **Note:** A `log_rule` with a `match_variable` of `RequestIPAddress` or `RequestUri` is required to use the `EqualsAny` operator.
+-> **Note:** A `scrubbing_rule` with a `match_variable` of `RequestIPAddress` or `RequestUri` is required to use the `EqualsAny` operator.
 
-* `selector` - (Required) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `log_rule` applies to.
+* `selector` - (Required) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `scrubbing_rule` applies to.
 
 -> **Note:** The `selector` field is required for all `match_variables` except `RequestIPAddress` and `RequestUri`.
 
 ---
 
-## `log_rule` Examples:
+## `scrubbing_rule` Examples:
 
-The following table shows examples of `log_rule`'s that can be used to protect sensitive data:
+The following table shows examples of `scrubbing_rule`'s that can be used to protect sensitive data:
 
 | Match Variable               | Operator       | Selector      | What Gets Scrubbed                                                            |
 | :--------------------------- | :------------- | :------------ | :---------------------------------------------------------------------------- |
