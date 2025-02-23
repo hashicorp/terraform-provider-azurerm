@@ -268,7 +268,7 @@ A `log_scrubbing` block supports the following:
 
 * `enabled` - (Optional) Is log scrubbing enabled? Possible values are `true` or `false`. Defaults to `true`.
 
-* `scrubbing_rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
+* `rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
 
 ---
 
@@ -314,17 +314,17 @@ An `exclusion` block supports the following:
 
 A `scrubbing_rule` block supports the following:
 
-* `enabled` - (Optional) Is this `scrubbing_rule` enabled? Defaults to `true`.
-
 * `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `QueryStringArgNames`, `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
-
-* `operator` - (Required) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `scrubbing_rule` applies to. Possible values are `Equals` or `EqualsAny`.
-
--> **Note:** A `scrubbing_rule` with a `match_variable` of `RequestIPAddress` or `RequestUri` is required to use the `EqualsAny` operator.
 
 * `selector` - (Required) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `scrubbing_rule` applies to.
 
 -> **Note:** The `selector` field is required for all `match_variables` except `RequestIPAddress` and `RequestUri`.
+
+* `operator` - (Optional) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `scrubbing_rule` applies to. Possible values are `Equals` or `EqualsAny`. Defaults to `Equals`.
+
+-> **Note:** A `scrubbing_rule` with a `match_variable` of `RequestIPAddress` or `RequestUri` is required to use the `EqualsAny` operator.
+
+* `enabled` - (Optional) Is this `scrubbing_rule` enabled? Defaults to `true`.
 
 ---
 
