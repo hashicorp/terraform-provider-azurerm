@@ -42,7 +42,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_maps_account": resourceMapsAccount(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resources["azurerm_maps_creator"] = resourceMapsCreator()
 	}
 

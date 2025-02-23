@@ -53,7 +53,7 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 }
 
 func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("The service require minimum TLS version to be 1.2+, skip the `disabled` testing.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")

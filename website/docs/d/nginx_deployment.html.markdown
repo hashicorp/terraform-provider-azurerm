@@ -63,6 +63,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `automatic_upgrade_channel` - The automatic upgrade channel for this NGINX deployment.
 
+* `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
+
 * `tags` - A mapping of tags assigned to the NGINX Deployment.
 
 ---
