@@ -44,7 +44,7 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 		"metadata": MetaDataSchema(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		// Keep the storage_share_id for compatibility.
 		schema["storage_share_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
@@ -103,7 +103,7 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 		storageShareId *shares.ShareId
 		err            error
 	)
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
 	} else {
 		storageShareURL := d.Get("storage_share_url")
@@ -259,7 +259,7 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.DirectoryPath)
 	d.Set("storage_share_url", storageShareId.ID())
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		d.Set("storage_share_id", d.Get("storage_share_url"))
 	}
 
