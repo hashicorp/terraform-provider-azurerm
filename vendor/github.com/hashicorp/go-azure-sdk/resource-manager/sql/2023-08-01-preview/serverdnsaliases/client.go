@@ -15,7 +15,7 @@ type ServerDnsAliasesClient struct {
 }
 
 func NewServerDnsAliasesClientWithBaseURI(sdkApi sdkEnv.Api) (*ServerDnsAliasesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "serverdnsaliases", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "serverdnsaliases", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ServerDnsAliasesClient: %+v", err)
 	}

@@ -23,10 +23,18 @@ type TaskPropertiesUpdateParameters struct {
 var _ json.Unmarshaler = &TaskPropertiesUpdateParameters{}
 
 func (s *TaskPropertiesUpdateParameters) UnmarshalJSON(bytes []byte) error {
-	type alias TaskPropertiesUpdateParameters
-	var decoded alias
+	var decoded struct {
+		AgentConfiguration *AgentProperties          `json:"agentConfiguration,omitempty"`
+		AgentPoolName      *string                   `json:"agentPoolName,omitempty"`
+		Credentials        *Credentials              `json:"credentials,omitempty"`
+		LogTemplate        *string                   `json:"logTemplate,omitempty"`
+		Platform           *PlatformUpdateParameters `json:"platform,omitempty"`
+		Status             *TaskStatus               `json:"status,omitempty"`
+		Timeout            *int64                    `json:"timeout,omitempty"`
+		Trigger            *TriggerUpdateParameters  `json:"trigger,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into TaskPropertiesUpdateParameters: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.AgentConfiguration = decoded.AgentConfiguration
@@ -44,11 +52,12 @@ func (s *TaskPropertiesUpdateParameters) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["step"]; ok {
-		impl, err := unmarshalTaskStepUpdateParametersImplementation(v)
+		impl, err := UnmarshalTaskStepUpdateParametersImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'Step' for 'TaskPropertiesUpdateParameters': %+v", err)
 		}
 		s.Step = impl
 	}
+
 	return nil
 }

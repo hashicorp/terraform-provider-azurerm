@@ -42,6 +42,7 @@ func (o WorkbooksListBySubscriptionOperationOptions) ToHeaders() *client.Headers
 
 func (o WorkbooksListBySubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

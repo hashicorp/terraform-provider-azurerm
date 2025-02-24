@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/jobschedule` Documentation
 
-The `jobschedule` SDK allows for interaction with the Azure Resource Manager Service `automation` (API Version `2023-11-01`).
+The `jobschedule` SDK allows for interaction with Azure Resource Manager `automation` (API Version `2023-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := jobschedule.NewJobScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "jobScheduleIdValue")
+id := jobschedule.NewJobScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "jobScheduleId")
 
 payload := jobschedule.JobScheduleCreateParameters{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := jobschedule.NewJobScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "jobScheduleIdValue")
+id := jobschedule.NewJobScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "jobScheduleId")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := jobschedule.NewJobScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue", "jobScheduleIdValue")
+id := jobschedule.NewJobScheduleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "jobScheduleId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := jobschedule.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountValue")
+id := jobschedule.NewAutomationAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName")
 
 // alternatively `client.ListByAutomationAccount(ctx, id, jobschedule.DefaultListByAutomationAccountOperationOptions())` can be used to do batched pagination
 items, err := client.ListByAutomationAccountComplete(ctx, id, jobschedule.DefaultListByAutomationAccountOperationOptions())

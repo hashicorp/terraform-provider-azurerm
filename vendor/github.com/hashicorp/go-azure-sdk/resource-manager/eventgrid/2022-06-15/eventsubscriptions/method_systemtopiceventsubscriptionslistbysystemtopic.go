@@ -40,6 +40,7 @@ func (o SystemTopicEventSubscriptionsListBySystemTopicOperationOptions) ToHeader
 
 func (o SystemTopicEventSubscriptionsListBySystemTopicOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -49,7 +49,6 @@ func (c EventHubsClient) CreateOrUpdate(ctx context.Context, id EventhubId, inpu
 
 	var model Eventhub
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

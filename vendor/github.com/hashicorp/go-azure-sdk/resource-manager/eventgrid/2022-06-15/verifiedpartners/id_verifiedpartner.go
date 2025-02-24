@@ -38,7 +38,7 @@ func ParseVerifiedPartnerID(input string) (*VerifiedPartnerId, error) {
 	}
 
 	id := VerifiedPartnerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseVerifiedPartnerIDInsensitively(input string) (*VerifiedPartnerId, erro
 	}
 
 	id := VerifiedPartnerId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +99,7 @@ func (id VerifiedPartnerId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticVerifiedPartners", "verifiedPartners", "verifiedPartners"),
-		resourceids.UserSpecifiedSegment("verifiedPartnerName", "verifiedPartnerValue"),
+		resourceids.UserSpecifiedSegment("verifiedPartnerName", "verifiedPartnerName"),
 	}
 }
 

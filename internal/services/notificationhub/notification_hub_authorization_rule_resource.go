@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/hubs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -86,13 +85,13 @@ func resourceNotificationHubAuthorizationRule() *pluginsdk.Resource {
 			"primary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
-				Sensitive: features.FourPointOhBeta(),
+				Sensitive: true,
 			},
 
 			"secondary_access_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
-				Sensitive: features.FourPointOhBeta(),
+				Sensitive: true,
 			},
 
 			"primary_connection_string": {

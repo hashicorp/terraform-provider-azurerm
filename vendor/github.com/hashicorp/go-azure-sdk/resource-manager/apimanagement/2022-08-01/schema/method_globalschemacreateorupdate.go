@@ -39,6 +39,7 @@ func (o GlobalSchemaCreateOrUpdateOperationOptions) ToHeaders() *client.Headers 
 
 func (o GlobalSchemaCreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

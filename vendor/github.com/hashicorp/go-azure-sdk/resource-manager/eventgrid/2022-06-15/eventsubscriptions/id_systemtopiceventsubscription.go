@@ -44,7 +44,7 @@ func ParseSystemTopicEventSubscriptionID(input string) (*SystemTopicEventSubscri
 	}
 
 	id := SystemTopicEventSubscriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSystemTopicEventSubscriptionIDInsensitively(input string) (*SystemTopi
 	}
 
 	id := SystemTopicEventSubscriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SystemTopicEventSubscriptionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticSystemTopics", "systemTopics", "systemTopics"),
-		resourceids.UserSpecifiedSegment("systemTopicName", "systemTopicValue"),
+		resourceids.UserSpecifiedSegment("systemTopicName", "systemTopicName"),
 		resourceids.StaticSegment("staticEventSubscriptions", "eventSubscriptions", "eventSubscriptions"),
-		resourceids.UserSpecifiedSegment("eventSubscriptionName", "eventSubscriptionValue"),
+		resourceids.UserSpecifiedSegment("eventSubscriptionName", "eventSubscriptionName"),
 	}
 }
 

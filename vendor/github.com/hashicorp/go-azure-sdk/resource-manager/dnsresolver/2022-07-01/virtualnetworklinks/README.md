@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/virtualnetworklinks` Documentation
 
-The `virtualnetworklinks` SDK allows for interaction with the Azure Resource Manager Service `dnsresolver` (API Version `2022-07-01`).
+The `virtualnetworklinks` SDK allows for interaction with Azure Resource Manager `dnsresolver` (API Version `2022-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue", "virtualNetworkLinkValue")
+id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName", "virtualNetworkLinkName")
 
 payload := virtualnetworklinks.VirtualNetworkLink{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, virtualnetworklinks.De
 
 ```go
 ctx := context.TODO()
-id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue", "virtualNetworkLinkValue")
+id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName", "virtualNetworkLinkName")
 
 if err := client.DeleteThenPoll(ctx, id, virtualnetworklinks.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id, virtualnetworklinks.DefaultDeleteOperat
 
 ```go
 ctx := context.TODO()
-id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue", "virtualNetworkLinkValue")
+id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName", "virtualNetworkLinkName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -69,7 +69,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworklinks.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue")
+id := virtualnetworklinks.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName")
 
 // alternatively `client.List(ctx, id, virtualnetworklinks.DefaultListOperationOptions())` can be used to do batched pagination
 items, err := client.ListComplete(ctx, id, virtualnetworklinks.DefaultListOperationOptions())
@@ -86,7 +86,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue", "virtualNetworkLinkValue")
+id := virtualnetworklinks.NewVirtualNetworkLinkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName", "virtualNetworkLinkName")
 
 payload := virtualnetworklinks.VirtualNetworkLinkPatch{
 	// ...

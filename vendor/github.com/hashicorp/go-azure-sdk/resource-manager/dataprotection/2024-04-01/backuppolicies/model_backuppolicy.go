@@ -14,7 +14,16 @@ type BackupPolicy struct {
 	PolicyRules []BasePolicyRule `json:"policyRules"`
 
 	// Fields inherited from BaseBackupPolicy
+
 	DatasourceTypes []string `json:"datasourceTypes"`
+	ObjectType      string   `json:"objectType"`
+}
+
+func (s BackupPolicy) BaseBackupPolicy() BaseBaseBackupPolicyImpl {
+	return BaseBaseBackupPolicyImpl{
+		DatasourceTypes: s.DatasourceTypes,
+		ObjectType:      s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = BackupPolicy{}
@@ -28,9 +37,10 @@ func (s BackupPolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling BackupPolicy: %+v", err)
 	}
+
 	decoded["objectType"] = "BackupPolicy"
 
 	encoded, err = json.Marshal(decoded)
@@ -44,13 +54,16 @@ func (s BackupPolicy) MarshalJSON() ([]byte, error) {
 var _ json.Unmarshaler = &BackupPolicy{}
 
 func (s *BackupPolicy) UnmarshalJSON(bytes []byte) error {
-	type alias BackupPolicy
-	var decoded alias
+	var decoded struct {
+		DatasourceTypes []string `json:"datasourceTypes"`
+		ObjectType      string   `json:"objectType"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into BackupPolicy: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.DatasourceTypes = decoded.DatasourceTypes
+	s.ObjectType = decoded.ObjectType
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {
@@ -65,7 +78,7 @@ func (s *BackupPolicy) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]BasePolicyRule, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalBasePolicyRuleImplementation(val)
+			impl, err := UnmarshalBasePolicyRuleImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'PolicyRules' for 'BackupPolicy': %+v", i, err)
 			}
@@ -73,5 +86,6 @@ func (s *BackupPolicy) UnmarshalJSON(bytes []byte) error {
 		}
 		s.PolicyRules = output
 	}
+
 	return nil
 }

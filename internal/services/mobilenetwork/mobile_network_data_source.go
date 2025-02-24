@@ -57,7 +57,6 @@ func (r MobileNetworkDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r MobileNetworkDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"location": commonschema.LocationComputed(),
 
 		"mobile_country_code": {

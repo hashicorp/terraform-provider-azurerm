@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure location where the Linux Virtual Machine should exist. Changing this forces a new resource to be created.
 
-* `license_type` - (Optional) Specifies the License Type for this Virtual Machine. Possible values are `RHEL_BYOS`, `RHEL_BASE`, `RHEL_EUS`, `RHEL_SAPAPPS`, `RHEL_SAPHA`, `RHEL_BASESAPAPPS`, `RHEL_BASESAPHA`, `SLES_BYOS`, `SLES_SAP`, `SLES_HPC`.
+* `license_type` - (Optional) Specifies the License Type for this Virtual Machine. Possible values are `RHEL_BYOS`, `RHEL_BASE`, `RHEL_EUS`, `RHEL_SAPAPPS`, `RHEL_SAPHA`, `RHEL_BASESAPAPPS`, `RHEL_BASESAPHA`, `SLES_BYOS`, `SLES_SAP`, `SLES_HPC`, `UBUNTU_PRO`.
 
 * `name` - (Required) The name of the Linux Virtual Machine. Changing this forces a new resource to be created.
 
@@ -386,6 +386,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as documented below.
 
+* `os_disk` - An `os_disk` block as documented below.
+
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
 
 * `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
@@ -403,6 +405,12 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+An `os_disk` block exports the following:
+
+* `id` - The ID of the OS disk.
 
 ## Timeouts
 

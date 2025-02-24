@@ -215,7 +215,6 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				model.SubnetId = pointer.From(props.SubnetId)
 				model.TimezoneId = pointer.From(props.TimezoneId)
 				model.VCores = pointer.From(props.VCores)
-
 			}
 
 			metadata.SetID(id)
@@ -229,7 +228,7 @@ func (d MsSqlManagedInstanceDataSource) flattenIdentity(input *identity.LegacySy
 		return nil
 	}
 
-	var identityIds = make([]string, 0)
+	identityIds := make([]string, 0)
 	for k := range input.IdentityIds {
 		parsedId, err := commonids.ParseUserAssignedIdentityIDInsensitively(k)
 		if err != nil {

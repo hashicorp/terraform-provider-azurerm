@@ -27,7 +27,6 @@ func TestRestorableDatabaseAccountID(t *testing.T) {
 		Error    bool
 		Expected *RestorableDatabaseAccountId
 	}{
-
 		{
 			// empty
 			Input: "",

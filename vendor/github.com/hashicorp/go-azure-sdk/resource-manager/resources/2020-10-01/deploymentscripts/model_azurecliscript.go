@@ -17,13 +17,28 @@ type AzureCliScript struct {
 	Properties AzureCliScriptProperties `json:"properties"`
 
 	// Fields inherited from DeploymentScript
+
 	Id         *string                   `json:"id,omitempty"`
 	Identity   *identity.UserAssignedMap `json:"identity,omitempty"`
+	Kind       ScriptType                `json:"kind"`
 	Location   string                    `json:"location"`
 	Name       *string                   `json:"name,omitempty"`
 	SystemData *systemdata.SystemData    `json:"systemData,omitempty"`
 	Tags       *map[string]string        `json:"tags,omitempty"`
 	Type       *string                   `json:"type,omitempty"`
+}
+
+func (s AzureCliScript) DeploymentScript() BaseDeploymentScriptImpl {
+	return BaseDeploymentScriptImpl{
+		Id:         s.Id,
+		Identity:   s.Identity,
+		Kind:       s.Kind,
+		Location:   s.Location,
+		Name:       s.Name,
+		SystemData: s.SystemData,
+		Tags:       s.Tags,
+		Type:       s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureCliScript{}
@@ -37,9 +52,10 @@ func (s AzureCliScript) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureCliScript: %+v", err)
 	}
+
 	decoded["kind"] = "AzureCLI"
 
 	encoded, err = json.Marshal(decoded)

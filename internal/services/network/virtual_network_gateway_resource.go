@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
@@ -135,6 +136,8 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"ip_configuration": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			// Each type gateway requires exact number of `ip_configuration`, and overwriting an existing one is not allowed.
+			ForceNew: true,
 			MaxItems: 3,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -403,7 +406,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 								"sa_data_size_in_kilobytes": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1024, 2147483647),
+									ValidateFunc: validation.IntBetween(1024, math.MaxInt32),
 								},
 							},
 						},
@@ -1091,12 +1094,9 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetG
 		addresses = append(addresses, addr.(string))
 	}
 
-	confAadTenant := conf["aad_tenant"].(string)
-	confAadAudience := conf["aad_audience"].(string)
-	confAadIssuer := conf["aad_issuer"].(string)
-
-	var rootCerts []virtualnetworkgateways.VpnClientRootCertificate
-	for _, rootCertSet := range conf["root_certificate"].(*pluginsdk.Set).List() {
+	rootCertsConf := conf["root_certificate"].(*pluginsdk.Set).List()
+	rootCerts := make([]virtualnetworkgateways.VpnClientRootCertificate, 0, len(rootCertsConf))
+	for _, rootCertSet := range rootCertsConf {
 		rootCert := rootCertSet.(map[string]interface{})
 		r := virtualnetworkgateways.VpnClientRootCertificate{
 			Name: pointer.To(rootCert["name"].(string)),
@@ -1107,8 +1107,9 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetG
 		rootCerts = append(rootCerts, r)
 	}
 
-	var revokedCerts []virtualnetworkgateways.VpnClientRevokedCertificate
-	for _, revokedCertSet := range conf["revoked_certificate"].(*pluginsdk.Set).List() {
+	revokedCertsConf := conf["revoked_certificate"].(*pluginsdk.Set).List()
+	revokedCerts := make([]virtualnetworkgateways.VpnClientRevokedCertificate, 0, len(revokedCertsConf))
+	for _, revokedCertSet := range revokedCertsConf {
 		revokedCert := revokedCertSet.(map[string]interface{})
 		r := virtualnetworkgateways.VpnClientRevokedCertificate{
 			Name: pointer.To(revokedCert["name"].(string)),
@@ -1119,17 +1120,16 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetG
 		revokedCerts = append(revokedCerts, r)
 	}
 
-	var vpnClientProtocols []virtualnetworkgateways.VpnClientProtocol
-	for _, vpnClientProtocol := range conf["vpn_client_protocols"].(*pluginsdk.Set).List() {
+	vpnClientProtocolsConf := conf["vpn_client_protocols"].(*pluginsdk.Set).List()
+	vpnClientProtocols := make([]virtualnetworkgateways.VpnClientProtocol, 0, len(vpnClientProtocolsConf))
+	for _, vpnClientProtocol := range vpnClientProtocolsConf {
 		p := virtualnetworkgateways.VpnClientProtocol(vpnClientProtocol.(string))
 		vpnClientProtocols = append(vpnClientProtocols, p)
 	}
 
-	confRadiusServerAddress := conf["radius_server_address"].(string)
-	confRadiusServerSecret := conf["radius_server_secret"].(string)
-
-	var vpnAuthTypes []virtualnetworkgateways.VpnAuthenticationType
-	for _, vpnAuthType := range conf["vpn_auth_types"].(*pluginsdk.Set).List() {
+	vpnAuthTypesConf := conf["vpn_auth_types"].(*pluginsdk.Set).List()
+	vpnAuthTypes := make([]virtualnetworkgateways.VpnAuthenticationType, 0, len(vpnAuthTypesConf))
+	for _, vpnAuthType := range vpnAuthTypesConf {
 		a := virtualnetworkgateways.VpnAuthenticationType(vpnAuthType.(string))
 		vpnAuthTypes = append(vpnAuthTypes, a)
 	}
@@ -1138,17 +1138,17 @@ func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetG
 		VpnClientAddressPool: &virtualnetworkgateways.AddressSpace{
 			AddressPrefixes: &addresses,
 		},
-		AadTenant:                         &confAadTenant,
-		AadAudience:                       &confAadAudience,
-		AadIssuer:                         &confAadIssuer,
+		AadTenant:                         pointer.To(conf["aad_tenant"].(string)),
+		AadAudience:                       pointer.To(conf["aad_audience"].(string)),
+		AadIssuer:                         pointer.To(conf["aad_issuer"].(string)),
 		VngClientConnectionConfigurations: expandVirtualNetworkGatewayClientConnections(conf["virtual_network_gateway_client_connection"].([]interface{}), vnetGatewayId),
 		VpnClientIPsecPolicies:            expandVirtualNetworkGatewayIpsecPolicies(conf["ipsec_policy"].([]interface{})),
 		VpnClientRootCertificates:         &rootCerts,
 		VpnClientRevokedCertificates:      &revokedCerts,
 		VpnClientProtocols:                &vpnClientProtocols,
 		RadiusServers:                     expandVirtualNetworkGatewayRadiusServers(conf["radius_server"].([]interface{})),
-		RadiusServerAddress:               &confRadiusServerAddress,
-		RadiusServerSecret:                &confRadiusServerSecret,
+		RadiusServerAddress:               pointer.To(conf["radius_server_address"].(string)),
+		RadiusServerSecret:                pointer.To(conf["radius_server_secret"].(string)),
 		VpnAuthenticationTypes:            &vpnAuthTypes,
 	}
 }

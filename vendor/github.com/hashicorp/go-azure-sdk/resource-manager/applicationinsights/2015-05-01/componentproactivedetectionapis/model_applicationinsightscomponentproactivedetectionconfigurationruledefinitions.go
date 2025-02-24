@@ -6,7 +6,7 @@ package componentproactivedetectionapis
 type ApplicationInsightsComponentProactiveDetectionConfigurationRuleDefinitions struct {
 	Description                *string `json:"Description,omitempty"`
 	DisplayName                *string `json:"DisplayName,omitempty"`
-	HelpUrl                    *string `json:"HelpUrl,omitempty"`
+	HelpURL                    *string `json:"HelpUrl,omitempty"`
 	IsEnabledByDefault         *bool   `json:"IsEnabledByDefault,omitempty"`
 	IsHidden                   *bool   `json:"IsHidden,omitempty"`
 	IsInPreview                *bool   `json:"IsInPreview,omitempty"`

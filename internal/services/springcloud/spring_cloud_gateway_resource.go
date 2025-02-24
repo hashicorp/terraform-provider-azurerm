@@ -41,7 +41,7 @@ type SpringCloudGatewayModel struct {
 type ApiMetadataModel struct {
 	Description      string `tfschema:"description"`
 	DocumentationUrl string `tfschema:"documentation_url"`
-	ServerUrl        string `tfschema:"server_url"`
+	ServerURL        string `tfschema:"server_url"`
 	Title            string `tfschema:"title"`
 	Version          string `tfschema:"version"`
 }
@@ -80,8 +80,10 @@ type ResponseCacheModel struct {
 
 type SpringCloudGatewayResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudGatewayResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudGatewayResource{}
+var (
+	_ sdk.ResourceWithUpdate         = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithStateMigration = SpringCloudGatewayResource{}
+)
 
 func (s SpringCloudGatewayResource) ResourceType() string {
 	return "azurerm_spring_cloud_gateway"
@@ -274,7 +276,6 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"environment_variables": {
 			Type:     pluginsdk.TypeMap,
-			ForceNew: true,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -328,7 +329,6 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 		"sensitive_environment_variables": {
 			Type:      pluginsdk.TypeMap,
 			Optional:  true,
-			ForceNew:  true,
 			Sensitive: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -595,6 +595,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -690,7 +691,7 @@ func expandGatewayGatewayAPIMetadataProperties(input []ApiMetadataModel) *apppla
 		Description:   pointer.To(v.Description),
 		Documentation: pointer.To(v.DocumentationUrl),
 		Version:       pointer.To(v.Version),
-		ServerUrl:     pointer.To(v.ServerUrl),
+		ServerURL:     pointer.To(v.ServerURL),
 	}
 }
 
@@ -809,7 +810,7 @@ func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayApiMet
 		{
 			Description:      pointer.From(input.Description),
 			DocumentationUrl: pointer.From(input.Documentation),
-			ServerUrl:        pointer.From(input.ServerUrl),
+			ServerURL:        pointer.From(input.ServerURL),
 			Title:            pointer.From(input.Title),
 			Version:          pointer.From(input.Version),
 		},

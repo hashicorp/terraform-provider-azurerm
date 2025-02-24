@@ -46,7 +46,6 @@ func (c DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, id Disaster
 
 	var model AccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -10,18 +10,38 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Channel interface {
+	Channel() BaseChannelImpl
 }
 
-// RawChannelImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ Channel = BaseChannelImpl{}
+
+type BaseChannelImpl struct {
+	ChannelName       string  `json:"channelName"`
+	Etag              *string `json:"etag,omitempty"`
+	Location          *string `json:"location,omitempty"`
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+func (s BaseChannelImpl) Channel() BaseChannelImpl {
+	return s
+}
+
+var _ Channel = RawChannelImpl{}
+
+// RawChannelImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawChannelImpl struct {
-	Type   string
-	Values map[string]interface{}
+	channel BaseChannelImpl
+	Type    string
+	Values  map[string]interface{}
 }
 
-func unmarshalChannelImplementation(input []byte) (Channel, error) {
+func (s RawChannelImpl) Channel() BaseChannelImpl {
+	return s.channel
+}
+
+func UnmarshalChannelImplementation(input []byte) (Channel, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +51,9 @@ func unmarshalChannelImplementation(input []byte) (Channel, error) {
 		return nil, fmt.Errorf("unmarshaling Channel into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["channelName"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["channelName"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AcsChatChannel") {
@@ -188,10 +208,15 @@ func unmarshalChannelImplementation(input []byte) (Channel, error) {
 		return out, nil
 	}
 
-	out := RawChannelImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseChannelImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseChannelImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawChannelImpl{
+		channel: parent,
+		Type:    value,
+		Values:  temp,
+	}, nil
 
 }

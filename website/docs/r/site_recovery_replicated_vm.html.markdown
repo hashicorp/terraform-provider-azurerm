@@ -260,6 +260,8 @@ The following arguments are supported:
 
 * `target_virtual_machine_scale_set_id` - (Optional) Id of the Virtual Machine Scale Set which the new Vm should belong to when a failover is done.
 
+* `target_virtual_machine_size` - (Optional) Specifies the size the Virtual Machine should have.
+
 * `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover).
 
 * `test_network_id` - (Optional) Network to use when a test failover is done.
@@ -306,13 +308,15 @@ A `network_interface` block supports the following:
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
-* `target_subnet_name` - (Optional) Name of the subnet to to use when a failover is done.
+* `target_subnet_name` - (Optional) Name of the subnet to use when a failover is done.
+
+* `recovery_load_balancer_backend_address_pool_ids` - (Optional) A list of IDs of Load Balancer Backend Address Pools to use when a failover is done.
 
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
 
 * `failover_test_static_ip` - (Optional) Static IP to assign when a test failover is done.
 
-* `failover_test_subnet_name` - (Optional) Name of the subnet to to use when a test failover is done.
+* `failover_test_subnet_name` - (Optional) Name of the subnet to use when a test failover is done.
 
 * `failover_test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
 

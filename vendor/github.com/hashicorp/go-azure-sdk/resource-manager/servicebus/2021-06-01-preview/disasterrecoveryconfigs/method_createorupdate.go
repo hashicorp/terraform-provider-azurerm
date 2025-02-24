@@ -50,7 +50,6 @@ func (c DisasterRecoveryConfigsClient) CreateOrUpdate(ctx context.Context, id Di
 
 	var model ArmDisasterRecovery
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

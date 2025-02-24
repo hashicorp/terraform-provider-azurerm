@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type SpacecraftResource struct{}
 
 func TestAccSpacecraft_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_orbital_spacecraft` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
 	r := SpacecraftResource{}
 
@@ -35,6 +39,9 @@ func TestAccSpacecraft_basic(t *testing.T) {
 }
 
 func TestAccSpacecraft_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_orbital_spacecraft` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
 	r := SpacecraftResource{}
 
@@ -56,6 +63,9 @@ func TestAccSpacecraft_update(t *testing.T) {
 }
 
 func TestAccSpacecraft_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_orbital_spacecraft` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_orbital_spacecraft", "test")
 	r := SpacecraftResource{}
 
@@ -119,7 +129,7 @@ func (r SpacecraftResource) update(data acceptance.TestData) string {
 resource "azurerm_orbital_spacecraft" "test" {
   name                = "acctestspacecraft-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "eastus"
+  location            = "westus"
   norad_id            = "23456"
 
   links {

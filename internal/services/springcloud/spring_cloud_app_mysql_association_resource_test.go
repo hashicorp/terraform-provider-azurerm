@@ -167,7 +167,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  zone                   = "2"
 }
 
 resource "azurerm_mysql_flexible_database" "test" {

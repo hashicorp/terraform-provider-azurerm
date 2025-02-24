@@ -164,7 +164,7 @@ The `match_conditions` block supports the following:
 
 * `negation_condition` - (Optional) Describes if this is negate condition or not
 
-* `transforms` - (Optional) A list of transformations to do before the match is attempted. Possible values are `HtmlEntityDecode`, `Lowercase`, `RemoveNulls`, `Trim`, `UrlDecode` and `UrlEncode`.
+* `transforms` - (Optional) A list of transformations to do before the match is attempted. Possible values are `HtmlEntityDecode`, `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `UrlDecode` and `UrlEncode`.
 
 ---
 
@@ -190,9 +190,13 @@ The `policy_settings` block supports the following:
 
 * `log_scrubbing` - (Optional) One `log_scrubbing` block as defined below.
 
+* `request_body_enforcement` - (Optional) Whether the firewall should block a request with body size greater then `max_request_body_size_in_kb`. Defaults to `true`.
+
 * `request_body_inspect_limit_in_kb` - (Optional) Specifies the maximum request body inspection limit in KB for the Web Application Firewall. Defaults to `128`.
 
 * `js_challenge_cookie_expiration_in_minutes` - (Optional) Specifies the JavaScript challenge cookie validity lifetime in minutes. The user is challenged after the lifetime expires. Accepted values are in the range `5` to `1440`. Defaults to `30`.
+
+* `file_upload_enforcement` - (Optional)  - Whether the firewall should block a request with upload size greater then `file_upload_limit_in_mb`.
 
 ---
 
@@ -220,7 +224,7 @@ The `excluded_rule_set` block supports the following:
 
 * `type` - (Optional) The rule set type. Possible values are `Microsoft_DefaultRuleSet`, `Microsoft_BotManagerRuleSet` and `OWASP`. Defaults to `OWASP`.
 
-* `version` - (Optional) The rule set version. Possible values are `1.0` (for rule set type `Microsoft_BotManagerRuleSet`), `2.1` (for rule set type `Microsoft_DefaultRuleSet`) and `3.2` (for rule set type `OWASP`). Defaults to `3.2`.
+* `version` - (Optional) The rule set version. Possible values are `1.0`, `1.1` (for rule set type `Microsoft_BotManagerRuleSet`), `2.1` (for rule set type `Microsoft_DefaultRuleSet`) and `3.2` (for rule set type `OWASP`). Defaults to `3.2`.
 
 * `rule_group` - (Optional) One or more `rule_group` block defined below.
 
@@ -239,7 +243,7 @@ The `managed_rule_set` block supports the following:
 
 * `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet`, `Microsoft_DefaultRuleSet` and `OWASP`. Defaults to `OWASP`.
 
-* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
+* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `1.1`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
 * `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
 

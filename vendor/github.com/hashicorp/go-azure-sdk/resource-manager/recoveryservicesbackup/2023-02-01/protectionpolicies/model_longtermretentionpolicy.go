@@ -17,6 +17,14 @@ type LongTermRetentionPolicy struct {
 	YearlySchedule  *YearlyRetentionSchedule  `json:"yearlySchedule,omitempty"`
 
 	// Fields inherited from RetentionPolicy
+
+	RetentionPolicyType string `json:"retentionPolicyType"`
+}
+
+func (s LongTermRetentionPolicy) RetentionPolicy() BaseRetentionPolicyImpl {
+	return BaseRetentionPolicyImpl{
+		RetentionPolicyType: s.RetentionPolicyType,
+	}
 }
 
 var _ json.Marshaler = LongTermRetentionPolicy{}
@@ -30,9 +38,10 @@ func (s LongTermRetentionPolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling LongTermRetentionPolicy: %+v", err)
 	}
+
 	decoded["retentionPolicyType"] = "LongTermRetentionPolicy"
 
 	encoded, err = json.Marshal(decoded)

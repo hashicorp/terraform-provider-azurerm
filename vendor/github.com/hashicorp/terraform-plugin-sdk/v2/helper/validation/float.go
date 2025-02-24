@@ -10,8 +10,8 @@ import (
 )
 
 // FloatBetween returns a SchemaValidateFunc which tests if the provided value
-// is of type float64 and is between min and max (inclusive).
-func FloatBetween(min, max float64) schema.SchemaValidateFunc {
+// is of type float64 and is between minVal and maxVal (inclusive).
+func FloatBetween(minVal, maxVal float64) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (s []string, es []error) {
 		v, ok := i.(float64)
 		if !ok {
@@ -19,8 +19,8 @@ func FloatBetween(min, max float64) schema.SchemaValidateFunc {
 			return
 		}
 
-		if v < min || v > max {
-			es = append(es, fmt.Errorf("expected %s to be in the range (%f - %f), got %f", k, min, max, v))
+		if v < minVal || v > maxVal {
+			es = append(es, fmt.Errorf("expected %s to be in the range (%f - %f), got %f", k, minVal, maxVal, v))
 			return
 		}
 
@@ -29,8 +29,8 @@ func FloatBetween(min, max float64) schema.SchemaValidateFunc {
 }
 
 // FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
-// is of type float and is at least min (inclusive)
-func FloatAtLeast(min float64) schema.SchemaValidateFunc {
+// is of type float and is at least minVal (inclusive)
+func FloatAtLeast(minVal float64) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (s []string, es []error) {
 		v, ok := i.(float64)
 		if !ok {
@@ -38,8 +38,8 @@ func FloatAtLeast(min float64) schema.SchemaValidateFunc {
 			return
 		}
 
-		if v < min {
-			es = append(es, fmt.Errorf("expected %s to be at least (%f), got %f", k, min, v))
+		if v < minVal {
+			es = append(es, fmt.Errorf("expected %s to be at least (%f), got %f", k, minVal, v))
 			return
 		}
 
@@ -48,8 +48,8 @@ func FloatAtLeast(min float64) schema.SchemaValidateFunc {
 }
 
 // FloatAtMost returns a SchemaValidateFunc which tests if the provided value
-// is of type float and is at most max (inclusive)
-func FloatAtMost(max float64) schema.SchemaValidateFunc {
+// is of type float and is at most maxVal (inclusive)
+func FloatAtMost(maxVal float64) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (s []string, es []error) {
 		v, ok := i.(float64)
 		if !ok {
@@ -57,8 +57,8 @@ func FloatAtMost(max float64) schema.SchemaValidateFunc {
 			return
 		}
 
-		if v > max {
-			es = append(es, fmt.Errorf("expected %s to be at most (%f), got %f", k, max, v))
+		if v > maxVal {
+			es = append(es, fmt.Errorf("expected %s to be at most (%f), got %f", k, maxVal, v))
 			return
 		}
 

@@ -46,7 +46,6 @@ func (c FirewallRulesClient) ListByCluster(ctx context.Context, id ServerGroupsv
 
 	var model FirewallRuleListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

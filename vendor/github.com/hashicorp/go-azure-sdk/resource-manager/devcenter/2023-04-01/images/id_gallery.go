@@ -44,7 +44,7 @@ func ParseGalleryID(input string) (*GalleryId, error) {
 	}
 
 	id := GalleryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseGalleryIDInsensitively(input string) (*GalleryId, error) {
 	}
 
 	id := GalleryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id GalleryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDevCenter", "Microsoft.DevCenter", "Microsoft.DevCenter"),
 		resourceids.StaticSegment("staticDevCenters", "devCenters", "devCenters"),
-		resourceids.UserSpecifiedSegment("devCenterName", "devCenterValue"),
+		resourceids.UserSpecifiedSegment("devCenterName", "devCenterName"),
 		resourceids.StaticSegment("staticGalleries", "galleries", "galleries"),
-		resourceids.UserSpecifiedSegment("galleryName", "galleryValue"),
+		resourceids.UserSpecifiedSegment("galleryName", "galleryName"),
 	}
 }
 

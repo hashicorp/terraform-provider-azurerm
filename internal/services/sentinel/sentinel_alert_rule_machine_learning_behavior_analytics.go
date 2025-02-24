@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -145,17 +145,16 @@ func resourceSentinelAlertRuleMLBehaviorAnalyticsRead(d *pluginsdk.ResourceData,
 		return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 	}
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule := modelPtr.(alertrules.MLBehaviorAnalyticsAlertRule)
+		if rule, ok := model.(alertrules.MLBehaviorAnalyticsAlertRule); ok {
+			d.Set("name", id.RuleId)
 
-		d.Set("name", id.RuleId)
+			workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+			d.Set("log_analytics_workspace_id", workspaceId.ID())
 
-		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
-
-		if prop := rule.Properties; prop != nil {
-			d.Set("enabled", prop.Enabled)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+			if prop := rule.Properties; prop != nil {
+				d.Set("enabled", prop.Enabled)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+			}
 		}
 	}
 

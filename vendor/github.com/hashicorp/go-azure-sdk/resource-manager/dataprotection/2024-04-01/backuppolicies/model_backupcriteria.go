@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BackupCriteria interface {
+	BackupCriteria() BaseBackupCriteriaImpl
 }
 
-// RawBackupCriteriaImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ BackupCriteria = BaseBackupCriteriaImpl{}
+
+type BaseBackupCriteriaImpl struct {
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseBackupCriteriaImpl) BackupCriteria() BaseBackupCriteriaImpl {
+	return s
+}
+
+var _ BackupCriteria = RawBackupCriteriaImpl{}
+
+// RawBackupCriteriaImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawBackupCriteriaImpl struct {
-	Type   string
-	Values map[string]interface{}
+	backupCriteria BaseBackupCriteriaImpl
+	Type           string
+	Values         map[string]interface{}
 }
 
-func unmarshalBackupCriteriaImplementation(input []byte) (BackupCriteria, error) {
+func (s RawBackupCriteriaImpl) BackupCriteria() BaseBackupCriteriaImpl {
+	return s.backupCriteria
+}
+
+func UnmarshalBackupCriteriaImplementation(input []byte) (BackupCriteria, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalBackupCriteriaImplementation(input []byte) (BackupCriteria, error)
 		return nil, fmt.Errorf("unmarshaling BackupCriteria into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "ScheduleBasedBackupCriteria") {
@@ -44,10 +61,15 @@ func unmarshalBackupCriteriaImplementation(input []byte) (BackupCriteria, error)
 		return out, nil
 	}
 
-	out := RawBackupCriteriaImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseBackupCriteriaImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseBackupCriteriaImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawBackupCriteriaImpl{
+		backupCriteria: parent,
+		Type:           value,
+		Values:         temp,
+	}, nil
 
 }

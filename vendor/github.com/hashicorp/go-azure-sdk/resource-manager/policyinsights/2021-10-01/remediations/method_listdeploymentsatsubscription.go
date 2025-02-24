@@ -39,6 +39,7 @@ func (o ListDeploymentsAtSubscriptionOperationOptions) ToHeaders() *client.Heade
 
 func (o ListDeploymentsAtSubscriptionOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -6,11 +6,12 @@ package fromproto6
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ReadDataSourceRequest returns the *fwserver.ReadDataSourceRequest
@@ -37,8 +38,9 @@ func ReadDataSourceRequest(ctx context.Context, proto6 *tfprotov6.ReadDataSource
 	}
 
 	fw := &fwserver.ReadDataSourceRequest{
-		DataSourceSchema: dataSourceSchema,
-		DataSource:       dataSource,
+		DataSourceSchema:   dataSourceSchema,
+		DataSource:         dataSource,
+		ClientCapabilities: ReadDataSourceClientCapabilities(proto6.ClientCapabilities),
 	}
 
 	config, configDiags := Config(ctx, proto6.Config, dataSourceSchema)

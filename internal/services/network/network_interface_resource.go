@@ -14,10 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	lbvalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,7 +28,7 @@ import (
 var networkInterfaceResourceName = "azurerm_network_interface"
 
 func resourceNetworkInterface() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceNetworkInterfaceCreate,
 		Read:   resourceNetworkInterfaceRead,
 		Update: resourceNetworkInterfaceUpdate,
@@ -141,7 +140,6 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			"dns_servers": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -153,25 +151,13 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			"accelerated_networking_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"enable_accelerated_networking"}
-					}
-					return []string{}
-				}(),
+				Default:  false,
 			},
 
 			"ip_forwarding_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				ConflictsWith: func() []string {
-					if !features.FourPointOhBeta() {
-						return []string{"enable_ip_forwarding"}
-					}
-					return []string{}
-				}(),
+				Default:  false,
 			},
 
 			"internal_dns_name_label": {
@@ -220,24 +206,6 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["enable_accelerated_networking"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"accelerated_networking_enabled"},
-			Deprecated:    "The property `enable_accelerated_networking` has been superseded by `accelerated_networking_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-		resource.Schema["enable_ip_forwarding"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"ip_forwarding_enabled"},
-			Deprecated:    "The property `enable_ip_forwarding` has been superseded by `ip_forwarding_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-	}
-	return resource
 }
 
 func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -262,14 +230,6 @@ func resourceNetworkInterfaceCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	enableIpForwarding = d.Get("ip_forwarding_enabled").(bool)
 	enableAcceleratedNetworking = d.Get("accelerated_networking_enabled").(bool)
-
-	if v, ok := d.GetOk("enable_ip_forwarding"); ok && !features.FourPointOhBeta() {
-		enableIpForwarding = v.(bool)
-	}
-
-	if v, ok := d.GetOk("enable_accelerated_networking"); ok && !features.FourPointOhBeta() {
-		enableAcceleratedNetworking = v.(bool)
-	}
 
 	properties := networkinterfaces.NetworkInterfacePropertiesFormat{
 		EnableIPForwarding:          &enableIpForwarding,
@@ -398,16 +358,8 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		payload.Properties.EnableAcceleratedNetworking = pointer.To(d.Get("accelerated_networking_enabled").(bool))
 	}
 
-	if !features.FourPointOhBeta() && d.HasChange("enable_accelerated_networking") {
-		payload.Properties.EnableAcceleratedNetworking = pointer.To(d.Get("enable_accelerated_networking").(bool))
-	}
-
 	if d.HasChange("ip_forwarding_enabled") {
 		payload.Properties.EnableIPForwarding = pointer.To(d.Get("ip_forwarding_enabled").(bool))
-	}
-
-	if !features.FourPointOhBeta() && d.HasChange("enable_ip_forwarding") {
-		payload.Properties.EnableIPForwarding = pointer.To(d.Get("enable_ip_forwarding").(bool))
 	}
 
 	if d.HasChange("internal_dns_name_label") {
@@ -538,10 +490,6 @@ func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("auxiliary_sku", auxiliarySku)
 			d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
 			d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
-			if !features.FourPointOhBeta() {
-				d.Set("enable_ip_forwarding", props.EnableIPForwarding)
-				d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
-			}
 			d.Set("internal_dns_name_label", internalDnsNameLabel)
 			d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
 			d.Set("mac_address", props.MacAddress)

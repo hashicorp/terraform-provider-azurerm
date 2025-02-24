@@ -15,7 +15,7 @@ type DicomServicesClient struct {
 }
 
 func NewDicomServicesClientWithBaseURI(sdkApi sdkEnv.Api) (*DicomServicesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dicomservices", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dicomservices", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DicomServicesClient: %+v", err)
 	}

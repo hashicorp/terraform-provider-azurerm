@@ -14,9 +14,20 @@ type LineChannel struct {
 	Properties *LineChannelProperties `json:"properties,omitempty"`
 
 	// Fields inherited from Channel
+
+	ChannelName       string  `json:"channelName"`
 	Etag              *string `json:"etag,omitempty"`
 	Location          *string `json:"location,omitempty"`
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+func (s LineChannel) Channel() BaseChannelImpl {
+	return BaseChannelImpl{
+		ChannelName:       s.ChannelName,
+		Etag:              s.Etag,
+		Location:          s.Location,
+		ProvisioningState: s.ProvisioningState,
+	}
 }
 
 var _ json.Marshaler = LineChannel{}
@@ -30,9 +41,10 @@ func (s LineChannel) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling LineChannel: %+v", err)
 	}
+
 	decoded["channelName"] = "LineChannel"
 
 	encoded, err = json.Marshal(decoded)

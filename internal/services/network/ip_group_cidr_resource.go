@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -57,7 +57,6 @@ func resourceIpGroupCidr() *pluginsdk.Resource {
 
 func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.IPGroups
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -67,7 +66,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	id := parse.NewIpGroupCidrID(subscriptionId, ipGroupId.ResourceGroupName, ipGroupId.IpGroupName, cidrName)
+	id := parse.NewIpGroupCidrID(ipGroupId.SubscriptionId, ipGroupId.ResourceGroupName, ipGroupId.IpGroupName, cidrName)
 
 	locks.ByID(ipGroupId.ID())
 	defer locks.UnlockByID(ipGroupId.ID())

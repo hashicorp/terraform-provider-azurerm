@@ -16,9 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -542,13 +541,6 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["enable_https_traffic_only"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		}
-	}
-
 	return resource
 }
 
@@ -621,10 +613,6 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("primary_location", location.NormalizeNilable(props.PrimaryLocation))
 			d.Set("secondary_location", location.NormalizeNilable(props.SecondaryLocation))
 
-			if !features.FourPointOhBeta() {
-				d.Set("enable_https_traffic_only", pointer.From(props.SupportsHTTPSTrafficOnly))
-			}
-
 			// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
 			// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
 			infrastructureEncryption := false
@@ -675,18 +663,14 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		secondaryEndpoints = model.Properties.SecondaryEndpoints
 	}
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
-	if err := endpoints.set(d); err != nil {
-		return err
-	}
+	endpoints.set(d)
 
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
 	if keys.Model != nil && keys.Model.Keys != nil {
 		storageAccountKeys = *keys.Model.Keys
 	}
 	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
-	if err := keysAndConnectionStrings.set(d); err != nil {
-		return err
-	}
+	keysAndConnectionStrings.set(d)
 
 	return nil
 }

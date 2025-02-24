@@ -45,7 +45,6 @@ func (c SqlDedicatedGatewayClient) ServiceGet(ctx context.Context, id ServiceId)
 
 	var model ServiceResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

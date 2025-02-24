@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,21 +84,6 @@ func TestAccSentinelAlertRuleFusion_sourceSetting(t *testing.T) {
 	})
 }
 
-func TestAccSentinelAlertRuleFusion_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_fusion", "test")
-	r := SentinelAlertRuleFusionResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
 func (r SentinelAlertRuleFusionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	alertRuleClient := client.Sentinel.AlertRulesClient
 	id, err := alertrules.ParseAlertRuleID(state.ID)
@@ -116,8 +101,7 @@ func (r SentinelAlertRuleFusionResource) Exists(ctx context.Context, client *cli
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.FusionAlertRule)
+		rule, ok := model.(alertrules.FusionAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}
@@ -133,15 +117,14 @@ func (r SentinelAlertRuleFusionResource) basic(data acceptance.TestData) string 
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "Advanced Multistage Attack Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
-  name                       = "acctest-SentinelAlertRule-Fusion-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r SentinelAlertRuleFusionResource) disabled(data acceptance.TestData) string {
@@ -150,16 +133,15 @@ func (r SentinelAlertRuleFusionResource) disabled(data acceptance.TestData) stri
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "Advanced Multistage Attack Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
-  name                       = "acctest-SentinelAlertRule-Fusion-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   enabled                    = false
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r SentinelAlertRuleFusionResource) sourceSetting(data acceptance.TestData, enabled bool) string {
@@ -168,12 +150,11 @@ func (r SentinelAlertRuleFusionResource) sourceSetting(data acceptance.TestData,
 
 data "azurerm_sentinel_alert_rule_template" "test" {
   display_name               = "Advanced Multistage Attack Detection"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "test" {
-  name                       = "acctest-SentinelAlertRule-Fusion-%[2]d"
-  log_analytics_workspace_id = azurerm_log_analytics_solution.test.workspace_resource_id
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   source {
     name    = "Anomalies"
@@ -237,18 +218,6 @@ resource "azurerm_sentinel_alert_rule_fusion" "test" {
 `, r.template(data), data.RandomInteger, enabled)
 }
 
-func (r SentinelAlertRuleFusionResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_sentinel_alert_rule_fusion" "import" {
-  name                       = azurerm_sentinel_alert_rule_fusion.test.name
-  log_analytics_workspace_id = azurerm_sentinel_alert_rule_fusion.test.log_analytics_workspace_id
-  alert_rule_template_guid   = azurerm_sentinel_alert_rule_fusion.test.alert_rule_template_guid
-}
-`, r.basic(data))
-}
-
 func (r SentinelAlertRuleFusionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -267,17 +236,8 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
+resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

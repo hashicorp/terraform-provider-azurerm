@@ -45,7 +45,6 @@ func (c AutomationsClient) Get(ctx context.Context, id AutomationId) (result Get
 
 	var model Automation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

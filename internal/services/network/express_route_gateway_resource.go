@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutegateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutegateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -332,7 +332,6 @@ func convertConnectionsToGatewayConnections(input *[]expressrouteconnections.Exp
 
 				o.Properties.RoutingConfiguration = rc
 			}
-
 		}
 		output = append(output, o)
 	}

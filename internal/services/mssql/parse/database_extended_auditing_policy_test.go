@@ -27,7 +27,6 @@ func TestDatabaseExtendedAuditingPolicyID(t *testing.T) {
 		Error    bool
 		Expected *DatabaseExtendedAuditingPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

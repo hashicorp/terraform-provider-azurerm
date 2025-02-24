@@ -15,7 +15,7 @@ type GlobalSchedulesClient struct {
 }
 
 func NewGlobalSchedulesClientWithBaseURI(sdkApi sdkEnv.Api) (*GlobalSchedulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "globalschedules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "globalschedules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GlobalSchedulesClient: %+v", err)
 	}

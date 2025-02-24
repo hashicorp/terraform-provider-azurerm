@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/confidentialledger/2022-05-13/confidentialledger` Documentation
 
-The `confidentialledger` SDK allows for interaction with the Azure Resource Manager Service `confidentialledger` (API Version `2022-05-13`).
+The `confidentialledger` SDK allows for interaction with Azure Resource Manager `confidentialledger` (API Version `2022-05-13`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerValue")
+id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerName")
 
 payload := confidentialledger.ConfidentialLedger{
 	// ...
@@ -42,7 +42,7 @@ if err := client.LedgerCreateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerValue")
+id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerName")
 
 if err := client.LedgerDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.LedgerDeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerValue")
+id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerName")
 
 read, err := client.LedgerGet(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerValue")
+id := confidentialledger.NewLedgerID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ledgerName")
 
 payload := confidentialledger.ConfidentialLedger{
 	// ...

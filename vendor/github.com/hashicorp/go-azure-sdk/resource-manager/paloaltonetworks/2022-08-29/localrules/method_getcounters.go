@@ -34,6 +34,7 @@ func (o GetCountersOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetCountersOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c LocalRulesClient) GetCounters(ctx context.Context, id LocalRuleId, optio
 
 	var model RuleCounter
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -46,7 +46,6 @@ func (c SapLandscapeMonitorClient) Get(ctx context.Context, id MonitorId) (resul
 
 	var model SapLandscapeMonitor
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

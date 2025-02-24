@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -113,7 +112,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"vm_size": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -142,14 +140,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"kubelet_config": schemaNodePoolKubeletConfigForceNew(),
+		"kubelet_config": schemaNodePoolKubeletConfig(),
 
-		"linux_os_config": schemaNodePoolLinuxOSConfigForceNew(),
+		"linux_os_config": schemaNodePoolLinuxOSConfig(),
 
 		"fips_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 
 		"gpu_instance": {
@@ -185,7 +182,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true,
-			ForceNew: true,
 		},
 
 		"mode": {
@@ -243,7 +239,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"os_disk_size_gb": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ForceNew:     true,
 			Computed:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 		},
@@ -251,7 +246,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"os_disk_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  agentpools.OSDiskTypeManaged,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.OSDiskTypeEphemeral),
@@ -285,7 +279,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"pod_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
@@ -310,7 +303,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"snapshot_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: snapshots.ValidateSnapshotID,
 		},
 
@@ -332,9 +324,14 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"temporary_name_for_rotation": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: containerValidate.KubernetesAgentPoolName,
+		},
+
 		"ultra_ssd_enabled": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Default:  false,
 			Optional: true,
 		},
@@ -342,7 +339,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"vnet_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
@@ -374,7 +370,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": commonschema.ZonesMultipleOptional(),
 
 		"auto_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -384,13 +380,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"node_public_ip_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 
 		"host_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 	}
 
@@ -418,12 +412,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		if err != nil {
 			return err
 		}
-
-		locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-		defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
-
-		locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
 	}
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
@@ -730,8 +718,37 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.EnableAutoScaling = utils.Bool(enableAutoScaling)
 	}
 
+	if d.HasChange("fips_enabled") {
+		props.EnableFIPS = pointer.To(d.Get("fips_enabled").(bool))
+	}
+
+	if d.HasChange("host_encryption_enabled") {
+		props.EnableEncryptionAtHost = pointer.To(d.Get("host_encryption_enabled").(bool))
+	}
+
+	if d.HasChange("kubelet_config") {
+		kubeletConfigRaw := d.Get("kubelet_config").([]interface{})
+		props.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfigRaw)
+	}
+
+	if d.HasChange("linux_os_config") {
+		linuxOSConfigRaw := d.Get("linux_os_config").([]interface{})
+		if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
+			return fmt.Errorf("`linux_os_config` can only be configured when `os_type` is set to `linux`")
+		}
+		linuxOSConfig, err := expandAgentPoolLinuxOSConfig(linuxOSConfigRaw)
+		if err != nil {
+			return err
+		}
+		props.LinuxOSConfig = linuxOSConfig
+	}
+
 	if d.HasChange("max_count") || enableAutoScaling {
 		props.MaxCount = utils.Int64(int64(d.Get("max_count").(int)))
+	}
+
+	if d.HasChange("max_pods") {
+		props.MaxPods = pointer.To(int64(d.Get("max_pods").(int)))
 	}
 
 	if d.HasChange("mode") {
@@ -747,8 +764,12 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.Count = utils.Int64(int64(d.Get("node_count").(int)))
 	}
 
+	if d.HasChange("node_public_ip_enabled") {
+		props.EnableNodePublicIP = pointer.To(d.Get("node_public_ip_enabled").(bool))
+	}
+
 	if d.HasChange("node_public_ip_prefix_id") {
-		props.NodePublicIPPrefixID = utils.String(d.Get("node_public_ip_prefix_id").(string))
+		props.NodePublicIPPrefixID = pointer.To(d.Get("node_public_ip_prefix_id").(string))
 	}
 
 	if d.HasChange("orchestrator_version") {
@@ -775,8 +796,24 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.Tags = tags.Expand(t)
 	}
 
+	if d.HasChange("os_disk_type") {
+		props.OsDiskType = pointer.To(agentpools.OSDiskType(d.Get("os_disk_type").(string)))
+	}
+
+	if d.HasChange("os_disk_size_gb") {
+		props.OsDiskSizeGB = pointer.To(int64(d.Get("os_disk_size_gb").(int)))
+	}
+
 	if d.HasChange("os_sku") {
 		props.OsSKU = pointer.To(agentpools.OSSKU(d.Get("os_sku").(string)))
+	}
+
+	if d.HasChange("pod_subnet_id") {
+		props.PodSubnetID = pointer.To(d.Get("pod_subnet_id").(string))
+	}
+
+	if d.HasChange("ultra_ssd_enabled") {
+		props.EnableUltraSSD = pointer.To(d.Get("ultra_ssd_enabled").(bool))
 	}
 
 	if d.HasChange("upgrade_settings") {
@@ -788,6 +825,27 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		mode := agentpools.ScaleDownMode(d.Get("scale_down_mode").(string))
 		props.ScaleDownMode = &mode
 	}
+
+	if d.HasChange("snapshot_id") {
+		props.CreationData = &agentpools.CreationData{
+			SourceResourceId: pointer.To(d.Get("snapshot_id").(string)),
+		}
+	}
+
+	if d.HasChange("vm_size") {
+		props.VMSize = pointer.To(d.Get("vm_size").(string))
+	}
+
+	if d.HasChange("vnet_subnet_id") {
+		if subnetIDValue, ok := d.GetOk("vnet_subnet_id"); ok {
+			subnetID, err := commonids.ParseSubnetID(subnetIDValue.(string))
+			if err != nil {
+				return err
+			}
+			props.VnetSubnetID = pointer.To(subnetID.ID())
+		}
+	}
+
 	if d.HasChange("workload_runtime") {
 		runtime := agentpools.WorkloadRuntime(d.Get("workload_runtime").(string))
 		props.WorkloadRuntime = &runtime
@@ -803,6 +861,11 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_network_profile") {
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
+	}
+
+	if d.HasChange("zones") {
+		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		props.AvailabilityZones = &zones
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
@@ -832,11 +895,91 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.MinCount = nil
 	}
 
-	log.Printf("[DEBUG] Updating existing %s..", *id)
-	existing.Model.Properties = props
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
-	if err != nil {
-		return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
+	// evaluate if the nodepool needs to be cycled
+	cycleNodePoolProperties := []string{
+		"fips_enabled",
+		"host_encryption_enabled",
+		"kubelet_config",
+		"linux_os_config",
+		"max_pods",
+		"node_public_ip_enabled",
+		"os_disk_size_gb",
+		"os_disk_type",
+		"pod_subnet_id",
+		"snapshot_id",
+		"ultra_ssd_enabled",
+		"vm_size",
+		"vnet_subnet_id",
+		"zones",
+	}
+
+	// if the node pool name has changed, it means the initial attempt at resizing failed
+	cycleNodePool := d.HasChanges(cycleNodePoolProperties...)
+	// os_sku can only be updated if the current and new os_sku are either Ubuntu or AzureLinux
+	if d.HasChange("os_sku") {
+		oldOsSkuRaw, newOsSkuRaw := d.GetChange("os_sku")
+		oldOsSku := oldOsSkuRaw.(string)
+		newOsSku := newOsSkuRaw.(string)
+		if oldOsSku != string(managedclusters.OSSKUUbuntu) && oldOsSku != string(managedclusters.OSSKUAzureLinux) {
+			cycleNodePool = true
+		}
+		if newOsSku != string(managedclusters.OSSKUUbuntu) && newOsSku != string(managedclusters.OSSKUAzureLinux) {
+			cycleNodePool = true
+		}
+	}
+
+	if cycleNodePool {
+		log.Printf("[DEBUG] Cycling Node Pool..")
+		// to provide a seamless updating experience for the node pool we need to cycle it by provisioning a temporary one,
+		// tearing down the existing node pool and then bringing up the new one.
+
+		if v := d.Get("temporary_name_for_rotation").(string); v == "" {
+			return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating any of the following properties %q", cycleNodePoolProperties)
+		}
+
+		temporaryNodePoolName := d.Get("temporary_name_for_rotation").(string)
+		tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, temporaryNodePoolName)
+
+		tempExisting, err := client.Get(ctx, tempNodePoolId)
+		if !response.WasNotFound(tempExisting.HttpResponse) && err != nil {
+			return fmt.Errorf("checking for existing temporary node pool %s: %+v", tempNodePoolId, err)
+		}
+
+		tempAgentProfile := *existing.Model
+		tempAgentProfile.Name = &temporaryNodePoolName
+
+		// if the temp node pool already exists due to a previous failure, don't bother spinning it up.
+		// the temporary nodepool is created with the new values
+		if tempExisting.Model == nil {
+			if err := retryNodePoolCreation(ctx, client, tempNodePoolId, tempAgentProfile); err != nil {
+				return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
+			}
+		}
+
+		// delete the old node pool if it exists
+		if existing.Model != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting old %s: %+v", *id, err)
+			}
+		}
+
+		// create the new node pool with the new data
+		if err := retryNodePoolCreation(ctx, client, *id, *existing.Model); err != nil {
+			log.Printf("[DEBUG] Creation of redefined node pool failed")
+			return fmt.Errorf("creating default %s: %+v", *id, err)
+		}
+
+		if err := client.DeleteThenPoll(ctx, tempNodePoolId); err != nil {
+			return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
+		}
+
+		log.Printf("[DEBUG] Cycled Node Pool..")
+	} else {
+		log.Printf("[DEBUG] Updating existing %s..", *id)
+		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		if err != nil {
+			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
+		}
 	}
 
 	d.Partial(false)

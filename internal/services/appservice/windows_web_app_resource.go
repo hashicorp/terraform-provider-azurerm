@@ -17,8 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
@@ -695,25 +694,14 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 					state.AppSettings = siteConfig.ParseNodeVersion(state.AppSettings)
 
-					// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
-					_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_container_name")
-
 					if helpers.FxStringHasPrefix(siteConfig.WindowsFxVersion, helpers.FxStringPrefixDocker) {
-						if !features.FourPointOhBeta() {
-							siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
-						} else {
-							siteConfig.DecodeDockerAppStack(state.AppSettings)
-						}
+						siteConfig.DecodeDockerAppStack(state.AppSettings)
 					}
 
 					state.SiteConfig = []helpers.SiteConfigWindows{siteConfig}
 
 					// Filter out all settings we've consumed above
-					if !features.FourPointOhBeta() && usesDeprecatedDocker {
-						state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
-					} else {
-						state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
-					}
+					state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
 
 					// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 					if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
@@ -730,7 +718,6 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					if err := metadata.Encode(&state); err != nil {
 						return fmt.Errorf("encoding: %+v", err)
 					}
-
 				}
 			}
 

@@ -15,7 +15,7 @@ type OutboundFirewallRulesClient struct {
 }
 
 func NewOutboundFirewallRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*OutboundFirewallRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "outboundfirewallrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "outboundfirewallrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OutboundFirewallRulesClient: %+v", err)
 	}

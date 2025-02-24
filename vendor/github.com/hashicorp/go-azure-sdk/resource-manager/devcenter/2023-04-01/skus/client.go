@@ -15,7 +15,7 @@ type SKUsClient struct {
 }
 
 func NewSKUsClientWithBaseURI(sdkApi sdkEnv.Api) (*SKUsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "skus", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "skus", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SKUsClient: %+v", err)
 	}

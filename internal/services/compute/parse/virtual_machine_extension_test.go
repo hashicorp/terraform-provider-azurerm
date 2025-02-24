@@ -27,7 +27,6 @@ func TestVirtualMachineExtensionID(t *testing.T) {
 		Error    bool
 		Expected *VirtualMachineExtensionId
 	}{
-
 		{
 			// empty
 			Input: "",

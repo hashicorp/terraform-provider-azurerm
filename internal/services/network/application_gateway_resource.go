@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -512,12 +512,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"status_code": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(applicationgateways.ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroThree),
-											string(applicationgateways.ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroTwo),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCustomErrorStatusCode(), false),
 									},
 
 									"custom_error_page_url": {
@@ -811,6 +808,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewaySkuNameBasic),
 								string(applicationgateways.ApplicationGatewaySkuNameStandardSmall),
 								string(applicationgateways.ApplicationGatewaySkuNameStandardMedium),
 								string(applicationgateways.ApplicationGatewaySkuNameStandardLarge),
@@ -825,6 +823,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayTierBasic),
 								string(applicationgateways.ApplicationGatewayTierStandard),
 								string(applicationgateways.ApplicationGatewayTierStandardVTwo),
 								string(applicationgateways.ApplicationGatewayTierWAF),
@@ -1517,12 +1516,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"status_code": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayCustomErrorStatusCodeHTTPStatusFourZeroThree),
-								string(applicationgateways.ApplicationGatewayCustomErrorStatusCodeHTTPStatusFiveZeroTwo),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCustomErrorStatusCode(), false),
 						},
 
 						"custom_error_page_url": {
@@ -3569,7 +3565,7 @@ func expandApplicationGatewayRewriteRuleSets(d *pluginsdk.ResourceData) (*[]appl
 			conditions := make([]applicationgateways.ApplicationGatewayRewriteRuleCondition, 0)
 			requestConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
 			responseConfigurations := make([]applicationgateways.ApplicationGatewayHeaderConfiguration, 0)
-			urlConfiguration := applicationgateways.ApplicationGatewayUrlConfiguration{}
+			urlConfiguration := applicationgateways.ApplicationGatewayURLConfiguration{}
 
 			rule := applicationgateways.ApplicationGatewayRewriteRule{
 				Name:         pointer.To(r["name"].(string)),
@@ -3841,7 +3837,7 @@ func expandApplicationGatewayRedirectConfigurations(d *pluginsdk.ResourceData, g
 		}
 
 		if targetUrl != "" {
-			output.Properties.TargetUrl = pointer.To(targetUrl)
+			output.Properties.TargetURL = pointer.To(targetUrl)
 		}
 
 		results = append(results, output)
@@ -3881,8 +3877,8 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]applicationgateway
 				}
 			}
 
-			if props.TargetUrl != nil {
-				output["target_url"] = *props.TargetUrl
+			if props.TargetURL != nil {
+				output["target_url"] = *props.TargetURL
 			}
 
 			if props.IncludePath != nil {
@@ -4238,9 +4234,9 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 	return results, nil
 }
 
-func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayUrlPathMap, error) {
+func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayURLPathMap, error) {
 	vs := d.Get("url_path_map").([]interface{})
-	results := make([]applicationgateways.ApplicationGatewayUrlPathMap, 0)
+	results := make([]applicationgateways.ApplicationGatewayURLPathMap, 0)
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
@@ -4317,9 +4313,9 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 			pathRules = append(pathRules, rule)
 		}
 
-		output := applicationgateways.ApplicationGatewayUrlPathMap{
+		output := applicationgateways.ApplicationGatewayURLPathMap{
 			Name: pointer.To(name),
-			Properties: &applicationgateways.ApplicationGatewayUrlPathMapPropertiesFormat{
+			Properties: &applicationgateways.ApplicationGatewayURLPathMapPropertiesFormat{
 				PathRules: &pathRules,
 			},
 		}
@@ -4374,7 +4370,7 @@ func expandApplicationGatewayURLPathMaps(d *pluginsdk.ResourceData, gatewayID st
 	return &results, nil
 }
 
-func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayUrlPathMap) ([]interface{}, error) {
+func flattenApplicationGatewayURLPathMaps(input *[]applicationgateways.ApplicationGatewayURLPathMap) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results, nil
@@ -4668,7 +4664,7 @@ func expandApplicationGatewayCustomErrorConfigurations(vs []interface{}) *[]appl
 
 		output := applicationgateways.ApplicationGatewayCustomError{
 			StatusCode:         pointer.To(applicationgateways.ApplicationGatewayCustomErrorStatusCode(statusCode)),
-			CustomErrorPageUrl: pointer.To(customErrorPageUrl),
+			CustomErrorPageURL: pointer.To(customErrorPageUrl),
 		}
 		results = append(results, output)
 	}
@@ -4687,8 +4683,8 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]applicationgate
 
 		output["status_code"] = v.StatusCode
 
-		if v.CustomErrorPageUrl != nil {
-			output["custom_error_page_url"] = *v.CustomErrorPageUrl
+		if v.CustomErrorPageURL != nil {
+			output["custom_error_page_url"] = *v.CustomErrorPageURL
 		}
 
 		results = append(results, output)
@@ -4709,12 +4705,53 @@ func checkSslPolicy(sslPolicy []interface{}) error {
 	return nil
 }
 
+func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
+	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
+	if hasAutoscaleConfig {
+		return fmt.Errorf("The Application Gateway does not support `autoscale_configuration` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	capacity, hasCapacityConfig := d.GetOk("sku.0.capacity")
+	if hasCapacityConfig {
+		if capacity.(int) > 2 || capacity.(int) < 1 {
+			return fmt.Errorf("`capacity` value %q for the selected SKU tier %q is invalid. Value must be between [1-2]", capacity, applicationgateways.ApplicationGatewaySkuNameBasic)
+		}
+	} else {
+		return fmt.Errorf("The Application Gateway must specify a `capacity` value between [1-2] for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	_, hasMtlsConfig := d.GetOk("trusted_client_certificate")
+	if hasMtlsConfig {
+		return fmt.Errorf("The Application Gateway does not support `trusted_client_certificate` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+	}
+
+	rewriteRuleSet, hasRewriteRuleSetConfig := d.GetOk("rewrite_rule_set")
+	if hasRewriteRuleSetConfig {
+		for _, ruleSet := range rewriteRuleSet.([]interface{}) {
+			rs := ruleSet.(map[string]interface{})
+			for _, rule := range rs["rewrite_rule"].([]interface{}) {
+				r := rule.(map[string]interface{})
+				if len(r["url"].([]interface{})) > 0 {
+					return fmt.Errorf("The Application Gateway does not support `url` inside the `rewrite_rule` blocks for the selected SKU tier %q", applicationgateways.ApplicationGatewaySkuNameBasic)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)
 
-	if !hasAutoscaleConfig && !hasCapacity {
+	if tier == string(applicationgateways.ApplicationGatewaySkuNameBasic) {
+		err := checkBasicSkuFeatures(d)
+		if err != nil {
+			return err
+		}
+	} else if !hasAutoscaleConfig && !hasCapacity {
 		return fmt.Errorf("The Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
 	}
 
@@ -4784,7 +4821,7 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 					buf.WriteString(statusCode.(string))
 				}
 				if pageUrl, ok := customError["custom_error_page_url"]; ok {
-					buf.WriteString(fmt.Sprintf(pageUrl.(string)))
+					buf.WriteString(pageUrl.(string))
 				}
 			}
 		}

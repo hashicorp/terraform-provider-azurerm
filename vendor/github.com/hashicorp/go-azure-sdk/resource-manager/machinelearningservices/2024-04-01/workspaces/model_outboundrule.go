@@ -10,18 +10,37 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type OutboundRule interface {
+	OutboundRule() BaseOutboundRuleImpl
 }
 
-// RawOutboundRuleImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ OutboundRule = BaseOutboundRuleImpl{}
+
+type BaseOutboundRuleImpl struct {
+	Category *RuleCategory `json:"category,omitempty"`
+	Status   *RuleStatus   `json:"status,omitempty"`
+	Type     RuleType      `json:"type"`
+}
+
+func (s BaseOutboundRuleImpl) OutboundRule() BaseOutboundRuleImpl {
+	return s
+}
+
+var _ OutboundRule = RawOutboundRuleImpl{}
+
+// RawOutboundRuleImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawOutboundRuleImpl struct {
-	Type   string
-	Values map[string]interface{}
+	outboundRule BaseOutboundRuleImpl
+	Type         string
+	Values       map[string]interface{}
 }
 
-func unmarshalOutboundRuleImplementation(input []byte) (OutboundRule, error) {
+func (s RawOutboundRuleImpl) OutboundRule() BaseOutboundRuleImpl {
+	return s.outboundRule
+}
+
+func UnmarshalOutboundRuleImplementation(input []byte) (OutboundRule, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +50,9 @@ func unmarshalOutboundRuleImplementation(input []byte) (OutboundRule, error) {
 		return nil, fmt.Errorf("unmarshaling OutboundRule into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "FQDN") {
@@ -60,10 +79,15 @@ func unmarshalOutboundRuleImplementation(input []byte) (OutboundRule, error) {
 		return out, nil
 	}
 
-	out := RawOutboundRuleImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseOutboundRuleImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseOutboundRuleImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawOutboundRuleImpl{
+		outboundRule: parent,
+		Type:         value,
+		Values:       temp,
+	}, nil
 
 }

@@ -54,6 +54,13 @@ type ProviderServer interface {
 	// terraform-plugin-go, so they are their own interface that is composed
 	// into ProviderServer.
 	FunctionServer
+
+	// EphemeralResourceServer is an interface encapsulating all the ephemeral
+	// resource-related RPC requests. ProviderServer implementations must
+	// implement them, but they are a handy interface for defining what an
+	// ephemeral resource is to terraform-plugin-go, so they're their own
+	// interface that is composed into ProviderServer.
+	EphemeralResourceServer
 }
 
 // GetMetadataRequest represents a GetMetadata RPC request.
@@ -78,6 +85,9 @@ type GetMetadataResponse struct {
 
 	// Resources returns metadata for all managed resources.
 	Resources []ResourceMetadata
+
+	// EphemeralResources returns metadata for all ephemeral resources.
+	EphemeralResources []EphemeralResourceMetadata
 }
 
 // GetProviderSchemaRequest represents a Terraform RPC request for the
@@ -123,6 +133,13 @@ type GetProviderSchemaResponse struct {
 	// references to functions use a separate namespacing syntax that already
 	// includes the provider name.
 	Functions map[string]*Function
+
+	// EphemeralResourceSchemas is a map of ephemeral resource names to the schema for
+	// the configuration specified in the ephemeral resource. The name should be an
+	// ephemeral resource name, and should be prefixed with your provider's
+	// shortname and an underscore. It should match the first label after
+	// `ephemeral` in a user's configuration.
+	EphemeralResourceSchemas map[string]*Schema
 
 	// Diagnostics report errors or warnings related to returning the
 	// provider's schemas. Returning an empty slice indicates success, with

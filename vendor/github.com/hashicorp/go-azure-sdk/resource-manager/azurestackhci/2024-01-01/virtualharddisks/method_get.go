@@ -45,7 +45,6 @@ func (c VirtualHardDisksClient) Get(ctx context.Context, id VirtualHardDiskId) (
 
 	var model VirtualHardDisks
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

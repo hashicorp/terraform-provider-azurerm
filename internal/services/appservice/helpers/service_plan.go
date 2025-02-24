@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -41,6 +41,12 @@ var sharedSkus = []string{
 
 var consumptionSkus = []string{
 	"Y1",
+}
+
+var premiumSkus = []string{
+	"P1v2", "P2v2", "P3v2", // Premium V2
+	"P0v3", "P1v3", "P2v3", "P3v3", // Premium V3
+	"P1mv3", "P2mv3", "P3mv3", "P4mv3", "P5mv3", // Premium V3 memory optimized
 }
 
 var flexConsumptionSkus = []string{
@@ -81,6 +87,19 @@ func PlanIsConsumption(input *string) bool {
 	}
 	for _, v := range consumptionSkus {
 		if strings.EqualFold(*input, v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func PlanIsPremium(input string) bool {
+	if input == "" {
+		return false
+	}
+	for _, v := range premiumSkus {
+		if strings.EqualFold(input, v) {
 			return true
 		}
 	}

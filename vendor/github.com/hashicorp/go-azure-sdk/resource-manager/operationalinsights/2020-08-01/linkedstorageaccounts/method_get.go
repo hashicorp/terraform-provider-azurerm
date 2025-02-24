@@ -45,7 +45,6 @@ func (c LinkedStorageAccountsClient) Get(ctx context.Context, id DataSourceTypeI
 
 	var model LinkedStorageAccountsResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
