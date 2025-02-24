@@ -154,6 +154,28 @@ func TestAccFluidRelayServer_customerManagedKey(t *testing.T) {
 	})
 }
 
+func TestAccFluidRelayServer_customerManagedKeyVersionless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_fluid_relay_server", "test")
+	var f FluidRelayResource
+
+	data.ResourceTest(t, f, []acceptance.TestStep{
+		{
+			Config: f.customerManagedKeyVersionless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(f),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: f.customerManagedKeyVersionlessUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(f),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (f FluidRelayResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fluidrelayservers.ParseFluidRelayServerID(state.ID)
 	if err != nil {
@@ -405,6 +427,49 @@ resource "azurerm_fluid_relay_server" "test" {
 `, f.templateWithCMK(data), data.RandomInteger, data.Locations.Primary)
 }
 
+func (f FluidRelayResource) customerManagedKeyVersionless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%[1]s
+
+resource "azurerm_fluid_relay_server" "test" {
+  name                = "acctestRG-fuildRelayServer-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+}
+`, f.templateWithCMK(data), data.RandomInteger, data.Locations.Primary)
+}
+func (f FluidRelayResource) customerManagedKeyVersionlessUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%[1]s
+
+resource "azurerm_fluid_relay_server" "test" {
+  name                = "acctestRG-fuildRelayServer-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+}
+`, f.templateWithCMK(data), data.RandomInteger, data.Locations.Primary)
+}
+
 func (f FluidRelayResource) customerManagedKeyUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -420,7 +485,7 @@ resource "azurerm_fluid_relay_server" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   customer_managed_key {
-    key_vault_key_id          = azurerm_key_vault_key.test2.id
+    key_vault_key_id          = azurerm_key_vault_key.test2.versionless_id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
