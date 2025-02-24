@@ -186,7 +186,7 @@ resource "azurerm_notification_hub_namespace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   namespace_type      = "NotificationHub"
-  zone_redundant	  = false
+  zone_redundant      = false
 
   sku_name = "Free"
 
