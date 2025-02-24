@@ -42,21 +42,22 @@ func resourceStorageShare() *pluginsdk.Resource {
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
 			if !features.FivePointOh() {
 				if strings.HasPrefix(id, "/subscriptions") {
-					_, err := fileshares.ParseShareID(id)
+					_, err := parse.StorageShareResourceManagerID(id)
 					return err
 				}
 				_, err := shares.ParseShareID(id, storageDomainSuffix)
 				return err
 			}
 
-			_, err := fileshares.ParseShareID(id)
+			_, err := parse.StorageShareResourceManagerID(id)
 			return err
 		}),
 
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.ShareV0ToV1{},
 			1: migration.ShareV1ToV2{},
+			2: migration.ShareV2ToV3{},
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -303,16 +304,16 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	id := fileshares.NewShareID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+	sid := fileshares.NewShareID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
 
-	existing, err := sharesClient.Get(ctx, id, fileshares.DefaultGetOperationOptions())
+	existing, err := sharesClient.Get(ctx, sid, fileshares.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %q: %v", id, err)
+			return fmt.Errorf("checking for existing %q: %v", sid, err)
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_share", id.ID())
+		return tf.ImportAsExistsError("azurerm_storage_share", sid.ID())
 	}
 
 	payload := fileshares.FileShare{
@@ -328,13 +329,14 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		payload.Properties.AccessTier = pointer.To(fileshares.ShareAccessTier(sharedAccessTier.(string)))
 	}
 
-	pollerType := custompollers.NewStorageShareCreatePoller(sharesClient, id, payload)
+	pollerType := custompollers.NewStorageShareCreatePoller(sharesClient, sid, payload)
 	poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
 	if err = poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("creating %s: %v", id, err)
+		return fmt.Errorf("creating %s: %v", sid, err)
 	}
 
+	id := parse.NewStorageShareResourceManagerID(sid.SubscriptionId, sid.ResourceGroupName, sid.StorageAccountName, "default", sid.ShareName)
 	d.SetId(id.ID())
 
 	return resourceStorageShareRead(d, meta)
@@ -413,28 +415,30 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 				return err
 			}
 
-			id := fileshares.NewShareID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+			id := parse.NewStorageShareResourceManagerID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, "default", d.Get("name").(string))
 			d.SetId(id.ID())
 		}
 	}
 
-	id, err := fileshares.ParseShareID(d.Id())
+	id, err := parse.StorageShareResourceManagerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	existing, err := sharesClient.Get(ctx, *id, fileshares.DefaultGetOperationOptions())
+	sid := fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName)
+
+	existing, err := sharesClient.Get(ctx, sid, fileshares.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
-			log.Printf("[DEBUG] %q was not found, removing from state", *id)
+			log.Printf("[DEBUG] %q was not found, removing from state", sid)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving %s: %v", *id, err)
+		return fmt.Errorf("retrieving %s: %v", sid, err)
 	}
 
-	d.Set("storage_account_id", commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName).ID())
-	d.Set("name", id.ShareName)
+	d.Set("storage_account_id", commonids.NewStorageAccountID(sid.SubscriptionId, sid.ResourceGroupName, sid.StorageAccountName).ID())
+	d.Set("name", sid.ShareName)
 
 	if model := existing.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -457,12 +461,12 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	// TODO - The following section for `url` will need to be updated to go-azure-sdk when the Giovanni Deprecation process has been completed
-	account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, id.StorageAccountName)
+	account, err := meta.(*clients.Client).Storage.FindAccount(ctx, subscriptionId, sid.StorageAccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Share %q: %v", id.StorageAccountName, id.ShareName, err)
+		return fmt.Errorf("retrieving Account %q for Share %q: %v", sid.StorageAccountName, sid.ShareName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("locating Storage Account %q", id.StorageAccountName)
+		return fmt.Errorf("locating Storage Account %q", sid.StorageAccountName)
 	}
 
 	// Determine the file endpoint, so we can build a data plane ID
@@ -477,7 +481,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
 
-	d.Set("url", shares.NewShareID(*accountId, id.ShareName).ID())
+	d.Set("url", shares.NewShareID(*accountId, sid.ShareName).ID())
 
 	return nil
 }
@@ -569,10 +573,12 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return resourceStorageShareRead(d, meta)
 	}
 
-	id, err := fileshares.ParseShareID(d.Id())
+	id, err := parse.StorageShareResourceManagerID(d.Id())
 	if err != nil {
 		return err
 	}
+
+	sid := fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName)
 
 	update := fileshares.FileShare{
 		Properties: &fileshares.FileShareProperties{},
@@ -599,8 +605,8 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		update.Properties.AccessTier = pointer.To(fileshares.ShareAccessTier(tier))
 	}
 
-	if _, err = sharesClient.Update(ctx, *id, update); err != nil {
-		return fmt.Errorf("updating %s: %v", id, err)
+	if _, err = sharesClient.Update(ctx, sid, update); err != nil {
+		return fmt.Errorf("updating %s: %v", sid, err)
 	}
 
 	return resourceStorageShareRead(d, meta)
@@ -643,14 +649,16 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return nil
 	}
 
-	id, err := fileshares.ParseShareID(d.Id())
+	id, err := parse.StorageShareResourceManagerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := fileSharesClient.Delete(ctx, *id, fileshares.DefaultDeleteOperationOptions()); err != nil {
+	sid := fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName)
+
+	if resp, err := fileSharesClient.Delete(ctx, sid, fileshares.DefaultDeleteOperationOptions()); err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %v", id, err)
+			return fmt.Errorf("deleting %s: %v", sid, err)
 		}
 	}
 

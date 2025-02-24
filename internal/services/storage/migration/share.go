@@ -9,7 +9,10 @@ import (
 	"log"
 	"strings"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
@@ -76,7 +79,51 @@ func (s ShareV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 	}
 }
 
-// this schema was used for both V0 and V1
+var _ pluginsdk.StateUpgrade = ShareV2ToV3{}
+
+type ShareV2ToV3 struct{}
+
+func (s ShareV2ToV3) Schema() map[string]*pluginsdk.Schema {
+	return shareSchemaForV0AndV1()
+}
+
+func (s ShareV2ToV3) UpgradeFunc() pluginsdk.StateUpgraderFunc {
+	return func(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+		// The V2 version of the resource id can be two cases before v5:
+		// - Data plane url (using `storage_account_name`)
+		// - Management resource id (using `storage_account_id`)
+		// This migration only affects the latter, it coverts the ID
+		// From:
+		// /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/shares/{shareName}
+		// To:
+		// /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/fileshares/{shareName}
+		oid := rawState["id"].(string)
+		if !features.FivePointOh() {
+			if strings.HasPrefix(oid, "/subscriptions") {
+				sid, err := fileshares.ParseShareID(oid)
+				if err != nil {
+					return nil, fmt.Errorf("parsing %s: %v", oid, err)
+				}
+				id := parse.NewStorageShareResourceManagerID(sid.SubscriptionId, sid.ResourceGroupName, sid.StorageAccountName, "default", sid.ShareName)
+				log.Printf("[DEBUG] Updating Resource ID from %q to %q", oid, id)
+				rawState["id"] = id.ID()
+			}
+			return rawState, nil
+		}
+
+		sid, err := fileshares.ParseShareID(oid)
+		if err != nil {
+			return nil, fmt.Errorf("parsing %s: %v", oid, err)
+		}
+		id := parse.NewStorageShareResourceManagerID(sid.SubscriptionId, sid.ResourceGroupName, sid.StorageAccountName, "default", sid.ShareName)
+		log.Printf("[DEBUG] Updating Resource ID from %q to %q", oid, id)
+		rawState["id"] = id.ID()
+
+		return rawState, nil
+	}
+}
+
+// this schema was used for V0, V1 and V2
 func shareSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {

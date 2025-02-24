@@ -95,3 +95,24 @@ func TestShareV1ToV2(t *testing.T) {
 		t.Logf("[DEBUG] Ok!")
 	}
 }
+
+func TestShareV2ToV3(t *testing.T) {
+	input := map[string]interface{}{
+		"id": "/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Storage/storageAccounts/acct1/fileServices/default/shares/share1",
+	}
+
+	expected := map[string]interface{}{
+		"id": "/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Storage/storageAccounts/acct1/fileServices/default/fileshares/share1",
+	}
+
+	actual, err := ShareV2ToV3{}.UpgradeFunc()(context.TODO(), input, struct{}{})
+	if err != nil {
+		t.Fatalf("Expected no error but got: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("Expected %+v. Got %+v. But expected them to be the same", expected, actual)
+	}
+
+	t.Logf("[DEBUG] Ok!")
+}

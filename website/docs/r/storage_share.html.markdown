@@ -123,5 +123,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Storage Shares can be imported using the `id`, e.g.
 
 ```shell
-terraform import azurerm_storage_share.exampleShare /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myAccount/fileServices/default/shares/exampleShare
+terraform import azurerm_storage_share.exampleShare /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myAccount/fileServices/default/fileshares/exampleShare
 ```
