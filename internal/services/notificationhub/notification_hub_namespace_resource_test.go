@@ -32,6 +32,21 @@ func TestAccNotificationHubNamespace_free(t *testing.T) {
 	})
 }
 
+func TestAccNotificationHubNamespace_zoneRedundancyDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	r := NotificationHubNamespaceResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zoneRedundancyDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
+			),
+		},
+		data.ImportStep("namespace_type"),
+	})
+}
+
 func TestAccNotificationHubNamespace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
 	r := NotificationHubNamespaceResource{}
@@ -153,4 +168,31 @@ resource "azurerm_notification_hub_namespace" "import" {
   sku_name = "Free"
 }
 `, template)
+}
+
+func (NotificationHubNamespaceResource) zoneRedundancyDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  namespace_type      = "NotificationHub"
+  zone_redundant	  = false
+
+  sku_name = "Free"
+
+  tags = {
+    env = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
