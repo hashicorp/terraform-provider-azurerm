@@ -929,7 +929,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   log_scrubbing {
     enabled = true
-  
+
     rule {
       enabled        = true
       match_variable = "RequestHeaderNames"
@@ -954,7 +954,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   log_scrubbing {
     enabled = true
-  
+
     rule {
       enabled        = true
       match_variable = "RequestHeaderNames"
