@@ -107,6 +107,8 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 
 			if zoneRedundancy := props.ZoneRedundancy; zoneRedundancy != nil {
 				d.Set("zone_redundant", *zoneRedundancy == namespaces.ZoneRedundancyPreferenceEnabled)
+			} else {
+				d.Set("zone_redundant", false)
 			}
 
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)

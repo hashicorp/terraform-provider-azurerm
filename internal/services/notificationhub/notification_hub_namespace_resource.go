@@ -238,7 +238,12 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
-			d.Set("zone_redundant", props.ZoneRedundancy)
+
+			if zoneRedundancy := props.ZoneRedundancy; zoneRedundancy != nil {
+				d.Set("zone_redundant", *zoneRedundancy == namespaces.ZoneRedundancyPreferenceEnabled)
+			} else {
+				d.Set("zone_redundant", false)
+			}
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
