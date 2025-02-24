@@ -101,7 +101,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				RequiredWith:  []string{"administrator_password_wo_version"},
 			},
 
-			"administrator_login_password_wo_version": {
+			"administrator_password_wo_version": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				RequiredWith: []string{"administrator_password_wo"},
