@@ -399,12 +399,12 @@ func TestAccPostgreSQLServer_writeOnlyPassword(t *testing.T) {
 				Config: r.writeOnlyPassword(data, "9.6", "H@Sh1CoR3!", 1),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
-			data.ImportStep("administrator_password_wo_version"),
+			data.ImportStep("administrator_login_password_wo_version"),
 			{
 				Config: r.writeOnlyPassword(data, "9.6", "H@Sh1CoR3!updated", 2),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
-			data.ImportStep("administrator_password_wo_version"),
+			data.ImportStep("administrator_login_password_wo_version"),
 		},
 	})
 }
@@ -423,17 +423,17 @@ func TestAccPostgreSQLServer_updateToWriteOnlyPassword(t *testing.T) {
 				Config: r.basic(data, "9.6"),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
-			data.ImportStep("administrator_password"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: r.writeOnlyPassword(data, "9.6", "H@Sh1CoR3!", 1),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
-			data.ImportStep("administrator_password", "administrator_password_wo_version"),
+			data.ImportStep("administrator_login_password", "administrator_login_password_wo_version"),
 			{
 				Config: r.basic(data, "9.6"),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
-			data.ImportStep("administrator_password"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
