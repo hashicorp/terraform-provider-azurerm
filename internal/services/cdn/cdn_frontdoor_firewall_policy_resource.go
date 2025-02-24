@@ -481,8 +481,6 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 											false),
 									},
 
-									// NOTE: The 'operator' must be 'EqualsAny' for the 'RequestIPAddress' and 'RequestUri'
-									// 'match_variable' which is validated in the 'CustomizeDiff' below...
 									"operator": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
@@ -491,10 +489,6 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 											false),
 									},
 
-									// NOTE: The 'selector' needs to be optional here because the 'RequestIPAddress' and 'RequestUri'
-									// 'match_variable' do not support passing a 'selector'. However, for all other 'match_variable's
-									// the 'selector' is a required field. These conditions are validated in the
-									// 'CustomizeDiff' below...
 									"selector": {
 										Type:         pluginsdk.TypeString,
 										Optional:     true,
