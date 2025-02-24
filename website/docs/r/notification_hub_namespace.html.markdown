@@ -44,6 +44,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
 
+* `zone_redundant` - (Optional) Is this Notification Hub Namespace Zone Redundant? Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
