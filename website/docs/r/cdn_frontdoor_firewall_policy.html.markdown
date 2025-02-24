@@ -270,7 +270,7 @@ A `log_scrubbing` block supports the following:
 
 * `rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
 
--> **Note:** For more information on mask sensitive data on Azure Web Application Firewall on Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
+-> **Note:** For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
 
 ---
 
