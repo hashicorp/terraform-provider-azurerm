@@ -107,13 +107,13 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ContainerService.V20231015.Fleets
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
 			var model KubernetesFleetManagerModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			client := metadata.Client.ContainerService.V20231015.Fleets
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id := fleets.NewFleetID(subscriptionId, model.ResourceGroupName, model.Name)
 
@@ -126,7 +126,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			fleetResource := &fleets.Fleet{
+			params := &fleets.Fleet{
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Properties: &fleets.FleetProperties{
@@ -134,7 +134,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *fleetResource, fleets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, *params, fleets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -261,7 +261,7 @@ func expandFleetHubProfileModel(inputList []FleetHubProfileModel) *fleets.FleetH
 
 func flattenFleetHubProfileModel(input *fleets.FleetHubProfile) []FleetHubProfileModel {
 	if input == nil {
-		return nil
+		return []FleetHubProfileModel{}
 	}
 
 	output := FleetHubProfileModel{
