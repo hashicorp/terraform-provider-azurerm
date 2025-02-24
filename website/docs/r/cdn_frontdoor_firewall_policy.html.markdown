@@ -270,6 +270,8 @@ A `log_scrubbing` block supports the following:
 
 * `rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
 
+-> **Note:** For more information on mask sensitive data on Azure Web Application Firewall on Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
+
 ---
 
 An `override` block supports the following:
@@ -316,13 +318,13 @@ A `scrubbing_rule` block supports the following:
 
 * `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `QueryStringArgNames`, `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
 
-* `selector` - (Required) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `scrubbing_rule` applies to.
+-> **Note:** `RequestIPAddress` and `RequestUri` must use the `EqualsAny` `operator`.
 
--> **Note:** The `selector` field is required for all `match_variables` except `RequestIPAddress` and `RequestUri`.
+* `selector` - (Optional) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `scrubbing_rule` applies to.
+
+-> **Note:** The `selector` field cannot be set if the `operator` is set to `EqualsAny`.
 
 * `operator` - (Optional) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `scrubbing_rule` applies to. Possible values are `Equals` or `EqualsAny`. Defaults to `Equals`.
-
--> **Note:** A `scrubbing_rule` with a `match_variable` of `RequestIPAddress` or `RequestUri` is required to use the `EqualsAny` operator.
 
 * `enabled` - (Optional) Is this `scrubbing_rule` enabled? Defaults to `true`.
 

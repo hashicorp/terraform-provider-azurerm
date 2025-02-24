@@ -574,11 +574,12 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			// Verify that the scrubbing_rule's are valid...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(diff.Get("log_scrubbing").([]interface{}))
-				if err != nil {
-					return err
+				if v, ok := diff.GetOk("log_scrubbing"); ok {
+					_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{}))
+					if err != nil {
+						return err
+					}
 				}
-
 				return nil
 			}),
 		),
@@ -1183,20 +1184,21 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 		// NOTE: Validate the rules configuration...
 		switch {
 		case item.MatchVariable == waf.ScrubbingRuleEntryMatchVariableRequestIPAddress || item.MatchVariable == waf.ScrubbingRuleEntryMatchVariableRequestUri:
-			// NOTE: The 'RequestIPAddress' and 'RequestUri' 'match_variable' do not support passing a 'selector'...
-			if *item.Selector != "" {
-				return nil, fmt.Errorf("the 'match_variable' %q does not support setting a 'selector', got 'selector': %q", item.MatchVariable, *item.Selector)
-			}
-
-			// NOTE: The only valid 'operator' for 'RequestIPAddress' and 'RequestUri' 'match_variable's is 'EqualsAny'...
+			// NOTE: 'RequestIPAddress' and 'RequestUri' 'match_variable's can only use the 'EqualsAny' 'operator'...
 			if item.SelectorMatchOperator != waf.ScrubbingRuleEntryMatchOperatorEqualsAny {
-				return nil, fmt.Errorf("the 'match_variable' %q is required to use the %q 'operator', got 'operator': %q", item.MatchVariable, waf.ScrubbingRuleEntryMatchOperatorEqualsAny, item.SelectorMatchOperator)
+				return nil, fmt.Errorf("the %q 'match_variable' must use the %q 'operator', got %q", item.MatchVariable, waf.ScrubbingRuleEntryMatchOperatorEqualsAny, item.SelectorMatchOperator)
 			}
 
-		case *item.Selector == "":
-			// NOTE: For all other 'match_variable's the 'selector' is a required field...
-			if item.MatchVariable != waf.ScrubbingRuleEntryMatchVariableRequestIPAddress && item.MatchVariable != waf.ScrubbingRuleEntryMatchVariableRequestUri {
-				return nil, fmt.Errorf("the 'selector' field is required for the 'match_variable' %q, got 'selector': %q", item.MatchVariable, "nil")
+		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEquals:
+			// NOTE: If the 'operator' is set to 'Equals' the 'selector' cannot be 'nil'...
+			if *item.Selector == "" {
+				return nil, fmt.Errorf("the 'selector' field must be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEquals, "nil")
+			}
+
+		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEqualsAny:
+			// NOTE: If the 'operator' is set to 'EqualsAny' the 'selector' must be 'nil'...
+			if *item.Selector != "" {
+				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEqualsAny, *item.Selector)
 			}
 		}
 
