@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage
 
 import (
@@ -7,11 +10,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 )
 
 type AccountStaticWebsiteResource struct{}
@@ -192,8 +195,7 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 
 			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
 			if err != nil {
-				// If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
-				return nil
+				return nil // lint:ignore nilerr If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
 			}
 
 			properties := accounts.StorageServiceProperties{

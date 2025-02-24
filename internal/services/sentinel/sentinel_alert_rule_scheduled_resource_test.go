@@ -8,11 +8,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -26,6 +25,28 @@ func TestAccSentinelAlertRuleScheduled_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAlertRuleScheduled_entityMapping(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tenEntityMapping(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.tenSentinelEntityMapping(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -194,75 +215,159 @@ QUERY
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SentinelAlertRuleScheduledResource) complete(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
+func (r SentinelAlertRuleScheduledResource) tenEntityMapping(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   name                       = "acctest-SentinelAlertRule-Sche-%d"
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
-  display_name               = "Complete Rule"
-  description                = "Some Description"
-  tactics                    = ["Collection", "CommandAndControl"]
-  techniques                 = ["T1560", "T1123"]
-  severity                   = "Low"
-  enabled                    = false
-  incident_configuration {
-    create_incident = true
-    grouping {
-      enabled                 = true
-      lookback_duration       = "P7D"
-      reopen_closed_incidents = true
-      entity_matching_method  = "Selected"
-      group_by_entities       = ["Host"]
-      group_by_alert_details  = ["DisplayName"]
-      group_by_custom_details = ["OperatingSystemType", "OperatingSystemName"]
-    }
-  }
-  query                = "Heartbeat"
-  query_frequency      = "PT20M"
-  query_period         = "PT40M"
-  trigger_operator     = "Equal"
-  trigger_threshold    = 5
-  suppression_enabled  = true
-  suppression_duration = "PT40M"
-  alert_details_override {
-    description_format   = "Alert from {{Compute}}"
-    display_name_format  = "Suspicious activity was made by {{ComputerIP}}"
-    severity_column_name = "Computer"
-    tactics_column_name  = "Computer"
-    dynamic_property {
-      name  = "AlertLink"
-      value = "dcount_ResourceId"
-    }
-  }
-  entity_mapping {
-    entity_type = "Host"
-    field_mapping {
-      identifier  = "FullName"
-      column_name = "Computer"
-    }
-  }
-  sentinel_entity_mapping {
-    column_name = "Category"
-  }
+  display_name               = "Some Rule"
+  severity                   = "High"
+  query                      = <<QUERY
+Heartbeat
+QUERY
+
   entity_mapping {
     entity_type = "IP"
     field_mapping {
       identifier  = "Address"
+      column_name = "TenantId"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "SourceSystem"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "TimeGenerated"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "MG"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "ManagementGroupName"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "SourceComputerId"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
       column_name = "ComputerIP"
     }
   }
-  custom_details = {
-    OperatingSystemName = "OSName"
-    OperatingSystemType = "OSType"
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "Computer"
+    }
   }
 
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "Category"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "OSType"
+    }
+  }
 }
 `, r.template(data), data.RandomInteger)
-	}
+}
 
+func (r SentinelAlertRuleScheduledResource) tenSentinelEntityMapping(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Some Rule"
+  severity                   = "High"
+  query                      = <<QUERY
+Heartbeat
+QUERY
+
+  sentinel_entity_mapping {
+    column_name = "VMUUID"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "SourceSystem"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "TimeGenerated"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "MG"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "ManagementGroupName"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "SourceComputerId"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "ComputerIP"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "Computer"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "Category"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "OSType"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleScheduledResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

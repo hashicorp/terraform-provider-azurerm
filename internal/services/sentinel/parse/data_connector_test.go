@@ -27,7 +27,6 @@ func TestDataConnectorID(t *testing.T) {
 		Error    bool
 		Expected *DataConnectorId
 	}{
-
 		{
 			// empty
 			Input: "",

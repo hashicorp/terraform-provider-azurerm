@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
@@ -517,11 +517,11 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 }
 
 func flattenClusterSettingsModel(input *[]appserviceenvironments.NameValuePair) []ClusterSettingModel {
-	var output []ClusterSettingModel
 	if input == nil || len(*input) == 0 {
-		return output
+		return []ClusterSettingModel{}
 	}
 
+	output := make([]ClusterSettingModel, 0, len(*input))
 	for _, v := range *input {
 		if v.Name == nil {
 			continue
@@ -536,7 +536,7 @@ func flattenClusterSettingsModel(input *[]appserviceenvironments.NameValuePair) 
 }
 
 func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenvironments.NameValuePair {
-	var clusterSettings []appserviceenvironments.NameValuePair
+	clusterSettings := make([]appserviceenvironments.NameValuePair, 0, len(input))
 	if input == nil {
 		return &clusterSettings
 	}
@@ -552,11 +552,12 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenviro
 }
 
 func flattenInboundNetworkDependencies(ctx context.Context, client *appserviceenvironments.AppServiceEnvironmentsClient, id *commonids.AppServiceEnvironmentId) (*[]AppServiceV3InboundDependencies, error) {
-	var results []AppServiceV3InboundDependencies
 	inboundNetworking, err := client.GetInboundNetworkDependenciesEndpointsComplete(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading paged results for Inbound Network Dependencies for %s: %+v", id, err)
 	}
+
+	results := make([]AppServiceV3InboundDependencies, 0, len(inboundNetworking.Items))
 	for _, v := range inboundNetworking.Items {
 		if err != nil {
 			return nil, fmt.Errorf("reading Inbound Network dependencies for %s: %+v", id, err)

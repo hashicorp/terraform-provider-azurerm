@@ -248,7 +248,6 @@ func (r StackHCIMarketplaceGalleryImageResource) Read() sdk.ResourceFunc {
 						schema.Version = pointer.From(props.Version.Name)
 					}
 				}
-
 			}
 			return metadata.Encode(&schema)
 		},

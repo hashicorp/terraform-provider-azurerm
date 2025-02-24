@@ -114,7 +114,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	resourceManagerEndpoint, ok := builder.AuthConfig.Environment.ResourceManager.Endpoint()
 	if !ok {
-		return nil, fmt.Errorf("unable to determine resource manager endpoint for the current environment")
+		return nil, errors.New("unable to determine resource manager endpoint for the current environment")
 	}
 
 	client := Client{

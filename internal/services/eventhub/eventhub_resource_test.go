@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -360,7 +361,8 @@ func (EventHubResource) Exists(ctx context.Context, clients *clients.Client, sta
 }
 
 func (EventHubResource) basic(data acceptance.TestData, partitionCount int) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -385,6 +387,31 @@ resource "azurerm_eventhub" "test" {
   message_retention   = 1
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = %d
+  message_retention = 1
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
 }
 
 func (EventHubResource) requiresImport(data acceptance.TestData) string {
@@ -393,11 +420,10 @@ func (EventHubResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_eventhub" "import" {
-  name                = azurerm_eventhub.test.name
-  namespace_name      = azurerm_eventhub.test.namespace_name
-  resource_group_name = azurerm_eventhub.test.resource_group_name
-  partition_count     = azurerm_eventhub.test.partition_count
-  message_retention   = azurerm_eventhub.test.message_retention
+  name              = azurerm_eventhub.test.name
+  namespace_id      = azurerm_eventhub.test.namespace_id
+  partition_count   = azurerm_eventhub.test.partition_count
+  message_retention = azurerm_eventhub.test.message_retention
 }
 `, template)
 }
@@ -421,11 +447,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 10
-  message_retention   = 1
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 10
+  message_retention = 1
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -449,11 +474,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest-EH-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 7
+  name              = "acctest-EH-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -492,11 +516,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest-EH%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 7
+  name              = "acctest-EH%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 7
 
   capture_description {
     enabled             = %s
@@ -535,11 +558,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctest-EH-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 5
+  name              = "acctest-EH-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 5
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -563,12 +585,11 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 5
-  message_retention   = 1
-  status              = "%s"
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 5
+  message_retention = 1
+  status            = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status)
 }

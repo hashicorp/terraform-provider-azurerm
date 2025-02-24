@@ -216,7 +216,6 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 		metadata.ResourceData.HasChange("activation_rules.0.require_ticket_info") {
 		if enablementEndUserAssignmentBase, ok := existingRules["Enablement_EndUser_Assignment"]; ok {
 			if enablementEndUserAssignment, ok := enablementEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
-
 				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
 				if len(model.ActivationRules) == 1 {
 					if model.ActivationRules[0].RequireMultiFactorAuth {

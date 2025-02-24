@@ -259,7 +259,6 @@ func (r AppServiceEnvironmentV3DataSource) Read() sdk.ResourceFunc {
 				state.InboundNetworkDependencies = *inboundNetworkDependencies
 
 				state.Tags = pointer.From(model.Tags)
-
 			}
 
 			metadata.SetID(id)

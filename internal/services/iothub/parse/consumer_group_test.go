@@ -27,7 +27,6 @@ func TestConsumerGroupID(t *testing.T) {
 		Error    bool
 		Expected *ConsumerGroupId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -152,7 +151,6 @@ func TestConsumerGroupIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *ConsumerGroupId
 	}{
-
 		{
 			// empty
 			Input: "",

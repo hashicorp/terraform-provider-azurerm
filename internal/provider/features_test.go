@@ -88,8 +88,13 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:        false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:           false,
+				},
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          true,
 				},
 			},
 		},
@@ -197,8 +202,15 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"recovery_service": []interface{}{
 						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy": true,
-							"purge_protected_items_from_vault_on_destroy":          true,
+							"vm_backup_stop_protection_and_retain_data_on_destroy":    true,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy": true,
+							"purge_protected_items_from_vault_on_destroy":             true,
+						},
+					},
+					"netapp": []interface{}{
+						map[string]interface{}{
+							"delete_backups_on_backup_vault_destroy": true,
+							"prevent_volume_destruction":             true,
 						},
 					},
 				},
@@ -271,8 +283,13 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: true,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: true,
-					PurgeProtectedItemsFromVaultOnDestroy:        true,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    true,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: true,
+					PurgeProtectedItemsFromVaultOnDestroy:           true,
+				},
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: true,
+					PreventVolumeDestruction:          true,
 				},
 			},
 		},
@@ -380,8 +397,15 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"recovery_service": []interface{}{
 						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy": false,
-							"purge_protected_items_from_vault_on_destroy":          false,
+							"vm_backup_stop_protection_and_retain_data_on_destroy":    false,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy": false,
+							"purge_protected_items_from_vault_on_destroy":             false,
+						},
+					},
+					"netapp": []interface{}{
+						map[string]interface{}{
+							"delete_backups_on_backup_vault_destroy": false,
+							"prevent_volume_destruction":             false,
 						},
 					},
 				},
@@ -454,8 +478,13 @@ func TestExpandFeatures(t *testing.T) {
 					PurgeSoftDeletedWorkspaceOnDestroy: false,
 				},
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:        false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:           false,
+				},
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          false,
 				},
 			},
 		},
@@ -1692,8 +1721,9 @@ func TestExpandFeaturesRecoveryService(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:        false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:           false,
 				},
 			},
 		},
@@ -1703,16 +1733,18 @@ func TestExpandFeaturesRecoveryService(t *testing.T) {
 				map[string]interface{}{
 					"recovery_service": []interface{}{
 						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy": true,
-							"purge_protected_items_from_vault_on_destroy":          true,
+							"vm_backup_stop_protection_and_retain_data_on_destroy":    true,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy": true,
+							"purge_protected_items_from_vault_on_destroy":             true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: true,
-					PurgeProtectedItemsFromVaultOnDestroy:        true,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    true,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: true,
+					PurgeProtectedItemsFromVaultOnDestroy:           true,
 				},
 			},
 		},
@@ -1722,16 +1754,107 @@ func TestExpandFeaturesRecoveryService(t *testing.T) {
 				map[string]interface{}{
 					"recovery_service": []interface{}{
 						map[string]interface{}{
-							"vm_backup_stop_protection_and_retain_data_on_destroy": false,
-							"purge_protected_items_from_vault_on_destroy":          false,
+							"vm_backup_stop_protection_and_retain_data_on_destroy":    false,
+							"vm_backup_suspend_protection_and_retain_data_on_destroy": false,
+							"purge_protected_items_from_vault_on_destroy":             false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
 				RecoveryService: features.RecoveryServiceFeatures{
-					VMBackupStopProtectionAndRetainDataOnDestroy: false,
-					PurgeProtectedItemsFromVaultOnDestroy:        false,
+					VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+					VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+					PurgeProtectedItemsFromVaultOnDestroy:           false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
+			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesNetApp(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"netapp": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          true,
+				},
+			},
+		},
+		{
+			Name: "NetApp Features Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"netapp": []interface{}{
+						map[string]interface{}{
+							"delete_backups_on_backup_vault_destroy": true,
+							"prevent_volume_destruction":             true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          true,
+				},
+			},
+		},
+		{
+			Name: "NetApp Features Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"netapp": []interface{}{
+						map[string]interface{}{
+							"delete_backups_on_backup_vault_destroy": false,
+							"prevent_volume_destruction":             false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: false,
+					PreventVolumeDestruction:          false,
+				},
+			},
+		},
+		{
+			Name: "NetApp Features Reverse Default Values",
+			Input: []interface{}{
+				map[string]interface{}{
+					"netapp": []interface{}{
+						map[string]interface{}{
+							"delete_backups_on_backup_vault_destroy": true,
+							"prevent_volume_destruction":             false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				NetApp: features.NetAppFeatures{
+					DeleteBackupsOnBackupVaultDestroy: true,
+					PreventVolumeDestruction:          false,
 				},
 			},
 		},

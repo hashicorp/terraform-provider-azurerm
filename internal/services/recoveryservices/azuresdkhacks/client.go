@@ -1,8 +1,6 @@
 package azuresdkhacks
 
 import (
-	"fmt"
-
 	"github.com/Azure/go-autorest/autorest"
 )
 
@@ -16,7 +14,7 @@ import (
 const defaultApiVersion = "2024-04-01"
 
 func userAgent() string {
-	return fmt.Sprintf("hashicorp/go-azure-sdk/vaultcertificates/%s", defaultApiVersion)
+	return "hashicorp/go-azure-sdk/vaultcertificates/" + defaultApiVersion
 }
 
 type VaultCertificatesClient struct {

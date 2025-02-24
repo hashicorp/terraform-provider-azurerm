@@ -122,7 +122,6 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 			}
 			if keyVaultCertificateId.Version != "" {
 				customCertObj.Properties.KeyVaultSecretVersion = utils.String(keyVaultCertificateId.Version)
-
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCertObj); err != nil {

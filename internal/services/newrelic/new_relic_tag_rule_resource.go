@@ -393,7 +393,7 @@ func (r NewRelicTagRuleResource) getEmail(ctx context.Context, monitorClient *mo
 }
 
 func expandFilteringTagModelArray(inputList []FilteringTagModel) *[]tagrules.FilteringTag {
-	var outputList []tagrules.FilteringTag
+	outputList := make([]tagrules.FilteringTag, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := tagrules.FilteringTag{

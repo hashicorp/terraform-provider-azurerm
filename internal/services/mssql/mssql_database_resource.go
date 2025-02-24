@@ -29,7 +29,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -507,9 +509,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			state = transparentdataencryptions.TransparentDataEncryptionStateEnabled
 		}
 
-		tde, err := transparentEncryptionClient.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, err)
+		tde, retryErr := transparentEncryptionClient.Get(ctx, id)
+		if retryErr != nil {
+			return fmt.Errorf("while retrieving Transparent Data Encryption state for %s: %+v", id, retryErr)
 		}
 
 		currentState := transparentdataencryptions.TransparentDataEncryptionStateDisabled
@@ -521,21 +523,21 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		// Submit TDE state only when state is being changed, otherwise it can cause unwanted detection of state changes from the cloud side
 		if !strings.EqualFold(string(currentState), string(state)) {
-			input := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
+			tdePayload := transparentdataencryptions.LogicalDatabaseTransparentDataEncryption{
 				Properties: &transparentdataencryptions.TransparentDataEncryptionProperties{
 					State: state,
 				},
 			}
 
-			if err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, input); err != nil {
+			if err := transparentEncryptionClient.CreateOrUpdateThenPoll(ctx, id, tdePayload); err != nil {
 				return fmt.Errorf("while enabling Transparent Data Encryption for %q: %+v", id.String(), err)
 			}
 
 			// NOTE: Internal x-ref, this is another case of hashicorp/go-azure-sdk#307 so this can be removed once that's fixed
-			if err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-				c, err := client.Get(ctx, id, databases.DefaultGetOperationOptions())
-				if err != nil {
-					return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err))
+			if retryErr = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+				c, err2 := client.Get(ctx, id, databases.DefaultGetOperationOptions())
+				if err2 != nil {
+					return pluginsdk.NonRetryableError(fmt.Errorf("while polling %s for status: %+v", id.String(), err2))
 				}
 				if c.Model != nil && c.Model.Properties != nil && c.Model.Properties.Status != nil {
 					if c.Model.Properties.Status == pointer.To(databases.DatabaseStatusScaling) {
@@ -546,8 +548,8 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 
 				return nil
-			}); err != nil {
-				return nil
+			}); retryErr != nil {
+				return retryErr
 			}
 		} else {
 			log.Print("[DEBUG] Skipping re-writing of Transparent Data Encryption, since encryption state is not changing ...")
@@ -595,7 +597,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		return nil
 	}); err != nil {
-		return nil
+		return err
 	}
 
 	longTermRetentionPolicyProps := helper.ExpandLongTermRetentionPolicy(d.Get("long_term_retention_policy").([]interface{}))
@@ -999,7 +1001,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				}
 				return nil
 			}); err != nil {
-				return nil
+				return err
 			}
 		}
 	}
@@ -1048,7 +1050,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 		return nil
 	}); err != nil {
-		return nil
+		return err
 	}
 
 	if d.HasChange("long_term_retention_policy") {
@@ -1453,14 +1455,16 @@ func expandMsSqlServerImport(d *pluginsdk.ResourceData) (out databases.ImportExi
 
 // The following data comes from the results of "az maintenance public-configuration list --query "[?contains(name, `SQL`) && contains(name, `DB`)]".name --output table"
 func resourceMsSqlDatabaseMaintenanceNames() []string {
-	return []string{"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
+	return []string{
+		"SQL_Default", "SQL_EastUS_DB_1", "SQL_EastUS2_DB_1", "SQL_SoutheastAsia_DB_1", "SQL_AustraliaEast_DB_1", "SQL_NorthEurope_DB_1", "SQL_SouthCentralUS_DB_1", "SQL_WestUS2_DB_1",
 		"SQL_UKSouth_DB_1", "SQL_WestEurope_DB_1", "SQL_EastUS_DB_2", "SQL_EastUS2_DB_2", "SQL_WestUS2_DB_2", "SQL_SoutheastAsia_DB_2", "SQL_AustraliaEast_DB_2", "SQL_NorthEurope_DB_2", "SQL_SouthCentralUS_DB_2",
 		"SQL_UKSouth_DB_2", "SQL_WestEurope_DB_2", "SQL_AustraliaSoutheast_DB_1", "SQL_BrazilSouth_DB_1", "SQL_CanadaCentral_DB_1", "SQL_CanadaEast_DB_1", "SQL_CentralUS_DB_1", "SQL_EastAsia_DB_1",
 		"SQL_FranceCentral_DB_1", "SQL_GermanyWestCentral_DB_1", "SQL_CentralIndia_DB_1", "SQL_SouthIndia_DB_1", "SQL_JapanEast_DB_1", "SQL_JapanWest_DB_1", "SQL_NorthCentralUS_DB_1", "SQL_UKWest_DB_1",
 		"SQL_WestUS_DB_1", "SQL_AustraliaSoutheast_DB_2", "SQL_BrazilSouth_DB_2", "SQL_CanadaCentral_DB_2", "SQL_CanadaEast_DB_2", "SQL_CentralUS_DB_2", "SQL_EastAsia_DB_2", "SQL_FranceCentral_DB_2",
 		"SQL_GermanyWestCentral_DB_2", "SQL_CentralIndia_DB_2", "SQL_SouthIndia_DB_2", "SQL_JapanEast_DB_2", "SQL_JapanWest_DB_2", "SQL_NorthCentralUS_DB_2", "SQL_UKWest_DB_2", "SQL_WestUS_DB_2",
 		"SQL_WestCentralUS_DB_1", "SQL_FranceSouth_DB_1", "SQL_WestCentralUS_DB_2", "SQL_FranceSouth_DB_2", "SQL_SwitzerlandNorth_DB_1", "SQL_SwitzerlandNorth_DB_2", "SQL_BrazilSoutheast_DB_1",
-		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2", "SQL_SouthAfricaNorth_DB_1", "SQL_SouthAfricaNorth_DB_2", "SQL_WestUS3_DB_1", "SQL_WestUS3_DB_2"}
+		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2", "SQL_SouthAfricaNorth_DB_1", "SQL_SouthAfricaNorth_DB_2", "SQL_WestUS3_DB_1", "SQL_WestUS3_DB_2",
+	}
 }
 
 type EmailAccountAdminsStatus string
@@ -1478,7 +1482,7 @@ func PossibleValuesForEmailAccountAdminsStatus() []string {
 }
 
 func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	resource := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -1819,4 +1823,64 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		atLeastOneOf := []string{
+			"long_term_retention_policy.0.weekly_retention", "long_term_retention_policy.0.monthly_retention",
+			"long_term_retention_policy.0.yearly_retention", "long_term_retention_policy.0.week_of_year",
+		}
+		resource["long_term_retention_policy"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					// WeeklyRetention - The weekly retention policy for an LTR backup in an ISO 8601 format.
+					"weekly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
+					"monthly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
+					"yearly_retention": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: helperValidate.ISO8601Duration,
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.
+					"week_of_year": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntBetween(0, 52),
+						AtLeastOneOf: atLeastOneOf,
+					},
+
+					"immutable_backups_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		}
+	}
+
+	return resource
 }

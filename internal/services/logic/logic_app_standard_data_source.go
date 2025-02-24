@@ -9,16 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceLogicAppStandard() *pluginsdk.Resource {
@@ -78,12 +81,22 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"ftp_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+			"scm_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -132,7 +145,7 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.TagsDataSource(),
 
 			"custom_domain_verification_id": {
 				Type:     pluginsdk.TypeString,
@@ -155,6 +168,11 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 			},
 
 			"possible_outbound_ip_addresses": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_network_access": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -186,196 +204,189 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 }
 
 func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	subscriptionId := meta.(*clients.Client).Web.AppServicesClient.SubscriptionID
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewLogicAppStandardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Logic App Standard %s was not found", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("[ERROR] Error making Read request on Logic App Standard %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("[ERROR] Listing application settings for %s: %+v", id, err)
-	}
+	if model := resp.Model; model != nil {
+		d.Set("kind", pointer.From(model.Kind))
+		d.Set("location", location.Normalize(model.Location))
 
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("[ERROR] Listing connection strings for %s: %+v", id, err)
-	}
-
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		return fmt.Errorf("[ERROR] Listing publishing credentials for %s: %+v", id, err)
-	}
-	if err = siteCredFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("[ERROR] Waiting to list the publishing credentials for %s: %+v", id, err)
-	}
-	siteCredResp, err := siteCredFuture.Result(*client)
-	if err != nil {
-		return fmt.Errorf("[ERROR] Retrieving the publishing credentials for %s: %+v", id, err)
-	}
-
-	d.Set("kind", resp.Kind)
-
-	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if props := resp.SiteProperties; props != nil {
-		d.Set("app_service_plan_id", props.ServerFarmID)
-		d.Set("enabled", props.Enabled)
-		d.Set("default_hostname", props.DefaultHostName)
-		d.Set("https_only", props.HTTPSOnly)
-		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
-		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
-		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
-		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
-
-		clientCertMode := ""
-		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
-			clientCertMode = string(props.ClientCertMode)
+		identityFlattened, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
-		d.Set("client_certificate_mode", clientCertMode)
+		if err := d.Set("identity", identityFlattened); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("app_service_plan_id", pointer.From(props.ServerFarmId))
+			d.Set("enabled", pointer.From(props.Enabled))
+			d.Set("default_hostname", pointer.From(props.DefaultHostName))
+			d.Set("https_only", pointer.From(props.HTTPSOnly))
+			d.Set("outbound_ip_addresses", pointer.From(props.OutboundIPAddresses))
+			d.Set("possible_outbound_ip_addresses", pointer.From(props.PossibleOutboundIPAddresses))
+			d.Set("client_affinity_enabled", pointer.From(props.ClientAffinityEnabled))
+			d.Set("custom_domain_verification_id", pointer.From(props.CustomDomainVerificationId))
+			d.Set("public_network_access", pointer.From(props.PublicNetworkAccess))
+
+			clientCertMode := ""
+			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
+				clientCertMode = string(pointer.From(props.ClientCertMode))
+			}
+			d.Set("client_certificate_mode", clientCertMode)
+
+			d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetId)
+		}
 	}
 
-	appSettings := flattenLogicAppStandardDataSourceAppSettings(appSettingsResp.Properties)
-
-	if err = d.Set("virtual_network_subnet_id", resp.SiteProperties.VirtualNetworkSubnetID); err != nil {
-		return err
+	appSettingsResp, err := client.ListApplicationSettings(ctx, id)
+	if err != nil {
+		return fmt.Errorf("listing application settings for %s: %+v", id, err)
 	}
+	if model := appSettingsResp.Model; model != nil {
+		appSettings := pointer.From(model.Properties)
 
-	if err = d.Set("connection_string", flattenLogicAppStandardDataSourceConnectionStrings(connectionStringsResp.Properties)); err != nil {
-		return err
-	}
+		connectionString := appSettings["AzureWebJobsStorage"]
 
-	connectionString := appSettings["AzureWebJobsStorage"]
-
-	// This teases out the necessary attributes from the storage connection string
-	connectionStringParts := strings.Split(connectionString, ";")
-	for _, part := range connectionStringParts {
-		if strings.HasPrefix(part, "AccountName") {
-			accountNameParts := strings.Split(part, "AccountName=")
-			if len(accountNameParts) > 1 {
-				d.Set("storage_account_name", accountNameParts[1])
+		// This teases out the necessary attributes from the storage connection string
+		connectionStringParts := strings.Split(connectionString, ";")
+		for _, part := range connectionStringParts {
+			if strings.HasPrefix(part, "AccountName") {
+				accountNameParts := strings.Split(part, "AccountName=")
+				if len(accountNameParts) > 1 {
+					d.Set("storage_account_name", accountNameParts[1])
+				}
+			}
+			if strings.HasPrefix(part, "AccountKey") {
+				accountKeyParts := strings.Split(part, "AccountKey=")
+				if len(accountKeyParts) > 1 {
+					d.Set("storage_account_access_key", accountKeyParts[1])
+				}
 			}
 		}
-		if strings.HasPrefix(part, "AccountKey") {
-			accountKeyParts := strings.Split(part, "AccountKey=")
-			if len(accountKeyParts) > 1 {
-				d.Set("storage_account_access_key", accountKeyParts[1])
+
+		d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
+
+		if _, ok := appSettings["AzureFunctionsJobHost__extensionBundle__id"]; ok {
+			d.Set("use_extension_bundle", true)
+			if val, ok := appSettings["AzureFunctionsJobHost__extensionBundle__version"]; ok {
+				d.Set("bundle_version", val)
 			}
+		} else {
+			d.Set("use_extension_bundle", false)
+			d.Set("bundle_version", "[1.*, 2.0.0)")
+		}
+
+		d.Set("storage_account_share_name", appSettings["WEBSITE_CONTENTSHARE"])
+
+		// Remove all the settings that are created by this resource so we don't to have to specify in app_settings
+		// block whenever we use azurerm_logic_app_standard.
+		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+		delete(appSettings, "APP_KIND")
+		delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
+		delete(appSettings, "AzureFunctionsJobHost__extensionBundle__version")
+		delete(appSettings, "AzureWebJobsDashboard")
+		delete(appSettings, "AzureWebJobsStorage")
+		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
+		delete(appSettings, "WEBSITE_CONTENTSHARE")
+
+		if err = d.Set("app_settings", appSettings); err != nil {
+			return err
 		}
 	}
 
-	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, id)
+	if err != nil {
+		return fmt.Errorf("listing connection strings for %s: %+v", id, err)
+	}
 
-	if _, ok := appSettings["AzureFunctionsJobHost__extensionBundle__id"]; ok {
-		d.Set("use_extension_bundle", true)
-		if val, ok := appSettings["AzureFunctionsJobHost__extensionBundle__version"]; ok {
-			d.Set("bundle_version", val)
+	if model := connectionStringsResp.Model; model != nil {
+		if err = d.Set("connection_string", flattenLogicAppStandardDataSourceConnectionStrings(model.Properties)); err != nil {
+			return err
 		}
-	} else {
-		d.Set("use_extension_bundle", false)
-		d.Set("bundle_version", "[1.*, 2.0.0)")
 	}
 
-	d.Set("storage_account_share_name", appSettings["WEBSITE_CONTENTSHARE"])
-
-	// Remove all the settings that are created by this resource so we don't to have to specify in app_settings
-	// block whenever we use azurerm_logic_app_standard.
-	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
-	delete(appSettings, "APP_KIND")
-	delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
-	delete(appSettings, "AzureFunctionsJobHost__extensionBundle__version")
-	delete(appSettings, "AzureWebJobsDashboard")
-	delete(appSettings, "AzureWebJobsStorage")
-	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
-	delete(appSettings, "WEBSITE_CONTENTSHARE")
-
-	if err = d.Set("app_settings", appSettings); err != nil {
-		return err
+	ftpBasicAuth, err := client.GetFtpAllowed(ctx, id)
+	if err != nil || ftpBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving FTP publish basic authentication policy for %s: %+v", id, err)
 	}
 
-	identity := flattenLogicAppStandardDataSourceIdentity(resp.Identity)
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %s", err)
+	if props := ftpBasicAuth.Model.Properties; props != nil {
+		d.Set("ftp_publish_basic_authentication_enabled", props.Allow)
 	}
 
-	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	scmBasicAuth, err := client.GetScmAllowed(ctx, id)
+	if err != nil || scmBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving SCM publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := scmBasicAuth.Model.Properties; props != nil {
+		d.Set("scm_publish_basic_authentication_enabled", props.Allow)
+	}
+
+	configResp, err := client.GetConfiguration(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving the configuration for %s: %+v", id, err)
 	}
 
-	siteConfig := flattenLogicAppStandardDataSourceSiteConfig(configResp.SiteConfig)
-	if err = d.Set("site_config", siteConfig); err != nil {
+	if model := configResp.Model; model != nil {
+		siteConfig := flattenLogicAppStandardDataSourceSiteConfig(model.Properties)
+		if err = d.Set("site_config", siteConfig); err != nil {
+			return err
+		}
+	}
+
+	siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, id)
+	if err != nil {
+		return fmt.Errorf("listing publishing credentials for %s: %+v", id, err)
+	}
+
+	if err = d.Set("site_credential", flattenLogicAppStandardSiteCredential(siteCredentials)); err != nil {
 		return err
 	}
 
-	siteCred := flattenLogicAppStandardDataSourceSiteCredential(siteCredResp.UserProperties)
-	if err = d.Set("site_credential", siteCred); err != nil {
-		return err
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenLogicAppStandardDataSourceAppSettings(input map[string]*string) map[string]string {
-	output := make(map[string]string)
-	for k, v := range input {
-		output[k] = *v
-	}
-
-	return output
-}
-
-func flattenLogicAppStandardDataSourceConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenLogicAppStandardDataSourceConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
-	for k, v := range input {
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for k, v := range *input {
 		result := make(map[string]interface{})
 		result["name"] = k
 		result["type"] = string(v.Type)
-		result["value"] = *v.Value
+		result["value"] = v.Value
 		results = append(results, result)
 	}
 
 	return results
 }
 
-func flattenLogicAppStandardDataSourceIdentity(identity *web.ManagedServiceIdentity) []interface{} {
-	if identity == nil {
-		return make([]interface{}, 0)
-	}
-
-	principalId := ""
-	if identity.PrincipalID != nil {
-		principalId = *identity.PrincipalID
-	}
-
-	tenantId := ""
-	if identity.TenantID != nil {
-		tenantId = *identity.TenantID
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"principal_id": principalId,
-			"tenant_id":    tenantId,
-			"type":         string(identity.Type),
-		},
-	}
-}
-
-func flattenLogicAppStandardDataSourceSiteConfig(input *web.SiteConfig) []interface{} {
+func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{})
 
@@ -384,95 +395,36 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *web.SiteConfig) []interf
 		return results
 	}
 
-	if input.AlwaysOn != nil {
-		result["always_on"] = *input.AlwaysOn
-	}
-
-	if input.Use32BitWorkerProcess != nil {
-		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
-	}
-
-	if input.WebSocketsEnabled != nil {
-		result["websockets_enabled"] = *input.WebSocketsEnabled
-	}
-
-	if input.LinuxFxVersion != nil {
-		result["linux_fx_version"] = *input.LinuxFxVersion
-	}
-
-	if input.HTTP20Enabled != nil {
-		result["http2_enabled"] = *input.HTTP20Enabled
-	}
-
-	if input.PreWarmedInstanceCount != nil {
-		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
-	}
+	result["always_on"] = pointer.From(input.AlwaysOn)
+	result["use_32_bit_worker_process"] = pointer.From(input.Use32BitWorkerProcess)
+	result["websockets_enabled"] = pointer.From(input.WebSocketsEnabled)
+	result["linux_fx_version"] = pointer.From(input.LinuxFxVersion)
+	result["http2_enabled"] = pointer.From(input.HTTP20Enabled)
+	result["pre_warmed_instance_count"] = pointer.From(input.PreWarmedInstanceCount)
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
-	result["scm_type"] = string(input.ScmType)
-	result["scm_min_tls_version"] = string(input.ScmMinTLSVersion)
+	result["scm_type"] = string(pointer.From(input.ScmType))
+	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
 
-	if input.ScmIPSecurityRestrictionsUseMain != nil {
-		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
-	}
+	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
-	result["min_tls_version"] = string(input.MinTLSVersion)
-	result["ftps_state"] = string(input.FtpsState)
+	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
+	result["ftps_state"] = string(pointer.From(input.FtpsState))
 
 	result["cors"] = flattenLogicAppStandardCorsSettings(input.Cors)
 
-	if input.AutoSwapSlotName != nil {
-		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
-	}
+	result["auto_swap_slot_name"] = pointer.From(input.AutoSwapSlotName)
+	result["health_check_path"] = pointer.From(input.HealthCheckPath)
+	result["elastic_instance_minimum"] = pointer.From(input.MinimumElasticInstanceCount)
+	result["app_scale_limit"] = pointer.From(input.FunctionAppScaleLimit)
+	result["runtime_scale_monitoring_enabled"] = pointer.From(input.FunctionsRuntimeScaleMonitoringEnabled)
 
-	if input.HealthCheckPath != nil {
-		result["health_check_path"] = *input.HealthCheckPath
-	}
+	result["dotnet_framework_version"] = pointer.From(input.NetFrameworkVersion)
 
-	if input.MinimumElasticInstanceCount != nil {
-		result["elastic_instance_minimum"] = *input.MinimumElasticInstanceCount
-	}
-
-	if input.FunctionAppScaleLimit != nil {
-		result["app_scale_limit"] = *input.FunctionAppScaleLimit
-	}
-
-	if input.FunctionsRuntimeScaleMonitoringEnabled != nil {
-		result["runtime_scale_monitoring_enabled"] = *input.FunctionsRuntimeScaleMonitoringEnabled
-	}
-
-	if input.NetFrameworkVersion != nil {
-		result["dotnet_framework_version"] = *input.NetFrameworkVersion
-	}
-
-	vnetRouteAllEnabled := false
-	if input.VnetRouteAllEnabled != nil {
-		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
-	}
-	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
+	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
 	results = append(results, result)
 	return results
-}
-
-func flattenLogicAppStandardDataSourceSiteCredential(input *web.UserProperties) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input == nil {
-		log.Printf("[DEBUG] UserProperties is nil")
-		return results
-	}
-
-	if input.PublishingUserName != nil {
-		result["username"] = *input.PublishingUserName
-	}
-
-	if input.PublishingPassword != nil {
-		result["password"] = *input.PublishingPassword
-	}
-
-	return append(results, result)
 }

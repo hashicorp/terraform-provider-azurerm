@@ -206,7 +206,6 @@ func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta int
 			}
 			d.Set("file_path", props.FilePath)
 			d.Set("display_name", props.DataSetId)
-
 		} else if ds, ok := model.(dataset.BlobFolderDataSet); ok {
 			props := ds.Properties
 			d.Set("container_name", props.ContainerName)

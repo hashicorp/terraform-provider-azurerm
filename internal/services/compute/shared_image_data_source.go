@@ -244,7 +244,6 @@ func dataSourceSharedImageRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
-
 	}
 	return nil
 }

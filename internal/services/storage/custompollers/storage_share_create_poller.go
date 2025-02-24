@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package custompollers
 
 import (
@@ -5,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 

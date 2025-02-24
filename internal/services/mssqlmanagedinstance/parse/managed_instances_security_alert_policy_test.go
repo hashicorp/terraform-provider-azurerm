@@ -27,7 +27,6 @@ func TestManagedInstancesSecurityAlertPolicyID(t *testing.T) {
 		Error    bool
 		Expected *ManagedInstancesSecurityAlertPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

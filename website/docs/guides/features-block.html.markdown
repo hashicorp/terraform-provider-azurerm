@@ -62,13 +62,19 @@ provider "azurerm" {
       expand_without_downtime = true
     }
 
+    netapp {
+      delete_backups_on_backup_vault_destroy = false
+      prevent_volume_destruction             = true
+    }
+
     postgresql_flexible_server {
       restart_server_on_configuration_value_change = true
     }
 
     recovery_service {
-      vm_backup_stop_protection_and_retain_data_on_destroy = true
-      purge_protected_items_from_vault_on_destroy          = true
+      vm_backup_stop_protection_and_retain_data_on_destroy    = true
+      vm_backup_suspend_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy             = true
     }
 
     resource_group {
@@ -122,6 +128,8 @@ The `features` block supports the following:
 * `machine_learning` - (Optional) A `machine_learning` block as defined below.
 
 * `managed_disk` - (Optional) A `managed_disk` block as defined below.
+
+* `netapp` - (Optional) A `netapp` block as defined below.
 
 * `recovery_service` - (Optional) A `recovery_service` block as defined below.
 
@@ -217,6 +225,13 @@ The `managed_disk` block supports the following:
 
 ---
 
+The `netapp` block supports the following:
+
+* `delete_backups_on_backup_vault_destroy` - (Optional) Should backups be deleted when an `azurerm_netapp_backup_vault` is being deleted? Defaults to `false`.
+* `prevent_volume_destruction` - (Optional) Should an `azurerm_netapp_volume` be protected against deletion (intentionally or unintentionally)? Defaults to `true`.
+
+---
+
 The `postgresql_flexible_server` block supports the following:
 
 * `restart_server_on_configuration_value_change` - (Optional) Should the `postgresql_flexible_server` restart after static server parameter change or removal? Defaults to `true`.
@@ -226,6 +241,8 @@ The `postgresql_flexible_server` block supports the following:
 The `recovery_service` block supports the following:
 
 * `vm_backup_stop_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and stop protection instead of destroying the backup protected vm? Defaults to `false`.
+
+* `vm_backup_suspend_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and suspend protection instead of destroying the backup protected vm? Defaults to `false`.
 
 * `purge_protected_items_from_vault_on_destroy` - (Optional) Should we purge all protected items when destroying the vault. Defaults to `false`.
 
