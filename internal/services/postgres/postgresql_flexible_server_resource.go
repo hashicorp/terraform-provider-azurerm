@@ -881,7 +881,9 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("administrator_password_wo_version") {
-		parameters.Properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
+		if !woPassword.IsNull() {
+			parameters.Properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
+		}
 	}
 
 	if d.HasChange("authentication") {
