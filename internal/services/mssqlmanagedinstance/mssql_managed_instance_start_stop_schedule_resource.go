@@ -311,7 +311,8 @@ func expandScheduleItemModelArray(inputList []ScheduleItemModel) []schedule.Sche
 }
 
 func flattenScheduleItemModelArray(inputList []schedule.ScheduleItem) []ScheduleItemModel {
-	var outputList []ScheduleItemModel
+	outputList := make([]ScheduleItemModel, 0, len(inputList))
+
 	if inputList == nil {
 		return outputList
 	}
