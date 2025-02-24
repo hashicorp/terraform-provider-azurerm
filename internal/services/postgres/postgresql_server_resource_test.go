@@ -9,12 +9,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PostgreSQLServerResource struct{}
@@ -362,7 +366,7 @@ func TestAccPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
 	})
 }
 
-func TestMinTlsVersionOnServerUpdate(t *testing.T) {
+func TestAccPostgreSQLServer_minTlsVersionOnServerUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -381,6 +385,59 @@ func TestMinTlsVersionOnServerUpdate(t *testing.T) {
 	})
 }
 
+func TestAccPostgreSQLServer_writeOnlyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0-beta1"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyPassword(data, "9.6", "H@Sh1CoR3!", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password_wo_version"),
+			{
+				Config: r.writeOnlyPassword(data, "9.6", "H@Sh1CoR3!updated", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password_wo_version"),
+		},
+	})
+}
+
+func TestAccPostgreSQLServer_updateToWriteOnlyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	r := PostgreSQLServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data, "9.6"),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password"),
+			{
+				Config: r.writeOnlyPassword(data, "9.6", "H@Sh1CoR3!", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password", "administrator_password_wo_version"),
+			{
+				Config: r.basic(data, "9.6"),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password"),
+		},
+	})
+}
+
 func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseServerID(state.ID)
 	if err != nil {
@@ -395,10 +452,10 @@ func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.C
 
 	resp, err := clients.Postgres.ServersClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Postgresql Server (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PostgreSQLServerResource) template(data acceptance.TestData, sku, version string) string {
@@ -899,4 +956,35 @@ resource "azurerm_postgresql_server" "test" {
 
 }
 `, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
+}
+
+func (PostgreSQLServerResource) writeOnlyPassword(data acceptance.TestData, version, secret string, woVersion int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+%s
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login                     = "acctestun"
+  administrator_login_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
+  administrator_login_password_wo_version = %[5]d
+
+  sku_name   = "B_Gen5_1"
+  version    = "%[4]s"
+  storage_mb = 51200
+
+  ssl_enforcement_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), version, woVersion)
 }
