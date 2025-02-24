@@ -62,7 +62,10 @@ The following arguments are supported:
 
 * `password_wo` - (Optional, Write-Only) The password to use for this Elastic Job credential.
 
+~> **Note:** One of `password` or `password_wo` must be specified.
+
 * `password_wo_version` - (Optional) An integer value used to trigger an update for `password_wo`. This property should be incremented when updating `password_wo`.
+
 
 ## Attributes Reference
 
