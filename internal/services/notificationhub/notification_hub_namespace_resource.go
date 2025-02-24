@@ -88,6 +88,13 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"zone_redundant": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": commonschema.Tags(),
 
 			"servicebus_endpoint": {
@@ -118,14 +125,22 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	namespaceType := namespaces.NamespaceType(d.Get("namespace_type").(string))
+
+	zoneRedundant := namespaces.ZoneRedundancyPreferenceDisabled
+
+	if d.Get("zone_redundant").(bool) {
+		zoneRedundant = namespaces.ZoneRedundancyPreferenceEnabled
+	}
+
 	parameters := namespaces.NamespaceResource{
 		Location: location.Normalize(d.Get("location").(string)),
 		Sku: namespaces.Sku{
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		},
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: &namespaceType,
-			Enabled:       utils.Bool(d.Get("enabled").(bool)),
+			NamespaceType:  &namespaceType,
+			Enabled:        utils.Bool(d.Get("enabled").(bool)),
+			ZoneRedundancy: &zoneRedundant,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -162,10 +177,17 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
+	zoneRedundant := namespaces.ZoneRedundancyPreferenceDisabled
+
+	if d.Get("zone_redundant").(bool) {
+		zoneRedundant = namespaces.ZoneRedundancyPreferenceEnabled
+	}
+
 	parameters := namespaces.NamespacePatchParameters{
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: pointer.To(namespaces.NamespaceType(d.Get("namespace_type").(string))),
-			Enabled:       pointer.To(d.Get("enabled").(bool)),
+			NamespaceType:  pointer.To(namespaces.NamespaceType(d.Get("namespace_type").(string))),
+			Enabled:        pointer.To(d.Get("enabled").(bool)),
+			ZoneRedundancy: pointer.To(zoneRedundant),
 		},
 	}
 
@@ -216,6 +238,7 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
+			d.Set("zone_redundant", props.ZoneRedundancy)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)

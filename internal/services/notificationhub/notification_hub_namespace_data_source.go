@@ -54,6 +54,11 @@ func dataSourceNotificationHubNamespace() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"zone_redundant": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"namespace_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -99,6 +104,11 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("namespace_type", string(pointer.From(props.NamespaceType)))
+
+			if zoneRedundancy := props.ZoneRedundancy; zoneRedundancy != nil {
+				d.Set("zone_redundant", *zoneRedundancy == namespaces.ZoneRedundancyPreferenceEnabled)
+			}
+
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 		}
 

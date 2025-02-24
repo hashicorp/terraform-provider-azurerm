@@ -29,6 +29,8 @@ output "servicebus_endpoint" {
 
 * `resource_group_name` - Specifies the Name of the Resource Group within which the Notification Hub exists.
 
+* `zone_redundant` - (Optional) Specifies whether the Notification Hub Namespace should be Zone Redundant. Defaults to `false`.
+
 ## Attributes Reference
 
 * `id` - The ID of the Notification Hub Namespace.
