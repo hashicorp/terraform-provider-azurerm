@@ -143,7 +143,7 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "test" {
   schedule {
     start_day  = "Thursday"
     start_time = "11:00"
-    stop_day   = "Wednesday"
+    stop_day   = "Thursday"
     stop_time  = "23:00"
   }
 
