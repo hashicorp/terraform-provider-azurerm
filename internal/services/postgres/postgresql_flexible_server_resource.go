@@ -517,10 +517,10 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			}
 
 			if !adminPwdSet && woPassword.IsNull() {
-				return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
+				return fmt.Errorf("`administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
 		} else if adminLoginSet || adminPwdSet || !woPassword.IsNull() {
-			return fmt.Errorf("`administrator_login` and `administrator_password` or `administrator_password_wo` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
+			return fmt.Errorf("`administrator_login`, `administrator_password` and `administrator_password_wo` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
 		}
 
 		if _, ok := d.GetOk("sku_name"); !ok {
