@@ -2309,7 +2309,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
 
 		if len(upgradeOverrideSettingRaw) == 0 {
-			return fmt.Errorf("upgrade_override cannot be unset")
+			return fmt.Errorf("`upgrade_override` cannot be unset")
 		}
 
 		updateCluster = true
