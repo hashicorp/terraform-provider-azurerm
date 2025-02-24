@@ -1,3 +1,10 @@
+## 4.21.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_linux_web_app` Add support for Node Version `22` [GH-28840]
+* `azurerm_linux_web_app_slot` Add support for Node Version `22` [GH-28840]
+
 ## 4.20.0 (February 20, 2025)
 
 FEATURES:
