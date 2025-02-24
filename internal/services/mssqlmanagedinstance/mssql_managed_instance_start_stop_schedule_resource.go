@@ -294,7 +294,8 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Delete() sdk.ResourceFunc
 }
 
 func expandScheduleItemModelArray(inputList []ScheduleItemModel) []schedule.ScheduleItem {
-	var outputList []schedule.ScheduleItem
+	outputList := make([]schedule.ScheduleItem, 0, len(inputList))
+
 	for _, v := range inputList {
 		input := v
 		output := schedule.ScheduleItem{
