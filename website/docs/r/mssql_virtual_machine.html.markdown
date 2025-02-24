@@ -77,9 +77,8 @@ The following arguments are supported:
 
 The `auto_backup` block supports the following:
 
-* `encryption_enabled` - (Optional) Enable or disable encryption for backups. Defaults to `false`.
 
-* `encryption_password` - (Optional) Encryption password to use. Must be specified when encryption is enabled.
+* `encryption_password` - (Optional) Encryption password to use. Setting a password will enable encryption.
 
 * `manual_schedule` - (Optional) A `manual_schedule` block as documented below. When this block is present, the schedule type is set to `Manual`. Without this block, the schedule type is set to `Automated`.
 

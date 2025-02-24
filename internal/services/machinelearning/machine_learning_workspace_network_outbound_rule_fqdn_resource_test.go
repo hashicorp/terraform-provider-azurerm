@@ -76,13 +76,12 @@ func TestAccMachineLearningWorkspaceNetworkOutboundRuleFqdn_requiresImport(t *te
 }
 
 func (r WorkspaceNetworkOutboundRuleFqdnResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	maangedNetworkClient := client.MachineLearning.ManagedNetwork
 	id, err := managednetwork.ParseOutboundRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := maangedNetworkClient.SettingsRuleGet(ctx, *id)
+	resp, err := client.MachineLearning.ManagedNetwork.SettingsRuleGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

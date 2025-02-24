@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -228,6 +229,9 @@ func TestAccAzureRMServiceBusNamespace_publicNetworkAccessUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since the only possible value in 5.0 for `minimum_tls_version` is `1.2`, we can not test updating it.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
 	r := ServiceBusNamespaceResource{}
 

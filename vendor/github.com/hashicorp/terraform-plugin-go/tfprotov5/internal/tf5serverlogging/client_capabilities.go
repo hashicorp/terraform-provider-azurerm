@@ -10,6 +10,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
+// ValidateResourceTypeConfigClientCapabilities generates a TRACE "Announced client capabilities" log.
+func ValidateResourceTypeConfigClientCapabilities(ctx context.Context, capabilities *tfprotov5.ValidateResourceTypeConfigClientCapabilities) {
+	if capabilities == nil {
+		logging.ProtocolTrace(ctx, "No announced client capabilities", map[string]interface{}{})
+		return
+	}
+
+	responseFields := map[string]interface{}{
+		logging.KeyClientCapabilityWriteOnlyAttributesAllowed: capabilities.WriteOnlyAttributesAllowed,
+	}
+
+	logging.ProtocolTrace(ctx, "Announced client capabilities", responseFields)
+}
+
 // ConfigureProviderClientCapabilities generates a TRACE "Announced client capabilities" log.
 func ConfigureProviderClientCapabilities(ctx context.Context, capabilities *tfprotov5.ConfigureProviderClientCapabilities) {
 	if capabilities == nil {

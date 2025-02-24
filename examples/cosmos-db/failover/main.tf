@@ -21,7 +21,7 @@ resource "azurerm_cosmosdb_account" "example" {
   // set ip_range_filter to allow azure services (0.0.0.0) and azure portal.
   // https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal
   // https://docs.microsoft.com/en-us/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-global-azure-datacenters-or-other-sources-within-azure
-  ip_range_filter = "0.0.0.0,104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
+  ip_range_filter = ["0.0.0.0", "104.42.195.92", "40.76.54.131", "52.176.6.30", "52.169.50.45", "52.187.184.26"]
 
   consistency_policy {
     consistency_level       = "BoundedStaleness"

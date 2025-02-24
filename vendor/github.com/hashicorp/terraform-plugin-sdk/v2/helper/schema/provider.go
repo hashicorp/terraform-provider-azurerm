@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/configschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/logging"
@@ -192,9 +193,21 @@ func (p *Provider) InternalValidate() error {
 	}
 
 	var validationErrors []error
+
+	// Provider schema validation
 	sm := schemaMap(p.Schema)
 	if err := sm.InternalValidate(sm); err != nil {
 		validationErrors = append(validationErrors, err)
+	}
+
+	if sm.hasWriteOnly() {
+		validationErrors = append(validationErrors, fmt.Errorf("provider schema cannot contain write-only attributes"))
+	}
+
+	// Provider meta schema validation
+	providerMeta := schemaMap(p.ProviderMetaSchema)
+	if providerMeta.hasWriteOnly() {
+		validationErrors = append(validationErrors, fmt.Errorf("provider meta schema cannot contain write-only attributes"))
 	}
 
 	// Provider-specific checks
@@ -213,6 +226,15 @@ func (p *Provider) InternalValidate() error {
 	for k, r := range p.DataSourcesMap {
 		if err := r.InternalValidate(nil, false); err != nil {
 			validationErrors = append(validationErrors, fmt.Errorf("data source %s: %s", k, err))
+		}
+
+		if len(r.ValidateRawResourceConfigFuncs) > 0 {
+			validationErrors = append(validationErrors, fmt.Errorf("data source %s cannot contain ValidateRawResourceConfigFuncs", k))
+		}
+
+		dataSourceSchema := schemaMap(r.SchemaMap())
+		if dataSourceSchema.hasWriteOnly() {
+			validationErrors = append(validationErrors, fmt.Errorf("data source %s cannot contain write-only attributes", k))
 		}
 	}
 

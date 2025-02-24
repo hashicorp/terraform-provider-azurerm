@@ -277,7 +277,7 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 		case LinuxJavaServerTomcat:
 			return pointer.To(fmt.Sprintf("%s|%s-java17", LinuxJavaServerTomcat, javaServerVersion)), nil // e,g, TOMCAT|10.0-java17 / TOMCAT|10.0.20-java17
 		case LinuxJavaServerJboss:
-			return nil, fmt.Errorf("java 17 is not supported on %s", LinuxJavaServerJboss)
+			return pointer.To(fmt.Sprintf("%s|%s-java17", LinuxJavaServerJboss, javaServerVersion)), nil // e.g. TOMCAT|10.0-java17 and TOMCAT|10.0.20-java17// e.g. JBOSSEAP|7-java17 / JBOSSEAP|7.4.2-java17
 		default:
 			return pointer.To(fmt.Sprintf("%s|%s-java17", javaServer, javaServerVersion)), nil
 		}

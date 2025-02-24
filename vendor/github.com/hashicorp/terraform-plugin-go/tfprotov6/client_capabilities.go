@@ -3,6 +3,15 @@
 
 package tfprotov6
 
+// ValidateResourceConfigClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the ValidateResourceConfig RPC,
+// such as forward-compatible Terraform behavior changes.
+type ValidateResourceConfigClientCapabilities struct {
+	// WriteOnlyAttributesAllowed signals that the client is able to
+	// handle write_only attributes for managed resources.
+	WriteOnlyAttributesAllowed bool
+}
+
 // ConfigureProviderClientCapabilities allows Terraform to publish information
 // regarding optionally supported protocol features for the ConfigureProvider RPC,
 // such as forward-compatible Terraform behavior changes.

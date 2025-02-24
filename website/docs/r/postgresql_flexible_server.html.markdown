@@ -71,9 +71,9 @@ resource "azurerm_postgresql_flexible_server" "example" {
   zone                          = "1"
 
   storage_mb   = 32768
-  storage_tier = "P30"
+  storage_tier = "P4"
 
-  sku_name   = "GP_Standard_D4s_v3"
+  sku_name   = "B_Standard_B1ms"
   depends_on = [azurerm_private_dns_zone_virtual_network_link.example]
 
 }

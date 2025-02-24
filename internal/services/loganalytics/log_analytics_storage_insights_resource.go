@@ -54,7 +54,6 @@ func resourceLogAnalyticsStorageInsights() *pluginsdk.Resource {
 
 func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -67,7 +66,7 @@ func resourceLogAnalyticsStorageInsightsCreateUpdate(d *pluginsdk.ResourceData, 
 	if err != nil {
 		return err
 	}
-	id := storageinsights.NewStorageInsightConfigID(subscriptionId, resourceGroup, workspace.WorkspaceName, name)
+	id := storageinsights.NewStorageInsightConfigID(workspace.SubscriptionId, resourceGroup, workspace.WorkspaceName, name)
 
 	if d.IsNewResource() {
 		existing, err := client.StorageInsightConfigsGet(ctx, id)

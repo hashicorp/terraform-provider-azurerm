@@ -111,7 +111,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		schema["cdn_managed_https"].Elem.(*pluginsdk.Resource).Schema["tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,

@@ -26,6 +26,9 @@ func resourceSpatialAnchorsAccount() *pluginsdk.Resource {
 		Read:   resourceSpatialAnchorsAccountRead,
 		Update: resourceSpatialAnchorsAccountUpdate,
 		Delete: resourceSpatialAnchorsAccountDelete,
+
+		DeprecationMessage: "The `azurerm_spatial_anchors_account` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := resource.ParseSpatialAnchorsAccountID(id)
 			return err

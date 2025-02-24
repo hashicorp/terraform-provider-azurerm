@@ -100,6 +100,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "example" {
   rulestack_id = azurerm_palo_alto_local_rulestack.example.id
   priority     = 9999
   action       = "DenySilent"
+  protocol     = "application-default"
 
   applications = ["any"]
 

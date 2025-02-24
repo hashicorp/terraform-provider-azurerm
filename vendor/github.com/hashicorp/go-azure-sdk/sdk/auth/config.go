@@ -49,10 +49,16 @@ type Credentials struct {
 	// OIDCAssertionToken specifies the OIDC Assertion Token to authenticate using Client Credentials.
 	OIDCAssertionToken string
 
-	// EnableAuthenticationUsingGitHubOIDC specifies whether GitHub OIDC
+	// EnableAuthenticationUsingGitHubOIDC specifies whether GitHub OIDC should be checked.
 	EnableAuthenticationUsingGitHubOIDC bool
-	// GitHubOIDCTokenRequestURL specifies the URL for GitHub's OIDC provider
-	GitHubOIDCTokenRequestURL string
-	// GitHubOIDCTokenRequestToken specifies the bearer token for the request to GitHub's OIDC provider
-	GitHubOIDCTokenRequestToken string
+
+	// EnableAuthenticationUsingADOPipelineOIDC specifies whether ADO Pipeline OIDC should be checked.
+	EnableAuthenticationUsingADOPipelineOIDC bool
+
+	// OIDCTokenRequestURL specifies the URL for the OIDC provider
+	OIDCTokenRequestURL string
+	// OIDCTokenRequestToken specifies the bearer token for the request to the OIDC provider
+	OIDCTokenRequestToken string
+	// ADOPipelineServiceConnectionID specifies the ADO Service Connection ID to authenticate.
+	ADOPipelineServiceConnectionID string
 }

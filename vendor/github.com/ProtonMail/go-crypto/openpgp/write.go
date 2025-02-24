@@ -444,7 +444,13 @@ func encrypt(keyWriter io.Writer, dataWriter io.Writer, to []*Entity, signed *En
 		}
 	}
 
-	symKey := make([]byte, cipher.KeySize())
+	var symKey []byte
+	if aeadSupported {
+		symKey = make([]byte, aeadCipherSuite.Cipher.KeySize())
+	} else {
+		symKey = make([]byte, cipher.KeySize())
+	}
+
 	if _, err := io.ReadFull(config.Random(), symKey); err != nil {
 		return nil, err
 	}

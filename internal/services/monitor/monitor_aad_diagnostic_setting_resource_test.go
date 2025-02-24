@@ -500,7 +500,7 @@ resource "azurerm_monitor_aad_diagnostic_setting" "test" {
 }
 
 func (MonitorAADDiagnosticSettingResource) retentionDisabled(data acceptance.TestData) string {
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -48,7 +48,7 @@ fun pullRequestBuildConfiguration(environment: String, config: ClientConfigurati
     return buildConfiguration
 }
 
-class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false)) {
+class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion) {
     var parallelism = parallelism
     var startHour = startHour
     var daysOfWeek = daysOfWeek
@@ -57,4 +57,5 @@ class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = 
     var useAltSubscription = useAltSubscription
     var useDevTestSubscription = useDevTestSubscription
     var locationOverride = locationOverride
+    var terraformCoreOverride = terraformCoreOverride
 }

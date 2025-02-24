@@ -73,7 +73,7 @@ The following arguments are supported:
 
 -> **NOTE:** One of either `max_size_gb` or `max_size_bytes` must be specified.
 
-* `enclave_type` - (Optional) Specifies the type of enclave to be used by the elastic pool. When `enclave_type` is not specified (e.g., the default) enclaves are not enabled on the elastic pool. <!-- TODO: Uncomment in 4.0: Once enabled (e.g., by specifying `Default` or `VBS`) removing the `enclave_type` field from the configuration file will force the creation of a new resource.--> Possible values are `Default` or `VBS`.
+* `enclave_type` - (Optional) Specifies the type of enclave to be used by the elastic pool. When `enclave_type` is not specified (e.g., the default) enclaves are not enabled on the elastic pool. Once enabled (e.g., by specifying `Default` or `VBS`) removing the `enclave_type` field from the configuration file will force the creation of a new resource. Possible values are `Default` or `VBS`.
 
 -> **NOTE:** All databases that are added to the elastic pool must have the same `enclave_type` as the elastic pool.
 

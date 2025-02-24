@@ -27,6 +27,18 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where this Front Door Profile exists.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Front Door Profile.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Front Door Profile.
+
+---
+
 ## Attributes Reference
 
 The following attributes are exported:

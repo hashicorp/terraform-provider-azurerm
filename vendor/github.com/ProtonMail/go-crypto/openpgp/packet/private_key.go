@@ -202,6 +202,10 @@ func (pk *PrivateKey) parse(r io.Reader) (err error) {
 	v5 := pk.PublicKey.Version == 5
 	v6 := pk.PublicKey.Version == 6
 
+	if V5Disabled && v5 {
+		return errors.UnsupportedError("support for parsing v5 entities is disabled; build with `-tags v5` if needed")
+	}
+
 	var buf [1]byte
 	_, err = readFull(r, buf[:])
 	if err != nil {
@@ -260,6 +264,12 @@ func (pk *PrivateKey) parse(r io.Reader) (err error) {
 		}
 		if pk.s2kParams.Dummy() {
 			return
+		}
+		if pk.s2kParams.Mode() == s2k.Argon2S2K && pk.s2kType != S2KAEAD {
+			return errors.StructuralError("using Argon2 S2K without AEAD is not allowed")
+		}
+		if pk.s2kParams.Mode() == s2k.SimpleS2K && pk.Version == 6 {
+			return errors.StructuralError("using Simple S2K with version 6 keys is not allowed")
 		}
 		pk.s2k, err = pk.s2kParams.Function()
 		if err != nil {
@@ -653,6 +663,14 @@ func (pk *PrivateKey) encrypt(key []byte, params *s2k.Params, s2kType S2KType, c
 	// check if encryptionKey has the correct size
 	if len(key) != cipherFunction.KeySize() {
 		return errors.InvalidArgumentError("supplied encryption key has the wrong size")
+	}
+
+	if params.Mode() == s2k.Argon2S2K && s2kType != S2KAEAD {
+		return errors.InvalidArgumentError("using Argon2 S2K without AEAD is not allowed")
+	}
+	if params.Mode() != s2k.Argon2S2K && params.Mode() != s2k.IteratedSaltedS2K &&
+		params.Mode() != s2k.SaltedS2K { // only allowed for high-entropy passphrases
+		return errors.InvalidArgumentError("insecure S2K mode")
 	}
 
 	priv := bytes.NewBuffer(nil)

@@ -182,6 +182,13 @@ func TestAccManagementGroup_withSubscriptions(t *testing.T) {
 				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("0"),
 			),
 		},
+		{
+			Config: r.withSubscriptions(subscriptionID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subscription_ids.#").HasValue("1"),
+			),
+		},
 	})
 }
 

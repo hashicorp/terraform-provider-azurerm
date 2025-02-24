@@ -18,7 +18,7 @@ See [Running the Tests](running-the-tests.md).
 
 ### Test Package
 
-While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circuler references. ie for the file `./internal/services/aab2c/aadb2c_directory_data_source_test.go` the package should be:
+While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aab2c/aadb2c_directory_data_source_test.go` the package should be:
 
 ```go
 package aadb2c_test
@@ -134,11 +134,12 @@ func TestAccExampleDataSource_complete(t *testing.T) {
                 {
                         Config: r.complete(data),
                         Check: acceptance.ComposeTestCheckFunc(
-                            check.That(data.ResourceName).Key("example_property").HasValue("bar")
-                            check.That(data.ResourceName).Key("example_optional_bool").HasValue("false")
-                            check.That(data.ResourceName).Key("example_optional_string").HasValue("foo")
+                            check.That(data.ResourceName).Key("example_property").HasValue("bar"),
+                            check.That(data.ResourceName).Key("example_optional_bool").HasValue("false"),
+                            check.That(data.ResourceName).Key("example_optional_string").HasValue("foo"),
                         ),
                 },
+                data.ImportStep(),
         })
 }
 

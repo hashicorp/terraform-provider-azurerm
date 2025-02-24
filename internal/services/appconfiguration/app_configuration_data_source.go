@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/replicas"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/replicas"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -40,21 +40,36 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
+			"data_plane_proxy_authentication_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"data_plane_proxy_private_link_delegation_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"encryption": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"key_vault_key_identifier": {
+						"identity_client_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
-						"identity_client_id": {
+						"key_vault_key_identifier": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},
 				},
+			},
+
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
@@ -64,83 +79,7 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"purge_protection_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Computed: true,
-			},
-
-			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"soft_delete_retention_days": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"endpoint": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_network_access": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"replica": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"location": commonschema.LocationComputed(),
-						"endpoint": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"primary_read_key": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"secret": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"connection_string": {
-							Type:      pluginsdk.TypeString,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
-
-			"secondary_read_key": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
 				Elem: &pluginsdk.Resource{
@@ -188,6 +127,67 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 				},
 			},
 
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"purge_protection_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"replica": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"location": commonschema.LocationComputed(),
+						"endpoint": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"secondary_read_key": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secret": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"connection_string": {
+							Type:      pluginsdk.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
 			"secondary_write_key": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -210,6 +210,16 @@ func dataSourceAppConfiguration() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"sku": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"soft_delete_retention_days": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
 			},
 
 			"tags": commonschema.TagsDataSource(),
@@ -248,6 +258,11 @@ func dataSourceAppConfigurationRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("sku", model.Sku.Name)
 
 		if props := model.Properties; props != nil {
+			if dataPlaneProxy := props.DataPlaneProxy; dataPlaneProxy != nil {
+				d.Set("data_plane_proxy_authentication_mode", string(pointer.From(dataPlaneProxy.AuthenticationMode)))
+				d.Set("data_plane_proxy_private_link_delegation_enabled", pointer.From(dataPlaneProxy.PrivateLinkDelegation) == configurationstores.PrivateLinkDelegationEnabled)
+			}
+
 			d.Set("endpoint", props.Endpoint)
 			d.Set("encryption", flattenAppConfigurationEncryption(props.Encryption))
 			d.Set("public_network_access", string(pointer.From(props.PublicNetworkAccess)))

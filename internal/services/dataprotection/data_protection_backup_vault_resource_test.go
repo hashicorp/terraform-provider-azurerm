@@ -241,11 +241,15 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
   identity {
     type = "SystemAssigned"
   }
+
+  immutability               = "Disabled"
   soft_delete                = "Off"
   retention_duration_in_days = 14
+
   tags = {
     ENV = "Test"
   }
@@ -264,11 +268,15 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
   identity {
     type = "SystemAssigned"
   }
+
+  immutability               = "Locked"
   soft_delete                = "On"
   retention_duration_in_days = 15
+
   tags = {
     ENV = "Test"
   }
@@ -287,6 +295,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
   location            = azurerm_resource_group.test.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
+
   tags = {
     ENV = "Test"
   }

@@ -163,7 +163,7 @@ func resourceEventHub() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		r.Schema["namespace_id"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -213,7 +213,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		resourceGroupName = namespaceId.ResourceGroupName
 	}
 
-	if !features.FivePointOhBeta() && namespaceName == "" {
+	if !features.FivePointOh() && namespaceName == "" {
 		namespaceName = d.Get("namespace_name").(string)
 		resourceGroupName = d.Get("resource_group_name").(string)
 	}
@@ -331,7 +331,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.Set("name", id.EventhubName)
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		d.Set("namespace_name", id.NamespaceName)
 		d.Set("resource_group_name", id.ResourceGroupName)
 	}

@@ -207,7 +207,7 @@ resource "azurerm_route_table" "rt" {
   name                          = "${var.prefix}-mi-rt"
   location                      = var.location
   resource_group_name           = var.resource_group_name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
 
   route {
     name           = "subnet-to-vnetlocal"
@@ -1190,7 +1190,7 @@ resource "azurerm_subnet_route_table_association" "subnet_rt" {
   route_table_id = azurerm_route_table.rt.id
 }
 
-resource "azurerm_sql_managed_instance" "mi" {
+resource "azurerm_mssql_managed_instance" "mi" {
   name                         = "${var.prefix}-mi"
   resource_group_name          = var.resource_group_name
   location                     = var.location

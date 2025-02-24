@@ -147,7 +147,7 @@ func (ar *aeadDecrypter) openChunk(data []byte) ([]byte, error) {
 	nonce := ar.computeNextNonce()
 	plainChunk, err := ar.aead.Open(nil, nonce, chunk, adata)
 	if err != nil {
-		return nil, err
+		return nil, errors.ErrAEADTagVerification
 	}
 	ar.bytesProcessed += len(plainChunk)
 	if err = ar.aeadCrypter.incrementIndex(); err != nil {
@@ -172,9 +172,8 @@ func (ar *aeadDecrypter) validateFinalTag(tag []byte) error {
 	// ... and total number of encrypted octets
 	adata = append(adata, amountBytes...)
 	nonce := ar.computeNextNonce()
-	_, err := ar.aead.Open(nil, nonce, tag, adata)
-	if err != nil {
-		return err
+	if _, err := ar.aead.Open(nil, nonce, tag, adata); err != nil {
+		return errors.ErrAEADTagVerification
 	}
 	return nil
 }

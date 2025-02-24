@@ -167,6 +167,7 @@ func (s *Schema) coreConfigSchemaAttribute() *configschema.Attribute {
 		Description:     desc,
 		DescriptionKind: descKind,
 		Deprecated:      s.Deprecated != "",
+		WriteOnly:       s.WriteOnly,
 	}
 }
 

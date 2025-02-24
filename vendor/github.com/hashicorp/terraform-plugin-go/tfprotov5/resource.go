@@ -83,6 +83,10 @@ type ValidateResourceTypeConfigRequest struct {
 	// from knowing the value at request time. Any attributes not directly
 	// set in the configuration will be null.
 	Config *DynamicValue
+
+	// ClientCapabilities defines optionally supported protocol features for the
+	// ValidateResourceTypeConfig RPC, such as forward-compatible Terraform behavior changes.
+	ClientCapabilities *ValidateResourceTypeConfigClientCapabilities
 }
 
 // ValidateResourceTypeConfigResponse is the response from the provider about

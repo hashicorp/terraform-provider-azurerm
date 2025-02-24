@@ -11,11 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -338,40 +337,20 @@ func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 }
 
 func TestAccSubnet_privateLinkEndpointNetworkPoliciesValidateDefaultValues(t *testing.T) {
-	if features.FourPointOhBeta() {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
 
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-		r := SubnetResource{}
-
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("enforce_private_link_endpoint_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("enforce_private_link_service_network_policies").HasValue("false"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
-					check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Enabled"),
-				),
-			},
-			data.ImportStep(),
-		})
-	}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateLinkEndpointNetworkPoliciesDefaults(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_endpoint_network_policies").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("private_link_service_network_policies_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccSubnet_updateServiceDelegation(t *testing.T) {

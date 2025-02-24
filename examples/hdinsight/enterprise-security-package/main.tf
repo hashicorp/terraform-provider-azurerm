@@ -42,7 +42,7 @@ resource "azurerm_subnet" "example" {
   name                 = "${var.prefix}-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = [cidrsubnet(azurerm_virtual_network.example.address_space.0, 8, 0)]
+  address_prefixes     = azurerm_virtual_network.example.address_space
 }
 
 resource "azurerm_network_security_group" "example" {

@@ -64,11 +64,10 @@ module "vnet_gateway" {
   gateway_subnet_range_2 = "10.0.2.0/24"
 }
 
-resource "azurerm_sql_managed_instance_failover_group" "example" {
+resource "azurerm_mssql_managed_instance_failover_group" "example" {
   name                        = "${var.prefix}-fog"
-  resource_group_name         = azurerm_resource_group.primary.name
   location                    = azurerm_resource_group.primary.location
-  managed_instance_name       = module.primary.managed_instance_name
+  managed_instance_id         = module.primary.managed_instance_id
   partner_managed_instance_id = module.secondary.managed_instance_id
 
   read_write_endpoint_failover_policy {
@@ -78,6 +77,7 @@ resource "azurerm_sql_managed_instance_failover_group" "example" {
   depends_on = [
     module.vnet_gateway
   ]
+
 }
 
 

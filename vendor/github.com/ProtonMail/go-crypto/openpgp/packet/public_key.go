@@ -63,9 +63,10 @@ func (pk *PublicKey) UpgradeToV5() {
 
 // UpgradeToV6 updates the version of the key to v6, and updates all necessary
 // fields.
-func (pk *PublicKey) UpgradeToV6() {
+func (pk *PublicKey) UpgradeToV6() error {
 	pk.Version = 6
 	pk.setFingerprintAndKeyId()
+	return pk.checkV6Compatibility()
 }
 
 // signingKey provides a convenient abstraction over signature verification
@@ -236,11 +237,16 @@ func (pk *PublicKey) parse(r io.Reader) (err error) {
 	if err != nil {
 		return
 	}
-	if buf[0] != 4 && buf[0] != 5 && buf[0] != 6 {
+
+	pk.Version = int(buf[0])
+	if pk.Version != 4 && pk.Version != 5 && pk.Version != 6 {
 		return errors.UnsupportedError("public key version " + strconv.Itoa(int(buf[0])))
 	}
 
-	pk.Version = int(buf[0])
+	if V5Disabled && pk.Version == 5 {
+		return errors.UnsupportedError("support for parsing v5 entities is disabled; build with `-tags v5` if needed")
+	}
+
 	if pk.Version >= 5 {
 		// Read the four-octet scalar octet count
 		// The count is not used in this implementation
@@ -306,6 +312,23 @@ func (pk *PublicKey) setFingerprintAndKeyId() {
 		copy(pk.Fingerprint, fingerprint.Sum(nil))
 		pk.KeyId = binary.BigEndian.Uint64(pk.Fingerprint[12:20])
 	}
+}
+
+func (pk *PublicKey) checkV6Compatibility() error {
+	// Implementations MUST NOT accept or generate version 6 key material using the deprecated OIDs.
+	switch pk.PubKeyAlgo {
+	case PubKeyAlgoECDH:
+		curveInfo := ecc.FindByOid(pk.oid)
+		if curveInfo == nil {
+			return errors.UnsupportedError(fmt.Sprintf("unknown oid: %x", pk.oid))
+		}
+		if curveInfo.GenName == ecc.Curve25519GenName {
+			return errors.StructuralError("cannot generate v6 key with deprecated OID: Curve25519Legacy")
+		}
+	case PubKeyAlgoEdDSA:
+		return errors.StructuralError("cannot generate v6 key with deprecated algorithm: EdDSALegacy")
+	}
+	return nil
 }
 
 // parseRSA parses RSA public key material from the given Reader. See RFC 4880,
@@ -432,6 +455,11 @@ func (pk *PublicKey) parseECDH(r io.Reader) (err error) {
 		return errors.UnsupportedError(fmt.Sprintf("unknown oid: %x", pk.oid))
 	}
 
+	if pk.Version == 6 && curveInfo.GenName == ecc.Curve25519GenName {
+		// Implementations MUST NOT accept or generate version 6 key material using the deprecated OIDs.
+		return errors.StructuralError("cannot read v6 key with deprecated OID: Curve25519Legacy")
+	}
+
 	pk.p = new(encoding.MPI)
 	if _, err = pk.p.ReadFrom(r); err != nil {
 		return
@@ -469,6 +497,11 @@ func (pk *PublicKey) parseECDH(r io.Reader) (err error) {
 }
 
 func (pk *PublicKey) parseEdDSA(r io.Reader) (err error) {
+	if pk.Version == 6 {
+		// Implementations MUST NOT accept or generate version 6 key material using the deprecated OIDs.
+		return errors.StructuralError("cannot generate v6 key with deprecated algorithm: EdDSALegacy")
+	}
+
 	pk.oid = new(encoding.OID)
 	if _, err = pk.oid.ReadFrom(r); err != nil {
 		return
@@ -590,10 +623,7 @@ func (pk *PublicKey) SerializeSignaturePrefix(w io.Writer) error {
 			byte(pLength >> 8),
 			byte(pLength),
 		})
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	}
 	if _, err := w.Write([]byte{0x99, byte(pLength >> 8), byte(pLength)}); err != nil {
 		return err
@@ -752,6 +782,20 @@ func (pk *PublicKey) CanSign() bool {
 	return pk.PubKeyAlgo != PubKeyAlgoRSAEncryptOnly && pk.PubKeyAlgo != PubKeyAlgoElGamal && pk.PubKeyAlgo != PubKeyAlgoECDH
 }
 
+// VerifyHashTag returns nil iff sig appears to be a plausible signature of the data
+// hashed into signed, based solely on its HashTag. signed is mutated by this call.
+func VerifyHashTag(signed hash.Hash, sig *Signature) (err error) {
+	if sig.Version == 5 && (sig.SigType == 0x00 || sig.SigType == 0x01) {
+		sig.AddMetadataToHashSuffix()
+	}
+	signed.Write(sig.HashSuffix)
+	hashBytes := signed.Sum(nil)
+	if hashBytes[0] != sig.HashTag[0] || hashBytes[1] != sig.HashTag[1] {
+		return errors.SignatureError("hash tag doesn't match")
+	}
+	return nil
+}
+
 // VerifySignature returns nil iff sig is a valid signature, made by this
 // public key, of the data hashed into signed. signed is mutated by this call.
 func (pk *PublicKey) VerifySignature(signed hash.Hash, sig *Signature) (err error) {
@@ -835,6 +879,20 @@ func keySignatureHash(pk, signed signingKey, hashFunc hash.Hash) (h hash.Hash, e
 	return
 }
 
+// VerifyKeyHashTag returns nil iff sig appears to be a plausible signature over this
+// primary key and subkey, based solely on its HashTag.
+func (pk *PublicKey) VerifyKeyHashTag(signed *PublicKey, sig *Signature) error {
+	preparedHash, err := sig.PrepareVerify()
+	if err != nil {
+		return err
+	}
+	h, err := keySignatureHash(pk, signed, preparedHash)
+	if err != nil {
+		return err
+	}
+	return VerifyHashTag(h, sig)
+}
+
 // VerifyKeySignature returns nil iff sig is a valid signature, made by this
 // public key, of signed.
 func (pk *PublicKey) VerifyKeySignature(signed *PublicKey, sig *Signature) error {
@@ -878,6 +936,19 @@ func keyRevocationHash(pk signingKey, hashFunc hash.Hash) (err error) {
 	return pk.SerializeForHash(hashFunc)
 }
 
+// VerifyRevocationHashTag returns nil iff sig appears to be a plausible signature
+// over this public key, based solely on its HashTag.
+func (pk *PublicKey) VerifyRevocationHashTag(sig *Signature) (err error) {
+	preparedHash, err := sig.PrepareVerify()
+	if err != nil {
+		return err
+	}
+	if err = keyRevocationHash(pk, preparedHash); err != nil {
+		return err
+	}
+	return VerifyHashTag(preparedHash, sig)
+}
+
 // VerifyRevocationSignature returns nil iff sig is a valid signature, made by this
 // public key.
 func (pk *PublicKey) VerifyRevocationSignature(sig *Signature) (err error) {
@@ -885,7 +956,7 @@ func (pk *PublicKey) VerifyRevocationSignature(sig *Signature) (err error) {
 	if err != nil {
 		return err
 	}
-	if keyRevocationHash(pk, preparedHash); err != nil {
+	if err = keyRevocationHash(pk, preparedHash); err != nil {
 		return err
 	}
 	return pk.VerifySignature(preparedHash, sig)
@@ -932,6 +1003,20 @@ func userIdSignatureHash(id string, pk *PublicKey, h hash.Hash) (err error) {
 // directKeySignatureHash returns a Hash of the message that needs to be signed.
 func directKeySignatureHash(pk *PublicKey, h hash.Hash) (err error) {
 	return pk.SerializeForHash(h)
+}
+
+// VerifyUserIdHashTag returns nil iff sig appears to be a plausible signature over this
+// public key and UserId, based solely on its HashTag
+func (pk *PublicKey) VerifyUserIdHashTag(id string, sig *Signature) (err error) {
+	preparedHash, err := sig.PrepareVerify()
+	if err != nil {
+		return err
+	}
+	err = userIdSignatureHash(id, pk, preparedHash)
+	if err != nil {
+		return err
+	}
+	return VerifyHashTag(preparedHash, sig)
 }
 
 // VerifyUserIdSignature returns nil iff sig is a valid signature, made by this

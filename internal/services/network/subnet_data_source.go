@@ -11,9 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,7 +20,7 @@ import (
 )
 
 func dataSourceSubnet() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceSubnetRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -88,28 +87,6 @@ func dataSourceSubnet() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["private_endpoint_network_policies_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "This property has been superseded by `private_endpoint_network_policies` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["enforce_private_link_endpoint_network_policies"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "This property has been superseded by `private_endpoint_network_policies` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["enforce_private_link_service_network_policies"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "This property has been superseded by `private_link_service_network_policies_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-	}
-
-	return resource
 }
 
 func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -143,12 +120,6 @@ func dataSourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				}
 			} else {
 				d.Set("address_prefixes", utils.FlattenStringSlice(props.AddressPrefixes))
-			}
-
-			if !features.FourPointOhBeta() {
-				d.Set("enforce_private_link_endpoint_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
-				d.Set("private_endpoint_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateEndpointNetworkPolicies)))
-				d.Set("enforce_private_link_service_network_policies", flattenEnforceSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 			}
 
 			defaultOutboundAccessEnabled := true

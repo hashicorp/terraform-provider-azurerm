@@ -4,6 +4,7 @@
 package common
 
 import (
+	"math"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -74,7 +75,7 @@ func SchemaCorsRule() *pluginsdk.Schema {
 				"max_age_in_seconds": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 			},
 		},

@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Spatial Anchors Account.
 
+~> **Note:** The `azurerm_spatial_anchors_account` resource has been deprecated because the service is retiring from 2024-11-20 and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl

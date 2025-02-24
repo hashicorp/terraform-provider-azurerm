@@ -15,10 +15,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/firewalls"
 	helpersValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type NextGenerationFirewallVNetPanoramaResource struct{}
@@ -31,7 +33,9 @@ type NextGenerationFirewallVnetPanoramaModel struct {
 	NetworkProfile       []schema.NetworkProfileVnet `tfschema:"network_profile"`
 	DNSSettings          []schema.DNSSettings        `tfschema:"dns_settings"`
 	FrontEnd             []schema.DestinationNAT     `tfschema:"destination_nat"`
+	MarketplaceOfferId   string                      `tfschema:"marketplace_offer_id"`
 	PanoramaConfig       []schema.Panorama           `tfschema:"panorama"`
+	PlanId               string                      `tfschema:"plan_id"`
 	Tags                 map[string]interface{}      `tfschema:"tags"`
 }
 
@@ -42,7 +46,7 @@ func (r NextGenerationFirewallVNetPanoramaResource) ModelObject() interface{} {
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -67,8 +71,29 @@ func (r NextGenerationFirewallVNetPanoramaResource) Arguments() map[string]*plug
 
 		"destination_nat": schema.DestinationNATSchema(),
 
+		"marketplace_offer_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "pan_swfw_cloud_ngfw",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"plan_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "panw-cngfw-payg",
+			ValidateFunc: validation.StringLenBetween(1, 50),
+		},
+
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["plan_id"].Default = "panw-cloud-ngfw-payg"
+	}
+
+	return args
 }
 
 func (r NextGenerationFirewallVNetPanoramaResource) Attributes() map[string]*pluginsdk.Schema {
@@ -114,13 +139,13 @@ func (r NextGenerationFirewallVNetPanoramaResource) Create() sdk.ResourceFunc {
 					IsPanoramaManaged: pointer.To(firewalls.BooleanEnumTRUE),
 					DnsSettings:       schema.ExpandDNSSettings(model.DNSSettings),
 					MarketplaceDetails: firewalls.MarketplaceDetails{
-						OfferId:     "pan_swfw_cloud_ngfw", // TODO - Will just supplying the offer ID `panw-cloud-ngfw-payg` work?
+						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVnet(model.NetworkProfile),
 					PlanData: firewalls.PlanData{
 						BillingCycle: firewalls.BillingCycleMONTHLY,
-						PlanId:       "panw-cloud-ngfw-payg",
+						PlanId:       model.PlanId,
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},
@@ -183,6 +208,10 @@ func (r NextGenerationFirewallVNetPanoramaResource) Read() sdk.ResourceFunc {
 						VMAuthKey:       pointer.From(panoramaConfig.VMAuthKey),
 					}}
 				}
+
+				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
+
+				state.PlanId = props.PlanData.PlanId
 
 				state.Tags = tags.Flatten(model.Tags)
 			}
@@ -255,6 +284,10 @@ func (r NextGenerationFirewallVNetPanoramaResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("destination_nat") {
 				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
+			}
+
+			if metadata.ResourceData.HasChange("plan_id") {
+				props.PlanData.PlanId = model.PlanId
 			}
 
 			firewall.Properties = props

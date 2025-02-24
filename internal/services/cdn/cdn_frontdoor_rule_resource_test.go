@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -436,19 +436,17 @@ func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorError(t *testing.T) {
 }
 
 func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.FrontDoorRuleID(state.ID)
+	id, err := rules.ParseRuleID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	client := clients.Cdn.FrontDoorRulesClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.RuleSetName, id.RuleName)
+	_, err = client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	return utils.Bool(true), nil
 }
 
@@ -994,13 +992,10 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
       cache_duration                = "365.23:59:59"
     }
 
-    url_redirect_action {
-      redirect_type        = "PermanentRedirect"
-      redirect_protocol    = "MatchRequest"
-      query_string         = "clientIp={client_ip}"
-      destination_path     = "/exampleredirection"
-      destination_hostname = "contoso.com"
-      destination_fragment = "UrlRedirect"
+    response_header_action {
+      header_action = "Append"
+      header_name   = "Set-Cookie"
+      value         = "sessionId=12345678"
     }
   }
 

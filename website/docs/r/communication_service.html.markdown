@@ -48,6 +48,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `secondary_connection_string` - The secondary connection string of the Communication Service.
 * `primary_key` - The primary key of the Communication Service.
 * `secondary_key` - The secondary key of the Communication Service.
+* `hostname` - The hostname of the Communication Service
 
 ## Timeouts
 

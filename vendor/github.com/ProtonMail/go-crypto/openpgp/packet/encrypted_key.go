@@ -181,7 +181,12 @@ func (e *EncryptedKey) Decrypt(priv *PrivateKey, config *Config) error {
 		vsG := e.encryptedMPI1.Bytes()
 		m := e.encryptedMPI2.Bytes()
 		oid := priv.PublicKey.oid.EncodedBytes()
-		b, err = ecdh.Decrypt(priv.PrivateKey.(*ecdh.PrivateKey), vsG, m, oid, priv.PublicKey.Fingerprint[:])
+		fp := priv.PublicKey.Fingerprint[:]
+		if priv.PublicKey.Version == 5 {
+			// For v5 the, the fingerprint must be restricted to 20 bytes
+			fp = fp[:20]
+		}
+		b, err = ecdh.Decrypt(priv.PrivateKey.(*ecdh.PrivateKey), vsG, m, oid, fp)
 	case PubKeyAlgoX25519:
 		b, err = x25519.Decrypt(priv.PrivateKey.(*x25519.PrivateKey), e.ephemeralPublicX25519, e.encryptedSession)
 	case PubKeyAlgoX448:
@@ -316,7 +321,8 @@ func (e *EncryptedKey) Serialize(w io.Writer) error {
 
 // SerializeEncryptedKeyAEAD serializes an encrypted key packet to w that contains
 // key, encrypted to pub.
-// If aeadSupported is set, PKESK v6 is used else v4.
+// If aeadSupported is set, PKESK v6 is used, otherwise v3.
+// Note: aeadSupported MUST match the value passed to SerializeSymmetricallyEncrypted.
 // If config is nil, sensible defaults will be used.
 func SerializeEncryptedKeyAEAD(w io.Writer, pub *PublicKey, cipherFunc CipherFunction, aeadSupported bool, key []byte, config *Config) error {
 	return SerializeEncryptedKeyAEADwithHiddenOption(w, pub, cipherFunc, aeadSupported, key, false, config)
@@ -325,7 +331,8 @@ func SerializeEncryptedKeyAEAD(w io.Writer, pub *PublicKey, cipherFunc CipherFun
 // SerializeEncryptedKeyAEADwithHiddenOption serializes an encrypted key packet to w that contains
 // key, encrypted to pub.
 // Offers the hidden flag option to indicated if the PKESK packet should include a wildcard KeyID.
-// If aeadSupported is set, PKESK v6 is used else v4.
+// If aeadSupported is set, PKESK v6 is used, otherwise v3.
+// Note: aeadSupported MUST match the value passed to SerializeSymmetricallyEncrypted.
 // If config is nil, sensible defaults will be used.
 func SerializeEncryptedKeyAEADwithHiddenOption(w io.Writer, pub *PublicKey, cipherFunc CipherFunction, aeadSupported bool, key []byte, hidden bool, config *Config) error {
 	var buf [36]byte // max possible header size is v6
@@ -421,6 +428,7 @@ func SerializeEncryptedKeyAEADwithHiddenOption(w io.Writer, pub *PublicKey, ciph
 // key, encrypted to pub.
 // PKESKv6 is used if config.AEAD() is not nil.
 // If config is nil, sensible defaults will be used.
+// Deprecated: Use SerializeEncryptedKeyAEAD instead.
 func SerializeEncryptedKey(w io.Writer, pub *PublicKey, cipherFunc CipherFunction, key []byte, config *Config) error {
 	return SerializeEncryptedKeyAEAD(w, pub, cipherFunc, config.AEAD() != nil, key, config)
 }
@@ -429,6 +437,7 @@ func SerializeEncryptedKey(w io.Writer, pub *PublicKey, cipherFunc CipherFunctio
 // key, encrypted to pub. PKESKv6 is used if config.AEAD() is not nil.
 // The hidden option controls if the packet should be anonymous, i.e., omit key metadata.
 // If config is nil, sensible defaults will be used.
+// Deprecated: Use SerializeEncryptedKeyAEADwithHiddenOption instead.
 func SerializeEncryptedKeyWithHiddenOption(w io.Writer, pub *PublicKey, cipherFunc CipherFunction, key []byte, hidden bool, config *Config) error {
 	return SerializeEncryptedKeyAEADwithHiddenOption(w, pub, cipherFunc, config.AEAD() != nil, key, hidden, config)
 }

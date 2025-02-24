@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -129,6 +130,28 @@ func (r NextGenerationFirewallVWanResource) Exists(ctx context.Context, client *
 }
 
 func (r NextGenerationFirewallVWanResource) basic(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
+  name                = "acctest-ngfwvh-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  plan_id             = "panw-cngfw-payg"
+
+  network_profile {
+    virtual_hub_id               = azurerm_virtual_hub.test.id
+    network_virtual_appliance_id = azurerm_palo_alto_virtual_network_appliance.test.id
+    public_ip_address_ids        = [azurerm_public_ip.test.id]
+  }
+}
+`, r.template(data), data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -151,9 +174,25 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack
 }
 
 func (r NextGenerationFirewallVWanResource) requiresImport(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "import" {
+  name                = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.name
+  resource_group_name = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.resource_group_name
+  rulestack_id        = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.rulestack_id
+  plan_id             = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.plan_id
+
+  network_profile {
+    virtual_hub_id               = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.virtual_hub_id
+    network_virtual_appliance_id = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.network_virtual_appliance_id
+    public_ip_address_ids        = azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.test.network_profile.0.public_ip_address_ids
+  }
+}
+`, r.basic(data))
+	}
 	return fmt.Sprintf(`
-
-
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "import" {
@@ -179,9 +218,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
-  name                = "acctest-ngfwvh-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  name                 = "acctest-ngfwvh-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -233,9 +274,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack" "test" {
-  name                = "acctest-ngfwvh-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  name                 = "acctest-ngfwvh-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cngfw-payg"
 
   network_profile {
     virtual_hub_id               = azurerm_virtual_hub.test.id
@@ -277,6 +320,8 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  depends_on = [azurerm_public_ip.egress]
 }
 
 resource "azurerm_public_ip" "egress" {
@@ -331,8 +376,8 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
 resource "azurerm_palo_alto_virtual_network_appliance" "test" {
   name           = "testAcc-panva-%[1]d"
   virtual_hub_id = azurerm_virtual_hub.test.id
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
 }
-
-
 `, data.RandomInteger, data.Locations.Primary)
 }

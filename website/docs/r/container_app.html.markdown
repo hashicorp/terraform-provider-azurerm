@@ -124,6 +124,8 @@ A `template` block supports the following:
 
 * `revision_suffix` - (Optional) The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
+* `termination_grace_period_seconds` - (Optional)   The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+
 * `volume` - (Optional) A `volume` block as detailed below.
 
 ---
@@ -268,8 +270,6 @@ A `liveness_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
@@ -344,8 +344,6 @@ A `startup_probe` block supports the following:
 
 * `port` - (Required) The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - (Required) Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
@@ -366,6 +364,7 @@ A `volume_mounts` block supports the following:
 
 * `path` - (Required) The path in the container at which to mount this volume.
 
+* `sub_path` - (Optional) The sub path of the volume to be mounted in the container.
 ---
 
 An `identity` block supports the following:
@@ -397,6 +396,8 @@ An `ingress` block supports the following:
 * `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
 ~> **Note:**  if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
+
+* `client_certificate_mode` - (Optional) The client certificate mode for the Ingress. Possible values are `require`, `accept`, and `ignore`.
 
 ---
 

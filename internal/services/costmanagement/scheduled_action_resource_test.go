@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2022-10-01/scheduledactions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -116,7 +116,7 @@ func (t CostManagementScheduledAction) Exists(ctx context.Context, clients *clie
 		return nil, err
 	}
 
-	resp, err := clients.CostManagement.ScheduledActionsClient_v2022_10_01.GetByScope(ctx, *id)
+	resp, err := clients.CostManagement.ScheduledActionsClient.GetByScope(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving (%s): %+v", *id, err)
 	}

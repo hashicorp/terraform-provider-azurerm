@@ -251,15 +251,25 @@ func (f Function) Call(args []cty.Value) (val cty.Value, err error) {
 	if err != nil {
 		return cty.NilVal, err
 	}
+
+	var resultMarks []cty.ValueMarks
+	// If we are returning an unknown early due to some unknown in the
+	// arguments, we first need to complete the iteration over all the args
+	// to ensure we collect as many marks as possible for resultMarks.
+	returnUnknown := false
+
 	if dynTypeArgs {
 		// returnTypeForValues sets this if any argument was inexactly typed
 		// and the corresponding parameter did not indicate it could deal with
 		// that. In that case we also avoid calling the implementation function
 		// because it will also typically not be ready to deal with that case.
-		return cty.UnknownVal(expectedType), nil
+		returnUnknown = true
 	}
 
-	if refineResult := f.spec.RefineResult; refineResult != nil {
+	// If returnUnknown is set already, it means we don't have a refinement
+	// because of dynTypeArgs, but we may still need to collect marks from the
+	// rest of the arguments.
+	if refineResult := f.spec.RefineResult; refineResult != nil && !returnUnknown {
 		// If this function has a refinement callback then we'll refine
 		// our result value in the same way regardless of how we return.
 		// It's the function author's responsibility to ensure that the
@@ -280,14 +290,9 @@ func (f Function) Call(args []cty.Value) (val cty.Value, err error) {
 	// values and marked values.
 	posArgs := args[:len(f.spec.Params)]
 	varArgs := args[len(f.spec.Params):]
-	var resultMarks []cty.ValueMarks
 
 	for i, spec := range f.spec.Params {
 		val := posArgs[i]
-
-		if !val.IsKnown() && !spec.AllowUnknown {
-			return cty.UnknownVal(expectedType), nil
-		}
 
 		if !spec.AllowMarked {
 			unwrappedVal, marks := val.UnmarkDeep()
@@ -305,14 +310,15 @@ func (f Function) Call(args []cty.Value) (val cty.Value, err error) {
 				args = newArgs
 			}
 		}
+
+		if !val.IsKnown() && !spec.AllowUnknown {
+			returnUnknown = true
+		}
 	}
 
 	if f.spec.VarParam != nil {
 		spec := f.spec.VarParam
 		for i, val := range varArgs {
-			if !val.IsKnown() && !spec.AllowUnknown {
-				return cty.UnknownVal(expectedType), nil
-			}
 			if !spec.AllowMarked {
 				unwrappedVal, marks := val.UnmarkDeep()
 				if len(marks) > 0 {
@@ -323,7 +329,14 @@ func (f Function) Call(args []cty.Value) (val cty.Value, err error) {
 					args = newArgs
 				}
 			}
+			if !val.IsKnown() && !spec.AllowUnknown {
+				returnUnknown = true
+			}
 		}
+	}
+
+	if returnUnknown {
+		return cty.UnknownVal(expectedType).WithMarks(resultMarks...), nil
 	}
 
 	var retVal cty.Value

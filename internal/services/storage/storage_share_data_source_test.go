@@ -15,7 +15,7 @@ import (
 type dataSourceStorageShare struct{}
 
 func TestAccDataSourceStorageShare_basicDeprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as not valid in 5.0")
 	}
 

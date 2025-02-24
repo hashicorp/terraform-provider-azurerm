@@ -20,7 +20,7 @@ import (
 type DatabricksWorkspaceCustomerManagedKeyResource struct{}
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Resource no longer exists in 5.0")
 	}
 
@@ -43,7 +43,7 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_basic(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Resource no longer exists in 5.0")
 	}
 
@@ -73,7 +73,7 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_remove(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Resource no longer exists in 5.0")
 	}
 
@@ -94,7 +94,7 @@ func TestAccDatabricksWorkspaceCustomerManagedKey_requiresImport(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspaceCustomerManagedKey_noIp(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("Resource no longer exists in 5.0")
 	}
 

@@ -14,8 +14,9 @@ func ValidateResourceTypeConfigRequest(in *tfplugin5.ValidateResourceTypeConfig_
 	}
 
 	resp := &tfprotov5.ValidateResourceTypeConfigRequest{
-		Config:   DynamicValue(in.Config),
-		TypeName: in.TypeName,
+		ClientCapabilities: ValidateResourceTypeConfigClientCapabilities(in.ClientCapabilities),
+		Config:             DynamicValue(in.Config),
+		TypeName:           in.TypeName,
 	}
 
 	return resp

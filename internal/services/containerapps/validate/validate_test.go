@@ -324,3 +324,115 @@ func TestContainerAppScaleRuleConcurrentRequests(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateContainerAppName(t *testing.T) {
+	// From Portal: Value must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters.
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "",
+		},
+		{
+			Input: "-",
+		},
+		{
+			Input: "9",
+		},
+		{
+			Input: "a-",
+		},
+		{
+			Input: "a.",
+		},
+		{
+			Input: "a--a",
+		},
+		{
+			Input: "Cannothavecapitals",
+		},
+		{
+			Input: "a-a",
+			Valid: true,
+		},
+		{
+			Input: "val-1-id",
+			Valid: true,
+		},
+		{
+			Input: "invalid12345678901234567890123456",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := ContainerAppName(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s: %+v", tc.Valid, valid, tc.Input, errors)
+		}
+	}
+}
+
+func TestValidateContainerAppContainerName(t *testing.T) {
+	// From Portal: Value must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character. The length must not be more than 46 characters.
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "",
+		},
+		{
+			Input: "-",
+		},
+		{
+			Input: "a-",
+		},
+		{
+			Input: "a.",
+		},
+		{
+			Input: "Cannothavecapitals",
+		},
+		{
+			Input: "invalid1234567890123456789012345678901234567890",
+		},
+		{
+			Input: "9",
+			Valid: true,
+		},
+		{
+			Input: "a",
+			Valid: true,
+		},
+		{
+			Input: "a--a",
+			Valid: true,
+		},
+		{
+			Input: "a-a",
+			Valid: true,
+		},
+		{
+			Input: "val-1-id",
+			Valid: true,
+		},
+		{
+			Input: "validbutverylong123456789012345678901234567890",
+			Valid: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := ContainerAppContainerName(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s: %+v", tc.Valid, valid, tc.Input, errors)
+		}
+	}
+}

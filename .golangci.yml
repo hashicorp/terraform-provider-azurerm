@@ -32,12 +32,11 @@ linters:
     - govet # reports suspicious constructs. It is roughly the same as 'go vet' (replaced vet and vetshadow)
     - ineffassign # detects when assignments to existing variables are not used
     - misspell # finds commonly misspelled English words.
-    #- nilerr # Finds the code that returns nil even if it checks that the error is not nil.
-    #- nlreturn # Nlreturn checks for a new line before return and branch statements to increase code clarity.
+    - nilerr # Finds code that returns nil after it checks that the error is not nil.
     - prealloc # finds slice declarations that could potentially be pre-allocated.
     - predeclared # find code that shadows one of Go's predeclared identifiers.
     - reassign # checks that package variables are not reassigned.
-    #- revive #Fast, configurable, extensible, flexible, and beautiful linter for Go. Drop-in replacement of golint.
+    - tenv #detects using os.Setenv instead of t.Setenv since Go1.17.
     - tagalign #  checks struct tags that do not align with the specified column in struct definitions.
     - staticcheck # checks rules from staticcheck. It's not the same thing as the staticcheck binary.
     - unused # checks Go code for unused constants, variables, functions and types.
@@ -45,23 +44,19 @@ linters:
     - unparam # reports unused function parameters.
     - wastedassign # finds wasted assignment statements
     - whitespace # checks for unnecessary newlines at the start and end of functions, if, for, etc. (
-    #- wsl # add or remove empty lines.
 
-    ##### need to confirm these are valid and not false positives #####
+    ##### need to confirm these are valid and adding t.Parallel() to unit tests would be beneficial / integration tests would not be affected
     #- paralleltest # detects missing usage of t.Parallel() method in your Go test.
     #- tparallel # Tparallel detects inappropriate usage of t.Parallel() method in your Go test codes.
 
-    ###### DISABLED because : integer overflow conversion int -> int32
+    ###### DISABLED because : the number of possible integer overflow conversions from int -> int32. it's not an incorrect callout?
     # - gosec # Gosec is a security linter for Go source code
 
-    ##### DISABLED as i was fixing them with other linters, and not realizing how many there are - disabling for now even thou it is valid
+    ##### DISABLED as it (correctly) flags fmt.Errorf("constant") to be replaced with errors.New("constant") and there are ~1500 instances of this in the codebase
     #- perfsprint # Checks that fmt.Sprintf can be replaced with a faster alternative.
 
-    #### VALID but DISABLED as we have a lot of these in the codebase to switch over
+    #### DISABLED but valid as relying on output variable names is less than idea, have a lot of these in the codebase to switch over
     #- nakedret # Checks that functions with naked returns are not longer than a maximum size
-
-    #### DISABLED TO DO IN ITS OWN PR - should be enabled and done #####
-    #- tenv #detects using os.Setenv instead of t.Setenv since Go1.17.
 
     #### bunch of hits, need to confirm if errors or not #####
     #- copyloopvar #Detects range loop variables that are overwritten in the loop body
@@ -93,8 +88,3 @@ linters-settings:
       - computed
   predeclared:
     ignore: new,min,max # should we use newer, minimum, and maximum instead?
-  revive:
-    rules:
-      - name: var-naming
-        disabled: true
-

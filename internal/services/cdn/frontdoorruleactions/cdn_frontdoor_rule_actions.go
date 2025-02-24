@@ -1,20 +1,20 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package CdnFrontDoorruleactions
+package frontdooractions
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorActionParameters struct {
-	Name       cdn.NameBasicDeliveryRuleAction
+	Name       rules.DeliveryRuleActionName
 	TypeName   string
 	ConfigName string
 }
@@ -31,32 +31,32 @@ func InitializeCdnFrontDoorActionMappings() *CdnFrontDoorActionMappings {
 	m := CdnFrontDoorActionMappings{}
 
 	m.RouteConfigurationOverride = CdnFrontDoorActionParameters{
-		Name:       cdn.NameBasicDeliveryRuleActionNameRouteConfigurationOverride,
-		TypeName:   "DeliveryRuleRouteConfigurationOverrideActionParameters",
+		Name:       rules.DeliveryRuleActionNameRouteConfigurationOverride,
+		TypeName:   string(rules.DeliveryRuleActionParametersTypeDeliveryRuleRouteConfigurationOverrideActionParameters),
 		ConfigName: "route_configuration_override_action",
 	}
 
 	m.RequestHeader = CdnFrontDoorActionParameters{
-		Name:       cdn.NameBasicDeliveryRuleActionNameModifyRequestHeader,
-		TypeName:   "DeliveryRuleHeaderActionParameters",
+		Name:       rules.DeliveryRuleActionNameModifyRequestHeader,
+		TypeName:   string(rules.DeliveryRuleActionParametersTypeDeliveryRuleHeaderActionParameters),
 		ConfigName: "request_header_action",
 	}
 
 	m.ResponseHeader = CdnFrontDoorActionParameters{
-		Name:       cdn.NameBasicDeliveryRuleActionNameModifyResponseHeader,
-		TypeName:   "DeliveryRuleHeaderActionParameters",
+		Name:       rules.DeliveryRuleActionNameModifyResponseHeader,
+		TypeName:   string(rules.DeliveryRuleActionParametersTypeDeliveryRuleHeaderActionParameters),
 		ConfigName: "response_header_action",
 	}
 
 	m.URLRedirect = CdnFrontDoorActionParameters{
-		Name:       cdn.NameBasicDeliveryRuleActionNameURLRedirect,
-		TypeName:   "DeliveryRuleUrlRedirectActionParameters",
+		Name:       rules.DeliveryRuleActionNameURLRedirect,
+		TypeName:   string(rules.DeliveryRuleActionParametersTypeDeliveryRuleURLRedirectActionParameters),
 		ConfigName: "url_redirect_action",
 	}
 
 	m.URLRewrite = CdnFrontDoorActionParameters{
-		Name:       cdn.NameBasicDeliveryRuleActionNameURLRedirect,
-		TypeName:   "DeliveryRuleUrlRewriteActionParameters",
+		Name:       rules.DeliveryRuleActionNameURLRewrite,
+		TypeName:   string(rules.DeliveryRuleActionParametersTypeDeliveryRuleURLRewriteActionParameters),
 		ConfigName: "url_rewrite_action",
 	}
 
@@ -89,8 +89,8 @@ func flattenCsvToStringSlice(input *string) []interface{} {
 	return results
 }
 
-func ExpandCdnFrontDoorRequestHeaderAction(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
-	output := make([]cdn.BasicDeliveryRuleAction, 0)
+func ExpandCdnFrontDoorRequestHeaderAction(input []interface{}) (*[]rules.DeliveryRuleAction, error) {
+	output := make([]rules.DeliveryRuleAction, 0)
 
 	m := InitializeCdnFrontDoorActionMappings()
 
@@ -99,22 +99,22 @@ func ExpandCdnFrontDoorRequestHeaderAction(input []interface{}) (*[]cdn.BasicDel
 
 		value := item["value"].(string)
 
-		requestHeaderAction := cdn.DeliveryRuleRequestHeaderAction{
+		requestHeaderAction := rules.DeliveryRuleRequestHeaderAction{
 			Name: m.RequestHeader.Name,
-			Parameters: &cdn.HeaderActionParameters{
-				TypeName:     &m.RequestHeader.TypeName,
-				HeaderAction: cdn.HeaderAction(item["header_action"].(string)),
-				HeaderName:   utils.String(item["header_name"].(string)),
-				Value:        utils.String(value),
+			Parameters: rules.HeaderActionParameters{
+				TypeName:     rules.DeliveryRuleActionParametersType(m.RequestHeader.TypeName),
+				HeaderAction: rules.HeaderAction(item["header_action"].(string)),
+				HeaderName:   item["header_name"].(string),
+				Value:        pointer.To(value),
 			},
 		}
 
 		if value == "" {
-			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
+			if requestHeaderAction.Parameters.HeaderAction == rules.HeaderActionOverwrite || requestHeaderAction.Parameters.HeaderAction == rules.HeaderActionAppend {
 				return nil, fmt.Errorf("the 'request_header_action' block is not valid, 'value' cannot be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
 			}
 		} else {
-			if requestHeaderAction.Parameters.HeaderAction == cdn.HeaderActionDelete {
+			if requestHeaderAction.Parameters.HeaderAction == rules.HeaderActionDelete {
 				return nil, fmt.Errorf("the 'request_header_action' block is not valid, 'value' must be empty if the 'header_action' is set to 'Delete'")
 			}
 		}
@@ -125,30 +125,30 @@ func ExpandCdnFrontDoorRequestHeaderAction(input []interface{}) (*[]cdn.BasicDel
 	return &output, nil
 }
 
-func ExpandCdnFrontDoorResponseHeaderAction(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
-	output := make([]cdn.BasicDeliveryRuleAction, 0)
+func ExpandCdnFrontDoorResponseHeaderAction(input []interface{}) (*[]rules.DeliveryRuleAction, error) {
+	output := make([]rules.DeliveryRuleAction, 0)
 
 	m := InitializeCdnFrontDoorActionMappings()
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		responseHeaderAction := cdn.DeliveryRuleResponseHeaderAction{
+		responseHeaderAction := rules.DeliveryRuleResponseHeaderAction{
 			Name: m.ResponseHeader.Name,
-			Parameters: &cdn.HeaderActionParameters{
-				TypeName:     utils.String(m.ResponseHeader.TypeName),
-				HeaderAction: cdn.HeaderAction(item["header_action"].(string)),
-				HeaderName:   utils.String(item["header_name"].(string)),
-				Value:        utils.String(item["value"].(string)),
+			Parameters: rules.HeaderActionParameters{
+				TypeName:     rules.DeliveryRuleActionParametersType(m.ResponseHeader.TypeName),
+				HeaderAction: rules.HeaderAction(item["header_action"].(string)),
+				HeaderName:   item["header_name"].(string),
+				Value:        pointer.To(item["value"].(string)),
 			},
 		}
 
 		if headerValue := *responseHeaderAction.Parameters.Value; headerValue == "" {
-			if responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionOverwrite || responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionAppend {
+			if responseHeaderAction.Parameters.HeaderAction == rules.HeaderActionOverwrite || responseHeaderAction.Parameters.HeaderAction == rules.HeaderActionAppend {
 				return nil, fmt.Errorf("the 'response_header_action' block is not valid, 'value' cannot be empty if the 'header_action' is set to 'Append' or 'Overwrite'")
 			}
 		} else {
-			if responseHeaderAction.Parameters.HeaderAction == cdn.HeaderActionDelete {
+			if responseHeaderAction.Parameters.HeaderAction == rules.HeaderActionDelete {
 				return nil, fmt.Errorf("the 'response_header_action' block is not valid, 'value' must be empty if the 'header_action' is set to 'Delete'")
 			}
 		}
@@ -159,24 +159,24 @@ func ExpandCdnFrontDoorResponseHeaderAction(input []interface{}) (*[]cdn.BasicDe
 	return &output, nil
 }
 
-func ExpandCdnFrontDoorUrlRedirectAction(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
-	output := make([]cdn.BasicDeliveryRuleAction, 0)
+func ExpandCdnFrontDoorUrlRedirectAction(input []interface{}) (*[]rules.DeliveryRuleAction, error) {
+	output := make([]rules.DeliveryRuleAction, 0)
 
 	m := InitializeCdnFrontDoorActionMappings()
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		urlRedirectAction := cdn.URLRedirectAction{
+		urlRedirectAction := rules.URLRedirectAction{
 			Name: m.URLRedirect.Name,
-			Parameters: &cdn.URLRedirectActionParameters{
-				TypeName:            utils.String(m.URLRedirect.TypeName),
-				RedirectType:        cdn.RedirectType(item["redirect_type"].(string)),
-				DestinationProtocol: cdn.DestinationProtocol(item["redirect_protocol"].(string)),
-				CustomPath:          utils.String(item["destination_path"].(string)),
-				CustomHostname:      utils.String(item["destination_hostname"].(string)),
-				CustomQueryString:   utils.String(item["query_string"].(string)),
-				CustomFragment:      utils.String(item["destination_fragment"].(string)),
+			Parameters: rules.URLRedirectActionParameters{
+				TypeName:            rules.DeliveryRuleActionParametersType(m.URLRedirect.TypeName),
+				RedirectType:        rules.RedirectType(item["redirect_type"].(string)),
+				DestinationProtocol: pointer.To(rules.DestinationProtocol(item["redirect_protocol"].(string))),
+				CustomPath:          pointer.To(item["destination_path"].(string)),
+				CustomHostname:      pointer.To(item["destination_hostname"].(string)),
+				CustomQueryString:   pointer.To(item["query_string"].(string)),
+				CustomFragment:      pointer.To(item["destination_fragment"].(string)),
 			},
 		}
 
@@ -186,21 +186,21 @@ func ExpandCdnFrontDoorUrlRedirectAction(input []interface{}) (*[]cdn.BasicDeliv
 	return &output, nil
 }
 
-func ExpandCdnFrontDoorUrlRewriteAction(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
-	output := make([]cdn.BasicDeliveryRuleAction, 0)
+func ExpandCdnFrontDoorUrlRewriteAction(input []interface{}) (*[]rules.DeliveryRuleAction, error) {
+	output := make([]rules.DeliveryRuleAction, 0)
 
 	m := InitializeCdnFrontDoorActionMappings()
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		urlRedirectAction := cdn.URLRewriteAction{
+		urlRedirectAction := rules.URLRewriteAction{
 			Name: m.URLRewrite.Name,
-			Parameters: &cdn.URLRewriteActionParameters{
-				TypeName:              utils.String(m.URLRewrite.TypeName),
-				Destination:           utils.String(item["destination"].(string)),
-				PreserveUnmatchedPath: utils.Bool(item["preserve_unmatched_path"].(bool)),
-				SourcePattern:         utils.String(item["source_pattern"].(string)),
+			Parameters: rules.URLRewriteActionParameters{
+				TypeName:              rules.DeliveryRuleActionParametersType(m.URLRewrite.TypeName),
+				Destination:           item["destination"].(string),
+				PreserveUnmatchedPath: pointer.To(item["preserve_unmatched_path"].(bool)),
+				SourcePattern:         item["source_pattern"].(string),
 			},
 		}
 
@@ -210,25 +210,25 @@ func ExpandCdnFrontDoorUrlRewriteAction(input []interface{}) (*[]cdn.BasicDelive
 	return &output, nil
 }
 
-func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[]cdn.BasicDeliveryRuleAction, error) {
-	output := make([]cdn.BasicDeliveryRuleAction, 0)
+func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[]rules.DeliveryRuleAction, error) {
+	output := make([]rules.DeliveryRuleAction, 0)
 	m := InitializeCdnFrontDoorActionMappings()
 
 	for _, v := range input {
 		item := v.(map[string]interface{})
 
-		var originGroupOverride cdn.OriginGroupOverride
-		var cacheConfiguration cdn.CacheConfiguration
+		var originGroupOverride rules.OriginGroupOverride
+		var cacheConfiguration rules.CacheConfiguration
 
 		originGroupIdRaw := item["cdn_frontdoor_origin_group_id"].(string)
 		protocol := item["forwarding_protocol"].(string)
 		cacheBehavior := item["cache_behavior"].(string)
-		compressionEnabled := cdn.RuleIsCompressionEnabledEnabled
+		compressionEnabled := rules.RuleIsCompressionEnabledEnabled
 		queryStringCachingBehavior := item["query_string_caching_behavior"].(string)
 		cacheDuration := item["cache_duration"].(string)
 
 		if !item["compression_enabled"].(bool) {
-			compressionEnabled = cdn.RuleIsCompressionEnabledDisabled
+			compressionEnabled = rules.RuleIsCompressionEnabledDisabled
 		}
 
 		// NOTE: It is valid to not define the originGroupOverride in the Route Configuration Override Action
@@ -238,17 +238,17 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'forwarding_protocol' field must be set")
 			}
 
-			originGroupOverride = cdn.OriginGroupOverride{
-				OriginGroup: &cdn.ResourceReference{
-					ID: pointer.To(originGroupIdRaw),
+			originGroupOverride = rules.OriginGroupOverride{
+				OriginGroup: &rules.ResourceReference{
+					Id: pointer.To(originGroupIdRaw),
 				},
-				ForwardingProtocol: cdn.ForwardingProtocol(protocol),
+				ForwardingProtocol: pointer.To(rules.ForwardingProtocol(protocol)),
 			}
 		} else if originGroupIdRaw == "" && item["forwarding_protocol"].(string) != "" {
 			return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cdn_frontdoor_origin_group_id' is not set you cannot define the 'forwarding_protocol', got %q", protocol)
 		}
 
-		if cacheBehavior == string(cdn.RuleIsCompressionEnabledDisabled) {
+		if cacheBehavior == string(rules.RuleIsCompressionEnabledDisabled) {
 			if queryStringCachingBehavior != "" {
 				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, if the 'cache_behavior' is set to 'Disabled' you cannot define the 'query_string_caching_behavior', got %q", queryStringCachingBehavior)
 			}
@@ -270,7 +270,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			}
 
 			// NOTE: if the cacheBehavior is 'HonorOrigin' cacheDuration must be null, issue #19311
-			if cacheBehavior != string(cdn.RuleCacheBehaviorHonorOrigin) {
+			if cacheBehavior != string(rules.RuleCacheBehaviorHonorOrigin) {
 				if cacheDuration == "" {
 					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must be set")
 				}
@@ -278,11 +278,11 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 				return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, the 'cache_duration' field must not be set if the 'cache_behavior' is 'HonorOrigin'")
 			}
 
-			cacheConfiguration = cdn.CacheConfiguration{
-				QueryStringCachingBehavior: cdn.RuleQueryStringCachingBehavior(queryStringCachingBehavior),
+			cacheConfiguration = rules.CacheConfiguration{
+				QueryStringCachingBehavior: pointer.To(rules.RuleQueryStringCachingBehavior(queryStringCachingBehavior)),
 				QueryParameters:            expandStringSliceToCsvFormat(item["query_string_parameters"].([]interface{})),
-				IsCompressionEnabled:       compressionEnabled,
-				CacheBehavior:              cdn.RuleCacheBehavior(cacheBehavior),
+				IsCompressionEnabled:       pointer.To(compressionEnabled),
+				CacheBehavior:              pointer.To(rules.RuleCacheBehavior(cacheBehavior)),
 			}
 
 			if cacheDuration != "" {
@@ -290,19 +290,19 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			}
 
 			if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
-				if cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
+				if pointer.From(cacheConfiguration.QueryStringCachingBehavior) == rules.RuleQueryStringCachingBehaviorIncludeSpecifiedQueryStrings || pointer.From(cacheConfiguration.QueryStringCachingBehavior) == rules.RuleQueryStringCachingBehaviorIgnoreSpecifiedQueryStrings {
 					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' cannot be empty if the 'query_string_caching_behavior' is set to 'IncludeSpecifiedQueryStrings' or 'IgnoreSpecifiedQueryStrings'")
 				}
 			} else {
-				if cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorUseQueryString || cacheConfiguration.QueryStringCachingBehavior == cdn.RuleQueryStringCachingBehaviorIgnoreQueryString {
+				if pointer.From(cacheConfiguration.QueryStringCachingBehavior) == rules.RuleQueryStringCachingBehaviorUseQueryString || pointer.From(cacheConfiguration.QueryStringCachingBehavior) == rules.RuleQueryStringCachingBehaviorIgnoreQueryString {
 					return nil, fmt.Errorf("the 'route_configuration_override_action' block is not valid, 'query_string_parameters' must not be set if the'query_string_caching_behavior' is set to 'UseQueryStrings' or 'IgnoreQueryStrings'")
 				}
 			}
 		}
 
-		routeConfigurationOverrideAction := cdn.DeliveryRuleRouteConfigurationOverrideAction{
-			Parameters: &cdn.RouteConfigurationOverrideActionParameters{
-				TypeName: utils.String(m.RouteConfigurationOverride.TypeName),
+		routeConfigurationOverrideAction := rules.DeliveryRuleRouteConfigurationOverrideAction{
+			Parameters: rules.RouteConfigurationOverrideActionParameters{
+				TypeName: rules.DeliveryRuleActionParametersType(m.RouteConfigurationOverride.TypeName),
 			},
 		}
 
@@ -310,7 +310,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			routeConfigurationOverrideAction.Parameters.OriginGroupOverride = &originGroupOverride
 		}
 
-		if cacheConfiguration.CacheDuration != nil || cacheConfiguration.CacheBehavior == cdn.RuleCacheBehaviorHonorOrigin {
+		if cacheConfiguration.CacheDuration != nil || pointer.From(cacheConfiguration.CacheBehavior) == rules.RuleCacheBehaviorHonorOrigin {
 			routeConfigurationOverrideAction.Parameters.CacheConfiguration = &cacheConfiguration
 		}
 
@@ -320,19 +320,15 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 	return &output, nil
 }
 
-func FlattenHeaderActionParameters(input *cdn.HeaderActionParameters) map[string]interface{} {
-	action := ""
-	name := ""
-	value := ""
+func FlattenRequestHeaderAction(input rules.DeliveryRuleRequestHeaderAction) map[string]interface{} {
+	var value string
 
-	if params := input; params != nil {
-		action = string(params.HeaderAction)
-		if params.HeaderName != nil {
-			name = *params.HeaderName
-		}
-		if params.Value != nil {
-			value = *params.Value
-		}
+	params := input.Parameters
+	action := string(params.HeaderAction)
+	name := params.HeaderName
+
+	if params.Value != nil {
+		value = *params.Value
 	}
 
 	return map[string]interface{}{
@@ -342,29 +338,47 @@ func FlattenHeaderActionParameters(input *cdn.HeaderActionParameters) map[string
 	}
 }
 
-func FlattenCdnFrontDoorUrlRedirectAction(input cdn.URLRedirectAction) map[string]interface{} {
-	destinationHost := ""
-	destinationPath := ""
-	queryString := ""
-	destinationProtocol := ""
-	redirectType := ""
-	fragment := ""
+func FlattenResponseHeaderAction(input rules.DeliveryRuleResponseHeaderAction) map[string]interface{} {
+	var value string
 
-	if params := input.Parameters; params != nil {
-		if params.CustomHostname != nil {
-			destinationHost = *params.CustomHostname
-		}
-		if params.CustomPath != nil {
-			destinationPath = *params.CustomPath
-		}
-		if params.CustomQueryString != nil {
-			queryString = *params.CustomQueryString
-		}
-		destinationProtocol = string(params.DestinationProtocol)
-		redirectType = string(params.RedirectType)
-		if params.CustomFragment != nil {
-			fragment = *params.CustomFragment
-		}
+	params := input.Parameters
+	action := string(params.HeaderAction)
+	name := params.HeaderName
+
+	if params.Value != nil {
+		value = *params.Value
+	}
+
+	return map[string]interface{}{
+		"header_action": action,
+		"header_name":   name,
+		"value":         value,
+	}
+}
+
+func FlattenCdnFrontDoorUrlRedirectAction(input rules.URLRedirectAction) map[string]interface{} {
+	var destinationHost string
+	var destinationPath string
+	var queryString string
+	var fragment string
+
+	params := input.Parameters
+
+	if params.CustomHostname != nil {
+		destinationHost = *params.CustomHostname
+	}
+	if params.CustomPath != nil {
+		destinationPath = *params.CustomPath
+	}
+	if params.CustomQueryString != nil {
+		queryString = *params.CustomQueryString
+	}
+
+	destinationProtocol := string(pointer.From(params.DestinationProtocol))
+	redirectType := string(params.RedirectType)
+
+	if params.CustomFragment != nil {
+		fragment = *params.CustomFragment
 	}
 
 	return map[string]interface{}{
@@ -377,21 +391,12 @@ func FlattenCdnFrontDoorUrlRedirectAction(input cdn.URLRedirectAction) map[strin
 	}
 }
 
-func FlattenCdnFrontDoorUrlRewriteAction(input cdn.URLRewriteAction) map[string]interface{} {
-	destination := ""
-	preservePath := false
-	sourcePattern := ""
-	if params := input.Parameters; params != nil {
-		if params.Destination != nil {
-			destination = *params.Destination
-		}
-		if params.PreserveUnmatchedPath != nil {
-			preservePath = *params.PreserveUnmatchedPath
-		}
-		if params.SourcePattern != nil {
-			sourcePattern = *params.SourcePattern
-		}
-	}
+func FlattenCdnFrontDoorUrlRewriteAction(input rules.URLRewriteAction) map[string]interface{} {
+	params := input.Parameters
+
+	destination := params.Destination
+	preservePath := *params.PreserveUnmatchedPath
+	sourcePattern := params.SourcePattern
 
 	return map[string]interface{}{
 		"destination":             destination,
@@ -400,41 +405,42 @@ func FlattenCdnFrontDoorUrlRewriteAction(input cdn.URLRewriteAction) map[string]
 	}
 }
 
-func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input cdn.DeliveryRuleRouteConfigurationOverrideAction) (map[string]interface{}, error) {
-	queryStringCachingBehavior := ""
-	cacheBehavior := ""
-	compressionEnabled := false
-	cacheDuration := ""
+func FlattenCdnFrontDoorRouteConfigurationOverrideAction(input rules.DeliveryRuleRouteConfigurationOverrideAction) (map[string]interface{}, error) {
+	var queryStringCachingBehavior string
+	var cacheBehavior string
+	var compressionEnabled bool
+	var cacheDuration string
+	var forwardingProtocol string
+	var originGroupId string
 	queryParameters := make([]interface{}, 0)
-	forwardingProtocol := ""
-	originGroupId := ""
 
-	if params := input.Parameters; params != nil {
-		if config := params.CacheConfiguration; config != nil {
-			queryStringCachingBehavior = string(config.QueryStringCachingBehavior)
-			cacheBehavior = string(config.CacheBehavior)
-			compressionEnabled = config.IsCompressionEnabled == cdn.RuleIsCompressionEnabledEnabled
-			queryParameters = flattenCsvToStringSlice(config.QueryParameters)
+	params := input.Parameters
 
-			if config.CacheDuration != nil {
-				cacheDuration = *config.CacheDuration
-			}
-		} else {
-			cacheBehavior = string(cdn.RuleIsCompressionEnabledDisabled)
+	if config := params.CacheConfiguration; config != nil {
+		queryStringCachingBehavior = string(pointer.From(config.QueryStringCachingBehavior))
+		cacheBehavior = string(pointer.From(config.CacheBehavior))
+		compressionEnabled = pointer.From(config.IsCompressionEnabled) == rules.RuleIsCompressionEnabledEnabled
+		queryParameters = flattenCsvToStringSlice(config.QueryParameters)
+
+		if config.CacheDuration != nil {
+			cacheDuration = *config.CacheDuration
+		}
+	} else {
+		cacheBehavior = string(rules.RuleIsCompressionEnabledDisabled)
+	}
+
+	if override := params.OriginGroupOverride; override != nil {
+		forwardingProtocol = string(pointer.From(override.ForwardingProtocol))
+
+		// NOTE: Need to parse this ID insensitively to normalize it because if you modified this
+		// resource in the Azure Portal the 'resourceGroup' element comes back as 'resourcegroup'
+		// not 'resourceGroup'.
+		originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(*override.OriginGroup.Id)
+		if err != nil {
+			return nil, err
 		}
 
-		if override := params.OriginGroupOverride; override != nil {
-			forwardingProtocol = string(override.ForwardingProtocol)
-
-			// NOTE: Need to normalize this ID here because if you modified this in portal the resourceGroup comes back as resourcegroup.
-			// ignore the error here since it was set on the resource in Azure and we know it is valid.
-			originGroup, err := parse.FrontDoorOriginGroupIDInsensitively(*override.OriginGroup.ID)
-			if err != nil {
-				return nil, err
-			}
-
-			originGroupId = originGroup.ID()
-		}
+		originGroupId = originGroup.ID()
 	}
 
 	return map[string]interface{}{

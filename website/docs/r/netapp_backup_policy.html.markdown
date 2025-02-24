@@ -1,12 +1,12 @@
 ---
 subcategory: "NetApp"
 layout: "azurerm"
-page_title: "Azure Resource Manager: netapp_backup_policy"
+page_title: "Azure Resource Manager: azurerm_netapp_backup_policy"
 description: |-
   Manages a NetApp Backup Policy.
 ---
 
-# netapp_backup_policy
+# azurerm_netapp_backup_policy
 
 Manages a NetApp Backup Policy.
 

@@ -12,10 +12,7 @@ Manages a Key Vault.
 
 ## Disclaimers
 
-~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
-
-<!-- TODO: Remove Note in 4.0 -->
-~> **Note:** It's possible to define Key Vault Certificate Contacts both within [the `azurerm_key_vault` resource](key_vault.html) via the `contact` block and by using [the `azurerm_key_vault_certificate_contacts` resource](key_vault_certificate_contacts.html). However it's not possible to use both methods to manage Certificate Contacts within a KeyVault, since there'll be conflicts.
+~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However, it's not possible to use both methods to manage Access Policies within a KeyVault, since there will be conflicts.
 
 ~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
 
@@ -108,12 +105,6 @@ The following arguments are supported:
 
 ~> **Note:** This field can only be configured one time and cannot be updated.
 
-<!-- TODO: Remove `contact` and Notes in 4.0 -->
-* `contact` - (Optional) One or more `contact` block as defined below.
-
-~> **Note:** This field can only be set once user has `managecontacts` certificate permission.
-
-~> **Note:** This field can only be set when `public_network_access_enabled` is set to `true`. To manage the `contact` with `public_network_access_enabled` set to `false`, please use [the `azurerm_key_vault_certificate_contacts` resource](key_vault_certificate_contacts.html) instead of this property, and remove this property from the configuration. Especially for existing `azurerm_key_vault`, this means you'll need to import the `azurerm_key_vault_certificate_contacts` manually.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

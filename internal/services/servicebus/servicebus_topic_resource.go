@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -171,19 +170,6 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
 	enableExpress := d.Get("express_enabled").(bool)
 	enablePartitioning := d.Get("partitioning_enabled").(bool)
-	if !features.FourPointOh() {
-		if v := d.GetRawConfig().AsValueMap()["enable_batched_operations"]; !v.IsNull() {
-			enableBatchedOperations = d.Get("enable_batched_operations").(bool)
-		}
-
-		if v := d.GetRawConfig().AsValueMap()["enable_express"]; !v.IsNull() {
-			enableExpress = d.Get("enable_express").(bool)
-		}
-
-		if v := d.GetRawConfig().AsValueMap()["enable_partitioning"]; !v.IsNull() {
-			enablePartitioning = d.Get("enable_partitioning").(bool)
-		}
-	}
 
 	status := topics.EntityStatus(d.Get("status").(string))
 	parameters := topics.SBTopic{
@@ -217,6 +203,23 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	resp, err := namespacesClient.Get(ctx, namespaceId)
 	if err != nil {
 		return fmt.Errorf("retrieving ServiceBus Namespace %q (Resource Group %q): %+v", id.NamespaceName, id.ResourceGroupName, err)
+	}
+
+	isPremiumNamespacePartitioned := true
+	var sku namespaces.SkuName
+	if nsModel := resp.Model; nsModel != nil {
+		sku = nsModel.Sku.Name
+		if props := nsModel.Properties; props != nil && props.PremiumMessagingPartitions != nil && *props.PremiumMessagingPartitions == 1 {
+			isPremiumNamespacePartitioned = false
+		}
+	}
+
+	if sku == namespaces.SkuNamePremium {
+		if isPremiumNamespacePartitioned && !enablePartitioning {
+			return fmt.Errorf("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned")
+		} else if !isPremiumNamespacePartitioned && enablePartitioning {
+			return fmt.Errorf("topic partitioning is only available if the parent namespace is partitioned")
+		}
 	}
 
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
