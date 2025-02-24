@@ -25,6 +25,7 @@ resource "azurerm_notification_hub_namespace" "example" {
   location            = azurerm_resource_group.example.location
   namespace_type      = "NotificationHub"
   sku_name            = "Free"
+  zone_redundant      = false
 }
 ```
 
@@ -44,7 +45,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
 
-* `zone_redundant` - (Optional) Is this Notification Hub Namespace Zone Redundant? Defaults to `false`.
+* `zone_redundant` - (Optional) Is this Notification Hub Namespace Zone Redundant? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

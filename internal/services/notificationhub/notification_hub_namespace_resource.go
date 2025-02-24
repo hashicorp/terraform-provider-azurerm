@@ -92,7 +92,7 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -127,7 +127,6 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 	namespaceType := namespaces.NamespaceType(d.Get("namespace_type").(string))
 
 	zoneRedundant := namespaces.ZoneRedundancyPreferenceDisabled
-
 	if d.Get("zone_redundant").(bool) {
 		zoneRedundant = namespaces.ZoneRedundancyPreferenceEnabled
 	}
