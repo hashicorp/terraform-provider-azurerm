@@ -2,8 +2,9 @@
 
 ENHANCEMENTS:
 
-* `azurerm_linux_web_app` Add support for Node Version `22` [GH-28840]
-* `azurerm_linux_web_app_slot` Add support for Node Version `22` [GH-28840]
+* `azurerm_linux_web_app` - add support for Node Version `22` [GH-28840]
+* `azurerm_linux_web_app_slot` - add support for Node Version `22` [GH-28840]
+* `azurerm_mssql_job_credential` - add support for the `password_wo` and `password_wo_version` properties [GH-28808]
 
 ## 4.20.0 (February 20, 2025)
 
