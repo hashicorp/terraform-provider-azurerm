@@ -12,10 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -309,17 +313,23 @@ func TestAccMsSqlServer_writeOnlyAdminLoginPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-secret", 1),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},
-		data.ImportStep("administrator_login_password_wo_version"),
-		{
-			Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-updated", 2),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-secret", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password_wo_version"),
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-updated", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password_wo_version"),
 		},
-		data.ImportStep("administrator_login_password_wo_version"),
 	})
 }
 
@@ -327,22 +337,28 @@ func TestAccMsSqlServer_updateToWriteOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},
-		data.ImportStep("administrator_login_password"),
-		{
-			Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-secret", 1),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password"),
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-secret", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password", "administrator_login_password_wo_version"),
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password"),
 		},
-		data.ImportStep("administrator_login_password", "administrator_login_password_wo_version"),
-		{
-			Config: r.basic(data),
-			Check:  check.That(data.ResourceName).ExistsInAzure(r),
-		},
-		data.ImportStep("administrator_login_password"),
 	})
 }
 
