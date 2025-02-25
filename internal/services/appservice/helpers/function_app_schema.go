@@ -2253,10 +2253,14 @@ func ParseContentSettings(input *webapps.StringDictionary, existing map[string]s
 	for k, v := range *input.Properties {
 		switch k {
 		case "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING":
-			out[k] = v
+			if _, ok := out["WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"]; !ok { // If we're not supplying a new value, use the one from the existing config on the resource
+				out[k] = v
+			}
 
 		case "WEBSITE_CONTENTSHARE":
-			out[k] = v
+			if _, ok := out["WEBSITE_CONTENTSHARE"]; !ok { // If we're not supplying a new value, use the one from the existing config on the resource
+				out[k] = v
+			}
 		}
 	}
 
