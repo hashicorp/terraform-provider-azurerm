@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: `workloads` - update API version to `2024-09-01` [GH-28825]
+* `azurerm_fluid_relay_server` - fix `versionless_id` support for `key_vault_key_id` [GH-28864]
 * `azurerm_kubernetes_cluster` - add support for the `upgrade_override_setting` property [GH-27962]
 * `azurerm_linux_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
 * `azurerm_linux_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
