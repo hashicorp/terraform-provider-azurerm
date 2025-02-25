@@ -12,7 +12,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_job_credential` - add support for the `password_wo` and `password_wo_version` properties [GH-28808]
 * `azurerm_windows_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
 * `azurerm_windows_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
-
+* `azurerm_servicebus_namespace` - split create/update functions [GH-28539]
 
 ## 4.20.0 (February 20, 2025)
 
