@@ -365,7 +365,7 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateKeyVaultID,
-			Deprecated:   "'managed_services_cmk_key_vault_id' has been deprecated in favor of 'managed_services_cmk_key_vault_key_id' and will be removed in v4.0 of the provider",
+			Deprecated:   "'managed_services_cmk_key_vault_id' has been deprecated in favor of 'managed_services_cmk_key_vault_key_id' and will be removed in v5.0 of the provider",
 		}
 
 		schema["managed_services_cmk_managed_hsm_key_id"].ConflictsWith = []string{"managed_services_cmk_key_vault_key_id", "managed_services_cmk_key_vault_id"}
@@ -374,7 +374,7 @@ func databricksWorkspaceSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateKeyVaultID,
-			Deprecated:   "'managed_disk_cmk_key_vault_id' has been deprecated in favor of 'managed_disk_cmk_key_vault_key_id' and will be removed in v4.0 of the provider",
+			Deprecated:   "'managed_disk_cmk_key_vault_id' has been deprecated in favor of 'managed_disk_cmk_key_vault_key_id' and will be removed in v5.0 of the provider",
 		}
 
 		schema["managed_disk_cmk_managed_hsm_key_id"].ConflictsWith = []string{"managed_disk_cmk_key_vault_key_id", "managed_disk_cmk_key_vault_id"}
@@ -491,20 +491,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 }
 
 func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	// client := meta.(*clients.Client).DataBricks.WorkspacesClient
-	// acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
-	// lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
-	// keyVaultsClient := meta.(*clients.Client).KeyVault
-	// subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	// ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	clientHub := meta.(*clients.Client)
-	client := clientHub.DataBricks.WorkspacesClient
-	subnetsClient := clientHub.Network.Subnets
-	acClient := clientHub.DataBricks.AccessConnectorClient
-	lbClient := clientHub.LoadBalancers.LoadBalancersClient
-	accountClient := clientHub.Account
+	client := meta.(*clients.Client).DataBricks.WorkspacesClient
+	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
+	accountClient := meta.(*clients.Client).Account
+	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subnetsClient := meta.(*clients.Client).Network.Subnets
 	subscriptionId := accountClient.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -1107,32 +1100,36 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	encrypt := &workspaces.WorkspacePropertiesEncryption{}
 	encrypt.Entities = workspaces.EncryptionEntitiesDefinition{}
 
-	if cmkID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeAny, "managed_services_cmk_key_vault_key_id", "managed_services_cmk_managed_hsm_key_id", accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
-		return fmt.Errorf("expanding customer-managed key for managed services encryption: %+v", err)
-	} else if cmkID != nil {
-		setEncrypt = true
+	if d.HasChanges("managed_services_cmk_key_vault_key_id", "managed_services_cmk_managed_hsm_key_id") {
+		if cmkID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeAny, "managed_services_cmk_key_vault_key_id", "managed_services_cmk_managed_hsm_key_id", accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
+			return fmt.Errorf("expanding customer-managed key for managed services encryption: %+v", err)
+		} else if cmkID != nil {
+			setEncrypt = true
 
-		encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
-			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
-			KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
-				KeyName:     cmkID.Name(),
-				KeyVersion:  cmkID.Version(),
-				KeyVaultUri: cmkID.BaseUri(),
-			},
+			encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
+				KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
+				KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
+					KeyName:     cmkID.Name(),
+					KeyVersion:  cmkID.Version(),
+					KeyVaultUri: cmkID.BaseUri(),
+				},
+			}
 		}
 	}
 
-	if diskCMKID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeAny, "managed_disk_cmk_key_vault_key_id", "managed_disk_cmk_managed_hsm_key_id", accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
-		return fmt.Errorf("expanding customer-managed key for managed disk encryption: %+v", err)
-	} else if diskCMKID != nil {
-		setEncrypt = true
-		encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
-			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
-			KeyVaultProperties: workspaces.ManagedDiskEncryptionKeyVaultProperties{
-				KeyName:     diskCMKID.Name(),
-				KeyVersion:  diskCMKID.Version(),
-				KeyVaultUri: diskCMKID.BaseUri(),
-			},
+	if d.HasChanges("managed_disk_cmk_key_vault_key_id", "managed_disk_cmk_managed_hsm_key_id") {
+		if diskCMKID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeAny, "managed_disk_cmk_key_vault_key_id", "managed_disk_cmk_managed_hsm_key_id", accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
+			return fmt.Errorf("expanding customer-managed key for managed disk encryption: %+v", err)
+		} else if diskCMKID != nil {
+			setEncrypt = true
+			encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
+				KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
+				KeyVaultProperties: workspaces.ManagedDiskEncryptionKeyVaultProperties{
+					KeyName:     diskCMKID.Name(),
+					KeyVersion:  diskCMKID.Version(),
+					KeyVaultUri: diskCMKID.BaseUri(),
+				},
+			}
 		}
 	}
 

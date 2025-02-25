@@ -243,7 +243,40 @@ func FlattenKeyVaultOrManagedHSMID(id string, hsmEnv environments.Api) (*KeyVaul
 }
 
 func FlattenKeyVaultOrManagedHSMIDByComponents(baseUri, name, version string, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
-	id := fmt.Sprintf("%s/keys/%s/%s", strings.TrimRight(baseUri, "/"), name, version)
-	id = strings.TrimSuffix(id, "/")
-	return FlattenKeyVaultOrManagedHSMID(id, hsmEnv)
+
+	// if the baseUri is not a managed hsm, then it must be a key vault
+	if !strings.Contains(baseUri, ".managedhsm.") {
+		keyVaultID, err := parse.NewNestedKeyID(baseUri, name, version)
+		if err != nil {
+			return nil, err
+		}
+		return &KeyVaultOrManagedHSMKey{
+			KeyVaultKeyId: keyVaultID,
+		}, nil
+	}
+
+	var hsmSuffix *string
+	if hsmEnv != nil {
+		hsmSuffix, _ = hsmEnv.DomainSuffix()
+	}
+
+	// versioned hsm key
+	if version != "" {
+		hsmID, err := hsmParse.ManagedHSMDataPlaneVersionlessKeyID(fmt.Sprintf("%s/keys/%s/%s", baseUri, name, version), hsmSuffix)
+		if err != nil {
+			return nil, err
+		}
+		return &KeyVaultOrManagedHSMKey{
+			ManagedHSMKeyVersionlessId: hsmID,
+		}, nil
+	}
+
+	// versionless hsm key
+	hsmID, err := hsmParse.ManagedHSMDataPlaneVersionedKeyID(fmt.Sprintf("%s/keys/%s", baseUri, name), hsmSuffix)
+	if err != nil {
+		return nil, err
+	}
+	return &KeyVaultOrManagedHSMKey{
+		ManagedHSMKeyId: hsmID,
+	}, nil
 }

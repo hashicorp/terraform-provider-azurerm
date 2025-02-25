@@ -50,11 +50,11 @@ The following arguments are supported:
 
 * `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties using a versioned Key Vaule Key ID for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
 
-* `managed_services_cmk_managed_hsm_key_id` - (Optional) Customer managed encryption properties using a versioned Managed Hardware Security Key ID for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
+* `managed_services_cmk_managed_hsm_key_id` - (Optional) Customer managed encryption properties using a versioned Managed Hardware Security Key ID for the Databricks Workspace managed resources e.g. Notebooks and Artifacts.
 
 -> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
 
-* `managed_disk_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties using a versioned Key Vaule Key ID for the Databricks Workspace managed disks.
+* `managed_disk_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties using a versioned Key Vault Key ID for the Databricks Workspace managed disks.
 
 * `managed_disk_cmk_managed_hsm_key_id` - (Optional) Customer managed encryption properties using a versioned Managed Hardware Security Key ID for the Databricks Workspace managed disks.
 

@@ -414,20 +414,20 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_CMkWithManagedHSM(t *testing.T) {
+func TestAccDatabricksWorkspace_cmKWithManagedHSM(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"managed_service": {
-			"current_subscription": testAccDatabricksWorkspace_CmkManagedHSMServicesOnly,
-			"alt_subscription":     testAccDatabricksWorkspace_CmkManagedHSMServicesOnlyAltSubscription,
+			"current_subscription": testAccDatabricksWorkspace_cmkManagedHSMServicesOnly,
+			"alt_subscription":     testAccDatabricksWorkspace_cmkManagedHSMServicesOnlyAltSubscription,
 		},
 		"managed_disk": {
-			"current_subscription": testAccDatabricksWorkspace_CmkManagedHSMDiskOnly,
-			"alt_subscription":     testAccDatabricksWorkspace_CmkManagedHSMDiskOnlyAltSubscription,
+			"current_subscription": testAccDatabricksWorkspace_cmkManagedHSMDiskOnly,
+			"alt_subscription":     testAccDatabricksWorkspace_cmkManagedHSMDiskOnlyAltSubscription,
 		},
 	})
 }
 
-func testAccDatabricksWorkspace_CmkManagedHSMServicesOnly(t *testing.T) {
+func testAccDatabricksWorkspace_cmkManagedHSMServicesOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
 	r := DatabricksWorkspaceResource{}
@@ -443,7 +443,7 @@ func testAccDatabricksWorkspace_CmkManagedHSMServicesOnly(t *testing.T) {
 	})
 }
 
-func testAccDatabricksWorkspace_CmkManagedHSMServicesOnlyAltSubscription(t *testing.T) {
+func testAccDatabricksWorkspace_cmkManagedHSMServicesOnlyAltSubscription(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -465,7 +465,7 @@ func testAccDatabricksWorkspace_CmkManagedHSMServicesOnlyAltSubscription(t *test
 	})
 }
 
-func testAccDatabricksWorkspace_CmkManagedHSMDiskOnly(t *testing.T) {
+func testAccDatabricksWorkspace_cmkManagedHSMDiskOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
 	r := DatabricksWorkspaceResource{}
@@ -481,7 +481,7 @@ func testAccDatabricksWorkspace_CmkManagedHSMDiskOnly(t *testing.T) {
 	})
 }
 
-func testAccDatabricksWorkspace_CmkManagedHSMDiskOnlyAltSubscription(t *testing.T) {
+func testAccDatabricksWorkspace_cmkManagedHSMDiskOnlyAltSubscription(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
