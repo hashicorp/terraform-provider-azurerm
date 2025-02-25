@@ -245,20 +245,21 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = pointer.From(identity)
 
-				props := model.Properties
-				state.Environment = string(props.Environment)
-				state.SapProduct = string(props.SapProduct)
-				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.Environment = string(props.Environment)
+					state.SapProduct = string(props.SapProduct)
+					state.Tags = pointer.From(model.Tags)
 
-				if config := props.Configuration; config != nil {
-					if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
-						state.CentralServerVmId = pointer.From(v.CentralServerVMId)
-						state.ManagedStorageAccountName = pointer.From(v.ManagedRgStorageAccountName)
+					if config := props.Configuration; config != nil {
+						if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
+							state.CentralServerVmId = pointer.From(v.CentralServerVMId)
+							state.ManagedStorageAccountName = pointer.From(v.ManagedRgStorageAccountName)
+						}
 					}
-				}
 
-				if v := props.ManagedResourceGroupConfiguration; v != nil {
-					state.ManagedResourceGroupName = pointer.From(v.Name)
+					if v := props.ManagedResourceGroupConfiguration; v != nil {
+						state.ManagedResourceGroupName = pointer.From(v.Name)
+					}
 				}
 			}
 

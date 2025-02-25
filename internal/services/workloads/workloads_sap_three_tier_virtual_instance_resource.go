@@ -1223,33 +1223,34 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = pointer.From(identity)
 
-				props := model.Properties
-				state.Environment = string(props.Environment)
-				state.SapProduct = string(props.SapProduct)
-				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.Environment = string(props.Environment)
+					state.SapProduct = string(props.SapProduct)
+					state.Tags = pointer.From(model.Tags)
 
-				if config := props.Configuration; config != nil {
-					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-						state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
+					if config := props.Configuration; config != nil {
+						if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+							state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
 
-						if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
-							state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
-						}
+							if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+								state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
+							}
 
-						if configuration := v.InfrastructureConfiguration; configuration != nil {
-							if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
-								threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
-								if err != nil {
-									return err
+							if configuration := v.InfrastructureConfiguration; configuration != nil {
+								if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
+									threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
+									if err != nil {
+										return err
+									}
+									state.ThreeTierConfiguration = threeTierConfig
 								}
-								state.ThreeTierConfiguration = threeTierConfig
 							}
 						}
 					}
-				}
 
-				if v := props.ManagedResourceGroupConfiguration; v != nil {
-					state.ManagedResourceGroupName = pointer.From(v.Name)
+					if v := props.ManagedResourceGroupConfiguration; v != nil {
+						state.ManagedResourceGroupName = pointer.From(v.Name)
+					}
 				}
 			}
 

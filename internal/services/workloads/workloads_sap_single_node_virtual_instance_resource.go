@@ -562,35 +562,36 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = pointer.From(identity)
 
-				props := model.Properties
-				state.Environment = string(props.Environment)
-				state.SapProduct = string(props.SapProduct)
-				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.Environment = string(props.Environment)
+					state.SapProduct = string(props.SapProduct)
+					state.Tags = pointer.From(model.Tags)
 
-				if config := props.Configuration; config != nil {
-					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-						appLocation := ""
-						if appLocationVal := v.AppLocation; appLocationVal != nil {
-							appLocation = *v.AppLocation
-						}
-						state.AppLocation = location.Normalize(appLocation)
+					if config := props.Configuration; config != nil {
+						if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+							appLocation := ""
+							if appLocationVal := v.AppLocation; appLocationVal != nil {
+								appLocation = *v.AppLocation
+							}
+							state.AppLocation = location.Normalize(appLocation)
 
-						sapFqdn := ""
-						if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
-							sapFqdn = pointer.From(osSapConfiguration.SapFqdn)
-						}
-						state.SapFqdn = sapFqdn
+							sapFqdn := ""
+							if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+								sapFqdn = pointer.From(osSapConfiguration.SapFqdn)
+							}
+							state.SapFqdn = sapFqdn
 
-						if configuration := v.InfrastructureConfiguration; configuration != nil {
-							if singleServerConfiguration, singleServerConfigurationExists := configuration.(sapvirtualinstances.SingleServerConfiguration); singleServerConfigurationExists {
-								state.SingleServerConfiguration = flattenSingleServerConfiguration(singleServerConfiguration, metadata.ResourceData)
+							if configuration := v.InfrastructureConfiguration; configuration != nil {
+								if singleServerConfiguration, singleServerConfigurationExists := configuration.(sapvirtualinstances.SingleServerConfiguration); singleServerConfigurationExists {
+									state.SingleServerConfiguration = flattenSingleServerConfiguration(singleServerConfiguration, metadata.ResourceData)
+								}
 							}
 						}
 					}
-				}
 
-				if v := props.ManagedResourceGroupConfiguration; v != nil {
-					state.ManagedResourceGroupName = pointer.From(v.Name)
+					if v := props.ManagedResourceGroupConfiguration; v != nil {
+						state.ManagedResourceGroupName = pointer.From(v.Name)
+					}
 				}
 			}
 
