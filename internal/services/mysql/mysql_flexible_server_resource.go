@@ -220,6 +220,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Default:  true,
+				Optional: true,
+			},
+
 			"replication_role": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -294,12 +300,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Default:  true,
-				Optional: true,
 			},
 
 			"replica_capacity": {
