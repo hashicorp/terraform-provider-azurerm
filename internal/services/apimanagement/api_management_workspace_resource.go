@@ -4,159 +4,201 @@
 package apimanagement
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceApiManagementWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceApiManagementWorkspaceCreateUpdate,
-		Read:   resourceApiManagementWorkspaceRead,
-		Update: resourceApiManagementWorkspaceCreateUpdate,
-		Delete: resourceApiManagementWorkspaceDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := workspace.ParseWorkspaceID(id)
-			return err
-		}),
+type ApiManagementWorkspaceModel struct {
+	WorkspaceId       string `tfschema:"workspace_id"`
+	ResourceGroupName string `tfschema:"resource_group_name"`
+	ServiceName       string `tfschema:"service_name"`
+	WorkspaceName     string `tfschema:"workspace_name"`
+}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(45 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
+type ApiManagementWorkspaceResource struct{}
+
+var _ sdk.Resource = ApiManagementWorkspaceResource{}
+
+func (r ApiManagementWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"workspace_id": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`),
+				"Workspace ID must be 1 - 80 characters long, contain only letters, numbers and hyphens.",
+			),
+			Description: "The ID of the API Management Workspace.",
 		},
-
-		Schema: map[string]*pluginsdk.Schema{
-			"workspace_id": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`),
-					"Workspace ID must be 1 - 80 characters long, contain only letters, numbers and hyphens.",
-				),
-				Description: "The ID of the API Management Workspace.",
-			},
-			"api_management_name": schemaz.SchemaApiManagementName(),
-
-			"resource_group_name": commonschema.ResourceGroupName(),
-			"workspace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				Description:  "The display name of the API Management Workspace.",
-			},
-			"service_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				Description:  "The name of the API Management Service in which this Workspace should be created.",
-			},
+		"resource_group_name": commonschema.ResourceGroupName(),
+		"service_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The name of the API Management Service in which this Workspace should be created.",
+		},
+		"workspace_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The display name of the API Management Workspace.",
 		},
 	}
 }
 
-func resourceApiManagementWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.WorkspaceClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r ApiManagementWorkspaceResource) Attributes() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
 
-	log.Printf("[INFO] preparing arguments for API Management Workspace creation.")
+func (r ApiManagementWorkspaceResource) ModelObject() interface{} {
+	return &ApiManagementWorkspaceModel{}
+}
 
-	id := workspace.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("service_name").(string), d.Get("workspace_id").(string))
+func (r ApiManagementWorkspaceResource) ResourceType() string {
+	return "azurerm_api_management_workspace"
+}
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+func (r ApiManagementWorkspaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return workspace.ValidateWorkspaceID
+}
+
+func (r ApiManagementWorkspaceResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 45 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiManagement.WorkspaceClient
+
+			var model ApiManagementWorkspaceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
 			}
-		}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_workspace", id.ID())
-		}
-	}
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			newId := workspace.NewWorkspaceID(subscriptionId, model.ResourceGroupName, model.ServiceName, model.WorkspaceId)
 
-	properties := workspace.WorkspaceContract{
-		Properties: &workspace.WorkspaceContractProperties{
-			DisplayName: d.Get("workspace_name").(string),
+			existing, err := client.Get(ctx, newId)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %s", newId, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), newId)
+			}
+
+			properties := workspace.WorkspaceContract{
+				Properties: &workspace.WorkspaceContractProperties{
+					DisplayName: model.WorkspaceName,
+				},
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, newId, properties); err != nil {
+				return fmt.Errorf("creating %s: %+v", newId, err)
+			}
+
+			metadata.SetID(newId)
+			return nil
 		},
 	}
-
-	if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-
-	return resourceApiManagementWorkspaceRead(d, meta)
 }
 
-func resourceApiManagementWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.WorkspaceClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r ApiManagementWorkspaceResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiManagement.WorkspaceClient
 
-	id, err := workspace.ParseWorkspaceID(d.Id())
-	if err != nil {
-		return err
+			id, err := workspace.ParseWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state := ApiManagementWorkspaceModel{
+				WorkspaceId:       id.WorkspaceId,
+				ServiceName:       id.ServiceName,
+				ResourceGroupName: id.ResourceGroup,
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.WorkspaceName = props.DisplayName
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
 	}
+}
 
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("%s was not found - removing from state!", *id)
-			d.SetId("")
+func (r ApiManagementWorkspaceResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 45 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiManagement.WorkspaceClient
+
+			id, err := workspace.ParseWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err = client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
 			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		},
 	}
-
-	d.Set("workspace_id", id.WorkspaceId)
-	d.Set("service_name", id.ServiceName)
-	d.Set("resource_group_name", id.ResourceGroup)
-
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("workspace_name", props.DisplayName)
-		}
-	}
-
-	return nil
 }
 
-func resourceApiManagementWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ApiManagement.WorkspaceClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r ApiManagementWorkspaceResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 45 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ApiManagement.WorkspaceClient
 
-	id, err := workspace.ParseWorkspaceID(d.Id())
-	if err != nil {
-		return err
+			id, err := workspace.ParseWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model ApiManagementWorkspaceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+
+			properties := workspace.WorkspaceContract{
+				Properties: &workspace.WorkspaceContractProperties{
+					DisplayName: model.WorkspaceName,
+				},
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, properties); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
 	}
-
-	resp, err := client.Delete(ctx, *id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
-		}
-	}
-
-	return nil
 }
