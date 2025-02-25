@@ -97,9 +97,11 @@ The following arguments are supported:
 
 -> **Note:** To create with `administrator_login` specified or update with it first specified , `authentication.password_auth_enabled` must be set to `true`.
 
-* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. `administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
+* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.
 
-* `administrator_password_wo` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. `administrator_password_wo` or `administrator_password` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
+* `administrator_password_wo` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.
+
+~> **Note:** Either `administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
 
 * `administrator_password_wo_version` - (Optional) An integer value used to trigger an update for `administrator_password_wo`. This property should be incremented when updating `administrator_password_wo`.
 

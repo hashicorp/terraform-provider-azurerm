@@ -614,7 +614,7 @@ func TestAccPostgresqlFlexibleServer_writeOnlyPassword(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0-beta1"))),
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
@@ -638,7 +638,7 @@ func TestAccPostgresqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0-beta1"))),
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
 		},
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
