@@ -22,6 +22,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverconnectionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	schemaValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,7 +37,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlServer() *pluginsdk.Resource {
@@ -48,6 +50,10 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			_, err := parse.ServerID(id)
 			return err
 		}),
+
+		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
+			schemaValidation.PreferWriteOnlyAttribute(cty.GetAttrPath("administrator_login_password"), cty.GetAttrPath("administrator_login_password_wo")),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -84,15 +90,30 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ForceNew:     true,
 				AtLeastOneOf: []string{"administrator_login", "azuread_administrator.0.azuread_authentication_only"},
-				RequiredWith: []string{"administrator_login", "administrator_login_password"},
 			},
 
 			"administrator_login_password": {
-				Type:         pluginsdk.TypeString,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				AtLeastOneOf:  []string{"administrator_login_password", "administrator_login_password_wo", "azuread_administrator.0.azuread_authentication_only"},
+				ConflictsWith: []string{"administrator_login_password_wo"},
+			},
+
+			"administrator_login_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				WriteOnly:     true,
+				AtLeastOneOf:  []string{"administrator_login_password_wo", "administrator_login_password", "azuread_administrator.0.azuread_authentication_only"},
+				ConflictsWith: []string{"administrator_login_password"},
+				RequiredWith:  []string{"administrator_login_password_wo_version"},
+			},
+
+			"administrator_login_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Sensitive:    true,
-				AtLeastOneOf: []string{"administrator_login_password", "azuread_administrator.0.azuread_authentication_only"},
-				RequiredWith: []string{"administrator_login", "administrator_login_password"},
+				RequiredWith: []string{"administrator_login_password_wo"},
 			},
 
 			"azuread_administrator": {
@@ -197,6 +218,8 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(msSqlMinimumTLSVersionDiff),
 
 			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
+
+			pluginsdk.CustomizeDiffShim(msSqlAdministratorLoginPassword),
 		),
 	}
 
@@ -240,6 +263,11 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return tf.ImportAsExistsError("azurerm_mssql_server", id.ID())
 	}
 
+	woAdminLoginPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+
 	props := servers.Server{
 		Location: location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -251,11 +279,15 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v := d.Get("administrator_login"); v.(string) != "" {
-		props.Properties.AdministratorLogin = utils.String(v.(string))
+		props.Properties.AdministratorLogin = pointer.To(v.(string))
 	}
 
 	if v := d.Get("administrator_login_password"); v.(string) != "" {
-		props.Properties.AdministratorLoginPassword = utils.String(v.(string))
+		props.Properties.AdministratorLoginPassword = pointer.To(v.(string))
+	}
+
+	if !woAdminLoginPassword.IsNull() {
+		props.Properties.AdministratorLoginPassword = pointer.To(woAdminLoginPassword.AsString())
 	}
 
 	// NOTE: You must set the admin before setting the values of the admin...
@@ -387,6 +419,16 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if d.HasChange("administrator_login_password") {
 			adminPassword := d.Get("administrator_login_password").(string)
 			payload.Properties.AdministratorLoginPassword = pointer.To(adminPassword)
+		}
+
+		if d.HasChange("administrator_login_password_wo_version") {
+			woAdminLoginPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
+			if err != nil {
+				return err
+			}
+			if !woAdminLoginPassword.IsNull() {
+				payload.Properties.AdministratorLoginPassword = pointer.To(woAdminLoginPassword.AsString())
+			}
 		}
 
 		if d.HasChange("minimum_tls_version") {
@@ -524,6 +566,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if props := model.Properties; props != nil {
 			d.Set("version", props.Version)
 			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("administrator_login_password_wo_version", d.Get("administrator_login_password_wo_version").(int))
 			d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 
 			// todo remove `|| *v == "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
@@ -718,6 +761,24 @@ func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.Resour
 	old, _ := d.GetChange("azuread_administrator.0.azuread_authentication_only")
 	if old.(bool) && d.HasChange("administrator_login_password") {
 		err = fmt.Errorf("`administrator_login_password` cannot be changed once `azuread_administrator.0.azuread_authentication_only = true`")
+	}
+	return
+}
+
+// msSqlAdministratorLoginPassword checks to make sure that one of `administrator_login_password_wo` or `administrator_login_password` is set when `administrator_login` is specified.
+func msSqlAdministratorLoginPassword(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+	adminLogin := d.GetRawConfig().AsValueMap()["administrator_login"]
+	if !adminLogin.IsNull() && adminLogin.AsString() != "" {
+		woAdminLoginPassword, err := pluginsdk.GetWriteOnlyFromDiff(d, "administrator_login_password_wo", cty.String)
+		if err != nil {
+			return err
+		}
+
+		password := d.GetRawConfig().AsValueMap()["administrator_login_password"]
+
+		if woAdminLoginPassword.IsNull() && password.IsNull() {
+			return fmt.Errorf("expected `administrator_login_password` or `administrator_login_password_wo` to be set when `administrator_login` is specified")
+		}
 	}
 	return
 }
