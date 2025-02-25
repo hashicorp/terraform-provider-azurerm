@@ -1028,22 +1028,45 @@ func (val Value) HasElement(elem Value) Value {
 	}
 
 	ty := val.Type()
+	unknownResult := UnknownVal(Bool).RefineNotNull()
 
+	if val.IsNull() {
+		panic("cannot HasElement on null value")
+	}
+	if !val.IsKnown() {
+		return unknownResult
+	}
+	if elem.Type() != DynamicPseudoType && val.Type().IsSetType() && val.Type().ElementType() != DynamicPseudoType {
+		// If we know the type of the given element and the element type of
+		// the set then they must match for the element to be present, because
+		// a set can't contain elements of any other type than its element type.
+		if !elem.Type().Equals(val.ty.ElementType()) {
+			return False
+		}
+	}
 	if !ty.IsSetType() {
 		panic("not a set type")
 	}
-	if !val.IsKnown() || !elem.IsKnown() {
-		return UnknownVal(Bool).RefineNotNull()
+	if !elem.IsKnown() {
+		return unknownResult
 	}
-	if val.IsNull() {
-		panic("can't call HasElement on a null value")
+	noMatchResult := False
+	if !val.IsWhollyKnown() {
+		// If the set has any unknown elements then a failure to find a
+		// known-value elem in it means that we don't know whether the
+		// element is present, rather than that it definitely isn't.
+		noMatchResult = unknownResult
 	}
 	if !ty.ElementType().Equals(elem.Type()) {
+		// A set can only contain an element of its own element type
 		return False
 	}
 
 	s := val.v.(set.Set[interface{}])
-	return BoolVal(s.Has(elem.v))
+	if !s.Has(elem.v) {
+		return noMatchResult
+	}
+	return True
 }
 
 // Length returns the length of the receiver, which must be a collection type
