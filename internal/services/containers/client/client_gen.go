@@ -9,11 +9,11 @@ import (
 )
 
 type AutoClient struct {
-	V20240401 containerservice_2024_04_01.Client
+	V20231015 containerservice_2024_04_01.Client
 }
 
 func NewClient(o *common.ClientOptions) (*AutoClient, error) {
-	v20240401Client, err := containerservice_2024_04_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	v20231015Client, err := containerservice_2024_04_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
@@ -21,6 +21,6 @@ func NewClient(o *common.ClientOptions) (*AutoClient, error) {
 	}
 
 	return &AutoClient{
-		V20240401: *v20240401Client,
+		V20231015: *v20231015Client,
 	}, nil
 }
