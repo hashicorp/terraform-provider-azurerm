@@ -97,6 +97,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				WriteOnly:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"administrator_password"},
 				RequiredWith:  []string{"administrator_password_wo_version"},
 			},
