@@ -1,6 +1,6 @@
 # Guide: Adding a new Write-Only Attribute 
 
-This guide covers how to add a new Write-Only (WO) Attribute to a resource. A WO Attribute can accept ephemeral values and are never persisted in state. 
+This guide covers how to add a new Write-Only (WO) Attribute to a resource. A WO Attribute can accept ephemeral values and is never persisted in state. 
 
 > **Note:** Write-Only Attributes are only available in Terraform version 1.11 or higher.
 
@@ -40,11 +40,11 @@ As a result we add two new properties to the schema, `password_wo` and `password
 },
 
 "password_wo": {
-    Type:          pluginsdk.TypeString,
-    Optional:      true,
-    WriteOnly:     true,
-	RequiredWith:  []string{"password_wo_version"} // this must be set to ensure the "trigger" property is provided with the wo attribute
-    ConflictsWith: []string{"password_wo_version"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
+	Type:          pluginsdk.TypeString, 
+	Optional:      true,
+	WriteOnly:     true, 
+	RequiredWith:  []string{"password_wo_version"} // this must be set to ensure the "trigger" property is provided with the wo attribute 
+	ConflictsWith: []string{"password_wo_version"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
 }
 
 "password_wo_version": {
@@ -131,7 +131,7 @@ func (SomeDatabase) Update() sdk.ResourceFunc {
 
 ## Adding Validation
 
-The `terraform-plugin-sdk@v2` provides a helpful validation for WO attributes that surfaces a warning to users if they are on a version of Terraform that support WO attributes but are using the non-WO attribute version of a sensitive property.
+The `terraform-plugin-sdk@v2` provides a helpful validation for WO attributes that surfaces a warning to users if they are on a version of Terraform that supports WO attributes but are using the non-WO attribute version of a sensitive property.
 
 ```go
 // update the interface that the resource should implement
@@ -214,7 +214,7 @@ func TestAccSomeDatabase_updateToWriteOnlyPassword(t *testing.T) {
 }
 ```
 
-To reduce the amount unnecessary test templating, we should make use of the `acceptance.WriteOnlyKeyVaultSecretTemplate` test config template which provisions all the necessary dependencies to reference a secret value using the `azurerm_key_vault_secret` ephemeral resource.
+To reduce the amount of unnecessary test templating, we should make use of the `acceptance.WriteOnlyKeyVaultSecretTemplate` test config template which provisions all the necessary dependencies to reference a secret value using the `azurerm_key_vault_secret` ephemeral resource.
 
 ```go
 func (r SomeDatabaseResource) writeOnlyPassword(data acceptance.TestData, secret string, version int) string {
@@ -237,7 +237,7 @@ resource "azurerm_some_database" "test" {
 
 ## Updating the Documentation
 
-When documenting WO attributes in the documentation we specify `Write-Only` in the parentheses that contains the `Required` and `Optional` information.
+When documenting WO attributes we specify `Write-Only` in the parentheses that contains the `Required` and `Optional` information.
 
 ```markdown
 ...
