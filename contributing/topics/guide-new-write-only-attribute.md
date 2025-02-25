@@ -4,7 +4,7 @@ This guide covers how to add a new Write-Only (WO) Attribute to a resource. A WO
 
 > **Note:** Write-Only Attributes are only available in Terraform version 1.11 or higher.
 
-Good candidates for WO Attributes are sensitive user supplied properties e.g. passwords, certificates, keys and can be added in addition to an existing sensitive property.
+Good candidates for WO Attributes are sensitive user supplied properties, e.g. passwords, certificates, and keys, can be added in addition to an existing sensitive property.
 
 There are however limitations on what can be added as a WO Attribute, the original sensitive property:
 * Cannot be `ForceNew`
