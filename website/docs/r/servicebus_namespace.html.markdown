@@ -87,7 +87,7 @@ A `customer_managed_key` block supports the following:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this ServiceBus Namespace.
 
-* `identity_id` - (Optional) The ID of the User Assigned Identity that has access to the key.
+* `identity_id` - (Required) The ID of the User Assigned Identity that has access to the key.
 
 * `infrastructure_encryption_enabled` - (Optional) Used to specify whether enable Infrastructure Encryption (Double Encryption). Changing this forces a new resource to be created.
 
