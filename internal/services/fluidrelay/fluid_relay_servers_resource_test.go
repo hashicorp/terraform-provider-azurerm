@@ -448,6 +448,7 @@ resource "azurerm_fluid_relay_server" "test" {
 }
 `, f.templateWithCMK(data), data.RandomInteger, data.Locations.Primary)
 }
+
 func (f FluidRelayResource) customerManagedKeyVersionlessUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
