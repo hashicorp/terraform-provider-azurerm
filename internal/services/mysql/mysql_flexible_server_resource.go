@@ -298,7 +298,8 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Default:  true,
+				Optional: true,
 			},
 
 			"replica_capacity": {
@@ -410,6 +411,16 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
 		parameters.Properties.SourceServerResourceId = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("public_network_access_enabled"); ok {
+		var publicNetworkAccess servers.EnableStatusEnum
+		if v.(bool) {
+			publicNetworkAccess = servers.EnableStatusEnumEnabled
+		} else {
+			publicNetworkAccess = servers.EnableStatusEnumDisabled
+		}
+		parameters.Properties.Network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	pointInTimeUTC := d.Get("point_in_time_restore_time_in_utc").(string)
@@ -704,6 +715,19 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		var publicNetworkAccess servers.EnableStatusEnum
+		if d.Get("public_network_access_enabled").(bool) {
+			publicNetworkAccess = servers.EnableStatusEnumEnabled
+		} else {
+			publicNetworkAccess = servers.EnableStatusEnumDisabled
+		}
+		if parameters.Properties.Network == nil {
+			parameters.Properties.Network = &servers.Network{}
+		}
+		parameters.Properties.Network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
