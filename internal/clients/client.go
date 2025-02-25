@@ -21,7 +21,7 @@ import (
 	servicenetworking_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	systemcentervirtualmachinemanager_2023_10_07 "github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07"
-	workloads_v2023_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01"
+	workloads_v2024_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	aadb2c "github.com/hashicorp/terraform-provider-azurerm/internal/services/aadb2c/client"
@@ -282,7 +282,7 @@ type Client struct {
 	Vmware                            *vmware.Client
 	VoiceServices                     *voiceServices.Client
 	Web                               *web.Client
-	Workloads                         *workloads_v2023_04_01.Client
+	Workloads                         *workloads_v2024_09_01.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
