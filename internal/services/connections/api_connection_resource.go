@@ -73,15 +73,6 @@ func resourceConnection() *pluginsdk.Resource {
 			"parameter_values": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				// @tombuildsstuff: this can't be patched in API version 2016-06-01 and there isn't Swagger for
-				// API version 2018-07-01-preview, so I guess this is ForceNew for now
-				//
-				// > Status=400 Code="PatchApiConnectionPropertiesNotSupported"
-				// > Message="The request to patch API connection 'acctestconn-220307135205093274' is not supported.
-				// > None of the fields inside the properties object can be patched."
-				//
-				// @sreallymatt: this can be updated when using CreateOrUpdate instead of Update though the behaviour within the service is inconsistent, leaving as ForceNew
-				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -173,7 +164,7 @@ func resourceConnectionRead(d *schema.ResourceData, meta interface{}) error {
 
 			// In version 2016-06-01 the API doesn't return `ParameterValues`.
 			// The non-secret parameters are returned in `NonSecretParameterValues` instead.
-			if err := d.Set("parameter_values", pointer.From(props.NonSecretParameterValues)); err != nil {
+			if err := d.Set("parameter_values", flattenParameterValues(pointer.From(props.NonSecretParameterValues))); err != nil {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
 			}
 		}
@@ -208,10 +199,18 @@ func resourceConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
 	}
-
 	props := existing.Model.Properties
+
 	if d.HasChange("display_name") {
 		props.DisplayName = pointer.To(d.Get("display_name").(string))
+	}
+
+	// The GET operation returns `NonSecretParameterValues` but we're making updates through `ParameterValues`
+	// so we remove `NonSecretParameterValues` from the request to avoid conflicting parameters.
+	// this is fixed in later (preview) versions of the API but these don't have an API spec available.
+	props.NonSecretParameterValues = nil
+	if d.HasChange("parameter_values") {
+		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]interface{}))
 	}
 
 	if d.HasChange("tags") {
@@ -240,4 +239,16 @@ func resourceConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+// Because this API may return other primitive types for `parameter_values`
+// we need to ensure each value in the map is a string to prevent panics when setting this into state.
+func flattenParameterValues(input map[string]interface{}) map[string]string {
+	output := make(map[string]string)
+
+	for k, v := range input {
+		output[k] = fmt.Sprintf("%v", v)
+	}
+
+	return output
 }

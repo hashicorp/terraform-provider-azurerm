@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A display name for this API Connection.
 
-* `parameter_values` - (Optional) A map of parameter values associated with this API Connection. Changing this forces a new API Connection to be created.
+* `parameter_values` - (Optional) A map of parameter values associated with this API Connection.
 
 -> **Note:** The Azure API doesn't return sensitive parameters in the API response which can lead to a diff, as such you may need to use Terraform's `ignore_changes` functionality on this field as shown in the Example Usage above.
 
