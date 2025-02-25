@@ -1,4 +1,4 @@
 * @hashicorp/terraform-azure
 
-# PRLabel: %Device Registrys
-/internal/services/deviceregistry/ @marcodalessandro @rohankhandelwal @riteshrao
+# PRLabel: %Device Registry
+/internal/services/deviceregistry/ @marcodalessandro @rohankhandelwal @riteshrao @davidemontanari
