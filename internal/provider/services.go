@@ -77,6 +77,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
@@ -188,6 +189,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loganalytics.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
+		manageddevopspools.Registration{},
 		managedhsm.Registration{},
 		mobilenetwork.Registration{},
 		mongocluster.Registration{},
@@ -294,6 +296,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			machinelearning.Registration{},
 			maintenance.Registration{},
 			managedapplications.Registration{},
+			manageddevopspools.Registration{},
 			managedhsm.Registration{},
 			managedidentity.Registration{},
 			managementgroup.Registration{},
