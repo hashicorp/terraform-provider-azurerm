@@ -453,14 +453,14 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if admin == "" {
-			return fmt.Errorf("`administrator_login` must not be empty when `create_mode` is `default`")
+			return fmt.Errorf("`administrator_login` must not be empty when `create_mode` is `Default`")
 		}
 		if password == "" {
-			return fmt.Errorf("`administrator_login_password_wo` or `administrator_login_password` must be set `create_mode` is `default`")
+			return fmt.Errorf("`administrator_login_password_wo` or `administrator_login_password` must be set when `create_mode` is `Default`")
 		}
 
 		if _, ok := d.GetOk("restore_point_in_time"); ok {
-			return fmt.Errorf("`restore_point_in_time` cannot be set when `create_mode` is `default`")
+			return fmt.Errorf("`restore_point_in_time` cannot be set when `create_mode` is `Default`")
 		}
 
 		// check admin
@@ -697,7 +697,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// Update Admin Password in the separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
-	if (d.HasChange("administrator_login_password") || d.HasChange("administrator_login_password_version")) && !replicaUpdatedToDefault {
+	if d.HasChanges("administrator_login_password", "administrator_login_password_wo_version") && !replicaUpdatedToDefault {
 		password := ""
 
 		if v, ok := d.GetOk("administrator_login_password"); ok {
@@ -718,7 +718,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	// Update Admin Password in a separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
-	if (d.HasChange("administrator_login_password") || d.HasChange("administrator_login_password_wo")) && replicaUpdatedToDefault {
+	if d.HasChanges("administrator_login_password", "administrator_login_password_wo_version") && replicaUpdatedToDefault {
 		password := ""
 
 		if v, ok := d.GetOk("administrator_login_password"); ok {
