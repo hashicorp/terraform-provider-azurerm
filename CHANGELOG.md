@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `azurerm_kubernetes_cluster` - add support for the `upgrade_override_setting` property [GH-27962]
 * `azurerm_linux_web_app` - add support for Node Version `22` [GH-28840]
 * `azurerm_linux_web_app_slot` - add support for Node Version `22` [GH-28840]
 * `azurerm_mssql_job_credential` - add support for the `password_wo` and `password_wo_version` properties [GH-28808]
