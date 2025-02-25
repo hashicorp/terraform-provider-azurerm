@@ -11,6 +11,7 @@ Types of breaking changes covered are:
 - [Removing Resources or Data Sources](#removing-resources-or-data-sources)
 - [Breaking Schema Changes](#breaking-schema-changes-and-deprecations)
 - [Updating Default Values](#updating-default-values)
+- [Post Release Breaking Change Clean Up](#post-release-breaking-change-clean-up)
 
 ## Removing Resources or Data Sources
 
@@ -392,7 +393,7 @@ Our tests were failing because the Azure API was returning this value as true wh
 
 There are many ways to accidentally add a breaking change when looking at properties with a Default or lack thereof so extra work needs to be done to confirm what Terraform and the Azure API are returning before deciding how best to incorporate the Default tag.
 
-## Major Release Feature Flag Removal
+## Post Release Breaking Change Clean Up
 
 Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. `if !features.FivePointOh() { ... }`) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for.
 
