@@ -243,7 +243,6 @@ func FlattenKeyVaultOrManagedHSMID(id string, hsmEnv environments.Api) (*KeyVaul
 }
 
 func FlattenKeyVaultOrManagedHSMIDByComponents(baseUri, name, version string, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
-
 	// if the baseUri is not a managed hsm, then it must be a key vault
 	if !strings.Contains(baseUri, ".managedhsm.") {
 		keyVaultID, err := parse.NewNestedKeyID(baseUri, name, version)
