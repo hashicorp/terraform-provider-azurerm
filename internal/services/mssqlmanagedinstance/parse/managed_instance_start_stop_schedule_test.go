@@ -27,7 +27,6 @@ func TestManagedInstanceStartStopScheduleID(t *testing.T) {
 		Error    bool
 		Expected *ManagedInstanceStartStopScheduleId
 	}{
-
 		{
 			// empty
 			Input: "",
