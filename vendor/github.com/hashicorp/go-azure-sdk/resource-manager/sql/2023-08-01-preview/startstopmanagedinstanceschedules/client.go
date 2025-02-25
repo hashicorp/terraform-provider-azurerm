@@ -15,7 +15,7 @@ type StartStopManagedInstanceSchedulesClient struct {
 }
 
 func NewStartStopManagedInstanceSchedulesClientWithBaseURI(sdkApi sdkEnv.Api) (*StartStopManagedInstanceSchedulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "startstopmanagedinstanceschedules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "startstopmanagedinstanceschedules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StartStopManagedInstanceSchedulesClient: %+v", err)
 	}

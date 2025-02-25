@@ -47,7 +47,6 @@ func (c StartStopManagedInstanceSchedulesClient) Get(ctx context.Context, id com
 
 	var model StartStopManagedInstanceSchedule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
