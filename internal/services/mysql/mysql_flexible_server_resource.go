@@ -97,6 +97,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				WriteOnly:     true,
 				ConflictsWith: []string{"administrator_password"},
 				RequiredWith:  []string{"administrator_password_wo_version"},
+				ValidateFunc:  validate.FlexibleServerAdministratorPassword,
 			},
 
 			"administrator_password_wo_version": {
