@@ -214,31 +214,24 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if kvProps := props.KeyVaultProperties; kvProps != nil {
-				var keyVaultUri, keyName, keyVersion string
-				if kvProps.KeyVaultUri != nil && *kvProps.KeyVaultUri != "" {
-					keyVaultUri = *kvProps.KeyVaultUri
-				} else {
-					return fmt.Errorf("empty value returned for Key Vault URI")
+				keyVaultUri := pointer.From(kvProps.KeyVaultUri)
+				keyName := pointer.From(kvProps.KeyName)
+				keyVersion := pointer.From(kvProps.KeyVersion)
+
+				if keyVaultUri != "" && keyName != "" {
+					keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+					if err != nil {
+						return err
+					}
+					keyVaultKeyId = keyId.ID()
 				}
-				if kvProps.KeyName != nil && *kvProps.KeyName != "" {
-					keyName = *kvProps.KeyName
-				} else {
-					return fmt.Errorf("empty value returned for Key Vault Key Name")
-				}
-				if kvProps.KeyVersion != nil {
-					keyVersion = *kvProps.KeyVersion
-				}
-				keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
-				if err != nil {
-					return err
-				}
-				keyVaultKeyId = keyId.ID()
 			}
 		}
 	}
 
 	if keyVaultKeyId == "" {
 		log.Printf("[DEBUG] %s has no Customer Managed Key - removing from state", *id)
+		d.SetId("")
 		return nil
 	}
 
