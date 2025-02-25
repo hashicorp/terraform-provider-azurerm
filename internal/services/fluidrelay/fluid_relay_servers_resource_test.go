@@ -464,7 +464,7 @@ resource "azurerm_fluid_relay_server" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   customer_managed_key {
-    key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
+    key_vault_key_id          = azurerm_key_vault_key.test2.versionless_id
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
