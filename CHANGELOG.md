@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app` - add support for Node Version `22` [GH-28840]
 * `azurerm_linux_web_app_slot` - add support for Node Version `22` [GH-28840]
 * `azurerm_mssql_job_credential` - add support for the `password_wo` and `password_wo_version` properties [GH-28808]
+* `azurerm_mssql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties [GH-28818]
 * `azurerm_windows_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
 * `azurerm_windows_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
 * `azurerm_servicebus_namespace` - split create/update functions [GH-28539]
