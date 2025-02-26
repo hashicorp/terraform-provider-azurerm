@@ -121,7 +121,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
 
-* `public_network_access_enabled` - (Optional) Is the public network access enabled? Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Is the public network access enabled?
 
 * `replication_role` - (Optional) The replication role. Possible value is `None`.
 
