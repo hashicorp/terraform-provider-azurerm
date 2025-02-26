@@ -138,7 +138,7 @@ func (r ApiCenterServiceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = &state.Tags
+				existing.Model.Tags = pointer.To(state.Tags)
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
