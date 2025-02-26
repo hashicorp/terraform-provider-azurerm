@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -21,10 +22,11 @@ type ApiCenterServiceResource struct{}
 var _ sdk.ResourceWithUpdate = ApiCenterServiceResource{}
 
 type ApiCenterServiceResourceModel struct {
-	Name          string            `tfschema:"name"`
-	ResourceGroup string            `tfschema:"resource_group_name"`
-	Location      string            `tfschema:"location"`
-	Tags          map[string]string `tfschema:"tags"`
+	Name          string                                     `tfschema:"name"`
+	ResourceGroup string                                     `tfschema:"resource_group_name"`
+	Location      string                                     `tfschema:"location"`
+	Identity      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Tags          map[string]string                          `tfschema:"tags"`
 }
 
 func (r ApiCenterServiceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -39,7 +41,7 @@ func (r ApiCenterServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -177,12 +179,12 @@ func (r ApiCenterServiceResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
-				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
 
-				state.Identity = pointer.From(identityValue)
+				state.Identity = identityValue
 			}
 			return metadata.Encode(&state)
 		},
