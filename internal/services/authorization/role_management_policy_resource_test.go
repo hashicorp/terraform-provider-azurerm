@@ -56,24 +56,33 @@ func TestAccRoleManagementPolicy_resourceGroup(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.resourceGroupNotificationRulesRemoved(data),
+			Config: r.resourceGroupNotificationRuleComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				//check.That(data.ResourceName).Key("notification_rules.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
-		//{
-		//	Config: r.resourceGroupUpdate(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//		check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P15D"),
-		//		check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("true"),
-		//		check.That(data.ResourceName).Key("activation_rules.0.approval_stage.0.primary_approver.0.type").HasValue("Group"),
-		//		check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
-		//	),
-		//},
-		//data.ImportStep(),
+		{
+			Config: r.resourceGroupUpdateUpdateRemovedNestedNotificationRules(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resourceGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resourceGroupNotificationRulesRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -319,7 +328,95 @@ resource "azurerm_role_management_policy" "test" {
 `, r.resourceGroupTemplate(data), data.RandomString)
 }
 
-func (r RoleManagementPolicyResource) resourceGroupUpdate(data acceptance.TestData) string {
+func (r RoleManagementPolicyResource) resourceGroupNotificationRuleComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuread" {}
+
+resource "azuread_group" "approver" {
+  display_name     = "PIM Approver Test %[2]s"
+  mail_enabled     = false
+  security_enabled = true
+}
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = data.azurerm_role_definition.contributor.id
+
+  active_assignment_rules {
+    expire_after = "P15D"
+  }
+
+  eligible_assignment_rules {
+    expiration_required = true
+  }
+
+  activation_rules {
+    maximum_duration = "PT1H"
+    require_approval = true
+    approval_stage {
+      primary_approver {
+        object_id = azuread_group.approver.object_id
+        type      = "Group"
+      }
+    }
+  }
+
+  notification_rules {
+    eligible_assignments {
+     approver_notifications {
+       notification_level    = "Critical"
+       default_recipients    = false
+       additional_recipients = ["approver@example.com"]
+     }
+     assignee_notifications {
+      notification_level    = "All"
+      default_recipients    = true
+      additional_recipients = ["assignee.else@example.com"]
+     }
+     admin_notifications {
+      notification_level    = "Critical"
+      default_recipients    = false
+      additional_recipients = ["admin@example.com"]
+     }
+    }
+    eligible_activations {
+     assignee_notifications {
+       notification_level    = "All"
+       default_recipients    = true
+       additional_recipients = ["eligible.else@example.com"]
+     }
+     admin_notifications {
+       notification_level    = "Critical"
+       default_recipients    = false
+       additional_recipients = ["admin@example.com"]
+     }
+    }
+    active_assignments {
+     approver_notifications {
+       notification_level    = "Critical"
+       default_recipients    = false
+       additional_recipients = ["approver@example.com"]
+     }
+     assignee_notifications {
+       notification_level    = "All"
+       default_recipients    = true
+       additional_recipients = ["assignee.else@example.com"]
+     }
+     admin_notifications {
+       notification_level    = "Critical"
+       default_recipients    = false
+       additional_recipients = ["admin@example.com"]
+     }
+    }
+  }
+}
+`, r.resourceGroupTemplate(data), data.RandomString)
+}
+
+func (r RoleManagementPolicyResource) resourceGroupUpdateUpdateRemovedNestedNotificationRules(data acceptance.TestData) string {
+
 	return fmt.Sprintf(`
 %[1]s
 
@@ -367,6 +464,13 @@ resource "azurerm_role_management_policy" "test" {
         notification_level    = "All"
         default_recipients    = true
         additional_recipients = ["someone.else@example.com"]
+      }
+    }
+    active_assignments {
+      approver_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["approver@example.com"]
       }
     }
   }
