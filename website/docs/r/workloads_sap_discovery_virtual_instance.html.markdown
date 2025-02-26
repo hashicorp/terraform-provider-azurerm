@@ -63,6 +63,8 @@ The following arguments are supported:
 
 * `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Discovery Virtual Instance. Changing this forces a new resource to be created.
 
+* `managed_resources_network_access_type` - (Optional) The network access type for managed resources. Possible values are `Private` and `Public`. Defaults to `Public`.
+
 * `managed_storage_account_name` - (Optional) The name of the custom Storage Account created by the service in the managed Resource Group. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the SAP Discovery Virtual Instance.
