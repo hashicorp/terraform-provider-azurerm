@@ -465,7 +465,7 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("events_late_arrival_max_delay_in_seconds") {
-		payload.Properties.EventsOutOfOrderMaxDelayInSeconds = pointer.To(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int)))
+		payload.Properties.EventsLateArrivalMaxDelayInSeconds = pointer.To(int64(d.Get("events_late_arrival_max_delay_in_seconds").(int)))
 	}
 
 	if d.HasChange("events_out_of_order_max_delay_in_seconds") {
