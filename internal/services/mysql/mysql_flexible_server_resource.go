@@ -243,6 +243,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Default:  true,
+				Optional: true,
+			},
+
 			"replication_role": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -316,11 +322,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -752,6 +753,18 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	if d.HasChange("public_network_access_enabled") {
+		network := parameters.Properties.Network
+		if network == nil {
+			network = &servers.Network{}
+		}
+		if d.Get("public_network_access_enabled").(bool) {
+			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumEnabled)
+		} else {
+			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumDisabled)
+		}
+	}
+
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -792,11 +805,21 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	network := servers.Network{}
 
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
-		network.DelegatedSubnetResourceId = utils.String(v.(string))
+		network.DelegatedSubnetResourceId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		network.PrivateDnsZoneResourceId = utils.String(v.(string))
+		network.PrivateDnsZoneResourceId = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("public_network_access_enabled"); ok {
+		var publicNetworkAccess servers.EnableStatusEnum
+		if v.(bool) {
+			publicNetworkAccess = servers.EnableStatusEnumEnabled
+		} else {
+			publicNetworkAccess = servers.EnableStatusEnumDisabled
+		}
+		network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	return &network
