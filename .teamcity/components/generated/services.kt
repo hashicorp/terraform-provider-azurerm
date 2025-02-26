@@ -77,6 +77,7 @@ var services = mapOf(
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
         "managedhsm" to "Managed HSM",
+        "manageddevopspools" to "ManagedDevOpsPools",
         "managedidentity" to "ManagedIdentity",
         "managementgroup" to "Management Group",
         "maps" to "Maps",
