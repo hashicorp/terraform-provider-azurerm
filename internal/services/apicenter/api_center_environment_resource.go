@@ -198,8 +198,15 @@ func (r ApiCenterEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := client.Get(ctx, *id)
-			if err != nil || existing.Model == nil {
-				return fmt.Errorf("reading %s: %v", id, err)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %v", id, err)
+			}
+			
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
 			model := existing.Model
