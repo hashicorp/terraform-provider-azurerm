@@ -1,3 +1,49 @@
+## 4.21.0 (Unreleased)
+
+NOTES:
+
+* The `azurerm_mssql_job_credential` resource now supports the `password_wo` [write-only argument](https://developer.hashicorp.com/terraform/language/v1.11.x/resources/ephemeral#write-only-arguments)
+* The `azurerm_mssql_server` resource now supports the `administrator_login_password_wo` [write-only argument](https://developer.hashicorp.com/terraform/language/v1.11.x/resources/ephemeral#write-only-arguments)
+* The `azurerm_mysql_flexible_server` resource now supports the `administrator_password_wo` [write-only argument](https://developer.hashicorp.com/terraform/language/v1.11.x/resources/ephemeral#write-only-arguments)
+* The `azurerm_postgresql_flexible_server` resource now supports the `administrator_password_wo` [write-only argument](https://developer.hashicorp.com/terraform/language/v1.11.x/resources/ephemeral#write-only-arguments)
+* The `azurerm_postgresql_server` resource now supports the `administrator_login_password_wo` [write-only argument](https://developer.hashicorp.com/terraform/language/v1.11.x/resources/ephemeral#write-only-arguments)
+
+FEATURES:
+
+* **New Resource**: `azurerm_network_manager_verifier_workspace` [GH-28754]
+
+ENHANCEMENTS:
+
+* dependencies: `azurerm_kubernetes_cluster_trusted_access_role_binding` - update API version to `2024-05-01` [GH-28853]
+* dependencies: `desktopvirtualization` - update API version to `2024-04-03` [GH-28771]
+* dependencies: `kusto` - update API version to `2024-04-13` [GH-28685]
+* dependencies: `redis` - update API version to `2024-11-01` [GH-28696]
+* dependencies: `workloads` - update API version to `2024-09-01` [GH-28825]
+* `azurerm_fluid_relay_server` - fix `versionless_id` support for `key_vault_key_id` [GH-28864]
+* `azurerm_kubernetes_cluster` - add support for the `upgrade_override_setting` property [GH-27962]
+* `azurerm_kusto_cluster_principal_assignment` - add support for `AllDatabaseMonitor` role type [GH-28685]
+* `azurerm_linux_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
+* `azurerm_linux_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
+* `azurerm_linux_web_app` - add support for Node Version `22` [GH-28840]
+* `azurerm_linux_web_app_slot` - add support for Node Version `22` [GH-28840]
+* `azurerm_mssql_job_credential` - add support for the `password_wo` and `password_wo_version` properties [GH-28808]
+* `azurerm_mssql_managed_instance` - add support for the `database_format` and `hybrid_secondary_usage` properties [GH-28248]
+* `azurerm_mssql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties [GH-28818]
+* `azurerm_mysql_flexible_server` - add support for the `administrator_password_wo` and `administrator_password_wo_version` properties [GH-28799]
+* `azurerm_postgresql_flexible_server` - add support for the `administrator_password_wo` and `administrator_password_wo_version` properties [GH-28857]
+* `azurerm_postgresql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties [GH-28856]
+* `azurerm_service_plan` - add support for the `I1mv2`, `I2mv2`, `I3mv2`, `I4mv2`, `I5mv2` skus [GH-28316]
+* `azurerm_storage_account` - nested attributes in `immutability_policy` can now be updated [GH-28122]
+* `azurerm_windows_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
+* `azurerm_windows_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
+* `azurerm_servicebus_namespace` - split create/update functions [GH-28539]
+
+BUG FIXES:
+
+* `azurerm_key_vault_secret` - recreate the resource if `expiration_date` is removed after having been set [GH-28494]
+* `azurerm_security_center_pricing` - updating `subplan` now recreates the resource to work around API behaviour that enables certain settings on updated [GH-27805]
+* `azurerm_windows_web_app` - fix change detection for `tomcat_version` [GH-28842]
+
 ## 4.20.0 (February 20, 2025)
 
 FEATURES:
