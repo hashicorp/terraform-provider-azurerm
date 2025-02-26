@@ -168,17 +168,14 @@ func (r ApiCenterServiceResource) Read() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
-
 			state := ApiCenterServiceResourceModel{
 				Name:          id.ServiceName,
-				Location:      location.Normalize(resp.Model.Location),
 				ResourceGroup: id.ResourceGroupName,
 			}
 
 			if model := resp.Model; model != nil {
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
+			        state.Location = location.Normalize(model.Location)
+			        state.Tags = pointer.From(model.Tags)
 
 				if model.Identity != nil {
 					identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
