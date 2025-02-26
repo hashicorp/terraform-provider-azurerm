@@ -6,9 +6,7 @@ import (
 
 type Registration struct{}
 
-var (
-	_ sdk.TypedServiceRegistration = Registration{}
-)
+var _ sdk.TypedServiceRegistration = Registration{}
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
@@ -20,7 +18,7 @@ func (r Registration) Resources() []sdk.Resource {
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "ManagedDevOpsPools"
+	return "Managed DevOps Pools"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
