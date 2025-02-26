@@ -163,6 +163,8 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
+* `vnet_content_share_enabled` - (Optional) Specifies whether allow routing traffic between the Logic App and Storage Account content share through a virtual network. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
