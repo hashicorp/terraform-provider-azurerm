@@ -76,7 +76,7 @@ func (r ApiCenterServiceResource) Create() sdk.ResourceFunc {
 			id := services.NewServiceID(subscriptionId, model.ResourceGroup, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing ApiCenter Service %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
