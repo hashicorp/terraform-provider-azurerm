@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/desktop"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/msixpackage"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/scalingplan"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/sessionhost"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/workspace"
@@ -21,6 +22,7 @@ type Client struct {
 	ApplicationsClient      *application.ApplicationClient
 	DesktopsClient          *desktop.DesktopClient
 	HostPoolsClient         *hostpool.HostPoolClient
+	MSIXPackageClient       *msixpackage.MSIXPackageClient
 	SessionHostsClient      *sessionhost.SessionHostClient
 	ScalingPlansClient      *scalingplan.ScalingPlanClient
 	WorkspacesClient        *workspace.WorkspaceClient
@@ -51,6 +53,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(hostPoolsClient.Client, o.Authorizers.ResourceManager)
 
+	msixPackageClient, err := msixpackage.NewMSIXPackageClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building MSIXPackage Client: %+v", err)
+	}
+	o.Configure(msixPackageClient.Client, o.Authorizers.ResourceManager)
+
 	sessionHostsClient, err := sessionhost.NewSessionHostClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building SessionHost Client: %+v", err)
@@ -74,6 +82,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ApplicationsClient:      applicationsClient,
 		DesktopsClient:          desktopsClient,
 		HostPoolsClient:         hostPoolsClient,
+		MSIXPackageClient:       msixPackageClient,
 		SessionHostsClient:      sessionHostsClient,
 		ScalingPlansClient:      scalingPlansClient,
 		WorkspacesClient:        workspacesClient,
