@@ -60,6 +60,7 @@ var elasticSkus = []string{
 var isolatedSkus = []string{
 	"I1", "I2", "I3", // Isolated V1 - ASEV2
 	"I1v2", "I2v2", "I3v2", "I4v2", "I5v2", "I6v2", // Isolated v2 - ASEv3
+	"I1mv2", "I2mv2", "I3mv2", "I4mv2", "I5mv2", // Isolated v2 - ASEv3 memory optimized
 }
 
 var workflowSkus = []string{
