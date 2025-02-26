@@ -36,9 +36,12 @@ func testAccMongoCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("connection_strings.0.connection_string").HasValue(
+					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
+						data.RandomInteger)),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.connection_string"),
 	})
 }
 
@@ -134,19 +137,12 @@ func (r MongoClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "random_password" "test" {
-  length  = 8
-  numeric = true
-  upper   = true
-  lower   = true
-}
-
 resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
-  administrator_password = random_password.test.result
+  administrator_password = "QAZwsx123basic"
   shard_count            = "1"
   compute_tier           = "Free"
   high_availability_mode = "Disabled"
