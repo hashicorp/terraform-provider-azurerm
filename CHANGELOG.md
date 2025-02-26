@@ -42,6 +42,7 @@ BUG FIXES:
 
 * `azurerm_key_vault_secret` - recreate the resource if `expiration_date` is removed after having been set [GH-28494]
 * `azurerm_security_center_pricing` - updating `subplan` now recreates the resource to work around API behaviour that enables certain settings on updated [GH-27805]
+* `azurerm_windows_web_app` - fix change detection for `tomcat_version` [GH-28842]
 
 ## 4.20.0 (February 20, 2025)
 
