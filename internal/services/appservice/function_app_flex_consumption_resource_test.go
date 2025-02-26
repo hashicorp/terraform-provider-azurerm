@@ -1018,5 +1018,5 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-`, data.RandomInteger, "easus2", data.RandomString, data.RandomInteger)
+`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger)
 }
