@@ -174,14 +174,14 @@ func (r ApiCenterServiceResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-			        state.Location = location.Normalize(model.Location)
-			        state.Tags = pointer.From(model.Tags)
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
 
 				identityValue, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				
+
 				state.Identity = pointer.From(identityValue)
 			}
 			return metadata.Encode(&state)
