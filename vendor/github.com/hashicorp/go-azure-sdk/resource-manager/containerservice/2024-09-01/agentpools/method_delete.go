@@ -20,16 +20,48 @@ type DeleteOperationResponse struct {
 	OData        *odata.OData
 }
 
+type DeleteOperationOptions struct {
+	IfMatch                   *string
+	IgnorePodDisruptionBudget *bool
+}
+
+func DefaultDeleteOperationOptions() DeleteOperationOptions {
+	return DeleteOperationOptions{}
+}
+
+func (o DeleteOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+	if o.IfMatch != nil {
+		out.Append("If-Match", fmt.Sprintf("%v", *o.IfMatch))
+	}
+	return &out
+}
+
+func (o DeleteOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+
+	return &out
+}
+
+func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+	if o.IgnorePodDisruptionBudget != nil {
+		out.Append("ignore-pod-disruption-budget", fmt.Sprintf("%v", *o.IgnorePodDisruptionBudget))
+	}
+	return &out
+}
+
 // Delete ...
-func (c AgentPoolsClient) Delete(ctx context.Context, id AgentPoolId) (result DeleteOperationResponse, err error) {
+func (c AgentPoolsClient) Delete(ctx context.Context, id AgentPoolId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusNoContent,
 		},
-		HttpMethod: http.MethodDelete,
-		Path:       id.ID(),
+		HttpMethod:    http.MethodDelete,
+		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -56,8 +88,8 @@ func (c AgentPoolsClient) Delete(ctx context.Context, id AgentPoolId) (result De
 }
 
 // DeleteThenPoll performs Delete then polls until it's completed
-func (c AgentPoolsClient) DeleteThenPoll(ctx context.Context, id AgentPoolId) error {
-	result, err := c.Delete(ctx, id)
+func (c AgentPoolsClient) DeleteThenPoll(ctx context.Context, id AgentPoolId, options DeleteOperationOptions) error {
+	result, err := c.Delete(ctx, id, options)
 	if err != nil {
 		return fmt.Errorf("performing Delete: %+v", err)
 	}
