@@ -68,7 +68,7 @@ func (VirtualDesktopScalingPlanAssociationResource) Exists(ctx context.Context, 
 
 	found := false
 	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil && props.HostPoolReferences != nil {
+		if props := model.Properties; props.HostPoolReferences != nil {
 			for _, hostpool := range *props.HostPoolReferences {
 				if strings.EqualFold(*hostpool.HostPoolArmPath, id.HostPool.ID()) {
 					found = true
