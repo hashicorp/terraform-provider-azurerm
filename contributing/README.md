@@ -20,15 +20,15 @@ More granular documentation covers how these fit together - and the most common 
 
 Basics:
 
-* [High-level overview of the Provider](topics/high-level-overview.md)
+* [Overview of the Provider](topics/high-level-overview.md)
 * [Building the Provider](topics/building-the-provider.md)
-* [Running the Tests](topics/running-the-tests.md)
 * [Debugging the Provider](topics/debugging-the-provider.md)
-* [Frequently Asked Questions](topics/frequently-asked-questions.md)
-* [Opening a PR](topics/guide-opening-a-pr.md)
+* [Running the Tests](topics/running-the-tests.md)
+* [Opening a Pull Request](topics/guide-opening-a-pr.md)
 
 Common Topics/Guides:
 
+* [Adding a new Feature](topics/guide-new-feature.md)
 * [Adding a new Service Package](topics/guide-new-service-package.md)
 * [Adding a new Data Source](topics/guide-new-data-source.md)
 * [Adding a new Resource](topics/guide-new-resource.md)
@@ -45,6 +45,7 @@ References:
 * [Best Practices](topics/best-practices.md)
 * [Glossary](topics/reference-glossary.md)
 * [Naming](topics/reference-naming.md)
+* [Provider Documentation Standards](topics/reference-documentation-standards.md)
 * [Resource IDs](topics/guide-resource-ids.md)
 * [Schema Design](topics/schema-design-considerations.md)
 * [Working with Errors](topics/reference-errors.md)
@@ -53,3 +54,7 @@ References:
 Maintainer specific:
 
 * [Updates to the Changelog](topics/maintainer-changelog.md)
+
+FAQ:
+
+* [Frequently Asked Questions](topics/frequently-asked-questions.md)
