@@ -1002,6 +1002,13 @@ func TestAccWindowsWebApp_withJava1702Embedded(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.java(data, "21"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1025,6 +1032,13 @@ func TestAccWindowsWebApp_withJava110414Tomcat10020(t *testing.T) {
 	r := WindowsWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.javaTomcat(data, "11.0.14", "10.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.javaTomcat(data, "11.0.14", "10.0.20"),
 			Check: acceptance.ComposeTestCheckFunc(
