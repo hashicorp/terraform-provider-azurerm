@@ -528,12 +528,11 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 							}
 						case rolemanagementpolicies.RoleManagementPolicyNotificationRule:
 							if rule.Id != nil {
+								// If the rule has the default values, don't set it into state
 								if pointer.From(rule.NotificationLevel) == "All" && pointer.From(rule.IsDefaultRecipientsEnabled) && len(pointer.From(rule.NotificationRecipients)) == 0 {
 									continue
-								} else {
-									if len(state.NotificationRules) == 0 {
-										state.NotificationRules = make([]RoleManagementPolicyNotificationEvents, 1)
-									}
+								} else if len(state.NotificationRules) == 0 {
+									state.NotificationRules = make([]RoleManagementPolicyNotificationEvents, 1)
 								}
 
 								switch *rule.Id {

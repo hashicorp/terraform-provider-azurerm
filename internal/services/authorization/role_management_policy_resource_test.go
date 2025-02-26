@@ -365,50 +365,50 @@ resource "azurerm_role_management_policy" "test" {
 
   notification_rules {
     eligible_assignments {
-     approver_notifications {
-       notification_level    = "Critical"
-       default_recipients    = false
-       additional_recipients = ["approver@example.com"]
-     }
-     assignee_notifications {
-      notification_level    = "All"
-      default_recipients    = true
-      additional_recipients = ["assignee.else@example.com"]
-     }
-     admin_notifications {
-      notification_level    = "Critical"
-      default_recipients    = false
-      additional_recipients = ["admin@example.com"]
-     }
+      approver_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["approver@example.com"]
+      }
+      assignee_notifications {
+        notification_level    = "All"
+        default_recipients    = true
+        additional_recipients = ["assignee.else@example.com"]
+      }
+      admin_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["admin@example.com"]
+      }
     }
     eligible_activations {
-     assignee_notifications {
-       notification_level    = "All"
-       default_recipients    = true
-       additional_recipients = ["eligible.else@example.com"]
-     }
-     admin_notifications {
-       notification_level    = "Critical"
-       default_recipients    = false
-       additional_recipients = ["admin@example.com"]
-     }
+      assignee_notifications {
+        notification_level    = "All"
+        default_recipients    = true
+        additional_recipients = ["eligible.else@example.com"]
+      }
+      admin_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["admin@example.com"]
+      }
     }
     active_assignments {
-     approver_notifications {
-       notification_level    = "Critical"
-       default_recipients    = false
-       additional_recipients = ["approver@example.com"]
-     }
-     assignee_notifications {
-       notification_level    = "All"
-       default_recipients    = true
-       additional_recipients = ["assignee.else@example.com"]
-     }
-     admin_notifications {
-       notification_level    = "Critical"
-       default_recipients    = false
-       additional_recipients = ["admin@example.com"]
-     }
+      approver_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["approver@example.com"]
+      }
+      assignee_notifications {
+        notification_level    = "All"
+        default_recipients    = true
+        additional_recipients = ["assignee.else@example.com"]
+      }
+      admin_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["admin@example.com"]
+      }
     }
   }
 }
@@ -416,7 +416,6 @@ resource "azurerm_role_management_policy" "test" {
 }
 
 func (r RoleManagementPolicyResource) resourceGroupUpdateUpdateRemovedNestedNotificationRules(data acceptance.TestData) string {
-
 	return fmt.Sprintf(`
 %[1]s
 
