@@ -386,9 +386,10 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 
 			_, aadAdminOk := rd.GetOk("azure_active_directory_administrator")
 			authOnlyEnabled := rd.Get("azure_active_directory_administrator.0.azuread_authentication_only_enabled").(bool)
-			_, loginOk := rd.GetOk("administrator_login")
-			_, pwsOk := rd.GetOk("administrator_login_password")
-			if aadAdminOk && !authOnlyEnabled && (!loginOk || !pwsOk) {
+			adminLogin := rd.GetRawConfig().AsValueMap()["administrator_login"]
+			adminPassword := rd.GetRawConfig().AsValueMap()["administrator_login_password"]
+
+			if aadAdminOk && !authOnlyEnabled && (adminLogin.IsNull() || adminPassword.IsNull()) {
 				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
 			}
 
