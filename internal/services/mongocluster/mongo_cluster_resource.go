@@ -613,7 +613,7 @@ func flattenMongoClusterConnectionString(input *[]mongoclusters.ConnectionString
 		return nil
 	}
 
-	var results []MongoClusterConnectionString
+	results := make([]MongoClusterConnectionString, 0)
 	for _, cs := range *input {
 		var name string
 		if cs.Name != nil {
