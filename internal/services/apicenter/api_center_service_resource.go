@@ -89,7 +89,7 @@ func (r ApiCenterServiceResource) Create() sdk.ResourceFunc {
 			}
 
 			apiCenterService := services.Service{
-				Name:     &model.Name,
+				Name:     pointer.To(model.Name),
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Identity: expandedIdentity,
