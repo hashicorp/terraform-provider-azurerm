@@ -8,6 +8,10 @@ NOTES:
 * The `azurerm_postgresql_flexible_server` resource now supports the `administrator_password_wo` [write-only argument](https://developer.hashicorp.com/terraform/language/v1.11.x/resources/ephemeral#write-only-arguments)
 * The `azurerm_postgresql_server` resource now supports the `administrator_login_password_wo` [write-only argument](https://developer.hashicorp.com/terraform/language/v1.11.x/resources/ephemeral#write-only-arguments)
 
+FEATURES:
+
+* **New Resource**: `azurerm_network_manager_verifier_workspace` [GH-28754]
+
 ENHANCEMENTS:
 
 * dependencies: `azurerm_kubernetes_cluster_trusted_access_role_binding` - update API version to `2024-05-01` [GH-28853]
