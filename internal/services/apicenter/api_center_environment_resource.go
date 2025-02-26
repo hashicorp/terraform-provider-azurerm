@@ -22,7 +22,7 @@ var _ sdk.ResourceWithUpdate = ApiCenterEnvironmentResource{}
 
 type ApiCenterEnvironmentResourceModel struct {
 	Name          string `tfschema:"name"`
-	ServiceId     string `tfschema:"service_id"`
+	ServiceId     string `tfschema:"api_center_service_id"`
 	Title         string `tfschema:"title"`
 	Description   string `tfschema:"description"`
 	Type          string `tfschema:"environment_type"`
@@ -143,7 +143,7 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 
 			apiCenterEnvironmentProps := environments.EnvironmentProperties{
 				Kind:  environments.EnvironmentKind(model.Type),
-				Title: model.Name,
+				Title: model.Title,
 			}
 
 			if model.Description != "" {

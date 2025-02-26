@@ -175,7 +175,7 @@ func (ApiCenterEnvironmentResource) requiresImport(data acceptance.TestData) str
 
 resource "azurerm_api_center_environment" "import" {
   name                  = azurerm_api_center_environment.test.name
-  api_center_service_id = azurerm_api_center_environment.test.service_id
+  api_center_service_id = azurerm_api_center_environment.test.api_center_service_id
   title                 = azurerm_api_center_environment.test.title
   environment_type      = azurerm_api_center_environment.test.environment_type
 }
