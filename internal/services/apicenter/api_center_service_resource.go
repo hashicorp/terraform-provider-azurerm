@@ -123,7 +123,7 @@ func (r ApiCenterServiceResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
