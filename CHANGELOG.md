@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_mysql_flexible_server` - add support for the `administrator_password_wo` and `administrator_password_wo_version` properties [GH-28799]
 * `azurerm_postgresql_flexible_server` - add support for the `administrator_password_wo` and `administrator_password_wo_version` properties [GH-28857]
 * `azurerm_postgresql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties [GH-28856]
+* `azurerm_storage_account` - nested attributes in `immutability_policy` can now be updated [GH-28122]
 * `azurerm_windows_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
 * `azurerm_windows_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
 * `azurerm_servicebus_namespace` - split create/update functions [GH-28539]
