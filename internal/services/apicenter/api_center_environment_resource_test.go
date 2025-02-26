@@ -101,7 +101,7 @@ resource "azurerm_api_center_service" "test" {
   }
 }
 
-`, data.RandomInteger, "eastus", data.RandomInteger) // Only available in a few select regions for now
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (r ApiCenterEnvironmentResource) basic(data acceptance.TestData) string {

@@ -36,6 +36,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Server is only available in certain locations
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
 
+        // API Center is only available in certain locations
+        "apicenter" to testConfiguration(locationOverride = LocationConfiguration("eastus", "australiaeast", "westeurope", true)),
+
         // App Service Plans for Linux are currently unavailable in WestUS2
         "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
 

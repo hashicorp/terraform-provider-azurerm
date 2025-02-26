@@ -89,7 +89,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-apicenter-%d"
   location = "%s"
 }
-`, data.RandomInteger, "eastus") // Only available in a few select regions for now
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ApiCenterServiceResource) basic(data acceptance.TestData) string {
