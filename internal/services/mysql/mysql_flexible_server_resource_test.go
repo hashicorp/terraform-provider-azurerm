@@ -574,7 +574,7 @@ func TestAccMySqlFlexibleServer_updatePublicNetworkAccess(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccess(data, true),
+			Config: r.defaultPublicNetworkAccess(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -582,6 +582,13 @@ func TestAccMySqlFlexibleServer_updatePublicNetworkAccess(t *testing.T) {
 		data.ImportStep("administrator_password"),
 		{
 			Config: r.publicNetworkAccess(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.publicNetworkAccess(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1397,4 +1404,20 @@ resource "azurerm_mysql_flexible_server" "test" {
   public_network_access_enabled = %t
 }
 `, r.template(data), data.RandomInteger, publicNetworkAccessEnabled)
+}
+
+func (r MySqlFlexibleServerResource) defaultPublicNetworkAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1s"
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger)
 }
