@@ -103,7 +103,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationCreate(d *pluginsdk.Res
 	}
 
 	hostPoolStr := hostPoolId.ID()
-	if scalingPlanHostPoolAssociationExists(&model.Properties, hostPoolStr) {
+	if scalingPlanHostPoolAssociationExists(model.Properties, hostPoolStr) {
 		return tf.ImportAsExistsError("azurerm_virtual_desktop_scaling_plan_host_pool_association", associationId)
 	}
 	hostPoolAssociations = append(hostPoolAssociations, scalingplan.ScalingHostPoolReference{
@@ -149,7 +149,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationRead(d *pluginsdk.Resou
 	}
 	if model := scalingPlan.Model; model != nil {
 		hostPoolId := id.HostPool.ID()
-		exists := scalingPlanHostPoolAssociationExists(&model.Properties, hostPoolId)
+		exists := scalingPlanHostPoolAssociationExists(model.Properties, hostPoolId)
 		if !exists {
 			log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.ScalingPlan, id.HostPool)
 			d.SetId("")
@@ -200,7 +200,7 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationUpdate(d *pluginsdk.Res
 		return fmt.Errorf("retrieving %s: model was nil", id.ScalingPlan)
 	}
 	model := *existing.Model
-	if !scalingPlanHostPoolAssociationExists(&model.Properties, id.HostPool.ID()) {
+	if !scalingPlanHostPoolAssociationExists(model.Properties, id.HostPool.ID()) {
 		log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.ScalingPlan, id.HostPool)
 		d.SetId("")
 		return nil
@@ -290,8 +290,8 @@ func resourceVirtualDesktopScalingPlanHostPoolAssociationDelete(d *pluginsdk.Res
 	return nil
 }
 
-func scalingPlanHostPoolAssociationExists(props *scalingplan.ScalingPlanProperties, applicationGroupId string) bool {
-	if props == nil || props.HostPoolReferences == nil {
+func scalingPlanHostPoolAssociationExists(props scalingplan.ScalingPlanProperties, applicationGroupId string) bool {
+	if props.HostPoolReferences == nil {
 		return false
 	}
 

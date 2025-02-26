@@ -355,7 +355,7 @@ func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		d.Set("description", model.Properties.Description)
 		d.Set("friendly_name", model.Properties.FriendlyName)
 		d.Set("time_zone", model.Properties.TimeZone)

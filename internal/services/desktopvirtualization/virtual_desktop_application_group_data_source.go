@@ -117,7 +117,7 @@ func (r DesktopVirtualizationApplicationGroupDataSource) Read() sdk.ResourceFunc
 
 			state.ApplicationGroupName = id.ApplicationGroupName
 			state.ResourceGroupName = id.ResourceGroupName
-			state.Location = location.NormalizeNilable(&model.Location)
+			state.Location = location.Normalize(model.Location)
 			state.Tags = pointer.From(model.Tags)
 			state.ApplicationGroupType = string(model.Properties.ApplicationGroupType)
 

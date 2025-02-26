@@ -156,7 +156,7 @@ func dataSourceVirtualDesktopHostPoolRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}

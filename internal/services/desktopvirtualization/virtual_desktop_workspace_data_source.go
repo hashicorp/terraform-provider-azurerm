@@ -102,7 +102,7 @@ func (d DesktopVirtualizationWorkspaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			state.Location = location.NormalizeNilable(&model.Location)
+			state.Location = location.Normalize(model.Location)
 			state.Tags = pointer.From(model.Tags)
 
 			if properties := model.Properties; properties != nil {
