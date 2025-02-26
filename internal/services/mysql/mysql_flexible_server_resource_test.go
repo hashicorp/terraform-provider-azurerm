@@ -574,21 +574,21 @@ func TestAccMySqlFlexibleServer_updatePublicNetworkAccess(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.defaultPublicNetworkAccess(data),
+			Config: r.publicNetworkAccess(data, "null"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password"),
 		{
-			Config: r.publicNetworkAccess(data, false),
+			Config: r.publicNetworkAccess(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password"),
 		{
-			Config: r.publicNetworkAccess(data, true),
+			Config: r.publicNetworkAccess(data, "true"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1389,7 +1389,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }
 
-func (r MySqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData, publicNetworkAccessEnabled bool) string {
+func (r MySqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData, publicNetworkAccessEnabled string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1401,23 +1401,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password        = "QAZwsx123"
   sku_name                      = "B_Standard_B1s"
   zone                          = "2"
-  public_network_access_enabled = %t
+  public_network_access_enabled = %s
 }
 `, r.template(data), data.RandomInteger, publicNetworkAccessEnabled)
-}
-
-func (r MySqlFlexibleServerResource) defaultPublicNetworkAccess(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mysql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "_admin_Terraform_892123456789312"
-  administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "2"
-}
-`, r.template(data), data.RandomInteger)
 }
