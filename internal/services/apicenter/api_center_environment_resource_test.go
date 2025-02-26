@@ -116,7 +116,7 @@ provider "azurerm" {
 resource "azurerm_api_center_environment" "test" {
   name             = "test"
   service_id       = azurerm_api_center_service.test.id
-  identification   = "testid"
+  title            = "testtitle"
   environment_type = "testing"
   description      = "testing environment"
 }`, template)
@@ -134,7 +134,7 @@ provider "azurerm" {
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
   service_id             = azurerm_api_center_service.test.id
-  identification         = "testid"
+  title                  = "testtitle"
   environment_type       = "testing"
   description            = "testing environment"
   development_portal_uri = "https://developer.com"
@@ -157,7 +157,7 @@ provider "azurerm" {
 resource "azurerm_api_center_environment" "test" {
   name                   = "test"
   service_id             = azurerm_api_center_service.test.id
-  identification         = "testid"
+  title                  = "testtitle"
   environment_type       = "testing"
   description            = "testing environment 2"
   development_portal_uri = "https://developer2.com"
@@ -176,7 +176,7 @@ func (ApiCenterEnvironmentResource) requiresImport(data acceptance.TestData) str
 resource "azurerm_api_center_environment" "import" {
   name             = azurerm_api_center_environment.test.name
   service_id       = azurerm_api_center_environment.test.service_id
-  identification   = azurerm_api_center_environment.test.identification
+  title            = azurerm_api_center_environment.test.title
   environment_type = azurerm_api_center_environment.test.environment_type
 }
 `, template)

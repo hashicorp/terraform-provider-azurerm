@@ -21,15 +21,15 @@ type ApiCenterEnvironmentResource struct{}
 var _ sdk.ResourceWithUpdate = ApiCenterEnvironmentResource{}
 
 type ApiCenterEnvironmentResourceModel struct {
-	Name           string `tfschema:"name"`
-	ServiceId      string `tfschema:"service_id"`
-	Identification string `tfschema:"identification"`
-	Description    string `tfschema:"description"`
-	Type           string `tfschema:"environment_type"`
-	DevPortalUri   string `tfschema:"development_portal_uri"`
-	Instructions   string `tfschema:"instructions"`
-	ServerType     string `tfschema:"server_type"`
-	MgmtPortalUri  string `tfschema:"management_portal_uri"`
+	Name          string `tfschema:"name"`
+	ServiceId     string `tfschema:"service_id"`
+	Title         string `tfschema:"title"`
+	Description   string `tfschema:"description"`
+	Type          string `tfschema:"environment_type"`
+	DevPortalUri  string `tfschema:"development_portal_uri"`
+	Instructions  string `tfschema:"instructions"`
+	ServerType    string `tfschema:"server_type"`
+	MgmtPortalUri string `tfschema:"management_portal_uri"`
 }
 
 func (r ApiCenterEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
@@ -48,7 +48,7 @@ func (r ApiCenterEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: services.ValidateServiceID,
 		},
 
-		"identification": {
+		"title": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -131,7 +131,7 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			// @favoretti: can't find any workspace creation buttons in the portal, assume everything defaults to "default" for now?
-			id := environments.NewEnvironmentID(subscriptionId, service.ResourceGroupName, service.ServiceName, "default", model.Identification)
+			id := environments.NewEnvironmentID(subscriptionId, service.ResourceGroupName, service.ServiceName, "default", model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing ApiCenter Environment %s: %+v", id, err)
@@ -170,7 +170,7 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			apiCenterEnvironment := environments.Environment{
-				Name:       pointer.To(model.Identification),
+				Name:       pointer.To(model.Name),
 				Properties: pointer.To(apiCenterEnvironmentProps),
 				Type:       pointer.To(model.Type),
 			}
@@ -267,9 +267,9 @@ func (r ApiCenterEnvironmentResource) Read() sdk.ResourceFunc {
 				ServiceId: services.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName).ID(),
 			}
 			if model := existing.Model; model != nil {
-				state.Identification = pointer.From(model.Name)
+				state.Name = pointer.From(model.Name)
 				if props := existing.Model.Properties; props != nil {
-					state.Name = props.Title
+					state.Title = props.Title
 					state.Description = pointer.From(props.Description)
 					state.Type = string(props.Kind)
 					if server := props.Server; server != nil {
