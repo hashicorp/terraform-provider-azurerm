@@ -10,6 +10,7 @@ NOTES:
 
 ENHANCEMENTS:
 
+* dependencies: `azurerm_kubernetes_cluster_trusted_access_role_binding` - update API version to `2024-05-01` [GH-28853]
 * dependencies: `kusto` - update API version to `2024-04-13` [GH-28685]
 * dependencies: `workloads` - update API version to `2024-09-01` [GH-28825]
 * `azurerm_fluid_relay_server` - fix `versionless_id` support for `key_vault_key_id` [GH-28864]
