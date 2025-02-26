@@ -447,16 +447,6 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		parameters.Properties.SourceServerResourceId = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("public_network_access_enabled"); ok {
-		var publicNetworkAccess servers.EnableStatusEnum
-		if v.(bool) {
-			publicNetworkAccess = servers.EnableStatusEnumEnabled
-		} else {
-			publicNetworkAccess = servers.EnableStatusEnumDisabled
-		}
-		parameters.Properties.Network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
-	}
-
 	pointInTimeUTC := d.Get("point_in_time_restore_time_in_utc").(string)
 	if pointInTimeUTC != "" {
 		v, err := time.Parse(time.RFC3339, pointInTimeUTC)
@@ -764,16 +754,15 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("public_network_access_enabled") {
-		var publicNetworkAccess servers.EnableStatusEnum
+		network := parameters.Properties.Network
+		if network == nil {
+			network = &servers.Network{}
+		}
 		if d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccess = servers.EnableStatusEnumEnabled
+			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumEnabled)
 		} else {
-			publicNetworkAccess = servers.EnableStatusEnumDisabled
+			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumDisabled)
 		}
-		if parameters.Properties.Network == nil {
-			parameters.Properties.Network = &servers.Network{}
-		}
-		parameters.Properties.Network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -816,11 +805,21 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	network := servers.Network{}
 
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
-		network.DelegatedSubnetResourceId = utils.String(v.(string))
+		network.DelegatedSubnetResourceId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		network.PrivateDnsZoneResourceId = utils.String(v.(string))
+		network.PrivateDnsZoneResourceId = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("public_network_access_enabled"); ok {
+		var publicNetworkAccess servers.EnableStatusEnum
+		if v.(bool) {
+			publicNetworkAccess = servers.EnableStatusEnumEnabled
+		} else {
+			publicNetworkAccess = servers.EnableStatusEnumDisabled
+		}
+		network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	return &network
