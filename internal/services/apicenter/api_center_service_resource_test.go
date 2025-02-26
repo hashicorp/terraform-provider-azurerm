@@ -20,7 +20,7 @@ import (
 
 type ApiCenterServiceResource struct{}
 
-func TestAccApicenterService_basic(t *testing.T) {
+func TestAccApiCenterService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_center_service", "test")
 	r := ApiCenterServiceResource{}
 
@@ -35,7 +35,7 @@ func TestAccApicenterService_basic(t *testing.T) {
 	})
 }
 
-func TestAccApicenterService_identityUserAssigned(t *testing.T) {
+func TestAccApiCenterService_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_center_service", "test")
 	r := ApiCenterServiceResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -49,7 +49,7 @@ func TestAccApicenterService_identityUserAssigned(t *testing.T) {
 	})
 }
 
-func TestAccApicenterService_requiresImport(t *testing.T) {
+func TestAccApiCenterService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_center_service", "test")
 	r := ApiCenterServiceResource{}
 
