@@ -295,7 +295,7 @@ func (r ApiCenterEnvironmentResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err = client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting ApiCenter Environment %s: %+v", *id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
