@@ -167,9 +167,9 @@ func (r ApiCenterEnvironmentResource) Create() sdk.ResourceFunc {
 			}
 
 			apiCenterEnvironment := environments.Environment{
-				Name:       &model.Identification,
-				Properties: &apiCenterEnvironmentProps,
-				Type:       &model.Type,
+				Name:       pointer.To(model.Identification),
+				Properties: pointer.To(apiCenterEnvironmentProps),
+				Type:       pointer.To(model.Type),
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id, apiCenterEnvironment); err != nil {
