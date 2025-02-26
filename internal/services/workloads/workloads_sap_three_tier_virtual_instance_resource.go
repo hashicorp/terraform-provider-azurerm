@@ -28,17 +28,18 @@ import (
 )
 
 type WorkloadsSAPThreeTierVirtualInstanceModel struct {
-	Name                     string                       `tfschema:"name"`
-	ResourceGroupName        string                       `tfschema:"resource_group_name"`
-	Location                 string                       `tfschema:"location"`
-	AppLocation              string                       `tfschema:"app_location"`
-	Environment              string                       `tfschema:"environment"`
-	Identity                 []identity.ModelUserAssigned `tfschema:"identity"`
-	ManagedResourceGroupName string                       `tfschema:"managed_resource_group_name"`
-	SapFqdn                  string                       `tfschema:"sap_fqdn"`
-	SapProduct               string                       `tfschema:"sap_product"`
-	ThreeTierConfiguration   []ThreeTierConfiguration     `tfschema:"three_tier_configuration"`
-	Tags                     map[string]string            `tfschema:"tags"`
+	Name                              string                       `tfschema:"name"`
+	ResourceGroupName                 string                       `tfschema:"resource_group_name"`
+	Location                          string                       `tfschema:"location"`
+	AppLocation                       string                       `tfschema:"app_location"`
+	Environment                       string                       `tfschema:"environment"`
+	Identity                          []identity.ModelUserAssigned `tfschema:"identity"`
+	ManagedResourceGroupName          string                       `tfschema:"managed_resource_group_name"`
+	ManagedResourcesNetworkAccessType string                       `tfschema:"managed_resources_network_access_type"`
+	SapFqdn                           string                       `tfschema:"sap_fqdn"`
+	SapProduct                        string                       `tfschema:"sap_product"`
+	ThreeTierConfiguration            []ThreeTierConfiguration     `tfschema:"three_tier_configuration"`
+	Tags                              map[string]string            `tfschema:"tags"`
 }
 
 type DiskVolumeConfiguration struct {
@@ -1041,6 +1042,13 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
+		"managed_resources_network_access_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(sapvirtualinstances.ManagedResourcesNetworkAccessTypePublic),
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForManagedResourcesNetworkAccessType(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -1114,8 +1122,9 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 				Identity: identity,
 				Location: location.Normalize(model.Location),
 				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
-					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
+					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
+					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
 			}
@@ -1167,7 +1176,9 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{}
+			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{
+				Properties: &sapvirtualinstances.UpdateSAPVirtualInstanceProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("identity") {
 				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -1175,6 +1186,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Update() sdk.ResourceFunc 
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				parameters.Identity = identityValue
+			}
+
+			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -1225,6 +1240,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Environment = string(props.Environment)
+					state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
 					state.SapProduct = string(props.SapProduct)
 					state.Tags = pointer.From(model.Tags)
 

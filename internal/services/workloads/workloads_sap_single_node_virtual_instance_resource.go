@@ -26,17 +26,18 @@ import (
 )
 
 type WorkloadsSAPSingleNodeVirtualInstanceModel struct {
-	Name                      string                       `tfschema:"name"`
-	ResourceGroupName         string                       `tfschema:"resource_group_name"`
-	Location                  string                       `tfschema:"location"`
-	AppLocation               string                       `tfschema:"app_location"`
-	Environment               string                       `tfschema:"environment"`
-	SapFqdn                   string                       `tfschema:"sap_fqdn"`
-	SapProduct                string                       `tfschema:"sap_product"`
-	SingleServerConfiguration []SingleServerConfiguration  `tfschema:"single_server_configuration"`
-	Identity                  []identity.ModelUserAssigned `tfschema:"identity"`
-	ManagedResourceGroupName  string                       `tfschema:"managed_resource_group_name"`
-	Tags                      map[string]string            `tfschema:"tags"`
+	Name                              string                       `tfschema:"name"`
+	ResourceGroupName                 string                       `tfschema:"resource_group_name"`
+	Location                          string                       `tfschema:"location"`
+	AppLocation                       string                       `tfschema:"app_location"`
+	Environment                       string                       `tfschema:"environment"`
+	SapFqdn                           string                       `tfschema:"sap_fqdn"`
+	SapProduct                        string                       `tfschema:"sap_product"`
+	SingleServerConfiguration         []SingleServerConfiguration  `tfschema:"single_server_configuration"`
+	Identity                          []identity.ModelUserAssigned `tfschema:"identity"`
+	ManagedResourceGroupName          string                       `tfschema:"managed_resource_group_name"`
+	ManagedResourcesNetworkAccessType string                       `tfschema:"managed_resources_network_access_type"`
+	Tags                              map[string]string            `tfschema:"tags"`
 }
 
 type SingleServerConfiguration struct {
@@ -389,6 +390,13 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
+		"managed_resources_network_access_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(sapvirtualinstances.ManagedResourcesNetworkAccessTypePublic),
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForManagedResourcesNetworkAccessType(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -469,8 +477,9 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 							SapFqdn: utils.String(model.SapFqdn),
 						},
 					},
-					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
+					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
+					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
 			}
@@ -507,7 +516,9 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Update() sdk.ResourceFunc
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{}
+			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{
+				Properties: &sapvirtualinstances.UpdateSAPVirtualInstanceProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("identity") {
 				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -515,6 +526,10 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Update() sdk.ResourceFunc
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				parameters.Identity = identityValue
+			}
+
+			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -564,6 +579,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Environment = string(props.Environment)
+					state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
 					state.SapProduct = string(props.SapProduct)
 					state.Tags = pointer.From(model.Tags)
 
