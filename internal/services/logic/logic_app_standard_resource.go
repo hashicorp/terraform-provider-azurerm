@@ -205,6 +205,11 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  "~4",
 			},
 
+			"vnet_content_share_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"virtual_network_subnet_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -344,12 +349,13 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &webapps.SiteProperties{
-			ServerFarmId:          pointer.To(d.Get("app_service_plan_id").(string)),
-			Enabled:               pointer.To(d.Get("enabled").(bool)),
-			ClientAffinityEnabled: pointer.To(d.Get("client_affinity_enabled").(bool)),
-			ClientCertEnabled:     pointer.To(clientCertEnabled),
-			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
-			SiteConfig:            &siteConfig,
+			ServerFarmId:            pointer.To(d.Get("app_service_plan_id").(string)),
+			Enabled:                 pointer.To(d.Get("enabled").(bool)),
+			ClientAffinityEnabled:   pointer.To(d.Get("client_affinity_enabled").(bool)),
+			ClientCertEnabled:       pointer.To(clientCertEnabled),
+			HTTPSOnly:               pointer.To(d.Get("https_only").(bool)),
+			SiteConfig:              &siteConfig,
+			VnetContentShareEnabled: pointer.To(d.Get("vnet_content_share_enabled").(bool)),
 		},
 	}
 
@@ -493,6 +499,11 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		} else {
 			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
 		}
+	}
+
+	if d.HasChange("vnet_content_share_enabled") {
+		vnetContentShareEnabled := d.Get("vnet_content_share_enabled").(bool)
+		siteEnvelope.Properties.VnetContentShareEnabled = pointer.To(vnetContentShareEnabled)
 	}
 
 	if !features.FivePointOh() { // Until 5.0 the site_config value of this must be reflected back into the top-level property if not set there
@@ -641,6 +652,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("client_affinity_enabled", pointer.From(props.ClientAffinityEnabled))
 			d.Set("custom_domain_verification_id", pointer.From(props.CustomDomainVerificationId))
 			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetId))
+			d.Set("vnet_content_share_enabled", pointer.From(props.VnetContentShareEnabled))
 			d.Set("public_network_access", pointer.From(props.PublicNetworkAccess))
 
 			clientCertMode := ""
