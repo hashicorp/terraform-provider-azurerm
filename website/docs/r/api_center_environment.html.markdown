@@ -34,7 +34,7 @@ resource "azurerm_api_center_service" "example" {
 
 resource "azurerm_api_center_environment" "example" {
   name                   = "test"
-  service_id             = azurerm_api_center_service.example.id
+  api_center_service_id  = azurerm_api_center_service.example.id
   identification         = "exampleid"
   environment_type       = "testing"
   description            = "example environment"
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `name` - (Required) The Name which should be used for this API Center Environment. Changing this forces a new API Center Environment to be created.
 
-* `service_id` - (Required) The ID of the API Center Service where this API Center Environment should exist. Changing this forces a new API Center Environment to be created.
+* `api_center_service_id` - (Required) The ID of the API Center Service where this API Center Environment should exist. Changing this forces a new API Center Environment to be created.
 
 * `identification` - (Required) Identifier of this API Center Environment. Changing this forces a new API Center Environment to be created.
 

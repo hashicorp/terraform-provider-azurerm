@@ -35,21 +35,24 @@ type ApiCenterEnvironmentResourceModel struct {
 func (r ApiCenterEnvironmentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"service_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+		"api_center_service_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: services.ValidateServiceID,
 		},
 
 		"identification": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"environment_type": {
@@ -201,11 +204,11 @@ func (r ApiCenterEnvironmentResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
-			
-			if resp.Model == nil {
+
+			if existing.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
-			if resp.Model.Properties == nil {
+			if existing.Model.Properties == nil {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
