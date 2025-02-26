@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -276,12 +276,12 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 	hostPoolType := scalingplan.ScalingHostPoolTypePooled // Only one possible value for this
 	payload := scalingplan.ScalingPlan{
 		Name:     utils.String(d.Get("name").(string)),
-		Location: &location,
+		Location: location,
 		Tags:     tags.Expand(t),
-		Properties: &scalingplan.ScalingPlanProperties{
+		Properties: scalingplan.ScalingPlanProperties{
 			Description:        utils.String(d.Get("description").(string)),
 			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
-			TimeZone:           utils.String(d.Get("time_zone").(string)),
+			TimeZone:           d.Get("time_zone").(string),
 			HostPoolType:       &hostPoolType,
 			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
@@ -355,16 +355,13 @@ func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-
-		if props := model.Properties; props != nil {
-			d.Set("description", props.Description)
-			d.Set("friendly_name", props.FriendlyName)
-			d.Set("time_zone", props.TimeZone)
-			d.Set("exclusion_tag", props.ExclusionTag)
-			d.Set("schedule", flattenScalingPlanSchedule(props.Schedules))
-			d.Set("host_pool", flattenScalingHostpoolReference(props.HostPoolReferences))
-		}
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("description", model.Properties.Description)
+		d.Set("friendly_name", model.Properties.FriendlyName)
+		d.Set("time_zone", model.Properties.TimeZone)
+		d.Set("exclusion_tag", model.Properties.ExclusionTag)
+		d.Set("schedule", flattenScalingPlanSchedule(model.Properties.Schedules))
+		d.Set("host_pool", flattenScalingHostpoolReference(model.Properties.HostPoolReferences))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
