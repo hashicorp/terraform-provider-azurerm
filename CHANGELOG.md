@@ -15,6 +15,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `azurerm_kubernetes_cluster_trusted_access_role_binding` - update API version to `2024-05-01` [GH-28853]
+* dependencies: `desktopvirtualization` - update API version to `2024-04-03` [GH-28771]
 * dependencies: `kusto` - update API version to `2024-04-13` [GH-28685]
 * dependencies: `redis` - update API version to `2024-11-01` [GH-28696]
 * dependencies: `workloads` - update API version to `2024-09-01` [GH-28825]
