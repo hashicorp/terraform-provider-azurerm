@@ -2282,13 +2282,15 @@ func (r LogicAppStandardResource) vnetContentShareEnabled(data acceptance.TestDa
 %s
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  vnet_content_share_enabled = %t
+  name                                     = "acctest-%d-func"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  app_service_plan_id                      = azurerm_app_service_plan.test.id
+  storage_account_name                     = azurerm_storage_account.test.name
+  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
+  vnet_content_share_enabled               = %t
+  scm_publish_basic_authentication_enabled = false
+  ftp_publish_basic_authentication_enabled = false
 }
 `, r.template(data), data.RandomInteger, enabled)
 }
