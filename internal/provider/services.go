@@ -295,7 +295,6 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			machinelearning.Registration{},
 			maintenance.Registration{},
 			managedapplications.Registration{},
-			manageddevopspools.Registration{},
 			managedhsm.Registration{},
 			managedidentity.Registration{},
 			managementgroup.Registration{},

@@ -7,6 +7,6 @@ import (
 type Client struct {
 }
 
-func NewClient(o *common.ClientOptions) *Client {
-	return &Client{}
+func NewClient(o *common.ClientOptions) (*Client, error) {
+	return &Client{}, nil
 }
