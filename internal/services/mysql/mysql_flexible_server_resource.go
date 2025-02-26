@@ -245,8 +245,8 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Default:  true,
 				Optional: true,
+				Computed: true,
 			},
 
 			"replication_role": {
@@ -754,10 +754,10 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("public_network_access_enabled") {
-		network := parameters.Properties.Network
-		if network == nil {
-			network = &servers.Network{}
+		if parameters.Properties.Network == nil {
+			parameters.Properties.Network = &servers.Network{}
 		}
+		network := parameters.Properties.Network
 		if d.Get("public_network_access_enabled").(bool) {
 			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumEnabled)
 		} else {
