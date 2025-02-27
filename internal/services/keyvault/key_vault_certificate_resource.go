@@ -597,8 +597,8 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
 
-	// as certificate content is not reponded in read, we need to set partial as true in case
-	// update failed with error and state updated wrongly and the subsequent refresh cannot update it.
+	// Because certificate content is not returned from the api, we need to set partial as true in case
+	// the update fails and state is updated incorrectly causing subsequent refreshes to not update `certificate`.
 	d.Partial(true)
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
