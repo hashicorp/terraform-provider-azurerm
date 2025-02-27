@@ -26,6 +26,7 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
 * `azurerm_linux_web_app` - add support for Node Version `22` [GH-28840]
 * `azurerm_linux_web_app_slot` - add support for Node Version `22` [GH-28840]
+* `azurerm_logic_app_standard` - add support for the `vnet_content_share_enabled` property [GH-28879]
 * `azurerm_mssql_job_credential` - add support for the `password_wo` and `password_wo_version` properties [GH-28808]
 * `azurerm_mssql_managed_instance` - add support for the `database_format` and `hybrid_secondary_usage` properties [GH-28248]
 * `azurerm_mssql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties [GH-28818]
