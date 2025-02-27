@@ -502,8 +502,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("vnet_content_share_enabled") {
-		vnetContentShareEnabled := d.Get("vnet_content_share_enabled").(bool)
-		siteEnvelope.Properties.VnetContentShareEnabled = pointer.To(vnetContentShareEnabled)
+		siteEnvelope.Properties.VnetContentShareEnabled = pointer.To(d.Get("vnet_content_share_enabled").(bool))
 	}
 
 	if !features.FivePointOh() { // Until 5.0 the site_config value of this must be reflected back into the top-level property if not set there
