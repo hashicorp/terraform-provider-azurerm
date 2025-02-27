@@ -37,7 +37,7 @@ resource "azurerm_kusto_cluster_principal_assignment" "example" {
   cluster_name        = azurerm_kusto_cluster.example.name
 
   tenant_id      = data.azurerm_client_config.current.tenant_id
-  principal_id   = data.azurerm_client_config.current.client_id
+  principal_id   = data.azurerm_client_config.current.principal_id
   principal_type = "App"
   role           = "AllDatabasesAdmin"
 }
