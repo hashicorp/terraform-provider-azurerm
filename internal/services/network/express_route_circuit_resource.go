@@ -203,6 +203,10 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
 	}
 
+	if v, ok := d.GetOk("allow_classic_operations"); ok {
+		erc.Properties.AllowClassicOperations = pointer.To(v.(bool))
+	}
+
 	if v, ok := d.GetOk("rate_limiting_enabled"); ok {
 		erc.Properties.EnableDirectPortRateLimit = pointer.To(v.(bool))
 	}
