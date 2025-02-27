@@ -25,6 +25,7 @@ import (
 	pluginSdkValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +42,7 @@ const (
 var mysqlFlexibleServerResourceName = "azurerm_mysql_flexible_server"
 
 func resourceMysqlFlexibleServer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMysqlFlexibleServerCreate,
 		Read:   resourceMysqlFlexibleServerRead,
 		Update: resourceMysqlFlexibleServerUpdate,
@@ -243,10 +244,11 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
+			"public_network_access": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      servers.EnableStatusEnumEnabled,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
 			},
 
 			"replication_role": {
@@ -339,6 +341,15 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -546,9 +557,14 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("source_server_id", props.SourceServerResourceId)
 
 			if network := props.Network; network != nil {
-				d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
+				d.Set("public_network_access", *network.PublicNetworkAccess)
 				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
+
+				if !features.FivePointOh() {
+					d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
+				}
+
 			}
 
 			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption)
@@ -753,16 +769,12 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChange("public_network_access_enabled") {
+	if d.HasChange("public_network_access") {
+		publicNetworkAccess := servers.EnableStatusEnum(d.Get("public_network_access").(string))
 		if parameters.Properties.Network == nil {
 			parameters.Properties.Network = &servers.Network{}
 		}
-		network := parameters.Properties.Network
-		if d.Get("public_network_access_enabled").(bool) {
-			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumEnabled)
-		} else {
-			network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumDisabled)
-		}
+		parameters.Properties.Network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -812,14 +824,9 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 		network.PrivateDnsZoneResourceId = pointer.To(v.(string))
 	}
 
-	if v, ok := d.GetOk("public_network_access_enabled"); ok {
-		var publicNetworkAccess servers.EnableStatusEnum
-		if v.(bool) {
-			publicNetworkAccess = servers.EnableStatusEnumEnabled
-		} else {
-			publicNetworkAccess = servers.EnableStatusEnumDisabled
-		}
-		network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+	if v, ok := d.GetOk("public_network_access"); ok {
+		publicNetworkAccess := servers.EnableStatusEnum(v.(string))
+		network.PublicNetworkAccess = &publicNetworkAccess
 	}
 
 	return &network
