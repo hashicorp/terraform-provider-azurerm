@@ -25,16 +25,17 @@ import (
 )
 
 type WorkloadsSAPDiscoveryVirtualInstanceModel struct {
-	Name                      string                       `tfschema:"name"`
-	ResourceGroupName         string                       `tfschema:"resource_group_name"`
-	Location                  string                       `tfschema:"location"`
-	CentralServerVmId         string                       `tfschema:"central_server_virtual_machine_id"`
-	Environment               string                       `tfschema:"environment"`
-	Identity                  []identity.ModelUserAssigned `tfschema:"identity"`
-	ManagedResourceGroupName  string                       `tfschema:"managed_resource_group_name"`
-	ManagedStorageAccountName string                       `tfschema:"managed_storage_account_name"`
-	SapProduct                string                       `tfschema:"sap_product"`
-	Tags                      map[string]string            `tfschema:"tags"`
+	Name                              string                       `tfschema:"name"`
+	ResourceGroupName                 string                       `tfschema:"resource_group_name"`
+	Location                          string                       `tfschema:"location"`
+	CentralServerVmId                 string                       `tfschema:"central_server_virtual_machine_id"`
+	Environment                       string                       `tfschema:"environment"`
+	Identity                          []identity.ModelUserAssigned `tfschema:"identity"`
+	ManagedResourceGroupName          string                       `tfschema:"managed_resource_group_name"`
+	ManagedResourcesNetworkAccessType string                       `tfschema:"managed_resources_network_access_type"`
+	ManagedStorageAccountName         string                       `tfschema:"managed_storage_account_name"`
+	SapProduct                        string                       `tfschema:"sap_product"`
+	Tags                              map[string]string            `tfschema:"tags"`
 }
 
 type WorkloadsSAPDiscoveryVirtualInstanceResource struct{}
@@ -94,6 +95,13 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Arguments() map[string]*pl
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
+		"managed_resources_network_access_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(sapvirtualinstances.ManagedResourcesNetworkAccessTypePublic),
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForManagedResourcesNetworkAccessType(), false),
+		},
+
 		"managed_storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -142,8 +150,9 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 				Identity: identity,
 				Location: location.Normalize(model.Location),
 				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
-					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
+					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
+					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
+					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
 				},
 				Tags: &model.Tags,
 			}
@@ -190,7 +199,9 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{}
+			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{
+				Properties: &sapvirtualinstances.UpdateSAPVirtualInstanceProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("identity") {
 				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -198,6 +209,10 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Update() sdk.ResourceFunc 
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				parameters.Identity = identityValue
+			}
+
+			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -247,6 +262,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.Environment = string(props.Environment)
+					state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
 					state.SapProduct = string(props.SapProduct)
 					state.Tags = pointer.From(model.Tags)
 
