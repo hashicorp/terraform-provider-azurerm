@@ -19,10 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var (
-	_ sdk.Resource           = DevCenterResource{}
-	_ sdk.ResourceWithUpdate = DevCenterResource{}
-)
+var _ sdk.Resource = DevCenterResource{}
+var _ sdk.ResourceWithUpdate = DevCenterResource{}
 
 type DevCenterResource struct{}
 
@@ -42,11 +40,9 @@ type DevCenterResourceSchema struct {
 func (r DevCenterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return devcenters.ValidateDevCenterID
 }
-
 func (r DevCenterResource) ResourceType() string {
 	return "azurerm_dev_center"
 }
-
 func (r DevCenterResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
@@ -60,7 +56,6 @@ func (r DevCenterResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags":                commonschema.Tags(),
 	}
 }
-
 func (r DevCenterResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"dev_center_uri": {
@@ -69,7 +64,6 @@ func (r DevCenterResource) Attributes() map[string]*pluginsdk.Schema {
 		},
 	}
 }
-
 func (r DevCenterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -109,7 +103,6 @@ func (r DevCenterResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r DevCenterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -142,7 +135,6 @@ func (r DevCenterResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r DevCenterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -162,7 +154,6 @@ func (r DevCenterResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r DevCenterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -202,6 +193,7 @@ func (r DevCenterResource) Update() sdk.ResourceFunc {
 }
 
 func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenterResourceSchema, output *devcenters.DevCenter) error {
+
 	identity, err := identity.ExpandSystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding SystemAndUserAssigned Identity: %+v", err)
@@ -222,6 +214,7 @@ func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenter
 }
 
 func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenters.DevCenter, output *DevCenterResourceSchema) error {
+
 	identity, err := identity.FlattenSystemAndUserAssignedMapToModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("flattening SystemAndUserAssigned Identity: %+v", err)
@@ -242,6 +235,7 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 }
 
 func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
+
 	return nil
 }
 

@@ -19,10 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var (
-	_ sdk.Resource           = UserAssignedIdentityResource{}
-	_ sdk.ResourceWithUpdate = UserAssignedIdentityResource{}
-)
+var _ sdk.Resource = UserAssignedIdentityResource{}
+var _ sdk.ResourceWithUpdate = UserAssignedIdentityResource{}
 
 type UserAssignedIdentityResource struct{}
 
@@ -43,11 +41,9 @@ type UserAssignedIdentityResourceSchema struct {
 func (r UserAssignedIdentityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateUserAssignedIdentityID
 }
-
 func (r UserAssignedIdentityResource) ResourceType() string {
 	return "azurerm_user_assigned_identity"
 }
-
 func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
@@ -60,7 +56,6 @@ func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags":                commonschema.Tags(),
 	}
 }
-
 func (r UserAssignedIdentityResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"client_id": {
@@ -77,7 +72,6 @@ func (r UserAssignedIdentityResource) Attributes() map[string]*pluginsdk.Schema 
 		},
 	}
 }
-
 func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -117,7 +111,6 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -150,7 +143,6 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r UserAssignedIdentityResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -170,7 +162,6 @@ func (r UserAssignedIdentityResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r UserAssignedIdentityResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -256,6 +247,7 @@ func (r UserAssignedIdentityResource) mapIdentityUpdateToUserAssignedIdentityRes
 }
 
 func (r UserAssignedIdentityResource) mapUserAssignedIdentityResourceSchemaToUserAssignedIdentityProperties(input UserAssignedIdentityResourceSchema, output *managedidentities.UserAssignedIdentityProperties) error {
+
 	return nil
 }
 

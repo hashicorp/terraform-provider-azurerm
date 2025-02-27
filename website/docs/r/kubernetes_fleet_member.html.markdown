@@ -52,13 +52,13 @@ resource "azurerm_kubernetes_fleet_member" "example" {
 
 The following arguments are supported:
 
-* `kubernetes_cluster_id` - (Required) The ARM resource ID of the cluster that joins the Fleet. Changing this forces a new Kubernetes Fleet Member to be created.
+* `kubernetes_cluster_id` - (Required) Changing this forces a new Kubernetes Fleet Member to be created.
 
 * `kubernetes_fleet_id` - (Required) Specifies the Kubernetes Fleet Id within which this Kubernetes Fleet Member should exist. Changing this forces a new Kubernetes Fleet Member to be created.
 
 * `name` - (Required) Specifies the name of this Kubernetes Fleet Member. Changing this forces a new Kubernetes Fleet Member to be created.
 
-* `group` - (Optional) The group this member belongs to for multi-cluster update management.
+* `group` - (Optional)
 
 ## Attributes Reference
 
@@ -89,5 +89,5 @@ terraform import azurerm_kubernetes_fleet_member.example /subscriptions/{subscri
 
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Kubernetes Fleet Member exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this Kubernetes Fleet Member exists. For example `example-resource-group`.
-* Where `{fleetName}` is the name of the Fleet. For example `fleetValue`.
-* Where `{memberName}` is the name of the Member. For example `memberValue`.
+* Where `{fleetName}` is the name of the Fleet. For example `fleetName`.
+* Where `{memberName}` is the name of the Member. For example `memberName`.

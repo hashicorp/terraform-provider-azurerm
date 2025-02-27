@@ -13,6 +13,7 @@ type AutoClient struct {
 }
 
 func NewClient(o *common.ClientOptions) (*AutoClient, error) {
+
 	v20230131Client, err := managedidentityV20230131.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})

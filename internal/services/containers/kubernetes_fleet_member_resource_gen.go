@@ -16,10 +16,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var (
-	_ sdk.Resource           = KubernetesFleetMemberResource{}
-	_ sdk.ResourceWithUpdate = KubernetesFleetMemberResource{}
-)
+var _ sdk.Resource = KubernetesFleetMemberResource{}
+var _ sdk.ResourceWithUpdate = KubernetesFleetMemberResource{}
 
 type KubernetesFleetMemberResource struct{}
 
@@ -37,11 +35,9 @@ type KubernetesFleetMemberResourceSchema struct {
 func (r KubernetesFleetMemberResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return fleetmembers.ValidateMemberID
 }
-
 func (r KubernetesFleetMemberResource) ResourceType() string {
 	return "azurerm_kubernetes_fleet_member"
 }
-
 func (r KubernetesFleetMemberResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"kubernetes_cluster_id": {
@@ -65,11 +61,9 @@ func (r KubernetesFleetMemberResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 	}
 }
-
 func (r KubernetesFleetMemberResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
-
 func (r KubernetesFleetMemberResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -114,7 +108,6 @@ func (r KubernetesFleetMemberResource) Create() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r KubernetesFleetMemberResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -149,7 +142,6 @@ func (r KubernetesFleetMemberResource) Read() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r KubernetesFleetMemberResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -169,7 +161,6 @@ func (r KubernetesFleetMemberResource) Delete() sdk.ResourceFunc {
 		},
 	}
 }
-
 func (r KubernetesFleetMemberResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -201,6 +192,7 @@ func (r KubernetesFleetMemberResource) Update() sdk.ResourceFunc {
 }
 
 func (r KubernetesFleetMemberResource) mapKubernetesFleetMemberResourceSchemaToFleetMember(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMember) error {
+
 	if output.Properties == nil {
 		output.Properties = &fleetmembers.FleetMemberProperties{}
 	}
@@ -212,6 +204,7 @@ func (r KubernetesFleetMemberResource) mapKubernetesFleetMemberResourceSchemaToF
 }
 
 func (r KubernetesFleetMemberResource) mapFleetMemberToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMember, output *KubernetesFleetMemberResourceSchema) error {
+
 	if input.Properties == nil {
 		input.Properties = &fleetmembers.FleetMemberProperties{}
 	}
@@ -235,6 +228,7 @@ func (r KubernetesFleetMemberResource) mapFleetMemberPropertiesToKubernetesFleet
 }
 
 func (r KubernetesFleetMemberResource) mapKubernetesFleetMemberResourceSchemaToFleetMemberUpdate(input KubernetesFleetMemberResourceSchema, output *fleetmembers.FleetMemberUpdate) error {
+
 	if output.Properties == nil {
 		output.Properties = &fleetmembers.FleetMemberUpdateProperties{}
 	}
@@ -246,6 +240,7 @@ func (r KubernetesFleetMemberResource) mapKubernetesFleetMemberResourceSchemaToF
 }
 
 func (r KubernetesFleetMemberResource) mapFleetMemberUpdateToKubernetesFleetMemberResourceSchema(input fleetmembers.FleetMemberUpdate, output *KubernetesFleetMemberResourceSchema) error {
+
 	if input.Properties == nil {
 		input.Properties = &fleetmembers.FleetMemberUpdateProperties{}
 	}

@@ -39,7 +39,7 @@ resource "azurerm_dev_center_project" "example" {
 
 The following arguments are supported:
 
-* `dev_center_id` - (Required) Resource Id of an associated DevCenter. Changing this forces a new Dev Center Project to be created.
+* `dev_center_id` - (Required) Changing this forces a new Dev Center Project to be created.
 
 * `location` - (Required) The Azure Region where the Dev Center Project should exist. Changing this forces a new Dev Center Project to be created.
 
@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Dev Center Project should exist. Changing this forces a new Dev Center Project to be created.
 
-* `description` - (Optional) Description of the project. Changing this forces a new Dev Center Project to be created.
+* `description` - (Optional) Changing this forces a new Dev Center Project to be created.
 
-* `maximum_dev_boxes_per_user` - (Optional) When specified, limits the maximum number of Dev Boxes a single user can create across all pools in the project.
+* `maximum_dev_boxes_per_user` - (Optional) 
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project.
 
@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Dev Center Project.
 
-* `dev_center_uri` - The URI of the Dev Center resource this project is associated with.
+* `dev_center_uri` - 
 
 ---
 
@@ -84,4 +84,4 @@ terraform import azurerm_dev_center_project.example /subscriptions/{subscription
 
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Dev Center Project exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this Dev Center Project exists. For example `example-resource-group`.
-* Where `{projectName}` is the name of the Project. For example `projectValue`.
+* Where `{projectName}` is the name of the Project. For example `projectName`.

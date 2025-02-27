@@ -16,11 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
-
-	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
 
 type azureRmFrameworkProvider struct {

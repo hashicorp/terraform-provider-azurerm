@@ -13,6 +13,7 @@ type AutoClient struct {
 }
 
 func NewClient(o *common.ClientOptions) (*AutoClient, error) {
+
 	v20231101Client, err := chaosstudioV20231101.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
