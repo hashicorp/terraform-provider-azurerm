@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* `azurerm_express_route_circuit` - `allow_classic_operations` is now set when resource is created [GH-28748]
 * `azurerm_mssql_managed_instance` - fix an issue that prevented using values only known during apply for `administrator_login_password` [GH-28843]
 
 ## 4.21.0 (February 27, 2025)
