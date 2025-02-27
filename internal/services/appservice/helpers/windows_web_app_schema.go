@@ -669,7 +669,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		if winAppStack.PythonVersion != "" || winAppStack.Python {
 			expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
 		}
-		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.java_version") {
+		if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.java_version", "site_config.0.application_stack.0.tomcat_version") {
 			if winAppStack.JavaVersion != "" {
 				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
 				switch {

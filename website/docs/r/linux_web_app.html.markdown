@@ -172,7 +172,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** `java_server`, `java_server_version`, and `java_version` must all be specified if building a java app
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, `18-lts` and `20-lts`. This property conflicts with `java_version`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, `18-lts`, `20-lts` and `22-lts`. This property conflicts with `java_version`.
 
 ~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 

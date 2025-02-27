@@ -56,6 +56,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerSecurityAdminConfigurationResource{},
 		ManagerStaticMemberResource{},
 		ManagerSubscriptionConnectionResource{},
+		ManagerVerifierWorkspaceResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 		VirtualHubRoutingIntentResource{},
