@@ -4,10 +4,10 @@ package componentproactivedetectionapis
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ApplicationInsightsComponentProactiveDetectionConfiguration struct {
-	CustomEmails                   *[]string                                                                   `json:"CustomEmails,omitempty"`
-	Enabled                        *bool                                                                       `json:"Enabled,omitempty"`
-	LastUpdatedTime                *string                                                                     `json:"LastUpdatedTime,omitempty"`
-	Name                           *string                                                                     `json:"Name,omitempty"`
-	RuleDefinitions                *ApplicationInsightsComponentProactiveDetectionConfigurationRuleDefinitions `json:"RuleDefinitions,omitempty"`
-	SendEmailsToSubscriptionOwners *bool                                                                       `json:"SendEmailsToSubscriptionOwners,omitempty"`
+	CustomEmails                   *[]string                                                                   `json:"customEmails,omitempty"`
+	Enabled                        *bool                                                                       `json:"enabled,omitempty"`
+	LastUpdatedTime                *string                                                                     `json:"lastUpdatedTime,omitempty"`
+	Name                           *string                                                                     `json:"name,omitempty"`
+	RuleDefinitions                *ApplicationInsightsComponentProactiveDetectionConfigurationRuleDefinitions `json:"ruleDefinitions,omitempty"`
+	SendEmailsToSubscriptionOwners *bool                                                                       `json:"sendEmailsToSubscriptionOwners,omitempty"`
 }

@@ -491,7 +491,7 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Currently only `VS2022` is supported.
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Scale Monitoring of the Functions Runtime be enabled?
 
@@ -635,7 +635,7 @@ An `application_stack` block supports the following:
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `1.8`, `11` and `17` (In-Preview).
 
-* `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16`, `~18` and `~20`.
+* `node_version` - (Optional) The version of Node to use. Possible values are `~12`, `~14`, `~16`, `~18`, `~20`, and `~22`.
 
 * `powershell_core_version` - (Optional) The PowerShell Core version to use. Possible values are `7`, `7.2`, and `7.4`.
 

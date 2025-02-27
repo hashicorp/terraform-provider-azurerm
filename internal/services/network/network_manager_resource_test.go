@@ -95,6 +95,12 @@ func TestAccNetworkManager(t *testing.T) {
 			"withTriggers":   testAccNetworkManagerDeployment_withTriggers,
 			"requiresImport": testAccNetworkManagerDeployment_requiresImport,
 		},
+		"VerifierWorkspace": {
+			"basic":          testAccNetorkManagerVerifierWorkspace_basic,
+			"complete":       testAccNetorkManagerVerifierWorkspace_complete,
+			"update":         testAccNetorkManagerVerifierWorkspace_update,
+			"requiresImport": testAccNetorkManagerVerifierWorkspace_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {

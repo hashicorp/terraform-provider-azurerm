@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/workloads/validate"
@@ -141,7 +141,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Create() sdk.ResourceFunc 
 			parameters := &sapvirtualinstances.SAPVirtualInstance{
 				Identity: identity,
 				Location: location.Normalize(model.Location),
-				Properties: sapvirtualinstances.SAPVirtualInstanceProperties{
+				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
 					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
 					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
@@ -204,7 +204,7 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Update() sdk.ResourceFunc 
 				parameters.Tags = &model.Tags
 			}
 
-			if _, err := client.Update(ctx, *id, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -245,20 +245,21 @@ func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = pointer.From(identity)
 
-				props := &model.Properties
-				state.Environment = string(props.Environment)
-				state.SapProduct = string(props.SapProduct)
-				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.Environment = string(props.Environment)
+					state.SapProduct = string(props.SapProduct)
+					state.Tags = pointer.From(model.Tags)
 
-				if config := props.Configuration; config != nil {
-					if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
-						state.CentralServerVmId = pointer.From(v.CentralServerVMId)
-						state.ManagedStorageAccountName = pointer.From(v.ManagedRgStorageAccountName)
+					if config := props.Configuration; config != nil {
+						if v, ok := config.(sapvirtualinstances.DiscoveryConfiguration); ok {
+							state.CentralServerVmId = pointer.From(v.CentralServerVMId)
+							state.ManagedStorageAccountName = pointer.From(v.ManagedRgStorageAccountName)
+						}
 					}
-				}
 
-				if v := props.ManagedResourceGroupConfiguration; v != nil {
-					state.ManagedResourceGroupName = pointer.From(v.Name)
+					if v := props.ManagedResourceGroupConfiguration; v != nil {
+						state.ManagedResourceGroupName = pointer.From(v.Name)
+					}
 				}
 			}
 

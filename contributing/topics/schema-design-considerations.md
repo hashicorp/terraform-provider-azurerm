@@ -200,10 +200,10 @@ Taking the Data Factory Linked Service resources as an example which could have 
 ```
 
 Would be better exposed as the following resources:
+
 - `azurerm_data_factory_linked_service_azure_blob_storage`
 - `azurerm_data_factory_linked_service_azure_databricks`
 - `azurerm_data_factory_linked_service_azure_file_storage`
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
-   ...

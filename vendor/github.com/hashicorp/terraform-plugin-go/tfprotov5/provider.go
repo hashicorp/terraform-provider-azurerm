@@ -54,24 +54,12 @@ type ProviderServer interface {
 	// terraform-plugin-go, so they are their own interface that is composed
 	// into ProviderServer.
 	FunctionServer
-}
-
-// ProviderServerWithEphemeralResources is a temporary interface for servers
-// to implement Ephemeral Resource RPC handling with:
-//
-// - ValidateEphemeralResourceConfig
-// - OpenEphemeralResource
-// - RenewEphemeralResource
-// - CloseEphemeralResource
-//
-// Deprecated: The EphemeralResourceServer methods will be moved into the
-// ProviderServer interface and this interface will be removed in a future
-// version.
-type ProviderServerWithEphemeralResources interface {
-	ProviderServer
 
 	// EphemeralResourceServer is an interface encapsulating all the ephemeral
-	// resource-related RPC requests.
+	// resource-related RPC requests. ProviderServer implementations must
+	// implement them, but they are a handy interface for defining what an
+	// ephemeral resource is to terraform-plugin-go, so they're their own
+	// interface that is composed into ProviderServer.
 	EphemeralResourceServer
 }
 
