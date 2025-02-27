@@ -1,3 +1,9 @@
+## 4.22.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_mssql_managed_instance` - fix an issue that prevented using values only known during apply for `administrator_login_password` [GH-28843]
+
 ## 4.21.0 (February 27, 2025)
 
 NOTES:
