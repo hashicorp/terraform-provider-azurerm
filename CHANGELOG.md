@@ -43,6 +43,9 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_key_vault_secret` - recreate the resource if `expiration_date` is removed after having been set [GH-28494]
+* `azurerm_log_analytics_cluster_customer_managed_key` - fix error due to read-only property included in request payload during create/update/delete operations [GH-28862]
+* `azurerm_log_analytics_cluster_customer_managed_key` - remove resource from state when deleted outside of Terraform [GH-28862]
+* `azurerm_log_analytics_cluster_customer_managed_key` - fix resource delete function [GH-28862]
 * `azurerm_security_center_pricing` - updating `subplan` now recreates the resource to work around API behaviour that enables certain settings on updated [GH-27805]
 * `azurerm_windows_web_app` - fix change detection for `tomcat_version` [GH-28842]
 
