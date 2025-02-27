@@ -10,6 +10,7 @@ NOTES:
 
 FEATURES:
 
+* **New Resource**: `azurerm_linux_function_app_flex_consumption` [GH-28199]
 * **New Resource**: `azurerm_network_manager_verifier_workspace` [GH-28754]
 
 ENHANCEMENTS:
