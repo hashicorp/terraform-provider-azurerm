@@ -218,8 +218,8 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := RoleDefinitionDataSourceModel{
-				Scope:            id.Scope,
-				RoleDefinitionId: defId,
+				Scope:            config.Scope,
+				RoleDefinitionId: pointer.From(role.Name),
 			}
 			if props := role.Properties; props != nil {
 				state.Name = pointer.From(props.RoleName)
