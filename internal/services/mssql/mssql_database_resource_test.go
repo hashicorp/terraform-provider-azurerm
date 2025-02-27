@@ -6,7 +6,9 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -73,7 +75,12 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	r := MsSqlDatabaseResource{}
 
 	maintenance_configuration_name := "SQL_Default"
+
+	data = setTestDataLocationBySubscription(data)
+
 	switch data.Locations.Primary {
+	case "eastus": // Added due to local quota policies...
+		maintenance_configuration_name = "SQL_EastUS_DB_2"
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
 	case "francecentral":
@@ -411,6 +418,8 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 
 func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+	data = setTestDataLocationBySubscription(data)
+
 	r := MsSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -1051,7 +1060,30 @@ func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
+// Sets the tests 'Primary' and 'Secondary' locations based on the 'ARM_SUBSCRIPTION_ID' environment variable due to subscription quota policies
+func setTestDataLocationBySubscription(data acceptance.TestData) acceptance.TestData {
+	// NOTE: It looks like the data.Locations values are being overridden by the 'settings.kt' file in '.teamcity\components' (line: 134):
+	// 'locationOverride' changes the local environment variables when the tests are being run on the team city servers:
+	//
+	// MSSQL uses app service which is only available in certain locations
+	// "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
+	//
+	// MSSQL Managed Instance creation can impact the service so limit the frequency and number of tests
+	// "mssqlmanagedinstance" to testConfiguration(parallelism = 4, daysOfWeek = "7", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), timeout = 18),
+	//
+	// To be consistent with the 'settings.kt' file I will override the local environment variables (dependant on the subscription that is running the test), as lower case...
+
+	if strings.HasPrefix(os.Getenv("ARM_SUBSCRIPTION_ID"), "0b1") {
+		data.Locations.Primary = "eastus"
+		data.Locations.Secondary = "eastus2"
+	}
+
+	return data
+}
+
 func (MsSqlDatabaseResource) template(data acceptance.TestData) string {
+	data = setTestDataLocationBySubscription(data)
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1109,7 +1141,10 @@ resource "azurerm_mssql_database" "import" {
 
 func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
 	configName := "SQL_Default"
+
 	switch data.Locations.Primary {
+	case "eastus": // Added due to local quota policies...
+		configName = "SQL_EastUS_DB_2"
 	case "westeurope":
 		configName = "SQL_WestEurope_DB_2"
 	case "francecentral":
@@ -1666,6 +1701,8 @@ resource "azurerm_mssql_failover_group" "failover_group" {
 }
 
 func (MsSqlDatabaseResource) createRestoreMode(data acceptance.TestData) string {
+	data = setTestDataLocationBySubscription(data)
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1701,6 +1738,8 @@ resource "azurerm_mssql_database" "copy" {
 }
 
 func (MsSqlDatabaseResource) createRestoreModeDBDeleted(data acceptance.TestData) string {
+	data = setTestDataLocationBySubscription(data)
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1729,6 +1768,8 @@ resource "azurerm_mssql_database" "test" {
 }
 
 func (MsSqlDatabaseResource) createRestoreModeDBRestored(data acceptance.TestData) string {
+	data = setTestDataLocationBySubscription(data)
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
