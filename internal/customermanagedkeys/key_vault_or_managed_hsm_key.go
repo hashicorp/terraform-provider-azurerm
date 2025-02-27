@@ -261,21 +261,21 @@ func FlattenKeyVaultOrManagedHSMIDByComponents(baseUri, name, version string, hs
 
 	// versioned hsm key
 	if version != "" {
-		hsmID, err := hsmParse.ManagedHSMDataPlaneVersionlessKeyID(fmt.Sprintf("%s/keys/%s/%s", strings.TrimSuffix(baseUri, "/"), name, version), hsmSuffix)
+		hsmID, err := hsmParse.ManagedHSMDataPlaneVersionedKeyID(fmt.Sprintf("%s/keys/%s/%s", strings.TrimSuffix(baseUri, "/"), name, version), hsmSuffix)
 		if err != nil {
 			return nil, err
 		}
 		return &KeyVaultOrManagedHSMKey{
-			ManagedHSMKeyVersionlessId: hsmID,
+			ManagedHSMKeyId: hsmID,
 		}, nil
 	}
 
 	// versionless hsm key
-	hsmID, err := hsmParse.ManagedHSMDataPlaneVersionedKeyID(fmt.Sprintf("%s/keys/%s", strings.TrimSuffix(baseUri, "/"), name), hsmSuffix)
+	hsmID, err := hsmParse.ManagedHSMDataPlaneVersionlessKeyID(fmt.Sprintf("%s/keys/%s", strings.TrimSuffix(baseUri, "/"), name), hsmSuffix)
 	if err != nil {
 		return nil, err
 	}
 	return &KeyVaultOrManagedHSMKey{
-		ManagedHSMKeyId: hsmID,
+		ManagedHSMKeyVersionlessId: hsmID,
 	}, nil
 }
