@@ -1,5 +1,9 @@
 ## 4.22.0 (Unreleased)
 
+ENHANCEMENTS: 
+
+* `azurerm_workloads_sap_*` - add support for the `managed_resources_network_access_type` property [GH-28881]
+
 BUG FIXES:
 
 * `azurerm_express_route_circuit` - `allow_classic_operations` is now set when resource is created [GH-28748]
