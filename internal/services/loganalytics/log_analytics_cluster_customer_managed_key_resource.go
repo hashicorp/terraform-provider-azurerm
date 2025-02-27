@@ -296,7 +296,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
-		return fmt.Errorf("removing Customer Managed Key from %s: %+v", *id, err)
+		return fmt.Errorf("deleting Customer Managed Key from %s: %+v", *id, err)
 	}
 
 	return nil
