@@ -1,6 +1,8 @@
 module github.com/hashicorp/terraform-provider-azurerm
 
-go 1.20
+go 1.23.0
+
+toolchain go1.23.6
 
 require (
 	github.com/Azure/azure-sdk-for-go v66.0.0+incompatible
@@ -28,7 +30,7 @@ require (
 	github.com/sergi/go-diff v1.2.0
 	github.com/tombuildsstuff/giovanni v0.20.0
 	github.com/tombuildsstuff/kermit v0.20221207.1110610
-	golang.org/x/crypto v0.31.0
+	golang.org/x/crypto v0.35.0
 	golang.org/x/net v0.25.0
 	golang.org/x/time v0.2.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -81,9 +83,9 @@ require (
 	github.com/zclconf/go-cty v1.12.1 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
