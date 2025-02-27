@@ -170,11 +170,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
 	}
 
-	// Ensure `associatedWorkspaces` is not present in request, this is a read only property and cannot be sent to the API
-	// Error: updating Customer Managed Key for Cluster
-	//		performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
-	//		InvalidParameter: 'properties.associatedWorkspaces' is a read only property and cannot be set.
-	//		Please refer to https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/logs-dedicated-clusters#link-a-workspace-to-the-cluster for more information on how to associate a workspace to the cluster.
+	// This is a read only property, please see comment in the create function.
 	model.Properties.AssociatedWorkspaces = nil
 
 	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
@@ -281,11 +277,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 		return fmt.Errorf("deleting `azurerm_log_analytics_cluster_customer_managed_key` %s: `customer managed key does not exist!`", *id)
 	}
 
-	// Ensure `associatedWorkspaces` is not present in request, this is a read only property and cannot be sent to the API
-	// Error: updating Customer Managed Key for Cluster
-	//		performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
-	//		InvalidParameter: 'properties.associatedWorkspaces' is a read only property and cannot be set.
-	//		Please refer to https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/logs-dedicated-clusters#link-a-workspace-to-the-cluster for more information on how to associate a workspace to the cluster.
+	// This is a read only property, please see comment in the create function.
 	props.AssociatedWorkspaces = nil
 
 	// The API only removes the CMK when it is sent empty string values, sending nil for each property or an empty object does not work.
