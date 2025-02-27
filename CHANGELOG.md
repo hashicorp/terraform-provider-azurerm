@@ -1,4 +1,4 @@
-## 4.21.0 (Unreleased)
+## 4.21.0 (February 27, 2025)
 
 NOTES:
 
@@ -10,44 +10,45 @@ NOTES:
 
 FEATURES:
 
-* **New Resource**: `azurerm_linux_function_app_flex_consumption` [GH-28199]
-* **New Resource**: `azurerm_network_manager_verifier_workspace` [GH-28754]
+* **New Resource**: `azurerm_linux_function_app_flex_consumption` ([#28199](https://github.com/hashicorp/terraform-provider-azurerm/issues/28199))
+* **New Resource**: `azurerm_network_manager_verifier_workspace` ([#28754](https://github.com/hashicorp/terraform-provider-azurerm/issues/28754))
 
 ENHANCEMENTS:
 
-* dependencies: `azurerm_kubernetes_cluster_trusted_access_role_binding` - update API version to `2024-05-01` [GH-28853]
-* dependencies: `desktopvirtualization` - update API version to `2024-04-03` [GH-28771]
-* dependencies: `kusto` - update API version to `2024-04-13` [GH-28685]
-* dependencies: `redis` - update API version to `2024-11-01` [GH-28696]
-* dependencies: `workloads` - update API version to `2024-09-01` [GH-28825]
-* `azurerm_fluid_relay_server` - fix `versionless_id` support for `key_vault_key_id` [GH-28864]
-* `azurerm_kubernetes_cluster` - add support for the `upgrade_override_setting` property [GH-27962]
-* `azurerm_kusto_cluster_principal_assignment` - add support for `AllDatabaseMonitor` role type [GH-28685]
-* `azurerm_linux_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
-* `azurerm_linux_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
-* `azurerm_linux_web_app` - add support for Node Version `22` [GH-28840]
-* `azurerm_linux_web_app_slot` - add support for Node Version `22` [GH-28840]
-* `azurerm_logic_app_standard` - add support for the `vnet_content_share_enabled` property [GH-28879]
-* `azurerm_mssql_job_credential` - add support for the `password_wo` and `password_wo_version` properties [GH-28808]
-* `azurerm_mssql_managed_instance` - add support for the `database_format` and `hybrid_secondary_usage` properties [GH-28248]
-* `azurerm_mssql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties [GH-28818]
-* `azurerm_mysql_flexible_server` - add support for the `administrator_password_wo` and `administrator_password_wo_version` properties [GH-28799]
-* `azurerm_postgresql_flexible_server` - add support for the `administrator_password_wo` and `administrator_password_wo_version` properties [GH-28857]
-* `azurerm_postgresql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties [GH-28856]
-* `azurerm_service_plan` - add support for the `I1mv2`, `I2mv2`, `I3mv2`, `I4mv2`, `I5mv2` skus [GH-28316]
-* `azurerm_storage_account` - nested attributes in `immutability_policy` can now be updated [GH-28122]
-* `azurerm_windows_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
-* `azurerm_windows_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` [GH-28859]
-* `azurerm_servicebus_namespace` - split create/update functions [GH-28539]
+* dependencies: `azurerm_kubernetes_cluster_trusted_access_role_binding` - update API version to `2024-05-01` ([#28853](https://github.com/hashicorp/terraform-provider-azurerm/issues/28853))
+* dependencies: `desktopvirtualization` - update API version to `2024-04-03` ([#28771](https://github.com/hashicorp/terraform-provider-azurerm/issues/28771))
+* dependencies: `kusto` - update API version to `2024-04-13` ([#28685](https://github.com/hashicorp/terraform-provider-azurerm/issues/28685))
+* dependencies: `redis` - update API version to `2024-11-01` ([#28696](https://github.com/hashicorp/terraform-provider-azurerm/issues/28696))
+* dependencies: `workloads` - update API version to `2024-09-01` ([#28825](https://github.com/hashicorp/terraform-provider-azurerm/issues/28825))
+* `azurerm_fluid_relay_server` - fix `versionless_id` support for `key_vault_key_id` ([#28864](https://github.com/hashicorp/terraform-provider-azurerm/issues/28864))
+* `azurerm_kubernetes_cluster` - add support for the `upgrade_override_setting` property ([#27962](https://github.com/hashicorp/terraform-provider-azurerm/issues/27962))
+* `azurerm_kusto_cluster_principal_assignment` - add support for `AllDatabaseMonitor` role type ([#28685](https://github.com/hashicorp/terraform-provider-azurerm/issues/28685))
+* `azurerm_linux_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` ([#28859](https://github.com/hashicorp/terraform-provider-azurerm/issues/28859))
+* `azurerm_linux_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` ([#28859](https://github.com/hashicorp/terraform-provider-azurerm/issues/28859))
+* `azurerm_linux_web_app` - add support for Node Version `22` ([#28840](https://github.com/hashicorp/terraform-provider-azurerm/issues/28840))
+* `azurerm_linux_web_app_slot` - add support for Node Version `22` ([#28840](https://github.com/hashicorp/terraform-provider-azurerm/issues/28840))
+* `azurerm_logic_app_standard` - add support for the `vnet_content_share_enabled` property ([#28879](https://github.com/hashicorp/terraform-provider-azurerm/issues/28879))
+* `azurerm_mssql_job_credential` - add support for the `password_wo` and `password_wo_version` properties ([#28808](https://github.com/hashicorp/terraform-provider-azurerm/issues/28808))
+* `azurerm_mssql_managed_instance` - add support for the `database_format` and `hybrid_secondary_usage` properties ([#28248](https://github.com/hashicorp/terraform-provider-azurerm/issues/28248))
+* `azurerm_mssql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties ([#28818](https://github.com/hashicorp/terraform-provider-azurerm/issues/28818))
+* `azurerm_mysql_flexible_server` - add support for the `administrator_password_wo` and `administrator_password_wo_version` properties ([#28799](https://github.com/hashicorp/terraform-provider-azurerm/issues/28799))
+* `azurerm_postgresql_flexible_server` - add support for the `administrator_password_wo` and `administrator_password_wo_version` properties ([#28857](https://github.com/hashicorp/terraform-provider-azurerm/issues/28857))
+* `azurerm_postgresql_server` - add support for the `administrator_login_password_wo` and `administrator_login_password_wo_version` properties ([#28856](https://github.com/hashicorp/terraform-provider-azurerm/issues/28856))
+* `azurerm_service_plan` - add support for the `I1mv2`, `I2mv2`, `I3mv2`, `I4mv2`, `I5mv2` skus ([#28316](https://github.com/hashicorp/terraform-provider-azurerm/issues/28316))
+* `azurerm_servicebus_namespace` - split create/update functions ([#28539](https://github.com/hashicorp/terraform-provider-azurerm/issues/28539))
+* `azurerm_storage_account` - nested attributes in `immutability_policy` can now be updated ([#28122](https://github.com/hashicorp/terraform-provider-azurerm/issues/28122))
+* `azurerm_windows_function_app` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` ([#28859](https://github.com/hashicorp/terraform-provider-azurerm/issues/28859))
+* `azurerm_windows_function_app_slot` - correctly update `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` when changed in `app_settings` ([#28859](https://github.com/hashicorp/terraform-provider-azurerm/issues/28859))
+
 
 BUG FIXES:
 
-* `azurerm_key_vault_secret` - recreate the resource if `expiration_date` is removed after having been set [GH-28494]
-* `azurerm_log_analytics_cluster_customer_managed_key` - fix error due to read-only property included in request payload during create/update/delete operations [GH-28862]
-* `azurerm_log_analytics_cluster_customer_managed_key` - remove resource from state when deleted outside of Terraform [GH-28862]
-* `azurerm_log_analytics_cluster_customer_managed_key` - fix resource delete function [GH-28862]
-* `azurerm_security_center_pricing` - updating `subplan` now recreates the resource to work around API behaviour that enables certain settings on updated [GH-27805]
-* `azurerm_windows_web_app` - fix change detection for `tomcat_version` [GH-28842]
+* `azurerm_key_vault_secret` - recreate the resource if `expiration_date` is removed after having been set ([#28494](https://github.com/hashicorp/terraform-provider-azurerm/issues/28494))
+* `azurerm_log_analytics_cluster_customer_managed_key` - fix error due to read-only property included in request payload during create/update/delete operations ([#28862](https://github.com/hashicorp/terraform-provider-azurerm/issues/28862))
+* `azurerm_log_analytics_cluster_customer_managed_key` - remove resource from state when deleted outside of Terraform ([#28862](https://github.com/hashicorp/terraform-provider-azurerm/issues/28862))
+* `azurerm_log_analytics_cluster_customer_managed_key` - fix resource delete function ([#28862](https://github.com/hashicorp/terraform-provider-azurerm/issues/28862))
+* `azurerm_security_center_pricing` - updating `subplan` now recreates the resource to work around API behaviour that enables certain settings on updated ([#27805](https://github.com/hashicorp/terraform-provider-azurerm/issues/27805))
+* `azurerm_windows_web_app` - fix change detection for `tomcat_version` ([#28842](https://github.com/hashicorp/terraform-provider-azurerm/issues/28842))
 
 ## 4.20.0 (February 20, 2025)
 
