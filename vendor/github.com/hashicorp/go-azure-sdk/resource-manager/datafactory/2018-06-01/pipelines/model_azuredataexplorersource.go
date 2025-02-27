@@ -13,16 +13,16 @@ var _ CopySource = AzureDataExplorerSource{}
 type AzureDataExplorerSource struct {
 	AdditionalColumns *interface{} `json:"additionalColumns,omitempty"`
 	NoTruncation      *interface{} `json:"noTruncation,omitempty"`
-	Query             string       `json:"query"`
-	QueryTimeout      *string      `json:"queryTimeout,omitempty"`
+	Query             interface{}  `json:"query"`
+	QueryTimeout      *interface{} `json:"queryTimeout,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s AzureDataExplorerSource) CopySource() BaseCopySourceImpl {

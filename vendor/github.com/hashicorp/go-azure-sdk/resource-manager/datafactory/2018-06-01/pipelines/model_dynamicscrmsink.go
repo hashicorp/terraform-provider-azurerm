@@ -11,19 +11,19 @@ import (
 var _ CopySink = DynamicsCrmSink{}
 
 type DynamicsCrmSink struct {
-	AlternateKeyName *string                   `json:"alternateKeyName,omitempty"`
+	AlternateKeyName *interface{}              `json:"alternateKeyName,omitempty"`
 	IgnoreNullValues *bool                     `json:"ignoreNullValues,omitempty"`
 	WriteBehavior    DynamicsSinkWriteBehavior `json:"writeBehavior"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64  `json:"sinkRetryCount,omitempty"`
-	SinkRetryWait            *string `json:"sinkRetryWait,omitempty"`
-	Type                     string  `json:"type"`
-	WriteBatchSize           *int64  `json:"writeBatchSize,omitempty"`
-	WriteBatchTimeout        *string `json:"writeBatchTimeout,omitempty"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
+	Type                     string       `json:"type"`
+	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 
 func (s DynamicsCrmSink) CopySink() BaseCopySinkImpl {
