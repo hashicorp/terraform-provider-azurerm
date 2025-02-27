@@ -27,7 +27,7 @@ service/app-configuration:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_app_configuration((.|\n)*)###'
 
 service/app-service:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_environment_v3\W+|app_service_environment_v3\W+|app_service_source_control\W+|app_service_source_control_slot\W+|function_app_active_slot\W+|function_app_function\W+|function_app_hybrid_connection\W+|linux_function_app\W+|linux_function_app\W+|linux_function_app_slot\W+|linux_web_app\W+|linux_web_app\W+|linux_web_app_slot\W+|service_plan|source_control_token|static_web_app|web_app_|windows_function_app\W+|windows_function_app\W+|windows_function_app_slot\W+|windows_web_app\W+|windows_web_app\W+|windows_web_app_slot\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_certificate_order_key_vault_store\W+|app_service_environment_v3\W+|app_service_environment_v3\W+|app_service_source_control\W+|app_service_source_control_slot\W+|function_app_active_slot\W+|function_app_function\W+|function_app_hybrid_connection\W+|linux_function_app\W+|linux_function_app\W+|linux_function_app_slot\W+|linux_web_app\W+|linux_web_app\W+|linux_web_app_slot\W+|service_plan|source_control_token|static_web_app|web_app_|windows_function_app\W+|windows_function_app\W+|windows_function_app_slot\W+|windows_web_app\W+|windows_web_app\W+|windows_web_app_slot\W+)((.|\n)*)###'
 
 service/application-insights:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_application_insights((.|\n)*)###'
