@@ -452,7 +452,6 @@ func TestAccCdnFrontDoorFirewallPolicy_complete(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorFirewallPolicy_logScrubbingComplete(t *testing.T) {
-	// NOTE: Regression test case for issue #19088
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -785,7 +784,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) basic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -795,11 +793,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
   mode                = "Prevention"
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) basicStandard(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -809,11 +806,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
   mode                = "Prevention"
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jSChallengePolicyBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -825,11 +821,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   js_challenge_cookie_expiration_in_minutes = 45
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jSChallengePolicyBasicUpdate(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -841,11 +836,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   js_challenge_cookie_expiration_in_minutes = 1440
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingEnabledBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -859,11 +853,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     enabled = true
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingDisabledBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -877,11 +870,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     enabled = false
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardEnabledBasic(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -895,11 +887,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     enabled = true
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardDisabledBasic(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -913,11 +904,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     enabled = false
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRuleBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -938,11 +928,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRuleStandardBasic(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -963,7 +952,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) requiresImport(data acceptance.TestData) string {
@@ -980,7 +969,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "import" {
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) update(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1034,11 +1022,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     action  = "Log"
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) complete(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1172,11 +1159,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     action  = "Block"
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingComplete(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1241,11 +1227,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingCompleteUpdate(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1297,11 +1282,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsOnePointOh(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1331,11 +1315,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsOnePointOhError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1365,11 +1348,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsOnePointOhTypeError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1399,11 +1381,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOh(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1433,11 +1414,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOhError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1467,11 +1447,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOhTypeError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1501,11 +1480,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOneActionLog(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1541,11 +1519,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOneActionError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1581,11 +1558,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeDRSError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1615,11 +1591,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyStandardSku(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1650,11 +1625,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyStandardSkuError(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1670,11 +1644,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   js_challenge_cookie_expiration_in_minutes = 45
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) standardSkuManagedRuleError(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1704,11 +1677,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeStandardSkuCustomRuleActionError(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1739,11 +1711,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeManagedRuleBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1773,11 +1744,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1817,11 +1787,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeManagedRuleUpdate(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1851,11 +1820,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleUpdate(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1895,11 +1863,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyInvalidTimeSpanError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1915,11 +1882,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   js_challenge_cookie_expiration_in_minutes = 4
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeManagedRuleRemove(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1939,11 +1905,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     action  = "Log"
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleRemove(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1957,11 +1922,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRequestIPAddressError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1986,11 +1950,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRequestUriError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -2015,11 +1978,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingSelectorEqualsError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -2043,11 +2005,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) logScrubbingSelectorEqualsAnyError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -2072,5 +2033,5 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

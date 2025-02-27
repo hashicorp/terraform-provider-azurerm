@@ -1185,13 +1185,13 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 
 		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEquals:
 			// NOTE: If the 'operator' is set to 'Equals' the 'selector' cannot be 'nil'...
-			if *item.Selector == "" {
+			if pointer.From(item.Selector) == "" {
 				return nil, fmt.Errorf("the 'selector' field must be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEquals, "nil")
 			}
 
 		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEqualsAny:
 			// NOTE: If the 'operator' is set to 'EqualsAny' the 'selector' must be 'nil'...
-			if *item.Selector != "" {
+			if pointer.From(item.Selector) != "" {
 				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEqualsAny, *item.Selector)
 			}
 		}
