@@ -19,14 +19,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CustomLocationResource struct{}
+type ExtendedLocationCustomLocationResource struct{}
 
-func (r CustomLocationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ExtendedLocationCustomLocationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := customlocations.ParseCustomLocationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -42,13 +41,9 @@ func (r CustomLocationResource) Exists(ctx context.Context, client *clients.Clie
 	return utils.Bool(true), nil
 }
 
-func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping: azurerm_extended_custom_location is deprecated.")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
-	r := CustomLocationResource{}
+func TestAccExtendedLocationCustomLocation_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
+	r := ExtendedLocationCustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,13 +57,9 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 	})
 }
 
-func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping: azurerm_extended_custom_location is deprecated.")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
-	r := CustomLocationResource{}
+func TestAccExtendedLocationCustomLocation_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
+	r := ExtendedLocationCustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -82,13 +73,9 @@ func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
 	})
 }
 
-func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping: azurerm_extended_custom_location is deprecated.")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
-	r := CustomLocationResource{}
+func TestAccExtendedLocationCustomLocation_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_extended_location_custom_location", "test")
+	r := ExtendedLocationCustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -109,12 +96,12 @@ func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
 	})
 }
 
-func (r CustomLocationResource) basic(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+func (r ExtendedLocationCustomLocationResource) basic(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	template := r.template(data, credential, publicKey, privateKey)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_extended_custom_location" "test" {
+resource "azurerm_extended_location_custom_location" "test" {
   name                = "acctestcustomlocation%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -127,12 +114,12 @@ resource "azurerm_extended_custom_location" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CustomLocationResource) update(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+func (r ExtendedLocationCustomLocationResource) update(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	template := r.template(data, credential, publicKey, privateKey)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_extended_custom_location" "test" {
+resource "azurerm_extended_location_custom_location" "test" {
   name                = "acctestcustomlocation%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -147,12 +134,12 @@ resource "azurerm_extended_custom_location" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CustomLocationResource) complete(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
+func (r ExtendedLocationCustomLocationResource) complete(data acceptance.TestData, credential string, privateKey string, publicKey string) string {
 	template := r.template(data, credential, publicKey, privateKey)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_extended_custom_location" "test" {
+resource "azurerm_extended_location_custom_location" "test" {
   name                = "acctestcustomlocation%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -167,7 +154,7 @@ resource "azurerm_extended_custom_location" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CustomLocationResource) template(data acceptance.TestData, credential string, publicKey string, privateKey string) string {
+func (r ExtendedLocationCustomLocationResource) template(data acceptance.TestData, credential string, publicKey string, privateKey string) string {
 	provisionTemplate := r.provisionTemplate(data, credential, privateKey)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -304,7 +291,7 @@ resource "azurerm_arc_kubernetes_cluster_extension" "test" {
 `, data.RandomInteger, data.Locations.Primary, credential, publicKey, provisionTemplate)
 }
 
-func (r CustomLocationResource) generateKey() (string, string, error) {
+func (r ExtendedLocationCustomLocationResource) generateKey() (string, string, error) {
 	privateKey, err := rsa.GenerateKey(cryptoRand.Reader, 4096)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate RSA key")
@@ -324,7 +311,7 @@ func (r CustomLocationResource) generateKey() (string, string, error) {
 	return string(privatePem), base64.StdEncoding.EncodeToString(x509.MarshalPKCS1PublicKey(&privateKey.PublicKey)), nil
 }
 
-func (r CustomLocationResource) getCredentials(t *testing.T) (credential, privateKey, publicKey string) {
+func (r ExtendedLocationCustomLocationResource) getCredentials(t *testing.T) (credential, privateKey, publicKey string) {
 	credential = fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
 	privateKey, publicKey, err := r.generateKey()
 	if err != nil {
@@ -334,7 +321,7 @@ func (r CustomLocationResource) getCredentials(t *testing.T) (credential, privat
 	return
 }
 
-func (r CustomLocationResource) provisionTemplate(data acceptance.TestData, credential string, privateKey string) string {
+func (r ExtendedLocationCustomLocationResource) provisionTemplate(data acceptance.TestData, credential string, privateKey string) string {
 	return fmt.Sprintf(`
 connection {
  type     = "ssh"
