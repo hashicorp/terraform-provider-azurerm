@@ -47,9 +47,9 @@ type MongoClusterResourceModel struct {
 }
 
 type MongoClusterConnectionString struct {
-	ConnectionString string `tfschema:"connection_string"`
-	Description      string `tfschema:"description"`
-	Name             string `tfschema:"name"`
+	Value       string `tfschema:"value"`
+	Description string `tfschema:"description"`
+	Name        string `tfschema:"name"`
 }
 
 func (r MongoClusterResource) ModelObject() interface{} {
@@ -209,7 +209,7 @@ func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"connection_string": {
+					"value": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -483,10 +483,10 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 			csResp, err := client.ListConnectionStrings(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("listing connection string for %s: %+v", *id, err)
+				return fmt.Errorf("listing connection strings for %s: %+v", *id, err)
 			}
 			if model := csResp.Model; model != nil {
-				state.ConnectionStrings = flattenMongoClusterConnectionString(model.ConnectionStrings, state.AdministratorUserName, state.AdministratorPassword)
+				state.ConnectionStrings = flattenMongoClusterConnectionStrings(model.ConnectionStrings, state.AdministratorUserName, state.AdministratorPassword)
 			}
 
 			return metadata.Encode(&state)
@@ -608,38 +608,23 @@ func flattenMongoClusterPreviewFeatures(input *[]mongoclusters.PreviewFeature) [
 	return results
 }
 
-func flattenMongoClusterConnectionString(input *[]mongoclusters.ConnectionString, userName, userPassword string) []MongoClusterConnectionString {
-	if input == nil {
-		return nil
-	}
-
+func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionString, userName, userPassword string) []MongoClusterConnectionString {
 	results := make([]MongoClusterConnectionString, 0)
+	if input == nil {
+		return results
+	}
 	for _, cs := range *input {
-		var name string
-		if cs.Name != nil {
-			name = *cs.Name
-		}
-
-		var description string
-		if cs.Description != nil {
-			description = *cs.Description
-		}
-
-		var connectionString string
-		if cs.ConnectionString != nil {
-			connectionString = *cs.ConnectionString
-		}
-
+		value := pointer.From(cs.ConnectionString)
 		// Password can be empty if it isn't available in the state file (e.g. during import).
 		// In this case, we simply leave the placeholder unchanged.
 		if userPassword != "" {
-			connectionString = regexp.MustCompile(`<user>:<password>`).ReplaceAllString(connectionString, url.UserPassword(userName, userPassword).String())
+			value = regexp.MustCompile(`<user>:<password>`).ReplaceAllString(value, url.UserPassword(userName, userPassword).String())
 		}
 
 		results = append(results, MongoClusterConnectionString{
-			Name:             name,
-			Description:      description,
-			ConnectionString: connectionString,
+			Name:        pointer.From(cs.Name),
+			Description: pointer.From(cs.Description),
+			Value:       value,
 		})
 	}
 

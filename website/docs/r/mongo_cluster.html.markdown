@@ -121,7 +121,7 @@ A `connection_strings` exports the following:
 
 * `description` - The description of the connection string.
 
-* `connection_string` - The Mongo Cluster connection string. The `<user>:<password>` place holder returned from API will be replaced by the real `administrator_username` and `administrator_password` if available in the state.
+* `value` - The value of the Mongo Cluster connection string. The `<user>:<password>` placeholder returned from API will be replaced by the real `administrator_username` and `administrator_password` if available in the state.
 
 ## Timeouts
 

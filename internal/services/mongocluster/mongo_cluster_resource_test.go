@@ -36,12 +36,12 @@ func testAccMongoCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("connection_strings.0.connection_string").HasValue(
+				check.That(data.ResourceName).Key("connection_strings.0.value").HasValue(
 					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
 						data.RandomInteger)),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.connection_string"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
 	})
 }
 
@@ -56,14 +56,14 @@ func testAccMongoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
 	})
 }
 
@@ -93,14 +93,14 @@ func TestAccMongoCluster_previewFeature(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
 		{
 			Config: r.geoReplica(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "source_location"),
+		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value"),
 	})
 }
 
@@ -115,7 +115,7 @@ func TestAccMongoCluster_geoReplica(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "source_location"),
+		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value"),
 	})
 }
 
