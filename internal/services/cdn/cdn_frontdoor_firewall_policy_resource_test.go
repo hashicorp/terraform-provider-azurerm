@@ -792,7 +792,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
   mode                = "Prevention"
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jSChallengePolicyBasic(data acceptance.TestData) string {
