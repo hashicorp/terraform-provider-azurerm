@@ -1,9 +1,9 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-// Terraform Plugin RPC protocol version 6.7
+// Terraform Plugin RPC protocol version 6.8
 //
-// This file defines version 6.7 of the RPC protocol. To implement a plugin
+// This file defines version 6.8 of the RPC protocol. To implement a plugin
 // against this protocol, copy this definition into your own codebase and
 // use protoc to generate stubs for your target language.
 //
@@ -110,6 +110,11 @@ message Schema {
         bool sensitive = 7;
         StringKind description_kind = 8;
         bool deprecated = 9;
+        // write_only indicates that the attribute value will be provided via
+        // configuration and must be omitted from state. write_only must be
+        // combined with optional or required, and is only valid for managed
+        // resource schemas.
+        bool write_only = 11;
     }
 
     message NestedBlock {
@@ -240,6 +245,9 @@ message ClientCapabilities {
     // The deferral_allowed capability signals that the client is able to
     // handle deferred responses from the provider.
     bool deferral_allowed = 1;
+    // The write_only_attributes_allowed capability signals that the client
+    // is able to handle write_only attributes for managed resources.
+    bool write_only_attributes_allowed = 2;
 }
 
 // Deferred is a message that indicates that change is deferred for a reason.
@@ -408,6 +416,7 @@ message ValidateResourceConfig {
     message Request {
         string type_name = 1;
         DynamicValue config = 2;
+        ClientCapabilities client_capabilities = 3;
     }
     message Response {
         repeated Diagnostic diagnostics = 1;

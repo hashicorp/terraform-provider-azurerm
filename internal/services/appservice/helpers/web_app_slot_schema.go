@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -55,7 +56,7 @@ type SiteConfigLinuxWebAppSlot struct {
 }
 
 func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -171,8 +172,6 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
 						"VS2022",
 					}, false),
 				},
@@ -263,6 +262,16 @@ func SiteConfigSchemaLinuxWebAppSlot() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 type SiteConfigWindowsWebAppSlot struct {
@@ -305,7 +314,7 @@ type SiteConfigWindowsWebAppSlot struct {
 }
 
 func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -426,8 +435,6 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
 						"VS2022",
 					}, false),
 				},
@@ -516,6 +523,16 @@ func SiteConfigSchemaWindowsWebAppSlot() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 func (s *SiteConfigLinuxWebAppSlot) ExpandForCreate(appSettings map[string]string) (*webapps.SiteConfig, error) {
