@@ -6,10 +6,11 @@ FEATURES:
 
 ENHANCEMENTS: 
 
+* dependencies: `hashicorp/go-azure-sdk` update to `v0.20250227.1125644` [GH-28902]
+* `azurerm_extended_custom_location` - deprecated in favour of `azurerm_extended_location_custom_location` [GH-28066]
 * `azurerm_workloads_sap_discovery_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
 * `azurerm_workloads_sap_single_node_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
 * `azurerm_workloads_sap_three_tier_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
-* `azurerm_extended_custom_location` - deprecated in favour of `azurerm_extended_location_custom_location` [GH-28066]
 
 BUG FIXES:
 
