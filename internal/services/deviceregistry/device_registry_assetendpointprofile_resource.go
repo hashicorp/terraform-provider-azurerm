@@ -153,7 +153,7 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 
 			populateAuthenticationProperties(&param, config)
 
-			if _, err := client.CreateOrReplace(ctx, id, param); err != nil {
+			if err := client.CreateOrReplaceThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -232,7 +232,7 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.Update(ctx, *id, param); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
