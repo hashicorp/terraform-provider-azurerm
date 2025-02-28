@@ -1,3 +1,11 @@
+## 3.117.1 (February 28, 2025)
+
+SPECIAL NOTES: This 3.x.x patch release is a special, one-off, back-port of an API upgrade for the `azurerm_kubernetes_cluster_trusted_access_role_binding` resource to enable users still on 3.x to continue using this resource.
+
+BUG FIXES:
+
+* dependencies: `azurerm_kubernetes_cluster_trusted_access_role_binding` - upgrade API to `2024-05-01` ([#28910](https://github.com/hashicorp/terraform-provider-azurerm/pull/28910)) 
+
 ## 3.117.0 (November 7, 2024)
 
 SPECIAL NOTES: This 3.x release is a special, one-off, back-port of functionality for `azurerm_storage_account` to enable users to deploy this resource in environments which block / are restrictive of Data Plane access, thus preventing the resource being created and/or managed.  This functionality is back-ported from the `v4.9.0` release. Users migrating from this release to the 4.x line, should upgrade directly to `v4.9.0` or later, as these features are not compatible with earlier releases of 4.x.
