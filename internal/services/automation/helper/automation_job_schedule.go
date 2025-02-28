@@ -119,7 +119,7 @@ func ResourceAutomationJobScheduleDigest(v interface{}) string {
 	}
 	buf.WriteString(fmt.Sprintf("%s-%s-", scheduleName, runOn))
 
-	var keys []string
+	keys := make([]string, 0, len(paramString))
 	for k := range paramString {
 		// params key will be returned as title-cased even created with lower-case
 		keys = append(keys, k)

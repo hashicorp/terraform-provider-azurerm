@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -105,8 +105,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(redis.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.TlsVersionOnePointZero),
-					string(redis.TlsVersionOnePointOne),
 					string(redis.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -352,7 +350,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"redis_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      6,
+				Default:      "6",
 				ValidateFunc: validation.StringInSlice([]string{"4", "6"}, false),
 				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 					n := strings.Split(old, ".")
@@ -399,78 +397,16 @@ func resourceRedisCache() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["family"] = &pluginsdk.Schema{
-			Type:             pluginsdk.TypeString,
-			Required:         true,
-			ValidateFunc:     validation.StringInSlice(redis.PossibleValuesForSkuFamily(), true),
-			DiffSuppressFunc: suppress.CaseDifference,
-		}
-
-		resource.Schema["enable_non_ssl_port"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Default:       false,
-			Optional:      true,
-			ConflictsWith: []string{"non_ssl_port_enabled"},
-			Deprecated:    "`enable_non_ssl_port` will be removed in favour of the property `non_ssl_port_enabled` in version 4.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["non_ssl_port_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Computed:      true,
-			Optional:      true,
-			ConflictsWith: []string{"enable_non_ssl_port"},
-		}
-
-		resource.Schema["redis_configuration"].Elem.(*pluginsdk.Resource).Schema["enable_authentication"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Default:       true,
-			ConflictsWith: []string{"redis_configuration.0.authentication_enabled"},
-			Deprecated:    "`enable_authentication` will be removed in favour of the property `authentication_enabled` in version 4.0 of the AzureRM Provider.",
-		}
-
-		resource.Schema["redis_configuration"].Elem.(*pluginsdk.Resource).Schema["authentication_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"redis_configuration.0.enable_authentication"},
-		}
-
-		resource.Schema["non_ssl_port_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+	if !features.FivePointOh() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-		}
-
-		resource.Schema["replicas_per_master"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Computed: true,
-			// Can't make more than 3 replicas in portal, assuming it's a limitation
-			ValidateFunc: validation.IntBetween(1, 3),
-		}
-
-		resource.Schema["replicas_per_primary"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IntBetween(1, 3),
-		}
-
-		resource.Schema["redis_version"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringInSlice([]string{"4", "6"}, false),
-			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
-				n := strings.Split(old, ".")
-				if len(n) >= 1 {
-					newMajor := n[0]
-					return new == newMajor
-				}
-				return false
-			},
+			Default:  string(redis.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redis.TlsVersionOnePointZero),
+				string(redis.TlsVersionOnePointOne),
+				string(redis.TlsVersionOnePointTwo),
+			}, false),
 		}
 	}
 
@@ -512,9 +448,6 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	enableNonSslPort := d.Get("non_ssl_port_enabled")
-	if v, ok := d.GetOk("enable_non_ssl_port"); ok && !features.FourPointOhBeta() {
-		enableNonSslPort = v
-	}
 
 	parameters := redis.RedisCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
@@ -625,9 +558,6 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	enableNonSslPort := d.Get("non_ssl_port_enabled")
-	if v, ok := d.GetOk("enable_non_ssl_port"); ok && !features.FourPointOhBeta() {
-		enableNonSslPort = v
-	}
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -803,20 +733,16 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("capacity", int(props.Sku.Capacity))
 		d.Set("family", string(props.Sku.Family))
 		d.Set("sku_name", string(props.Sku.Name))
-
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
+		d.Set("port", props.Port)
+		d.Set("non_ssl_port_enabled", props.EnableNonSslPort)
+
 		minimumTlsVersion := string(redis.TlsVersionOnePointTwo)
 		if props.MinimumTlsVersion != nil {
 			minimumTlsVersion = string(*props.MinimumTlsVersion)
 		}
 		d.Set("minimum_tls_version", minimumTlsVersion)
-		d.Set("port", props.Port)
-
-		d.Set("non_ssl_port_enabled", props.EnableNonSslPort)
-		if !features.FourPointOhBeta() {
-			d.Set("enable_non_ssl_port", props.EnableNonSslPort)
-		}
 
 		shardCount := 0
 		if props.ShardCount != nil {
@@ -846,7 +772,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("redis_version", props.RedisVersion)
 		d.Set("tenant_settings", flattenTenantSettings(props.TenantSettings))
 
-		redisConfiguration, err := flattenRedisConfiguration(props.RedisConfiguration)
+		redisConfiguration, err := flattenRedisConfiguration(d, props.RedisConfiguration)
 		if err != nil {
 			return fmt.Errorf("flattening `redis_configuration`: %+v", err)
 		}
@@ -935,30 +861,28 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	skuName := d.Get("sku_name").(string)
 
 	if v := raw["maxclients"].(int); v > 0 {
-		output.Maxclients = utils.String(strconv.Itoa(v))
+		output.Maxclients = pointer.To(strconv.Itoa(v))
 	}
 
 	if d.Get("sku_name").(string) != string(redis.SkuNameBasic) {
 		if v := raw["maxmemory_delta"].(int); v > 0 {
-			output.MaxmemoryDelta = utils.String(strconv.Itoa(v))
+			output.MaxmemoryDelta = pointer.To(strconv.Itoa(v))
 		}
 
 		if v := raw["maxmemory_reserved"].(int); v > 0 {
-			output.MaxmemoryReserved = utils.String(strconv.Itoa(v))
+			output.MaxmemoryReserved = pointer.To(strconv.Itoa(v))
 		}
 
 		if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
-			output.MaxfragmentationmemoryReserved = utils.String(strconv.Itoa(v))
+			output.MaxfragmentationmemoryReserved = pointer.To(strconv.Itoa(v))
 		}
 	}
 
 	if v := raw["maxmemory_policy"].(string); v != "" {
-		output.MaxmemoryPolicy = utils.String(v)
+		output.MaxmemoryPolicy = pointer.To(v)
 	}
 
-	if v := raw["data_persistence_authentication_method"].(string); v != "" {
-		output.PreferredDataPersistenceAuthMethod = utils.String(v)
-	}
+	output.PreferredDataPersistenceAuthMethod = pointer.To(raw["data_persistence_authentication_method"].(string))
 
 	// AAD/Entra support
 	// nolint : staticcheck
@@ -1022,9 +946,6 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	}
 
 	authEnabled := raw["authentication_enabled"].(bool)
-	if v, ok := raw["enable_authentication"]; ok && !features.FourPointOhBeta() {
-		authEnabled = v.(bool)
-	}
 
 	// Redis authentication can only be disabled if it is launched inside a VNET.
 	if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {
@@ -1092,7 +1013,7 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 	return output
 }
 
-func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
+func flattenRedisConfiguration(d *pluginsdk.ResourceData, input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
 	outputs := make(map[string]interface{})
 
 	if input.AadEnabled != nil {
@@ -1163,7 +1084,12 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 		outputs["rdb_backup_max_snapshot_count"] = i
 	}
 	if input.RdbStorageConnectionString != nil {
-		outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.RdbStorageConnectionString, "AccountKey=[key hidden]")) > 1 {
+			outputs["rdb_storage_connection_string"] = d.Get("redis_configuration.0.rdb_storage_connection_string")
+		} else {
+			outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
+		}
 	}
 	outputs["notify_keyspace_events"] = pointer.From(input.NotifyKeyspaceEvents)
 
@@ -1175,24 +1101,26 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 		outputs["aof_backup_enabled"] = b
 	}
 	if input.AofStorageConnectionString0 != nil {
-		outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.AofStorageConnectionString0, "AccountKey=[key hidden]")) > 1 {
+			outputs["aof_storage_connection_string_0"] = d.Get("redis_configuration.0.aof_storage_connection_string_0")
+		} else {
+			outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
+		}
 	}
 	if input.AofStorageConnectionString1 != nil {
-		outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.AofStorageConnectionString1, "AccountKey=[key hidden]")) > 1 {
+			outputs["aof_storage_connection_string_1"] = d.Get("redis_configuration.0.aof_storage_connection_string_1")
+		} else {
+			outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
+		}
 	}
 
 	// `authnotrequired` is not set for instances launched outside a VNET
 	outputs["authentication_enabled"] = true
 	if v := input.Authnotrequired; v != nil {
 		outputs["authentication_enabled"] = isAuthRequiredAsBool(*v)
-	}
-
-	if !features.FourPointOhBeta() {
-		// `authnotrequired` is not set for instances launched outside a VNET
-		outputs["enable_authentication"] = true
-		if v := input.Authnotrequired; v != nil {
-			outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
-		}
 	}
 
 	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)

@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1677,6 +1677,18 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = local.listener_name
     backend_address_pool_name  = local.backend_address_pool_name
     backend_http_settings_name = local.http_setting_name
+  }
+
+  rewrite_rule_set {
+    name = "add_headers_for_signin"
+    rewrite_rule {
+      name          = "SetHeaders"
+      rule_sequence = 100
+      request_header_configuration {
+        header_name  = "X-Forwarded-Prefix"
+        header_value = "/adminportal"
+      }
+    }
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -6427,8 +6439,43 @@ resource "azurerm_application_gateway" "test" {
     }
 
     custom_error_configuration {
+      status_code           = "HttpStatus404"
+      custom_error_page_url = "http://azure.com/error404_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus405"
+      custom_error_page_url = "http://azure.com/error405_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus408"
+      custom_error_page_url = "http://azure.com/error408_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus400"
+      custom_error_page_url = "http://azure.com/error400_listener.html"
+    }
+
+    custom_error_configuration {
       status_code           = "HttpStatus502"
       custom_error_page_url = "http://azure.com/error502_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus503"
+      custom_error_page_url = "http://azure.com/error503_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus504"
+      custom_error_page_url = "http://azure.com/error504_listener.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus500"
+      custom_error_page_url = "http://azure.com/error500_listener.html"
     }
   }
 
@@ -6438,7 +6485,42 @@ resource "azurerm_application_gateway" "test" {
   }
 
   custom_error_configuration {
+    status_code           = "HttpStatus404"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus405"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus408"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus400"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
     status_code           = "HttpStatus502"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus503"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus504"
+    custom_error_page_url = "http://azure.com/error.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus500"
     custom_error_page_url = "http://azure.com/error.html"
   }
 

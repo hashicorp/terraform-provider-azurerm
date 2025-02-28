@@ -27,7 +27,6 @@ func TestSpringCloudApplicationLiveViewID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudApplicationLiveViewId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -543,7 +543,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
       operator           = "Contains"
       negation_condition = false
       match_values       = ["windows"]
-      transforms         = ["Lowercase"]
+      transforms         = ["Uppercase"]
     }
 
     action = "Block"
@@ -1987,7 +1987,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       excluded_rule_set {
         type    = "Microsoft_BotManagerRuleSet"
-        version = "1.0"
+        version = "1.1"
         rule_group {
           rule_group_name = "UnknownBots"
           excluded_rules = [
@@ -2036,7 +2036,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
     managed_rule_set {
       type    = "Microsoft_BotManagerRuleSet"
-      version = "1.0"
+      version = "1.1"
     }
 
     exclusion {
@@ -2046,7 +2046,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       excluded_rule_set {
         type    = "Microsoft_BotManagerRuleSet"
-        version = "1.0"
+        version = "1.1"
         rule_group {
           rule_group_name = "GoodBots"
           excluded_rules = [

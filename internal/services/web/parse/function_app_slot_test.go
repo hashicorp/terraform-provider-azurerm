@@ -27,7 +27,6 @@ func TestFunctionAppSlotID(t *testing.T) {
 		Error    bool
 		Expected *FunctionAppSlotId
 	}{
-
 		{
 			// empty
 			Input: "",

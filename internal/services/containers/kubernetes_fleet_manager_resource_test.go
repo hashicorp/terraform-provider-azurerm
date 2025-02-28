@@ -91,19 +91,21 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.ContainerService.V20231015.Fleets.Get(ctx, *id)
+	resp, err := clients.ContainerService.V20240401.Fleets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r KubernetesFleetManagerTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

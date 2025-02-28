@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type IndicatorPatternType string
@@ -589,7 +589,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("external_reference") {
 				properties.ExternalReferences = expandThreatIntelligenceExternalReferenceModel(model.ExternalRefrence)
-
 			}
 
 			if metadata.ResourceData.HasChange("granular_marking") {
@@ -719,7 +718,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 				state.DisplayName = *model.DisplayName
 			}
 
-			if model.Extensions != nil && len(model.Extensions) > 0 {
+			if len(model.Extensions) > 0 {
 				extensionsValue, err := pluginsdk.FlattenJsonToString(model.Extensions)
 				if err != nil {
 					return err
@@ -821,7 +820,7 @@ func (r ThreatIntelligenceIndicator) Delete() sdk.ResourceFunc {
 }
 
 func expandThreatIntelligenceExternalReferenceModel(inputList []externalReferenceModel) *[]securityinsight.ThreatIntelligenceExternalReference {
-	var outputList []securityinsight.ThreatIntelligenceExternalReference
+	outputList := make([]securityinsight.ThreatIntelligenceExternalReference, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		hashesValue := make(map[string]*string, 0)
@@ -886,7 +885,7 @@ func flattenThreatIntelligenceExternalReferenceModel(input *[]securityinsight.Th
 }
 
 func expandThreatIntelligenceGranularMarkingModelModel(inputList []granularMarkingModel) *[]azuresdkhacks.ThreatIntelligenceGranularMarkingModel {
-	var outputList []azuresdkhacks.ThreatIntelligenceGranularMarkingModel
+	outputList := make([]azuresdkhacks.ThreatIntelligenceGranularMarkingModel, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := azuresdkhacks.ThreatIntelligenceGranularMarkingModel{
@@ -926,7 +925,7 @@ func flattenThreatIntelligenceGranularMarkingModelModel(input *[]azuresdkhacks.T
 }
 
 func expandThreatIntelligenceKillChainPhaseModel(inputList []killChainPhaseModel) *[]securityinsight.ThreatIntelligenceKillChainPhase {
-	var outputList []securityinsight.ThreatIntelligenceKillChainPhase
+	outputList := make([]securityinsight.ThreatIntelligenceKillChainPhase, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := securityinsight.ThreatIntelligenceKillChainPhase{

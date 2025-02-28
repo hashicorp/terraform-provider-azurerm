@@ -7,7 +7,7 @@ Common scenarios where a state migration would be required in Azure are:
 * Updating the default value of a property in the schema
 * Recasting property values in the schema, unlike the scenario's above this also requires changes to the user's config, thus should only be in a major version release
 
-**Note:** State migrations are one-way by design meaning they're not backward compatible. Once they've been run you can no longer downgrade to an older version of the provider. Care should be taken when adding state migrations and thorough manual testing should be done. See the section on Testing below.
+> **Note:** State migrations are one-way by design meaning they're not backward compatible. Once they've been run you can no longer downgrade to an older version of the provider. Care should be taken when adding state migrations and thorough manual testing should be done. See the section on Testing below.
 
 ## Conventions within the AzureRM Provider
 
@@ -73,7 +73,7 @@ func (CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
    
    Other caveats to look out for when copying the schema over are:
    * in-lining any schema elements which are returned by functions
-   * removing any if/else logic within the Schema, in most cases this will be feature flags e.g. `features.FourPointOh()`
+   * removing any if/else logic within the Schema, in most cases this will be feature flags e.g. `features.FivePointOh()`
    
 4. Fill out the UpgradeFunc to update the Terraform State for this resource. Typically this involves parsing the old Resource ID case-insensitively and then setting the correct casing for the `id` field (which is what this example assumes) - however note that State Migrations aren't limited to the `id` field. The file should now look like this:
 ```go

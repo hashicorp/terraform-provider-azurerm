@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +24,7 @@ import (
 )
 
 func resourceComputeCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceComputeClusterCreate,
 		Read:   resourceComputeClusterRead,
 		Update: resourceComputeClusterUpdate,
@@ -156,24 +155,16 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"subnet_resource_id": {
-				Type:     pluginsdk.TypeString,
+				Type: pluginsdk.TypeString,
+				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["ssh_public_access_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Computed: true,
-		}
-	}
-	return resource
 }
 
 func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -221,28 +212,6 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
-	}
-	nodePublicIPEnabled, ok := d.Get("node_public_ip_enabled").(bool)
-	if !ok {
-		return fmt.Errorf("unable to assert type for `node_public_ip_enabled`")
-	}
-
-	subnetResourceID, ok := d.Get("subnet_resource_id").(string)
-	if !ok {
-		return fmt.Errorf("unable to assert type for `subnet_resource_id`")
-	}
-
-	workspaceInManagedVnet := false
-
-	if workspaceModel.Properties != nil &&
-		workspaceModel.Properties.ManagedNetwork != nil &&
-		workspaceModel.Properties.ManagedNetwork.Status != nil &&
-		workspaceModel.Properties.ManagedNetwork.Status.Status != nil {
-		workspaceInManagedVnet = *workspaceModel.Properties.ManagedNetwork.Status.Status == workspaces.ManagedNetworkStatusActive
-	}
-
-	if !nodePublicIPEnabled && subnetResourceID == "" && !workspaceInManagedVnet {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` or the workspace is not in a managed network")
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))

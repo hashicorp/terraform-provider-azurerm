@@ -114,7 +114,7 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 						"interval_in_seconds": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(5, 31536000),
+							ValidateFunc: validation.IntBetween(1, 255),
 						},
 
 						"path": {

@@ -21,7 +21,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServerModel struct {
@@ -325,8 +324,8 @@ func (s Server) Read() sdk.ResourceFunc {
 			}
 
 			if model := keys.Model; model != nil {
-				output.PrimaryKey = utils.NormalizeNilableString(model.Key1)
-				output.SecondaryKey = utils.NormalizeNilableString(model.Key2)
+				output.PrimaryKey = pointer.From(model.Key1)
+				output.SecondaryKey = pointer.From(model.Key2)
 			}
 
 			return meta.Encode(output)
@@ -386,7 +385,7 @@ func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.Encrypti
 
 	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL != nil {
 		if v := pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL); v != "" {
-			id, err := keyVaultParse.ParseNestedItemID(v)
+			id, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v)
 			if err != nil {
 				return nil, err
 			}

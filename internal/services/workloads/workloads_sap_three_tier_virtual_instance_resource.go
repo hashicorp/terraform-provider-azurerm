@@ -5,6 +5,7 @@ package workloads
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -27,17 +28,18 @@ import (
 )
 
 type WorkloadsSAPThreeTierVirtualInstanceModel struct {
-	Name                     string                       `tfschema:"name"`
-	ResourceGroupName        string                       `tfschema:"resource_group_name"`
-	Location                 string                       `tfschema:"location"`
-	AppLocation              string                       `tfschema:"app_location"`
-	Environment              string                       `tfschema:"environment"`
-	Identity                 []identity.ModelUserAssigned `tfschema:"identity"`
-	ManagedResourceGroupName string                       `tfschema:"managed_resource_group_name"`
-	SapFqdn                  string                       `tfschema:"sap_fqdn"`
-	SapProduct               string                       `tfschema:"sap_product"`
-	ThreeTierConfiguration   []ThreeTierConfiguration     `tfschema:"three_tier_configuration"`
-	Tags                     map[string]string            `tfschema:"tags"`
+	Name                              string                       `tfschema:"name"`
+	ResourceGroupName                 string                       `tfschema:"resource_group_name"`
+	Location                          string                       `tfschema:"location"`
+	AppLocation                       string                       `tfschema:"app_location"`
+	Environment                       string                       `tfschema:"environment"`
+	Identity                          []identity.ModelUserAssigned `tfschema:"identity"`
+	ManagedResourceGroupName          string                       `tfschema:"managed_resource_group_name"`
+	ManagedResourcesNetworkAccessType string                       `tfschema:"managed_resources_network_access_type"`
+	SapFqdn                           string                       `tfschema:"sap_fqdn"`
+	SapProduct                        string                       `tfschema:"sap_product"`
+	ThreeTierConfiguration            []ThreeTierConfiguration     `tfschema:"three_tier_configuration"`
+	Tags                              map[string]string            `tfschema:"tags"`
 }
 
 type DiskVolumeConfiguration struct {
@@ -1040,6 +1042,13 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Arguments() map[string]*pl
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
+		"managed_resources_network_access_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(sapvirtualinstances.ManagedResourcesNetworkAccessTypePublic),
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForManagedResourcesNetworkAccessType(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -1057,7 +1066,7 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) CustomizeDiff() sdk.Resour
 			if v := rd.Get("three_tier_configuration.0.database_server_configuration.0.disk_volume_configuration"); v != nil {
 				diskVolumes := v.(*pluginsdk.Set).List()
 				if hasDuplicateVolumeName(diskVolumes) {
-					return fmt.Errorf("`volume_name` cannot be duplicated")
+					return errors.New("`volume_name` cannot be duplicated")
 				}
 			}
 
@@ -1112,9 +1121,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 			parameters := &sapvirtualinstances.SAPVirtualInstance{
 				Identity: identity,
 				Location: location.Normalize(model.Location),
-				Properties: sapvirtualinstances.SAPVirtualInstanceProperties{
-					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
+				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
+					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
+					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
 			}
@@ -1166,7 +1176,9 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{}
+			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{
+				Properties: &sapvirtualinstances.UpdateSAPVirtualInstanceProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("identity") {
 				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -1176,11 +1188,15 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Update() sdk.ResourceFunc 
 				parameters.Identity = identityValue
 			}
 
+			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = &model.Tags
 			}
 
-			if _, err := client.Update(ctx, *id, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -1222,33 +1238,35 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = pointer.From(identity)
 
-				props := &model.Properties
-				state.Environment = string(props.Environment)
-				state.SapProduct = string(props.SapProduct)
-				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.Environment = string(props.Environment)
+					state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+					state.SapProduct = string(props.SapProduct)
+					state.Tags = pointer.From(model.Tags)
 
-				if config := props.Configuration; config != nil {
-					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-						state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
+					if config := props.Configuration; config != nil {
+						if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+							state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
 
-						if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
-							state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
-						}
+							if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+								state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
+							}
 
-						if configuration := v.InfrastructureConfiguration; configuration != nil {
-							if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
-								threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
-								if err != nil {
-									return err
+							if configuration := v.InfrastructureConfiguration; configuration != nil {
+								if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
+									threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
+									if err != nil {
+										return err
+									}
+									state.ThreeTierConfiguration = threeTierConfig
 								}
-								state.ThreeTierConfiguration = threeTierConfig
 							}
 						}
 					}
-				}
 
-				if v := props.ManagedResourceGroupConfiguration; v != nil {
-					state.ManagedResourceGroupName = pointer.From(v.Name)
+					if v := props.ManagedResourceGroupConfiguration; v != nil {
+						state.ManagedResourceGroupName = pointer.From(v.Name)
+					}
 				}
 			}
 
@@ -1937,7 +1955,7 @@ func flattenThreeTierConfiguration(input sapvirtualinstances.ThreeTierConfigurat
 			}
 
 			if _, ok := transportFileShareConfiguration.(sapvirtualinstances.MountFileShareConfiguration); ok {
-				return nil, fmt.Errorf("currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected. The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209. So the feature of `TransportMount` isn't supported by TF for now due to this service API bug")
+				return nil, errors.New("currently, the last segment of the Storage File Share resource manager ID in Swagger is defined as `/shares/` but it's unexpected. The last segment of the Storage File Share resource manager ID should be `/fileshares/` not `/shares/` in Swagger since the backend service is using `/fileshares/`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/25209. So the feature of `TransportMount` isn't supported by TF for now due to this service API bug")
 			}
 		}
 	}

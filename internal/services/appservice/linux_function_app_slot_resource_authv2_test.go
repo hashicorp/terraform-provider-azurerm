@@ -217,7 +217,7 @@ func TestAccLinuxFunctionAppSlot_authV2UpgradeFromV1(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardComplete(data),
+			Config: r.standardCompleteWithVnetProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -276,7 +276,6 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 
 func (r LinuxFunctionAppSlotResource) authV2AzureActiveDirectoryNoSecretName(data acceptance.TestData, planSku string) string {
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -690,6 +690,10 @@ locals {
   vm_name = "acctestvm%s"
 }
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

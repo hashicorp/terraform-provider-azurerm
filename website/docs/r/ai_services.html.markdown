@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_ai_services
 
-Manages an AI Services account.
+Manages an AI Services Account.
 
 ## Example Usage
 
@@ -123,6 +123,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `primary_access_key` - A primary access key which can be used to connect to the AI Services Account.
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the AI Services Account.
+
+-> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_authentication_enabled` is set to `true`.
 
 ---
 

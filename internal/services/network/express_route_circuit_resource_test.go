@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -242,17 +242,17 @@ func testAccExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allowClassicOperations(data, "false"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("false"),
-			),
-		},
-		{
 			Config: r.allowClassicOperations(data, "true"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("true"),
+			),
+		},
+		{
+			Config: r.allowClassicOperations(data, "false"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("false"),
 			),
 		},
 	})
@@ -589,6 +589,7 @@ resource "azurerm_express_route_circuit" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
   bandwidth_in_gbps     = 5
+  rate_limiting_enabled = true
 
   sku {
     tier   = "Standard"
@@ -624,6 +625,7 @@ resource "azurerm_express_route_circuit" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
   bandwidth_in_gbps     = 5
+  rate_limiting_enabled = false
 
   sku {
     tier   = "Standard"

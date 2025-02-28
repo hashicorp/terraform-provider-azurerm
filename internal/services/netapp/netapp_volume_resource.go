@@ -15,9 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -110,7 +111,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"network_features": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(volumes.NetworkFeaturesBasic),
+				Computed: true, // O+C - This is Optional/Computed because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.NetworkFeaturesBasic),
 					string(volumes.NetworkFeaturesStandard),
@@ -268,7 +269,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"snapshot_directory_visible": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"data_protection_replication": {
@@ -318,6 +319,36 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+			},
+
+			"data_protection_backup_policy": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"backup_policy_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							Description:  "The ID of the backup policy to associate with this volume.",
+						},
+
+						"policy_enabled": {
+							Type:        pluginsdk.TypeBool,
+							Optional:    true,
+							Default:     true,
+							Description: "If set to false, the backup policy will not be enabled on this volume, thus disabling scheduled backups.",
+						},
+
+						"backup_vault_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							Description:  "The ID of the backup vault to associate with this volume.",
 						},
 					},
 				},
@@ -432,25 +463,36 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	exportPolicyRule := expandNetAppVolumeExportPolicyRule(exportPolicyRuleRaw)
 
 	dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
-	dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
-
 	dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+
+	dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
 	dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicy(dataProtectionSnapshotPolicyRaw)
+
+	dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
+	dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicy(dataProtectionBackupPolicyRaw)
 
 	authorizeReplication := false
 	volumeType := ""
+	endpointType := ""
 	if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
-		endpointType := ""
 		if dataProtectionReplication.Replication.EndpointType != nil {
 			endpointType = string(*dataProtectionReplication.Replication.EndpointType)
 		}
-		if strings.ToLower(endpointType) == "dst" {
+		if strings.EqualFold(endpointType, "dst") {
 			authorizeReplication = true
 			volumeType = "DataProtection"
 		}
 	}
 
-	// Validating that snapshot policies are not being created in a data protection volume
+	// Validate applicability of backup policies
+	if dataProtectionReplication != nil && dataProtectionReplication.Backup != nil {
+		// Validate that backup policies are not being enforced in a data protection replication destination volume
+		if strings.EqualFold(volumeType, "dst") && dataProtectionReplication.Backup.PolicyEnforced == utils.Bool(true) {
+			return fmt.Errorf("backup policy cannot be enforced on a data protection destination volume, NetApp Volume %q (Resource Group %q)", id.VolumeName, id.ResourceGroupName)
+		}
+	}
+
+	// Validating that snapshot policies are not being created in a data protection replication volume
 	if dataProtectionSnapshotPolicy.Snapshot != nil && volumeType != "" {
 		return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, NetApp Volume %q (Resource Group %q)", id.VolumeName, id.ResourceGroupName)
 	}
@@ -541,6 +583,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			DataProtection: &volumes.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
+				Backup:      dataProtectionBackupPolicy.Backup,
 			},
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
@@ -612,7 +655,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	shouldUpdate := false
 	update := volumes.VolumePatch{
 		Properties: &volumes.VolumePatchProperties{},
 	}
@@ -621,14 +663,17 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("zone changes are not supported after volume is already created, %s", id)
 	}
 
+	if d.HasChange("snapshot_directory_visible") {
+		snapshotDirectoryVisible := d.Get("snapshot_directory_visible").(bool)
+		update.Properties.SnapshotDirectoryVisible = pointer.To(snapshotDirectoryVisible)
+	}
+
 	if d.HasChange("storage_quota_in_gb") {
-		shouldUpdate = true
 		storageQuotaInBytes := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 		update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
 	}
 
 	if d.HasChange("export_policy_rule") {
-		shouldUpdate = true
 		exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
 		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
 		update.Properties.ExportPolicy = exportPolicyRule
@@ -639,24 +684,41 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
 		dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
 
-		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) == "dst" {
+		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), "dst") {
 			return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
 		}
 
-		shouldUpdate = true
 		dataProtectionSnapshotPolicyRaw := d.Get("data_protection_snapshot_policy").([]interface{})
 		dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
-		update.Properties.DataProtection = dataProtectionSnapshotPolicy
+
+		update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
+		update.Properties.DataProtection.Snapshot = dataProtectionSnapshotPolicy.Snapshot
+	}
+
+	if d.HasChange("data_protection_backup_policy") {
+		// Validate applicability of backup policies
+		dataProtectionReplicationRaw := d.Get("data_protection_replication").([]interface{})
+		dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+
+		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), "dst") {
+			return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", id)
+		}
+
+		dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
+		dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicyPatch(dataProtectionBackupPolicyRaw)
+
+		if update.Properties.DataProtection == nil {
+			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
+		}
+		update.Properties.DataProtection.Backup = dataProtectionBackupPolicy.Backup
 	}
 
 	if d.HasChange("throughput_in_mibps") {
-		shouldUpdate = true
 		throughputMibps := d.Get("throughput_in_mibps")
 		update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
-		shouldUpdate = true
 		smbNonBrowsable := volumes.SmbNonBrowsableDisabled
 		update.Properties.SmbNonBrowsable = &smbNonBrowsable
 		if d.Get("smb_non_browsable_enabled").(bool) {
@@ -666,7 +728,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("smb_access_based_enumeration_enabled") {
-		shouldUpdate = true
 		smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationDisabled
 		update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
 		if d.Get("smb_access_based_enumeration_enabled").(bool) {
@@ -676,20 +737,17 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("tags") {
-		shouldUpdate = true
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
-	if shouldUpdate {
-		if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
+	if err = client.UpdateThenPoll(ctx, *id, update); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
-		// Wait for volume to complete update
-		if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
-			return err
-		}
+	// Wait for volume to complete update
+	if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
+		return err
 	}
 
 	return resourceNetAppVolumeRead(d, meta)
@@ -777,6 +835,9 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if err := d.Set("data_protection_snapshot_policy", flattenNetAppVolumeDataProtectionSnapshotPolicy(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_snapshot_policy`: %+v", err)
 		}
+		if err := d.Set("data_protection_backup_policy", flattenNetAppVolumeDataProtectionBackupPolicy(props.DataProtection)); err != nil {
+			return fmt.Errorf("setting `data_protection_backup_policy`: %+v", err)
+		}
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}
@@ -798,53 +859,123 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("fetching netapp error: %+v", err)
 	}
 
+	// Preventing unintentional severe data loss
+	if meta.(*clients.Client).Features.NetApp.PreventVolumeDestruction {
+		return fmt.Errorf("deleting NetApp Volume %q (Resource Group %q) is not allowed due to prevent_volume_destruction feature flag", id.VolumeName, id.ResourceGroupName)
+	}
+
+	// Handling DataProtection
 	if netApp.Model != nil && netApp.Model.Properties.DataProtection != nil {
-		dataProtectionReplication := netApp.Model.Properties.DataProtection
-		replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
-		if err != nil {
-			return err
-		}
-		if dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && strings.ToLower(string(*dataProtectionReplication.Replication.EndpointType)) != "dst" {
-			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
-			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
+		// Handling Replication before volume deletion
+		if netApp.Model.Properties.DataProtection.Replication != nil {
+			dataProtectionReplication := netApp.Model.Properties.DataProtection
+			replicaVolumeId, err := volumesreplication.ParseVolumeID(id.ID())
 			if err != nil {
 				return err
 			}
-		}
-
-		replicationClient := meta.(*clients.Client).NetApp.VolumeReplicationClient
-		// Checking replication status before deletion, it needs to be broken before proceeding with deletion
-		if res, err := replicationClient.VolumesReplicationStatus(ctx, *replicaVolumeId); err == nil {
-			// Wait for replication state = "mirrored"
-			if model := res.Model; model != nil {
-				if model.MirrorState != nil && strings.ToLower(string(*model.MirrorState)) == "uninitialized" {
-					if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "mirrored"); err != nil {
-						return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", *replicaVolumeId, err)
-					}
+			if dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && !(strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), "dst")) {
+				// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
+				replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
+				if err != nil {
+					return err
 				}
 			}
 
-			// Breaking replication
-			if err = replicationClient.VolumesBreakReplicationThenPoll(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
-				ForceBreakReplication: utils.Bool(true),
-			}); err != nil {
-				return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
+			replicationClient := meta.(*clients.Client).NetApp.VolumeReplicationClient
+			// Checking replication status before deletion, it needs to be broken before proceeding with deletion
+			if res, err := replicationClient.VolumesReplicationStatus(ctx, *replicaVolumeId); err == nil {
+				// Wait for replication state = "mirrored"
+				if model := res.Model; model != nil {
+					if model.MirrorState != nil && strings.ToLower(string(*model.MirrorState)) == "uninitialized" {
+						if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "mirrored"); err != nil {
+							return fmt.Errorf("waiting for replica %s to become 'mirrored': %+v", *replicaVolumeId, err)
+						}
+					}
+				}
+
+				// Breaking replication
+				// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
+				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
+				if _, err = replicationClient.VolumesBreakReplication(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
+					ForceBreakReplication: utils.Bool(true),
+				}); err != nil {
+					return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
+				}
+
+				// Waiting for replication be in broken state
+				log.Printf("[DEBUG] Waiting for the replication of %s to be in broken state", *replicaVolumeId)
+				if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "broken"); err != nil {
+					return fmt.Errorf("waiting for the breaking of replication for %s: %+v", *replicaVolumeId, err)
+				}
 			}
 
-			// Waiting for replication be in broken state
-			log.Printf("[DEBUG] Waiting for the replication of %s to be in broken state", *replicaVolumeId)
-			if err := waitForReplMirrorState(ctx, replicationClient, *replicaVolumeId, "broken"); err != nil {
-				return fmt.Errorf("waiting for the breaking of replication for %s: %+v", *replicaVolumeId, err)
+			// Deleting replication and waiting for it to fully complete the operation
+			if _, err = replicationClient.VolumesDeleteReplication(ctx, *replicaVolumeId); err != nil {
+				return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
+			}
+
+			if err := waitForReplicationDeletion(ctx, replicationClient, *replicaVolumeId); err != nil {
+				return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
 			}
 		}
 
-		// Deleting replication and waiting for it to fully complete the operation
-		if _, err = replicationClient.VolumesDeleteReplication(ctx, *replicaVolumeId); err != nil {
-			return fmt.Errorf("deleting replicate %s: %+v", *replicaVolumeId, err)
-		}
+		// Handling Backup before volume deletion
+		if netApp.Model.Properties.DataProtection.Backup != nil {
+			dataProtectionBackup := netApp.Model.Properties.DataProtection
 
-		if err := waitForReplicationDeletion(ctx, replicationClient, *replicaVolumeId); err != nil {
-			return fmt.Errorf("waiting for the replica %s to be deleted: %+v", *replicaVolumeId, err)
+			if dataProtectionBackup.Backup != nil {
+				// Checking if initial backup is in progress
+				volumeIdFromBackupClient := backups.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, id.CapacityPoolName, id.VolumeName)
+				backupClient := meta.(*clients.Client).NetApp.BackupClient
+				if err = waitForBackupRelationshipStateForDeletion(ctx, backupClient, volumeIdFromBackupClient); err != nil {
+					return fmt.Errorf("waiting for of %s: %+v", *id, err)
+				}
+
+				// Disabling backup policy first, PolicyEnforced and BackupPolicyId can't be sent together
+				disableBackupPolicy := volumes.VolumePatch{
+					Properties: &volumes.VolumePatchProperties{
+						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+							Backup: &volumes.VolumeBackupProperties{
+								PolicyEnforced: utils.Bool(false),
+							},
+						},
+					},
+				}
+
+				if err = client.UpdateThenPoll(ctx, *id, disableBackupPolicy); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+				// Wait for volume to complete update
+				if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
+					return err
+				}
+
+				// Checking again if backup is in progress
+				if err = waitForBackupRelationshipStateForDeletion(ctx, backupClient, volumeIdFromBackupClient); err != nil {
+					return fmt.Errorf("waiting for of %s: %+v", *id, err)
+				}
+
+				// Removing BackupPolicyId
+				backupPolicyIdRemoval := volumes.VolumePatch{
+					Properties: &volumes.VolumePatchProperties{
+						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
+							Backup: &volumes.VolumeBackupProperties{
+								BackupPolicyId: pointer.To(""),
+							},
+						},
+					},
+				}
+
+				if err = client.UpdateThenPoll(ctx, *id, backupPolicyIdRemoval); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+				// Wait for volume to complete update
+				if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -999,29 +1130,29 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 		}
 
 		protocolsEnabled := []string{}
-		if utils.NormaliseNilableBool(item.Cifs) {
+		if pointer.From(item.Cifs) {
 			protocolsEnabled = append(protocolsEnabled, "CIFS")
 		}
-		if utils.NormaliseNilableBool(item.Nfsv3) {
+		if pointer.From(item.Nfsv3) {
 			protocolsEnabled = append(protocolsEnabled, "NFSv3")
 		}
-		if utils.NormaliseNilableBool(item.Nfsv41) {
+		if pointer.From(item.Nfsv41) {
 			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 		}
 
 		result := map[string]interface{}{
 			"allowed_clients":                utils.FlattenStringSlice(&allowedClients),
-			"kerberos_5_read_only_enabled":   utils.NormaliseNilableBool(item.Kerberos5ReadOnly),
-			"kerberos_5_read_write_enabled":  utils.NormaliseNilableBool(item.Kerberos5ReadWrite),
-			"kerberos_5i_read_only_enabled":  utils.NormaliseNilableBool(item.Kerberos5iReadOnly),
-			"kerberos_5i_read_write_enabled": utils.NormaliseNilableBool(item.Kerberos5iReadWrite),
-			"kerberos_5p_read_only_enabled":  utils.NormaliseNilableBool(item.Kerberos5pReadOnly),
-			"kerberos_5p_read_write_enabled": utils.NormaliseNilableBool(item.Kerberos5pReadWrite),
+			"kerberos_5_read_only_enabled":   pointer.From(item.Kerberos5ReadOnly),
+			"kerberos_5_read_write_enabled":  pointer.From(item.Kerberos5ReadWrite),
+			"kerberos_5i_read_only_enabled":  pointer.From(item.Kerberos5iReadOnly),
+			"kerberos_5i_read_write_enabled": pointer.From(item.Kerberos5iReadWrite),
+			"kerberos_5p_read_only_enabled":  pointer.From(item.Kerberos5pReadOnly),
+			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
 			"protocols_enabled":              utils.FlattenStringSlice(&protocolsEnabled),
-			"root_access_enabled":            utils.NormaliseNilableBool(item.HasRootAccess),
+			"root_access_enabled":            pointer.From(item.HasRootAccess),
 			"rule_index":                     ruleIndex,
-			"unix_read_only":                 utils.NormaliseNilableBool(item.UnixReadOnly),
-			"unix_read_write":                utils.NormaliseNilableBool(item.UnixReadWrite),
+			"unix_read_only":                 pointer.From(item.UnixReadOnly),
+			"unix_read_write":                pointer.From(item.UnixReadWrite),
 		}
 		results = append(results, result)
 	}
@@ -1049,7 +1180,7 @@ func flattenNetAppVolumeDataProtectionReplication(input *volumes.VolumePropertie
 		return []interface{}{}
 	}
 
-	if strings.ToLower(string(*input.Replication.EndpointType)) == "" || strings.ToLower(string(*input.Replication.EndpointType)) != "dst" {
+	if strings.ToLower(string(*input.Replication.EndpointType)) == "" || !(strings.EqualFold(string(*input.Replication.EndpointType), "dst")) {
 		return []interface{}{}
 	}
 
@@ -1076,6 +1207,36 @@ func flattenNetAppVolumeDataProtectionSnapshotPolicy(input *volumes.VolumeProper
 	return []interface{}{
 		map[string]interface{}{
 			"snapshot_policy_id": input.Snapshot.SnapshotPolicyId,
+		},
+	}
+}
+
+func flattenNetAppVolumeDataProtectionBackupPolicy(input *volumes.VolumePropertiesDataProtection) []interface{} {
+	if input == nil || input.Backup == nil {
+		return []interface{}{}
+	}
+
+	backupPolicyID := ""
+	policyEnforced := false
+	backupVaultID := ""
+
+	if input.Backup.BackupPolicyId != nil {
+		backupPolicyID = pointer.From(input.Backup.BackupPolicyId)
+	}
+
+	if input.Backup.PolicyEnforced != nil {
+		policyEnforced = pointer.From(input.Backup.PolicyEnforced)
+	}
+
+	if input.Backup.BackupVaultId != nil {
+		backupVaultID = pointer.From(input.Backup.BackupVaultId)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"backup_policy_id": backupPolicyID,
+			"policy_enabled":   policyEnforced,
+			"backup_vault_id":  backupVaultID,
 		},
 	}
 }
