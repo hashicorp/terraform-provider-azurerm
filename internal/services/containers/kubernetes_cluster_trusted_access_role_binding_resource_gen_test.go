@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/trustedaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/trustedaccess"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -53,7 +53,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingTestResource) Exists(ctx contex
 		return nil, err
 	}
 
-	resp, err := clients.ContainerService.V20230302Preview.TrustedAccess.RoleBindingsGet(ctx, *id)
+	resp, err := clients.Containers.TrustedAccessClient.RoleBindingsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
