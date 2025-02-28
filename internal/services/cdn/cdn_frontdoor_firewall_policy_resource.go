@@ -465,7 +465,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 						"rule": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 100,
-							Optional: true,
+							Required: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"enabled": {

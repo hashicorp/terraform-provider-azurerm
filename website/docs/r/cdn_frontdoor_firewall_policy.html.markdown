@@ -268,9 +268,9 @@ A `log_scrubbing` block supports the following:
 
 * `enabled` - (Optional) Is log scrubbing enabled? Possible values are `true` or `false`. Defaults to `true`.
 
-* `rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
+* `rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
 
--> **Note:** If the `log_scrubbing` policy is `enabled` without specifying any `scrubbing_rule`s, the subsequent Azure Front Door log files will be scrubbed of all `RequestUri`, `OriginUrl`, `ClientIp`, `SocketIp` and `Querystring` parameters for the `RequestUri` and `OriginUrl`. For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
+-> **Note:** For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
 
 ---
 

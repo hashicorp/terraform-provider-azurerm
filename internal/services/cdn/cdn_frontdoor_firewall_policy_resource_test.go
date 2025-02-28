@@ -82,7 +82,7 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingBasic(t *testing.T) {
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.logScrubbingEnabledBasic(data),
+			Config: r.logScrubbingBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -96,35 +96,7 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingStandardBasic(t *testing.T) {
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.logScrubbingStandardEnabledBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCdnFrontDoorFirewallPolicy_logScrubbingRulesBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontDoorFirewallPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.logScrubbingRuleBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCdnFrontDoorFirewallPolicy_logScrubbingRulesStandardBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontDoorFirewallPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.logScrubbingRuleStandardBasic(data),
+			Config: r.logScrubbingStandardBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -336,7 +308,7 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingBasicUpdate(t *testing.T) {
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.logScrubbingEnabledBasic(data),
+			Config: r.logScrubbingDisabledBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -350,7 +322,14 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingBasicUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.logScrubbingEnabledBasic(data),
+			Config: r.logScrubbingRuleDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingDisabledBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -364,7 +343,7 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingStandardBasicUpdate(t *testin
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.logScrubbingStandardEnabledBasic(data),
+			Config: r.logScrubbingStandardBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -378,7 +357,14 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingStandardBasicUpdate(t *testin
 		},
 		data.ImportStep(),
 		{
-			Config: r.logScrubbingStandardEnabledBasic(data),
+			Config: r.logScrubbingStandardRuleDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingStandardBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -392,7 +378,7 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingCompleteUpdate(t *testing.T) 
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.logScrubbingEnabledBasic(data),
+			Config: r.logScrubbingBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -839,75 +825,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorFirewallPolicyResource) logScrubbingEnabledBasic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                = "accTestWAF%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
-  mode                = "Prevention"
-
-  log_scrubbing {
-    enabled = true
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorFirewallPolicyResource) logScrubbingDisabledBasic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                = "accTestWAF%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
-  mode                = "Prevention"
-
-  log_scrubbing {
-    enabled = false
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardEnabledBasic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                = "accTestWAF%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
-  mode                = "Prevention"
-
-  log_scrubbing {
-    enabled = true
-  }
-}
-`, r.templateStandard(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardDisabledBasic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                = "accTestWAF%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
-  mode                = "Prevention"
-
-  log_scrubbing {
-    enabled = false
-  }
-}
-`, r.templateStandard(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRuleBasic(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -931,7 +849,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRuleStandardBasic(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -943,6 +861,102 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   log_scrubbing {
     enabled = true
+
+    rule {
+      enabled        = true
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.templateStandard(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingDisabledBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = false
+
+    rule {
+      enabled        = true
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRuleDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    rule {
+      enabled        = false
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardRuleDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    rule {
+      enabled        = false
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.templateStandard(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardDisabledBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = false
 
     rule {
       enabled        = true
