@@ -1,10 +1,15 @@
 ## 4.22.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `azurerm_extended_location_custom_location` [GH-28066]
+
 ENHANCEMENTS: 
 
 * `azurerm_workloads_sap_discovery_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
 * `azurerm_workloads_sap_single_node_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
 * `azurerm_workloads_sap_three_tier_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
+* `azurerm_extended_custom_location` - deprecated in favour of `azurerm_extended_location_custom_location` [GH-28066]
 
 BUG FIXES:
 
