@@ -165,7 +165,7 @@ func (r CustomLocationResource) Create() sdk.ResourceFunc {
 
 			props := customlocations.CustomLocation{
 				Id:         pointer.To(id.ID()),
-				Location:   model.Location,
+				Location:   location.Normalize(model.Location),
 				Name:       pointer.To(model.Name),
 				Properties: pointer.To(customLocationProps),
 			}
