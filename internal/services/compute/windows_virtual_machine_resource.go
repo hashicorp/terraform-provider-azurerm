@@ -1730,22 +1730,54 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 
 	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
 		// If the VM was in a Failed state we can skip powering off, since that'll fail
-		if existing.Model != nil && existing.Model.Properties != nil && strings.EqualFold(*existing.Model.Properties.ProvisioningState, "failed") {
-			log.Printf("[DEBUG] Powering Off Windows %s was skipped because the VM was in %q state", id, *existing.Model.Properties.ProvisioningState)
-		} else {
-			// ISSUE: 4920
-			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
-			// thus this can be a large cost-saving when deleting larger instances
-			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-			log.Printf("[DEBUG] Powering Off Windows %s.", id)
-			skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-			options := virtualmachines.PowerOffOperationOptions{
-				SkipShutdown: pointer.To(skipShutdown),
+		if model := existing.Model; model != nil && model.Properties != nil && model.Properties.ProvisioningState != nil {
+			if strings.EqualFold(*existing.Model.Properties.ProvisioningState, "failed") {
+				log.Printf("[DEBUG] Powering Off Windows %s was skipped because the VM was in %q state", id, *model.Properties.ProvisioningState)
+			} else {
+				// Issue 28218: Don't shutdown if already powered off
+				shouldShutDown := true
+				if model.Properties.InstanceView != nil && model.Properties.InstanceView.Statuses != nil {
+					for _, status := range *model.Properties.InstanceView.Statuses {
+						if status.Code == nil {
+							continue
+						}
+
+						// could also be the provisioning state which we're not bothered with here
+						state := strings.ToLower(*status.Code)
+						if !strings.HasPrefix(state, "powerstate/") {
+							continue
+						}
+
+						state = strings.TrimPrefix(state, "powerstate/")
+						switch state {
+						case "deallocated":
+							// VM already deallocated, no shutdown needed anymore
+							shouldShutDown = false
+						case "deallocating":
+							// VM is deallocating, no shutdown needed anymore
+							shouldShutDown = false
+						case "stopped":
+							// VM already stopped, no shutdown needed anymore
+							shouldShutDown = false
+						}
+					}
+				}
+				if shouldShutDown {
+					// ISSUE: 4920
+					// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
+					// thus this can be a large cost-saving when deleting larger instances
+					// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
+					log.Printf("[DEBUG] Powering Off Windows %s.", id)
+					skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
+					options := virtualmachines.PowerOffOperationOptions{
+						SkipShutdown: pointer.To(skipShutdown),
+					}
+					if err := client.PowerOffThenPoll(ctx, *id, options); err != nil {
+						return fmt.Errorf("powering off Windows %s: %+v", id, err)
+					}
+					log.Printf("[DEBUG] Powered Off Windows %s", id)
+				}
 			}
-			if err := client.PowerOffThenPoll(ctx, *id, options); err != nil {
-				return fmt.Errorf("powering off Windows %s: %+v", id, err)
-			}
-			log.Printf("[DEBUG] Powered Off Windows %s", id)
 		}
 	}
 
