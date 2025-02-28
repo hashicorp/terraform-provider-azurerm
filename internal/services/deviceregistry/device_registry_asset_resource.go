@@ -385,7 +385,7 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 
 			param.Properties.Events = toAzureEvents(config.Events)
 
-			if _, err := client.CreateOrReplaceThenPoll(ctx, id, param); err != nil {
+			if err := client.CreateOrReplaceThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -499,7 +499,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 				param.Properties.SoftwareRevision = pointer.To(config.SoftwareRevision)
 			}
 
-			if _, err := client.UpdateThenPoll(ctx, *id, param); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
