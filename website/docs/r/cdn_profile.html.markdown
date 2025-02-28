@@ -10,7 +10,11 @@ description: |-
 
 Manages a CDN Profile to create a collection of CDN Endpoints.
 
-!> **Be Aware:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+!> **Note:** Azure is rolling out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - however unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+
+!> **Note:** The CDN services from Edgio(formerly Verizon) will be shut down on or before 15 January 2025. All Azure CDN from Edgio customers must migrate their workloads out of Azure CDN from Edgio before 15 January 2025.
+
+!> **Note:** The CDN services from Akamai support will be removed on 31 October 2023. All Azure CDN from Akamai customers must migrate their workloads out of Azure CDN from Akamai before 31 October 2023.
 
 ## Example Usage
 
@@ -24,7 +28,7 @@ resource "azurerm_cdn_profile" "example" {
   name                = "exampleCdnProfile"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 
   tags = {
     environment = "Production"
@@ -43,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The pricing related information of current CDN profile. Accepted values are `Standard_Akamai`, `Standard_ChinaCdn`, `Standard_Microsoft`, `Standard_Verizon` or `Premium_Verizon`. Changing this forces a new resource to be created.
+* `sku` - (Required) The pricing related information of current CDN profile. Accepted values are `Standard_ChinaCdn` or `Standard_Microsoft`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

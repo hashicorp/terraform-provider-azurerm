@@ -10,6 +10,10 @@ description: |-
 
 Manages a Custom Domain for a CDN Endpoint.
 
+!> **Note:** The CDN services from Edgio(formerly Verizon) will be shut down on or before 15 January 2025. All Azure CDN from Edgio customers must migrate their workloads out of Azure CDN from Edgio before 15 January 2025.
+
+!> **Note:** The CDN services from Akamai support will be removed on 31 October 2023. All Azure CDN from Akamai customers must migrate their workloads out of Azure CDN from Akamai before 31 October 2023.
+
 ## Example Usage
 
 ```hcl
@@ -30,7 +34,7 @@ resource "azurerm_cdn_profile" "example" {
   name                = "example-profile"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "example" {

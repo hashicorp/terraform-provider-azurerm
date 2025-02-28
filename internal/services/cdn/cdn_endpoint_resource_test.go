@@ -134,47 +134,8 @@ func TestAccCdnEndpoint_optimized(t *testing.T) {
 	})
 }
 
-func TestAccCdnEndpoint_withGeoFilters(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	r := CdnEndpointResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.geoFilters(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccCdnEndpoint_fullFields(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	r := CdnEndpointResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.fullFields(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("is_http_allowed").HasValue("true"),
-				check.That(data.ResourceName).Key("is_https_allowed").HasValue("true"),
-				check.That(data.ResourceName).Key("origin_path").HasValue("/origin-path"),
-				check.That(data.ResourceName).Key("probe_path").HasValue("/origin-path/probe"),
-				check.That(data.ResourceName).Key("origin_host_header").HasValue("www.contoso.com"),
-				check.That(data.ResourceName).Key("optimization_type").HasValue("GeneralWebDelivery"),
-				check.That(data.ResourceName).Key("querystring_caching_behaviour").HasValue("UseQueryString"),
-				check.That(data.ResourceName).Key("content_types_to_compress.#").HasValue("3"),
-				check.That(data.ResourceName).Key("is_compression_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("geo_filter.#").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+// Removed 'TestAccCdnEndpoint_withGeoFilters' due to Edgio being shut down on or before 15 January 2025
+// Removed 'TestAccCdnEndpoint_fullFields' due to Edgio being shut down on or before 15 January 2025
 
 func TestAccCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
@@ -278,20 +239,7 @@ func TestAccCdnEndpoint_dnsAlias(t *testing.T) {
 	})
 }
 
-func TestAccCdnEndpoint_PremiumVerizon(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
-	r := CdnEndpointResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.PremiumVerizon(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+// Removed 'TestAccCdnEndpoint_PremiumVerizon' due to Edgio being shut down on or before 15 January 2025
 
 func TestAccCdnEndpoint_deliveryRuleOptionalMatchValue(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
@@ -417,7 +365,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -472,7 +420,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -512,7 +460,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -551,7 +499,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -574,56 +522,6 @@ resource "azurerm_cdn_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r CdnEndpointResource) geoFilters(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
-}
-
-resource "azurerm_cdn_endpoint" "test" {
-  name                = "acctestcdnend%d"
-  profile_name        = azurerm_cdn_profile.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  is_http_allowed     = false
-  is_https_allowed    = true
-  origin_path         = "/origin-path"
-  probe_path          = "/origin-path/probe"
-
-  origin {
-    name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.contoso.com"
-    https_port = 443
-    http_port  = 80
-  }
-
-  geo_filter {
-    relative_path = "/some-example-endpoint"
-    action        = "Allow"
-    country_codes = ["GB"]
-  }
-
-  geo_filter {
-    relative_path = "/some-other-endpoint"
-    action        = "Block"
-    country_codes = ["US"]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
 func (r CdnEndpointResource) optimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -639,7 +537,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -676,7 +574,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -698,59 +596,6 @@ resource "azurerm_cdn_endpoint" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r CdnEndpointResource) fullFields(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
-}
-
-resource "azurerm_cdn_endpoint" "test" {
-  name                          = "acctestcdnend%d"
-  profile_name                  = azurerm_cdn_profile.test.name
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  is_http_allowed               = true
-  is_https_allowed              = true
-  content_types_to_compress     = ["text/html", "image/gif", "text/css"]
-  is_compression_enabled        = true
-  querystring_caching_behaviour = "UseQueryString"
-  origin_host_header            = "www.contoso.com"
-  optimization_type             = "GeneralWebDelivery"
-  origin_path                   = "/origin-path"
-  probe_path                    = "/origin-path/probe"
-
-  origin {
-    name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.contoso.com"
-    https_port = 443
-    http_port  = 80
-  }
-
-  geo_filter {
-    relative_path = "/some-example-endpoint"
-    action        = "Allow"
-    country_codes = ["GB"]
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
 func (r CdnEndpointResource) isHttpAndHttpsAllowed(data acceptance.TestData, isHttpAllowed string, isHttpsAllowed string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -766,7 +611,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -1175,7 +1020,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnep%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -1200,43 +1045,6 @@ resource "azurerm_dns_a_record" "test" {
   target_resource_id  = azurerm_cdn_endpoint.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (r CdnEndpointResource) PremiumVerizon(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium_Verizon"
-}
-
-resource "azurerm_cdn_endpoint" "test" {
-  name                          = "acctestcdnend%d"
-  profile_name                  = azurerm_cdn_profile.test.name
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  is_http_allowed               = false
-  is_https_allowed              = true
-  querystring_caching_behaviour = "NotSet"
-
-  origin {
-    name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.contoso.com"
-    https_port = 443
-    http_port  = 80
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r CdnEndpointResource) deliveryRuleOptionalMatchValue(data acceptance.TestData) string {
@@ -1521,7 +1329,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
