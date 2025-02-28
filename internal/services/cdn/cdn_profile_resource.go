@@ -57,15 +57,19 @@ func resourceCdnProfile() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			// Removed 'Standard_Verizon' and 'Premium_Verizon' due to Edgio being shut down on or before 15 January 2025
-			// Removed 'Standard_Akamai' due to support ending on 31 October 2023
+			// NOTE: 'Standard_Verizon', 'Premium_Verizon' and 'Standard_Akamai' have been deprecated by the RP...
+			// Keeping them to avoid a breaking change since the RP will return an error if the
+			// deprecated fields are passed to the RP...
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.SkuNameStandardAkamai),
 					string(cdn.SkuNameStandardChinaCdn),
+					string(cdn.SkuNameStandardVerizon),
 					string(cdn.SkuNameStandardMicrosoft),
+					string(cdn.SkuNamePremiumVerizon),
 				}, false),
 			},
 
