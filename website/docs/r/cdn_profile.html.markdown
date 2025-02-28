@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The pricing related information of current CDN profile. Accepted values are `Standard_ChinaCdn` or `Standard_Microsoft`. Changing this forces a new resource to be created.
+* `sku` - (Required) The pricing related information of current CDN profile. Accepted values are `Standard_Akamai`, `Standard_ChinaCdn`, `Standard_Microsoft`, `Standard_Verizon` or `Premium_Verizon`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
