@@ -103,10 +103,11 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("expiration_date", func(ctx context.Context, oldVal, newVal interface{}, meta interface{}) bool {
+			pluginsdk.ForceNewIf("expiration_date", func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) bool {
 				// if change from non-nil to nil, we need to force new
-				if oldVal != nil && oldVal.(string) != "" {
-					return newVal == nil || newVal.(string) == ""
+				old, _ := d.GetChange("expiration_date")
+				if old.(string) != "" && d.GetRawConfig().AsValueMap()["expiration_date"].IsNull() {
+					return true
 				}
 				return false
 			}),
