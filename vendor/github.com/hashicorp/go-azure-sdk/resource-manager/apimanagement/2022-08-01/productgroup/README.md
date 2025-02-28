@@ -1,5 +1,5 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productgroup` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/productgroup` Documentation
 
 The `productgroup` SDK allows for interaction with Azure Resource Manager `apimanagement` (API Version `2022-08-01`).
 
@@ -8,7 +8,7 @@ This readme covers example usages, but further information on [using this SDK ca
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productgroup"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/productgroup"
 ```
 
 
