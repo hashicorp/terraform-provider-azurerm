@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-09-02-preview/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/trustedaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
@@ -39,6 +40,7 @@ type Client struct {
 	MaintenanceConfigurationsClient             *maintenanceconfigurations.MaintenanceConfigurationsClient
 	ServicesClient                              *containerservices.ContainerServicesClient
 	SnapshotClient                              *snapshots.SnapshotsClient
+	TrustedAccessClient                         *trustedaccess.TrustedAccessClient
 	Environment                                 environments.Environment
 }
 
@@ -124,6 +126,12 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(snapshotClient.Client, o.Authorizers.ResourceManager)
 
+	trustedAccessClient, err := trustedaccess.NewTrustedAccessClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Trusted Access Client: %+v", err)
+	}
+	o.Configure(trustedAccessClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
@@ -138,6 +146,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		MaintenanceConfigurationsClient:             maintenanceConfigurationsClient,
 		ServicesClient:                              servicesClient,
 		SnapshotClient:                              snapshotClient,
+		TrustedAccessClient:                         trustedAccessClient,
 		Environment:                                 o.Environment,
 	}, nil
 }

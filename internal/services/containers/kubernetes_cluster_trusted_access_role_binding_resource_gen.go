@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-03-02-preview/trustedaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/trustedaccess"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -70,7 +70,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Create() sdk.Resource
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20230302Preview.TrustedAccess
+			client := metadata.Client.Containers.TrustedAccessClient
 
 			var config KubernetesClusterTrustedAccessRoleBindingResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -114,7 +114,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Read() sdk.ResourceFu
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20230302Preview.TrustedAccess
+			client := metadata.Client.Containers.TrustedAccessClient
 			schema := KubernetesClusterTrustedAccessRoleBindingResourceSchema{}
 
 			id, err := trustedaccess.ParseTrustedAccessRoleBindingID(metadata.ResourceData.Id())
@@ -148,7 +148,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Delete() sdk.Resource
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20230302Preview.TrustedAccess
+			client := metadata.Client.Containers.TrustedAccessClient
 
 			id, err := trustedaccess.ParseTrustedAccessRoleBindingID(metadata.ResourceData.Id())
 			if err != nil {
@@ -167,7 +167,7 @@ func (r KubernetesClusterTrustedAccessRoleBindingResource) Update() sdk.Resource
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20230302Preview.TrustedAccess
+			client := metadata.Client.Containers.TrustedAccessClient
 
 			id, err := trustedaccess.ParseTrustedAccessRoleBindingID(metadata.ResourceData.Id())
 			if err != nil {
