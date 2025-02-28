@@ -15,6 +15,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_express_route_circuit` - `allow_classic_operations` is now set when resource is created [GH-28748]
+* `azurerm_key_vault_certificate`: set partial when updating key vault certificate [GH-28848]
 * `azurerm_mssql_managed_instance` - fix an issue that prevented using values only known during apply for `administrator_login_password` [GH-28843]
 
 
