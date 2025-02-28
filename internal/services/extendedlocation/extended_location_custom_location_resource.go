@@ -22,10 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.Resource           = ExtendedLocationCustomLocationResource{}
-	_ sdk.ResourceWithUpdate = ExtendedLocationCustomLocationResource{}
-)
+var _ sdk.ResourceWithUpdate = ExtendedLocationCustomLocationResource{}
 
 type ExtendedLocationCustomLocationResource struct{}
 
@@ -175,7 +172,7 @@ func (r ExtendedLocationCustomLocationResource) Create() sdk.ResourceFunc {
 
 			props := customlocations.CustomLocation{
 				Id:         pointer.To(id.ID()),
-				Location:   model.Location,
+				Location:   location.Normalize(model.Location),
 				Name:       pointer.To(model.Name),
 				Properties: pointer.To(customLocationProps),
 			}
@@ -283,7 +280,7 @@ func (r ExtendedLocationCustomLocationResource) Update() sdk.ResourceFunc {
 			model := existing.Model
 
 			if model.Properties == nil {
-				return fmt.Errorf("retreiving properties for %s for update: %+v", *id, err)
+				return fmt.Errorf("retrieving properties for %s for update: %+v", *id, err)
 			}
 			d := metadata.ResourceData
 

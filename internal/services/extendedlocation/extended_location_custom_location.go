@@ -30,7 +30,6 @@ func (r CustomLocationResource) DeprecatedInFavourOfResource() string {
 }
 
 var (
-	_ sdk.Resource                          = CustomLocationResource{}
 	_ sdk.ResourceWithUpdate                = CustomLocationResource{}
 	_ sdk.ResourceWithDeprecationReplacedBy = CustomLocationResource{}
 )
