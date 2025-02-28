@@ -761,17 +761,19 @@ func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.Resour
 
 // msSqlAdministratorLoginPassword checks to make sure that one of `administrator_login_password_wo` or `administrator_login_password` is set when `administrator_login` is specified.
 func msSqlAdministratorLoginPassword(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
-	adminLogin := d.GetRawConfig().AsValueMap()["administrator_login"]
-	if !adminLogin.IsNull() && adminLogin.AsString() != "" {
-		woAdminLoginPassword, err := pluginsdk.GetWriteOnlyFromDiff(d, "administrator_login_password_wo", cty.String)
-		if err != nil {
-			return err
-		}
+	adminLogin, ok := d.GetRawConfig().AsValueMap()["administrator_login"]
+	if ok {
+		if !adminLogin.IsNull() && adminLogin.AsString() != "" {
+			woAdminLoginPassword, err := pluginsdk.GetWriteOnlyFromDiff(d, "administrator_login_password_wo", cty.String)
+			if err != nil {
+				return err
+			}
 
-		password := d.GetRawConfig().AsValueMap()["administrator_login_password"]
+			password := d.GetRawConfig().AsValueMap()["administrator_login_password"]
 
-		if woAdminLoginPassword.IsNull() && password.IsNull() {
-			return fmt.Errorf("expected `administrator_login_password` or `administrator_login_password_wo` to be set when `administrator_login` is specified")
+			if woAdminLoginPassword.IsNull() && password.IsNull() {
+				return fmt.Errorf("expected `administrator_login_password` or `administrator_login_password_wo` to be set when `administrator_login` is specified")
+			}
 		}
 	}
 	return
