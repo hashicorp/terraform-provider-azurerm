@@ -1,3 +1,10 @@
+## 4.21.1 (February 28, 2025)
+
+BUG FIXES:
+
+* `azurerm_mssql_server` - prevent panic by checking if `administrator_login` exists in the raw config map ([#28909](https://github.com/hashicorp/terraform-provider-azurerm/issues/28909))
+
+
 ## 4.21.0 (February 27, 2025)
 
 NOTES:
