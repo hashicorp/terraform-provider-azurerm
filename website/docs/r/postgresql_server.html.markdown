@@ -58,7 +58,13 @@ The following arguments are supported:
 
 * `administrator_login` - (Optional) The Administrator login for the PostgreSQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
 
-* `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Server. Required when `create_mode` is `Default`.
+* `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Server.
+
+* `administrator_login_password_wo` - (Optional, Write-Only) The Password associated with the `administrator_login` for the PostgreSQL Server.
+
+* ~> **Note:** Either `administrator_login_password` or `administrator_login_password_wo` is required when `create_mode` is `Default`.
+
+* `administrator_login_password_wo_version` - (Optional) An integer value used to trigger an update for `administrator_login_password_wo`. This property should be incremented when updating `administrator_login_password_wo`.
 
 * `auto_grow_enabled` - (Optional) Enable/Disable auto-growing of the storage. Storage auto-grow prevents your server from running out of storage and becoming read-only. If storage auto grow is enabled, the storage automatically grows without impacting the workload. Defaults to `true`.
 

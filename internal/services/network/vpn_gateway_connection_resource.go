@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -218,7 +219,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 									"sa_data_size_kb": {
 										Type:         pluginsdk.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(0, 2147483647),
+										ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 									},
 									"encryption_algorithm": {
 										Type:         pluginsdk.TypeString,

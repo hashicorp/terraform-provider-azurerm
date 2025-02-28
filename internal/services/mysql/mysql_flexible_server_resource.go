@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/serverfailover"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -77,10 +78,26 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"administrator_password": {
-				Type:         pluginsdk.TypeString,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validate.FlexibleServerAdministratorPassword,
+				ConflictsWith: []string{"administrator_password_wo"},
+			},
+
+			"administrator_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				ConflictsWith: []string{"administrator_password"},
+				RequiredWith:  []string{"administrator_password_wo_version"},
+				ValidateFunc:  validate.FlexibleServerAdministratorPassword,
+			},
+
+			"administrator_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validate.FlexibleServerAdministratorPassword,
+				RequiredWith: []string{"administrator_password_wo"},
 			},
 
 			"backup_retention_days": {
@@ -338,6 +355,11 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_mysql_flexible_server", id.ID())
 	}
 
+	woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+
 	createMode := servers.CreateMode(d.Get("create_mode").(string))
 
 	if _, ok := d.GetOk("replication_role"); ok {
@@ -360,9 +382,11 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 		if _, ok := d.GetOk("administrator_login"); !ok {
 			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
 		}
-		if _, ok := d.GetOk("administrator_password"); !ok {
-			return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default`")
+
+		if _, ok := d.GetOk("administrator_password"); !ok && woPassword.IsNull() {
+			return fmt.Errorf("`administrator_password_wo` or `administrator_password` is required when `create_mode` is `Default`")
 		}
+
 		if _, ok := d.GetOk("sku_name"); !ok {
 			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
 		}
@@ -402,6 +426,10 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("administrator_password"); ok && v.(string) != "" {
 		parameters.Properties.AdministratorLoginPassword = utils.String(v.(string))
+	}
+
+	if !woPassword.IsNull() {
+		parameters.Properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
 	}
 
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
@@ -557,6 +585,8 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		d.Set("sku_name", sku)
 
+		d.Set("administrator_password_wo_version", d.Get("administrator_password_wo_version").(int))
+
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 
@@ -672,6 +702,16 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("administrator_password") {
 		parameters.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
+	}
+
+	if d.HasChange("administrator_password_wo_version") {
+		woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
+		if err != nil {
+			return err
+		}
+		if !woPassword.IsNull() {
+			parameters.Properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
+		}
 	}
 
 	if d.HasChange("backup_retention_days") || d.HasChange("geo_redundant_backup_enabled") {

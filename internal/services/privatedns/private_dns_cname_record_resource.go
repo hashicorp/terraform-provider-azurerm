@@ -5,6 +5,7 @@ package privatedns
 
 import (
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -75,7 +76,7 @@ func resourcePrivateDnsCNameRecord() *pluginsdk.Resource {
 			"ttl": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(0, 2147483647),
+				ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 			},
 
 			"fqdn": {
