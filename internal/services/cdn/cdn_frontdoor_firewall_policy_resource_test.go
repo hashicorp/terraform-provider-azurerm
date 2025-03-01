@@ -423,7 +423,6 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingCompleteUpdate(t *testing.T) 
 }
 
 func TestAccCdnFrontDoorFirewallPolicy_complete(t *testing.T) {
-	// NOTE: Regression test case for issue #19088
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -1193,7 +1192,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule { #Test Case
+    rule {
       enabled        = true
       match_variable = "RequestIPAddress"
       operator       = "EqualsAny"
