@@ -168,9 +168,6 @@ func determineIfVirtualMachineDiskControllerTypeSupportsNoDowntimeResize(ctx con
 			vmDiskControllerType = string(*model.Properties.StorageProfile.DiskControllerType)
 		}
 	}
-	if err != nil {
-		return nil, fmt.Errorf("retrieving information about the Resource disk controller type to check if the Virtual Machine/Disk combination supports no-downtime-resizing: %+v", err)
-	}
 
 	if vmDiskControllerType == "" {
 		return pointer.To(false), nil
