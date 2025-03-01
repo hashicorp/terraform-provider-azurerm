@@ -216,7 +216,6 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["SecurityAdmin"]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -231,7 +230,6 @@ resource "azurerm_network_manager" "import" {
   scope {
     subscription_ids = azurerm_network_manager.test.scope.0.subscription_ids
   }
-  scope_accesses = azurerm_network_manager.test.scope_accesses
 }
 `, r.basic(data))
 }
