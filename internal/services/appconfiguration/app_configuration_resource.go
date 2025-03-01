@@ -835,15 +835,15 @@ type flattenedAccessKeys struct {
 }
 
 func expandAppConfigurationEncryption(input []interface{}) *configurationstores.EncryptionProperties {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	encryptionParam := input[0].(map[string]interface{})
-
 	result := &configurationstores.EncryptionProperties{
 		KeyVaultProperties: &configurationstores.KeyVaultProperties{},
 	}
+
+	if len(input) == 0 || input[0] == nil {
+		return result
+	}
+
+	encryptionParam := input[0].(map[string]interface{})
 
 	if v, ok := encryptionParam["identity_client_id"].(string); ok && v != "" {
 		result.KeyVaultProperties.IdentityClientId = &v
