@@ -728,12 +728,21 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
 
 				vmSkuSupportsNoDowntimeResize, err := determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient, skusClient)
+
+				// You can't expand a VM that's using NVMe controllers for Ultra Disks or Premium SSD v2 disks without downtime.
+				if string(*disk.Model.Sku.Name) == string(disks.DiskStorageAccountTypesUltraSSDLRS) || string(*disk.Model.Sku.Name) == string(disks.DiskStorageAccountTypesPremiumVTwoLRS) {
+					vmDiskControllerTypeSupportsNoDowntimeResize, err := determineIfVirtualMachineDiskControllerTypeSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient)
+					if err != nil {
+						return fmt.Errorf("determining if the Virtual Machine Disk Controller supports no-downtime-resize: %+v", err)
+					}
+					*diskSupportsNoDowntimeResize = *vmDiskControllerTypeSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
+				} else {
+					// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without detaching it from the VM.
+					shouldDetach = oldSize.(int) < 4096 && newSize.(int) >= 4096
+				}
 				if err != nil {
 					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
 				}
-
-				// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without detaching it from the VM.
-				shouldDetach = oldSize.(int) < 4096 && newSize.(int) >= 4096
 
 				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
 			}
