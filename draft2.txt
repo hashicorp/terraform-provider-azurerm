@@ -1,0 +1,8 @@
+../services/apimanagement/api_management_gateway_api_resource.go:73:28: undefined: gateway.ParseGatewayID
+../services/apimanagement/api_management_gateway_api_resource.go:134:24: undefined: gatewayapi.NewGatewayID
+../services/apimanagement/api_management_gateway_data_source.go:80:16: undefined: gateway.NewGatewayID
+../services/apimanagement/api_management_gateway_data_source.go:92:20: undefined: gateway.ParseGatewayID
+../services/apimanagement/api_management_gateway_resource.go:30:22: undefined: gateway.ParseGatewayID
+../services/apimanagement/api_management_gateway_resource.go:95:16: undefined: gateway.NewGatewayID
+../services/apimanagement/api_management_gateway_resource.go:134:21: undefined: gateway.ParseGatewayID
+../services/apimanagement/api_management_gateway_resource.go:169:21: undefined: gateway.ParseGatewayID

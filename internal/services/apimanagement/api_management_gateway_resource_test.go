@@ -113,7 +113,8 @@ func TestAccApiManagementGateway_update(t *testing.T) {
 }
 
 func (ApiManagementGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := gateway.ParseGatewayID(state.ID)
+	// id, err := gateway.ParseGatewayID(state.ID)
+	id, err := gateway.ParseServiceGatewayID(state.ID)
 	if err != nil {
 		return nil, err
 	}

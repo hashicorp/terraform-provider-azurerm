@@ -70,7 +70,25 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("parsing `api_id`: %v", err)
 	}
 
-	gatewayID, err := gateway.ParseGatewayID(d.Get("gateway_id").(string))
+	// 	// GatewayId is a struct representing the Resource ID for a Gateway
+	// type GatewayId struct {
+	// 	SubscriptionId    string
+	// 	ResourceGroupName string
+	// 	GatewayName       string
+	// }
+
+	// ServiceGatewayId is a struct representing the Resource ID for a Service Gateway
+	// type ServiceGatewayId struct {
+	// 	SubscriptionId    string
+	// 	ResourceGroupName string
+	// 	ServiceName       string
+	// 	GatewayId         string
+	// }
+
+	// gatewayID, err := gateway.ParseGatewayID(d.Get("gateway_id").(string))
+	gatewayID, err := gateway.ParseServiceGatewayID(d.Get("gateway_id").(string))
+	// gateway.ParseServiceGatewayID()
+	// gatewayID, err := apimanagementgatewayskus.ParseGatewayID(d.Get("gateway_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `gateway_id`: %v", err)
 	}
@@ -131,7 +149,9 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 		d.SetId("")
 		return nil
 	}
-	gateway := gatewayapi.NewGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId)
+	// gateway := gatewayapi.NewGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId)
+	gateway := gatewayapi.NewServiceGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId)
+	// gatewayapi.NewServiceGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId)
 
 	d.Set("api_id", apiId.ID())
 	d.Set("gateway_id", gateway.ID())
