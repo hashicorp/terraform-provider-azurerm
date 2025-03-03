@@ -1,3 +1,32 @@
+## 4.22.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_extended_location_custom_location` [GH-28066]
+* **New Resource**: `azurerm_system_center_virtual_machine_manager_virtual_machine_instance` [GH-27622]
+
+ENHANCEMENTS: 
+
+* dependencies: `hashicorp/go-azure-sdk` update to `v0.20250227.1125644` [GH-28902]
+* `azurerm_extended_custom_location` - deprecated in favour of `azurerm_extended_location_custom_location` [GH-28066]
+* `azurerm_workloads_sap_discovery_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
+* `azurerm_workloads_sap_single_node_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
+* `azurerm_workloads_sap_three_tier_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
+
+BUG FIXES:
+
+* `azurerm_express_route_circuit` - `allow_classic_operations` is now set when resource is created [GH-28748]
+* `azurerm_key_vault_certificate`: set partial when updating key vault certificate [GH-28848]
+* `azurerm_mssql_managed_instance` - fix an issue that prevented using values only known during apply for `administrator_login_password` [GH-28843]
+
+
+## 4.21.1 (February 28, 2025)
+
+BUG FIXES:
+
+* `azurerm_mssql_server` - prevent panic by checking if `administrator_login` exists in the raw config map ([#28909](https://github.com/hashicorp/terraform-provider-azurerm/issues/28909))
+
+
 ## 4.21.0 (February 27, 2025)
 
 NOTES:
