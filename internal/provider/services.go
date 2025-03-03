@@ -213,6 +213,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		search.Registration{},
 		securitycenter.Registration{},
 		sentinel.Registration{},
+		servicebus.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
 		servicenetworking.Registration{},
