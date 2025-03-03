@@ -62,6 +62,12 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"value_wo": {
+				Type:      pluginsdk.TypeString,
+				Optional:  true,
+				WriteOnly: true,
+			},
+
 			"content_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
