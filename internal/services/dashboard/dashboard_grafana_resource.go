@@ -191,7 +191,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				"9", "10",
+				"10", "11",
 			}, false),
 		},
 
