@@ -690,7 +690,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
-  sku_name            = "GP_Standard_D2ds_v4"
+  sku_name            = "MO_Standard_E2ds_v4"
 
   high_availability {
     mode                      = "ZoneRedundant"
@@ -778,7 +778,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
-  sku_name            = "GP_Standard_D4ds_v4"
+  sku_name            = "MO_Standard_E4ds_v4"
 
   maintenance_window {
     day_of_week  = 0

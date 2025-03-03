@@ -36,7 +36,7 @@ func TestAccDataSourceMySqlFlexibleServer_complete(t *testing.T) {
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Standard_D2ds_v4"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("MO_Standard_E2ds_v4"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("adminTerraform"),
 				check.That(data.ResourceName).Key("storage.0.size_gb").HasValue("20"),
 				check.That(data.ResourceName).Key("version").HasValue("8.0.21"),
