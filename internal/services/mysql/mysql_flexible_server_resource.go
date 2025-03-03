@@ -861,7 +861,7 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 	storage := servers.Storage{
 		AutoGrow:      &autoGrow,
 		AutoIoScaling: &autoIoScaling,
-		LogOnDisk:     pointer.To(logOnDisk),
+		LogOnDisk:     &logOnDisk,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
