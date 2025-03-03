@@ -758,8 +758,8 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("storage") && !d.Get("storage.0.auto_grow_enabled").(bool) {
 		// log_on_disk_enabled must be updated first when auto_grow_enabled and log_on_disk_enabled are updated from true to false in one request
-		if oldLogOnDiskEnabled, newLogOnDiskEnabled := d.GetChange("storage.0.log_on_disk_enabled"); oldLogOnDiskEnabled.(bool) == true && newLogOnDiskEnabled.(bool) == false {
-			if oldAutoGrowEnabled, newAutoGrowEnabled := d.GetChange("storage.0.auto_grow_enabled"); oldAutoGrowEnabled.(bool) == true && newAutoGrowEnabled.(bool) == false {
+		if oldLogOnDiskEnabled, newLogOnDiskEnabled := d.GetChange("storage.0.log_on_disk_enabled"); oldLogOnDiskEnabled.(bool) && newLogOnDiskEnabled.(bool) == false {
+			if oldAutoGrowEnabled, newAutoGrowEnabled := d.GetChange("storage.0.auto_grow_enabled"); oldAutoGrowEnabled.(bool) && newAutoGrowEnabled.(bool) == false {
 				logOnDiskDisabled := servers.EnableStatusEnumDisabled
 				parameters := servers.ServerForUpdate{
 					Properties: &servers.ServerPropertiesForUpdate{
