@@ -18,6 +18,7 @@ BUG FIXES:
 * `azurerm_api_management_api` - split create/update methods [GH-28271]
 * `azurerm_express_route_circuit` - `allow_classic_operations` is now set when resource is created [GH-28748]
 * `azurerm_key_vault_certificate` - set partial when updating key vault certificate [GH-28848]
+* `azurerm_managed_disk` - always set `network_access_policy` into state to allow Terraform to detect drift [GH-28934]
 * `azurerm_mssql_managed_instance` - fix an issue that prevented using values only known during apply for `administrator_login_password` [GH-28843]
 
 
