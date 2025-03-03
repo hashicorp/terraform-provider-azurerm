@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -122,6 +123,29 @@ func TestAccKeyVaultSecret_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("value").HasValue("szechuan"),
+			),
+		},
+	})
+}
+
+func TestAccKeyVaultSecret_updateExpiration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	r := KeyVaultSecretResource{}
+	expirationDate := time.Now().Add(30 * 24 * time.Hour).In(time.UTC)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withExpiration(data, expirationDate.Format(time.RFC3339)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+			),
+		},
+		{
+			Config: r.withExpiration(data, expirationDate.Add(24*time.Hour).Format(time.RFC3339)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
 			),
 		},
 	})
@@ -310,6 +334,23 @@ func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.Clien
 		}
 		return nil
 	}
+}
+
+func (r KeyVaultSecretResource) withExpiration(data acceptance.TestData, expiration_date string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_secret" "test" {
+  name            = "secret-%s"
+  value           = "rick-and-morty"
+  key_vault_id    = azurerm_key_vault.test.id
+  expiration_date = "%s"
+}
+`, r.template(data), data.RandomString, expiration_date)
 }
 
 func (r KeyVaultSecretResource) basic(data acceptance.TestData) string {
