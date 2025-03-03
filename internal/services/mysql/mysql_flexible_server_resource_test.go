@@ -692,6 +692,11 @@ resource "azurerm_mysql_flexible_server" "test" {
   private_dns_zone_id = azurerm_private_dns_zone.test.id
   sku_name            = "MO_Standard_E2ds_v4"
 
+  high_availability {
+    mode                      = "ZoneRedundant"
+    standby_availability_zone = "2"
+  }
+
   maintenance_window {
     day_of_week  = 0
     start_hour   = 8

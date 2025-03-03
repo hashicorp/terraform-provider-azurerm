@@ -895,7 +895,7 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 			"iops":                iops,
 			"auto_grow_enabled":   *storage.AutoGrow == servers.EnableStatusEnumEnabled,
 			"io_scaling_enabled":  *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
-			"log_on_disk_enabled": pointer.From(storage.LogOnDisk) == servers.EnableStatusEnumEnabled,
+			"log_on_disk_enabled": *storage.LogOnDisk == servers.EnableStatusEnumEnabled,
 		},
 	}
 }
