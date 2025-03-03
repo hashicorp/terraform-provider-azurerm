@@ -166,7 +166,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"os_disk_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  agentpools.OSDiskTypeManaged,
+						Default:  agentpools.OSDiskTypeEphemeral,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(managedclusters.OSDiskTypeEphemeral),
 							string(managedclusters.OSDiskTypeManaged),
@@ -842,7 +842,7 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.OsDiskSizeGB = utils.Int64(osDiskSizeGB)
 	}
 
-	profile.OsDiskType = pointer.To(managedclusters.OSDiskTypeManaged)
+	profile.OsDiskType = pointer.To(managedclusters.OSDiskTypeEphemeral)
 	if osDiskType := raw["os_disk_type"].(string); osDiskType != "" {
 		profile.OsDiskType = pointer.To(managedclusters.OSDiskType(osDiskType))
 	}
@@ -1226,7 +1226,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
 	}
 
-	osDiskType := managedclusters.OSDiskTypeManaged
+	osDiskType := managedclusters.OSDiskTypeEphemeral
 	if agentPool.OsDiskType != nil {
 		osDiskType = *agentPool.OsDiskType
 	}

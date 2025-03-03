@@ -255,7 +255,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
 
-		osDiskType := agentpools.OSDiskTypeManaged
+		osDiskType := agentpools.OSDiskTypeEphemeral
 		if props.OsDiskType != nil && *props.OsDiskType != "" {
 			osDiskType = *props.OsDiskType
 		}
