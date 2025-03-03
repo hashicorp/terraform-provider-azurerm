@@ -408,7 +408,7 @@ func (r KubernetesClusterExtensionResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id, extensions.DefaultDeleteOperationOptions()); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, extensions.DeleteOperationOptions{ForceDelete: pointer.To(true)}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
