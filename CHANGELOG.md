@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source**: `azurerm_extended_location_custom_location` [GH-28066]
+* **New Resource**: `azurerm_system_center_virtual_machine_manager_virtual_machine_instance` [GH-27622]
 
 ENHANCEMENTS: 
 
