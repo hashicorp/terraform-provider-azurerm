@@ -104,13 +104,13 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   scoped_resource_id = azurerm_arc_machine.test.id
 
   credential {
-    username = "%s"
-    password = "%s"
+    username = "Administrator"
+    password = "AdminPassword123!"
   }
 
   depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test]
 }
-`, r.template(data), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+`, r.template(data))
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) requiresImport(data acceptance.TestData) string {
@@ -121,11 +121,11 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
   scoped_resource_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.test.scoped_resource_id
 
   credential {
-    username = "%s"
-    password = "%s"
+    username = "Administrator"
+    password = "AdminPassword123!"
   }
 }
-`, r.basic(data), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+`, r.basic(data))
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) complete(data acceptance.TestData) string {
@@ -136,19 +136,27 @@ provider "azurerm" {
   features {}
 }
 
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-pip-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
   scoped_resource_id  = azurerm_arc_machine.test.id
-  https_proxy         = "uoyzyticmohohomlkwct"
+  https_proxy         = "http://${azurerm_public_ip.test.ip_address}:80/"
   provisioning_action = "install"
 
   credential {
-    username = "%s"
-    password = "%s"
+    username = "Administrator"
+    password = "AdminPassword123!"
   }
 
   depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test]
 }
-`, r.template(data), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) template(data acceptance.TestData) string {
@@ -163,6 +171,10 @@ resource "azurerm_arc_machine" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   kind                = "SCVMM"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_system_center_virtual_machine_manager_server" "test" {
@@ -212,9 +224,13 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
     system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
   }
 
+  operating_system {
+    admin_password = "AdminPassword123!"
+  }
+
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE, hardware, network interface, operating system per Virtual Machine Template by default
-    ignore_changes = [storage_disk, hardware, network_interface, operating_system]
+    // Service API always provisions a virtual disk with bus type IDE, hardware, network interface per Virtual Machine Template by default
+    ignore_changes = [storage_disk, hardware, network_interface, operating_system.0.computer_name]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"), data.RandomInteger, data.RandomInteger)

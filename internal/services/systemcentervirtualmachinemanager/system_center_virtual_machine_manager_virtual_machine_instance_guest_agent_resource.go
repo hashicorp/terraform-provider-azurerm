@@ -90,6 +90,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
+			Default:      string(guestagents.ProvisioningActionInstall),
 			ValidateFunc: validation.StringInSlice(guestagents.PossibleValuesForProvisioningAction(), false),
 		},
 	}
@@ -124,7 +125,8 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 
 			parameters := guestagents.GuestAgent{
 				Properties: &guestagents.GuestAgentProperties{
-					Credentials: expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(model.Credential),
+					Credentials:        expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(model.Credential),
+					ProvisioningAction: pointer.To(guestagents.ProvisioningAction(model.ProvisioningAction)),
 				},
 			}
 
@@ -132,10 +134,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 				parameters.Properties.HTTPProxyConfig = &guestagents.HTTPProxyConfiguration{
 					HTTPSProxy: pointer.To(v),
 				}
-			}
-
-			if v := model.ProvisioningAction; v != "" {
-				parameters.Properties.ProvisioningAction = pointer.To(guestagents.ProvisioningAction(v))
 			}
 
 			if err := client.CreateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
@@ -173,7 +171,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Credential = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(props.Credentials)
+					state.Credential = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(props.Credentials, metadata.ResourceData.Get("credential.0.password").(string))
 					state.ProvisioningAction = string(pointer.From(props.ProvisioningAction))
 
 					if v := props.HTTPProxyConfig; v != nil {
@@ -220,7 +218,7 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCred
 	}
 }
 
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input *guestagents.GuestCredential) []Credential {
+func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input *guestagents.GuestCredential, password string) []Credential {
 	result := make([]Credential, 0)
 	if input == nil {
 		return result
@@ -228,6 +226,6 @@ func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCre
 
 	return append(result, Credential{
 		Username: input.Username,
-		Password: input.Password,
+		Password: password,
 	})
 }

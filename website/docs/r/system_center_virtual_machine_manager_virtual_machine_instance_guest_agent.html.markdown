@@ -25,6 +25,10 @@ resource "azurerm_arc_machine" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   kind                = "SCVMM"
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 
 resource "azurerm_system_center_virtual_machine_manager_server" "example" {
@@ -66,34 +70,33 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "example" {
   scoped_resource_id = azurerm_arc_machine.example.id
   custom_location_id = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
+
   infrastructure {
     checkpoint_type                                                 = "Standard"
     system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.example.id
     system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.example.id
     system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
   }
+
   operating_system {
-    computer_name = "testComputer"
+    admin_password = "AdminPassword123!"
   }
-  hardware {
-    cpu_count    = 1
-    memory_in_mb = 1024
-  }
+
   lifecycle {
-    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
-    ignore_changes = [storage_disk, network_interface]
+    // Service API always provisions a virtual disk with bus type IDE, hardware, network interface per Virtual Machine Template by default
+    ignore_changes = [storage_disk, hardware, network_interface, operating_system.0.computer_name]
   }
 }
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "example" {
-  scoped_resource_id  = azurerm_arc_machine.example.id
-  https_proxy         = "uoyzyticmohohomlkwct"
-  provisioning_action = "install"
+  scoped_resource_id = azurerm_arc_machine.example.id
 
   credential {
-    username = "testUser"
-    password = "H@sh@123!"
+    username = "Administrator"
+    password = "AdminPassword123!"
   }
+
+  depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.example]
 }
 ```
 
@@ -107,7 +110,7 @@ The following arguments are supported:
 
 * `https_proxy` - (Optional) The HTTP Proxy configuration for the Virtual Machine. Changing this forces a new resource to be created.
 
-* `provisioning_action` - (Optional) The provisioning action that is used to define the different types of operations for the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Possible values are `install`, `repair` and `uninstall`. Changing this forces a new resource to be created.
+* `provisioning_action` - (Optional) The provisioning action that is used to define the different types of operations for the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Possible values are `install`, `repair` and `uninstall`. Defaults to `install`. Changing this forces a new resource to be created.
 
 ---
 
