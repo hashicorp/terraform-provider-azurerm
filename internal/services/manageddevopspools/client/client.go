@@ -8,7 +8,7 @@ import (
 )
 
 type Client struct {
-	Pools *pools.PoolsClient
+	PoolsClient *pools.PoolsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -16,9 +16,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building Pools client: %+v", err)
 	}
-	o.configureFunc(poolsClient.Client, o.Authorizer.ResourceManager)
+	o.Configure(poolsClient.Client, o.Authorizers.ResourceManager)
 
 	return &Client{
-		Pools: poolsClient,
+		PoolsClient: poolsClient,
 	}, nil
 }
