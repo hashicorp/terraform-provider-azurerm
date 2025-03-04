@@ -1008,6 +1008,7 @@ resource "azurerm_api_management_api" "revision" {
   resource_group_name  = azurerm_resource_group.test.name
   api_management_name  = azurerm_api_management.test.name
   revision             = "18"
+  description          = "What is my purpose? You parse butter."
   source_api_id        = "${azurerm_api_management_api.test.id};rev=3"
   revision_description = "Creating a Revision of an existing API"
   contact {
