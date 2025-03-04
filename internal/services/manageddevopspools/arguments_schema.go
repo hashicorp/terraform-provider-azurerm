@@ -58,7 +58,8 @@ func FabricProfileSchema() *pluginsdk.Schema {
 					}, false),
 				},
 				"network_profile": {
-					Type: pluginsdk.TypeList,
+					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"subnet_id": {
@@ -70,7 +71,8 @@ func FabricProfileSchema() *pluginsdk.Schema {
 				},
 				"os_profile": OsProfileSchema(),
 				"sku": {
-					Type: pluginsdk.TypeList,
+					Type:     pluginsdk.TypeList,
+					Required: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {

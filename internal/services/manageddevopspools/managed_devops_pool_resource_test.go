@@ -9,94 +9,95 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedDevOpsPoolsTestResource struct{}
 
 func TestAccResourceGroupExample_basic(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-    r := ManagedDevOpsPoolsTestResource{}
-    
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.ImportStep(),
-    })
+	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
+	r := ManagedDevOpsPoolsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccResourceGroupExample_requiresImport(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-    r := ManagedDevOpsPoolsTestResource{}
-    
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.RequiresImportErrorStep(r.requiresImport),
-    })
+	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
+	r := ManagedDevOpsPoolsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
 }
 
 func TestAccResourceGroupExample_complete(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-    r := ManagedDevOpsPoolsTestResource{}
-    
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.complete(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.ImportStep(),
-    })
+	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
+	r := ManagedDevOpsPoolsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccResourceGroupExample_update(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-    r := ManagedDevOpsPoolsTestResource{}
-    
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.ImportStep(),
-        {
-            Config: r.complete(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.ImportStep(),
-    })
+	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
+	r := ManagedDevOpsPoolsTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func (ManagedDevOpsPoolsTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-    id, err := pools.ParsePoolID(state.ID)
-    if err != nil {
-        return nil, err
-    }
+	id, err := pools.ParsePoolID(state.ID)
+	if err != nil {
+		return nil, err
+	}
 
-    resp, err := client.ManagedDevOpsPools.PoolsClient.Get(ctx, *id)
-    if err != nil {
-        return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
-    }
+	resp, err := client.ManagedDevOpsPools.PoolsClient.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
 
-    return utils.Bool(resp.Model != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (ManagedDevOpsPoolsTestResource) basic(data acceptance.TestData) string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -109,7 +110,7 @@ resource "azurerm_managed_devops_pool" "test" {
 }
 
 func (r ManagedDevOpsPoolsTestResource) requiresImport(data acceptance.TestData) string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_managed_devops_pool" "import" {
@@ -120,7 +121,7 @@ resource "azurerm_managed_devops_pool" "import" {
 }
 
 func (ManagedDevOpsPoolsTestResource) complete(data acceptance.TestData) string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
