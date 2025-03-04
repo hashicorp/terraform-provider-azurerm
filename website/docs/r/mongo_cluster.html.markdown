@@ -111,6 +111,18 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the MongoDB Cluster.
 
+* `connection_strings` - The list of `connection_strings` blocks as defined below.
+
+---
+
+A `connection_strings` exports the following:
+
+* `name` - The name of the connection string.
+
+* `description` - The description of the connection string.
+
+* `value` - The value of the Mongo Cluster connection string. The `<user>:<password>` placeholder returned from API will be replaced by the real `administrator_username` and `administrator_password` if available in the state.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

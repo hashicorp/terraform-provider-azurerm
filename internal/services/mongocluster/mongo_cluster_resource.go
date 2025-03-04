@@ -6,6 +6,7 @@ package mongocluster
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"regexp"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2024-07-01/mongoclusters"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,22 +27,29 @@ var _ sdk.ResourceWithUpdate = MongoClusterResource{}
 var _ sdk.ResourceWithCustomizeDiff = MongoClusterResource{}
 
 type MongoClusterResourceModel struct {
-	Name                  string            `tfschema:"name"`
-	ResourceGroupName     string            `tfschema:"resource_group_name"`
-	Location              string            `tfschema:"location"`
-	AdministratorUserName string            `tfschema:"administrator_username"`
-	AdministratorPassword string            `tfschema:"administrator_password"`
-	CreateMode            string            `tfschema:"create_mode"`
-	ShardCount            int64             `tfschema:"shard_count"`
-	SourceLocation        string            `tfschema:"source_location"`
-	SourceServerId        string            `tfschema:"source_server_id"`
-	ComputeTier           string            `tfschema:"compute_tier"`
-	HighAvailabilityMode  string            `tfschema:"high_availability_mode"`
-	PublicNetworkAccess   string            `tfschema:"public_network_access"`
-	PreviewFeatures       []string          `tfschema:"preview_features"`
-	StorageSizeInGb       int64             `tfschema:"storage_size_in_gb"`
-	Tags                  map[string]string `tfschema:"tags"`
-	Version               string            `tfschema:"version"`
+	Name                  string                         `tfschema:"name"`
+	ResourceGroupName     string                         `tfschema:"resource_group_name"`
+	Location              string                         `tfschema:"location"`
+	AdministratorUserName string                         `tfschema:"administrator_username"`
+	AdministratorPassword string                         `tfschema:"administrator_password"`
+	CreateMode            string                         `tfschema:"create_mode"`
+	ShardCount            int64                          `tfschema:"shard_count"`
+	SourceLocation        string                         `tfschema:"source_location"`
+	SourceServerId        string                         `tfschema:"source_server_id"`
+	ComputeTier           string                         `tfschema:"compute_tier"`
+	HighAvailabilityMode  string                         `tfschema:"high_availability_mode"`
+	PublicNetworkAccess   string                         `tfschema:"public_network_access"`
+	PreviewFeatures       []string                       `tfschema:"preview_features"`
+	StorageSizeInGb       int64                          `tfschema:"storage_size_in_gb"`
+	ConnectionStrings     []MongoClusterConnectionString `tfschema:"connection_strings"`
+	Tags                  map[string]string              `tfschema:"tags"`
+	Version               string                         `tfschema:"version"`
+}
+
+type MongoClusterConnectionString struct {
+	Value       string `tfschema:"value"`
+	Description string `tfschema:"description"`
+	Name        string `tfschema:"name"`
 }
 
 func (r MongoClusterResource) ModelObject() interface{} {
@@ -57,12 +64,12 @@ func (r MongoClusterResource) ResourceType() string {
 	return "azurerm_mongo_cluster"
 }
 
-func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
 			Required: true,
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-z\d]([-a-z\d]{1,38}[a-z\d])$`),
 				"`name` must be between 3 and 40 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
@@ -74,7 +81,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		"location": commonschema.Location(),
 
 		"administrator_username": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -82,7 +89,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"create_mode": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
 			Default:  string(mongoclusters.CreateModeDefault),
@@ -94,24 +101,24 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"preview_features": {
-			Type:     schema.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
-			Elem: &schema.Schema{
-				Type:         schema.TypeString,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPreviewFeature(), false),
 			},
 		},
 
 		"shard_count": {
-			Type:         schema.TypeInt,
+			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 			ForceNew:     true,
 		},
 
 		"source_location": {
-			Type:             schema.TypeString,
+			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
 			StateFunc:        location.StateFunc,
@@ -121,14 +128,14 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"source_server_id": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: mongoclusters.ValidateMongoClusterID,
 		},
 
 		"administrator_password": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -136,7 +143,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"compute_tier": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Free",
@@ -150,7 +157,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"high_availability_mode": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				// Confirmed with service team the `SameZone` is currently not supported.
@@ -160,14 +167,14 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"public_network_access": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(mongoclusters.PublicNetworkAccessEnabled),
 			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPublicNetworkAccess(), false),
 		},
 
 		"storage_size_in_gb": {
-			Type:         schema.TypeInt,
+			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(32, 16384),
 		},
@@ -175,7 +182,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		"tags": commonschema.Tags(),
 
 		"version": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"5.0",
@@ -186,8 +193,30 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 	}
 }
 
-func (r MongoClusterResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
+func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"connection_strings": {
+			Type:      pluginsdk.TypeList,
+			Sensitive: true,
+			Computed:  true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"value": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+	}
 }
 
 func (r MongoClusterResource) Create() sdk.ResourceFunc {
@@ -452,6 +481,14 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 			}
 
+			csResp, err := client.ListConnectionStrings(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("listing connection strings for %s: %+v", *id, err)
+			}
+			if model := csResp.Model; model != nil {
+				state.ConnectionStrings = flattenMongoClusterConnectionStrings(model.ConnectionStrings, state.AdministratorUserName, state.AdministratorPassword)
+			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -566,6 +603,29 @@ func flattenMongoClusterPreviewFeatures(input *[]mongoclusters.PreviewFeature) [
 
 	for _, v := range *input {
 		results = append(results, string(v))
+	}
+
+	return results
+}
+
+func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionString, userName, userPassword string) []MongoClusterConnectionString {
+	results := make([]MongoClusterConnectionString, 0)
+	if input == nil {
+		return results
+	}
+	for _, cs := range *input {
+		value := pointer.From(cs.ConnectionString)
+		// Password can be empty if it isn't available in the state file (e.g. during import).
+		// In this case, we simply leave the placeholder unchanged.
+		if userPassword != "" {
+			value = regexp.MustCompile(`<user>:<password>`).ReplaceAllString(value, url.UserPassword(userName, userPassword).String())
+		}
+
+		results = append(results, MongoClusterConnectionString{
+			Name:        pointer.From(cs.Name),
+			Description: pointer.From(cs.Description),
+			Value:       value,
+		})
 	}
 
 	return results
