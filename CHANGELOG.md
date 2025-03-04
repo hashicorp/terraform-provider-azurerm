@@ -7,8 +7,9 @@ FEATURES:
 
 ENHANCEMENTS: 
 
-* dependencies: `containers` update API version to  `2024-09-01` [GH-28598]
-* dependencies: `hashicorp/go-azure-sdk` update to `v0.20250227.1125644` [GH-28902]
+* dependencies: `containers` - update API version to  `2024-09-01` [GH-28598]
+* dependencies: `hashicorp/go-azure-sdk` - update to `v0.20250227.1125644` [GH-28902]
+* dependencies: `signalr` - update API version to `2024-03-01` [GH-28940]
 * Data Source: `azurerm_container_app` - add support for the `template.volume.mount_options` property [GH-28619]
 * `azurerm_container_app` - add support for the `template.volume.mount_options` property [GH-28619]
 * `azurerm_container_app_job` - add support for the `template.volume.mount_options` property [GH-28619]
