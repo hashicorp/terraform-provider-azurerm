@@ -1,16 +1,15 @@
 package manageddevopspools_test
 
 import (
-    "context"
-    "fmt"
-    "testing"
+	"context"
+	"fmt"
+	"testing"
 
-    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-    "github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2024-10-19/pools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedDevOpsPoolsTestResource struct{}
@@ -82,6 +81,20 @@ func TestAccResourceGroupExample_update(t *testing.T) {
     })
 }
 
+func (ManagedDevOpsPoolsTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+    id, err := pools.ParsePoolID(state.ID)
+    if err != nil {
+        return nil, err
+    }
+
+    resp, err := client.ManagedDevOpsPools.PoolsClient.Get(ctx, *id)
+    if err != nil {
+        return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+    }
+
+    return utils.Bool(resp.Model != nil), nil
+}
+
 func (ManagedDevOpsPoolsTestResource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`
 provider "azurerm" {
@@ -113,7 +126,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_devops_pool" "test" {
-  name     = "acctest-pool-%d"
+  name     = "acctest-%d"
   location = "%s"
 
   tags = {
