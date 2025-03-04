@@ -564,7 +564,6 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				if !features.FivePointOh() {
 					d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
 				}
-
 			}
 
 			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption)
