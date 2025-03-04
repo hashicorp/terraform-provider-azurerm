@@ -84,6 +84,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ForceNew:     true,
 				AtLeastOneOf: []string{"administrator_login", "azuread_administrator.0.azuread_authentication_only"},
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 
 			"administrator_login_password": {
@@ -760,10 +761,10 @@ func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.Resour
 }
 
 // msSqlAdministratorLoginPassword checks to make sure that one of `administrator_login_password_wo` or `administrator_login_password` is set when `administrator_login` is specified.
-func msSqlAdministratorLoginPassword(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
+func msSqlAdministratorLoginPassword(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
 	adminLogin, ok := d.GetRawConfig().AsValueMap()["administrator_login"]
 	if ok {
-		if !adminLogin.IsNull() && adminLogin.AsString() != "" {
+		if !adminLogin.IsNull() {
 			woAdminLoginPassword, err := pluginsdk.GetWriteOnlyFromDiff(d, "administrator_login_password_wo", cty.String)
 			if err != nil {
 				return err
