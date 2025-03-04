@@ -145,7 +145,6 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
-
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedDevOpsPools.PoolsClient
 
@@ -163,21 +162,39 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				resourceData := &ManagedDevOpsPoolResourceModel{}
-				metadata.Encode(resourceData)
+			state := ManagedDevOpsPoolResourceModel{
+				Name: id.PoolName,
+			}
 
-				metadata.ResourceData.Set("location", model.Location)
+			if model := resp.Model; model != nil {
+
+				state.Set("location", model.Location)
 
 				if props := model.Properties; props != nil {
 					// if there are properties to set into state do that here
+					if agentProfile := props.AgentProfile; agentProfile != nil {
+						state.AgentProfile = AgentProfileModel{
+							Kind:                agentProfile.Kind,
+							GracePeriodTimeSpan: agentProfile.GracePeriodTimeSpan,
+							MaxAgentLifetime:    agentProfile.MaxAgentLifetime,
+							ResourcePredictions: agentProfile.ResourcePredictions,
+							ResourcePredictionsProfile: ResourcePredictionsProfileModel{
+								Kind:                 agentProfile.ResourcePredictionsProfile.Kind,
+								PredictionPreference: agentProfile.ResourcePredictionsProfile.PredictionPreference,
+							},
+						}
+					}
+
+					// Add other props
 				}
 
-				if err := tags.FlattenAndSet(metadata.ResourceData, model.Tags); err != nil {
+				if err := tags.FlattenAndSet(&state, model.Tags); err != nil {
 					return fmt.Errorf("setting `tags`: %+v", err)
 				}
+
 			}
-			return nil
+
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -229,6 +246,8 @@ func (r ManagedDevOpsPoolResource) mapResourceModelToPool(input ManagedDevOpsPoo
 	if err := r.mapFabricProfileSchemaToPoolProperties(input.FabricProfile, output.Properties); err != nil {
 		return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 	}
+
+	// Add Organization Profile
 
 	return nil
 }
