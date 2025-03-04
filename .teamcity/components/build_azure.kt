@@ -12,7 +12,8 @@ class ClientConfiguration(var clientId: String,
                           val subscriptionIdAltTenant : String,
                           val principalIdAltTenant : String,
                           val vcsRootId : String,
-                          val enableTestTriggersGlobally : Boolean) {
+                          val enableTestTriggersGlobally : Boolean,
+                          val emailAddressAccTests : String,) {
 }
 
 class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean) {
@@ -42,5 +43,6 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.ARM_TEST_LOCATION", locationsForEnv.primary, "The Primary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT", locationsForEnv.secondary, "The Secondary region which should be used for testing")
     hiddenVariable("env.ARM_TEST_LOCATION_ALT2", locationsForEnv.tertiary, "The Tertiary region which should be used for testing")
-    hiddenVariable("env.ARM_THREEPOINTZERO_BETA", "true", "Opt into the use of 3.0 beta resources")
+    hiddenVariable("env.ARM_FIVEPOINTZERO_BETA", "false", "Opt into the 5.0 beta")
+    hiddenVariable("env.ARM_TEST_ACC_EMAIL_ADDRESS", config.emailAddressAccTests, "email address for the Acceptance Tests User")
 }

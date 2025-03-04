@@ -344,7 +344,7 @@ func flattenSecretParametersDataSource(ctx context.Context, input cdn.BasicSecre
 		fields["subject_alternative_names"] = make([]string, 0)
 	}
 
-	result["expiration_date"] = pointer.From(customerCertificate.ExpirationDate)
+	fields["expiration_date"] = pointer.From(customerCertificate.ExpirationDate)
 	result["customer_certificate"] = []interface{}{fields}
 	results = append(results, result)
 

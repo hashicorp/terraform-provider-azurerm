@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/fhirservices"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2024-03-31/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/healthcare/migration"
@@ -492,7 +492,6 @@ func resourceHealthcareApisFhirServiceDelete(d *pluginsdk.ResourceData, meta int
 func fhirServiceStateStatusCodeRefreshFunc(ctx context.Context, client *fhirservices.FhirServicesClient, id fhirservices.FhirServiceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id)
-
 		if err != nil {
 			if response.WasNotFound(res.HttpResponse) {
 				return res, "Deleted", nil
@@ -518,6 +517,7 @@ func expandFhirAuthentication(input []interface{}) *fhirservices.FhirServiceAuth
 
 	return auth
 }
+
 func expandAccessPolicy(input []interface{}) *[]fhirservices.FhirServiceAccessPolicyEntry {
 	if len(input) == 0 {
 		return nil
@@ -600,9 +600,7 @@ func flattenFhirAccessPolicy(policies *[]fhirservices.FhirServiceAccessPolicyEnt
 	}
 
 	for _, policy := range *policies {
-
 		result = append(result, policy.ObjectId)
-
 	}
 	return result
 }

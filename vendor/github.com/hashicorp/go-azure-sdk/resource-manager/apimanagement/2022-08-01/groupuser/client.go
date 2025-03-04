@@ -15,7 +15,7 @@ type GroupUserClient struct {
 }
 
 func NewGroupUserClientWithBaseURI(sdkApi sdkEnv.Api) (*GroupUserClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "groupuser", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "groupuser", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GroupUserClient: %+v", err)
 	}

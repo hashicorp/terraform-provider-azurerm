@@ -45,7 +45,6 @@ func (c LocalRulesClient) Get(ctx context.Context, id LocalRuleId) (result GetOp
 
 	var model LocalRulesResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

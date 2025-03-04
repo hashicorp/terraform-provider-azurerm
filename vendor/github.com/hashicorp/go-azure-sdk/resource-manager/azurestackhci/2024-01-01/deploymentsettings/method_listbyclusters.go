@@ -23,6 +23,18 @@ type ListByClustersCompleteResult struct {
 	Items              []DeploymentSetting
 }
 
+type ListByClustersCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByClustersCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByClusters ...
 func (c DeploymentSettingsClient) ListByClusters(ctx context.Context, id ClusterId) (result ListByClustersOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DeploymentSettingsClient) ListByClusters(ctx context.Context, id Cluster
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByClustersCustomPager{},
 		Path:       fmt.Sprintf("%s/deploymentSettings", id.ID()),
 	}
 

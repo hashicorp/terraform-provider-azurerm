@@ -27,7 +27,6 @@ func TestStaticSiteID(t *testing.T) {
 		Error    bool
 		Expected *StaticSiteId
 	}{
-
 		{
 			// empty
 			Input: "",

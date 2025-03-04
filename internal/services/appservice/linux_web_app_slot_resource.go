@@ -16,8 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -635,25 +634,14 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				siteConfig.Flatten(webAppSiteSlotConfig.Model.Properties)
 				siteConfig.SetHealthCheckEvictionTime(state.AppSettings)
 
-				// For non-import cases we check for use of the deprecated docker settings - remove in 4.0
-				_, usesDeprecatedDocker := metadata.ResourceData.GetOk("site_config.0.application_stack.0.docker_image")
-
 				if helpers.FxStringHasPrefix(siteConfig.LinuxFxVersion, helpers.FxStringPrefixDocker) {
-					if !features.FourPointOhBeta() {
-						siteConfig.DecodeDockerDeprecatedAppStack(state.AppSettings, usesDeprecatedDocker)
-					} else {
-						siteConfig.DecodeDockerAppStack(state.AppSettings)
-					}
+					siteConfig.DecodeDockerAppStack(state.AppSettings)
 				}
 
 				state.SiteConfig = []helpers.SiteConfigLinuxWebAppSlot{siteConfig}
 
 				// Filter out all settings we've consumed above
-				if !features.FourPointOhBeta() && usesDeprecatedDocker {
-					state.AppSettings = helpers.FilterManagedAppSettingsDeprecated(state.AppSettings)
-				} else {
-					state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
-				}
+				state.AppSettings = helpers.FilterManagedAppSettings(state.AppSettings)
 
 				// Zip Deploys are not retrievable, so attempt to get from config. This doesn't matter for imports as an unexpected value here could break the deployment.
 				if deployFile, ok := metadata.ResourceData.Get("zip_deploy_file").(string); ok {
@@ -668,7 +656,6 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 				if err := metadata.Encode(&state); err != nil {
 					return fmt.Errorf("encoding: %+v", err)
 				}
-
 			}
 
 			return nil

@@ -23,6 +23,18 @@ type WorkflowRunActionRepetitionsListCompleteResult struct {
 	Items              []WorkflowRunActionRepetitionDefinition
 }
 
+type WorkflowRunActionRepetitionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *WorkflowRunActionRepetitionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // WorkflowRunActionRepetitionsList ...
 func (c WorkflowRunActionsClient) WorkflowRunActionRepetitionsList(ctx context.Context, id ActionId) (result WorkflowRunActionRepetitionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c WorkflowRunActionsClient) WorkflowRunActionRepetitionsList(ctx context.C
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &WorkflowRunActionRepetitionsListCustomPager{},
 		Path:       fmt.Sprintf("%s/repetitions", id.ID()),
 	}
 

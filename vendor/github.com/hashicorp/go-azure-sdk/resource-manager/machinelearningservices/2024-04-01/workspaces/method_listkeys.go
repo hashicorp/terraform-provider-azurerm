@@ -46,7 +46,6 @@ func (c WorkspacesClient) ListKeys(ctx context.Context, id WorkspaceId) (result 
 
 	var model ListWorkspaceKeysResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

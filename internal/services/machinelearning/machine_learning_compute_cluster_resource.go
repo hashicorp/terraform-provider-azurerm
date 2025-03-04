@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,9 +24,10 @@ import (
 )
 
 func resourceComputeCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceComputeClusterCreate,
 		Read:   resourceComputeClusterRead,
+		Update: resourceComputeClusterUpdate,
 		Delete: resourceComputeClusterDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -38,6 +38,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -70,7 +71,7 @@ func resourceComputeCluster() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{string(machinelearningcomputes.VMPriorityDedicated), string(machinelearningcomputes.VMPriorityLowPriority)}, false),
 			},
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptionalForceNew(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"scale_settings": {
 				Type:     pluginsdk.TypeList,
@@ -154,24 +155,16 @@ func resourceComputeCluster() *pluginsdk.Resource {
 			},
 
 			"subnet_resource_id": {
-				Type:     pluginsdk.TypeString,
+				Type: pluginsdk.TypeString,
+				// NOTE: O+C as you don't have to specify it for Azure to assign one to the cluster
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["ssh_public_access_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Computed: true,
-		}
-	}
-	return resource
 }
 
 func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -219,28 +212,6 @@ func resourceComputeClusterCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_machine_learning_compute_cluster", id.ID())
-	}
-	nodePublicIPEnabled, ok := d.Get("node_public_ip_enabled").(bool)
-	if !ok {
-		return fmt.Errorf("unable to assert type for `node_public_ip_enabled`")
-	}
-
-	subnetResourceID, ok := d.Get("subnet_resource_id").(string)
-	if !ok {
-		return fmt.Errorf("unable to assert type for `subnet_resource_id`")
-	}
-
-	workspaceInManagedVnet := false
-
-	if workspaceModel.Properties != nil &&
-		workspaceModel.Properties.ManagedNetwork != nil &&
-		workspaceModel.Properties.ManagedNetwork.Status != nil &&
-		workspaceModel.Properties.ManagedNetwork.Status.Status != nil {
-		workspaceInManagedVnet = *workspaceModel.Properties.ManagedNetwork.Status.Status == workspaces.ManagedNetworkStatusActive
-	}
-
-	if !nodePublicIPEnabled && subnetResourceID == "" && !workspaceInManagedVnet {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` or the workspace is not in a managed network")
 	}
 
 	vmPriority := machinelearningcomputes.VMPriority(d.Get("vm_priority").(string))
@@ -364,6 +335,36 @@ func resourceComputeClusterRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	return tags.FlattenAndSet(d, computeResource.Model.Tags)
+}
+
+func resourceComputeClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MachineLearning.MachineLearningComputes
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := machinelearningcomputes.ParseComputeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.ComputeGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	payload := existing.Model
+	if payload == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	identity, err := expandIdentity(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	payload.Identity = identity
+	if err := client.ComputeCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	return resourceComputeClusterRead(d, meta)
 }
 
 func resourceComputeClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {

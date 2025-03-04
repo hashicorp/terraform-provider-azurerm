@@ -23,6 +23,18 @@ type TopicsListAuthorizationRulesCompleteResult struct {
 	Items              []SBAuthorizationRule
 }
 
+type TopicsListAuthorizationRulesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *TopicsListAuthorizationRulesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // TopicsListAuthorizationRules ...
 func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRules(ctx context.Context, id TopicId) (result TopicsListAuthorizationRulesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c TopicsAuthorizationRuleClient) TopicsListAuthorizationRules(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &TopicsListAuthorizationRulesCustomPager{},
 		Path:       fmt.Sprintf("%s/authorizationRules", id.ID()),
 	}
 

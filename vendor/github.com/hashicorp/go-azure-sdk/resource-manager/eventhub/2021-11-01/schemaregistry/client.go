@@ -15,7 +15,7 @@ type SchemaRegistryClient struct {
 }
 
 func NewSchemaRegistryClientWithBaseURI(sdkApi sdkEnv.Api) (*SchemaRegistryClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "schemaregistry", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "schemaregistry", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SchemaRegistryClient: %+v", err)
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -38,20 +38,18 @@ func retrieveConnectionInformation(ctx context.Context, nicsClient *networkinter
 	privateIPAddresses := make([]string, 0)
 	publicIPAddresses := make([]string, 0)
 
-	if input != nil && input.NetworkProfile != nil && input.NetworkProfile.NetworkInterfaces != nil {
-		for _, v := range *input.NetworkProfile.NetworkInterfaces {
-			if v.Id == nil {
-				continue
-			}
-
-			nic := retrieveIPAddressesForNIC(ctx, nicsClient, pipsClient, *v.Id)
-			if nic == nil {
-				continue
-			}
-
-			privateIPAddresses = append(privateIPAddresses, nic.privateIPAddresses...)
-			publicIPAddresses = append(publicIPAddresses, nic.publicIPAddresses...)
+	for _, v := range *input.NetworkProfile.NetworkInterfaces {
+		if v.Id == nil {
+			continue
 		}
+
+		nic := retrieveIPAddressesForNIC(ctx, nicsClient, pipsClient, *v.Id)
+		if nic == nil {
+			continue
+		}
+
+		privateIPAddresses = append(privateIPAddresses, nic.privateIPAddresses...)
+		publicIPAddresses = append(publicIPAddresses, nic.publicIPAddresses...)
 	}
 
 	primaryPrivateAddress := ""

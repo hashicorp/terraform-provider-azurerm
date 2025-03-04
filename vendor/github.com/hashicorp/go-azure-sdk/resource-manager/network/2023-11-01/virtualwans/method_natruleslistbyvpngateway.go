@@ -23,6 +23,18 @@ type NatRulesListByVpnGatewayCompleteResult struct {
 	Items              []VpnGatewayNatRule
 }
 
+type NatRulesListByVpnGatewayCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *NatRulesListByVpnGatewayCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // NatRulesListByVpnGateway ...
 func (c VirtualWANsClient) NatRulesListByVpnGateway(ctx context.Context, id VpnGatewayId) (result NatRulesListByVpnGatewayOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) NatRulesListByVpnGateway(ctx context.Context, id VpnG
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &NatRulesListByVpnGatewayCustomPager{},
 		Path:       fmt.Sprintf("%s/natRules", id.ID()),
 	}
 

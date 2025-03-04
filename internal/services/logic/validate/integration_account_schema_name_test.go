@@ -42,6 +42,10 @@ func TestIntegrationAccountSchemaName(t *testing.T) {
 			input: strings.Repeat("s", 81),
 			valid: false,
 		},
+		{
+			input: "a2-.()b_",
+			valid: true,
+		},
 	}
 
 	validationFunction := IntegrationAccountSchemaName()

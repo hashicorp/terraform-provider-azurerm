@@ -15,7 +15,7 @@ type PreRulesClient struct {
 }
 
 func NewPreRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*PreRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "prerules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "prerules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PreRulesClient: %+v", err)
 	}

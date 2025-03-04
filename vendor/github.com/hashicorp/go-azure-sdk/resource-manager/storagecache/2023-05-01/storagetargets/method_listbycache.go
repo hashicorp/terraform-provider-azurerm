@@ -23,6 +23,18 @@ type ListByCacheCompleteResult struct {
 	Items              []StorageTarget
 }
 
+type ListByCacheCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByCacheCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByCache ...
 func (c StorageTargetsClient) ListByCache(ctx context.Context, id CacheId) (result ListByCacheOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StorageTargetsClient) ListByCache(ctx context.Context, id CacheId) (resu
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByCacheCustomPager{},
 		Path:       fmt.Sprintf("%s/storageTargets", id.ID()),
 	}
 

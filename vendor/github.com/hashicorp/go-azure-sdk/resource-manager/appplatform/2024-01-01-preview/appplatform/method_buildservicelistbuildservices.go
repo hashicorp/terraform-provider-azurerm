@@ -24,6 +24,18 @@ type BuildServiceListBuildServicesCompleteResult struct {
 	Items              []BuildService
 }
 
+type BuildServiceListBuildServicesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BuildServiceListBuildServicesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BuildServiceListBuildServices ...
 func (c AppPlatformClient) BuildServiceListBuildServices(ctx context.Context, id commonids.SpringCloudServiceId) (result BuildServiceListBuildServicesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) BuildServiceListBuildServices(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BuildServiceListBuildServicesCustomPager{},
 		Path:       fmt.Sprintf("%s/buildServices", id.ID()),
 	}
 

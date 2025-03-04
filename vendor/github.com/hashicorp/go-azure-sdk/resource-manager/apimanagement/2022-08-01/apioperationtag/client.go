@@ -15,7 +15,7 @@ type ApiOperationTagClient struct {
 }
 
 func NewApiOperationTagClientWithBaseURI(sdkApi sdkEnv.Api) (*ApiOperationTagClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "apioperationtag", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "apioperationtag", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ApiOperationTagClient: %+v", err)
 	}

@@ -71,9 +71,9 @@ resource "azurerm_postgresql_flexible_server" "example" {
   zone                          = "1"
 
   storage_mb   = 32768
-  storage_tier = "P30"
+  storage_tier = "P4"
 
-  sku_name   = "GP_Standard_D4s_v3"
+  sku_name   = "B_Standard_B1ms"
   depends_on = [azurerm_private_dns_zone_virtual_network_link.example]
 
 }
@@ -91,13 +91,19 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`. 
+* `administrator_login` - (Optional) The Administrator login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
 
 -> **Note:** Once `administrator_login` is specified, changing this forces a new PostgreSQL Flexible Server to be created.
 
 -> **Note:** To create with `administrator_login` specified or update with it first specified , `authentication.password_auth_enabled` must be set to `true`.
 
-* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
+* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.
+
+* `administrator_password_wo` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.
+
+~> **Note:** Either `administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is `true`.
+
+* `administrator_password_wo_version` - (Optional) An integer value used to trigger an update for `administrator_password_wo`. This property should be incremented when updating `administrator_password_wo`.
 
 * `authentication` - (Optional) An `authentication` block as defined below.
 
@@ -208,6 +214,8 @@ A `maintenance_window` block supports the following:
 * `start_hour` - (Optional) The start hour for maintenance window. Defaults to `0`.
 
 * `start_minute` - (Optional) The start minute for maintenance window. Defaults to `0`.
+
+-> **NOTE** The specified `maintenance_window` is always defined in UTC time. When unspecified, the maintenance window falls back to the default [system-managed](https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/how-to-maintenance-portal#specify-maintenance-schedule-options).
 
 ---
 

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -160,7 +160,7 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 			"billing_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
 					string(expressrouteports.ExpressRoutePortsBillingTypeUnlimitedData),

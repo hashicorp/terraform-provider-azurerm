@@ -23,6 +23,18 @@ type ListApplicableCompleteResult struct {
 	Items              []Schedule
 }
 
+type ListApplicableCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListApplicableCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListApplicable ...
 func (c SchedulesClient) ListApplicable(ctx context.Context, id LabScheduleId) (result ListApplicableOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c SchedulesClient) ListApplicable(ctx context.Context, id LabScheduleId) (
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListApplicableCustomPager{},
 		Path:       fmt.Sprintf("%s/listApplicable", id.ID()),
 	}
 

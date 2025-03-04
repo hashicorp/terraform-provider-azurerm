@@ -23,6 +23,18 @@ type ConnectedEnvironmentsCertificatesListCompleteResult struct {
 	Items              []Certificate
 }
 
+type ConnectedEnvironmentsCertificatesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ConnectedEnvironmentsCertificatesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ConnectedEnvironmentsCertificatesList ...
 func (c CertificatesClient) ConnectedEnvironmentsCertificatesList(ctx context.Context, id ConnectedEnvironmentId) (result ConnectedEnvironmentsCertificatesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c CertificatesClient) ConnectedEnvironmentsCertificatesList(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ConnectedEnvironmentsCertificatesListCustomPager{},
 		Path:       fmt.Sprintf("%s/certificates", id.ID()),
 	}
 

@@ -45,7 +45,6 @@ func (c StorageTargetsClient) Get(ctx context.Context, id StorageTargetId) (resu
 
 	var model StorageTarget
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

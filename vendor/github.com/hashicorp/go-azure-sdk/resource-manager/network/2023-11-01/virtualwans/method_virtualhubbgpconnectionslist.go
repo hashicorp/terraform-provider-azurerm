@@ -23,6 +23,18 @@ type VirtualHubBgpConnectionsListCompleteResult struct {
 	Items              []BgpConnection
 }
 
+type VirtualHubBgpConnectionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VirtualHubBgpConnectionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VirtualHubBgpConnectionsList ...
 func (c VirtualWANsClient) VirtualHubBgpConnectionsList(ctx context.Context, id VirtualHubId) (result VirtualHubBgpConnectionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) VirtualHubBgpConnectionsList(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VirtualHubBgpConnectionsListCustomPager{},
 		Path:       fmt.Sprintf("%s/bgpConnections", id.ID()),
 	}
 

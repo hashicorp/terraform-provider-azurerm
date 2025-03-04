@@ -43,6 +43,10 @@ The following arguments are supported:
 
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
+* `cross_region_restore_enabled` - (Optional) Whether to enable cross-region restore for the Backup Vault.
+ 
+-> **Note:** The `cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`. Once `cross_region_restore_enabled` is enabled, it cannot be disabled.
+
 ---
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -51,7 +55,9 @@ The following arguments are supported:
 
 -> **Note:** The `retention_duration_in_days` is the number of days for which deleted data is retained before being permanently deleted. Retention period till 14 days are free of cost, however, retention beyond 14 days may incur additional charges. The `retention_duration_in_days` is required when the `soft_delete` is set to `On`.
 
-* `soft_delete` - (Optional) The state of soft delete for this Backup Vault. Possible values are `AlwaysOn`, `Off` and `On`. Defaults to `On`.
+* `immutability` - (Optional) The state of immutability for this Backup Vault. Possible values are `Disabled`, `Locked`, and `Unlocked`. Defaults to `Disabled`. Changing this from `Locked` to anything else forces a new Backup Vault to be created.
+
+* `soft_delete` - (Optional) The state of soft delete for this Backup Vault. Possible values are `AlwaysOn`, `Off`, and `On`. Defaults to `On`.
 
 -> **Note:** Once the `soft_delete` is set to `AlwaysOn`, the setting cannot be changed.
 

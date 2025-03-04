@@ -14,11 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,19 +59,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"location": func() *pluginsdk.Schema {
-				if !features.FourPointOhBeta() {
-					return &pluginsdk.Schema{
-						Type:             schema.TypeString,
-						Optional:         true,
-						Default:          "global",
-						ForceNew:         true,
-						StateFunc:        location.StateFunc,
-						DiffSuppressFunc: location.DiffSuppressFunc,
-					}
-				}
-				return commonschema.Location()
-			}(),
+			"location": commonschema.Location(),
 
 			"scopes": {
 				Type:     pluginsdk.TypeSet,

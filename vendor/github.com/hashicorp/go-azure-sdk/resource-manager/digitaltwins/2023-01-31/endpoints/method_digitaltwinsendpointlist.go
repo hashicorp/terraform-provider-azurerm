@@ -23,6 +23,18 @@ type DigitalTwinsEndpointListCompleteResult struct {
 	Items              []DigitalTwinsEndpointResource
 }
 
+type DigitalTwinsEndpointListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DigitalTwinsEndpointListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DigitalTwinsEndpointList ...
 func (c EndpointsClient) DigitalTwinsEndpointList(ctx context.Context, id DigitalTwinsInstanceId) (result DigitalTwinsEndpointListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c EndpointsClient) DigitalTwinsEndpointList(ctx context.Context, id Digita
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &DigitalTwinsEndpointListCustomPager{},
 		Path:       fmt.Sprintf("%s/endpoints", id.ID()),
 	}
 

@@ -290,6 +290,10 @@ resource "azurerm_iothub" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
+
+  lifecycle {
+    ignore_changes = [endpoint]
+  }
 }
 
 resource "azurerm_cosmosdb_sql_role_definition" "test" {
@@ -358,6 +362,10 @@ resource "azurerm_iothub" "test" {
     name     = "B1"
     capacity = "1"
   }
+
+  lifecycle {
+    ignore_changes = [endpoint]
+  }
 }
 `, r.dependencies(data), data.RandomInteger)
 }
@@ -406,7 +414,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_paths = ["/definition/id"]
 }
 `, data.Locations.Primary, data.RandomInteger)
 }

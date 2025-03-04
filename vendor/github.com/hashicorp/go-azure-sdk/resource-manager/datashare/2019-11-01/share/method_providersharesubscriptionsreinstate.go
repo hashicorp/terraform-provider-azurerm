@@ -46,7 +46,6 @@ func (c ShareClient) ProviderShareSubscriptionsReinstate(ctx context.Context, id
 
 	var model ProviderShareSubscription
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

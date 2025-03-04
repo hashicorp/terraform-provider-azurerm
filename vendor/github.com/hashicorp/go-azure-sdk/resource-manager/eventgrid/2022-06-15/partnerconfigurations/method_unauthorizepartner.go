@@ -51,7 +51,6 @@ func (c PartnerConfigurationsClient) UnauthorizePartner(ctx context.Context, id 
 
 	var model PartnerConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

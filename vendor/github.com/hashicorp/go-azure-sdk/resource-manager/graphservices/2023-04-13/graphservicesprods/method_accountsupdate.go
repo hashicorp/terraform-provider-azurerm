@@ -49,7 +49,6 @@ func (c GraphservicesprodsClient) AccountsUpdate(ctx context.Context, id Account
 
 	var model AccountResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

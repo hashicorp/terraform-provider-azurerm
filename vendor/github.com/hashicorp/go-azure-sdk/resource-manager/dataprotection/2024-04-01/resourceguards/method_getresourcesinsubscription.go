@@ -24,6 +24,18 @@ type GetResourcesInSubscriptionCompleteResult struct {
 	Items              []ResourceGuardResource
 }
 
+type GetResourcesInSubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetResourcesInSubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetResourcesInSubscription ...
 func (c ResourceGuardsClient) GetResourcesInSubscription(ctx context.Context, id commonids.SubscriptionId) (result GetResourcesInSubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ResourceGuardsClient) GetResourcesInSubscription(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetResourcesInSubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DataProtection/resourceGuards", id.ID()),
 	}
 

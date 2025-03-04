@@ -21,11 +21,13 @@ func TestAccLogicAppStandardDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+				check.That(data.ResourceName).Key("ftp_publish_basic_authentication_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,workflowapp"),
-				check.That(data.ResourceName).Key("version").HasValue("~3"),
 				check.That(data.ResourceName).Key("outbound_ip_addresses").Exists(),
 				check.That(data.ResourceName).Key("possible_outbound_ip_addresses").Exists(),
-				check.That(data.ResourceName).Key("custom_domain_verification_id").Exists(),
+				check.That(data.ResourceName).Key("scm_publish_basic_authentication_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("version").HasValue("~4"),
 			),
 		},
 	})

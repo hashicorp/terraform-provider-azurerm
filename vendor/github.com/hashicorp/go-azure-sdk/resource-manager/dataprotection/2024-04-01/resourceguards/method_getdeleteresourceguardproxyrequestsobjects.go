@@ -23,6 +23,18 @@ type GetDeleteResourceGuardProxyRequestsObjectsCompleteResult struct {
 	Items              []DppBaseResource
 }
 
+type GetDeleteResourceGuardProxyRequestsObjectsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetDeleteResourceGuardProxyRequestsObjectsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetDeleteResourceGuardProxyRequestsObjects ...
 func (c ResourceGuardsClient) GetDeleteResourceGuardProxyRequestsObjects(ctx context.Context, id ResourceGuardId) (result GetDeleteResourceGuardProxyRequestsObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ResourceGuardsClient) GetDeleteResourceGuardProxyRequestsObjects(ctx con
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetDeleteResourceGuardProxyRequestsObjectsCustomPager{},
 		Path:       fmt.Sprintf("%s/deleteResourceGuardProxyRequests", id.ID()),
 	}
 

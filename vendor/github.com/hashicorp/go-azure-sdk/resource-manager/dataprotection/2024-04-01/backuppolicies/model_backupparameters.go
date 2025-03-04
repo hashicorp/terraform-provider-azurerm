@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type BackupParameters interface {
+	BackupParameters() BaseBackupParametersImpl
 }
 
-// RawBackupParametersImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ BackupParameters = BaseBackupParametersImpl{}
+
+type BaseBackupParametersImpl struct {
+	ObjectType string `json:"objectType"`
+}
+
+func (s BaseBackupParametersImpl) BackupParameters() BaseBackupParametersImpl {
+	return s
+}
+
+var _ BackupParameters = RawBackupParametersImpl{}
+
+// RawBackupParametersImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawBackupParametersImpl struct {
-	Type   string
-	Values map[string]interface{}
+	backupParameters BaseBackupParametersImpl
+	Type             string
+	Values           map[string]interface{}
 }
 
-func unmarshalBackupParametersImplementation(input []byte) (BackupParameters, error) {
+func (s RawBackupParametersImpl) BackupParameters() BaseBackupParametersImpl {
+	return s.backupParameters
+}
+
+func UnmarshalBackupParametersImplementation(input []byte) (BackupParameters, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalBackupParametersImplementation(input []byte) (BackupParameters, er
 		return nil, fmt.Errorf("unmarshaling BackupParameters into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AzureBackupParams") {
@@ -44,10 +61,15 @@ func unmarshalBackupParametersImplementation(input []byte) (BackupParameters, er
 		return out, nil
 	}
 
-	out := RawBackupParametersImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseBackupParametersImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseBackupParametersImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawBackupParametersImpl{
+		backupParameters: parent,
+		Type:             value,
+		Values:           temp,
+	}, nil
 
 }

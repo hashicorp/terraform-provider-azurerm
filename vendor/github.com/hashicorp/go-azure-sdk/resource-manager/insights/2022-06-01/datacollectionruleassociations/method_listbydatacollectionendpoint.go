@@ -23,6 +23,18 @@ type ListByDataCollectionEndpointCompleteResult struct {
 	Items              []DataCollectionRuleAssociationProxyOnlyResource
 }
 
+type ListByDataCollectionEndpointCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDataCollectionEndpointCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDataCollectionEndpoint ...
 func (c DataCollectionRuleAssociationsClient) ListByDataCollectionEndpoint(ctx context.Context, id DataCollectionEndpointId) (result ListByDataCollectionEndpointOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DataCollectionRuleAssociationsClient) ListByDataCollectionEndpoint(ctx c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDataCollectionEndpointCustomPager{},
 		Path:       fmt.Sprintf("%s/associations", id.ID()),
 	}
 

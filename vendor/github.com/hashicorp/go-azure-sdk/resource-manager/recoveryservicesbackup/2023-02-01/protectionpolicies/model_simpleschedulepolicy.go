@@ -18,6 +18,14 @@ type SimpleSchedulePolicy struct {
 	ScheduleWeeklyFrequency *int64           `json:"scheduleWeeklyFrequency,omitempty"`
 
 	// Fields inherited from SchedulePolicy
+
+	SchedulePolicyType string `json:"schedulePolicyType"`
+}
+
+func (s SimpleSchedulePolicy) SchedulePolicy() BaseSchedulePolicyImpl {
+	return BaseSchedulePolicyImpl{
+		SchedulePolicyType: s.SchedulePolicyType,
+	}
 }
 
 var _ json.Marshaler = SimpleSchedulePolicy{}
@@ -31,9 +39,10 @@ func (s SimpleSchedulePolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling SimpleSchedulePolicy: %+v", err)
 	}
+
 	decoded["schedulePolicyType"] = "SimpleSchedulePolicy"
 
 	encoded, err = json.Marshal(decoded)

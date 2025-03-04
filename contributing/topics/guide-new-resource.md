@@ -41,28 +41,28 @@ The Client for the Service Package can be found in `./internal/services/{name}/c
 package client
 
 import (
-	"fmt"
-	
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+    "fmt"
+
+    "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	GroupsClient *resources.GroupsClient
+    GroupsClient *resources.GroupsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	groupsClient, err := resources.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
-	if err != nil {
-		return nil, fmt.Errorf("building Resources Client: %+v", err)
-	}
-	o.Configure(groupsClient.Client, o.Authorizer.ResourceManager)
+    groupsClient, err := resources.NewResourcesClientWithBaseURI(o.Environment.ResourceManager)
+    if err != nil {
+        return nil, fmt.Errorf("building Resources Client: %+v", err)
+    }
+    o.Configure(groupsClient.Client, o.Authorizer.ResourceManager)
 
-	// ...
+    // ...
 
-	return &Client{
-		GroupsClient: groupsClient,
-	}
+    return &Client{
+        GroupsClient: groupsClient,
+    }, nil
 }
 ```
 
@@ -110,10 +110,10 @@ type Resource interface {
     Attributes() map[string]*schema.Schema
     ModelObject() interface{}
     ResourceType() string
-	Create() ResourceFunc
-	Read() ResourceFunc
-	Delete() ResourceFunc
-	IDValidationFunc() pluginsdk.SchemaValidateFunc
+    Create() ResourceFunc
+    Read() ResourceFunc
+    Delete() ResourceFunc
+    IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 ```
 
@@ -129,29 +129,36 @@ To go through these in turn:
 * `IDValidationFunc` returns a function which validates the Resource ID provided during `terraform import` to ensure it matches what we expect for this Resource.
 
 ```go
-func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-		
-		"location": commonschema.Location(),
+type ResourceGroupExampleResourceModel struct {
+    Name     string            `tfschema:"name"`
+    Location string            `tfschema:"location"`
+    Tags     map[string]string `tfschema:"tags"`
+}
 
-		"tags": tags.Schema(),
-	}
+func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "name": {
+            Type:         pluginsdk.TypeString,
+            Required:     true,
+            ValidateFunc: validation.StringIsNotEmpty,
+        },
+
+        "location": commonschema.Location(),
+
+        "tags": tags.Schema(),
+    }
 }
 
 func (ResourceGroupExampleResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+    return map[string]*pluginsdk.Schema{}
 }
 
 func (ResourceGroupExampleResource) ModelObject() interface{} {
-	return nil
+    return &ResourceGroupExampleResourceModel{}
 }
 
 func (ResourceGroupExampleResource) ResourceType() string {
-	return "azurerm_resource_group_example"
+    return "azurerm_resource_group_example"
 }
 ```
 
@@ -159,53 +166,66 @@ func (ResourceGroupExampleResource) ResourceType() string {
 
 These functions define a Resource called `azurerm_resource_group_example`, which has two Required arguments (`name` and `location`) and one Optional argument (`tags`). We'll come back to `ModelObject` later.
 
+Schema fields should be ordered as follows:
+
+1. Any fields that make up the resource's ID, with the last user specified segment (usually the resource's name) first. (e.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`)
+2. The `location` field.
+3. Required fields, sorted alphabetically.
+4. Optional fields, sorted alphabetically.
+5. Computed fields, sorted alphabetically. (Although in a typed resource these are always added within the `Attributes` method)
+
 ---
 
 Let's start by implementing the Create function:
 
 ```go
 func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
+    return sdk.ResourceFunc{
         // the Timeout is how long Terraform should wait for this function to run before returning an error
         // whilst 30 minutes may initially seem excessive, we set this as a default to account for rate
         // limiting - but having this here means that users can override this in their config as necessary
-		Timeout: 30 * time.Minute,
+        Timeout: 30 * time.Minute,
 
-		// the Func returns a function which retrieves the current state of the Resource Group into the state
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.GroupsClient
+        // the Func returns a function which retrieves the current state of the Resource Group into the state
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Resource.GroupsClient
 
-			// retrieve the Name for this Resource Group from the Terraform Config
-			// and then create a Resource ID for this Resource Group
-			// using the Subscription ID & name 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			id := resources.NewResourceGroupID(subscriptionId, metadata.ResourceData.Get("name").(string))
-			
-			// then we want to check for the presence of an existing resource with the resource's ID
-			// this is because the Azure API uses the `name` as a unique idenfitier and Upserts
-			// so we don't want to unintentionally adopt this resource by using the same name
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-			
-			// create the Resource Group
-			param := resources.Group{
-				Location: pointer.To(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
-			}
-			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
+            // retrieve the Name for this Resource Group from the Terraform Config
+            // and then create a Resource ID for this Resource Group
+            // using the Subscription ID & name
+            subscriptionId := metadata.Client.Account.SubscriptionId
 
-			// set the Resource ID, meaning that we track this resource
-			metadata.SetID(id)
-			return nil
-		},
-	}
+            var config ResourceGroupExampleResourceModel
+            if err := metadata.Decode(&config); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+            id := resources.NewResourceGroupID(subscriptionId, config.Name)
+
+            // then we want to check for the presence of an existing resource with the resource's ID
+            // this is because the Azure API uses the `name` as a unique idenfitier and Upserts
+            // so we don't want to unintentionally adopt this resource by using the same name
+            existing, err := client.Get(ctx, id)
+            if err != nil && !response.WasNotFound(existing.HttpResponse) {
+                return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+            }
+            if !response.WasNotFound(existing.HttpResponse) {
+                return metadata.ResourceRequiresImport(r.ResourceType(), id)
+            }
+
+            // create the Resource Group
+            param := resources.Group{
+                Location: pointer.To(location.Normalize(config.Location)),
+                Tags:     pointer.To(config.Tags),
+            }
+            if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
+                return fmt.Errorf("creating %s: %+v", id, err)
+            }
+
+            // set the Resource ID, meaning that we track this resource
+            metadata.SetID(id)
+            return nil
+        },
+    }
 }
 ```
 
@@ -214,60 +234,64 @@ Let's implement the Update function:
 
 ```go
 func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
+    return sdk.ResourceFunc{
         // the Timeout is how long Terraform should wait for this function to run before returning an error
         // whilst 30 minutes may initially seem excessive, we set this as a default to account for rate
         // limiting - but having this here means that users can override this in their config as necessary
-		Timeout: 30 * time.Minute,
+        Timeout: 30 * time.Minute,
 
-		// the Func returns a function which retrieves the current state of the Resource Group into the state
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.GroupsClient
+        // the Func returns a function which retrieves the current state of the Resource Group into the state
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Resource.GroupsClient
 
-			// parse the existing Resource ID from the State
-			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Get("id").(string))
-			if err != nil {
-				return err
-			}
-			
-			// update the Resource Group
-			// NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
-			// API and then conditionally updating it when fields in the config have been updated, which
-			// can be determined by using `d.HasChanges` - for example:
-			//
-			//   existing, err := client.Get(ctx, *id)
-			//   if err != nil {
-			//     return fmt.Errorf("retrieving %s: %+v", id, err)
-			//   }
-			//
-			// Although the SDK will catch and error in cases where Model is nil we should still check for 
-			// a non-nil Model and nested Properties object to prevent panics
-			//   if existing.Model == nil {
-			//      return fmt.Errorf("retrieving %s: `model` was nil", id)
-			//   }
-			//   if existing.Model.Properties == nil {
-			//      return fmt.Errorf("retrieving %s: `properties` was nil", id)
-			//   }
-			//
-			//   if d.HasChanges("tags") {
-			//     existing.Model.Properties.Tags = tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{}))
-			//   }
-			//
-			// doing so allows users to take advantage of Terraform's `ignore_changes` functionality.
-			//
-			// However since a Resource Group only has one field which is updatable (tags) so in this case we'll only
-			// enter the update function if `tags` has been updated.
-			param := resources.Group{
-				Location: pointer.To(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
-			}
-			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-			
-			return nil
-		},
-	}
+            // parse the existing Resource ID from the State
+            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+
+            var config ResourceGroupExampleResourceModel
+            if err := metadata.Decode(&config); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+            // update the Resource Group
+            // NOTE: for a more complex resource we'd recommend retrieving the existing Resource from the
+            // API and then conditionally updating it when fields in the config have been updated, which
+            // can be determined by using `metadata.ResourceData.HasChange` - for example:
+            //
+            //   existing, err := client.Get(ctx, *id)
+            //   if err != nil {
+            //     return fmt.Errorf("retrieving %s: %+v", *id, err)
+            //   }
+            //
+            // Although the SDK will catch and error in cases where Model is nil we should still check for
+            // a non-nil Model and nested Properties object to prevent panics
+            //   if existing.Model == nil {
+            //      return fmt.Errorf("retrieving %s: `model` was nil", id)
+            //   }
+            //   if existing.Model.Properties == nil {
+            //      return fmt.Errorf("retrieving %s: `properties` was nil", id)
+            //   }
+            //
+            //   if metadata.ResourceData.HasChange("tags") {
+            //     existing.Model.Properties.Tags = tags.Expand(config.Tags)
+            //   }
+            //
+            // doing so allows users to take advantage of Terraform's `ignore_changes` functionality.
+            //
+            // However since a Resource Group only has one field which is updatable (tags) we'll only
+            // enter the update function if `tags` has been updated.
+            param := resources.Group{
+                Location: pointer.To(location.Normalize(config.Location)),
+                Tags:     pointer.To(config.Tags),
+            }
+            if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
+                return fmt.Errorf("updating %s: %+v", id, err)
+            }
+
+            return nil
+        },
+    }
 }
 ```
 
@@ -278,74 +302,70 @@ Next up, let's implement the Read function - which retrieves the information abo
 
 ```go
 func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		// the Timeout is how long Terraform should wait for this function to run before returning an error
-		// whilst 5 minutes may initially seem excessive, we set this as a default to account for rate
-		// limiting - but having this here means that users can override this in their config as necessary
-		Timeout: 5 * time.Minute,
-		
-		// the Func returns a function which looks up the state of the Resource Group and sets it into the state
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+    return sdk.ResourceFunc{
+        // the Timeout is how long Terraform should wait for this function to run before returning an error
+        // whilst 5 minutes may initially seem excessive, we set this as a default to account for rate
+        // limiting - but having this here means that users can override this in their config as necessary
+        Timeout: 5 * time.Minute,
+
+        // the Func returns a function which looks up the state of the Resource Group and sets it into the state
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.Resource.GroupsClient
 
-			// parse the Resource Group ID from the `id` field
+            // parse the Resource Group ID from the `id` field
             id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-			
-			// then retrieve the Resource Group by its ID
+            if err != nil {
+                return err
+            }
+
+            // then retrieve the Resource Group by its ID
             resp, err := client.Get(ctx, *id)
             if err != nil {
-				// if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
-				// since this is a Resource (e.g. we created it/it was imported into the state)
-				// it previously existed - so we must mark this as "gone" for Terraform
+                // if the Resource Group doesn't exist (e.g. we get a 404 Not Found)
+                // since this is a Resource (e.g. we created it/it was imported into the state)
+                // it previously existed - so we must mark this as "gone" for Terraform
                 if response.WasNotFound(resp.HttpResponse) {
                     return metadata.MarkAsGone(id)
                 }
-				
+
                 // otherwise it's a genuine error (auth/api error etc) so raise it
-				// there should be enough context for the user to interpret the error
-				// or raise a bug report if there's something we should handle
+                // there should be enough context for the user to interpret the error
+                // or raise a bug report if there's something we should handle
                 return fmt.Errorf("retrieving %s: %+v", id, err)
             }
-			
-			// at this point we can set information about this Resource Group into the State
-			// identifier fields such as the name, resource group name to name a few need to be sourced
-			// from the Resource ID instead of the API response
-			metadata.ResourceData.Set("name", id.ResourceGroupName)
-			
-			// the SDK will return a Model as well as a nested Properties object for the resource
-			// for readability and consistency we assign the Model to a variable and nil check as shown below.
-			// since the SDK accounts for responses where the Model is nil we do not need to throw an error if
-			// the Model is nil since this will be caught earlier on. We still nil check to prevent the provider from
-			// crashing.
-			if model := resp.Model; model != nil {
-                            // the Location and Tags fields are a little different - and we have a couple of normalization
-                            // functions for these.
-                            
-                            // whilst this may seem like a weird thing to call out in an example, because these two fields
-                            // are present on the majority of resources, we hope it explains why they're a little different
-                            
-                            // in this case the Location can be returned in various different forms, for example
-                            // "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
-                            // lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
-                            // for users
-                            metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
-							
-                            if props := model.Properties; props != nil {
-                                // if there are properties to set into state do that here
-                            }
-                            
-                            // (as above) Tags are a little different, so we have a dedicated helper function
-                            // to flatten these consistently across the Provider
-							if err := tags.FlattenAndSet(metadata.ResourceData, model.Tags); err != nil {
-                                return fmt.Errorf("setting `tags`: %+v", err)
-                            }
-                        }       
-			return nil
-		},
-	}
+
+            // at this point we can set information about this Resource Group into the State
+            // identifier fields such as the name, resource group name to name a few need to be sourced
+            // from the Resource ID instead of the API response
+            state := ResourceGroupExampleResourceModel{
+                Name: id.ResourceGroupName,
+            }
+
+            // the SDK will return a Model as well as a nested Properties object for the resource
+            // for readability and consistency we assign the Model to a variable and nil check as shown below.
+            // since the SDK accounts for responses where the Model is nil we do not need to throw an error if
+            // the Model is nil since this will be caught earlier on. We still nil check to prevent the provider from
+            // crashing.
+            if model := resp.Model; model != nil {
+                // the Location field is a little different - and we have a normalization
+                // function for this.
+
+                // whilst this may seem like a weird thing to call out in an example, because these two fields
+                // are present on the majority of resources, we hope it explains why they're a little different
+
+                // in this case the Location can be returned in various different forms, for example
+                // "West Europe", "WestEurope" or "westeurope" - as such we normalize these into a
+                // lower-cased singular word with no spaces (e.g. "westeurope") so this is consistent
+                // for users
+                state.Location = location.NormalizeNilable(model.Location)
+                state.Tags = pointer.From(model.Tags)
+                if props := model.Properties; props != nil {
+                    // if there are properties to set into state do that here
+                }
+            }
+            return metadata.Encode(&state)
+        },
+    }
 }
 ```
 
@@ -355,30 +375,30 @@ Next we can add the Delete function:
 
 ```go
 func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		// the Timeout is how long Terraform should wait for this function to run before returning an error
-		// whilst 30 minutes may initially seem excessive, it can take a while to delete the nested items
-		// particularly if we're rate-limited - but users can override this in their config as necessary
-		Timeout: 30 * time.Minute,
+    return sdk.ResourceFunc{
+        // the Timeout is how long Terraform should wait for this function to run before returning an error
+        // whilst 30 minutes may initially seem excessive, it can take a while to delete the nested items
+        // particularly if we're rate-limited - but users can override this in their config as necessary
+        Timeout: 30 * time.Minute,
 
-		// the Func returns a function which deletes the Resource Group
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.GroupsClient
+        // the Func returns a function which deletes the Resource Group
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Resource.GroupsClient
 
-			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-			
-			// trigger the deletion of the Resource Group
-			// Delete calls that require request options can be populated by the `DefaultDeleteOperationOptions()`
-			// method in the SDK
-			if err := client.DeleteThenPoll(ctx, *id, resources.DefaultDeleteOperationOptions()); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
             }
-			return nil
-		},
-	}
+
+            // trigger the deletion of the Resource Group
+            // Delete calls that require request options can be populated by the `DefaultDeleteOperationOptions()`
+            // method in the SDK
+            if err := client.DeleteThenPoll(ctx, *id, resources.DefaultDeleteOperationOptions()); err != nil {
+                return fmt.Errorf("deleting %s: %+v", *id, err)
+            }
+            return nil
+        },
+    }
 }
 ```
 
@@ -400,162 +420,180 @@ At this point the finished Resource should look like (including imports):
 package resource
 
 import (
-	"context"
-	"fmt"
-	"time"
+    "context"
+    "fmt"
+    "time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources"
+    "github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+    "github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+    "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 var _ sdk.Resource = ResourceGroupExampleResource{}
 
 type ResourceGroupExampleResource struct{}
 
+type ResourceGroupExampleResourceModel struct {
+    Name     string            `tfschema:"name"`
+    Location string            `tfschema:"location"`
+    Tags     map[string]string `tfschema:"tags"`
+}
+
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
+    return map[string]*pluginsdk.Schema{
+        "name": {
+            Type:         pluginsdk.TypeString,
+            Required:     true,
+            ValidateFunc: validation.StringIsNotEmpty,
+        },
 
-		"location": commonschema.Location(),
+        "location": commonschema.Location(),
 
-		"tags": commonschema.Tags(),
-	}
+        "tags": commonschema.Tags(),
+    }
 }
 
 func (ResourceGroupExampleResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+    return map[string]*pluginsdk.Schema{}
 }
 
 func (ResourceGroupExampleResource) ModelObject() interface{} {
-	return nil
+    return &ResourceGroupExampleResourceModel{}
 }
 
 func (ResourceGroupExampleResource) ResourceType() string {
-	return "azurerm_resource_group_example"
+    return "azurerm_resource_group_example"
 }
 
 func (r ResourceGroupExampleResource) Create() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.GroupsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			
-			id := resources.NewResourceGroupID(subscriptionId, metadata.ResourceData.Get("name").(string))
-			
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-			
-			param := resources.Group{
-				Location: pointer.To(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
-			}
-			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-			
-			metadata.SetID(id)
-			return nil
-		},
-	}
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Resource.GroupsClient
+            subscriptionId := metadata.Client.Account.SubscriptionId
+
+            var config ResourceGroupExampleResourceModel
+            if err := metadata.Decode(&config); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+            id := resources.NewResourceGroupID(subscriptionId, config.Name)
+
+            existing, err := client.Get(ctx, id)
+            if err != nil && !response.WasNotFound(existing.HttpResponse) {
+                return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+            }
+            if !response.WasNotFound(existing.HttpResponse) {
+                return metadata.ResourceRequiresImport(r.ResourceType(), id)
+            }
+
+            param := resources.Group{
+                Location: pointer.To(location.Normalize(config.Location)),
+                Tags:     pointer.To(config.Tags),
+            }
+            if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
+                return fmt.Errorf("creating %s: %+v", id, err)
+            }
+
+            metadata.SetID(id)
+            return nil
+        },
+    }
 }
 
 func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.GroupsClient
-			
-			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Get("id").(string))
-			if err != nil {
-				return err
-			}
-			
-			param := resources.Group{
-				Location: pointer.To(location.Normalize(metadata.ResourceData.Get("location").(string))),
-				Tags:     tags.Expand(metadata.ResourceData.Get("tags").(map[string]interface{})),
-			}
-			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-			return nil
-		},
-	}
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Resource.GroupsClient
+
+            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+
+            var config ResourceGroupExampleResourceModel
+            if err := metadata.Decode(&config); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            param := resources.Group{
+                Location: pointer.To(location.Normalize(config.Location)),
+                Tags:     pointer.To(config.Tags),
+            }
+            if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
+                return fmt.Errorf("updating %s: %+v", id, err)
+            }
+            return nil
+        },
+    }
 }
 
 func (ResourceGroupExampleResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.GroupsClient
-			
-			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-			
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Resource.GroupsClient
 
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-
-
-			metadata.ResourceData.Set("name", id.ResourceGroupName)
-			
-			if model := resp.Model; model != nil {
-			    metadata.ResourceData.Set("location", location.NormalizeNilable(model.Location))
-                if props := model.Properties; props != nil {
-					// if there are properties to set into state do that here
-                }
-				return tags.FlattenAndSet(metadata.ResourceData, resp.Tags)
+            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
             }
-			return nil
-		},
-	}
+
+            resp, err := client.Get(ctx, *id)
+            if err != nil {
+                if response.WasNotFound(resp.HttpResponse) {
+                    return metadata.MarkAsGone(id)
+                }
+
+                return fmt.Errorf("retrieving %s: %+v", id, err)
+            }
+
+
+            state := ResourceGroupExampleResourceModel{
+                Name: id.ResourceGroupName,
+            }
+
+            if model := resp.Model; model != nil {
+                state.Location = location.NormalizeNilable(model.Location)
+                state.Tags = pointer.From(model.Tags)
+                if props := model.Properties; props != nil {
+                    // if there are properties to set into state do that here
+                }
+            }
+            return metadata.Encode(&state)
+        },
+    }
 }
 
 func (ResourceGroupExampleResource) Delete() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Resource.GroupsClient
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Resource.GroupsClient
 
-			id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
+            id, err := resources.ParseResourceGroupID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
 
-			if err := client.DeleteThenPoll(ctx, *id, resources.DefaultDeleteOperationOptions()); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
+            if err := client.DeleteThenPoll(ctx, *id, resources.DefaultDeleteOperationOptions()); err != nil {
+                return fmt.Errorf("deleting %s: %+v", *id, err)
+            }
 
-			return nil
-		},
-	}
+            return nil
+        },
+    }
 }
 
 func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return resources.ValidateResourceGroupID
+    return resources.ValidateResourceGroupID
 }
 ```
 
-At this point in time this Resource is now code-complete - there's an optional extension to make this cleaner by using a Typed Model, however this isn't necessary.
+At this point in time this Resource is now code-complete.
 
 ### Step 4: Register the new Resource
 
@@ -574,7 +612,7 @@ type Registration struct{}
 
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+    return []sdk.Resource{}
 }
 ```
 
@@ -589,21 +627,21 @@ type Registration struct {
 }
 
 func (Registration) Name() string {
-	return "Some Service"
+    return "Some Service"
 }
 
 func (Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+    return []sdk.DataSource{}
 }
 
 func (Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+    return []sdk.Resource{}
 }
 
 func (Registration) WebsiteCategories() []string {
-	return []string{
-		"Some Service",
-	}
+    return []string{
+        "Some Service",
+    }
 }
 ```
 
@@ -616,9 +654,9 @@ To register the Resource we need to add an instance of the struct used for the R
 ```go
 // Resources returns a list of Resources supported by this Service
 func (Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
-		ResourceGroupExampleResource{},	
-	}
+    return []sdk.Resource{
+        ResourceGroupExampleResource{},
+    }
 }
 ```
 
@@ -654,8 +692,9 @@ import (
     "context"
     "fmt"
     "testing"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
     "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
     "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -665,52 +704,88 @@ import (
 type ResourceGroupExampleTestResource struct{}
 
 func TestAccResourceGroupExample_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.ImportStep(),
-	})
+    data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
+    r := ResourceGroupExampleTestResource{}
+    
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+    })
 }
 
 func TestAccResourceGroupExample_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.RequiresImportErrorStep(testResource.requiresImportConfig),
-	})
+    data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
+    r := ResourceGroupExampleTestResource{}
+    
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.RequiresImportErrorStep(r.requiresImport),
+    })
 }
 
 func TestAccResourceGroupExample_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
-	testResource := ResourceGroupExampleTestResource{}
-	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.completeConfig, testResource),
-		data.ImportStep(),
-		data.ApplyStep(testResource.basicConfig, testResource),
-		data.ImportStep(),
-		data.ApplyStep(testResource.completeConfig, testResource),
-		data.ImportStep(),
-	})
+    data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
+    r := ResourceGroupExampleTestResource{}
+    
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.complete(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+
+func TestAccResourceGroupExample_update(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
+    r := ResourceGroupExampleTestResource{}
+    
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+        {
+            Config: r.complete(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+    })
 }
 
 func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := resources.ParseResourceGroupID(state.ID)
-	if err != nil {
-		return nil, err
-	}
+    id, err := resources.ParseResourceGroupID(state.ID)
+    if err != nil {
+        return nil, err
+    }
 
-	resp, err := client.Resource.GroupsClient.Get(ctx, *id)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
+    resp, err := client.Resource.GroupsClient.Get(ctx, *id)
+    if err != nil {
+        return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+    }
 
-	return pointer.To(resp.Model != nil), nil
+    return pointer.To(resp.Model != nil), nil
 }
 
-func (ResourceGroupExampleTestResource) basicConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (ResourceGroupExampleTestResource) basic(data acceptance.TestData) string {
+    return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -722,20 +797,19 @@ resource "azurerm_resource_group_example" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ResourceGroupExampleTestResource) requiresImportConfig(data acceptance.TestData) string {
-	template := r.basicConfig(data)
-	return fmt.Sprintf(`
+func (r ResourceGroupExampleTestResource) requiresImport(data acceptance.TestData) string {
+    return fmt.Sprintf(`
 %s
 
 resource "azurerm_resource_group_example" "import" {
   name     = azurerm_resource_group_example.test.name
   location = azurerm_resource_group_example.test.location
 }
-`, template)
+`, r.basic(data))
 }
 
-func (ResourceGroupExampleTestResource) completeConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (ResourceGroupExampleTestResource) complete(data acceptance.TestData) string {
+    return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -758,7 +832,7 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 2. The `acceptance.TestData` object contains a number of helpers, including both random integers, strings and the Azure Locations where resources should be provisioned - which are used to ensure when tests are run in parallel that we provision unique resources for testing purposes.
 3. The `ApplyStep`'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. `terraform apply` and then checking that `terraform plan` shows no changes).
 4. The `ImportStep` takes the Resource ID for the Resource and runs `terraform import azurerm_resource_group_example.test {resourceId}`, checking that the fields defined in the state match the fields returned from the Read function.
-6. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
+5. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
 
 At this point we should be able to run this test.
 

@@ -17,8 +17,18 @@ type AzureVMWorkloadProtectionPolicy struct {
 	WorkLoadType         *WorkloadType          `json:"workLoadType,omitempty"`
 
 	// Fields inherited from ProtectionPolicy
+
+	BackupManagementType           string    `json:"backupManagementType"`
 	ProtectedItemsCount            *int64    `json:"protectedItemsCount,omitempty"`
 	ResourceGuardOperationRequests *[]string `json:"resourceGuardOperationRequests,omitempty"`
+}
+
+func (s AzureVMWorkloadProtectionPolicy) ProtectionPolicy() BaseProtectionPolicyImpl {
+	return BaseProtectionPolicyImpl{
+		BackupManagementType:           s.BackupManagementType,
+		ProtectedItemsCount:            s.ProtectedItemsCount,
+		ResourceGuardOperationRequests: s.ResourceGuardOperationRequests,
+	}
 }
 
 var _ json.Marshaler = AzureVMWorkloadProtectionPolicy{}
@@ -32,9 +42,10 @@ func (s AzureVMWorkloadProtectionPolicy) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureVMWorkloadProtectionPolicy: %+v", err)
 	}
+
 	decoded["backupManagementType"] = "AzureWorkload"
 
 	encoded, err = json.Marshal(decoded)

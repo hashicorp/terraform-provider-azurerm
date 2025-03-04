@@ -244,6 +244,7 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					"SLES_BYOS",
 					"SLES_SAP",
 					"SLES_HPC",
+					"UBUNTU_PRO",
 				}, false),
 			},
 
@@ -993,7 +994,6 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference, storageImageId != "")); err != nil {
 					return fmt.Errorf("setting `source_image_reference`: %+v", err)
 				}
-
 			}
 
 			if scheduleProfile := props.ScheduledEventsProfile; scheduleProfile != nil {

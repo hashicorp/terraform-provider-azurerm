@@ -16,11 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -36,7 +35,7 @@ const (
 )
 
 func resourceMachineLearningWorkspace() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceMachineLearningWorkspaceCreate,
 		Read:   resourceMachineLearningWorkspaceRead,
 		Update: resourceMachineLearningWorkspaceUpdate,
@@ -186,14 +185,14 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"managed_network": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"isolation_mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      string(workspaces.IsolationModeDisabled),
-							ForceNew:     true,
+							Computed:     true,
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
 					},
@@ -257,43 +256,6 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		// For the time being we should just deprecate and remove this property since it's broken in the API - it doesn't
-		// actually set the property and also isn't returned by the API. Once https://github.com/Azure/azure-rest-api-specs/issues/18340
-		// is fixed we can reassess how to deal with this field.
-		resource.Schema["public_access_behind_virtual_network_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			ForceNew:      true,
-			Deprecated:    "`public_access_behind_virtual_network_enabled` will be removed in favour of the property `public_network_access_enabled` in version 4.0 of the AzureRM Provider.",
-			ConflictsWith: []string{"public_network_access_enabled"},
-		}
-		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"public_access_behind_virtual_network_enabled"},
-		}
-		resource.Schema["managed_network"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"isolation_mode": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						Computed:     true,
-						ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
-					},
-				},
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -322,15 +284,9 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
 
 	networkAccessBehindVnetEnabled := workspaces.PublicNetworkAccessDisabled
-	if !features.FourPointOhBeta() {
-		// nolint: staticcheck
-		if v, ok := d.GetOkExists("public_network_access_enabled"); ok && v.(bool) {
-			networkAccessBehindVnetEnabled = workspaces.PublicNetworkAccessEnabled
-		}
-	} else {
-		if v := d.Get("public_network_access_enabled").(bool); v {
-			networkAccessBehindVnetEnabled = workspaces.PublicNetworkAccessEnabled
-		}
+
+	if v := d.Get("public_network_access_enabled").(bool); v {
+		networkAccessBehindVnetEnabled = workspaces.PublicNetworkAccessEnabled
 	}
 
 	workspace := workspaces.Workspace{
@@ -516,6 +472,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 				}
 			}
 		}
+		payload.Properties.ServerlessComputeSettings = serverlessCompute
 	}
 
 	if d.HasChange("tags") {
@@ -584,7 +541,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("friendly_name", props.FriendlyName)
 			d.Set("high_business_impact", props.HbiWorkspace)
 			d.Set("image_build_compute_name", props.ImageBuildCompute)
-			d.Set("discovery_url", props.DiscoveryUrl)
+			d.Set("discovery_url", props.DiscoveryURL)
 			d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
@@ -597,10 +554,6 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 				return err
 			}
 			d.Set("key_vault_id", kvId.ID())
-
-			if !features.FourPointOhBeta() {
-				d.Set("public_access_behind_virtual_network_enabled", props.AllowPublicAccessWhenBehindVnet)
-			}
 
 			featureStoreSettings := flattenMachineLearningWorkspaceFeatureStore(props.FeatureStoreSettings)
 			if err := d.Set("feature_store", featureStoreSettings); err != nil {

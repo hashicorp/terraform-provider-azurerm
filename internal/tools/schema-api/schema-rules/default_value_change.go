@@ -10,8 +10,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/schema-api/providerjson"
 )
 
-type defaultValueChange struct {
-}
+type defaultValueChange struct{}
 
 var _ BreakingChangeRule = defaultValueChange{}
 

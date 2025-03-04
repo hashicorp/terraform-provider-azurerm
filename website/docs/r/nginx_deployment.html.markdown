@@ -57,9 +57,8 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_nginx_deployment" "example" {
   name                      = "example-nginx"
   resource_group_name       = azurerm_resource_group.example.name
-  sku                       = "publicpreview_Monthly_gmz7xq9ge3py"
+  sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.example.location
-  managed_resource_group    = "example"
   diagnose_support_enabled  = true
   automatic_upgrade_channel = "stable"
 
@@ -86,15 +85,13 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the NGINX Deployment should exist. Changing this forces a new NGINX Deployment to be created.
 
-* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standard_Monthly` and `basic_Monthly`. Changing this forces a new resource to be created.
+* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standardv2_Monthly`, `basic_Monthly`.
 
--> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you should use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
-
-* `managed_resource_group` - (Optional) Specify the managed resource group to deploy VNet injection related network resources. Changing this forces a new NGINX Deployment to be created.
+-> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
 ---
 
-* `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment. Defaults to `20`.
+* `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment.
 
 -> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
@@ -109,8 +106,6 @@ The following arguments are supported:
 * `frontend_private` - (Optional) One or more `frontend_private` blocks as defined below. Changing this forces a new NGINX Deployment to be created.
 
 * `frontend_public` - (Optional) A `frontend_public` block as defined below. Changing this forces a new NGINX Deployment to be created.
-
-* `logging_storage_account` - (Optional) One or more `logging_storage_account` blocks as defined below.
 
 * `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new NGINX Deployment to be created.
 
@@ -132,31 +127,23 @@ A `identity` block supports the following:
 
 A `frontend_private` block supports the following:
 
-* `allocation_method` - (Required) Specify the method for allocating the private IP. Possible values are `Static` and `Dynamic`.
+* `allocation_method` - (Required) Specify the method for allocating the private IP. Possible values are `Static` and `Dynamic`. Changing this forces a new NGINX Deployment to be created.
 
-* `ip_address` - (Required) Specify the private IP Address.
+* `ip_address` - (Required) Specify the private IP Address. Changing this forces a new NGINX Deployment to be created.
 
-* `subnet_id` - (Required) Specify the Subnet Resource ID for this NGINX Deployment.
+* `subnet_id` - (Required) Specify the Subnet Resource ID for this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
 
 ---
 
 A `frontend_public` block supports the following:
 
-* `ip_address` - (Optional) Specifies a list of Public IP Resource ID to this NGINX Deployment.
-
----
-
-A `logging_storage_account` block supports the following:
-
-* `container_name` - (Optional) Specify the container name in the Storage Account for logging.
-
-* `name` - (Optional) The name of the StorageAccount for NGINX Logging.
+* `ip_address` - (Optional) Specifies a list of Public IP Resource ID to this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
 
 ---
 
 A `network_interface` block supports the following:
 
-* `subnet_id` - (Required) Specify The Subnet Resource ID for this NGINX Deployment.
+* `subnet_id` - (Required) Specify The Subnet Resource ID for this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
 
 ---
 
@@ -168,7 +155,7 @@ An `auto_scale_profile` block supports the following:
 
 * `max_capacity` - (Required) Specify the maximum number of NGINX capacity units for this NGINX Deployment.
 
--> **NOTE:** If you're using autoscaling, you should use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
+-> **NOTE:** If you're using autoscaling with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
 ## Attributes Reference
 
@@ -176,9 +163,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the NGINX Deployment.
 
-* `ip_address` - The IP address of the deployment.
+* `ip_address` - The IP address of the NGINX Deployment.
 
-* `nginx_version` - The version of deployed NGINX.
+* `nginx_version` - The version of the NGINX Deployment.
+
+* `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
 
 ## Timeouts
 

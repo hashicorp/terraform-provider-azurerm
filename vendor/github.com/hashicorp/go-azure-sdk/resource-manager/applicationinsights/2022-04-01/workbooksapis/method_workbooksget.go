@@ -34,6 +34,7 @@ func (o WorkbooksGetOperationOptions) ToHeaders() *client.Headers {
 
 func (o WorkbooksGetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c WorkbooksAPIsClient) WorkbooksGet(ctx context.Context, id WorkbookId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c WorkbooksAPIsClient) WorkbooksGet(ctx context.Context, id WorkbookId, op
 
 	var model Workbook
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

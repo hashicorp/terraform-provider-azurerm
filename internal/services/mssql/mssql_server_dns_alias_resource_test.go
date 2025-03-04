@@ -8,10 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdnsaliases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -49,20 +51,20 @@ func TestAccServerDNSAlias_requiresImport(t *testing.T) {
 }
 
 func (r ServerDNSAliasResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ServerDNSAliasID(state.ID)
+	id, err := serverdnsaliases.ParseDnsAliasID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.ServerDNSAliasClient.Get(ctx, id.ResourceGroup, id.ServerName, id.DnsAliaseName)
+	resp, err := client.MSSQL.ServerDNSAliasClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retreiving %s: %v", id, err)
 	}
-	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
+	if response.WasNotFound(resp.HttpResponse) {
+		return pointer.To(false), nil
 	}
 	return utils.Bool(true), nil
 }

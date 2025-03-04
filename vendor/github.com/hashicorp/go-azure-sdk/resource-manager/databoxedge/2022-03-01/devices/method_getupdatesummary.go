@@ -46,7 +46,6 @@ func (c DevicesClient) GetUpdateSummary(ctx context.Context, id DataBoxEdgeDevic
 
 	var model UpdateSummary
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

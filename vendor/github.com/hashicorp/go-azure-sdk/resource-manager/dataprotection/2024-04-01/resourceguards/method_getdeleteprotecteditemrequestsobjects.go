@@ -23,6 +23,18 @@ type GetDeleteProtectedItemRequestsObjectsCompleteResult struct {
 	Items              []DppBaseResource
 }
 
+type GetDeleteProtectedItemRequestsObjectsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetDeleteProtectedItemRequestsObjectsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetDeleteProtectedItemRequestsObjects ...
 func (c ResourceGuardsClient) GetDeleteProtectedItemRequestsObjects(ctx context.Context, id ResourceGuardId) (result GetDeleteProtectedItemRequestsObjectsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ResourceGuardsClient) GetDeleteProtectedItemRequestsObjects(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetDeleteProtectedItemRequestsObjectsCustomPager{},
 		Path:       fmt.Sprintf("%s/deleteProtectedItemRequests", id.ID()),
 	}
 

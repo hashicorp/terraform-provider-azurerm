@@ -27,7 +27,6 @@ func TestSSHPublicKeyID(t *testing.T) {
 		Error    bool
 		Expected *SSHPublicKeyId
 	}{
-
 		{
 			// empty
 			Input: "",

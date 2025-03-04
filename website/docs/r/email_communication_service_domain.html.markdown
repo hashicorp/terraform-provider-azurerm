@@ -25,9 +25,8 @@ resource "azurerm_email_communication_service" "example" {
 }
 
 resource "azurerm_email_communication_service_domain" "example" {
-  name                = "AzureManagedDomain"
-  resource_group_name = azurerm_resource_group.example.name
-  email_service_name  = azurerm_email_communication_service.example.name
+  name             = "AzureManagedDomain"
+  email_service_id = azurerm_email_communication_service.example.id
 
   domain_management = "AzureManaged"
 }

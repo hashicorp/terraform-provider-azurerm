@@ -23,6 +23,18 @@ type VpnSiteLinksListByVpnSiteCompleteResult struct {
 	Items              []VpnSiteLink
 }
 
+type VpnSiteLinksListByVpnSiteCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VpnSiteLinksListByVpnSiteCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VpnSiteLinksListByVpnSite ...
 func (c VirtualWANsClient) VpnSiteLinksListByVpnSite(ctx context.Context, id VpnSiteId) (result VpnSiteLinksListByVpnSiteOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VirtualWANsClient) VpnSiteLinksListByVpnSite(ctx context.Context, id Vpn
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VpnSiteLinksListByVpnSiteCustomPager{},
 		Path:       fmt.Sprintf("%s/vpnSiteLinks", id.ID()),
 	}
 

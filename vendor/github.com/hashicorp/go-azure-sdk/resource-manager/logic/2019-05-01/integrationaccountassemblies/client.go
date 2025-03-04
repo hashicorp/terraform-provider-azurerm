@@ -15,7 +15,7 @@ type IntegrationAccountAssembliesClient struct {
 }
 
 func NewIntegrationAccountAssembliesClientWithBaseURI(sdkApi sdkEnv.Api) (*IntegrationAccountAssembliesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "integrationaccountassemblies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "integrationaccountassemblies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IntegrationAccountAssembliesClient: %+v", err)
 	}

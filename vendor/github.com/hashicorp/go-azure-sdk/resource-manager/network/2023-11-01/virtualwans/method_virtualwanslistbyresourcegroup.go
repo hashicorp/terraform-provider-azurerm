@@ -24,6 +24,18 @@ type VirtualWansListByResourceGroupCompleteResult struct {
 	Items              []VirtualWAN
 }
 
+type VirtualWansListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *VirtualWansListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // VirtualWansListByResourceGroup ...
 func (c VirtualWANsClient) VirtualWansListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result VirtualWansListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VirtualWANsClient) VirtualWansListByResourceGroup(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &VirtualWansListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/virtualWans", id.ID()),
 	}
 

@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -133,8 +133,6 @@ func TestAccCognitiveAccount_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("Face"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
-				check.That(data.ResourceName).Key("primary_access_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -163,8 +161,6 @@ func TestAccCognitiveAccount_update(t *testing.T) {
 				check.That(data.ResourceName).Key("kind").HasValue("Face"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
-				check.That(data.ResourceName).Key("primary_access_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
 			),
 		},
 	})
@@ -292,6 +288,47 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRules(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypass(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.networkAclsVirtualNetworkRulesWithBypassDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkAclsVirtualNetworkRulesWithBypass(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkAclsVirtualNetworkRulesWithBypassUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypassKindNotSupported(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data),
+			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services for the kind \"Face\""),
+		},
 	})
 }
 
@@ -956,7 +993,6 @@ resource "azurerm_cognitive_account" "test" {
       subnet_id                            = azurerm_subnet.test_b.id
       ignore_missing_vnet_service_endpoint = true
     }
-
   }
 }
 `, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
@@ -978,6 +1014,113 @@ resource "azurerm_cognitive_account" "test" {
     ip_rules       = ["123.0.0.101"]
     virtual_network_rules {
       subnet_id                            = azurerm_subnet.test_a.id
+      ignore_missing_vnet_service_endpoint = true
+    }
+  }
+}
+`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_account" "test" {
+  name                  = "acctestcogacc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "OpenAI"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestcogacc-%d"
+
+  network_acls {
+    default_action = "Deny"
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id                            = azurerm_subnet.test_b.id
+      ignore_missing_vnet_service_endpoint = true
+    }
+  }
+}
+`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypass(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_account" "test" {
+  name                  = "acctestcogacc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "OpenAI"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestcogacc-%d"
+
+  network_acls {
+    bypass         = "AzureServices"
+    default_action = "Allow"
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id                            = azurerm_subnet.test_b.id
+      ignore_missing_vnet_service_endpoint = true
+    }
+  }
+}
+`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_account" "test" {
+  name                  = "acctestcogacc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "OpenAI"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestcogacc-%d"
+
+  network_acls {
+    bypass         = "None"
+    default_action = "Allow"
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id                            = azurerm_subnet.test_b.id
+      ignore_missing_vnet_service_endpoint = true
+    }
+  }
+}
+`, r.networkAclsTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r CognitiveAccountResource) networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cognitive_account" "test" {
+  name                  = "acctestcogacc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "Face"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestcogacc-%d"
+
+  network_acls {
+    bypass         = "AzureServices"
+    default_action = "Deny"
+    virtual_network_rules {
+      subnet_id = azurerm_subnet.test_a.id
+    }
+    virtual_network_rules {
+      subnet_id                            = azurerm_subnet.test_b.id
       ignore_missing_vnet_service_endpoint = true
     }
   }

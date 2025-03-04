@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -125,40 +125,9 @@ provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-vdesktop-%d"
-  location = "westeurope"
+  location = "%s"
 }
 
-resource "azurerm_role_definition" "test" {
-  name        = "AVD-AutoScale%s"
-  scope       = azurerm_resource_group.test.id
-  description = "AVD AutoScale Role"
-
-  permissions {
-    actions = [
-      "Microsoft.Insights/eventtypes/values/read",
-      "Microsoft.Compute/virtualMachines/deallocate/action",
-      "Microsoft.Compute/virtualMachines/restart/action",
-      "Microsoft.Compute/virtualMachines/powerOff/action",
-      "Microsoft.Compute/virtualMachines/start/action",
-      "Microsoft.Compute/virtualMachines/read",
-      "Microsoft.DesktopVirtualization/hostpools/read",
-      "Microsoft.DesktopVirtualization/hostpools/write",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/read",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/write",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/usersessions/delete",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/usersessions/read",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/usersessions/sendMessage/action",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/usersessions/read"
-    ]
-    not_actions = []
-  }
-
-  assignable_scopes = [
-    azurerm_resource_group.test.id, # /subscriptions/00000000-0000-0000-0000-000000000000
-  ]
-
-  depends_on = [azurerm_resource_group.test]
-}
 
 data "azuread_service_principal" "test" {
   display_name = "Windows Virtual Desktop"
@@ -167,11 +136,9 @@ data "azuread_service_principal" "test" {
 resource "azurerm_role_assignment" "test" {
   name                             = "%s"
   scope                            = azurerm_resource_group.test.id
-  role_definition_id               = azurerm_role_definition.test.role_definition_resource_id
-  principal_id                     = data.azuread_service_principal.test.application_id
+  role_definition_name             = "Desktop Virtualization Power On Off Contributor"
+  principal_id                     = data.azuread_service_principal.test.object_id
   skip_service_principal_aad_check = true
-
-  depends_on = [azurerm_role_definition.test]
 }
 
 resource "azurerm_virtual_desktop_host_pool" "test" {
@@ -185,7 +152,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 
 resource "azurerm_virtual_desktop_scaling_plan" "test" {
   name                = "scalingPlan%x"
-  location            = "westeurope"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   friendly_name       = "Scaling Plan Test"
   description         = "Test Scaling Plan"
@@ -200,7 +167,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "test" {
     peak_start_time                      = "09:00"
     peak_load_balancing_algorithm        = "BreadthFirst"
     ramp_down_start_time                 = "18:00"
-    ramp_down_load_balancing_algorithm   = "DepthFirst"
+    ramp_down_load_balancing_algorithm   = "BreadthFirst"
     ramp_down_minimum_hosts_percent      = 10
     ramp_down_force_logoff_users         = false
     ramp_down_wait_time_minutes          = 45
@@ -208,14 +175,14 @@ resource "azurerm_virtual_desktop_scaling_plan" "test" {
     ramp_down_capacity_threshold_percent = 5
     ramp_down_stop_hosts_when            = "ZeroSessions"
     off_peak_start_time                  = "22:00"
-    off_peak_load_balancing_algorithm    = "DepthFirst"
+    off_peak_load_balancing_algorithm    = "BreadthFirst"
   }
 
   depends_on = [azurerm_role_assignment.test]
 
 
 }
-`, data.RandomInteger, data.RandomString, roleAssignmentId, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, roleAssignmentId, data.RandomString, data.RandomString)
 }
 
 func (VirtualDesktopScalingPlanResource) complete(data acceptance.TestData, roleAssignmentId string) string {
@@ -228,39 +195,7 @@ provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-vdesktop-%d"
-  location = "westeurope"
-}
-
-resource "azurerm_role_definition" "test" {
-  name        = "AVD-AutoScale%s"
-  scope       = azurerm_resource_group.test.id
-  description = "AVD AutoScale Role"
-
-  permissions {
-    actions = [
-      "Microsoft.Insights/eventtypes/values/read",
-      "Microsoft.Compute/virtualMachines/deallocate/action",
-      "Microsoft.Compute/virtualMachines/restart/action",
-      "Microsoft.Compute/virtualMachines/powerOff/action",
-      "Microsoft.Compute/virtualMachines/start/action",
-      "Microsoft.Compute/virtualMachines/read",
-      "Microsoft.DesktopVirtualization/hostpools/read",
-      "Microsoft.DesktopVirtualization/hostpools/write",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/read",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/write",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/usersessions/delete",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/usersessions/read",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/usersessions/sendMessage/action",
-      "Microsoft.DesktopVirtualization/hostpools/sessionhosts/usersessions/read"
-    ]
-    not_actions = []
-  }
-
-  assignable_scopes = [
-    azurerm_resource_group.test.id, # /subscriptions/00000000-0000-0000-0000-000000000000
-  ]
-
-  depends_on = [azurerm_resource_group.test]
+  location = "%s"
 }
 
 data "azuread_service_principal" "test" {
@@ -270,11 +205,9 @@ data "azuread_service_principal" "test" {
 resource "azurerm_role_assignment" "test" {
   name                             = "%s"
   scope                            = azurerm_resource_group.test.id
-  role_definition_id               = azurerm_role_definition.test.role_definition_resource_id
-  principal_id                     = data.azuread_service_principal.test.application_id
+  role_definition_name             = "Desktop Virtualization Power On Off Contributor"
+  principal_id                     = data.azuread_service_principal.test.object_id
   skip_service_principal_aad_check = true
-
-  depends_on = [azurerm_role_definition.test]
 }
 
 resource "azurerm_virtual_desktop_host_pool" "test" {
@@ -288,7 +221,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
 
 resource "azurerm_virtual_desktop_scaling_plan" "test" {
   name                = "scalingPlan%x"
-  location            = "westeurope"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   friendly_name       = "Scaling Plan Test"
   description         = "Test Scaling Plan"
@@ -304,7 +237,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "test" {
     peak_start_time                      = "09:00"
     peak_load_balancing_algorithm        = "BreadthFirst"
     ramp_down_start_time                 = "19:00"
-    ramp_down_load_balancing_algorithm   = "DepthFirst"
+    ramp_down_load_balancing_algorithm   = "BreadthFirst"
     ramp_down_minimum_hosts_percent      = 10
     ramp_down_force_logoff_users         = false
     ramp_down_wait_time_minutes          = 45
@@ -312,7 +245,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "test" {
     ramp_down_capacity_threshold_percent = 5
     ramp_down_stop_hosts_when            = "ZeroSessions"
     off_peak_start_time                  = "22:00"
-    off_peak_load_balancing_algorithm    = "DepthFirst"
+    off_peak_load_balancing_algorithm    = "BreadthFirst"
   }
 
   schedule {
@@ -325,7 +258,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "test" {
     peak_start_time                      = "10:00"
     peak_load_balancing_algorithm        = "BreadthFirst"
     ramp_down_start_time                 = "16:00"
-    ramp_down_load_balancing_algorithm   = "DepthFirst"
+    ramp_down_load_balancing_algorithm   = "BreadthFirst"
     ramp_down_minimum_hosts_percent      = 10
     ramp_down_force_logoff_users         = false
     ramp_down_wait_time_minutes          = 45
@@ -333,7 +266,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "test" {
     ramp_down_capacity_threshold_percent = 5
     ramp_down_stop_hosts_when            = "ZeroSessions"
     off_peak_start_time                  = "20:00"
-    off_peak_load_balancing_algorithm    = "DepthFirst"
+    off_peak_load_balancing_algorithm    = "BreadthFirst"
   }
 
 
@@ -344,7 +277,7 @@ resource "azurerm_virtual_desktop_scaling_plan" "test" {
   depends_on = [azurerm_role_assignment.test]
 }
 
-`, data.RandomInteger, data.RandomString, roleAssignmentId, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, roleAssignmentId, data.RandomString, data.RandomString)
 }
 
 func (r VirtualDesktopScalingPlanResource) requiresImport(data acceptance.TestData, roleAssignmentId string) string {

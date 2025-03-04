@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems` Documentation
 
-The `amlfilesystems` SDK allows for interaction with the Azure Resource Manager Service `storagecache` (API Version `2023-05-01`).
+The `amlfilesystems` SDK allows for interaction with Azure Resource Manager `storagecache` (API Version `2023-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemValue")
+id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemName")
 
 payload := amlfilesystems.AmlFilesystemArchiveInfo{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemValue")
+id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemName")
 
 read, err := client.CancelArchive(ctx, id)
 if err != nil {
@@ -83,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemValue")
+id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemName")
 
 payload := amlfilesystems.AmlFilesystem{
 	// ...
@@ -100,7 +100,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemValue")
+id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -112,7 +112,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemValue")
+id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -183,7 +183,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemValue")
+id := amlfilesystems.NewAmlFilesystemID("12345678-1234-9876-4563-123456789012", "example-resource-group", "amlFilesystemName")
 
 payload := amlfilesystems.AmlFilesystemUpdate{
 	// ...

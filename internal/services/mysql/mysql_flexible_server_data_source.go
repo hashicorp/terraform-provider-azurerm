@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -264,18 +264,18 @@ func flattenDataSourceArmServerStorage(storage *servers.Storage) []interface{} {
 	}
 }
 
-func flattenDataSourceFlexibleServerSku(sku *servers.Sku) (string, error) {
+func flattenDataSourceFlexibleServerSku(sku *servers.MySQLServerSku) (string, error) {
 	if sku == nil || sku.Name == "" || sku.Tier == "" {
 		return "", nil
 	}
 
 	var tier string
 	switch sku.Tier {
-	case servers.SkuTierBurstable:
+	case servers.ServerSkuTierBurstable:
 		tier = "B"
-	case servers.SkuTierGeneralPurpose:
+	case servers.ServerSkuTierGeneralPurpose:
 		tier = "GP"
-	case servers.SkuTierMemoryOptimized:
+	case servers.ServerSkuTierMemoryOptimized:
 		tier = "MO"
 	default:
 		return "", fmt.Errorf("sku_name has unknown sku tier %s", sku.Tier)

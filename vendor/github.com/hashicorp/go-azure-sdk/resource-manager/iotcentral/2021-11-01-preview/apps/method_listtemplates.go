@@ -24,6 +24,18 @@ type ListTemplatesCompleteResult struct {
 	Items              []AppTemplate
 }
 
+type ListTemplatesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListTemplatesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListTemplates ...
 func (c AppsClient) ListTemplates(ctx context.Context, id commonids.SubscriptionId) (result ListTemplatesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppsClient) ListTemplates(ctx context.Context, id commonids.Subscription
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &ListTemplatesCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.IoTCentral/appTemplates", id.ID()),
 	}
 

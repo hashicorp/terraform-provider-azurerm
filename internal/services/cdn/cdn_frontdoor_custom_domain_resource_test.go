@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontDoorCustomDomainResource struct {
-}
+type CdnFrontDoorCustomDomainResource struct{}
 
 func TestAccCdnFrontDoorCustomDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
@@ -50,6 +50,9 @@ func TestAccCdnFrontDoorCustomDomain_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorCustomDomain_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("There is no available `tls_version` to test update, to test CMK, it requires an official certificate from approved provider list instead of testing cert.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_custom_domain", "test")
 	r := CdnFrontDoorCustomDomainResource{}
 
@@ -120,7 +123,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
     minimum_tls_version = "TLS12"
   }
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(8))
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r CdnFrontDoorCustomDomainResource) requiresImport(data acceptance.TestData) string {
@@ -151,14 +154,15 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   name                     = "acctestcustomdomain-%[2]d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
   dns_zone_id              = azurerm_dns_zone.test.id
-  host_name                = join(".", ["sub-%[3]s", azurerm_dns_zone.test.name])
+  host_name                = join(".", ["%s", azurerm_dns_zone.test.name])
 
   tls {
     certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS10"
+    minimum_tls_version = "TLS12"
   }
+
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(8))
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func (r CdnFrontDoorCustomDomainResource) complete(data acceptance.TestData) string {
@@ -174,10 +178,10 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   tls {
     certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS10"
+    minimum_tls_version = "TLS12"
   }
 }
-`, template, data.RandomInteger, data.RandomStringOfLength(8))
+`, template, data.RandomInteger, data.RandomString)
 }
 
 // TODO: Add test case that uses pre_validated_custom_domain_resource_id

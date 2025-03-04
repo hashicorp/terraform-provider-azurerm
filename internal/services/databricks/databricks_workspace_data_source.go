@@ -99,6 +99,34 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"enhanced_security_compliance": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"automatic_cluster_update_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"compliance_security_profile_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"compliance_security_profile_standards": {
+							Type:     pluginsdk.TypeSet,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+						"enhanced_security_monitoring_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -136,8 +164,11 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		if err := d.Set("managed_disk_identity", flattenWorkspaceManagedIdentity(model.Properties.ManagedDiskIdentity)); err != nil {
 			return fmt.Errorf("setting `managed_disk_identity`: %+v", err)
 		}
-		d.Set("workspace_url", model.Properties.WorkspaceUrl)
+		d.Set("workspace_url", model.Properties.WorkspaceURL)
 		d.Set("location", model.Location)
+		if err := d.Set("enhanced_security_compliance", flattenWorkspaceEnhancedSecurity(model.Properties.EnhancedSecurityCompliance)); err != nil {
+			return fmt.Errorf("setting `enhanced_security_compliance`: %+v", err)
+		}
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}

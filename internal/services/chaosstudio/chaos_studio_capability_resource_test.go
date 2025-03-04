@@ -76,6 +76,7 @@ func (r ChaosStudioCapabilityTestResource) Exists(ctx context.Context, clients *
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r ChaosStudioCapabilityTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -96,9 +97,8 @@ func (r ChaosStudioCapabilityTestResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_chaos_studio_capability" "import" {
-  location           = azurerm_chaos_studio_capability.test.location
-  target_resource_id = azurerm_chaos_studio_capability.test.target_resource_id
-  target_type        = azurerm_chaos_studio_capability.test.target_type
+  chaos_studio_target_id = azurerm_chaos_studio_capability.test.chaos_studio_target_id
+  capability_type        = azurerm_chaos_studio_capability.test.capability_type
 }
 `, r.basic(data))
 }
@@ -112,15 +112,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_chaos_studio_capability" "another" {
-  location           = azurerm_resource_group.test.location
-  target_resource_id = azurerm_storage_account.test.id
-  target_type        = "NetworkChaos-2.0"
+  chaos_studio_target_id = azurerm_storage_account.test.id
+  capability_type        = "NetworkChaos-2.0"
 }
 
 resource "azurerm_chaos_studio_capability" "test" {
-  location           = azurerm_resource_group.test.location
-  target_resource_id = azurerm_storage_account.test.id
-  target_type        = "PodChaos-2.1"
+  chaos_studio_target_id = azurerm_storage_account.test.id
+  capability_type        = "PodChaos-2.1"
 }
 `, r.template(data))
 }
@@ -141,7 +139,6 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestrg-${var.random_integer}"
   location = var.primary_location
 }
-
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks${var.random_string}"

@@ -36,7 +36,7 @@ func Default() UserFeatures {
 			RecoverSoftDeletedHSMKeys:        true,
 		},
 		LogAnalyticsWorkspace: LogAnalyticsWorkspaceFeatures{
-			PermanentlyDeleteOnDestroy: true,
+			PermanentlyDeleteOnDestroy: false,
 		},
 		ManagedDisk: ManagedDiskFeatures{
 			ExpandWithoutDowntime: true,
@@ -62,6 +62,9 @@ func Default() UserFeatures {
 			RollInstancesWhenRequired: true,
 			ScaleToZeroOnDelete:       true,
 		},
+		Storage: StorageFeatures{
+			DataPlaneAvailable: true,
+		},
 		Subscription: SubscriptionFeatures{
 			PreventCancellationOnDestroy: false,
 		},
@@ -72,8 +75,13 @@ func Default() UserFeatures {
 			PurgeSoftDeletedWorkspaceOnDestroy: false,
 		},
 		RecoveryService: RecoveryServiceFeatures{
-			VMBackupStopProtectionAndRetainDataOnDestroy: false,
-			PurgeProtectedItemsFromVaultOnDestroy:        false,
+			VMBackupStopProtectionAndRetainDataOnDestroy:    false,
+			VMBackupSuspendProtectionAndRetainDataOnDestroy: false,
+			PurgeProtectedItemsFromVaultOnDestroy:           false,
+		},
+		NetApp: NetAppFeatures{
+			DeleteBackupsOnBackupVaultDestroy: false,
+			PreventVolumeDestruction:          true,
 		},
 	}
 }

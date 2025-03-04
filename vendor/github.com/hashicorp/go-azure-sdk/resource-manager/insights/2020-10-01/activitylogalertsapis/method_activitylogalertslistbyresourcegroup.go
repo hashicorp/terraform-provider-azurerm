@@ -24,6 +24,18 @@ type ActivityLogAlertsListByResourceGroupCompleteResult struct {
 	Items              []ActivityLogAlertResource
 }
 
+type ActivityLogAlertsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ActivityLogAlertsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ActivityLogAlertsListByResourceGroup ...
 func (c ActivityLogAlertsAPIsClient) ActivityLogAlertsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ActivityLogAlertsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ActivityLogAlertsAPIsClient) ActivityLogAlertsListByResourceGroup(ctx co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ActivityLogAlertsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Insights/activityLogAlerts", id.ID()),
 	}
 

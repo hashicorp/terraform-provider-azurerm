@@ -6,12 +6,12 @@ package common
 import (
 	"strings"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// CosmosDBIpRulesToIpRangeFilterThreePointOh todo Remove for 4.0
-func CosmosDBIpRulesToIpRangeFilterThreePointOh(ipRules *[]cosmosdb.IPAddressOrRange) string {
+// CosmosDBIpRulesToIpRangeFilterDataSource todo Remove for 4.0
+func CosmosDBIpRulesToIpRangeFilterDataSource(ipRules *[]cosmosdb.IPAddressOrRange) string {
 	ipRangeFilter := make([]string, 0)
 	if ipRules != nil {
 		for _, ipRule := range *ipRules {

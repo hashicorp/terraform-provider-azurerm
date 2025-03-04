@@ -13,7 +13,16 @@ var _ DeleteOption = AbsoluteDeleteOption{}
 type AbsoluteDeleteOption struct {
 
 	// Fields inherited from DeleteOption
-	Duration string `json:"duration"`
+
+	Duration   string `json:"duration"`
+	ObjectType string `json:"objectType"`
+}
+
+func (s AbsoluteDeleteOption) DeleteOption() BaseDeleteOptionImpl {
+	return BaseDeleteOptionImpl{
+		Duration:   s.Duration,
+		ObjectType: s.ObjectType,
+	}
 }
 
 var _ json.Marshaler = AbsoluteDeleteOption{}
@@ -27,9 +36,10 @@ func (s AbsoluteDeleteOption) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AbsoluteDeleteOption: %+v", err)
 	}
+
 	decoded["objectType"] = "AbsoluteDeleteOption"
 
 	encoded, err = json.Marshal(decoded)

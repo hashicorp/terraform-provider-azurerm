@@ -24,6 +24,18 @@ type MonitorsListByResourceGroupCompleteResult struct {
 	Items              []DatadogMonitorResource
 }
 
+type MonitorsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *MonitorsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // MonitorsListByResourceGroup ...
 func (c MonitorsResourceClient) MonitorsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result MonitorsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c MonitorsResourceClient) MonitorsListByResourceGroup(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &MonitorsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Datadog/monitors", id.ID()),
 	}
 

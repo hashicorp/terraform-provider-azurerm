@@ -11,11 +11,19 @@ import (
 var _ SecretBase = AzureKeyVaultSecretReference{}
 
 type AzureKeyVaultSecretReference struct {
-	SecretName    interface{}            `json:"secretName"`
-	SecretVersion *interface{}           `json:"secretVersion,omitempty"`
+	SecretName    string                 `json:"secretName"`
+	SecretVersion *string                `json:"secretVersion,omitempty"`
 	Store         LinkedServiceReference `json:"store"`
 
 	// Fields inherited from SecretBase
+
+	Type string `json:"type"`
+}
+
+func (s AzureKeyVaultSecretReference) SecretBase() BaseSecretBaseImpl {
+	return BaseSecretBaseImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AzureKeyVaultSecretReference{}
@@ -29,9 +37,10 @@ func (s AzureKeyVaultSecretReference) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureKeyVaultSecretReference: %+v", err)
 	}
+
 	decoded["type"] = "AzureKeyVaultSecret"
 
 	encoded, err = json.Marshal(decoded)

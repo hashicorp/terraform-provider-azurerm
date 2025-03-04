@@ -36,6 +36,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,8 +55,8 @@ func (c ApiOperationPolicyClient) CreateOrUpdate(ctx context.Context, id Operati
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          fmt.Sprintf("%s/policies/policy", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/policies/policy", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -79,7 +80,6 @@ func (c ApiOperationPolicyClient) CreateOrUpdate(ctx context.Context, id Operati
 
 	var model PolicyContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

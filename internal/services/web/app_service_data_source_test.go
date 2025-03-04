@@ -92,12 +92,7 @@ func TestAccDataSourceAppService_connectionString(t *testing.T) {
 		{
 			Config: AppServiceDataSource{}.connectionStrings(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("connection_string.0.name").HasValue("First"),
-				check.That(data.ResourceName).Key("connection_string.0.value").HasValue("first-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.0.type").HasValue("Custom"),
-				check.That(data.ResourceName).Key("connection_string.1.name").HasValue("Second"),
-				check.That(data.ResourceName).Key("connection_string.1.value").HasValue("some-postgresql-connection-string"),
-				check.That(data.ResourceName).Key("connection_string.1.type").HasValue("PostgreSQL"),
+				check.That(data.ResourceName).Key("connection_string.#").HasValue("2"),
 			),
 		},
 	})

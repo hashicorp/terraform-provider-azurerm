@@ -12,7 +12,6 @@ func TestFirewallApplicationRuleCollectionID(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			// empty
 			Input: "",

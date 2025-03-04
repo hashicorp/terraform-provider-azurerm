@@ -14,7 +14,16 @@ type DynamicDeliveryAttributeMapping struct {
 	Properties *DynamicDeliveryAttributeMappingProperties `json:"properties,omitempty"`
 
 	// Fields inherited from DeliveryAttributeMapping
-	Name *string `json:"name,omitempty"`
+
+	Name *string                      `json:"name,omitempty"`
+	Type DeliveryAttributeMappingType `json:"type"`
+}
+
+func (s DynamicDeliveryAttributeMapping) DeliveryAttributeMapping() BaseDeliveryAttributeMappingImpl {
+	return BaseDeliveryAttributeMappingImpl{
+		Name: s.Name,
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = DynamicDeliveryAttributeMapping{}
@@ -28,9 +37,10 @@ func (s DynamicDeliveryAttributeMapping) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DynamicDeliveryAttributeMapping: %+v", err)
 	}
+
 	decoded["type"] = "Dynamic"
 
 	encoded, err = json.Marshal(decoded)

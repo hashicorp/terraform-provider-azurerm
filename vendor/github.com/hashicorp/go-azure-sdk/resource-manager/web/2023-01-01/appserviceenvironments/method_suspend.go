@@ -27,6 +27,18 @@ type SuspendCompleteResult struct {
 	Items              []Site
 }
 
+type SuspendCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SuspendCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // Suspend ...
 func (c AppServiceEnvironmentsClient) Suspend(ctx context.Context, id commonids.AppServiceEnvironmentId) (result SuspendOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -36,6 +48,7 @@ func (c AppServiceEnvironmentsClient) Suspend(ctx context.Context, id commonids.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &SuspendCustomPager{},
 		Path:       fmt.Sprintf("%s/suspend", id.ID()),
 	}
 

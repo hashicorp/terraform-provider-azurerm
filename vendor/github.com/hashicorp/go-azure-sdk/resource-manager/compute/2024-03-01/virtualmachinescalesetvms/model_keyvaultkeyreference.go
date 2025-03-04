@@ -4,6 +4,6 @@ package virtualmachinescalesetvms
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type KeyVaultKeyReference struct {
-	KeyUrl      string      `json:"keyUrl"`
+	KeyURL      string      `json:"keyUrl"`
 	SourceVault SubResource `json:"sourceVault"`
 }

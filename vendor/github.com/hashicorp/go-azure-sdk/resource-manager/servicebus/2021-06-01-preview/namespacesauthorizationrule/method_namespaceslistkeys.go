@@ -46,7 +46,6 @@ func (c NamespacesAuthorizationRuleClient) NamespacesListKeys(ctx context.Contex
 
 	var model AccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

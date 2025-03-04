@@ -23,6 +23,18 @@ type ListByNotificationCompleteResult struct {
 	Items              []RecipientUserContract
 }
 
+type ListByNotificationCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByNotificationCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByNotification ...
 func (c NotificationRecipientUserClient) ListByNotification(ctx context.Context, id NotificationId) (result ListByNotificationOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c NotificationRecipientUserClient) ListByNotification(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByNotificationCustomPager{},
 		Path:       fmt.Sprintf("%s/recipientUsers", id.ID()),
 	}
 

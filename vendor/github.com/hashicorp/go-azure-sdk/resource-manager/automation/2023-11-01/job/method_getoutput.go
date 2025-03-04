@@ -36,6 +36,7 @@ func (o GetOutputOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOutputOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c JobClient) GetOutput(ctx context.Context, id JobId, options GetOutputOpe
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/output", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/output", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c JobClient) GetOutput(ctx context.Context, id JobId, options GetOutputOpe
 
 	var model string
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

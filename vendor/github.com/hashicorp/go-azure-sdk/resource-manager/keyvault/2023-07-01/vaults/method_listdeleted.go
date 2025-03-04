@@ -24,6 +24,18 @@ type ListDeletedCompleteResult struct {
 	Items              []DeletedVault
 }
 
+type ListDeletedCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListDeletedCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListDeleted ...
 func (c VaultsClient) ListDeleted(ctx context.Context, id commonids.SubscriptionId) (result ListDeletedOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c VaultsClient) ListDeleted(ctx context.Context, id commonids.Subscription
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListDeletedCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.KeyVault/deletedVaults", id.ID()),
 	}
 

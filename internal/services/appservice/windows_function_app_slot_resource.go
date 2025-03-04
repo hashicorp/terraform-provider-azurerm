@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -73,6 +73,7 @@ type WindowsFunctionAppSlotModel struct {
 	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
 	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
 	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
+	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
 }
 
 var _ sdk.ResourceWithUpdate = WindowsFunctionAppSlotResource{}
@@ -280,6 +281,13 @@ func (r WindowsFunctionAppSlotResource) Arguments() map[string]*pluginsdk.Schema
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
+
+		"vnet_image_pull_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+		},
 	}
 }
 
@@ -444,6 +452,10 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 
 						availabilityRequest.Name = fmt.Sprintf("%s.%s", functionAppSlot.Name, nameSuffix)
 						availabilityRequest.IsFqdn = pointer.To(true)
+
+						if !functionAppSlot.VnetImagePullEnabled {
+							return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
+						}
 					}
 				}
 			}
@@ -530,6 +542,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled:    pointer.To(functionAppSlot.ClientCertEnabled),
 					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionAppSlot.ClientCertMode)),
 					DailyMemoryTimeQuota: pointer.To(functionAppSlot.DailyMemoryTimeQuota),
+					VnetImagePullEnabled: pointer.To(functionAppSlot.VnetImagePullEnabled),
 					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
 				},
 			}
@@ -754,6 +767,7 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -785,7 +799,6 @@ func (r WindowsFunctionAppSlotResource) Read() sdk.ResourceFunc {
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
 						state.VirtualNetworkSubnetID = subnetId
 					}
-
 				}
 
 				configResp, err := client.GetConfigurationSlot(ctx, *id)
@@ -943,6 +956,10 @@ func (r WindowsFunctionAppSlotResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("vnet_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VnetImagePullEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("storage_account") {
@@ -1196,6 +1213,38 @@ func (r WindowsFunctionAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.WindowsFunctionAppSlotV0toV1{},
+		},
+	}
+}
+
+func (r WindowsFunctionAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			appClient := metadata.Client.AppService.WebAppsClient
+			rd := metadata.ResourceDiff
+			if rd.HasChange("vnet_image_pull_enabled") {
+				appId := rd.Get("function_app_id")
+				if appId.(string) == "" {
+					return nil
+				}
+				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				functionAppId, err := commonids.ParseAppServiceID(appId.(string))
+				if err != nil {
+					return err
+				}
+
+				functionApp, err := appClient.Get(ctx, *functionAppId)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %+v", functionAppId, err)
+				}
+				if functionAppModel := functionApp.Model; functionAppModel != nil && functionAppModel.Properties != nil {
+					if ase := functionAppModel.Properties.HostingEnvironmentProfile; ase != nil && ase.Id != nil && *(ase.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app slot running in an app service environment")
+					}
+				}
+			}
+			return nil
 		},
 	}
 }

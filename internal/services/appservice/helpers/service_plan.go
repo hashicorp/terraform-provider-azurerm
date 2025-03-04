@@ -9,16 +9,17 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
-	ServicePlanTypeConsumption = "consumption"
-	ServicePlanTypeElastic     = "elastic"
-	ServicePlanTypeIsolated    = "isolated"
-	ServicePlanTypeAppPlan     = "app"
+	ServicePlanTypeConsumption     = "consumption"
+	ServicePlanTypeFlexConsumption = "flexconsumption"
+	ServicePlanTypeElastic         = "elastic"
+	ServicePlanTypeIsolated        = "isolated"
+	ServicePlanTypeAppPlan         = "app"
 )
 
 var appServicePlanSkus = []string{
@@ -42,6 +43,16 @@ var consumptionSkus = []string{
 	"Y1",
 }
 
+var premiumSkus = []string{
+	"P1v2", "P2v2", "P3v2", // Premium V2
+	"P0v3", "P1v3", "P2v3", "P3v3", // Premium V3
+	"P1mv3", "P2mv3", "P3mv3", "P4mv3", "P5mv3", // Premium V3 memory optimized
+}
+
+var flexConsumptionSkus = []string{
+	"FC1",
+}
+
 var elasticSkus = []string{
 	"EP1", "EP2", "EP3",
 }
@@ -49,6 +60,7 @@ var elasticSkus = []string{
 var isolatedSkus = []string{
 	"I1", "I2", "I3", // Isolated V1 - ASEV2
 	"I1v2", "I2v2", "I3v2", "I4v2", "I5v2", "I6v2", // Isolated v2 - ASEv3
+	"I1mv2", "I2mv2", "I3mv2", "I4mv2", "I5mv2", // Isolated v2 - ASEv3 memory optimized
 }
 
 var workflowSkus = []string{
@@ -61,6 +73,7 @@ func AllKnownServicePlanSkus() []string {
 	allSkus = append(allSkus, appServicePlanSkus...)
 	allSkus = append(allSkus, consumptionSkus...)
 	allSkus = append(allSkus, elasticSkus...)
+	allSkus = append(allSkus, flexConsumptionSkus...)
 	allSkus = append(allSkus, freeSkus...)
 	allSkus = append(allSkus, isolatedSkus...)
 	allSkus = append(allSkus, sharedSkus...)
@@ -74,6 +87,32 @@ func PlanIsConsumption(input *string) bool {
 		return false
 	}
 	for _, v := range consumptionSkus {
+		if strings.EqualFold(*input, v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func PlanIsPremium(input string) bool {
+	if input == "" {
+		return false
+	}
+	for _, v := range premiumSkus {
+		if strings.EqualFold(input, v) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func PlanIsFlexConsumption(input *string) bool {
+	if input == nil {
+		return false
+	}
+	for _, v := range flexConsumptionSkus {
 		if strings.EqualFold(*input, v) {
 			return true
 		}

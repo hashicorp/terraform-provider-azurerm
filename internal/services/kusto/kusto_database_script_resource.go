@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/scripts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/scripts"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -141,11 +141,11 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if scriptURL, ok := d.GetOk("url"); ok {
-		parameters.Properties.ScriptUrl = utils.String(scriptURL.(string))
+		parameters.Properties.ScriptURL = utils.String(scriptURL.(string))
 	}
 
 	if scriptURLSasToken, ok := d.GetOk("sas_token"); ok {
-		parameters.Properties.ScriptUrlSasToken = utils.String(scriptURLSasToken.(string))
+		parameters.Properties.ScriptURLSasToken = utils.String(scriptURLSasToken.(string))
 	}
 
 	if scriptContent, ok := d.GetOk("script_content"); ok {
@@ -186,7 +186,7 @@ func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := resp.Model.Properties; props != nil {
 			d.Set("continue_on_errors_enabled", props.ContinueOnErrors)
 			d.Set("force_an_update_when_value_changed", props.ForceUpdateTag)
-			d.Set("url", props.ScriptUrl)
+			d.Set("url", props.ScriptURL)
 		}
 	}
 	return nil

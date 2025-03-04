@@ -257,7 +257,7 @@ func flattenDevTestGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *glob
 func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.ResourceData) *globalschedules.NotificationSettings {
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
-	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
+	webhookURL := notificationSettingsConfig["webhook_url"].(string)
 	timeInMinutes := int64(notificationSettingsConfig["time_in_minutes"].(int))
 	email := notificationSettingsConfig["email"].(string)
 
@@ -269,7 +269,7 @@ func expandDevTestGlobalVMShutdownScheduleNotificationSettings(d *pluginsdk.Reso
 	}
 
 	return &globalschedules.NotificationSettings{
-		WebhookUrl:     &webhookUrl,
+		WebhookURL:     &webhookURL,
 		TimeInMinutes:  &timeInMinutes,
 		Status:         &notificationStatus,
 		EmailRecipient: &email,
@@ -283,8 +283,8 @@ func flattenDevTestGlobalVMShutdownScheduleNotificationSettings(notificationSett
 
 	result := make(map[string]interface{})
 
-	if notificationSettings.WebhookUrl != nil {
-		result["webhook_url"] = *notificationSettings.WebhookUrl
+	if notificationSettings.WebhookURL != nil {
+		result["webhook_url"] = *notificationSettings.WebhookURL
 	}
 
 	if notificationSettings.TimeInMinutes != nil {

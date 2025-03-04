@@ -45,7 +45,6 @@ func (c BudgetsClient) Get(ctx context.Context, id ScopedBudgetId) (result GetOp
 
 	var model Budget
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

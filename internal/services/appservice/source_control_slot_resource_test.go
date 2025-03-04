@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -191,7 +191,7 @@ func (r SourceControlSlotResource) Exists(ctx context.Context, client *clients.C
 		}
 		return nil, fmt.Errorf("retrieving Source Control for %s: %v", id, err)
 	}
-	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.RepoUrl == nil {
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.RepoURL == nil {
 		return utils.Bool(false), nil
 	}
 

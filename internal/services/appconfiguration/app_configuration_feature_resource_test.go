@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
+	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type AppConfigurationFeatureResource struct{}
@@ -77,6 +77,7 @@ func TestAccAppConfigurationFeature_percentFilter(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccAppConfigurationFeature_basicNoLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
 	r := AppConfigurationFeatureResource{}
@@ -221,6 +222,27 @@ func TestAccAppConfigurationFeature_enabledUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 			),
 		},
+	})
+}
+
+func TestAccAppConfigurationFeature_basicAddTargetingFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration_feature", "test")
+	r := AppConfigurationFeatureResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicNoFilters(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicTargetingFilter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -476,6 +498,27 @@ resource "azurerm_app_configuration_feature" "test" {
   name                   = "acctest-ackey-%[2]d"
   label                  = "acctest-ackeylabel-%[2]d"
   enabled                = true
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (t AppConfigurationFeatureResource) basicTargetingFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_configuration_feature" "test" {
+  configuration_store_id = azurerm_app_configuration.test.id
+  description            = "test description"
+  name                   = "acctest-ackey-%[2]d"
+  label                  = "acctest-ackeylabel-%[2]d"
+  enabled                = true
+
+  targeting_filter {
+    default_rollout_percentage = 39
+    users = [
+      "random", "user"
+    ]
+  }
 }
 `, t.template(data), data.RandomInteger)
 }

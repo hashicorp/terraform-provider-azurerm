@@ -15,7 +15,7 @@ type AuthorizationRulesNamespacesClient struct {
 }
 
 func NewAuthorizationRulesNamespacesClientWithBaseURI(sdkApi sdkEnv.Api) (*AuthorizationRulesNamespacesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "authorizationrulesnamespaces", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "authorizationrulesnamespaces", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AuthorizationRulesNamespacesClient: %+v", err)
 	}

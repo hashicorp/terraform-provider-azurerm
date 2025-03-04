@@ -15,7 +15,7 @@ type PromoteClient struct {
 }
 
 func NewPromoteClientWithBaseURI(sdkApi sdkEnv.Api) (*PromoteClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "promote", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "promote", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PromoteClient: %+v", err)
 	}

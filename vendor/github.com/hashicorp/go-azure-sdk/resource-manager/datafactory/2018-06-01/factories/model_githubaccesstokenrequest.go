@@ -5,7 +5,7 @@ package factories
 
 type GitHubAccessTokenRequest struct {
 	GitHubAccessCode         string              `json:"gitHubAccessCode"`
-	GitHubAccessTokenBaseUrl string              `json:"gitHubAccessTokenBaseUrl"`
+	GitHubAccessTokenBaseURL string              `json:"gitHubAccessTokenBaseUrl"`
 	GitHubClientId           *string             `json:"gitHubClientId,omitempty"`
 	GitHubClientSecret       *GitHubClientSecret `json:"gitHubClientSecret,omitempty"`
 }

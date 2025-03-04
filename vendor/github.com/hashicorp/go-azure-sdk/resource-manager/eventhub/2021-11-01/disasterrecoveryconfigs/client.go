@@ -15,7 +15,7 @@ type DisasterRecoveryConfigsClient struct {
 }
 
 func NewDisasterRecoveryConfigsClientWithBaseURI(sdkApi sdkEnv.Api) (*DisasterRecoveryConfigsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "disasterrecoveryconfigs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "disasterrecoveryconfigs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DisasterRecoveryConfigsClient: %+v", err)
 	}

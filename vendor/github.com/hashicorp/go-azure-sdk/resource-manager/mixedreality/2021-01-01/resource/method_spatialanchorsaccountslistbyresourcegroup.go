@@ -24,6 +24,18 @@ type SpatialAnchorsAccountsListByResourceGroupCompleteResult struct {
 	Items              []SpatialAnchorsAccount
 }
 
+type SpatialAnchorsAccountsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SpatialAnchorsAccountsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // SpatialAnchorsAccountsListByResourceGroup ...
 func (c ResourceClient) SpatialAnchorsAccountsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result SpatialAnchorsAccountsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ResourceClient) SpatialAnchorsAccountsListByResourceGroup(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &SpatialAnchorsAccountsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.MixedReality/spatialAnchorsAccounts", id.ID()),
 	}
 

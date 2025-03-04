@@ -31,6 +31,4 @@ func (r Registration) WebsiteCategories() []string {
 	}
 }
 
-var (
-	_ sdk.TypedServiceRegistration = (*Registration)(nil)
-)
+var _ sdk.TypedServiceRegistration = (*Registration)(nil)

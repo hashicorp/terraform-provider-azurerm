@@ -147,12 +147,6 @@ var ElementFunc = function.New(&function.Spec{
 	},
 	Type: func(args []cty.Value) (cty.Type, error) {
 		list := args[0]
-		index := args[1]
-		if index.IsKnown() {
-			if index.LessThan(cty.NumberIntVal(0)).True() {
-				return cty.DynamicPseudoType, fmt.Errorf("cannot use element function with a negative index")
-			}
-		}
 
 		listTy := list.Type()
 		switch {
@@ -176,6 +170,9 @@ var ElementFunc = function.New(&function.Spec{
 				return cty.DynamicPseudoType, errors.New("cannot use element function with an empty list")
 			}
 			index = index % len(etys)
+			if index < 0 {
+				index += len(etys)
+			}
 			return etys[index], nil
 		default:
 			return cty.DynamicPseudoType, fmt.Errorf("cannot read elements from %s", listTy.FriendlyName())
@@ -189,10 +186,6 @@ var ElementFunc = function.New(&function.Spec{
 			return cty.DynamicVal, fmt.Errorf("invalid index: %s", err)
 		}
 
-		if args[1].LessThan(cty.NumberIntVal(0)).True() {
-			return cty.DynamicVal, fmt.Errorf("cannot use element function with a negative index")
-		}
-
 		input, marks := args[0].Unmark()
 		if !input.IsKnown() {
 			return cty.UnknownVal(retType), nil
@@ -203,6 +196,9 @@ var ElementFunc = function.New(&function.Spec{
 			return cty.DynamicVal, errors.New("cannot use element function with an empty list")
 		}
 		index = index % l
+		if index < 0 {
+			index += l
+		}
 
 		// We did all the necessary type checks in the type function above,
 		// so this is guaranteed not to fail.
@@ -1506,8 +1502,8 @@ func Keys(inputMap cty.Value) (cty.Value, error) {
 }
 
 // Lookup performs a dynamic lookup into a map.
-// There are two required arguments, map and key, plus an optional default,
-// which is a value to return if no key is found in map.
+// There are three required arguments, inputMap and key, plus a defaultValue,
+// which is a value to return if the given key is not found in the inputMap.
 func Lookup(inputMap, key, defaultValue cty.Value) (cty.Value, error) {
 	return LookupFunc.Call([]cty.Value{inputMap, key, defaultValue})
 }

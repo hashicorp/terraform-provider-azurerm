@@ -24,6 +24,18 @@ type ClustersListBySubscriptionCompleteResult struct {
 	Items              []Cluster
 }
 
+type ClustersListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ClustersListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ClustersListBySubscription ...
 func (c EventHubsClustersClient) ClustersListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ClustersListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c EventHubsClustersClient) ClustersListBySubscription(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ClustersListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.EventHub/clusters", id.ID()),
 	}
 

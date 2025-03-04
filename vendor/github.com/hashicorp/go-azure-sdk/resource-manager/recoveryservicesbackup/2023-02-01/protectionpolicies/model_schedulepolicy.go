@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SchedulePolicy interface {
+	SchedulePolicy() BaseSchedulePolicyImpl
 }
 
-// RawSchedulePolicyImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ SchedulePolicy = BaseSchedulePolicyImpl{}
+
+type BaseSchedulePolicyImpl struct {
+	SchedulePolicyType string `json:"schedulePolicyType"`
+}
+
+func (s BaseSchedulePolicyImpl) SchedulePolicy() BaseSchedulePolicyImpl {
+	return s
+}
+
+var _ SchedulePolicy = RawSchedulePolicyImpl{}
+
+// RawSchedulePolicyImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawSchedulePolicyImpl struct {
-	Type   string
-	Values map[string]interface{}
+	schedulePolicy BaseSchedulePolicyImpl
+	Type           string
+	Values         map[string]interface{}
 }
 
-func unmarshalSchedulePolicyImplementation(input []byte) (SchedulePolicy, error) {
+func (s RawSchedulePolicyImpl) SchedulePolicy() BaseSchedulePolicyImpl {
+	return s.schedulePolicy
+}
+
+func UnmarshalSchedulePolicyImplementation(input []byte) (SchedulePolicy, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalSchedulePolicyImplementation(input []byte) (SchedulePolicy, error)
 		return nil, fmt.Errorf("unmarshaling SchedulePolicy into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["schedulePolicyType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["schedulePolicyType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "LogSchedulePolicy") {
@@ -68,10 +85,15 @@ func unmarshalSchedulePolicyImplementation(input []byte) (SchedulePolicy, error)
 		return out, nil
 	}
 
-	out := RawSchedulePolicyImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseSchedulePolicyImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseSchedulePolicyImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawSchedulePolicyImpl{
+		schedulePolicy: parent,
+		Type:           value,
+		Values:         temp,
+	}, nil
 
 }

@@ -4,6 +4,7 @@
 package schema
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"strings"
@@ -13,6 +14,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/go-cty/cty/gocty"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -82,7 +85,7 @@ func (d *ResourceData) GetChange(key string) (interface{}, interface{}) {
 // GetOk returns the data for the given key and whether or not the key
 // has been set to a non-zero value at some point.
 //
-// The first result will not necessarilly be nil if the value doesn't exist.
+// The first result will not necessarily be nil if the value doesn't exist.
 // The second result should be checked to determine this information.
 func (d *ResourceData) GetOk(key string) (interface{}, bool) {
 	r := d.getRaw(key, getSourceSet)
@@ -591,13 +594,78 @@ func (d *ResourceData) GetProviderMeta(dst interface{}) error {
 // GetRawConfig is considered experimental and advanced functionality, and
 // familiarity with the Terraform protocol is suggested when using it.
 func (d *ResourceData) GetRawConfig() cty.Value {
+	// These methods follow the field readers preference order.
 	if d.diff != nil && !d.diff.RawConfig.IsNull() {
 		return d.diff.RawConfig
+	}
+	if d.config != nil && !d.config.CtyValue.IsNull() {
+		return d.config.CtyValue
 	}
 	if d.state != nil && !d.state.RawConfig.IsNull() {
 		return d.state.RawConfig
 	}
 	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
+// GetRawConfigAt is a helper method for retrieving specific values
+// from the RawConfig returned from GetRawConfig. It returns the cty.Value
+// for a given cty.Path or an error diagnostic if the value at the given path does not exist.
+//
+// GetRawConfigAt is considered advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceData) GetRawConfigAt(valPath cty.Path) (cty.Value, diag.Diagnostics) {
+	rawConfig := d.GetRawConfig()
+	configVal := cty.DynamicVal
+
+	if rawConfig.IsNull() {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Empty Raw Config",
+				Detail: "The Terraform Provider unexpectedly received an empty configuration. " +
+					"This is almost always an issue with the Terraform Plugin SDK used to create providers. " +
+					"Please report this to the provider developers. \n\n" +
+					"The RawConfig is empty.",
+				AttributePath: valPath,
+			},
+		}
+	}
+	err := cty.Walk(rawConfig, func(path cty.Path, value cty.Value) (bool, error) {
+		if path.Equals(valPath) {
+			configVal = value
+			return false, nil
+		}
+		return true, nil
+	})
+	if err != nil {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Invalid config path",
+				Detail: "The Terraform Provider unexpectedly provided a path that does not match the current schema. " +
+					"This can happen if the path does not correctly follow the schema in structure or types. " +
+					"Please report this to the provider developers. \n\n" +
+					fmt.Sprintf("Encountered error while retrieving config value %s", err.Error()),
+				AttributePath: valPath,
+			},
+		}
+	}
+
+	if configVal.RawEquals(cty.DynamicVal) {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Invalid config path",
+				Detail: "The Terraform Provider unexpectedly provided a path that does not match the current schema. " +
+					"This can happen if the path does not correctly follow the schema in structure or types. " +
+					"Please report this to the provider developers. \n\n" +
+					"Cannot find config value for given path.",
+				AttributePath: valPath,
+			},
+		}
+	}
+
+	return configVal, nil
 }
 
 // GetRawState returns the cty.Value that Terraform sent the SDK for the state.
@@ -607,6 +675,7 @@ func (d *ResourceData) GetRawConfig() cty.Value {
 // GetRawState is considered experimental and advanced functionality, and
 // familiarity with the Terraform protocol is suggested when using it.
 func (d *ResourceData) GetRawState() cty.Value {
+	// These methods follow the field readers preference order.
 	if d.diff != nil && !d.diff.RawState.IsNull() {
 		return d.diff.RawState
 	}
@@ -623,6 +692,7 @@ func (d *ResourceData) GetRawState() cty.Value {
 // GetRawPlan is considered experimental and advanced functionality, and
 // familiarity with the Terraform protocol is suggested when using it.
 func (d *ResourceData) GetRawPlan() cty.Value {
+	// These methods follow the field readers preference order.
 	if d.diff != nil && !d.diff.RawPlan.IsNull() {
 		return d.diff.RawPlan
 	}

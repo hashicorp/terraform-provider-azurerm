@@ -321,7 +321,7 @@ func expandContainerConfigurationModel(inputList []ContainerConfigurationModel) 
 }
 
 func expandEnvironmentVariableModelArray(inputList []EnvironmentVariableModel) *[]deploymentscripts.EnvironmentVariable {
-	var outputList []deploymentscripts.EnvironmentVariable
+	outputList := make([]deploymentscripts.EnvironmentVariable, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := deploymentscripts.EnvironmentVariable{
@@ -378,11 +378,11 @@ func flattenContainerConfigurationModel(input *deploymentscripts.ContainerConfig
 }
 
 func flattenEnvironmentVariableModelArray(inputList *[]deploymentscripts.EnvironmentVariable, originalList []EnvironmentVariableModel) []EnvironmentVariableModel {
-	var outputList []EnvironmentVariableModel
 	if inputList == nil {
-		return outputList
+		return []EnvironmentVariableModel{}
 	}
 
+	outputList := make([]EnvironmentVariableModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := EnvironmentVariableModel{
 			Name: input.Name,

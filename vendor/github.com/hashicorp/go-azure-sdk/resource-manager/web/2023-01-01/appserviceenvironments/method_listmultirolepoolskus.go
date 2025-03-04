@@ -24,6 +24,18 @@ type ListMultiRolePoolSkusCompleteResult struct {
 	Items              []SkuInfo
 }
 
+type ListMultiRolePoolSkusCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListMultiRolePoolSkusCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListMultiRolePoolSkus ...
 func (c AppServiceEnvironmentsClient) ListMultiRolePoolSkus(ctx context.Context, id commonids.AppServiceEnvironmentId) (result ListMultiRolePoolSkusOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppServiceEnvironmentsClient) ListMultiRolePoolSkus(ctx context.Context,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListMultiRolePoolSkusCustomPager{},
 		Path:       fmt.Sprintf("%s/multiRolePools/default/skus", id.ID()),
 	}
 

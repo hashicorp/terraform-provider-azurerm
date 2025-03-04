@@ -9,21 +9,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2021-09-01/storage" // nolint: staticcheck
-	azautorest "github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceStorageAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceStorageAccountRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -76,8 +77,7 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_https_traffic_only": {
+			"https_traffic_only_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -524,17 +524,28 @@ func dataSourceStorageAccount() *pluginsdk.Resource {
 								},
 							},
 						},
+						"default_share_level_permission": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"dns_endpoint_type": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	return resource
 }
 
 func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.AccountsClient
+	client := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -545,143 +556,121 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	id := commonids.NewStorageAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.GetProperties(ctx, id.ResourceGroupName, id.StorageAccountName, "")
+	resp, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
+
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	// handle the user not having permissions to list the keys
-	d.Set("primary_connection_string", "")
-	d.Set("secondary_connection_string", "")
-	d.Set("primary_blob_connection_string", "")
-	d.Set("secondary_blob_connection_string", "")
-	d.Set("primary_access_key", "")
-	d.Set("secondary_access_key", "")
-
-	keys, err := client.ListKeys(ctx, id.ResourceGroupName, id.StorageAccountName, storage.ListKeyExpandKerb)
+	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
+	listKeysOpts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
+	keys, err := client.ListKeys(ctx, id, listKeysOpts)
 	if err != nil {
-		// the API returns a 200 with an inner error of a 409..
-		var hasWriteLock bool
-		var doesntHavePermissions bool
-		if e, ok := err.(azautorest.DetailedError); ok {
-			if status, ok := e.StatusCode.(int); ok {
-				hasWriteLock = status == http.StatusConflict
-				doesntHavePermissions = status == http.StatusUnauthorized || status == http.StatusForbidden
-			}
-		}
-
+		hasWriteLock := response.WasConflict(keys.HttpResponse)
+		doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
 		if !hasWriteLock && !doesntHavePermissions {
 			return fmt.Errorf("listing Keys for %s: %+v", id, err)
 		}
 	}
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("account_kind", resp.Kind)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("account_kind", string(pointer.From(model.Kind)))
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("account_tier", sku.Tier)
-		d.Set("account_replication_type", strings.Split(string(sku.Name), "_")[1])
-	}
+		// NOTE: we should expose EdgeZone in the future
 
-	if props := resp.AccountProperties; props != nil {
-		d.Set("access_tier", props.AccessTier)
-		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
-		d.Set("min_tls_version", string(props.MinimumTLSVersion))
-		d.Set("is_hns_enabled", props.IsHnsEnabled)
-		d.Set("nfsv3_enabled", props.EnableNfsV3)
-		d.Set("allow_nested_items_to_be_public", props.AllowBlobPublicAccess)
-
-		if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(props.CustomDomain)); err != nil {
-			return fmt.Errorf("setting `custom_domain`: %+v", err)
+		if sku := model.Sku; sku != nil {
+			d.Set("account_tier", pointer.From(sku.Tier))
+			d.Set("account_replication_type", strings.Split(string(sku.Name), "_")[1])
 		}
 
-		// Computed
-		d.Set("primary_location", props.PrimaryLocation)
-		d.Set("secondary_location", props.SecondaryLocation)
+		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
 
-		if accessKeys := keys.Keys; accessKeys != nil {
-			storageAccessKeys := *accessKeys
-			if len(storageAccessKeys) > 0 {
-				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[0].Value, *storageDomainSuffix)
-				d.Set("primary_connection_string", pcs)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("access_tier", pointer.From(props.AccessTier))
+			d.Set("allow_nested_items_to_be_public", pointer.From(props.AllowBlobPublicAccess))
+			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
+				return fmt.Errorf("setting `custom_domain`: %+v", err)
 			}
+			d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
+			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
+			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
+			d.Set("primary_location", location.NormalizeNilable(props.PrimaryLocation))
+			d.Set("secondary_location", location.NormalizeNilable(props.SecondaryLocation))
 
-			if len(storageAccessKeys) > 1 {
-				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[1].Value, *storageDomainSuffix)
-				d.Set("secondary_connection_string", scs)
+			// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
+			// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
+			infrastructureEncryption := false
+			queueEncryptionKeyType := string(storageaccounts.KeyTypeService)
+			tableEncryptionKeyType := string(storageaccounts.KeyTypeService)
+			if encryption := props.Encryption; encryption != nil {
+				infrastructureEncryption = pointer.From(encryption.RequireInfrastructureEncryption)
+
+				if encryption.Services != nil {
+					if encryption.Services.Queue != nil && encryption.Services.Queue.KeyType != nil {
+						queueEncryptionKeyType = string(*encryption.Services.Queue.KeyType)
+					}
+					if encryption.Services.Table != nil && encryption.Services.Table.KeyType != nil {
+						tableEncryptionKeyType = string(*encryption.Services.Table.KeyType)
+					}
+				}
 			}
-		}
+			d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+			d.Set("queue_encryption_key_type", queueEncryptionKeyType)
+			d.Set("table_encryption_key_type", tableEncryptionKeyType)
 
-		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints, resp.RoutingPreference); err != nil {
-			return fmt.Errorf("setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
-		}
-
-		if accessKeys := keys.Keys; accessKeys != nil {
-			var primaryBlobConnectStr string
-			if v := props.PrimaryEndpoints; v != nil {
-				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[0].Value)
+			// For storage account created using old API, the response of GET call will not return "min_tls_version"
+			minTlsVersion := string(storageaccounts.MinimumTlsVersionTLSOneZero)
+			if props.MinimumTlsVersion != nil {
+				minTlsVersion = string(*props.MinimumTlsVersion)
 			}
-			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
-		}
+			d.Set("min_tls_version", minTlsVersion)
 
-		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints, resp.RoutingPreference); err != nil {
-			return fmt.Errorf("setting secondary endpoints and hosts for blob, queue, table: %+v", err)
-		}
-
-		if accessKeys := keys.Keys; accessKeys != nil {
-			var secondaryBlobConnectStr string
-			if v := props.SecondaryEndpoints; v != nil {
-				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[1].Value)
+			// DNSEndpointType is null when unconfigured - therefore default this to Standard
+			dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
+			if props.DnsEndpointType != nil {
+				dnsEndpointType = *props.DnsEndpointType
 			}
-			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
-		}
+			d.Set("dns_endpoint_type", string(dnsEndpointType))
 
-		// Setting the encryption key type to "Service" in PUT. The following GET will not return the queue/table in the service list of its response.
-		// So defaults to setting the encryption key type to "Service" if it is absent in the GET response. Also, define the default value as "Service" in the schema.
-		var (
-			queueEncryptionKeyType = string(storage.KeyTypeService)
-			tableEncryptionKeyType = string(storage.KeyTypeService)
-		)
-		if encryption := props.Encryption; encryption != nil && encryption.Services != nil {
-			if encryption.Services.Queue != nil {
-				queueEncryptionKeyType = string(encryption.Services.Queue.KeyType)
+			if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 			}
-			if encryption.Services.Table != nil {
-				tableEncryptionKeyType = string(encryption.Services.Table.KeyType)
-			}
-		}
-		d.Set("table_encryption_key_type", tableEncryptionKeyType)
-		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
-
-		infrastructureEncryption := false
-		if encryption := props.Encryption; encryption != nil && encryption.RequireInfrastructureEncryption != nil {
-			infrastructureEncryption = *encryption.RequireInfrastructureEncryption
-		}
-		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
-
-		if err := d.Set("azure_files_authentication", flattenArmStorageAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
-			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 		}
 	}
 
-	if accessKeys := keys.Keys; accessKeys != nil {
-		storageAccountKeys := *accessKeys
-		d.Set("primary_access_key", storageAccountKeys[0].Value)
-		d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	var primaryEndpoints *storageaccounts.Endpoints
+	var secondaryEndpoints *storageaccounts.Endpoints
+	var routingPreference *storageaccounts.RoutingPreference
+	if model := resp.Model; model != nil && model.Properties != nil {
+		primaryEndpoints = model.Properties.PrimaryEndpoints
+		routingPreference = model.Properties.RoutingPreference
+		secondaryEndpoints = model.Properties.SecondaryEndpoints
 	}
+	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
+	endpoints.set(d)
 
-	identity, err := flattenAzureRmStorageAccountIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
+	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
+	if keys.Model != nil && keys.Model.Keys != nil {
+		storageAccountKeys = *keys.Model.Keys
 	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %+v", err)
-	}
+	keysAndConnectionStrings := flattenAccountAccessKeysAndConnectionStrings(id.StorageAccountName, *storageDomainSuffix, storageAccountKeys, endpoints)
+	keysAndConnectionStrings.set(d)
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }

@@ -15,7 +15,7 @@ type NetworkRuleSetsClient struct {
 }
 
 func NewNetworkRuleSetsClientWithBaseURI(sdkApi sdkEnv.Api) (*NetworkRuleSetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "networkrulesets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "networkrulesets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NetworkRuleSetsClient: %+v", err)
 	}

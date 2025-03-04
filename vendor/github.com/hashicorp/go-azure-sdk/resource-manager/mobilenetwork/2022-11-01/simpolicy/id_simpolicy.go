@@ -44,7 +44,7 @@ func ParseSimPolicyID(input string) (*SimPolicyId, error) {
 	}
 
 	id := SimPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ func ParseSimPolicyIDInsensitively(input string) (*SimPolicyId, error) {
 	}
 
 	id := SimPolicyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -121,9 +121,9 @@ func (id SimPolicyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMobileNetwork", "Microsoft.MobileNetwork", "Microsoft.MobileNetwork"),
 		resourceids.StaticSegment("staticMobileNetworks", "mobileNetworks", "mobileNetworks"),
-		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkValue"),
+		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkName"),
 		resourceids.StaticSegment("staticSimPolicies", "simPolicies", "simPolicies"),
-		resourceids.UserSpecifiedSegment("simPolicyName", "simPolicyValue"),
+		resourceids.UserSpecifiedSegment("simPolicyName", "simPolicyName"),
 	}
 }
 

@@ -23,6 +23,18 @@ type ListByAccountCompleteResult struct {
 	Items              []Creator
 }
 
+type ListByAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAccount ...
 func (c CreatorsClient) ListByAccount(ctx context.Context, id AccountId) (result ListByAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c CreatorsClient) ListByAccount(ctx context.Context, id AccountId) (result
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/creators", id.ID()),
 	}
 

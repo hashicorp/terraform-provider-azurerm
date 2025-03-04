@@ -23,6 +23,18 @@ type ListWorkloadProfileStatesCompleteResult struct {
 	Items              []WorkloadProfileStates
 }
 
+type ListWorkloadProfileStatesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListWorkloadProfileStatesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListWorkloadProfileStates ...
 func (c ManagedEnvironmentsClient) ListWorkloadProfileStates(ctx context.Context, id ManagedEnvironmentId) (result ListWorkloadProfileStatesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ManagedEnvironmentsClient) ListWorkloadProfileStates(ctx context.Context
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListWorkloadProfileStatesCustomPager{},
 		Path:       fmt.Sprintf("%s/workloadProfileStates", id.ID()),
 	}
 

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,7 +66,7 @@ func resourceVPNGateway() *pluginsdk.Resource {
 			"routing_preference": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  "Microsoft Network",
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Microsoft Network",
@@ -251,7 +251,6 @@ func resourceVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		props := resp.Model.Properties
 
 		if props.BgpSettings != nil && props.BgpSettings.BgpPeeringAddresses != nil {
-
 			val := bgpSettingsRaw[0].(map[string]interface{})
 			input0 := val["instance_0_bgp_peering_address"].([]interface{})
 			input1 := val["instance_1_bgp_peering_address"].([]interface{})

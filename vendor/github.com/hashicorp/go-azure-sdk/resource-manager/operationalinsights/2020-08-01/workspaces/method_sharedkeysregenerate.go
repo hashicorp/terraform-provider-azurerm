@@ -46,7 +46,6 @@ func (c WorkspacesClient) SharedKeysRegenerate(ctx context.Context, id Workspace
 
 	var model SharedKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

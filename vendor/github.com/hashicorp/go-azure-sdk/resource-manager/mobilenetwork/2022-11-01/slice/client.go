@@ -15,7 +15,7 @@ type SliceClient struct {
 }
 
 func NewSliceClientWithBaseURI(sdkApi sdkEnv.Api) (*SliceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "slice", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "slice", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SliceClient: %+v", err)
 	}

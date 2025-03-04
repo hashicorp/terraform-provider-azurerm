@@ -8,15 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-02-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlServerResource struct{}
@@ -52,6 +57,9 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 }
 
 func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("The service require minimum TLS version to be 1.2+, skip the `disabled` testing.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
 
@@ -301,6 +309,59 @@ func TestAccMsSqlServer_CMKServerTagsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlServer_writeOnlyAdminLoginPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-secret", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password_wo_version"),
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-updated", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password_wo_version"),
+		},
+	})
+}
+
+func TestAccMsSqlServer_updateToWriteOnlyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password"),
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-secret", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password", "administrator_login_password_wo_version"),
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
 func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
@@ -317,7 +378,7 @@ func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (MsSqlServerResource) basic(data acceptance.TestData) string {
@@ -389,7 +450,7 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "1.1"
+  minimum_tls_version          = "1.2"
 
   identity {
     type = "SystemAssigned"
@@ -437,7 +498,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -446,7 +507,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -531,7 +592,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 
-  enforce_private_link_service_network_policies = true
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -540,7 +601,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies = "Disabled"
 }
 
 resource "azurerm_storage_account" "testb" {
@@ -564,7 +625,7 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
-  minimum_tls_version          = "1.0"
+  minimum_tls_version          = "1.2"
 
   public_network_access_enabled     = false
   primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
@@ -575,7 +636,8 @@ resource "azurerm_mssql_server" "test" {
   }
 
   tags = {
-    DB = "NotProd"
+    update = "true"
+    DB     = "NotProd"
   }
 }
 
@@ -1053,4 +1115,31 @@ resource "azurerm_key_vault_key" "test" {
   key_opts = ["unwrapKey", "wrapKey"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (MsSqlServerResource) writeOnlyAdminLoginPassword(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+%s
+
+resource "azurerm_mssql_server" "test" {
+  name                                    = "acctestsqlserver%[1]d"
+  resource_group_name                     = azurerm_resource_group.test.name
+  location                                = azurerm_resource_group.test.location
+  version                                 = "12.0"
+  administrator_login                     = "missadministrator"
+  administrator_login_password_wo_version = %[4]d
+  administrator_login_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
+
+  outbound_network_restriction_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), version)
 }

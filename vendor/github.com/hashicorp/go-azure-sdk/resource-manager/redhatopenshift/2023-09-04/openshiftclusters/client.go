@@ -15,7 +15,7 @@ type OpenShiftClustersClient struct {
 }
 
 func NewOpenShiftClustersClientWithBaseURI(sdkApi sdkEnv.Api) (*OpenShiftClustersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "openshiftclusters", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "openshiftclusters", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OpenShiftClustersClient: %+v", err)
 	}

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networksecuritygroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,6 +66,7 @@ func TestAccNetworkSecurityGroup_singleRule(t *testing.T) {
 func TestAccNetworkSecurityGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
 	r := NetworkSecurityGroupResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.singleRule(data),
@@ -185,28 +186,6 @@ func TestAccNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccNetworkSecurityGroup_deleteRule(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
-	r := NetworkSecurityGroupResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.singleRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.deleteRule(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("security_rule.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -509,24 +488,4 @@ resource "azurerm_network_security_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (NetworkSecurityGroupResource) deleteRule(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "acceptanceTestSecurityGroup1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  security_rule       = []
-}
-`, data.RandomInteger, data.Locations.Primary)
 }

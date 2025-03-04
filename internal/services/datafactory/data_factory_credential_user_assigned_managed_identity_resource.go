@@ -20,8 +20,10 @@ import (
 
 type DataFactoryCredentialUserAssignedManagedIdentityResource struct{}
 
-var _ sdk.Resource = DataFactoryCredentialUserAssignedManagedIdentityResource{}
-var _ sdk.ResourceWithUpdate = DataFactoryCredentialUserAssignedManagedIdentityResource{}
+var (
+	_ sdk.Resource           = DataFactoryCredentialUserAssignedManagedIdentityResource{}
+	_ sdk.ResourceWithUpdate = DataFactoryCredentialUserAssignedManagedIdentityResource{}
+)
 
 func (DataFactoryCredentialUserAssignedManagedIdentityResource) ResourceType() string {
 	return "azurerm_data_factory_credential_user_managed_identity"

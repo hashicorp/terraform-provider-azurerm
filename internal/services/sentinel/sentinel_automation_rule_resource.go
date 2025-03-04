@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/automationrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -179,42 +178,6 @@ func resourceSentinelAutomationRule() *pluginsdk.Resource {
 			AtLeastOneOf: []string{"action_incident", "action_playbook"},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		schema["condition"] = &pluginsdk.Schema{
-			Deprecated: "This is deprecated in favor of `condition_json`",
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"property": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(automationrules.PossibleValuesForAutomationRulePropertyConditionSupportedProperty(), false),
-					},
-
-					"operator": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(automationrules.PossibleValuesForAutomationRulePropertyConditionSupportedOperator(), false),
-					},
-
-					"values": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-						},
-					},
-				},
-			},
-			ConflictsWith: []string{"condition_json"},
-		}
-		schema["condition_json"].Computed = true
-		schema["condition_json"].ConflictsWith = []string{"condition"}
-	}
-
 	return &pluginsdk.Resource{
 		Create: resourceSentinelAutomationRuleCreateOrUpdate,
 		Read:   resourceSentinelAutomationRuleRead,
@@ -280,21 +243,16 @@ func resourceSentinelAutomationRuleCreateOrUpdate(d *pluginsdk.ResourceData, met
 				IsEnabled:    d.Get("enabled").(bool),
 				TriggersOn:   automationrules.TriggersOn(d.Get("triggers_on").(string)),
 				TriggersWhen: automationrules.TriggersWhen(d.Get("triggers_when").(string)),
-				Conditions:   expandAutomationRuleConditions(d.Get("condition").([]interface{})),
 			},
 			Actions: actions,
 		},
 	}
 
-	if v, ok := d.GetOk("condition_json"); ok {
-		conditions, err := expandAutomationRuleConditionsFromJSON(v.(string))
-		if err != nil {
-			return fmt.Errorf("expanding `condition_json`: %v", err)
-		}
-		params.Properties.TriggeringLogic.Conditions = conditions
-	} else if !features.FourPointOhBeta() {
-		params.Properties.TriggeringLogic.Conditions = expandAutomationRuleConditions(d.Get("condition").([]interface{}))
+	conditions, err := expandAutomationRuleConditionsFromJSON(d.Get("condition_json").(string))
+	if err != nil {
+		return fmt.Errorf("expanding `condition_json`: %v", err)
 	}
+	params.Properties.TriggeringLogic.Conditions = conditions
 
 	if expiration := d.Get("expiration").(string); expiration != "" {
 		t, _ := time.Parse(time.RFC3339, expiration)
@@ -345,12 +303,6 @@ func resourceSentinelAutomationRuleRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("triggers_when", string(tl.TriggersWhen))
 		d.Set("expiration", tl.ExpirationTimeUtc)
 
-		if !features.FourPointOhBeta() {
-			if err := d.Set("condition", flattenAutomationRuleConditions(tl.Conditions)); err != nil {
-				return fmt.Errorf("setting `condition`: %v", err)
-			}
-		}
-
 		conditionJSON, err := flattenAutomationRuleConditionsToJSON(tl.Conditions)
 		if err != nil {
 			return fmt.Errorf("flattening `condition_json`: %v", err)
@@ -388,65 +340,6 @@ func resourceSentinelAutomationRuleDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func expandAutomationRuleConditions(input []interface{}) *[]automationrules.AutomationRuleCondition {
-	if len(input) == 0 {
-		return nil
-	}
-
-	out := make([]automationrules.AutomationRuleCondition, 0, len(input))
-	for _, b := range input {
-		b := b.(map[string]interface{})
-
-		propertyName := automationrules.AutomationRulePropertyConditionSupportedProperty(b["property"].(string))
-		operator := automationrules.AutomationRulePropertyConditionSupportedOperator(b["operator"].(string))
-		out = append(out, &automationrules.PropertyConditionProperties{
-			ConditionProperties: &automationrules.AutomationRulePropertyValuesCondition{
-				PropertyName:   &propertyName,
-				Operator:       &operator,
-				PropertyValues: utils.ExpandStringSlice(b["values"].([]interface{})),
-			},
-		})
-	}
-	return &out
-}
-
-func flattenAutomationRuleConditions(conditions *[]automationrules.AutomationRuleCondition) interface{} {
-	if conditions == nil {
-		return nil
-	}
-
-	out := make([]interface{}, 0, len(*conditions))
-	for _, condition := range *conditions {
-		// "condition" only applies to the Property condition
-		condition, ok := condition.(automationrules.PropertyConditionProperties)
-		if !ok {
-			continue
-		}
-
-		var (
-			property string
-			operator string
-			values   []interface{}
-		)
-		if p := condition.ConditionProperties; p != nil {
-			if p.PropertyName != nil {
-				property = string(*p.PropertyName)
-			}
-			if p.Operator != nil {
-				operator = string(*p.Operator)
-			}
-			values = utils.FlattenStringSlice(p.PropertyValues)
-		}
-
-		out = append(out, map[string]interface{}{
-			"property": property,
-			"operator": operator,
-			"values":   values,
-		})
-	}
-	return out
-}
-
 func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.AutomationRuleCondition, error) {
 	if input == "" {
 		return nil, nil
@@ -460,7 +353,7 @@ func expandAutomationRuleConditionsFromJSON(input string) (*[]automationrules.Au
 }
 
 func flattenAutomationRuleConditionsToJSON(input *[]automationrules.AutomationRuleCondition) (string, error) {
-	if input == nil {
+	if input == nil || len(*input) == 0 {
 		return "", nil
 	}
 	result, err := json.Marshal(input)

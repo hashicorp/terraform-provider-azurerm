@@ -23,6 +23,18 @@ type ListByAutomationAccountCompleteResult struct {
 	Items              []Runbook
 }
 
+type ListByAutomationAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAutomationAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAutomationAccount ...
 func (c RunbookClient) ListByAutomationAccount(ctx context.Context, id AutomationAccountId) (result ListByAutomationAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c RunbookClient) ListByAutomationAccount(ctx context.Context, id Automatio
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByAutomationAccountCustomPager{},
 		Path:       fmt.Sprintf("%s/runbooks", id.ID()),
 	}
 

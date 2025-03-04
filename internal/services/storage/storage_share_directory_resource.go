@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,15 +18,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/directories"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 func resourceStorageShareDirectory() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceStorageShareDirectoryCreate,
 		Read:   resourceStorageShareDirectoryRead,
 		Update: resourceStorageShareDirectoryUpdate,
@@ -54,39 +52,17 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 			},
 
 			"storage_share_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true, // TODO: make required and forcenew in v4.0
-				Computed:      true, // TODO: remove computed in v4.0
-				ForceNew:      true,
-				ConflictsWith: []string{"share_name", "storage_account_name"},
-				ValidateFunc:  storageValidate.StorageShareDataPlaneID,
-			},
-
-			"share_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				Deprecated:    "the `share_name` and `storage_account_name` properties have been superseded by the `storage_share_id` property and will be removed in version 4.0 of the AzureRM provider",
-				ConflictsWith: []string{"storage_share_id"},
-				RequiredWith:  []string{"storage_account_name"},
-				ValidateFunc:  validation.StringIsNotEmpty,
-			},
-
-			"storage_account_name": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				Deprecated:    "the `share_name` and `storage_account_name` properties have been superseded by the `storage_share_id` property and will be removed in version 4.0 of the AzureRM provider",
-				ConflictsWith: []string{"storage_share_id"},
-				RequiredWith:  []string{"share_name"},
-				ValidateFunc:  validation.StringIsNotEmpty,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: storageValidate.StorageShareDataPlaneID,
 			},
 
 			"metadata": MetaDataSchema(),
 		},
 	}
+
+	return resource
 }
 
 func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -106,33 +82,6 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 		if err != nil {
 			return err
 		}
-	} else {
-
-		// TODO: this is needed until `share_name` / `storage_account_name` are removed in favor of `storage_share_id` in v4.0
-		// we will retrieve the storage account twice but this will make it easier to refactor later
-		storageAccountName := d.Get("storage_account_name").(string)
-
-		account, err := storageClient.FindAccount(ctx, subscriptionId, storageAccountName)
-		if err != nil {
-			return fmt.Errorf("retrieving Account %q: %v", storageAccountName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("locating Storage Account %q", storageAccountName)
-		}
-
-		// Determine the file endpoint, so we can build a data plane ID
-		endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeFile)
-		if err != nil {
-			return fmt.Errorf("determining File endpoint: %v", err)
-		}
-
-		// Parse the file endpoint as a data plane account ID
-		accountId, err := accounts.ParseAccountID(*endpoint, storageClient.StorageDomainSuffix)
-		if err != nil {
-			return fmt.Errorf("parsing Account ID: %v", err)
-		}
-
-		storageShareId = pointer.To(shares.NewShareID(*accountId, d.Get("share_name").(string)))
 	}
 
 	if storageShareId == nil {
@@ -278,8 +227,6 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface
 
 	d.Set("name", id.DirectoryPath)
 	d.Set("storage_share_id", storageShareId.ID())
-	d.Set("share_name", id.ShareName)
-	d.Set("storage_account_name", id.AccountId.AccountName)
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %v", err)

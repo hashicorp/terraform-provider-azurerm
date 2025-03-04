@@ -49,7 +49,6 @@ func (c SourceControlSyncJobClient) Create(ctx context.Context, id SourceControl
 
 	var model SourceControlSyncJob
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

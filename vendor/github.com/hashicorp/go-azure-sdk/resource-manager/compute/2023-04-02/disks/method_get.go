@@ -46,7 +46,6 @@ func (c DisksClient) Get(ctx context.Context, id commonids.ManagedDiskId) (resul
 
 	var model Disk
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

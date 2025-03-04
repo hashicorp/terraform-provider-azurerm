@@ -90,9 +90,11 @@ func resourceAutomationJobSchedule() *pluginsdk.Resource {
 			},
 
 			"job_schedule_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C this can remain as this can change if the runbook is updated but cannot be updated by the user
 				Computed:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 

@@ -24,6 +24,18 @@ type ServicesListSupportedApmTypesCompleteResult struct {
 	Items              []SupportedApmType
 }
 
+type ServicesListSupportedApmTypesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ServicesListSupportedApmTypesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ServicesListSupportedApmTypes ...
 func (c AppPlatformClient) ServicesListSupportedApmTypes(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesListSupportedApmTypesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ServicesListSupportedApmTypes(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ServicesListSupportedApmTypesCustomPager{},
 		Path:       fmt.Sprintf("%s/supportedApmTypes", id.ID()),
 	}
 

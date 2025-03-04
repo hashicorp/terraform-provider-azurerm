@@ -23,6 +23,18 @@ type ListByEmailServiceResourceCompleteResult struct {
 	Items              []DomainResource
 }
 
+type ListByEmailServiceResourceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByEmailServiceResourceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByEmailServiceResource ...
 func (c DomainsClient) ListByEmailServiceResource(ctx context.Context, id EmailServiceId) (result ListByEmailServiceResourceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DomainsClient) ListByEmailServiceResource(ctx context.Context, id EmailS
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByEmailServiceResourceCustomPager{},
 		Path:       fmt.Sprintf("%s/domains", id.ID()),
 	}
 

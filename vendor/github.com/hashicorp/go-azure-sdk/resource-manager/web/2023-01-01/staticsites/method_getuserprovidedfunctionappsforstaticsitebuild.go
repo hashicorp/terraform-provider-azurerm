@@ -23,6 +23,18 @@ type GetUserProvidedFunctionAppsForStaticSiteBuildCompleteResult struct {
 	Items              []StaticSiteUserProvidedFunctionAppARMResource
 }
 
+type GetUserProvidedFunctionAppsForStaticSiteBuildCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetUserProvidedFunctionAppsForStaticSiteBuildCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetUserProvidedFunctionAppsForStaticSiteBuild ...
 func (c StaticSitesClient) GetUserProvidedFunctionAppsForStaticSiteBuild(ctx context.Context, id BuildId) (result GetUserProvidedFunctionAppsForStaticSiteBuildOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c StaticSitesClient) GetUserProvidedFunctionAppsForStaticSiteBuild(ctx con
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetUserProvidedFunctionAppsForStaticSiteBuildCustomPager{},
 		Path:       fmt.Sprintf("%s/userProvidedFunctionApps", id.ID()),
 	}
 

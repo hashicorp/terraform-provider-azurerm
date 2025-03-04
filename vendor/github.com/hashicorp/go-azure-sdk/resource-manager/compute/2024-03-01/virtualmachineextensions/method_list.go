@@ -34,6 +34,7 @@ func (o ListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c VirtualMachineExtensionsClient) List(ctx context.Context, id VirtualMach
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/extensions", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/extensions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c VirtualMachineExtensionsClient) List(ctx context.Context, id VirtualMach
 
 	var model VirtualMachineExtensionsListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

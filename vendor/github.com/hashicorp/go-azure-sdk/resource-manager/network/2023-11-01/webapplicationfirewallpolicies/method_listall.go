@@ -24,6 +24,18 @@ type ListAllCompleteResult struct {
 	Items              []WebApplicationFirewallPolicy
 }
 
+type ListAllCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAllCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAll ...
 func (c WebApplicationFirewallPoliciesClient) ListAll(ctx context.Context, id commonids.SubscriptionId) (result ListAllOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c WebApplicationFirewallPoliciesClient) ListAll(ctx context.Context, id co
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAllCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies", id.ID()),
 	}
 

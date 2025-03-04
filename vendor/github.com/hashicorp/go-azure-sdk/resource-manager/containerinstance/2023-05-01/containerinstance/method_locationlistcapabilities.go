@@ -23,6 +23,18 @@ type LocationListCapabilitiesCompleteResult struct {
 	Items              []Capabilities
 }
 
+type LocationListCapabilitiesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *LocationListCapabilitiesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // LocationListCapabilities ...
 func (c ContainerInstanceClient) LocationListCapabilities(ctx context.Context, id LocationId) (result LocationListCapabilitiesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ContainerInstanceClient) LocationListCapabilities(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &LocationListCapabilitiesCustomPager{},
 		Path:       fmt.Sprintf("%s/capabilities", id.ID()),
 	}
 

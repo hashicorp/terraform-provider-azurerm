@@ -47,7 +47,6 @@ func (c ProfilesClient) ListBySubscription(ctx context.Context, id commonids.Sub
 
 	var model ProfileListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -81,9 +81,9 @@ The following arguments are supported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Static Site Custom Domain.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Static Site Custom Domain.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Static Site Custom Domain.
+* `create` - (Defaults to 30 minutes) Used when creating the Static Web App Function App Registration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App Function App Registration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Static Web App Function App Registration.
 
 ## Import
 

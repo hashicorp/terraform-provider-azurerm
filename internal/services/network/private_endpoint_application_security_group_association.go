@@ -10,20 +10,17 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privateendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PrivateEndpointApplicationSecurityGroupAssociationResource struct {
-}
+type PrivateEndpointApplicationSecurityGroupAssociationResource struct{}
 
-var (
-	_ sdk.Resource = PrivateEndpointApplicationSecurityGroupAssociationResource{}
-)
+var _ sdk.Resource = PrivateEndpointApplicationSecurityGroupAssociationResource{}
 
 type PrivateEndpointApplicationSecurityGroupAssociationModel struct {
 	PrivateEndpointId          string `tfschema:"private_endpoint_id"`

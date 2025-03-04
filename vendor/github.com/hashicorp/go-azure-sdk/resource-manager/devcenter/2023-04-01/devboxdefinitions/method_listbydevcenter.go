@@ -23,6 +23,18 @@ type ListByDevCenterCompleteResult struct {
 	Items              []DevBoxDefinition
 }
 
+type ListByDevCenterCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByDevCenterCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByDevCenter ...
 func (c DevBoxDefinitionsClient) ListByDevCenter(ctx context.Context, id DevCenterId) (result ListByDevCenterOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c DevBoxDefinitionsClient) ListByDevCenter(ctx context.Context, id DevCent
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByDevCenterCustomPager{},
 		Path:       fmt.Sprintf("%s/devBoxDefinitions", id.ID()),
 	}
 

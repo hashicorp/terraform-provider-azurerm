@@ -36,6 +36,7 @@ func (o GetRunbookContentOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetRunbookContentOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c JobClient) GetRunbookContent(ctx context.Context, id JobId, options GetR
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/runbookContent", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/runbookContent", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c JobClient) GetRunbookContent(ctx context.Context, id JobId, options GetR
 
 	var model string
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -194,7 +194,7 @@ func (r CosmosDBDataConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				cosmosDbModel := (*model).(dataconnections.CosmosDbDataConnection)
+				cosmosDbModel := model.(dataconnections.CosmosDbDataConnection)
 				state.Location = location.Normalize(*cosmosDbModel.Location)
 
 				if properties := cosmosDbModel.Properties; properties != nil {

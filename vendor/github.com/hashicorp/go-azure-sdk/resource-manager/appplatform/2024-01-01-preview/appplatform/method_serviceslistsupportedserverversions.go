@@ -24,6 +24,18 @@ type ServicesListSupportedServerVersionsCompleteResult struct {
 	Items              []SupportedServerVersion
 }
 
+type ServicesListSupportedServerVersionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ServicesListSupportedServerVersionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ServicesListSupportedServerVersions ...
 func (c AppPlatformClient) ServicesListSupportedServerVersions(ctx context.Context, id commonids.SpringCloudServiceId) (result ServicesListSupportedServerVersionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ServicesListSupportedServerVersions(ctx context.Conte
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ServicesListSupportedServerVersionsCustomPager{},
 		Path:       fmt.Sprintf("%s/supportedServerVersions", id.ID()),
 	}
 

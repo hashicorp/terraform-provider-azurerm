@@ -44,13 +44,13 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Api Management Policy Fragment. Changing this forces a new Api Management Policy Fragment to be created.
 
-* `format` - (Required) The format of the Policy Fragment. Possible values are `xml` or `rawxml`.
-
-~> **NOTE:** The `value` property will be updated to reflect the corresponding format when `format` is updated.
-
 * `value` - (Required) The value of the Policy Fragment.
 
 ~> **NOTE:** Be aware of the two format possibilities. If the `value` is not applied and continues to cause a diff the format could be wrong.
+
+* `format` - (Optional) The format of the Policy Fragment. Possible values are `xml` or `rawxml`. Default is `xml`.
+
+~> **NOTE:** The `value` property will be updated to reflect the corresponding format when `format` is updated.
 
 ---
 

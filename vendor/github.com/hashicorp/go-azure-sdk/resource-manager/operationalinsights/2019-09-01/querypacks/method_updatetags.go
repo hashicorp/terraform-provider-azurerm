@@ -49,7 +49,6 @@ func (c QueryPacksClient) UpdateTags(ctx context.Context, id QueryPackId, input 
 
 	var model LogAnalyticsQueryPack
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
