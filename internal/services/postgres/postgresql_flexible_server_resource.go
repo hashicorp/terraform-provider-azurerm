@@ -401,6 +401,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			newMb = newStorageMbRaw.(int)
 			newTier = newTierRaw.(string)
 
+			// if newMb is smaller than oldStorageMb, it's a downgrade need to trigger a force new
+			if newMb > 0 && oldStorageMbRaw.(int) > newMb {
+				diff.ForceNew("storage_mb")
+			}
+
 			// if newMb or newTier values are empty,
 			// assign the default values that will
 			// be assigned in the create func...
