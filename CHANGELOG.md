@@ -7,7 +7,11 @@ FEATURES:
 
 ENHANCEMENTS: 
 
+* dependencies: `containers` update API version to  `2024-09-01` [GH-28598]
 * dependencies: `hashicorp/go-azure-sdk` update to `v0.20250227.1125644` [GH-28902]
+* Data Source: `azurerm_container_app` - add support for the `template.volume.mount_options` property [GH-28619]
+* `azurerm_container_app` - add support for the `template.volume.mount_options` property [GH-28619]
+* `azurerm_container_app_job` - add support for the `template.volume.mount_options` property [GH-28619]
 * `azurerm_extended_custom_location` - deprecated in favour of `azurerm_extended_location_custom_location` [GH-28066]
 * `azurerm_workloads_sap_discovery_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
 * `azurerm_workloads_sap_single_node_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
