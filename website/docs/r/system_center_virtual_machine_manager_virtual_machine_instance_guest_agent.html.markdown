@@ -20,9 +20,74 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
-  scope               = ""
-  https_proxy         = ""
+resource "azurerm_arc_machine" "example" {
+  name                = "example-arcmachine"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  kind                = "SCVMM"
+}
+
+resource "azurerm_system_center_virtual_machine_manager_server" "example" {
+  name                = "example-scvmmms"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  custom_location_id  = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ExtendedLocation/customLocations/customLocation1"
+  fqdn                = "example.labtest"
+  username            = "testUser"
+  password            = "H@Sh1CoR3!"
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_cloud" "example" {
+  name                                                           = "example-scvmmc"
+  location                                                       = azurerm_resource_group.example.location
+  resource_group_name                                            = azurerm_resource_group.example.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.example.inventory_items[0].id
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "example2" {
+  inventory_type                                  = "VirtualMachineTemplate"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "example" {
+  name                                                           = "example-scvmmvmt"
+  location                                                       = azurerm_resource_group.example.location
+  resource_group_name                                            = azurerm_resource_group.example.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.example2.inventory_items[0].id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "example" {
+  scoped_resource_id = azurerm_arc_machine.example.id
+  custom_location_id = azurerm_system_center_virtual_machine_manager_server.example.custom_location_id
+  infrastructure {
+    checkpoint_type                                                 = "Standard"
+    system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.example.id
+    system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.example.id
+    system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.example.id
+  }
+  operating_system {
+    computer_name = "testComputer"
+  }
+  hardware {
+    cpu_count    = 1
+    memory_in_mb = 1024
+  }
+  lifecycle {
+    // Service API always provisions a virtual disk with bus type IDE per Virtual Machine Template by default, so it has to be ignored
+    ignore_changes = [storage_disk, network_interface]
+  }
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "example" {
+  scoped_resource_id  = azurerm_arc_machine.example.id
+  https_proxy         = "uoyzyticmohohomlkwct"
   provisioning_action = "install"
 
   credential {
@@ -36,11 +101,11 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 
 The following arguments are supported:
 
-* `scope` - (Required) The ID of the Hybrid Machine. Changing this forces a new resource to be created.
+* `scoped_resource_id` - (Required) The ID of the Hybrid Compute Machine where this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent is stored. Changing this forces a new resource to be created.
 
-* `credential` - (Optional) A `credential` block as defined below.
+* `credential` - (Required) A `credential` block as defined below. Changing this forces a new resource to be created.
 
-* `https_proxy` - (Optional) The https proxy url. Changing this forces a new resource to be created.
+* `https_proxy` - (Optional) The HTTP Proxy configuration for the Virtual Machine. Changing this forces a new resource to be created.
 
 * `provisioning_action` - (Optional) The provisioning action that is used to define the different types of operations for the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Possible values are `install`, `repair` and `uninstall`. Changing this forces a new resource to be created.
 
@@ -64,12 +129,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
 * `read` - (Defaults to 5 minutes) Used when retrieving this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
-* `update` - (Defaults to 30 minutes) Used when updating this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
 * `delete` - (Defaults to 30 minutes) Used when deleting this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
 
 ## Import
 
-System Center Virtual Machine Manager Virtual Machine Instances can be imported using the `resource id`, e.g.
+System Center Virtual Machine Manager Virtual Machine Instance Guest Agents can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default

@@ -6,13 +6,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource struct{}
@@ -20,8 +20,8 @@ type SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource s
 func TestAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentSequential(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests because the testing is against the same Hybrid Machine
 
-	if os.Getenv("ARM_TEST_SCOPE_ID") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_SCOPE_ID`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
+	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
+		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
 	}
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
@@ -29,16 +29,11 @@ func TestAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentSeq
 			"basic":          testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_basic,
 			"requiresImport": testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_requiresImport,
 			"complete":       testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_update,
 		},
 	})
 }
 
 func testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_basic(t *testing.T) {
-	if os.Getenv("ARM_TEST_SCOPE_ID") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_SCOPE_ID`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent", "test")
 	r := SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource{}
 
@@ -54,10 +49,6 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_ba
 }
 
 func testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_requiresImport(t *testing.T) {
-	if os.Getenv("ARM_TEST_SCOPE_ID") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_SCOPE_ID`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent", "test")
 	r := SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource{}
 
@@ -73,40 +64,10 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_re
 }
 
 func testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_complete(t *testing.T) {
-	if os.Getenv("ARM_TEST_SCOPE_ID") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_SCOPE_ID`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent", "test")
 	r := SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("credential.0.password"),
-	})
-}
-
-func testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_update(t *testing.T) {
-	if os.Getenv("ARM_TEST_SCOPE_ID") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
-		t.Skip("Skipping as one of `ARM_TEST_SCOPE_ID`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent", "test")
-	r := SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("credential.0.password"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -123,27 +84,33 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 		return nil, err
 	}
 
-	resp, err := clients.SystemCenterVirtualMachineManager.VMInstanceGuestAgents.Get(ctx, commonids.NewScopeID(id.Scope))
+	resp, err := clients.SystemCenterVirtualMachineManager.GuestAgents.Get(ctx, commonids.NewScopeID(id.Scope))
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
-  scoped_resource_id = "%s"
+  scoped_resource_id = azurerm_arc_machine.test.id
 
   credential {
     username = "%s"
     password = "%s"
   }
+
+  depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test]
 }
-`, r.template(data), os.Getenv("ARM_TEST_SCOPE_ID"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+`, r.template(data), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) requiresImport(data acceptance.TestData) string {
@@ -151,7 +118,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 %s
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "import" {
-  scoped_resource_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.test.scope
+  scoped_resource_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.test.scoped_resource_id
 
   credential {
     username = "%s"
@@ -165,28 +132,90 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
-  scoped_resource_id  = "%s"
-  https_proxy         = ""
+  scoped_resource_id  = azurerm_arc_machine.test.id
+  https_proxy         = "uoyzyticmohohomlkwct"
   provisioning_action = "install"
 
   credential {
     username = "%s"
     password = "%s"
   }
+
+  depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test]
 }
-`, r.template(data), os.Getenv("ARM_TEST_SCOPE_ID"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
+`, r.template(data), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"))
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-scvmmiga-%d"
+  name     = "acctestrg-scvmmvmiga-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+resource "azurerm_arc_machine" "test" {
+  name                = "acctest-arcmachine-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  kind                = "SCVMM"
+}
+
+resource "azurerm_system_center_virtual_machine_manager_server" "test" {
+  name                = "acctest-scvmmms-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  custom_location_id  = "%s"
+  fqdn                = "%s"
+  username            = "%s"
+  password            = "%s"
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test" {
+  inventory_type                                  = "Cloud"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_cloud" "test" {
+  name                                                           = "acctest-scvmmc-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test.inventory_items[0].id
+}
+
+data "azurerm_system_center_virtual_machine_manager_inventory_items" "test2" {
+  inventory_type                                  = "VirtualMachineTemplate"
+  system_center_virtual_machine_manager_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_template" "test" {
+  name                                                           = "acctest-scvmmvmt-%d"
+  location                                                       = azurerm_resource_group.test.location
+  resource_group_name                                            = azurerm_resource_group.test.name
+  custom_location_id                                             = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+  system_center_virtual_machine_manager_server_inventory_item_id = data.azurerm_system_center_virtual_machine_manager_inventory_items.test2.inventory_items[0].id
+}
+
+resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance" "test" {
+  scoped_resource_id = azurerm_arc_machine.test.id
+  custom_location_id = azurerm_system_center_virtual_machine_manager_server.test.custom_location_id
+
+  infrastructure {
+    checkpoint_type                                                 = "Standard"
+    system_center_virtual_machine_manager_cloud_id                  = azurerm_system_center_virtual_machine_manager_cloud.test.id
+    system_center_virtual_machine_manager_template_id               = azurerm_system_center_virtual_machine_manager_virtual_machine_template.test.id
+    system_center_virtual_machine_manager_virtual_machine_server_id = azurerm_system_center_virtual_machine_manager_server.test.id
+  }
+
+  lifecycle {
+    // Service API always provisions a virtual disk with bus type IDE, hardware, network interface, operating system per Virtual Machine Template by default
+    ignore_changes = [storage_disk, hardware, network_interface, operating_system]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID"), os.Getenv("ARM_TEST_FQDN"), os.Getenv("ARM_TEST_USERNAME"), os.Getenv("ARM_TEST_PASSWORD"), data.RandomInteger, data.RandomInteger)
 }
