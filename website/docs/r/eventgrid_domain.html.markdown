@@ -60,6 +60,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `min_tls_version` - (Optional) The minimum supported TLS version for the EventGrid Domain. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Domains.
+
 ---
 
 A `identity` block supports the following:

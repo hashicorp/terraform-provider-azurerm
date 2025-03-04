@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -205,6 +205,15 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
+
+			"min_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(domains.TlsVersionOnePointTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(domains.TlsVersionOnePointTwo),
+				}, false),
+			},
 		},
 	}
 }
@@ -244,6 +253,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
+			MinimumTlsVersionAllowed:             pointer.To(domains.TlsVersion(d.Get("min_tls_version").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -317,6 +327,10 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("min_tls_version") {
+		payload.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("min_tls_version").(string)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -413,6 +427,12 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 				autoDeleteTopicWithLastSubscription = *props.AutoDeleteTopicWithLastSubscription
 			}
 			d.Set("auto_delete_topic_with_last_subscription", autoDeleteTopicWithLastSubscription)
+
+			minTlsVersion := string(domains.TlsVersionOnePointZero)
+			if props.MinimumTlsVersionAllowed != nil {
+				minTlsVersion = string(*props.MinimumTlsVersionAllowed)
+			}
+			d.Set("min_tls_version", minTlsVersion)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

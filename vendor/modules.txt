@@ -147,7 +147,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20250227.1125644
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20250303.1135340
 ## explicit; go 1.22
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -506,22 +506,33 @@ github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/private
 github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/snapshots
 github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumes
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/channels
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domaintopics
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnerconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnernamespaces
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnerregistrations
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnertopics
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/privateendpointconnections
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/privatelinkresources
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/systemtopics
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topictypes
-github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/verifiedpartners
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/cacertificates
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/channels
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/clientgroups
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/clients
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/domains
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/domaintopics
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespacetopics
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnerconfigurations
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnernamespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnerregistrations
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnertopics
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/permissionbindings
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/privateendpointconnections
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/privatelinkresources
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/systemtopics
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topics
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topicspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/topictypes
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/verifiedpartners
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationruleseventhubs
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/checknameavailabilitydisasterrecoveryconfigs
@@ -1158,7 +1169,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20250227.1125644
+# github.com/hashicorp/go-azure-sdk/sdk v0.20250303.1135340
 ## explicit; go 1.22
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
