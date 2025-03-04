@@ -866,7 +866,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D2ds_v4"
-  zone                   = "3"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -887,7 +887,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "3"
+  zone     = "2"
 
   lifecycle {
     ignore_changes = [
