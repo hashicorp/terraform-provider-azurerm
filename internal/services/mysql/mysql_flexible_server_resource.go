@@ -247,8 +247,9 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"public_network_access": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      servers.EnableStatusEnumEnabled,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
+				Description:  "Whether approved public traffic is allowed through the firewall to this server. The value for `public_network_access` becomes 'Disabled' if the server is created with VNet Integration, i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`.",
 			},
 
 			"replication_role": {
