@@ -400,11 +400,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/f
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/maintenanceconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/snapshots
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/trustedaccess
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/maintenanceconfigurations
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/snapshots
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/trustedaccess
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs
@@ -1030,7 +1030,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/associationsinterface
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/frontendsinterface
 github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01/trafficcontrollerinterface
-github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr
+github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing
 github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases
@@ -1151,8 +1151,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceprovid
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/staticsites
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans
 github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps
-github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01
-github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub
+github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01
+github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapapplicationserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
