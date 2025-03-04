@@ -330,7 +330,7 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("min_tls_version") {
-		payload.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("min_tls_version").(string)))
+		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("min_tls_version").(string)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
