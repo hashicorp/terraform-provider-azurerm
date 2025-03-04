@@ -356,7 +356,7 @@ func (r SharedImageVersionResource) imageVersion(data acceptance.TestData) strin
 %s
 
 resource "azurerm_shared_image_version" "test" {
-  name                = "0.0.1"
+  name                = "1234567890.1234567890.1234567890"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
   resource_group_name = azurerm_resource_group.test.name

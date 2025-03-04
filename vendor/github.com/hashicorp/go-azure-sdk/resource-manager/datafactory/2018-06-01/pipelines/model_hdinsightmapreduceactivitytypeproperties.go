@@ -4,12 +4,12 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HDInsightMapReduceActivityTypeProperties struct {
-	Arguments             *[]string                         `json:"arguments,omitempty"`
-	ClassName             string                            `json:"className"`
-	Defines               *map[string]string                `json:"defines,omitempty"`
+	Arguments             *[]interface{}                    `json:"arguments,omitempty"`
+	ClassName             interface{}                       `json:"className"`
+	Defines               *map[string]interface{}           `json:"defines,omitempty"`
 	GetDebugInfo          *HDInsightActivityDebugInfoOption `json:"getDebugInfo,omitempty"`
-	JarFilePath           string                            `json:"jarFilePath"`
-	JarLibs               *[]string                         `json:"jarLibs,omitempty"`
+	JarFilePath           interface{}                       `json:"jarFilePath"`
+	JarLibs               *[]interface{}                    `json:"jarLibs,omitempty"`
 	JarLinkedService      *LinkedServiceReference           `json:"jarLinkedService,omitempty"`
 	StorageLinkedServices *[]LinkedServiceReference         `json:"storageLinkedServices,omitempty"`
 }

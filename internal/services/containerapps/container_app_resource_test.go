@@ -2906,7 +2906,7 @@ func (r ContainerAppResource) latestRevisionFalseRevisionSuffixEmpty() string {
 	return `
 traffic_weight {
   latest_revision = false
-  percentage = 100
+  percentage      = 100
 }
 `
 }

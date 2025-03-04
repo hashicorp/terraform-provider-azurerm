@@ -11,20 +11,20 @@ import (
 var _ CopySink = AzureTableSink{}
 
 type AzureTableSink struct {
-	AzureTableDefaultPartitionKeyValue *string `json:"azureTableDefaultPartitionKeyValue,omitempty"`
-	AzureTableInsertType               *string `json:"azureTableInsertType,omitempty"`
-	AzureTablePartitionKeyName         *string `json:"azureTablePartitionKeyName,omitempty"`
-	AzureTableRowKeyName               *string `json:"azureTableRowKeyName,omitempty"`
+	AzureTableDefaultPartitionKeyValue *interface{} `json:"azureTableDefaultPartitionKeyValue,omitempty"`
+	AzureTableInsertType               *interface{} `json:"azureTableInsertType,omitempty"`
+	AzureTablePartitionKeyName         *interface{} `json:"azureTablePartitionKeyName,omitempty"`
+	AzureTableRowKeyName               *interface{} `json:"azureTableRowKeyName,omitempty"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64  `json:"sinkRetryCount,omitempty"`
-	SinkRetryWait            *string `json:"sinkRetryWait,omitempty"`
-	Type                     string  `json:"type"`
-	WriteBatchSize           *int64  `json:"writeBatchSize,omitempty"`
-	WriteBatchTimeout        *string `json:"writeBatchTimeout,omitempty"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
+	Type                     string       `json:"type"`
+	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 
 func (s AzureTableSink) CopySink() BaseCopySinkImpl {

@@ -11,17 +11,17 @@ import (
 var _ StoreReadSettings = AzureDataLakeStoreReadSettings{}
 
 type AzureDataLakeStoreReadSettings struct {
-	DeleteFilesAfterCompletion *bool   `json:"deleteFilesAfterCompletion,omitempty"`
-	EnablePartitionDiscovery   *bool   `json:"enablePartitionDiscovery,omitempty"`
-	FileListPath               *string `json:"fileListPath,omitempty"`
-	ListAfter                  *string `json:"listAfter,omitempty"`
-	ListBefore                 *string `json:"listBefore,omitempty"`
-	ModifiedDatetimeEnd        *string `json:"modifiedDatetimeEnd,omitempty"`
-	ModifiedDatetimeStart      *string `json:"modifiedDatetimeStart,omitempty"`
-	PartitionRootPath          *string `json:"partitionRootPath,omitempty"`
-	Recursive                  *bool   `json:"recursive,omitempty"`
-	WildcardFileName           *string `json:"wildcardFileName,omitempty"`
-	WildcardFolderPath         *string `json:"wildcardFolderPath,omitempty"`
+	DeleteFilesAfterCompletion *bool        `json:"deleteFilesAfterCompletion,omitempty"`
+	EnablePartitionDiscovery   *bool        `json:"enablePartitionDiscovery,omitempty"`
+	FileListPath               *interface{} `json:"fileListPath,omitempty"`
+	ListAfter                  *interface{} `json:"listAfter,omitempty"`
+	ListBefore                 *interface{} `json:"listBefore,omitempty"`
+	ModifiedDatetimeEnd        *interface{} `json:"modifiedDatetimeEnd,omitempty"`
+	ModifiedDatetimeStart      *interface{} `json:"modifiedDatetimeStart,omitempty"`
+	PartitionRootPath          *interface{} `json:"partitionRootPath,omitempty"`
+	Recursive                  *bool        `json:"recursive,omitempty"`
+	WildcardFileName           *interface{} `json:"wildcardFileName,omitempty"`
+	WildcardFolderPath         *interface{} `json:"wildcardFolderPath,omitempty"`
 
 	// Fields inherited from StoreReadSettings
 

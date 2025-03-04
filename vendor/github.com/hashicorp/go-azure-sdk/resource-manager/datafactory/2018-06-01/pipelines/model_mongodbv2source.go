@@ -14,16 +14,16 @@ type MongoDbV2Source struct {
 	AdditionalColumns *interface{}                    `json:"additionalColumns,omitempty"`
 	BatchSize         *int64                          `json:"batchSize,omitempty"`
 	CursorMethods     *MongoDbCursorMethodsProperties `json:"cursorMethods,omitempty"`
-	Filter            *string                         `json:"filter,omitempty"`
-	QueryTimeout      *string                         `json:"queryTimeout,omitempty"`
+	Filter            *interface{}                    `json:"filter,omitempty"`
+	QueryTimeout      *interface{}                    `json:"queryTimeout,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s MongoDbV2Source) CopySource() BaseCopySourceImpl {

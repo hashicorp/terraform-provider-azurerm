@@ -23,8 +23,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	schemaValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -50,10 +48,6 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			_, err := parse.ServerID(id)
 			return err
 		}),
-
-		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
-			schemaValidation.PreferWriteOnlyAttribute(cty.GetAttrPath("administrator_login_password"), cty.GetAttrPath("administrator_login_password_wo")),
-		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -767,17 +761,19 @@ func msSqlPasswordChangeWhenAADAuthOnly(ctx context.Context, d *pluginsdk.Resour
 
 // msSqlAdministratorLoginPassword checks to make sure that one of `administrator_login_password_wo` or `administrator_login_password` is set when `administrator_login` is specified.
 func msSqlAdministratorLoginPassword(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) (err error) {
-	adminLogin := d.GetRawConfig().AsValueMap()["administrator_login"]
-	if !adminLogin.IsNull() && adminLogin.AsString() != "" {
-		woAdminLoginPassword, err := pluginsdk.GetWriteOnlyFromDiff(d, "administrator_login_password_wo", cty.String)
-		if err != nil {
-			return err
-		}
+	adminLogin, ok := d.GetRawConfig().AsValueMap()["administrator_login"]
+	if ok {
+		if !adminLogin.IsNull() && adminLogin.AsString() != "" {
+			woAdminLoginPassword, err := pluginsdk.GetWriteOnlyFromDiff(d, "administrator_login_password_wo", cty.String)
+			if err != nil {
+				return err
+			}
 
-		password := d.GetRawConfig().AsValueMap()["administrator_login_password"]
+			password := d.GetRawConfig().AsValueMap()["administrator_login_password"]
 
-		if woAdminLoginPassword.IsNull() && password.IsNull() {
-			return fmt.Errorf("expected `administrator_login_password` or `administrator_login_password_wo` to be set when `administrator_login` is specified")
+			if woAdminLoginPassword.IsNull() && password.IsNull() {
+				return fmt.Errorf("expected `administrator_login_password` or `administrator_login_password_wo` to be set when `administrator_login` is specified")
+			}
 		}
 	}
 	return

@@ -13,16 +13,16 @@ var _ CopySource = AzureTableSource{}
 type AzureTableSource struct {
 	AdditionalColumns                   *interface{} `json:"additionalColumns,omitempty"`
 	AzureTableSourceIgnoreTableNotFound *bool        `json:"azureTableSourceIgnoreTableNotFound,omitempty"`
-	AzureTableSourceQuery               *string      `json:"azureTableSourceQuery,omitempty"`
-	QueryTimeout                        *string      `json:"queryTimeout,omitempty"`
+	AzureTableSourceQuery               *interface{} `json:"azureTableSourceQuery,omitempty"`
+	QueryTimeout                        *interface{} `json:"queryTimeout,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s AzureTableSource) CopySource() BaseCopySourceImpl {

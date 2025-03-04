@@ -4,6 +4,6 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SqlDWUpsertSettings struct {
-	InterimSchemaName *string   `json:"interimSchemaName,omitempty"`
-	Keys              *[]string `json:"keys,omitempty"`
+	InterimSchemaName *interface{} `json:"interimSchemaName,omitempty"`
+	Keys              *[]string    `json:"keys,omitempty"`
 }

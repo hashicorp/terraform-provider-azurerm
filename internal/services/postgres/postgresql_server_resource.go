@@ -21,8 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	pluginSdkValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -116,10 +114,6 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.PostgresqlServerV0ToV1{},
 		}),
-
-		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
-			pluginSdkValidation.PreferWriteOnlyAttribute(cty.GetAttrPath("administrator_login_password"), cty.GetAttrPath("administrator_login_password_wo")),
-		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

@@ -3,7 +3,10 @@
 
 package extendedlocation
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
 
 type Registration struct{}
 
@@ -20,12 +23,21 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		ExtendedLocationCustomLocationDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
+	if !features.FivePointOh() {
+		return []sdk.Resource{
+			CustomLocationResource{}, // this resource is renamed and should be removed in 5.0
+			ExtendedLocationCustomLocationResource{},
+		}
+	}
+
 	return []sdk.Resource{
-		CustomLocationResource{},
+		ExtendedLocationCustomLocationResource{},
 	}
 }
 
