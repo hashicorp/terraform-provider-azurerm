@@ -1130,12 +1130,18 @@ resource "azurerm_resource_group" "test" {
 
 %s
 
+resource "random_string" "suffix" {
+  length  = 3
+  special = false
+  upper   = false
+}
+
 resource "azurerm_mssql_server" "test" {
   name                                    = "acctestsqlserver%[1]d"
   resource_group_name                     = azurerm_resource_group.test.name
   location                                = azurerm_resource_group.test.location
   version                                 = "12.0"
-  administrator_login                     = "missadministrator"
+  administrator_login                     = "missadministrator-${random_string.suffix.result}"
   administrator_login_password_wo_version = %[4]d
   administrator_login_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
 
