@@ -352,31 +352,25 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			createModeVal := d.Get("create_mode").(string)
-
-			if createModeVal == string(servers.CreateModeUpdate) {
+			// as create_mode should never change after creation, we can ignore it when checking for version changes
+			if d.HasChange("version") {
 				oldVersionVal, newVersionVal := d.GetChange("version")
+				// `version` value has been validated already, ignore the parse errors is safe
+				oldVersion, _ := strconv.ParseInt(oldVersionVal.(string), 10, 32)
+				newVersion, _ := strconv.ParseInt(newVersionVal.(string), 10, 32)
 
-				if oldVersionVal != "" && newVersionVal != "" {
-					oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					if oldVersion < newVersion {
-						return nil
-					}
+				if oldVersion > newVersion {
+					d.ForceNew("version")
 				}
 			}
 
-			d.ForceNew("create_mode")
-			d.ForceNew("version")
-
+			if d.HasChange("create_mode") {
+				// if create_mode is set to `Update`, then we can update it rather than force new
+				if d.Get("create_mode").(string) == string(servers.CreateModeForUpdateUpdate) {
+					return nil
+				}
+				d.ForceNew("create_mode")
+			}
 			return nil
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			oldLoginName, _ := diff.GetChange("administrator_login")
