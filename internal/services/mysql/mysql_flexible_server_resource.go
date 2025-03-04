@@ -553,7 +553,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("zone", props.AvailabilityZone)
-			d.Set("version", string(pointer.From(props.Version)))
+			d.Set("version", props.Version)
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 			d.Set("source_server_id", props.SourceServerResourceId)
 
@@ -561,7 +561,6 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("public_network_access", *network.PublicNetworkAccess)
 				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
-
 				if !features.FivePointOh() {
 					d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
 				}
