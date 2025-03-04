@@ -33,6 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -69,10 +70,11 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: commonids.ValidateSubnetID,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     commonids.ValidateSubnetID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"network_interface": {
