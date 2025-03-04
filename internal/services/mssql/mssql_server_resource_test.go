@@ -41,6 +41,21 @@ func TestAccMsSqlServer_basic(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlServer_basicWithUnknownValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MsSqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithUnknownValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccMsSqlServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 	r := MsSqlServerResource{}
@@ -410,6 +425,23 @@ resource "azurerm_mssql_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r MsSqlServerResource) basicWithUnknownValue(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator-${random_string.test.result}"
+  administrator_login_password = "thisIsKat11"
+
+  outbound_network_restriction_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r MsSqlServerResource) basicWithMinimumTLSVersionDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -513,7 +545,7 @@ resource "azurerm_mssql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
-  administrator_login          = "missadministrator-${random_string.test.result}"
+  administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
   minimum_tls_version          = "1.2"
 
