@@ -100,7 +100,7 @@ func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
 }
 
 func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -128,23 +128,14 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 
 		"type": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.FivePointOh(),
-			Optional:     !features.FivePointOh(),
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTableTypeEnum(), false),
-			Default: func() interface{} {
-				if !features.FivePointOh() {
-					return string(tables.TableTypeEnumMicrosoft)
-				}
-				return nil
-			}(),
 		},
 
 		"sub_type": {
 			Type:         pluginsdk.TypeString,
-			Required:     features.FivePointOh(),
-			Optional:     !features.FivePointOh(),
-			Computed:     !features.FivePointOh(),
+			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTableSubTypeEnum(), false),
 		},
@@ -192,6 +183,19 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
 		},
 	}
+
+	if !features.FivePointOh() {
+		args["type"].Required = false
+		args["type"].Optional = true
+		args["type"].Default = string(tables.TableTypeEnumMicrosoft)
+
+		args["sub_type"].Required = false
+		args["sub_type"].Optional = true
+		args["sub_type"].Computed = true
+		args["sub_type"].Default = nil
+	}
+
+	return args
 }
 
 func (r LogAnalyticsWorkspaceTableResource) Attributes() map[string]*pluginsdk.Schema {
