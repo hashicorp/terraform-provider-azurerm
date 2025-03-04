@@ -15,8 +15,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -393,8 +395,16 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	if importVs, ok := d.GetOk("import"); ok {
 		if apiParams := expandApiManagementApiImport(importVs.([]interface{}), apiType, soapApiType,
 			path, d.Get("service_url").(string), version, versionSetId); apiParams != nil {
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			result, err := client.CreateOrUpdate(ctx, id, *apiParams, api.CreateOrUpdateOperationOptions{})
+			if err != nil {
+				return fmt.Errorf("creating with import of %s: %+v", id, err)
+			}
+
+			if pollerType := custompollers.NewAPIManagementAPIPoller(client, id, result.HttpResponse); pollerType != nil {
+				poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+				if err := poller.PollUntilDone(ctx); err != nil {
+					return fmt.Errorf("polling import %s: %+v", id, err)
+				}
 			}
 		}
 	}
@@ -425,7 +435,6 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: &api.ApiCreateOrUpdateProperties{
 			Type:                          pointer.To(apiType),
 			ApiType:                       pointer.To(soapApiType),
-			Description:                   pointer.To(description),
 			Path:                          path,
 			Protocols:                     protocols,
 			ServiceURL:                    pointer.To(serviceUrl),
@@ -442,6 +451,11 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	if sourceApiId != "" {
 		params.Properties.SourceApiId = pointer.To(sourceApiId)
 	}
+
+	if description != "" {
+		params.Properties.Description = pointer.To(description)
+	}
+
 	if displayName != "" {
 		params.Properties.DisplayName = pointer.To(displayName)
 	}
@@ -458,8 +472,16 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 		params.Properties.TermsOfServiceURL = pointer.To(v.(string))
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+	result, err := client.CreateOrUpdate(ctx, id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")})
+	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	if pollerType := custompollers.NewAPIManagementAPIPoller(client, id, result.HttpResponse); pollerType != nil {
+		poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("polling creating/updating %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -497,8 +519,16 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if vs, hasImport := d.GetOk("import"); hasImport {
 			if apiParams := expandApiManagementApiImport(vs.([]interface{}), apiType, soapApiType,
 				path, serviceUrl, version, versionSetId); apiParams != nil {
-				if err := client.CreateOrUpdateThenPoll(ctx, *id, *apiParams, api.CreateOrUpdateOperationOptions{}); err != nil {
-					return fmt.Errorf("creating/updating %s: %+v", *id, err)
+				result, err := client.CreateOrUpdate(ctx, *id, *apiParams, api.CreateOrUpdateOperationOptions{})
+				if err != nil {
+					return fmt.Errorf("creating with import of %s: %+v", id, err)
+				}
+
+				if pollerType := custompollers.NewAPIManagementAPIPoller(client, *id, result.HttpResponse); pollerType != nil {
+					poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+					if err := poller.PollUntilDone(ctx); err != nil {
+						return fmt.Errorf("polling import %s: %+v", id, err)
+					}
 				}
 			}
 		}
@@ -625,8 +655,16 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: prop,
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", *id, err)
+	result, err := client.CreateOrUpdate(ctx, *id, params, api.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")})
+	if err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	}
+
+	if pollerType := custompollers.NewAPIManagementAPIPoller(client, *id, result.HttpResponse); pollerType != nil {
+		poller := pollers.NewPoller(pollerType, 5*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("polling creating/updating %s: %+v", id, err)
+		}
 	}
 
 	return resourceApiManagementApiRead(d, meta)
