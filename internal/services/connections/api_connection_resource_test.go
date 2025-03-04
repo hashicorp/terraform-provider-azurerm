@@ -134,6 +134,37 @@ resource "azurerm_api_connection" "test" {
     ignore_changes = ["parameter_values"] # not returned from the API
   }
 }
+
+resource "azurerm_api_connection" "test_sftpwithssh" {
+  name                = "acctestconn-%[2]d-sftpwithssh"
+  resource_group_name = azurerm_resource_group.test.name
+  managed_api_id      = data.azurerm_managed_api.test_sftpwithssh.id
+  display_name        = "test"
+
+  parameter_values = {
+    "hostName"                = "foo.bar.com",
+    "userName"                = "username",
+    "password"                = "password",
+    "sshPrivateKey"           = "",
+    "sshPrivateKeyPassphrase" = "",
+    "portNumber"              = "22",
+    "acceptAnySshHostKey"     = "true",
+    "sshHostKeyFingerprint"   = "",
+    "rootFolder"              = "/root",
+  }
+
+  tags = {
+    Hello = "World"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      parameter_values["password"],
+      parameter_values["sshPrivateKey"],
+      parameter_values["sshPrivateKeyPassphrase"]
+    ]
+  }
+}
 `, t.template(data), data.RandomInteger)
 }
 
@@ -159,6 +190,37 @@ resource "azurerm_api_connection" "test" {
 
   lifecycle {
     ignore_changes = ["parameter_values"] # not returned from the API
+  }
+}
+
+resource "azurerm_api_connection" "test_sftpwithssh" {
+  name                = "acctestconn-%[2]d-sftpwithssh"
+  resource_group_name = azurerm_resource_group.test.name
+  managed_api_id      = data.azurerm_managed_api.test_sftpwithssh.id
+  display_name        = "test"
+
+  parameter_values = {
+    "hostName"                = "foo.bar.com",
+    "userName"                = "aBetterUsername",
+    "password"                = "password",
+    "sshPrivateKey"           = "",
+    "sshPrivateKeyPassphrase" = "",
+    "portNumber"              = "23",
+    "acceptAnySshHostKey"     = "true",
+    "sshHostKeyFingerprint"   = "",
+    "rootFolder"              = "/root",
+  }
+
+  tags = {
+    Hello = "World"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      parameter_values["password"],
+      parameter_values["sshPrivateKey"],
+      parameter_values["sshPrivateKeyPassphrase"]
+    ]
   }
 }
 `, template, data.RandomInteger)
@@ -190,6 +252,11 @@ resource "azurerm_servicebus_namespace" "test" {
 
 data "azurerm_managed_api" "test" {
   name     = "servicebus"
+  location = azurerm_resource_group.test.location
+}
+
+data "azurerm_managed_api" "test_sftpwithssh" {
+  name     = "sftpwithssh"
   location = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary)
