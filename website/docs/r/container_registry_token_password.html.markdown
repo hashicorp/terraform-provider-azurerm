@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_container_registry_token_password
 
-Manages a Container Registry Token Password.
+Manages a Container Registry Token Password associated with a scope map.  For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-repository-scoped-permissions).
 
 ## Example Usage
 
@@ -22,7 +22,7 @@ resource "azurerm_container_registry" "example" {
   name                     = "example-registry"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
-  sku                      = "Premium"
+  sku                      = "Basic"
   admin_enabled            = false
   georeplication_locations = ["East US", "West Europe"]
 }
