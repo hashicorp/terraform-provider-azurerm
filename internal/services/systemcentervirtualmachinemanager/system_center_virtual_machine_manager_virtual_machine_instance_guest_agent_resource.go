@@ -20,7 +20,6 @@ import (
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentModel struct {
 	ScopedResourceId   string       `tfschema:"scoped_resource_id"`
 	Credential         []Credential `tfschema:"credential"`
-	HttpsProxy         string       `tfschema:"https_proxy"`
 	ProvisioningAction string       `tfschema:"provisioning_action"`
 }
 
@@ -79,13 +78,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 			},
 		},
 
-		"https_proxy": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"provisioning_action": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -130,12 +122,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 				},
 			}
 
-			if v := model.HttpsProxy; v != "" {
-				parameters.Properties.HTTPProxyConfig = &guestagents.HTTPProxyConfiguration{
-					HTTPSProxy: pointer.To(v),
-				}
-			}
-
 			if err := client.CreateThenPoll(ctx, commonids.NewScopeID(id.Scope), parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -173,10 +159,6 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 				if props := model.Properties; props != nil {
 					state.Credential = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(props.Credentials, metadata.ResourceData.Get("credential.0.password").(string))
 					state.ProvisioningAction = string(pointer.From(props.ProvisioningAction))
-
-					if v := props.HTTPProxyConfig; v != nil {
-						state.HttpsProxy = pointer.From(v.HTTPSProxy)
-					}
 				}
 			}
 

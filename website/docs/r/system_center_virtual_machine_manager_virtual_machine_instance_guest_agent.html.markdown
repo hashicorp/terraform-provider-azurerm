@@ -108,8 +108,6 @@ The following arguments are supported:
 
 * `credential` - (Required) A `credential` block as defined below. Changing this forces a new resource to be created.
 
-* `https_proxy` - (Optional) The HTTP Proxy configuration for the Virtual Machine. Changing this forces a new resource to be created.
-
 * `provisioning_action` - (Optional) The provisioning action that is used to define the different types of operations for the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Possible values are `install`, `repair` and `uninstall`. Defaults to `install`. Changing this forces a new resource to be created.
 
 ---

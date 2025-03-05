@@ -136,17 +136,8 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-pip-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
   scoped_resource_id  = azurerm_arc_machine.test.id
-  https_proxy         = "http://${azurerm_public_ip.test.ip_address}:80/"
   provisioning_action = "install"
 
   credential {
@@ -156,7 +147,7 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 
   depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data))
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource) template(data acceptance.TestData) string {
