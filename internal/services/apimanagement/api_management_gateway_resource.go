@@ -27,7 +27,6 @@ func resourceApiManagementGateway() *pluginsdk.Resource {
 		Delete: resourceApiManagementGatewayDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			// _, err := gateway.ParseGatewayID(id)
 			_, err := gateway.ParseServiceGatewayID(id)
 			return err
 		}),
@@ -93,7 +92,6 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("parsing `api_management_id`: %v", err)
 	}
 
-	// id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
 	id := gateway.NewServiceGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
@@ -133,7 +131,6 @@ func resourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// id, err := gateway.ParseGatewayID(d.Id())
 	id, err := gateway.ParseServiceGatewayID(d.Id())
 	if err != nil {
 		return err
@@ -169,7 +166,6 @@ func resourceApiManagementGatewayDelete(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// id, err := gateway.ParseGatewayID(d.Id())
 	id, err := gateway.ParseServiceGatewayID(d.Id())
 	if err != nil {
 		return err

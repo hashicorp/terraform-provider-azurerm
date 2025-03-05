@@ -78,8 +78,6 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	id := gateway.NewServiceGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
-	// id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
-
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -90,7 +88,6 @@ func dataSourceApiManagementGatewayRead(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if resp.Model != nil {
-		// _, err = gateway.ParseGatewayID(*resp.Model.Id)
 		_, err = gateway.ParseServiceGatewayID(*resp.Model.Id)
 		if err != nil {
 			return fmt.Errorf("parsing Gateway ID %q", *resp.Model.Id)
