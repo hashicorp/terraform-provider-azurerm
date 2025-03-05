@@ -467,6 +467,7 @@ resource "azurerm_eventgrid_domain" "test" {
   }
 
   min_tls_version = "1.2"
+  data_residency_boundary = "WithinGeopair"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

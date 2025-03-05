@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `data_residency_boundary` - (Optional) Data Residency Boundary of the resource. Possible values are `WithinGeopair` or `WithinRegion` Defaults to `WithinGeopair`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.

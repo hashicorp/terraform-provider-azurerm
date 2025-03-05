@@ -61,6 +61,16 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"data_residency_boundary": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(domains.DataResidencyBoundaryWithinGeopair),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(domains.DataResidencyBoundaryWithinGeopair),
+					string(domains.DataResidencyBoundaryWithinRegion),
+				}, false),
+			},
+
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 			"input_schema": {
@@ -250,6 +260,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: &domains.DomainProperties{
 			AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
 			AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
+			DataResidencyBoundary:                pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string))),
 			DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
 			InboundIPRules:                       inboundIPRules,
 			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
@@ -294,6 +305,10 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("data_residency_boundary") {
+		payload.Properties.DataResidencyBoundary = pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string)))
 	}
 
 	if d.HasChange("minimum_tls_version") {
@@ -384,6 +399,12 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+
+			dataResidencyBoundary := string(domains.DataResidencyBoundaryWithinGeopair)
+			if props.DataResidencyBoundary != nil {
+				dataResidencyBoundary = string(*props.DataResidencyBoundary)
+			}
+			d.Set("data_residency_boundary", dataResidencyBoundary)
 
 			inputSchema := ""
 			if props.InputSchema != nil {
