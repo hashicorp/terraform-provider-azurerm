@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -21,7 +20,6 @@ type ServiceBusNamespaceCustomerManagedKeyResource struct{}
 type ServiceBusNamespaceCustomerManagedKeyModel struct {
 	NamespaceID                     string `tfschema:"namespace_id"`
 	KeyVaultKeyID                   string `tfschema:"key_vault_key_id"`
-	IdentityID                      string `tfschema:"identity_id"`
 	InfrastructureEncryptionEnabled bool   `tfschema:"infrastructure_encryption_enabled"`
 }
 
@@ -47,16 +45,13 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Arguments() map[string]*p
 			ForceNew:     true,
 			ValidateFunc: namespaces.ValidateNamespaceID,
 		},
+
 		"key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 		},
-		"identity_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-		},
+
 		"infrastructure_encryption_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -120,16 +115,6 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Create() sdk.ResourceFunc
 				},
 			}
 
-			if cmk.IdentityID != "" {
-				identityId, err := commonids.ParseUserAssignedIdentityID(cmk.IdentityID)
-				if err != nil {
-					return err
-				}
-				(*payload.Properties.Encryption.KeyVaultProperties)[0].Identity = &namespaces.UserAssignedIdentityProperties{
-					UserAssignedIdentity: pointer.To(identityId.ID()),
-				}
-			}
-
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}
@@ -162,24 +147,18 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Read() sdk.ResourceFunc {
 			var state ServiceBusNamespaceCustomerManagedKeyModel
 			state.NamespaceID = id.ID()
 
-			if props := resp.Model.Properties; props != nil && props.Encryption != nil {
-				encryption := props.Encryption
-				if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil && len(*keyVaultProperties) > 0 {
-					if identity := (*keyVaultProperties)[0].Identity; identity != nil {
-						identityId, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(identity.UserAssignedIdentity))
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil && props.Encryption != nil {
+					encryption := props.Encryption
+					if keyVaultProperties := encryption.KeyVaultProperties; keyVaultProperties != nil && len(*keyVaultProperties) > 0 {
+						keyVaultKeyId, err := keyVaultParse.NewNestedItemID(pointer.From((*keyVaultProperties)[0].KeyVaultUri), keyVaultParse.NestedItemTypeKey, pointer.From((*keyVaultProperties)[0].KeyName), pointer.From((*keyVaultProperties)[0].KeyVersion))
 						if err != nil {
-							return err
+							return fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 						}
-						state.IdentityID = identityId.ID()
+						state.KeyVaultKeyID = keyVaultKeyId.ID()
 					}
-
-					keyVaultKeyId, err := keyVaultParse.NewNestedItemID(pointer.From((*keyVaultProperties)[0].KeyVaultUri), keyVaultParse.NestedItemTypeKey, pointer.From((*keyVaultProperties)[0].KeyName), pointer.From((*keyVaultProperties)[0].KeyVersion))
-					if err != nil {
-						return fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
-					}
-					state.KeyVaultKeyID = keyVaultKeyId.ID()
+					state.InfrastructureEncryptionEnabled = pointer.From(encryption.RequireInfrastructureEncryption)
 				}
-				state.InfrastructureEncryptionEnabled = pointer.From(encryption.RequireInfrastructureEncryption)
 			}
 			return metadata.Encode(&state)
 		},
@@ -233,16 +212,6 @@ func (r ServiceBusNamespaceCustomerManagedKeyResource) Update() sdk.ResourceFunc
 				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyName = pointer.To(keyId.Name)
 				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyVersion = pointer.To(keyId.Version)
 				(*payload.Properties.Encryption.KeyVaultProperties)[0].KeyVaultUri = pointer.To(keyId.KeyVaultBaseUrl)
-			}
-
-			if metadata.ResourceData.HasChange("identity_id") {
-				identityId, err := commonids.ParseUserAssignedIdentityID(cmk.IdentityID)
-				if err != nil {
-					return err
-				}
-				(*payload.Properties.Encryption.KeyVaultProperties)[0].Identity = &namespaces.UserAssignedIdentityProperties{
-					UserAssignedIdentity: pointer.To(identityId.ID()),
-				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {

@@ -51,7 +51,7 @@ func TestAccServicebusNamespaceCustomerManagedKey_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -73,27 +73,6 @@ func TestAccServicebusNamespaceCustomerManagedKey_updated(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.updated(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccServicebusNamespaceCustomerManagedKey_userAssignedIdentityUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_customer_managed_key", "test")
-	r := ServicebusNamespaceCustomerManagedKeyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.userAssigned(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.userAssignedUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -223,86 +202,6 @@ resource "azurerm_key_vault_key" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
-func (r ServicebusNamespaceCustomerManagedKeyResource) templateUserAssigned(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-sb-%[1]d"
-  location = "%s"
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%[3]s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-    key_permissions = [
-      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
-    ]
-    secret_permissions = [
-      "Get",
-    ]
-  }
-
-  access_policy {
-    tenant_id = azurerm_user_assigned_identity.test.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
-    key_permissions = [
-      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
-    ]
-    secret_permissions = [
-      "Get",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey%[3]s"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                         = "acctestservicebusnamespace-%[1]d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  sku                          = "Premium"
-  premium_messaging_partitions = 1
-  capacity                     = 1
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-
-  lifecycle {
-    ignore_changes = [customer_managed_key]
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
 func (r ServicebusNamespaceCustomerManagedKeyResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -418,30 +317,4 @@ resource "azurerm_servicebus_namespace_customer_managed_key" "test" {
   infrastructure_encryption_enabled = false
 }
 `, r.template(data), data.RandomString, data.RandomString)
-}
-
-func (r ServicebusNamespaceCustomerManagedKeyResource) userAssigned(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_servicebus_namespace_customer_managed_key" "test" {
-  namespace_id                      = azurerm_servicebus_namespace.test.id
-  key_vault_key_id                  = azurerm_key_vault_key.test.id
-  identity_id                       = azurerm_user_assigned_identity.test.id
-  infrastructure_encryption_enabled = true
-}
-`, r.templateUserAssigned(data))
-}
-
-func (r ServicebusNamespaceCustomerManagedKeyResource) userAssignedUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_servicebus_namespace_customer_managed_key" "test" {
-  namespace_id                      = azurerm_servicebus_namespace.test.id
-  key_vault_key_id                  = azurerm_key_vault_key.test.id
-  identity_id                       = azurerm_user_assigned_identity.test.id
-  infrastructure_encryption_enabled = true
-}
-`, r.templateUserAssigned(data))
 }

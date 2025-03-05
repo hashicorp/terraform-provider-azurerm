@@ -3,14 +3,16 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
 description: |-
-  Manages a ServiceBus Namespace Customer Managed Key.
+  Manages a Service Bus Namespace Customer Managed Key.
 ---
 
 # azurerm_servicebus_namespace_customer_managed_key
 
-Manages a ServiceBus Namespace Customer Managed Key.
+Manages a Service Bus Namespace Customer Managed Key.
 
-!> **Note:** It is not possible to remove the Customer Managed Key from the ServiceBus Namespace once it's been added. To remove the Customer Managed Key, the parent ServiceBus Namespace must be deleted and recreated.
+!> **Note:** It is not possible to remove the Customer Managed Key from the Service Bus Namespace once it's been added. To remove the Customer Managed Key, the parent Service Bus Namespace must be deleted and recreated.
+
+-> **Note:** This resource should only be used to create a Customer Managed Key for Service Bus Namespaces with SystemAssigned identities. The `customer_managed_key` block in `azurerm_servicebus_namespace` should be used to create a Customer Managed Key for a Service Bus Namespaces with a UserAssigned identity.
 
 ## Example Usage
 
@@ -129,28 +131,23 @@ The following arguments are supported:
 
 * `namespace_id` - (Required) The ID of the Service Bus namespace. Changing this forces a new resource to be created.
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this ServiceBus Namespace.
-
-* `identity_id` - (Optional) The ID of the User Assigned Identity that has access to the key.
-
--> **Note:** If `identity_id` is not specified, the System Assigned Identity of the ServiceBus Namespace will be used.
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Service Bus Namespace.
 
 * `infrastructure_encryption_enabled` - (Optional) Used to specify whether enable Infrastructure Encryption. Changing this forces a new resource to be created.
-
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ServiceBus Namespace ID.
+* `id` - The Service Bus Namespace ID.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace Customer Managed Key.
-* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace Customer Managed Key.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace Customer Managed Key.
+* `create` - (Defaults to 30 minutes) Used when creating the Service Bus Namespace Customer Managed Key.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Namespace Customer Managed Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace Customer Managed Key.
 
 ## Import
 
