@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_storage_account_queue_properties` - now gets the parent account directly rather than searching the list of all accounts when the Resource Manager ID is available [GH-28617]
 * Data Source: `azurerm_storage_account_static_website` - now gets the parent account directly rather than searching the list of all accounts when the Resource Manager ID is available [GH-28617]
 * Data Source: `azurerm_storage_containers` - now gets the parent account directly rather than searching the list of all accounts when the Resource Manager ID is available [GH-28617]
+* `azurerm_api_connection` - `display_name` and `parameter_values` are no longer `ForceNew` [GH-28721]
 * `azurerm_container_app` - add support for the `template.volume.mount_options` property [GH-28619]
 * `azurerm_container_app_job` - add support for the `template.volume.mount_options` property [GH-28619]
 * `azurerm_extended_custom_location` - deprecated in favour of `azurerm_extended_location_custom_location` [GH-28066]
