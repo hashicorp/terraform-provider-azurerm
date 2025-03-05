@@ -456,7 +456,6 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 				autoDeleteTopicWithLastSubscription = *props.AutoDeleteTopicWithLastSubscription
 			}
 			d.Set("auto_delete_topic_with_last_subscription", autoDeleteTopicWithLastSubscription)
-
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

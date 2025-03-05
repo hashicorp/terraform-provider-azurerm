@@ -466,7 +466,7 @@ resource "azurerm_eventgrid_domain" "test" {
     "foo" = "bar"
   }
 
-  min_tls_version = "1.2"
+  min_tls_version         = "1.2"
   data_residency_boundary = "WithinGeopair"
 
 }
