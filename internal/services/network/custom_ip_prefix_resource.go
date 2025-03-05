@@ -31,6 +31,7 @@ type CustomIpPrefixModel struct {
 	Location                    string                 `tfschema:"location"`
 	Name                        string                 `tfschema:"name"`
 	ParentCustomIPPrefixID      string                 `tfschema:"parent_custom_ip_prefix_id"`
+	PrefixType                  string                 `tfschema:"prefix_type"`
 	ROAValidityEndDate          string                 `tfschema:"roa_validity_end_date"`
 	ResourceGroupName           string                 `tfschema:"resource_group_name"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
@@ -136,6 +137,17 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+		"prefix_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"Child",
+				"Parent",
+				"Singular",
+			}, false),
+		},
 	}
 }
 
@@ -208,6 +220,10 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 					Cidr:              &model.CIDR,
 					CommissionedState: pointer.To(customipprefixes.CommissionedStateProvisioning),
 				},
+			}
+
+			if model.PrefixType != "" {
+				payload.Properties.CustomIPPrefixType = pointer.To(model.PrefixType)
 			}
 
 			if model.ParentCustomIPPrefixID != "" {
@@ -346,6 +362,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.CIDR = pointer.From(props.Cidr)
 					state.InternetAdvertisingDisabled = pointer.From(props.NoInternetAdvertise)
+					state.PrefixType = pointer.From(props.CustomIPPrefixType)
 					state.WANValidationSignedMessage = pointer.From(props.SignedMessage)
 
 					if parent := props.CustomIPPrefixParent; parent != nil {
