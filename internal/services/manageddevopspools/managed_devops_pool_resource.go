@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2024-10-19/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -168,30 +167,12 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 
-				state.Set("location", model.Location)
-
 				if props := model.Properties; props != nil {
 					// if there are properties to set into state do that here
-					if agentProfile := props.AgentProfile; agentProfile != nil {
-						state.AgentProfile = AgentProfileModel{
-							Kind:                agentProfile.Kind,
-							GracePeriodTimeSpan: agentProfile.GracePeriodTimeSpan,
-							MaxAgentLifetime:    agentProfile.MaxAgentLifetime,
-							ResourcePredictions: agentProfile.ResourcePredictions,
-							ResourcePredictionsProfile: ResourcePredictionsProfileModel{
-								Kind:                 agentProfile.ResourcePredictionsProfile.Kind,
-								PredictionPreference: agentProfile.ResourcePredictionsProfile.PredictionPreference,
-							},
-						}
-					}
-
+					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
+					state.MaximumConcurrency = props.MaximumConcurrency
 					// Add other props
 				}
-
-				if err := tags.FlattenAndSet(&state, model.Tags); err != nil {
-					return fmt.Errorf("setting `tags`: %+v", err)
-				}
-
 			}
 
 			return metadata.Encode(&state)
