@@ -14,6 +14,7 @@ ENHANCEMENTS:
 * `azurerm_container_app` - add support for the `template.volume.mount_options` property [GH-28619]
 * `azurerm_container_app_job` - add support for the `template.volume.mount_options` property [GH-28619]
 * `azurerm_extended_custom_location` - deprecated in favour of `azurerm_extended_location_custom_location` [GH-28066]
+* `azurerm_mongo_cluster` - add support for the `connection_strings` attribute [GH-28880]
 * `azurerm_workloads_sap_discovery_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
 * `azurerm_workloads_sap_single_node_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
 * `azurerm_workloads_sap_three_tier_virtual_instance` - add support for the `managed_resources_network_access_type` property [GH-28881]
