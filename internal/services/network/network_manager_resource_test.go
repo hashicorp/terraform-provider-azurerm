@@ -101,6 +101,11 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetorkManagerVerifierWorkspace_update,
 			"requiresImport": testAccNetorkManagerVerifierWorkspace_requiresImport,
 		},
+		"VerifierWorkspaceReachabilityAnalysisIntent": {
+			"basic":          testAccNetorkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic,
+			"complete":       testAccNetorkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete,
+			"requiresImport": testAccNetorkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {
