@@ -140,6 +140,17 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				},
 			},
 
+			"minimum_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(domains.TlsVersionOnePointZero),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(domains.TlsVersionOnePointZero),
+					string(domains.TlsVersionOnePointOne),
+					string(domains.TlsVersionOnePointTwo),
+				}, false),
+			},
+
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -205,17 +216,6 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
-
-			"minimum_tls_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(domains.TlsVersionOnePointTwo),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(domains.TlsVersionOnePointZero),
-					string(domains.TlsVersionOnePointOne),
-					string(domains.TlsVersionOnePointTwo),
-				}, false),
-			},
 		},
 	}
 }
@@ -254,8 +254,8 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			InboundIPRules:                       inboundIPRules,
 			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
-			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 			MinimumTlsVersionAllowed:             pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string))),
+			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -296,6 +296,10 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		payload.Identity = expandedIdentity
 	}
 
+	if d.HasChange("minimum_tls_version") {
+		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
+	}
+
 	if d.HasChange("public_network_access_enabled") {
 		publicNetworkAccess := domains.PublicNetworkAccessDisabled
 		if d.Get("public_network_access_enabled").(bool) {
@@ -329,10 +333,6 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	if d.HasChange("minimum_tls_version") {
-		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -401,6 +401,12 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
+			minTlsVersion := string(domains.TlsVersionOnePointZero)
+			if props.MinimumTlsVersionAllowed != nil {
+				minTlsVersion = string(*props.MinimumTlsVersionAllowed)
+			}
+			d.Set("minimum_tls_version", minTlsVersion)
+
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == domains.PublicNetworkAccessDisabled {
 				publicNetworkAccessEnabled = false
@@ -430,11 +436,6 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			d.Set("auto_delete_topic_with_last_subscription", autoDeleteTopicWithLastSubscription)
 
-			minTlsVersion := string(domains.TlsVersionOnePointZero)
-			if props.MinimumTlsVersionAllowed != nil {
-				minTlsVersion = string(*props.MinimumTlsVersionAllowed)
-			}
-			d.Set("minimum_tls_version", minTlsVersion)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below. Changing this forces a new resource to be created.
 
+* `min_tls_version` - (Optional) The minimum supported TLS version for the EventGrid Domain. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Domains.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled for the EventGrid Domain. Defaults to `true`.
@@ -59,8 +61,6 @@ The following arguments are supported:
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `min_tls_version` - (Optional) The minimum supported TLS version for the EventGrid Domain. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Domains.
 
 ---
 
