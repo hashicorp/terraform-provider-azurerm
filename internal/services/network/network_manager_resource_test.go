@@ -102,6 +102,12 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetorkManagerIpamPool_update,
 			"requiresImport": testAccNetorkManagerIpamPool_requiresImport,
 		},
+		"VerifierWorkspace": {
+			"basic":          testAccNetorkManagerVerifierWorkspace_basic,
+			"complete":       testAccNetorkManagerVerifierWorkspace_complete,
+			"update":         testAccNetorkManagerVerifierWorkspace_update,
+			"requiresImport": testAccNetorkManagerVerifierWorkspace_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {

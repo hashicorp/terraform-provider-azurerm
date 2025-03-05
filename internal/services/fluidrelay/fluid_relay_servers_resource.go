@@ -385,7 +385,7 @@ func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.Encrypti
 
 	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL != nil {
 		if v := pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL); v != "" {
-			id, err := keyVaultParse.ParseNestedItemID(v)
+			id, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v)
 			if err != nil {
 				return nil, err
 			}

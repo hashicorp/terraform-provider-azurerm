@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -42,6 +43,10 @@ func (r CustomLocationResource) Exists(ctx context.Context, client *clients.Clie
 }
 
 func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping: azurerm_extended_custom_location is deprecated.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
 	r := CustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
@@ -58,6 +63,10 @@ func TestAccExtendedLocationCustomLocations_basic(t *testing.T) {
 }
 
 func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping: azurerm_extended_custom_location is deprecated.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
 	r := CustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)
@@ -74,6 +83,10 @@ func TestAccExtendedLocationCustomLocations_complete(t *testing.T) {
 }
 
 func TestAccExtendedLocationCustomLocations_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping: azurerm_extended_custom_location is deprecated.")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_extended_custom_location", "test")
 	r := CustomLocationResource{}
 	credential, privateKey, publicKey := r.getCredentials(t)

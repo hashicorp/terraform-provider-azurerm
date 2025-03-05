@@ -159,6 +159,7 @@ type Ingress struct {
 	TrafficWeights         []TrafficWeight         `tfschema:"traffic_weight"`
 	Transport              string                  `tfschema:"transport"`
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
+	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -215,6 +216,17 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForIngressTransportMethod(), false),
 					Description:  "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
 				},
+
+				"client_certificate_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(containerapps.IngressClientCertificateModeAccept),
+						string(containerapps.IngressClientCertificateModeRequire),
+						string(containerapps.IngressClientCertificateModeIgnore),
+					}, false),
+					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
+				},
 			},
 		},
 	}
@@ -267,6 +279,12 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`, `tcp`. Defaults to `auto`",
 				},
+
+				"client_certificate_mode": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
+				},
 			},
 		},
 	}
@@ -290,6 +308,10 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
+	if ingress.ClientCertificateMode != "" {
+		clientCertificateMode := containerapps.IngressClientCertificateMode(ingress.ClientCertificateMode)
+		result.ClientCertificateMode = &clientCertificateMode
+	}
 
 	return result
 }
@@ -313,6 +335,10 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	if ingress.Transport != nil {
 		result.Transport = strings.ToLower(string(*ingress.Transport))
+	}
+
+	if ingress.ClientCertificateMode != nil {
+		result.ClientCertificateMode = string(*ingress.ClientCertificateMode)
 	}
 
 	return []Ingress{result}
@@ -1422,9 +1448,10 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 }
 
 type ContainerVolume struct {
-	Name        string `tfschema:"name"`
-	StorageName string `tfschema:"storage_name"`
-	StorageType string `tfschema:"storage_type"`
+	Name         string `tfschema:"name"`
+	StorageName  string `tfschema:"storage_name"`
+	StorageType  string `tfschema:"storage_type"`
+	MountOptions string `tfschema:"mount_options"`
 }
 
 func ContainerVolumeSchema() *pluginsdk.Schema {
@@ -1457,6 +1484,13 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					ValidateFunc: validate.ManagedEnvironmentStorageName,
 					Description:  "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`",
 				},
+
+				"mount_options": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Mount options used while mounting the AzureFile. Must be a comma-separated string.",
+				},
 			},
 		},
 	}
@@ -1479,6 +1513,11 @@ func ContainerVolumeSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"storage_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"mount_options": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -1505,6 +1544,9 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 			storageType := containerapps.StorageType(v.StorageType)
 			volume.StorageType = &storageType
 		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
+		}
 		volumes = append(volumes, volume)
 	}
 
@@ -1525,6 +1567,9 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
 		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
+		}
 
 		result = append(result, containerVolume)
 	}
@@ -1533,8 +1578,9 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 }
 
 type ContainerVolumeMount struct {
-	Name string `tfschema:"name"`
-	Path string `tfschema:"path"`
+	Name    string `tfschema:"name"`
+	Path    string `tfschema:"path"`
+	SubPath string `tfschema:"sub_path"`
 }
 
 func ContainerVolumeMountSchema() *pluginsdk.Schema {
@@ -1555,6 +1601,13 @@ func ContainerVolumeMountSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The path in the container at which to mount this volume.",
+				},
+
+				"sub_path": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The sub path of the volume to be mounted in the container.",
 				},
 			},
 		},
@@ -1578,6 +1631,12 @@ func ContainerVolumeMountSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "The path in the container at which to mount this volume.",
 				},
+
+				"sub_path": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The sub path of the volume to be mounted in the container.",
+				},
 			},
 		},
 	}
@@ -1593,6 +1652,7 @@ func expandContainerVolumeMounts(input []ContainerVolumeMount) *[]containerapps.
 		volumeMounts = append(volumeMounts, containerapps.VolumeMount{
 			MountPath:  pointer.To(v.Path),
 			VolumeName: pointer.To(v.Name),
+			SubPath:    pointer.To(v.SubPath),
 		})
 	}
 
@@ -1607,8 +1667,9 @@ func flattenContainerVolumeMounts(input *[]containerapps.VolumeMount) []Containe
 	result := make([]ContainerVolumeMount, 0)
 	for _, v := range *input {
 		result = append(result, ContainerVolumeMount{
-			Name: pointer.From(v.VolumeName),
-			Path: pointer.From(v.MountPath),
+			Name:    pointer.From(v.VolumeName),
+			Path:    pointer.From(v.MountPath),
+			SubPath: pointer.From(v.SubPath),
 		})
 	}
 
