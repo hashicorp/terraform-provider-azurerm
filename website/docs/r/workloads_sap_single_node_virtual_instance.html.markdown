@@ -192,6 +192,8 @@ The following arguments are supported:
 
 * `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Single Node Virtual Instance. Changing this forces a new resource to be created.
 
+* `managed_resources_network_access_type` - (Optional) The network access type for managed resources. Possible values are `Private` and `Public`. Defaults to `Public`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the SAP Single Node Virtual Instance.
 
 ---

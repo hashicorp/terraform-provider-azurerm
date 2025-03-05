@@ -81,12 +81,22 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"ftp_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+
+			"scm_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -314,6 +324,24 @@ func dataSourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{})
 		if err = d.Set("connection_string", flattenLogicAppStandardDataSourceConnectionStrings(model.Properties)); err != nil {
 			return err
 		}
+	}
+
+	ftpBasicAuth, err := client.GetFtpAllowed(ctx, id)
+	if err != nil || ftpBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving FTP publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := ftpBasicAuth.Model.Properties; props != nil {
+		d.Set("ftp_publish_basic_authentication_enabled", props.Allow)
+	}
+
+	scmBasicAuth, err := client.GetScmAllowed(ctx, id)
+	if err != nil || scmBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving SCM publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := scmBasicAuth.Model.Properties; props != nil {
+		d.Set("scm_publish_basic_authentication_enabled", props.Allow)
 	}
 
 	configResp, err := client.GetConfiguration(ctx, id)

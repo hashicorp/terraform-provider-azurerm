@@ -22,6 +22,8 @@ import (
 type NewRelicMonitorResource struct{}
 
 func TestAccNewRelicMonitor_basic(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -38,6 +40,8 @@ func TestAccNewRelicMonitor_basic(t *testing.T) {
 }
 
 func TestAccNewRelicMonitor_requiresImport(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
@@ -57,6 +61,8 @@ func TestAccNewRelicMonitor_requiresImport(t *testing.T) {
 }
 
 func TestAccNewRelicMonitor_complete(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	const AccountIdEnv = "ARM_ACCTEST_NEW_RELIC_ACCOUNT_ID"
 	const OrgIdEnv = "ARM_ACCTEST_NEW_RELIC_ORG_ID"
 
@@ -84,6 +90,8 @@ func TestAccNewRelicMonitor_complete(t *testing.T) {
 }
 
 func TestAccNewRelicMonitor_identity(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
 	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)

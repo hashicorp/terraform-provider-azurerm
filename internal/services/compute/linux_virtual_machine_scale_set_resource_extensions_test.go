@@ -1017,7 +1017,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Linux"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "backend"

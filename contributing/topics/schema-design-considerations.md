@@ -36,7 +36,7 @@ In the cases where `Enabled` is the only field within the object we opt to flatt
 },
 ```
 
-However when there are multiple fields in addtion to the `Enabled` one and they are all required for the object/feature like in Example B, a terraform block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
+However when there are multiple fields in addition to the `Enabled` field and they are all required for the object/feature like in Example B, a terraform block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
 
 ```go
 "vertical_pod_autoscaler": {
@@ -200,10 +200,10 @@ Taking the Data Factory Linked Service resources as an example which could have 
 ```
 
 Would be better exposed as the following resources:
+
 - `azurerm_data_factory_linked_service_azure_blob_storage`
 - `azurerm_data_factory_linked_service_azure_databricks`
 - `azurerm_data_factory_linked_service_azure_file_storage`
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
-   ...

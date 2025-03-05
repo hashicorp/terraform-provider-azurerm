@@ -66,6 +66,8 @@ An `identity` block exports the following:
 
 * `type` - The identity type of this Managed Service Identity.
 
+* `identity_ids` - The list of User Assigned Managed Service Identity IDs assigned to this Search Service.
+
 ---
 
 A `query_keys` block exports the following:
@@ -73,14 +75,6 @@ A `query_keys` block exports the following:
 * `key` - The value of this Query Key.
 
 * `name` - The name of this Query Key.
-
----
-
-A `identity` block exports the following:
-
-* `principal_id` - The (Client) ID of the Service Principal.
-
-* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
 
