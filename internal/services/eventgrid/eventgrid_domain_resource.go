@@ -206,11 +206,13 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
-			"min_tls_version": {
+			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(domains.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
+					string(domains.TlsVersionOnePointZero),
+					string(domains.TlsVersionOnePointOne),
 					string(domains.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -253,7 +255,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
-			MinimumTlsVersionAllowed:             pointer.To(domains.TlsVersion(d.Get("min_tls_version").(string))),
+			MinimumTlsVersionAllowed:             pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -329,8 +331,8 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if d.HasChange("min_tls_version") {
-		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("min_tls_version").(string)))
+	if d.HasChange("minimum_tls_version") {
+		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
@@ -432,7 +434,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if props.MinimumTlsVersionAllowed != nil {
 				minTlsVersion = string(*props.MinimumTlsVersionAllowed)
 			}
-			d.Set("min_tls_version", minTlsVersion)
+			d.Set("minimum_tls_version", minTlsVersion)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
