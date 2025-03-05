@@ -260,7 +260,6 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 				Id: utils.String(v.(string)),
 			}
 		}
-
 	}
 
 	if v, ok := d.GetOk("os_disk_snapshot_id"); ok {
@@ -407,7 +406,6 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 				if source.VirtualMachineId != nil {
 					d.Set("managed_image_id", source.VirtualMachineId)
 				}
-
 			}
 
 			blobURI := ""
