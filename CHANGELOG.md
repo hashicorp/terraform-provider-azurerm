@@ -33,6 +33,7 @@ BUG FIXES:
 * `azurerm_key_vault_certificate` - set partial when updating key vault certificate [GH-28848]
 * `azurerm_managed_disk` - always set `network_access_policy` into state to allow Terraform to detect drift [GH-28934]
 * `azurerm_mssql_managed_instance` - fix an issue that prevented using values only known during apply for `administrator_login_password` [GH-28843]
+* `azurerm_mssql_server` - prevent panic by removing function call on a value that may be unknown [GH-28949]
 
 
 ## 4.21.1 (February 28, 2025)
