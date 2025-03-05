@@ -74,7 +74,6 @@ type Event struct {
 }
 
 func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
-	// add the other asset properties
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,

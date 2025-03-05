@@ -37,7 +37,6 @@ type AssetEndpointProfileResourceModel struct {
 }
 
 func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
-	// add the other assetendpointprofile properties
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -214,7 +213,6 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 
 				if usernameSecretNameChanged || passwordSecretNameChanged {
 					usernamePasswordCreds := assetendpointprofiles.UsernamePasswordCredentialsUpdate{}
-					authentication.UsernamePasswordCredentials = &usernamePasswordCreds
 
 					if usernameSecretNameChanged {
 						usernamePasswordCreds.UsernameSecretName = pointer.To(config.UsernamePasswordCredentialsUsernameSecretName)
@@ -223,11 +221,23 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 					if passwordSecretNameChanged {
 						usernamePasswordCreds.PasswordSecretName = pointer.To(config.UsernamePasswordCredentialsPasswordSecretName)
 					}
+
+					_, usernameOk := metadata.ResourceData.GetOk("username_password_credentials_username_secret_name")
+					_, passwordOk := metadata.ResourceData.GetOk("username_password_credentials_password_secret_name")
+					if (usernameSecretNameChanged && usernameOk) || (passwordSecretNameChanged && passwordOk) {
+						authentication.UsernamePasswordCredentials = &usernamePasswordCreds
+					} else {
+						authentication.UsernamePasswordCredentials = nil
+					}
 				}
 
 				if certificateSecretNameChanged {
-					authentication.X509Credentials = &assetendpointprofiles.X509CredentialsUpdate{
-						CertificateSecretName: pointer.To(config.X509CredentialsCertificateSecretName),
+					if _, ok := metadata.ResourceData.GetOk("x509_credentials_certificate_secret_name"); ok {
+						authentication.X509Credentials = &assetendpointprofiles.X509CredentialsUpdate{
+							CertificateSecretName: pointer.To(config.X509CredentialsCertificateSecretName),
+						}
+					} else {
+						authentication.X509Credentials = nil
 					}
 				}
 			}
