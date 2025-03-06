@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **Note:** The`storage_user_assigned_identity_id` must be specified when `storage_authentication_type` sets to `UserAssignedIdentity`.
+~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
 * `runtime_name` - (Optional) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
 
