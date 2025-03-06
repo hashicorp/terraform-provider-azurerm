@@ -853,8 +853,8 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			licenseType := ""
-			if props.LicenseType != nil {
-				licenseType = *props.LicenseType
+			if v := props.LicenseType; v != nil && *v != "None" {
+				licenseType = *v
 			}
 			d.Set("license_type", licenseType)
 
@@ -1123,9 +1123,11 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if d.HasChange("license_type") {
 		shouldUpdate = true
 
+		licenseType := "None"
 		if v, ok := d.GetOk("license_type"); ok {
-			update.Properties.LicenseType = pointer.To(v.(string))
+			licenseType = v.(string)
 		}
+		update.Properties.LicenseType = pointer.To(licenseType)
 	}
 
 	if d.HasChange("capacity_reservation_group_id") {
