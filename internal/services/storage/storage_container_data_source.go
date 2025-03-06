@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 func dataSourceStorageContainer() *pluginsdk.Resource {
@@ -68,7 +68,7 @@ func dataSourceStorageContainer() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
@@ -107,7 +107,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 
 	containerName := d.Get("name").(string)
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		storageClient := meta.(*clients.Client).Storage
 		accountName := d.Get("storage_account_name").(string)
 		if accountName != "" {
@@ -196,7 +196,7 @@ func dataSourceStorageContainerRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 			d.Set("has_legal_hold", props.HasLegalHold)
 
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				d.Set("resource_manager_id", id.ID())
 			}
 		}
