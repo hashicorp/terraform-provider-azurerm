@@ -89,6 +89,22 @@ func TestAccDynatraceMonitor_update(t *testing.T) {
 	})
 }
 
+func TestAccDynatraceMonitor_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
+	r := MonitorsResource{}
+	//r.preCheck(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user"),
+	})
+}
+
 func TestAccDynatraceMonitor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := MonitorsResource{}
@@ -173,6 +189,81 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 }
 `, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
+}
+
+func (r MonitorsResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_dynatrace_monitor" "test1" {
+  name                     = "acctestacc%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  marketplace_subscription = "Active"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  user {
+    first_name   = "Alice"
+    last_name    = "Bob"
+    email        = "alice@microsoft.com"
+    phone_number = "12345678"
+    country      = "westus2"
+  }
+
+  plan {
+    usage_type    = "COMMITTED"
+    billing_cycle = "MONTHLY"
+    plan          = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
+  }
+
+  tags = {
+    environment = "Dev"
+  }
+}
+
+data "azurerm_dynatrace_monitor" "test1" {
+  name                = azurerm_dynatrace_monitor.test1.name
+  resource_group_name = azurerm_dynatrace_monitor.test1.resource_group_name
+}
+
+resource "azurerm_dynatrace_monitor" "test2" {
+  name                     = "acctestacc%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  marketplace_subscription = "Active"
+
+  identity {
+    type = "SystemAssigned"
+  }
+  user {
+    first_name   = "Alice"
+    last_name    = "Bob"
+    email        = "alice@microsoft.com"
+    phone_number = "12345678"
+    country      = "westus2"
+  }
+
+  environment_properties {
+    environment_info {
+      environment_id = data.azurerm_dynatrace_monitor.test1.environment_properties.0.environment_info.0.environment_id
+    }
+  }
+
+  plan {
+    usage_type    = "COMMITTED"
+    billing_cycle = "MONTHLY"
+    plan          = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
+  }
+
+  tags = {
+    environment = "Dev"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
 func (r MonitorsResource) updated(data acceptance.TestData) string {
