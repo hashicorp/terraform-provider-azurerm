@@ -247,9 +247,16 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"public_network_access": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      servers.EnableStatusEnumEnabled,
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
-				Description:  "Whether approved public traffic is allowed through the firewall to this server. The value for `public_network_access` becomes 'Disabled' if the server is created with VNet Integration, i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`.",
+				// a function that returns whether the old and new values are "close enough" to be considered equal
+				// returns true: won't be added to the plan as a change
+				// returns false: will be added to the plan as a change
+				// But what if it's a create?
+				// If there is a subnet,
+				DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+					return !d.GetRawConfig().AsValueMap()["delegated_subnet_id"].IsNull()
+				},
 			},
 
 			"replication_role": {
