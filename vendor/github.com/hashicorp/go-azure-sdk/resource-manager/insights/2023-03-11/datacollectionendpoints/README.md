@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints` Documentation
 
-The `datacollectionrules` SDK allows for interaction with Azure Resource Manager `insights` (API Version `2022-06-01`).
+The `datacollectionendpoints` SDK allows for interaction with Azure Resource Manager `insights` (API Version `2023-03-11`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,25 +9,25 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 ```
 
 
 ### Client Initialization
 
 ```go
-client := datacollectionrules.NewDataCollectionRulesClientWithBaseURI("https://management.azure.com")
+client := datacollectionendpoints.NewDataCollectionEndpointsClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `DataCollectionRulesClient.Create`
+### Example Usage: `DataCollectionEndpointsClient.Create`
 
 ```go
 ctx := context.TODO()
-id := datacollectionrules.NewDataCollectionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionRuleName")
+id := datacollectionendpoints.NewDataCollectionEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionEndpointName")
 
-payload := datacollectionrules.DataCollectionRuleResource{
+payload := datacollectionendpoints.DataCollectionEndpointResource{
 	// ...
 }
 
@@ -42,11 +42,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `DataCollectionRulesClient.Delete`
+### Example Usage: `DataCollectionEndpointsClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := datacollectionrules.NewDataCollectionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionRuleName")
+id := datacollectionendpoints.NewDataCollectionEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionEndpointName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -58,11 +58,11 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `DataCollectionRulesClient.Get`
+### Example Usage: `DataCollectionEndpointsClient.Get`
 
 ```go
 ctx := context.TODO()
-id := datacollectionrules.NewDataCollectionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionRuleName")
+id := datacollectionendpoints.NewDataCollectionEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionEndpointName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -74,7 +74,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `DataCollectionRulesClient.ListByResourceGroup`
+### Example Usage: `DataCollectionEndpointsClient.ListByResourceGroup`
 
 ```go
 ctx := context.TODO()
@@ -91,7 +91,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `DataCollectionRulesClient.ListBySubscription`
+### Example Usage: `DataCollectionEndpointsClient.ListBySubscription`
 
 ```go
 ctx := context.TODO()
@@ -108,13 +108,13 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `DataCollectionRulesClient.Update`
+### Example Usage: `DataCollectionEndpointsClient.Update`
 
 ```go
 ctx := context.TODO()
-id := datacollectionrules.NewDataCollectionRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionRuleName")
+id := datacollectionendpoints.NewDataCollectionEndpointID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dataCollectionEndpointName")
 
-payload := datacollectionrules.ResourceForUpdate{
+payload := datacollectionendpoints.ResourceForUpdate{
 	// ...
 }
 
