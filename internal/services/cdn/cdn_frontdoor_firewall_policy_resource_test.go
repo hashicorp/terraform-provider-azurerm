@@ -837,7 +837,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestHeaderNames"
       operator       = "Equals"
@@ -861,7 +861,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestHeaderNames"
       operator       = "Equals"
@@ -885,7 +885,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = false
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestHeaderNames"
       operator       = "Equals"
@@ -909,7 +909,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = false
       match_variable = "RequestHeaderNames"
       operator       = "Equals"
@@ -933,7 +933,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = false
       match_variable = "RequestHeaderNames"
       operator       = "Equals"
@@ -957,7 +957,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = false
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestHeaderNames"
       operator       = "Equals"
@@ -1192,47 +1192,47 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestIPAddress"
       operator       = "EqualsAny"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestUri"
       operator       = "EqualsAny"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestHeaderNames"
       operator       = "Equals"
       selector       = "keyToBlock"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestCookieNames"
       operator       = "Equals"
       selector       = "Chocolate Chip"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestBodyPostArgNames"
       operator       = "Equals"
       selector       = "var"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestBodyJsonArgNames"
       operator       = "Equals"
       selector       = "JsonValue"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "QueryStringArgNames"
       operator       = "Equals"
@@ -1260,34 +1260,34 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = false
 
-    rule {
+    scrubbing_rule {
       enabled        = false
       match_variable = "RequestHeaderNames"
       operator       = "Equals"
       selector       = "keyToBlock"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestCookieNames"
       operator       = "Equals"
       selector       = "ChocolateChip"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestBodyJsonArgNames"
       operator       = "Equals"
       selector       = "foo"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestBodyJsonArgNames"
       operator       = "EqualsAny"
     }
 
-    rule {
+    scrubbing_rule {
       enabled        = false
       match_variable = "QueryStringArgNames"
       operator       = "Equals"
@@ -1955,7 +1955,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestIPAddress"
       operator       = "Equals"
@@ -1983,7 +1983,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestUri"
       operator       = "Equals"
@@ -2011,7 +2011,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "QueryStringArgNames"
       operator       = "Equals"
@@ -2038,7 +2038,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   log_scrubbing {
     enabled = true
 
-    rule {
+    scrubbing_rule {
       enabled        = true
       match_variable = "RequestBodyJsonArgNames"
       operator       = "EqualsAny"

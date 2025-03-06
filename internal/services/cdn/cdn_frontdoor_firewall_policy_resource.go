@@ -462,7 +462,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 							Default:  true,
 						},
 
-						"rule": {
+						"scrubbing_rule": {
 							Type:     pluginsdk.TypeList,
 							MaxItems: 100,
 							Required: true,
@@ -1140,14 +1140,14 @@ func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*waf.Pol
 		policyEnabled = waf.WebApplicationFirewallScrubbingStateEnabled
 	}
 
-	rules, err := expandCdnFrontDoorFirewallScrubbingRules(inputRaw["rule"].([]interface{}))
+	scrubbingRules, err := expandCdnFrontDoorFirewallScrubbingRules(inputRaw["scrubbing_rule"].([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 
 	return &waf.PolicySettingsLogScrubbing{
 		State:          pointer.To(policyEnabled),
-		ScrubbingRules: rules,
+		ScrubbingRules: scrubbingRules,
 	}, nil
 }
 
@@ -1373,24 +1373,24 @@ func flattenCdnFrontDoorFirewallLogScrubbingPolicy(input *waf.PolicySettingsLogS
 
 	result := make(map[string]interface{})
 	result["enabled"] = pointer.From(input.State) == waf.WebApplicationFirewallScrubbingStateEnabled
-	result["rule"] = flattenCdnFrontDoorFirewallLogScrubbingRules(input.ScrubbingRules)
+	result["scrubbing_rule"] = flattenCdnFrontDoorFirewallLogScrubbingRules(input.ScrubbingRules)
 
 	return []interface{}{result}
 }
 
-func flattenCdnFrontDoorFirewallLogScrubbingRules(rules *[]waf.WebApplicationFirewallScrubbingRules) interface{} {
+func flattenCdnFrontDoorFirewallLogScrubbingRules(scrubbingRules *[]waf.WebApplicationFirewallScrubbingRules) interface{} {
 	result := make([]interface{}, 0)
 
-	if rules == nil || len(*rules) == 0 {
+	if scrubbingRules == nil || len(*scrubbingRules) == 0 {
 		return result
 	}
 
-	for _, rule := range *rules {
+	for _, scrubbingRule := range *scrubbingRules {
 		item := map[string]interface{}{}
-		item["enabled"] = pointer.From(rule.State) == waf.ScrubbingRuleEntryStateEnabled
-		item["match_variable"] = rule.MatchVariable
-		item["operator"] = rule.SelectorMatchOperator
-		item["selector"] = pointer.From(rule.Selector)
+		item["enabled"] = pointer.From(scrubbingRule.State) == waf.ScrubbingRuleEntryStateEnabled
+		item["match_variable"] = scrubbingRule.MatchVariable
+		item["operator"] = scrubbingRule.SelectorMatchOperator
+		item["selector"] = pointer.From(scrubbingRule.Selector)
 
 		result = append(result, item)
 	}

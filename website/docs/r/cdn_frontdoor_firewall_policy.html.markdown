@@ -34,6 +34,19 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
 
+  js_challenge_cookie_expiration_in_minutes = 45
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestCookieNames"
+      operator       = "Equals"
+      selector       = "ChocolateChip"
+    }
+  }
+
   custom_rule {
     name                           = "Rule1"
     enabled                        = true
@@ -54,7 +67,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_rule {
     name                           = "Rule2"
     enabled                        = true
-    priority                       = 2
+    priority                       = 50
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
     type                           = "MatchRule"
@@ -77,9 +90,27 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     }
   }
 
+  custom_rule {
+    name                           = "CustomJSChallenge"
+    enabled                        = true
+    priority                       = 100
+    rate_limit_duration_in_minutes = 1
+    rate_limit_threshold           = 10
+    type                           = "MatchRule"
+    action                         = "JSChallenge"
+
+    match_condition {
+      match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
+    }
+  }
+
   managed_rule {
     type    = "DefaultRuleSet"
     version = "1.0"
+    action  = "Log"
 
     exclusion {
       match_variable = "QueryStringArgNames"
@@ -121,49 +152,18 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 
   managed_rule {
     type    = "Microsoft_BotManagerRuleSet"
-    version = "1.0"
+    version = "1.1"
     action  = "Log"
-  }
-}
-```
 
-## Example Usage: JSChallenge Managed Rule Override
+    override {
+      rule_group_name = "BadBots"
 
-```hcl
-managed_rule {
-  type    = "Microsoft_BotManagerRuleSet"
-  version = "1.1"
-  action  = "Log"
-
-  override {
-    rule_group_name = "BadBots"
-
-    rule {
-      action  = "JSChallenge"
-      enabled = true
-      rule_id = "Bot100200"
+      rule {
+        action  = "JSChallenge"
+        enabled = true
+        rule_id = "Bot100200"
+      }
     }
-  }
-}
-```
-
-## Example Usage: JSChallenge Custom Rule
-
-```hcl
-custom_rule {
-  name                           = "CustomJSChallenge"
-  enabled                        = true
-  priority                       = 2
-  rate_limit_duration_in_minutes = 1
-  rate_limit_threshold           = 10
-  type                           = "MatchRule"
-  action                         = "JSChallenge"
-
-  match_condition {
-    match_variable     = "RemoteAddr"
-    operator           = "IPMatch"
-    negation_condition = false
-    match_values       = ["192.168.1.0/24"]
   }
 }
 ```
@@ -268,7 +268,7 @@ A `log_scrubbing` block supports the following:
 
 * `enabled` - (Optional) Is log scrubbing enabled? Possible values are `true` or `false`. Defaults to `true`.
 
-* `rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
+* `scrubbing_rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
 
 -> **Note:** For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
 
