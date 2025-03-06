@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `storage_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
 
-~> **Note:** The`storage_access_key` must be specified when `storage_authentication_type` sets to `StorageAccountConnectionString`.
+~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
 
 * `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
