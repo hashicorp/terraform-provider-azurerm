@@ -15,7 +15,7 @@ import (
 
 type ManagerVerifierWorkspaceReachabilityAnalysisIntentResource struct{}
 
-func testAccNetorkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic(t *testing.T) {
+func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace_reachability_analysis_intent", "test")
 	r := ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
 
@@ -30,7 +30,7 @@ func testAccNetorkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic(t *te
 	})
 }
 
-func testAccNetorkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport(t *testing.T) {
+func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace_reachability_analysis_intent", "test")
 	r := ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
 
@@ -45,7 +45,7 @@ func testAccNetorkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImp
 	})
 }
 
-func testAccNetorkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete(t *testing.T) {
+func testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_verifier_workspace_reachability_analysis_intent", "test")
 	r := ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{}
 
