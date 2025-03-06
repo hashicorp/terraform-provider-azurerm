@@ -147,6 +147,12 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"state": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      clusters.VnetStateEnabled,
+							ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForVnetState(), false),
+						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -517,15 +523,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("virtual_network_configuration") {
-		if v, ok := d.GetOk("virtual_network_configuration"); ok {
-			if vnetConfig := expandKustoClusterVNET(v.([]interface{})); vnetConfig != nil {
-				props.VirtualNetworkConfiguration = vnetConfig
-			}
-		} else {
-			// 'State' is hardcoded to 'Disabled' for the 'None' pattern.
-			// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
-			props.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
-		}
+		props.VirtualNetworkConfiguration = expandKustoClusterVNET(d.Get("virtual_network_configuration").([]interface{}))
 	}
 
 	if d.HasChange("zones") {
@@ -716,14 +714,13 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 	subnetID := vnet["subnet_id"].(string)
 	enginePublicIPID := vnet["engine_public_ip_id"].(string)
 	dataManagementPublicIPID := vnet["data_management_public_ip_id"].(string)
+	state := vnet["state"].(string)
 
 	return &clusters.VirtualNetworkConfiguration{
-		// 'State' is hardcoded to 'Enabled' for the 'None' pattern.
-		// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
 		SubnetId:                 subnetID,
 		EnginePublicIPId:         enginePublicIPID,
 		DataManagementPublicIPId: dataManagementPublicIPID,
-		State:                    pointer.To(clusters.VnetStateEnabled),
+		State:                    pointer.To(clusters.VnetState(state)),
 	}
 }
 
@@ -765,7 +762,7 @@ func flattenKustoClusterSku(sku *clusters.AzureSku) []interface{} {
 }
 
 func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []interface{} {
-	if vnet == nil || *vnet.State == clusters.VnetStateDisabled {
+	if vnet == nil {
 		return []interface{}{}
 	}
 
@@ -773,6 +770,7 @@ func flattenKustoClusterVNET(vnet *clusters.VirtualNetworkConfiguration) []inter
 		"subnet_id":                    vnet.SubnetId,
 		"engine_public_ip_id":          vnet.EnginePublicIPId,
 		"data_management_public_ip_id": vnet.DataManagementPublicIPId,
+		"state":                        string(*vnet.State),
 	}
 
 	return []interface{}{output}

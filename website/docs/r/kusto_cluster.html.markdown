@@ -98,13 +98,13 @@ A `sku` block supports the following:
 
 A `virtual_network_configuration` block supports the following:
 
-~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. Restoring the `virtual_network_configuration` with the same configuration will set the `virtual_network_configuration` to `Enabled` state.
-
 * `subnet_id` - (Required) The subnet resource id. This property could not be changed after the cluster is created.
 
 * `engine_public_ip_id` - (Required) Engine service's public IP address resource id. This property could not be changed after the cluster is created.
 
 * `data_management_public_ip_id` - (Required) Data management's service public IP address resource id. This property could not be changed after the cluster is created.
+
+* `state` - (Optional) The state of the virtual network configuration. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
 ---
 

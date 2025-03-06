@@ -235,6 +235,7 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.state").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
@@ -242,10 +243,14 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.vnetRemoved(data),
+			Config: r.vnetDisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("0"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.state").HasValue("Disabled"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -254,6 +259,7 @@ func TestAccKustoCluster_vnet(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("virtual_network_configuration.0.state").HasValue("Enabled"),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.subnet_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.engine_public_ip_id").Exists(),
 				check.That(data.ResourceName).Key("virtual_network_configuration.0.data_management_public_ip_id").Exists(),
@@ -963,7 +969,7 @@ resource "azurerm_kusto_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func (KustoClusterResource) vnetRemoved(data acceptance.TestData) string {
+func (KustoClusterResource) vnetDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1051,10 +1057,19 @@ resource "azurerm_kusto_cluster" "test" {
   name                = "acctestkc%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
+
+  virtual_network_configuration {
+    state                        = "Disabled"
+    subnet_id                    = azurerm_subnet.test.id
+    engine_public_ip_id          = azurerm_public_ip.engine_pip.id
+    data_management_public_ip_id = azurerm_public_ip.management_pip.id
+  }
+
   depends_on = [
     azurerm_subnet_route_table_association.test,
     azurerm_subnet_network_security_group_association.test,
