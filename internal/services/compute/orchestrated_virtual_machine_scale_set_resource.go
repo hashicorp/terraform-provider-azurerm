@@ -367,20 +367,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 				}
 
-				hasHealthExtension := false
-				if v, ok := diff.GetOk("extension"); ok {
-					var err error
-					_, hasHealthExtension, err = expandOrchestratedVirtualMachineScaleSetExtensions(v.(*pluginsdk.Set).List())
-					if err != nil {
-						return err
-					}
-				}
-
-				// Virtual Machine Scale Set with Flexible Orchestration Mode and 'Rolling' upgradeMode must have Health Extension Present
-				if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && !hasHealthExtension {
-					return fmt.Errorf("a health extension must be specified when `upgrade_mode` is set to Rolling")
-				}
-
 				return nil
 			}),
 		),
@@ -438,10 +424,9 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
-	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
-	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw, len(zones) > 0, false)
+	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(d.Get("rolling_upgrade_policy").([]interface{}), len(zones) > 0, false)
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding `rolling_upgrade_policy`: %+v", err)
 	}
 
 	props.Properties.UpgradePolicy = &virtualmachinescalesets.UpgradePolicy{
@@ -508,6 +493,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if hasHealthExtension {
 		log.Printf("[DEBUG] Orchestrated %s has a Health Extension defined", id)
+	}
+
+	// Virtual Machine Scale Set with Flexible Orchestration Mode and 'Rolling' upgradeMode must have Health Extension Present
+	if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && !hasHealthExtension {
+		return fmt.Errorf("a health extension must be specified when `upgrade_mode` is set to Rolling")
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -1214,20 +1204,17 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 	if d.HasChange("rolling_upgrade_policy") {
 		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
-		if existing.Model.Properties.UpgradePolicy == nil {
-			upgradePolicy = virtualmachinescalesets.UpgradePolicy{
-				Mode: pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))),
-			}
-		} else {
+
+		if existing.Model.Properties.UpgradePolicy != nil {
 			upgradePolicy = *existing.Model.Properties.UpgradePolicy
-			upgradePolicy.Mode = pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string)))
 		}
 
+		upgradePolicy.Mode = pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string)))
+
 		rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
-		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
-		rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones) > 0, false)
+		rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())) > 0, false)
 		if err != nil {
-			return err
+			return fmt.Errorf("expanding `rolling_upgrade_policy`: %+v", err)
 		}
 
 		upgradePolicy.RollingUpgradePolicy = rollingUpgradePolicy
