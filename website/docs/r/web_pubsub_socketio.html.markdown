@@ -13,11 +13,16 @@ Manages a Web PubSub Service for Socket.IO.
 ## Example Usage
 
 ```hcl
-resource "azurerm_web_pubsub_socketio" "example" {
-  name = "example"
-  resource_group_name = "example"
+resource "azurerm_resource_group" "example" {
+  name     = "example"
   location = "West Europe"
-  sku = "Free_F1"
+}
+
+resource "azurerm_web_pubsub_socketio" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Free_F1"
 }
 ```
 

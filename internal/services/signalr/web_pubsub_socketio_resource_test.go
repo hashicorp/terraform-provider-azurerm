@@ -198,10 +198,10 @@ resource "azurerm_web_pubsub_socketio" "test" {
     type = "SystemAssigned"
   }
 
-  live_trace_enabled = true
+  live_trace_enabled                   = true
   live_trace_connectivity_logs_enabled = false
   live_trace_http_request_logs_enabled = true
-  live_trace_messaging_logs_enabled = false
+  live_trace_messaging_logs_enabled    = false
 
   local_auth_enabled      = false
   public_network_access   = "Disabled"
