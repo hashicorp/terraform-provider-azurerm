@@ -96,12 +96,12 @@ func TestAccDataFactoryLinkedServiceSFTP_authUpdate(t *testing.T) {
 		},
 		data.ImportStep("password", "private_key_content_base64"),
 		{
-			Config: r.basic(data),
+			Config: r.basic(data), // private_key_content_base64 = null
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password"),
+		data.ImportStep("password"), // "private_key_content_base64": "" (state/Azure) -> null (config)
 	})
 }
 

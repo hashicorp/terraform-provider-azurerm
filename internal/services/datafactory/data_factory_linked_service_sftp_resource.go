@@ -123,6 +123,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"private_key_passphrase": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
+				Sensitive:     true,
 				ConflictsWith: []string{"password"},
 			},
 
@@ -290,6 +291,10 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 
 	d.Set("name", resp.Name)
 	d.Set("data_factory_id", dataFactoryId.ID())
+
+	if _, ok := d.GetOk("private_key_content_base64"); !ok {
+		d.Set("private_key_content_base64", nil)
+	}
 
 	sftp, ok := resp.Properties.AsSftpServerLinkedService()
 	if !ok {
