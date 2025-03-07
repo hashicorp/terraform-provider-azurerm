@@ -497,7 +497,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	// Virtual Machine Scale Set with Flexible Orchestration Mode and 'Rolling' upgradeMode must have Health Extension Present
 	if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && !hasHealthExtension {
-		return fmt.Errorf("a health extension must be specified when `upgrade_mode` is set to Rolling")
+		return fmt.Errorf("a health extension must be specified when `upgrade_mode` is set to `Rolling`")
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
