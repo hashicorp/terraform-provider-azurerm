@@ -590,6 +590,27 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
+
+						"advanced_networking": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+									"observability_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+									"fqdn_policy_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1370,7 +1391,41 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *managedclusters.C
 		values["load_balancer_sku"] = string(*profile.LoadBalancerSku)
 	}
 
+	advancedNetworking := flattenKubernetesClusterDataSourceAdvancedNetworking(profile.AdvancedNetworking)
+	values["advanced_networking"] = advancedNetworking
+
 	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceAdvancedNetworking(profile *managedclusters.AdvancedNetworking) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	advancedNetworking := make([]interface{}, 0)
+
+	acnsEnabled := false
+	if profile.Enabled != nil {
+		acnsEnabled = *profile.Enabled
+	}
+
+	observabilityEnabled := false
+	if o := profile.Observability; o != nil && o.Enabled != nil {
+		observabilityEnabled = *o.Enabled
+	}
+
+	fqdnPolicyEnabled := false
+	if s := profile.Security; s != nil && s.Enabled != nil {
+		fqdnPolicyEnabled = *s.Enabled
+	}
+
+	advancedNetworking = append(advancedNetworking, map[string]interface{}{
+		"enabled":               acnsEnabled,
+		"observability_enabled": observabilityEnabled,
+		"fqdn_policy_enabled":   fqdnPolicyEnabled,
+	})
+
+	return advancedNetworking
 }
 
 func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *managedclusters.ManagedClusterServicePrincipalProfile) []interface{} {
