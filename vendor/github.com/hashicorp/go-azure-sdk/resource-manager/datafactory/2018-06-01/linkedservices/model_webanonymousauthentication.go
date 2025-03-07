@@ -11,6 +11,7 @@ import (
 var _ WebLinkedServiceTypeProperties = WebAnonymousAuthentication{}
 
 type WebAnonymousAuthentication struct {
+
 	// Fields inherited from WebLinkedServiceTypeProperties
 
 	AuthenticationType WebAuthenticationType `json:"authenticationType"`

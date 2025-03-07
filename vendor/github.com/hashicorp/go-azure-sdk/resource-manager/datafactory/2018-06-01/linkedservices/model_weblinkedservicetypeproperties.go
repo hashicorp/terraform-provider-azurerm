@@ -88,4 +88,5 @@ func UnmarshalWebLinkedServiceTypePropertiesImplementation(input []byte) (WebLin
 		Type:                           value,
 		Values:                         temp,
 	}, nil
+
 }
