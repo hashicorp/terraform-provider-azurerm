@@ -166,7 +166,6 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-
 				if props := model.Properties; props != nil {
 					// if there are properties to set into state do that here
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
