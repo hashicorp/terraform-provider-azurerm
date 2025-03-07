@@ -134,6 +134,10 @@ The following arguments are supported:
 
 * `runtime_version` - (Optional) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
 
+* `always_ready_config` - (Optional) The always ready configurations of the Linux Function App.
+
+~> **Note:** The total number of `instance_count` under `always_ready_config` cannot exceed the number of `maximum_instance_count`.
+
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
 * `instance_memory_in_mb` - (Optional) A mapping of tags which should be assigned to the Linux Function App.

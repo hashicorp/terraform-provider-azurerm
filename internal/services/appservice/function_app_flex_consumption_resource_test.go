@@ -194,6 +194,46 @@ func TestAccFunctionAppFlexConsumption_runtimeNode(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppFlexConsumption_alwaysReady(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alwaysReadyInstanceCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccFunctionAppFlexConsumption_alwaysReadyUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alwaysReadyInstanceCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.alwaysReadyInstanceCountUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccFunctionAppFlexConsumption_runtimeJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
@@ -950,6 +990,92 @@ resource "azurerm_function_app_flex_consumption" "test" {
   site_config {}
 }
 `, r.template(data), data.RandomInteger, nodeVersion)
+}
+
+func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acct-uai2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_container_type            = "blobContainer"
+  storage_container_endpoint        = azurerm_storage_container.test.id
+  storage_authentication_type       = "UserAssignedIdentity"
+  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  runtime_name                      = "node"
+  runtime_version                   = "20"
+  maximum_instance_count            = 100
+  instance_memory_in_mb             = 2048
+  always_ready_config {
+    name           = "blob"
+    instance_count = 20
+  }
+
+  site_config {}
+lifecycle {
+    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCountUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acct-uai2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_container_type            = "blobContainer"
+  storage_container_endpoint        = azurerm_storage_container.test.id
+  storage_authentication_type       = "UserAssignedIdentity"
+  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  runtime_name                      = "node"
+  runtime_version                   = "20"
+  maximum_instance_count            = 100
+  instance_memory_in_mb             = 2048
+  always_ready_config {
+    name           = "function:myHelloWorldFunction"
+    instance_count = 20
+  }
+  always_ready_config {
+    name           = "blob"
+    instance_count = 20
+  }
+
+  site_config {}
+lifecycle {
+    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (FunctionAppFlexConsumptionResource) template(data acceptance.TestData) string {

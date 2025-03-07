@@ -62,6 +62,7 @@ type FunctionAppFlexConsumptionModel struct {
 	RuntimeVersion                string                                         `tfschema:"runtime_version"`
 	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
 	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
+	AlwaysReadyConfig             []FunctionAppAlwaysReadyConfig                 `tfschema:"always_ready_config"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
 	Tags                          map[string]string                              `tfschema:"tags"`
@@ -76,6 +77,11 @@ type FunctionAppFlexConsumptionModel struct {
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
+}
+
+type FunctionAppAlwaysReadyConfig struct {
+	Name          string `tfschema:"name"`
+	InstanceCount int64  `tfschema:"instance_count"`
 }
 
 var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
@@ -181,6 +187,26 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Optional:     true,
 			Default:      100,
 			ValidateFunc: validation.IntBetween(40, 1000),
+		},
+
+		"always_ready_config": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"instance_count": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 1000),
+					},
+				},
+			},
 		},
 
 		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
@@ -432,7 +458,13 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				Version: &functionAppFlexConsumption.RuntimeVersion,
 			}
 
+			alwaysReady, err := ExpandAlwaysReadyConfiguration(functionAppFlexConsumption.AlwaysReadyConfig, functionAppFlexConsumption.MaximumInstanceCount)
+			if err != nil {
+				return fmt.Errorf("expanding `always_ready_config` for %s: %+v", id, err)
+			}
+
 			scaleAndConcurrencyConfig := webapps.FunctionsScaleAndConcurrency{
+				AlwaysReady:          alwaysReady,
 				InstanceMemoryMB:     &functionAppFlexConsumption.InstanceMemoryInMB,
 				MaximumInstanceCount: &functionAppFlexConsumption.MaximumInstanceCount,
 			}
@@ -675,6 +707,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					}
 
 					if faConfigScale := functionAppConfig.ScaleAndConcurrency; faConfigScale != nil {
+						state.AlwaysReadyConfig = FlattenAlwaysReadyConfiguration(faConfigScale.AlwaysReady)
 						state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
 						state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
 					}
@@ -850,6 +883,14 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
+			arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReadyConfig, state.MaximumInstanceCount)
+			if err != nil {
+				return fmt.Errorf("expanding `always_ready_config` for %s: %+v", id, err)
+			}
+			if metadata.ResourceData.HasChange("always_ready_config") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.AlwaysReady = arc
+			}
+
 			if metadata.ResourceData.HasChange("runtime_name") {
 				runtimeName := webapps.RuntimeName(state.RuntimeName)
 				model.Properties.FunctionAppConfig.Runtime.Name = pointer.To(runtimeName)
@@ -1001,4 +1042,42 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 		}
 	}
 	m.AppSettings = appSettings
+}
+
+func ExpandAlwaysReadyConfiguration(input []FunctionAppAlwaysReadyConfig, maximumInstanceCount int64) (*[]webapps.FunctionsAlwaysReadyConfig, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+	var totalInstanceCount int64
+	arList := make([]webapps.FunctionsAlwaysReadyConfig, 0)
+	for _, v := range input {
+		totalInstanceCount = totalInstanceCount + v.InstanceCount
+		arList = append(arList, webapps.FunctionsAlwaysReadyConfig{
+			Name:          pointer.To(v.Name),
+			InstanceCount: pointer.To(v.InstanceCount),
+		})
+	}
+
+	if totalInstanceCount > maximumInstanceCount {
+		return nil, fmt.Errorf("the total of always-ready instances should not exceed the maximum sacle out limit")
+	}
+
+	return &arList, nil
+}
+
+func FlattenAlwaysReadyConfiguration(alwaysReady *[]webapps.FunctionsAlwaysReadyConfig) []FunctionAppAlwaysReadyConfig {
+	if alwaysReady == nil || len(*alwaysReady) == 0 {
+		return []FunctionAppAlwaysReadyConfig{}
+	}
+
+	alwaysReadyList := make([]FunctionAppAlwaysReadyConfig, 0)
+
+	for _, v := range *alwaysReady {
+		alwaysReadyList = append(alwaysReadyList, FunctionAppAlwaysReadyConfig{
+			Name:          pointer.From(v.Name),
+			InstanceCount: pointer.From(v.InstanceCount),
+		})
+	}
+
+	return alwaysReadyList
 }
