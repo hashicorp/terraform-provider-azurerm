@@ -29,3 +29,7 @@ func (r Registration) WebsiteCategories() []string {
 		"Managed DevOps Pools",
 	}
 }
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/managed-devops-pools"
+}
