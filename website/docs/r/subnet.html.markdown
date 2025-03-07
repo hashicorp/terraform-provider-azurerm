@@ -47,6 +47,52 @@ resource "azurerm_subnet" "example" {
 }
 ```
 
+### Example Usage for NSG Assignment
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_network_security_group" "example" {
+  name                = "example-nsg"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  # Optional - attach an NSG during subnet creation
+  network_security_group_id = azurerm_network_security_group.example.id
+}
+```
+
+### Remove an NSG from a subnet
+```hcl
+resource "azurerm_subnet" "example" {
+  name                      = "example-subnet"
+  resource_group_name       = azurerm_resource_group.example.name
+  virtual_network_name      = azurerm_virtual_network.example.name
+  address_prefixes          = ["10.0.1.0/24"]
+
+  # Setting this to an empty string will remove the NSG
+  # If the NSG was assigned outside Terraform, it will be removed as well
+  network_security_group_id = ""
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -85,6 +131,14 @@ The following arguments are supported:
 
 * `service_endpoint_policy_ids` - (Optional) The list of IDs of Service Endpoint Policies to associate with the subnet.
 
+* `network_security_group_id` - (Optional, Computed) The ID of the [Network Security Group](../network_security_group.html) associated with this subnet.
+
+~> **Note:** If `network_security_group_id` is not set, Terraform will not modify any existing NSG associated with the subnet.
+
+!> **Note:** Setting `network_security_group_id` to an empty string (`""`) explicitly removes any existing NSG association, even if it was configured manually or by other tools. To prevent unintended removal, either omit this argument or explicitly specify the current NSG ID.
+
+-> **Note:** This argument may be required if your subscription has policies enforcing NSG assignment to subnets.
+
 ---
 
 A `delegation` block supports the following:
@@ -114,6 +168,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `resource_group_name` - (Required) The name of the resource group in which the subnet is created in.
 * `virtual_network_name` - (Required) The name of the virtual network in which the subnet is created in. Changing this forces a new resource to be created.
 * `address_prefixes` - (Required) The address prefixes for the subnet
+* `network_security_group_id` - (Optional) The ID of the Network Security Group (NSG) associated with this subnet, if any.
 
 ## Timeouts
 

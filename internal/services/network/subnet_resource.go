@@ -206,6 +206,28 @@ func resourceSubnet() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"network_security_group_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: false,
+				Computed: true,
+				ValidateFunc: func(v interface{}, key string) (warns []string, errs []error) {
+					s, ok := v.(string)
+					if !ok {
+						errs = append(errs, fmt.Errorf("%q must be a string", key))
+						return
+					}
+					// Allow empty string for removal/unset.
+					if s == "" {
+						return
+					}
+					if !strings.HasPrefix(s, "/subscriptions/") || !strings.Contains(s, "/providers/Microsoft.Network/networkSecurityGroups/") {
+						errs = append(errs, fmt.Errorf("%q must be a valid Azure NSG resource ID (e.g. '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/networkSecurityGroups/{nsgName}'), got: %s", key, s))
+					}
+					return
+				},
+			},
+
 			"private_endpoint_network_policies": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -284,6 +306,12 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
+
+	if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
+		properties.NetworkSecurityGroup = &subnets.NetworkSecurityGroup{
+			Id: utils.String(v.(string)),
+		}
+	}
 
 	subnet := subnets.Subnet{
 		Name:       utils.String(id.SubnetName),
@@ -403,6 +431,19 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 	}
 
+	if d.HasChange("network_security_group_id") {
+		if v, ok := d.GetOk("network_security_group_id"); ok && v.(string) != "" {
+			props.NetworkSecurityGroup = &subnets.NetworkSecurityGroup{
+				Id: utils.String(v.(string)),
+			}
+		} else {
+			// Only remove the NSG if the user has explicitly set it to `null` or empty string.
+			if _, exists := d.GetOkExists("network_security_group_id"); exists {
+				props.NetworkSecurityGroup = nil
+			}
+		}
+	}
+
 	subnet := subnets.Subnet{
 		Name:       utils.String(id.SubnetName),
 		Properties: &props,
@@ -498,6 +539,14 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
 			if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
+			}
+
+			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
+				if err := d.Set("network_security_group_id", *props.NetworkSecurityGroup.Id); err != nil {
+					return fmt.Errorf("setting network_security_group_id: %+v", err)
+				}
+			} else {
+				d.Set("network_security_group_id", "")
 			}
 		}
 	}
