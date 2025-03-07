@@ -49,7 +49,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 ```go
 props := machinelearning.Workspace{
 	Properties: &machinelearning.WorkspaceProperties{
-		PublicNetworkAccess: pointer.To(d.Get("logging_enabled").(bool))
+		LoggingEnabled: pointer.To(model.LoggingEnabled)
     }
 }
 ```
@@ -60,7 +60,7 @@ props := machinelearning.Workspace{
 
 ```go
 if d.HasChange("logging_enabled") {
-	existing.Model.Properties.PublicNetworkAccess = pointer.From(d.Get("logging_enabled").(bool))
+	existing.Model.Properties.LoggingEnabled = pointer.From(model.LoggingEnabled)
 }
 ```
 
@@ -71,11 +71,11 @@ if d.HasChange("logging_enabled") {
 * If the value returned by the API is a pointer we should nil check this to prevent panics in the provider.
 
 ```go
-publicNetworkAccess := true
-if v := props.PublicNetworkAccess; v != nil {
-	publicNetworkAccess = *v
+loggingEnabled := true
+if v := props.LoggingEnabled; v != nil {
+	loggingEnabled = *v
 }
-d.Set("logging_enabled", publicNetworkAccess)
+d.Set("logging_enabled", loggingEnabled)
 ```
 
 ## Tests
@@ -109,41 +109,35 @@ A feature flag is essentially a function that returns a boolean and allows the p
 As an example, let's deprecate and replace the property `enable_compression` with `compression_enabled`.
 
 ```go
-Schema: map[string]*pluginsdk.Schema{
-    ...
-    "enable_compression": {
-        Type:     pluginsdk.TypeBool,
-        Optional: true,
-    },
+func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "enable_compression": {
+            Type:     pluginsdk.TypeBool,
+            Optional: true,
+        },
 }
 ```
 
 After deprecation the schema might look like the example below.
 
 ```go
-func resource() *pluginsdk.Resource {
-    resource := &pluginsdk.Resource{
-        ...
-        Schema: map[string]*pluginsdk.Schema{
-        	...
-
+func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
             // The deprecated property is moved out of the schema and conditionally added back via the feature flag
-        	
             "compression_enabled": {
                 Type:       pluginsdk.TypeBool,
                 Optional:   true,
-                Computed:   !features.FourPointOhBeta()  // Conditionally computed to avoid diffs when both properties are set into state
-                ConflictsWith: func() []string{          // Conditionally conflict with the deprecated property which will no longer exist in the next major release
-                	if !features.FourPointOhBeta() {
-                		return []string{"compression_enabled"}
-                    }      
-                    return []string{}
-                }(),       
+                Computed:   true 
             },
         }
     }
     
     if !features.FourPointOhBeta() {
+		resource.Schema["compression_enabled"] = &pluginsdk.Schema{
+            Type:       pluginsdk.TypeBool,
+            Optional:   true,
+        }
+		
     	resource.Schema["enable_compression"] = &pluginsdk.Schema{
             Type:       pluginsdk.TypeBool,
             Optional:   true,
@@ -157,41 +151,42 @@ func resource() *pluginsdk.Resource {
 }
 ```
 
-Also make sure to feature flag the behaviour in the create, update and read methods.
+Also make sure to feature flag the behaviour in the `Create()`, `Update()` and `Read()` methods.
 
 ```go
-func create() {
+func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
-	publicNetworkAccess := false
+	compressionEnabled := false
 	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOkExists("enable_compression"); ok {
-			publicNetworkAccess = v.(bool)
+		if _, ok := d.GetOk("enable_compression"); ok {
+			compressionEnabled = model.CompressionEnabled
 		}       
     }
     
-    if v, ok := d.GetOkExists("compression_enabled"); ok {
-        publicNetworkAccess = v.(bool)
+    if _, ok := d.GetOk("compression_enabled"); ok {
+        compressionEnabled = model.EnableCompression
     }
 	...
 }
 
-func read() {
+func (r ExampleResource) Read() sdk.ResourceFunc {
 	...
-	d.Set("compression_enabled", props.PublicNetworkAccess)
-	
-	if !features.FourPointOhBeta() {
-		d.Set("enable_compression", props.PublicNetworkAccess)
+    state.CompressionEnabled = pointer.From(resp.Model.Properties.CompressionEnabled)
+
+
+if !features.FourPointOhBeta() {
+        state.EnableCompression = pointer.From(resp.Model.Properties.CompressionEnabled)
     }   
 	...
 }
 ```
 
-When deprecating a property in a Typed Resource it is important to ensure that the Go struct representing the schema is correctly tagged to prevent the SDK decoding the removed property when the major version beta / feature flag is in use. In these cases the struct tags must be updated to include `,removedInNextMajorVersion`.  
+When deprecating a property in a Typed Resource, it is important to ensure that the Go struct representing the schema is correctly tagged to prevent the SDK decoding the removed property when the major version beta / feature flag is in use. In these cases the struct tags must be updated to include `,removedInNextMajorVersion`.  
 
 ```go
 type ExampleResourceModel struct {
-	Name                       string `tfschema:"name"`
-	EnablePublicNetworkAccess  bool   `tfschema:"enable_compression,removedInNextMajorVersion"`
-	PublicNetworkAccessEnabled bool   `tfschema:"compression_enabled"`
+	Name               string `tfschema:"name"`
+	EnableCompression  bool `tfschema:"enable_compression,removedInNextMajorVersion"`
+	CompressionEnabled bool `tfschema:"compression_enabled"`
 }
 ```

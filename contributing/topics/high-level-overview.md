@@ -32,6 +32,7 @@ At a high-level, the Provider structure is:
     * `./internal/provider`
         * Contains the Provider implementation itself, the Provider schema and a reference to each Service Registration so that Data Sources and Resources can be surfaced within the Provider.
     * `./internal/resourceid`
+        * Contains helper functions and types for working with Azure Resource IDs.
         * This package is **deprecated** in favour of `github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids` and will be removed in the future.
     * `./internal/resourceproviders`
         * Contains the list of Resource Providers which should be auto-registered by the Provider.
@@ -50,7 +51,7 @@ At a high-level, the Provider structure is:
 * `./scripts`
     * Contains various scripts used during testing, linting, and building the provider.
 * `./utils`
-    * This primarily contains helper functions for converting simple types (e.g. bool/int/strings) to pointers (e.g. `utils.String(“someValue”)`).
+    * This primarily contains helper functions for converting simple types (e.g. bool/int/strings) to pointers (e.g. `pointer.To(“someValue”)`).
     * **We intend to deprecate this folder in time** and new functionality should be added to individual service packages where possible. The existing functions will be gradually moved (via aliasing) into another repository.
 * `./vendor`
     * Contains the vendored copies of the go modules the provider uses. For more information please refer to the official [Go Documentation](https://go.dev/ref/mod#vendoring).
@@ -104,7 +105,19 @@ This means that at this point in time, there are four types of Data Source/Resou
 
 At this point in time the codebase uses a mixture of both (primarily the Untyped Data Sources/Resources) - in time we plan to migrate across to using Typed Data Sources/Resources instead.
 
-Ultimately this approach will allow us to switch from using the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) to [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework), enabling us to fix a number of long-standing issues in the Provider - whilst reducing the TLOC needed for each resource.
+The Untyped and Typed Patterns are so-named for their Schema. The untyped pattern requires that each property's type need be specified when being accessed:
+
+```go
+skuName := d.Get("sku_name").(string)
+```
+Whereas the Typed pattern allows for defining the schema using structs, providing type safety and reducing the need for type assertions:
+```go
+properties := &dnsresolvers.DnsResolver{
+	Location: location.Normalize(model.Location),
+}
+```
+
+Ultimately this approach will allow us to switch from using the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) to [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework), enabling us to fix a number of long-standing issues in the Provider - whilst reducing the maintenance needed for each resource.
 
 ## Interaction with Azure
 

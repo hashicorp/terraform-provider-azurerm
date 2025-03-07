@@ -47,22 +47,22 @@ func TestAccExampleResource_category_test2(t *testing.T) { ... }
 
 ## Acceptance Tests
 
-The Acceptance Tests for both Data Sources and Resources within this Provider use a Go struct for each test, in the form `{Name}{DataSource|Resource}Test`, for example:
+The Acceptance Tests for both Data Sources and Resources within this Provider use a Go struct for each test, in the form `{Name}{DataSource|Resource}`, for example:
 
 ```go
 // for a data source named Example:
-type ExampleDataSourceTest struct {}
+type ExampleDataSource struct {}
 
 // for a resource named Example:
-type ExampleResourceTest struct {}
+type ExampleResource struct {}
 ```
 
 This allows the test configurations to be scoped (and not used unintentionally across different resources), for example a Resource may use:
 
 ```go
-type ExampleResourceTest struct {}
+type ExampleResource struct {}
 
-func (ExampleResourceTest) basic(data acceptance.TestData) string {
+func (ExampleResource) basic(data acceptance.TestData) string {
 return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -83,7 +83,7 @@ This allows the Acceptance Test for each Data Source/Resource to reference that 
 ```go
 func TestAccExampleResource_basic(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
-        r := ExampleResourceTest{}
+        r := ExampleResource{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
                 {
@@ -101,15 +101,15 @@ func TestAccExampleResource_basic(t *testing.T) {
 
 At a minimum, a Data Source requires:
 
-* A `basic` test ([Example](#Example---DataSource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
+* A `basic` test ([Example](#Example---Data-Source---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
 
-However more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
+However, more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
 
 ---
 
 At a minimum, a Resource requires:
 
-* A `basic` test ([Example](#Example---Basic---Resource)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
+* A `basic` test ([Example](#Example---Resource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
 
 * A `requiresImport` test ([Example](#Example---Resource---Requires-Import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
 
@@ -117,7 +117,7 @@ At a minimum, a Resource requires:
 
 * A `update` test ([Example](#Example---Resource---Update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
 
-However more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
+However, more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
 
 ### Example - Data Source - Basic
 

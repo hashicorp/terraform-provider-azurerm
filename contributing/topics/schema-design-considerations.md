@@ -36,7 +36,7 @@ In the cases where `Enabled` is the only field within the object we opt to flatt
 },
 ```
 
-However when there are multiple fields in addition to the `Enabled` field and they are all required for the object/feature like in Example B, a terraform block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
+However, when there are multiple fields in addition to the `Enabled` field, and they are all required for the object/feature like in Example B, a block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
 
 ```go
 "vertical_pod_autoscaler": {
@@ -72,7 +72,7 @@ However when there are multiple fields in addition to the `Enabled` field and th
 },
 ```
 
-Finally there are instances where the addtional fields/properties for a object/feature are optional or few in number, as shown below.
+Finally, there are instances where the additional fields/properties for an object/feature are optional or few, as shown below.
 
 Example C.
 ```go
@@ -178,7 +178,7 @@ func (r resource) Read() sdk.ResourceFunc {
 
 The Azure API makes use of classes and inheritance through discriminator types defined in the REST API specifications. A strong indicator that a resource is actually a discriminated type is through the definition of a `type` or `kind` property.
 
-Rather than exposing a generic resource with all the possible fields for all the possible different `type`'s, we intentionally opt to split these resources by the `type` to improve the user experience. This means we can only output the relevant fields for this `type` which in turn allows us to provide more granular validation etc.
+Rather than exposing a generic resource with all the possible fields for all the possible different `type`s, we intentionally opt to split these resources by the `type` to improve the user experience. This means we can only output the relevant fields for this `type` which in turn allows us to provide more granular validation etc.
 
 Whilst there is a trade-off here, since this means that we have to maintain more Data Sources/Resources, this is a worthwhile trade-off since each of these resources only exposes the fields which are relevant for this resource, meaning the logic is far simpler than trying to maintain a generic resource and pushing the complexity onto end-users.
 
