@@ -103,19 +103,7 @@ This means that at this point in time, there are four types of Data Source/Resou
 3. Typed Data Sources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_data_source.go)).
 4. Typed Resources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_resource.go)).
 
-At this point in time the codebase uses a mixture of both (primarily the Untyped Data Sources/Resources) - in time we plan to migrate across to using Typed Data Sources/Resources instead.
-
-The Untyped and Typed Patterns are so-named for their Schema. The untyped pattern requires that each property's type need be specified when being accessed:
-
-```go
-skuName := d.Get("sku_name").(string)
-```
-Whereas the Typed pattern allows for defining the schema using structs, providing type safety and reducing the need for type assertions:
-```go
-properties := &dnsresolvers.DnsResolver{
-	Location: location.Normalize(model.Location),
-}
-```
+At this point in time the codebase uses a mixture of both (primarily the Untyped Data Sources/Resources) - in time we plan to migrate across to using Typed Data Sources/Resources instead. For differences between these two patterns, see [the Typed vs Untyped guide](best-practices.md#typed-vs-untyped-resources).
 
 Ultimately this approach will allow us to switch from using the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) to [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework), enabling us to fix a number of long-standing issues in the Provider - whilst reducing the maintenance needed for each resource.
 

@@ -1,6 +1,6 @@
 # Schema Design Considerations
 
-Whilst it is acceptable in certain cases to map the schema of a new resource or feature when extending an existing resource, one-to-one from the Azure API, in the majority of cases more consideration needs to be given how to expose the Azure API in Terraform so that the provider presents a consistent and intuitive experience to the end user.
+Whilst it is acceptable in certain cases to map the schema of a new resource or feature when extending an existing resource one-to-one from the Azure API, in the majority of cases more consideration needs to be given how to expose the Azure API in Terraform so that the provider presents a consistent and intuitive experience to the end user.
 
 Below are a list of common patterns found in the Azure API and how these typically get mapped within Terraform.
 
