@@ -246,7 +246,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"os_disk_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  agentpools.OSDiskTypeManaged,
+			Default:  agentpools.OSDiskTypeEphemeral,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(agentpools.OSDiskTypeEphemeral),
 				string(agentpools.OSDiskTypeManaged),
@@ -1128,7 +1128,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
 
-		osDiskType := agentpools.OSDiskTypeManaged
+		osDiskType := agentpools.OSDiskTypeEphemeral
 		if v := props.OsDiskType; v != nil && *v != "" {
 			osDiskType = *v
 		}
