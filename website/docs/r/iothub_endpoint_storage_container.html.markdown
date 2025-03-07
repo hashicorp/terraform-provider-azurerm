@@ -90,6 +90,10 @@ The following arguments are supported:
 
 * `file_name_format` - (Optional) File name format for the blob. All parameters are mandatory but can be reordered. Defaults to `{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}`.
 
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **NOTE:** When `subscription_id` isn't specified it will be set to the subscription ID used in the provider block.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
