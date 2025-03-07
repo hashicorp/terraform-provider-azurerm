@@ -12,18 +12,18 @@ var _ CopySource = AmazonRdsForOracleSource{}
 
 type AmazonRdsForOracleSource struct {
 	AdditionalColumns *interface{}                         `json:"additionalColumns,omitempty"`
-	OracleReaderQuery *string                              `json:"oracleReaderQuery,omitempty"`
-	PartitionOption   *string                              `json:"partitionOption,omitempty"`
+	OracleReaderQuery *interface{}                         `json:"oracleReaderQuery,omitempty"`
+	PartitionOption   *interface{}                         `json:"partitionOption,omitempty"`
 	PartitionSettings *AmazonRdsForOraclePartitionSettings `json:"partitionSettings,omitempty"`
-	QueryTimeout      *string                              `json:"queryTimeout,omitempty"`
+	QueryTimeout      *interface{}                         `json:"queryTimeout,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s AmazonRdsForOracleSource) CopySource() BaseCopySourceImpl {

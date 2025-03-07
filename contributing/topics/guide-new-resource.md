@@ -593,7 +593,7 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 ```
 
-At this point in time this Resource is now code-complete - there's an optional extension to make this cleaner by using a Typed Model, however this isn't necessary.
+At this point in time this Resource is now code-complete.
 
 ### Step 4: Register the new Resource
 
@@ -748,6 +748,28 @@ func TestAccResourceGroupExample_complete(t *testing.T) {
     })
 }
 
+func TestAccResourceGroupExample_update(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
+    r := ResourceGroupExampleTestResource{}
+    
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+        {
+            Config: r.complete(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+
 func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
     id, err := resources.ParseResourceGroupID(state.ID)
     if err != nil {
@@ -776,7 +798,6 @@ resource "azurerm_resource_group_example" "test" {
 }
 
 func (r ResourceGroupExampleTestResource) requiresImport(data acceptance.TestData) string {
-    template := r.basic(data)
     return fmt.Sprintf(`
 %s
 
@@ -784,7 +805,7 @@ resource "azurerm_resource_group_example" "import" {
   name     = azurerm_resource_group_example.test.name
   location = azurerm_resource_group_example.test.location
 }
-`, template)
+`, r.basic(data))
 }
 
 func (ResourceGroupExampleTestResource) complete(data acceptance.TestData) string {
@@ -811,7 +832,7 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 2. The `acceptance.TestData` object contains a number of helpers, including both random integers, strings and the Azure Locations where resources should be provisioned - which are used to ensure when tests are run in parallel that we provision unique resources for testing purposes.
 3. The `ApplyStep`'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. `terraform apply` and then checking that `terraform plan` shows no changes).
 4. The `ImportStep` takes the Resource ID for the Resource and runs `terraform import azurerm_resource_group_example.test {resourceId}`, checking that the fields defined in the state match the fields returned from the Read function.
-6. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
+5. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
 
 At this point we should be able to run this test.
 

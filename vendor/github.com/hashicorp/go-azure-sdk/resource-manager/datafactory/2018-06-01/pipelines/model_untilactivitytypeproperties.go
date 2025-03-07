@@ -9,17 +9,17 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UntilActivityTypeProperties struct {
-	Activities []Activity `json:"activities"`
-	Expression Expression `json:"expression"`
-	Timeout    *string    `json:"timeout,omitempty"`
+	Activities []Activity   `json:"activities"`
+	Expression Expression   `json:"expression"`
+	Timeout    *interface{} `json:"timeout,omitempty"`
 }
 
 var _ json.Unmarshaler = &UntilActivityTypeProperties{}
 
 func (s *UntilActivityTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		Expression Expression `json:"expression"`
-		Timeout    *string    `json:"timeout,omitempty"`
+		Expression Expression   `json:"expression"`
+		Timeout    *interface{} `json:"timeout,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

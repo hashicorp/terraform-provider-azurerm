@@ -15,8 +15,8 @@ type CopyActivityTypeProperties struct {
 	LogSettings                     *LogSettings                     `json:"logSettings,omitempty"`
 	LogStorageSettings              *LogStorageSettings              `json:"logStorageSettings,omitempty"`
 	ParallelCopies                  *int64                           `json:"parallelCopies,omitempty"`
-	Preserve                        *[]string                        `json:"preserve,omitempty"`
-	PreserveRules                   *[]string                        `json:"preserveRules,omitempty"`
+	Preserve                        *[]interface{}                   `json:"preserve,omitempty"`
+	PreserveRules                   *[]interface{}                   `json:"preserveRules,omitempty"`
 	RedirectIncompatibleRowSettings *RedirectIncompatibleRowSettings `json:"redirectIncompatibleRowSettings,omitempty"`
 	Sink                            CopySink                         `json:"sink"`
 	SkipErrorFile                   *SkipErrorFile                   `json:"skipErrorFile,omitempty"`
@@ -36,8 +36,8 @@ func (s *CopyActivityTypeProperties) UnmarshalJSON(bytes []byte) error {
 		LogSettings                     *LogSettings                     `json:"logSettings,omitempty"`
 		LogStorageSettings              *LogStorageSettings              `json:"logStorageSettings,omitempty"`
 		ParallelCopies                  *int64                           `json:"parallelCopies,omitempty"`
-		Preserve                        *[]string                        `json:"preserve,omitempty"`
-		PreserveRules                   *[]string                        `json:"preserveRules,omitempty"`
+		Preserve                        *[]interface{}                   `json:"preserve,omitempty"`
+		PreserveRules                   *[]interface{}                   `json:"preserveRules,omitempty"`
 		RedirectIncompatibleRowSettings *RedirectIncompatibleRowSettings `json:"redirectIncompatibleRowSettings,omitempty"`
 		SkipErrorFile                   *SkipErrorFile                   `json:"skipErrorFile,omitempty"`
 		StagingSettings                 *StagingSettings                 `json:"stagingSettings,omitempty"`

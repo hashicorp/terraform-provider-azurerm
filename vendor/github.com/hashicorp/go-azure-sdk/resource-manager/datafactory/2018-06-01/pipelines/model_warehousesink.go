@@ -13,19 +13,19 @@ var _ CopySink = WarehouseSink{}
 type WarehouseSink struct {
 	AllowCopyCommand    *bool                  `json:"allowCopyCommand,omitempty"`
 	CopyCommandSettings *DWCopyCommandSettings `json:"copyCommandSettings,omitempty"`
-	PreCopyScript       *string                `json:"preCopyScript,omitempty"`
-	TableOption         *string                `json:"tableOption,omitempty"`
-	WriteBehavior       *string                `json:"writeBehavior,omitempty"`
+	PreCopyScript       *interface{}           `json:"preCopyScript,omitempty"`
+	TableOption         *interface{}           `json:"tableOption,omitempty"`
+	WriteBehavior       *interface{}           `json:"writeBehavior,omitempty"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64  `json:"sinkRetryCount,omitempty"`
-	SinkRetryWait            *string `json:"sinkRetryWait,omitempty"`
-	Type                     string  `json:"type"`
-	WriteBatchSize           *int64  `json:"writeBatchSize,omitempty"`
-	WriteBatchTimeout        *string `json:"writeBatchTimeout,omitempty"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
+	Type                     string       `json:"type"`
+	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 
 func (s WarehouseSink) CopySink() BaseCopySinkImpl {

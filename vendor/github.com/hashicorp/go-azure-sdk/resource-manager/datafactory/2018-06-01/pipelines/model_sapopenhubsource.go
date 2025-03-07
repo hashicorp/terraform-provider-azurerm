@@ -13,18 +13,18 @@ var _ CopySource = SapOpenHubSource{}
 type SapOpenHubSource struct {
 	AdditionalColumns                *interface{} `json:"additionalColumns,omitempty"`
 	BaseRequestId                    *int64       `json:"baseRequestId,omitempty"`
-	CustomRfcReadTableFunctionModule *string      `json:"customRfcReadTableFunctionModule,omitempty"`
+	CustomRfcReadTableFunctionModule *interface{} `json:"customRfcReadTableFunctionModule,omitempty"`
 	ExcludeLastRequest               *bool        `json:"excludeLastRequest,omitempty"`
-	QueryTimeout                     *string      `json:"queryTimeout,omitempty"`
-	SapDataColumnDelimiter           *string      `json:"sapDataColumnDelimiter,omitempty"`
+	QueryTimeout                     *interface{} `json:"queryTimeout,omitempty"`
+	SapDataColumnDelimiter           *interface{} `json:"sapDataColumnDelimiter,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s SapOpenHubSource) CopySource() BaseCopySourceImpl {

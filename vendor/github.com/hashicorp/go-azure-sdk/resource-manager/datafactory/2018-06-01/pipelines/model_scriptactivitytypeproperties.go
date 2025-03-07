@@ -6,6 +6,6 @@ package pipelines
 type ScriptActivityTypeProperties struct {
 	LogSettings                 *ScriptActivityTypePropertiesLogSettings `json:"logSettings,omitempty"`
 	ReturnMultistatementResult  *bool                                    `json:"returnMultistatementResult,omitempty"`
-	ScriptBlockExecutionTimeout *string                                  `json:"scriptBlockExecutionTimeout,omitempty"`
+	ScriptBlockExecutionTimeout *interface{}                             `json:"scriptBlockExecutionTimeout,omitempty"`
 	Scripts                     *[]ScriptActivityScriptBlock             `json:"scripts,omitempty"`
 }
