@@ -10,9 +10,7 @@ description: |-
 
 Manages a Linux Function App.
 
-> [!NOTE]
-> This Terraform resource is specifically designed to provision the infrastructure for a Function App, which can host one or more individual functions. To package and deploy application code to the Function App, tools like [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) or Azure CLI can be utilized. With the current toolset, application code deployment must typically be performed individually for each Function App. It is also important to note that after a Terraform deployment, particularly if the `azurerm_linux_function_app` resource is recreated due to changes in critical properties (such as the OS type, runtime stack, or App Service Plan), previously deployed application code may be removed, necessitating redeployment. This process can, however, be streamlined and automated using custom scripts or CI/CD pipelines.
-
+-> **Note:** This Terraform resource is specifically designed to provision the infrastructure for a Function App, which can host one or more individual functions. To package and deploy application code to the Function App, tools like [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) or Azure CLI can be utilized, however application code deployment must typically be performed individually for each Function App.
 
 ## Example Usage
 
@@ -90,6 +88,8 @@ The following arguments are supported:
 * `backup` - (Optional) A `backup` block as defined below.
 
 * `builtin_logging_enabled` - (Optional) Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting. Defaults to `true`.
+
+~> **Note:** `builtin_logging_enabled` is only supported for function app whose function runtime is running on version 1.x.
 
 * `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
 
@@ -709,7 +709,7 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`.
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Currently only `VS2022` is supported.
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Scale Monitoring of the Functions Runtime be enabled?
 

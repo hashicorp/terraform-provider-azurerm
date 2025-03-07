@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Elastic Job Schedule be enabled? Defaults to `false`.
 
-~> **Note**: When `type` is set to `Once` and `enabled` is set to `true`, it's recommended to add `enabled` to `ignore_changes`. This is because Azure will set `enabled` to `false` once the job has executed.
+~> **Note:** When `type` is set to `Once` and `enabled` is set to `true`, it's recommended to add `enabled` to `ignore_changes`. This is because Azure will set `enabled` to `false` once the job has executed.
 
 * `end_time` - (Optional) The end time of the schedule. Must be in RFC3339 format.
 

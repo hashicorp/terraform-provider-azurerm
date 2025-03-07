@@ -229,7 +229,7 @@ func TestAccAzureRMServiceBusNamespace_publicNetworkAccessUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespace_minimumTLSUpdate(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since the only possible value in 5.0 for `minimum_tls_version` is `1.2`, we can not test updating it.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace", "test")
