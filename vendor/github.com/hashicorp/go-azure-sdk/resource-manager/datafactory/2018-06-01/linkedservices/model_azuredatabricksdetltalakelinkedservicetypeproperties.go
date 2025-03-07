@@ -10,22 +10,22 @@ import (
 
 type AzureDatabricksDetltaLakeLinkedServiceTypeProperties struct {
 	AccessToken         SecretBase           `json:"accessToken"`
-	ClusterId           *string              `json:"clusterId,omitempty"`
+	ClusterId           *interface{}         `json:"clusterId,omitempty"`
 	Credential          *CredentialReference `json:"credential,omitempty"`
-	Domain              string               `json:"domain"`
+	Domain              interface{}          `json:"domain"`
 	EncryptedCredential *string              `json:"encryptedCredential,omitempty"`
-	WorkspaceResourceId *string              `json:"workspaceResourceId,omitempty"`
+	WorkspaceResourceId *interface{}         `json:"workspaceResourceId,omitempty"`
 }
 
 var _ json.Unmarshaler = &AzureDatabricksDetltaLakeLinkedServiceTypeProperties{}
 
 func (s *AzureDatabricksDetltaLakeLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ClusterId           *string              `json:"clusterId,omitempty"`
+		ClusterId           *interface{}         `json:"clusterId,omitempty"`
 		Credential          *CredentialReference `json:"credential,omitempty"`
-		Domain              string               `json:"domain"`
+		Domain              interface{}          `json:"domain"`
 		EncryptedCredential *string              `json:"encryptedCredential,omitempty"`
-		WorkspaceResourceId *string              `json:"workspaceResourceId,omitempty"`
+		WorkspaceResourceId *interface{}         `json:"workspaceResourceId,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

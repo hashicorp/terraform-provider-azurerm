@@ -9,22 +9,22 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type OdbcLinkedServiceTypeProperties struct {
-	AuthenticationType  *string    `json:"authenticationType,omitempty"`
-	ConnectionString    string     `json:"connectionString"`
-	Credential          SecretBase `json:"credential"`
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	Password            SecretBase `json:"password"`
-	UserName            *string    `json:"userName,omitempty"`
+	AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
+	ConnectionString    interface{}  `json:"connectionString"`
+	Credential          SecretBase   `json:"credential"`
+	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+	Password            SecretBase   `json:"password"`
+	UserName            *interface{} `json:"userName,omitempty"`
 }
 
 var _ json.Unmarshaler = &OdbcLinkedServiceTypeProperties{}
 
 func (s *OdbcLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AuthenticationType  *string `json:"authenticationType,omitempty"`
-		ConnectionString    string  `json:"connectionString"`
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
-		UserName            *string `json:"userName,omitempty"`
+		AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
+		ConnectionString    interface{}  `json:"connectionString"`
+		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+		UserName            *interface{} `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

@@ -17,7 +17,7 @@ var _ WebLinkedServiceTypeProperties = BaseWebLinkedServiceTypePropertiesImpl{}
 
 type BaseWebLinkedServiceTypePropertiesImpl struct {
 	AuthenticationType WebAuthenticationType `json:"authenticationType"`
-	Url                string                `json:"url"`
+	Url                interface{}           `json:"url"`
 }
 
 func (s BaseWebLinkedServiceTypePropertiesImpl) WebLinkedServiceTypeProperties() BaseWebLinkedServiceTypePropertiesImpl {
@@ -88,5 +88,4 @@ func UnmarshalWebLinkedServiceTypePropertiesImplementation(input []byte) (WebLin
 		Type:                           value,
 		Values:                         temp,
 	}, nil
-
 }

@@ -9,26 +9,26 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AzureMLLinkedServiceTypeProperties struct {
-	ApiKey                 SecretBase `json:"apiKey"`
-	Authentication         *string    `json:"authentication,omitempty"`
-	EncryptedCredential    *string    `json:"encryptedCredential,omitempty"`
-	MlEndpoint             string     `json:"mlEndpoint"`
-	ServicePrincipalId     *string    `json:"servicePrincipalId,omitempty"`
-	ServicePrincipalKey    SecretBase `json:"servicePrincipalKey"`
-	Tenant                 *string    `json:"tenant,omitempty"`
-	UpdateResourceEndpoint *string    `json:"updateResourceEndpoint,omitempty"`
+	ApiKey                 SecretBase   `json:"apiKey"`
+	Authentication         *interface{} `json:"authentication,omitempty"`
+	EncryptedCredential    *string      `json:"encryptedCredential,omitempty"`
+	MlEndpoint             interface{}  `json:"mlEndpoint"`
+	ServicePrincipalId     *interface{} `json:"servicePrincipalId,omitempty"`
+	ServicePrincipalKey    SecretBase   `json:"servicePrincipalKey"`
+	Tenant                 *interface{} `json:"tenant,omitempty"`
+	UpdateResourceEndpoint *interface{} `json:"updateResourceEndpoint,omitempty"`
 }
 
 var _ json.Unmarshaler = &AzureMLLinkedServiceTypeProperties{}
 
 func (s *AzureMLLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		Authentication         *string `json:"authentication,omitempty"`
-		EncryptedCredential    *string `json:"encryptedCredential,omitempty"`
-		MlEndpoint             string  `json:"mlEndpoint"`
-		ServicePrincipalId     *string `json:"servicePrincipalId,omitempty"`
-		Tenant                 *string `json:"tenant,omitempty"`
-		UpdateResourceEndpoint *string `json:"updateResourceEndpoint,omitempty"`
+		Authentication         *interface{} `json:"authentication,omitempty"`
+		EncryptedCredential    *string      `json:"encryptedCredential,omitempty"`
+		MlEndpoint             interface{}  `json:"mlEndpoint"`
+		ServicePrincipalId     *interface{} `json:"servicePrincipalId,omitempty"`
+		Tenant                 *interface{} `json:"tenant,omitempty"`
+		UpdateResourceEndpoint *interface{} `json:"updateResourceEndpoint,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

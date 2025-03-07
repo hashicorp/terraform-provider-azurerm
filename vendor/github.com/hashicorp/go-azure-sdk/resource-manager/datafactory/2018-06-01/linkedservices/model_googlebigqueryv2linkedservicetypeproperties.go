@@ -10,11 +10,11 @@ import (
 
 type GoogleBigQueryV2LinkedServiceTypeProperties struct {
 	AuthenticationType  GoogleBigQueryV2AuthenticationType `json:"authenticationType"`
-	ClientId            *string                            `json:"clientId,omitempty"`
+	ClientId            *interface{}                       `json:"clientId,omitempty"`
 	ClientSecret        SecretBase                         `json:"clientSecret"`
 	EncryptedCredential *string                            `json:"encryptedCredential,omitempty"`
 	KeyFileContent      SecretBase                         `json:"keyFileContent"`
-	ProjectId           string                             `json:"projectId"`
+	ProjectId           interface{}                        `json:"projectId"`
 	RefreshToken        SecretBase                         `json:"refreshToken"`
 }
 
@@ -23,9 +23,9 @@ var _ json.Unmarshaler = &GoogleBigQueryV2LinkedServiceTypeProperties{}
 func (s *GoogleBigQueryV2LinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType  GoogleBigQueryV2AuthenticationType `json:"authenticationType"`
-		ClientId            *string                            `json:"clientId,omitempty"`
+		ClientId            *interface{}                       `json:"clientId,omitempty"`
 		EncryptedCredential *string                            `json:"encryptedCredential,omitempty"`
-		ProjectId           string                             `json:"projectId"`
+		ProjectId           interface{}                        `json:"projectId"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

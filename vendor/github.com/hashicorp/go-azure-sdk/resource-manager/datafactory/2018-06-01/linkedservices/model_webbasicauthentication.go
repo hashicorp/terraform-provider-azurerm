@@ -11,13 +11,13 @@ import (
 var _ WebLinkedServiceTypeProperties = WebBasicAuthentication{}
 
 type WebBasicAuthentication struct {
-	Password SecretBase `json:"password"`
-	Username string     `json:"username"`
+	Password SecretBase  `json:"password"`
+	Username interface{} `json:"username"`
 
 	// Fields inherited from WebLinkedServiceTypeProperties
 
 	AuthenticationType WebAuthenticationType `json:"authenticationType"`
-	Url                string                `json:"url"`
+	Url                interface{}           `json:"url"`
 }
 
 func (s WebBasicAuthentication) WebLinkedServiceTypeProperties() BaseWebLinkedServiceTypePropertiesImpl {
@@ -56,9 +56,9 @@ var _ json.Unmarshaler = &WebBasicAuthentication{}
 
 func (s *WebBasicAuthentication) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		Username           string                `json:"username"`
+		Username           interface{}           `json:"username"`
 		AuthenticationType WebAuthenticationType `json:"authenticationType"`
-		Url                string                `json:"url"`
+		Url                interface{}           `json:"url"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

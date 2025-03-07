@@ -9,17 +9,17 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AmazonRdsForLinkedServiceTypeProperties struct {
-	ConnectionString    string     `json:"connectionString"`
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	Password            SecretBase `json:"password"`
+	ConnectionString    interface{} `json:"connectionString"`
+	EncryptedCredential *string     `json:"encryptedCredential,omitempty"`
+	Password            SecretBase  `json:"password"`
 }
 
 var _ json.Unmarshaler = &AmazonRdsForLinkedServiceTypeProperties{}
 
 func (s *AmazonRdsForLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ConnectionString    string  `json:"connectionString"`
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
+		ConnectionString    interface{} `json:"connectionString"`
+		EncryptedCredential *string     `json:"encryptedCredential,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

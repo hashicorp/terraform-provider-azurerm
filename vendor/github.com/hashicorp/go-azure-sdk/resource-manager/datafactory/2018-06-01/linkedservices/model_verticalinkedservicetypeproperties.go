@@ -4,11 +4,11 @@ package linkedservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type VerticaLinkedServiceTypeProperties struct {
-	ConnectionString    *string                       `json:"connectionString,omitempty"`
-	Database            *string                       `json:"database,omitempty"`
+	ConnectionString    *interface{}                  `json:"connectionString,omitempty"`
+	Database            *interface{}                  `json:"database,omitempty"`
 	EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
 	Port                *int64                        `json:"port,omitempty"`
 	Pwd                 *AzureKeyVaultSecretReference `json:"pwd,omitempty"`
-	Server              *string                       `json:"server,omitempty"`
-	Uid                 *string                       `json:"uid,omitempty"`
+	Server              *interface{}                  `json:"server,omitempty"`
+	Uid                 *interface{}                  `json:"uid,omitempty"`
 }

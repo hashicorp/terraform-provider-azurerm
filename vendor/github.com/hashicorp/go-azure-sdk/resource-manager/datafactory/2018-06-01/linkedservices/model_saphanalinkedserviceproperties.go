@@ -10,11 +10,11 @@ import (
 
 type SapHanaLinkedServiceProperties struct {
 	AuthenticationType  *SapHanaAuthenticationType `json:"authenticationType,omitempty"`
-	ConnectionString    *string                    `json:"connectionString,omitempty"`
+	ConnectionString    *interface{}               `json:"connectionString,omitempty"`
 	EncryptedCredential *string                    `json:"encryptedCredential,omitempty"`
 	Password            SecretBase                 `json:"password"`
-	Server              *string                    `json:"server,omitempty"`
-	UserName            *string                    `json:"userName,omitempty"`
+	Server              *interface{}               `json:"server,omitempty"`
+	UserName            *interface{}               `json:"userName,omitempty"`
 }
 
 var _ json.Unmarshaler = &SapHanaLinkedServiceProperties{}
@@ -22,10 +22,10 @@ var _ json.Unmarshaler = &SapHanaLinkedServiceProperties{}
 func (s *SapHanaLinkedServiceProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType  *SapHanaAuthenticationType `json:"authenticationType,omitempty"`
-		ConnectionString    *string                    `json:"connectionString,omitempty"`
+		ConnectionString    *interface{}               `json:"connectionString,omitempty"`
 		EncryptedCredential *string                    `json:"encryptedCredential,omitempty"`
-		Server              *string                    `json:"server,omitempty"`
-		UserName            *string                    `json:"userName,omitempty"`
+		Server              *interface{}               `json:"server,omitempty"`
+		UserName            *interface{}               `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

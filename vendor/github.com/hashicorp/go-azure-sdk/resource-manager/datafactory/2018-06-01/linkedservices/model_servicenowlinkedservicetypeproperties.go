@@ -10,15 +10,15 @@ import (
 
 type ServiceNowLinkedServiceTypeProperties struct {
 	AuthenticationType    ServiceNowAuthenticationType `json:"authenticationType"`
-	ClientId              *string                      `json:"clientId,omitempty"`
+	ClientId              *interface{}                 `json:"clientId,omitempty"`
 	ClientSecret          SecretBase                   `json:"clientSecret"`
 	EncryptedCredential   *string                      `json:"encryptedCredential,omitempty"`
-	Endpoint              string                       `json:"endpoint"`
+	Endpoint              interface{}                  `json:"endpoint"`
 	Password              SecretBase                   `json:"password"`
 	UseEncryptedEndpoints *bool                        `json:"useEncryptedEndpoints,omitempty"`
 	UseHostVerification   *bool                        `json:"useHostVerification,omitempty"`
 	UsePeerVerification   *bool                        `json:"usePeerVerification,omitempty"`
-	Username              *string                      `json:"username,omitempty"`
+	Username              *interface{}                 `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &ServiceNowLinkedServiceTypeProperties{}
@@ -26,13 +26,13 @@ var _ json.Unmarshaler = &ServiceNowLinkedServiceTypeProperties{}
 func (s *ServiceNowLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType    ServiceNowAuthenticationType `json:"authenticationType"`
-		ClientId              *string                      `json:"clientId,omitempty"`
+		ClientId              *interface{}                 `json:"clientId,omitempty"`
 		EncryptedCredential   *string                      `json:"encryptedCredential,omitempty"`
-		Endpoint              string                       `json:"endpoint"`
+		Endpoint              interface{}                  `json:"endpoint"`
 		UseEncryptedEndpoints *bool                        `json:"useEncryptedEndpoints,omitempty"`
 		UseHostVerification   *bool                        `json:"useHostVerification,omitempty"`
 		UsePeerVerification   *bool                        `json:"usePeerVerification,omitempty"`
-		Username              *string                      `json:"username,omitempty"`
+		Username              *interface{}                 `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

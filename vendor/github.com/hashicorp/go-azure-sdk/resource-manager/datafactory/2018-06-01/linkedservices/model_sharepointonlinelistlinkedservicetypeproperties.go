@@ -9,25 +9,25 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SharePointOnlineListLinkedServiceTypeProperties struct {
-	EncryptedCredential                  *string    `json:"encryptedCredential,omitempty"`
-	ServicePrincipalCredentialType       *string    `json:"servicePrincipalCredentialType,omitempty"`
-	ServicePrincipalEmbeddedCert         SecretBase `json:"servicePrincipalEmbeddedCert"`
-	ServicePrincipalEmbeddedCertPassword SecretBase `json:"servicePrincipalEmbeddedCertPassword"`
-	ServicePrincipalId                   string     `json:"servicePrincipalId"`
-	ServicePrincipalKey                  SecretBase `json:"servicePrincipalKey"`
-	SiteURL                              string     `json:"siteUrl"`
-	TenantId                             string     `json:"tenantId"`
+	EncryptedCredential                  *string      `json:"encryptedCredential,omitempty"`
+	ServicePrincipalCredentialType       *interface{} `json:"servicePrincipalCredentialType,omitempty"`
+	ServicePrincipalEmbeddedCert         SecretBase   `json:"servicePrincipalEmbeddedCert"`
+	ServicePrincipalEmbeddedCertPassword SecretBase   `json:"servicePrincipalEmbeddedCertPassword"`
+	ServicePrincipalId                   interface{}  `json:"servicePrincipalId"`
+	ServicePrincipalKey                  SecretBase   `json:"servicePrincipalKey"`
+	SiteURL                              interface{}  `json:"siteUrl"`
+	TenantId                             interface{}  `json:"tenantId"`
 }
 
 var _ json.Unmarshaler = &SharePointOnlineListLinkedServiceTypeProperties{}
 
 func (s *SharePointOnlineListLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		EncryptedCredential            *string `json:"encryptedCredential,omitempty"`
-		ServicePrincipalCredentialType *string `json:"servicePrincipalCredentialType,omitempty"`
-		ServicePrincipalId             string  `json:"servicePrincipalId"`
-		SiteURL                        string  `json:"siteUrl"`
-		TenantId                       string  `json:"tenantId"`
+		EncryptedCredential            *string      `json:"encryptedCredential,omitempty"`
+		ServicePrincipalCredentialType *interface{} `json:"servicePrincipalCredentialType,omitempty"`
+		ServicePrincipalId             interface{}  `json:"servicePrincipalId"`
+		SiteURL                        interface{}  `json:"siteUrl"`
+		TenantId                       interface{}  `json:"tenantId"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

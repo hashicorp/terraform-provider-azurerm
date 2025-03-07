@@ -9,23 +9,23 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AzureFunctionLinkedServiceTypeProperties struct {
-	Authentication      *string              `json:"authentication,omitempty"`
+	Authentication      *interface{}         `json:"authentication,omitempty"`
 	Credential          *CredentialReference `json:"credential,omitempty"`
 	EncryptedCredential *string              `json:"encryptedCredential,omitempty"`
-	FunctionAppURL      string               `json:"functionAppUrl"`
+	FunctionAppURL      interface{}          `json:"functionAppUrl"`
 	FunctionKey         SecretBase           `json:"functionKey"`
-	ResourceId          *string              `json:"resourceId,omitempty"`
+	ResourceId          *interface{}         `json:"resourceId,omitempty"`
 }
 
 var _ json.Unmarshaler = &AzureFunctionLinkedServiceTypeProperties{}
 
 func (s *AzureFunctionLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		Authentication      *string              `json:"authentication,omitempty"`
+		Authentication      *interface{}         `json:"authentication,omitempty"`
 		Credential          *CredentialReference `json:"credential,omitempty"`
 		EncryptedCredential *string              `json:"encryptedCredential,omitempty"`
-		FunctionAppURL      string               `json:"functionAppUrl"`
-		ResourceId          *string              `json:"resourceId,omitempty"`
+		FunctionAppURL      interface{}          `json:"functionAppUrl"`
+		ResourceId          *interface{}         `json:"resourceId,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

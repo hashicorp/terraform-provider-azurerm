@@ -9,24 +9,24 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SalesforceServiceCloudLinkedServiceTypeProperties struct {
-	ApiVersion          *string    `json:"apiVersion,omitempty"`
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	EnvironmentURL      *string    `json:"environmentUrl,omitempty"`
-	ExtendedProperties  *string    `json:"extendedProperties,omitempty"`
-	Password            SecretBase `json:"password"`
-	SecurityToken       SecretBase `json:"securityToken"`
-	Username            *string    `json:"username,omitempty"`
+	ApiVersion          *interface{} `json:"apiVersion,omitempty"`
+	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+	EnvironmentURL      *interface{} `json:"environmentUrl,omitempty"`
+	ExtendedProperties  *interface{} `json:"extendedProperties,omitempty"`
+	Password            SecretBase   `json:"password"`
+	SecurityToken       SecretBase   `json:"securityToken"`
+	Username            *interface{} `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &SalesforceServiceCloudLinkedServiceTypeProperties{}
 
 func (s *SalesforceServiceCloudLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ApiVersion          *string `json:"apiVersion,omitempty"`
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
-		EnvironmentURL      *string `json:"environmentUrl,omitempty"`
-		ExtendedProperties  *string `json:"extendedProperties,omitempty"`
-		Username            *string `json:"username,omitempty"`
+		ApiVersion          *interface{} `json:"apiVersion,omitempty"`
+		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+		EnvironmentURL      *interface{} `json:"environmentUrl,omitempty"`
+		ExtendedProperties  *interface{} `json:"extendedProperties,omitempty"`
+		Username            *interface{} `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

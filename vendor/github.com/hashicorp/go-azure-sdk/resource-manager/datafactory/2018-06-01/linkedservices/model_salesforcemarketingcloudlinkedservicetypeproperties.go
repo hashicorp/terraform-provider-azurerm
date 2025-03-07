@@ -9,7 +9,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SalesforceMarketingCloudLinkedServiceTypeProperties struct {
-	ClientId              *string      `json:"clientId,omitempty"`
+	ClientId              *interface{} `json:"clientId,omitempty"`
 	ClientSecret          SecretBase   `json:"clientSecret"`
 	ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
@@ -22,7 +22,7 @@ var _ json.Unmarshaler = &SalesforceMarketingCloudLinkedServiceTypeProperties{}
 
 func (s *SalesforceMarketingCloudLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ClientId              *string      `json:"clientId,omitempty"`
+		ClientId              *interface{} `json:"clientId,omitempty"`
 		ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 		UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`

@@ -10,14 +10,14 @@ import (
 
 type HDInsightOnDemandLinkedServiceTypeProperties struct {
 	AdditionalLinkedServiceNames *[]LinkedServiceReference `json:"additionalLinkedServiceNames,omitempty"`
-	ClusterNamePrefix            *string                   `json:"clusterNamePrefix,omitempty"`
+	ClusterNamePrefix            *interface{}              `json:"clusterNamePrefix,omitempty"`
 	ClusterPassword              SecretBase                `json:"clusterPassword"`
-	ClusterResourceGroup         string                    `json:"clusterResourceGroup"`
+	ClusterResourceGroup         interface{}               `json:"clusterResourceGroup"`
 	ClusterSize                  int64                     `json:"clusterSize"`
 	ClusterSshPassword           SecretBase                `json:"clusterSshPassword"`
-	ClusterSshUserName           *string                   `json:"clusterSshUserName,omitempty"`
-	ClusterType                  *string                   `json:"clusterType,omitempty"`
-	ClusterUserName              *string                   `json:"clusterUserName,omitempty"`
+	ClusterSshUserName           *interface{}              `json:"clusterSshUserName,omitempty"`
+	ClusterType                  *interface{}              `json:"clusterType,omitempty"`
+	ClusterUserName              *interface{}              `json:"clusterUserName,omitempty"`
 	CoreConfiguration            *interface{}              `json:"coreConfiguration,omitempty"`
 	Credential                   *CredentialReference      `json:"credential,omitempty"`
 	DataNodeSize                 *interface{}              `json:"dataNodeSize,omitempty"`
@@ -27,20 +27,20 @@ type HDInsightOnDemandLinkedServiceTypeProperties struct {
 	HdfsConfiguration            *interface{}              `json:"hdfsConfiguration,omitempty"`
 	HeadNodeSize                 *interface{}              `json:"headNodeSize,omitempty"`
 	HiveConfiguration            *interface{}              `json:"hiveConfiguration,omitempty"`
-	HostSubscriptionId           string                    `json:"hostSubscriptionId"`
+	HostSubscriptionId           interface{}               `json:"hostSubscriptionId"`
 	LinkedServiceName            LinkedServiceReference    `json:"linkedServiceName"`
 	MapReduceConfiguration       *interface{}              `json:"mapReduceConfiguration,omitempty"`
 	OozieConfiguration           *interface{}              `json:"oozieConfiguration,omitempty"`
 	ScriptActions                *[]ScriptAction           `json:"scriptActions,omitempty"`
-	ServicePrincipalId           *string                   `json:"servicePrincipalId,omitempty"`
+	ServicePrincipalId           *interface{}              `json:"servicePrincipalId,omitempty"`
 	ServicePrincipalKey          SecretBase                `json:"servicePrincipalKey"`
-	SparkVersion                 *string                   `json:"sparkVersion,omitempty"`
+	SparkVersion                 *interface{}              `json:"sparkVersion,omitempty"`
 	StormConfiguration           *interface{}              `json:"stormConfiguration,omitempty"`
-	SubnetName                   *string                   `json:"subnetName,omitempty"`
-	Tenant                       string                    `json:"tenant"`
-	TimeToLive                   string                    `json:"timeToLive"`
-	Version                      string                    `json:"version"`
-	VirtualNetworkId             *string                   `json:"virtualNetworkId,omitempty"`
+	SubnetName                   *interface{}              `json:"subnetName,omitempty"`
+	Tenant                       interface{}               `json:"tenant"`
+	TimeToLive                   interface{}               `json:"timeToLive"`
+	Version                      interface{}               `json:"version"`
+	VirtualNetworkId             *interface{}              `json:"virtualNetworkId,omitempty"`
 	YarnConfiguration            *interface{}              `json:"yarnConfiguration,omitempty"`
 	ZookeeperNodeSize            *interface{}              `json:"zookeeperNodeSize,omitempty"`
 }
@@ -50,12 +50,12 @@ var _ json.Unmarshaler = &HDInsightOnDemandLinkedServiceTypeProperties{}
 func (s *HDInsightOnDemandLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AdditionalLinkedServiceNames *[]LinkedServiceReference `json:"additionalLinkedServiceNames,omitempty"`
-		ClusterNamePrefix            *string                   `json:"clusterNamePrefix,omitempty"`
-		ClusterResourceGroup         string                    `json:"clusterResourceGroup"`
+		ClusterNamePrefix            *interface{}              `json:"clusterNamePrefix,omitempty"`
+		ClusterResourceGroup         interface{}               `json:"clusterResourceGroup"`
 		ClusterSize                  int64                     `json:"clusterSize"`
-		ClusterSshUserName           *string                   `json:"clusterSshUserName,omitempty"`
-		ClusterType                  *string                   `json:"clusterType,omitempty"`
-		ClusterUserName              *string                   `json:"clusterUserName,omitempty"`
+		ClusterSshUserName           *interface{}              `json:"clusterSshUserName,omitempty"`
+		ClusterType                  *interface{}              `json:"clusterType,omitempty"`
+		ClusterUserName              *interface{}              `json:"clusterUserName,omitempty"`
 		CoreConfiguration            *interface{}              `json:"coreConfiguration,omitempty"`
 		Credential                   *CredentialReference      `json:"credential,omitempty"`
 		DataNodeSize                 *interface{}              `json:"dataNodeSize,omitempty"`
@@ -65,19 +65,19 @@ func (s *HDInsightOnDemandLinkedServiceTypeProperties) UnmarshalJSON(bytes []byt
 		HdfsConfiguration            *interface{}              `json:"hdfsConfiguration,omitempty"`
 		HeadNodeSize                 *interface{}              `json:"headNodeSize,omitempty"`
 		HiveConfiguration            *interface{}              `json:"hiveConfiguration,omitempty"`
-		HostSubscriptionId           string                    `json:"hostSubscriptionId"`
+		HostSubscriptionId           interface{}               `json:"hostSubscriptionId"`
 		LinkedServiceName            LinkedServiceReference    `json:"linkedServiceName"`
 		MapReduceConfiguration       *interface{}              `json:"mapReduceConfiguration,omitempty"`
 		OozieConfiguration           *interface{}              `json:"oozieConfiguration,omitempty"`
 		ScriptActions                *[]ScriptAction           `json:"scriptActions,omitempty"`
-		ServicePrincipalId           *string                   `json:"servicePrincipalId,omitempty"`
-		SparkVersion                 *string                   `json:"sparkVersion,omitempty"`
+		ServicePrincipalId           *interface{}              `json:"servicePrincipalId,omitempty"`
+		SparkVersion                 *interface{}              `json:"sparkVersion,omitempty"`
 		StormConfiguration           *interface{}              `json:"stormConfiguration,omitempty"`
-		SubnetName                   *string                   `json:"subnetName,omitempty"`
-		Tenant                       string                    `json:"tenant"`
-		TimeToLive                   string                    `json:"timeToLive"`
-		Version                      string                    `json:"version"`
-		VirtualNetworkId             *string                   `json:"virtualNetworkId,omitempty"`
+		SubnetName                   *interface{}              `json:"subnetName,omitempty"`
+		Tenant                       interface{}               `json:"tenant"`
+		TimeToLive                   interface{}               `json:"timeToLive"`
+		Version                      interface{}               `json:"version"`
+		VirtualNetworkId             *interface{}              `json:"virtualNetworkId,omitempty"`
 		YarnConfiguration            *interface{}              `json:"yarnConfiguration,omitempty"`
 		ZookeeperNodeSize            *interface{}              `json:"zookeeperNodeSize,omitempty"`
 	}

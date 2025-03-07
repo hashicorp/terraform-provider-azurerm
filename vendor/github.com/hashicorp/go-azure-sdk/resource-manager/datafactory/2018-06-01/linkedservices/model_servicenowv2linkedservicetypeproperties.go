@@ -10,13 +10,13 @@ import (
 
 type ServiceNowV2LinkedServiceTypeProperties struct {
 	AuthenticationType  ServiceNowV2AuthenticationType `json:"authenticationType"`
-	ClientId            *string                        `json:"clientId,omitempty"`
+	ClientId            *interface{}                   `json:"clientId,omitempty"`
 	ClientSecret        SecretBase                     `json:"clientSecret"`
 	EncryptedCredential *string                        `json:"encryptedCredential,omitempty"`
-	Endpoint            string                         `json:"endpoint"`
-	GrantType           *string                        `json:"grantType,omitempty"`
+	Endpoint            interface{}                    `json:"endpoint"`
+	GrantType           *interface{}                   `json:"grantType,omitempty"`
 	Password            SecretBase                     `json:"password"`
-	Username            *string                        `json:"username,omitempty"`
+	Username            *interface{}                   `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &ServiceNowV2LinkedServiceTypeProperties{}
@@ -24,11 +24,11 @@ var _ json.Unmarshaler = &ServiceNowV2LinkedServiceTypeProperties{}
 func (s *ServiceNowV2LinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType  ServiceNowV2AuthenticationType `json:"authenticationType"`
-		ClientId            *string                        `json:"clientId,omitempty"`
+		ClientId            *interface{}                   `json:"clientId,omitempty"`
 		EncryptedCredential *string                        `json:"encryptedCredential,omitempty"`
-		Endpoint            string                         `json:"endpoint"`
-		GrantType           *string                        `json:"grantType,omitempty"`
-		Username            *string                        `json:"username,omitempty"`
+		Endpoint            interface{}                    `json:"endpoint"`
+		GrantType           *interface{}                   `json:"grantType,omitempty"`
+		Username            *interface{}                   `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

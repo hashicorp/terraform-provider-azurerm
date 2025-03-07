@@ -69,13 +69,13 @@ The following supported arguments are specific to SFTP Linked Service:
 
 ~> **Note:** `password` is required when `authentication_type` is set to `Basic`.
 
-* `private_key_content` - (Optional) The private key content in OpenSSH format used to log on to the SFTP server.
+* `private_key_content_base64` - (Optional) The base 64 encoded private key content in OpenSSH format used to log on to the SFTP server.
 
 * `private_key_path` - (Optional) The absolute path to the private key file that the integration runtime can access. This only applies when using a self-hosted integration runtime instead of the default Azure provided runtime, as indicated by supplying a value for `integration_runtime_name`.
 
 * `private_key_passphrase` - (Optional) The passphrase for the private key if the key is encrypted.
 
-~> **Note:** One of `private_key_content` or `private_key_path` is required when `authentication_type` is set to `SshPublicKey`.
+~> **Note:** One of `private_key_content_base64` or `private_key_path` is required when `authentication_type` is set to `SshPublicKey`.
 
 * `host_key_fingerprint` - (Optional) The host key fingerprint of the SFTP server.
 

@@ -11,15 +11,15 @@ import (
 type SftpServerLinkedServiceTypeProperties struct {
 	AuthenticationType    *SftpAuthenticationType `json:"authenticationType,omitempty"`
 	EncryptedCredential   *string                 `json:"encryptedCredential,omitempty"`
-	Host                  string                  `json:"host"`
-	HostKeyFingerprint    *string                 `json:"hostKeyFingerprint,omitempty"`
+	Host                  interface{}             `json:"host"`
+	HostKeyFingerprint    *interface{}            `json:"hostKeyFingerprint,omitempty"`
 	PassPhrase            SecretBase              `json:"passPhrase"`
 	Password              SecretBase              `json:"password"`
 	Port                  *int64                  `json:"port,omitempty"`
 	PrivateKeyContent     SecretBase              `json:"privateKeyContent"`
-	PrivateKeyPath        *string                 `json:"privateKeyPath,omitempty"`
+	PrivateKeyPath        *interface{}            `json:"privateKeyPath,omitempty"`
 	SkipHostKeyValidation *bool                   `json:"skipHostKeyValidation,omitempty"`
-	UserName              *string                 `json:"userName,omitempty"`
+	UserName              *interface{}            `json:"userName,omitempty"`
 }
 
 var _ json.Unmarshaler = &SftpServerLinkedServiceTypeProperties{}
@@ -28,12 +28,12 @@ func (s *SftpServerLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) erro
 	var decoded struct {
 		AuthenticationType    *SftpAuthenticationType `json:"authenticationType,omitempty"`
 		EncryptedCredential   *string                 `json:"encryptedCredential,omitempty"`
-		Host                  string                  `json:"host"`
-		HostKeyFingerprint    *string                 `json:"hostKeyFingerprint,omitempty"`
+		Host                  interface{}             `json:"host"`
+		HostKeyFingerprint    *interface{}            `json:"hostKeyFingerprint,omitempty"`
 		Port                  *int64                  `json:"port,omitempty"`
-		PrivateKeyPath        *string                 `json:"privateKeyPath,omitempty"`
+		PrivateKeyPath        *interface{}            `json:"privateKeyPath,omitempty"`
 		SkipHostKeyValidation *bool                   `json:"skipHostKeyValidation,omitempty"`
-		UserName              *string                 `json:"userName,omitempty"`
+		UserName              *interface{}            `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

@@ -5,10 +5,10 @@ package linkedservices
 
 type AzureTableStorageLinkedServiceTypeProperties struct {
 	AccountKey          *AzureKeyVaultSecretReference `json:"accountKey,omitempty"`
-	ConnectionString    *string                       `json:"connectionString,omitempty"`
+	ConnectionString    *interface{}                  `json:"connectionString,omitempty"`
 	Credential          *CredentialReference          `json:"credential,omitempty"`
 	EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
 	SasToken            *AzureKeyVaultSecretReference `json:"sasToken,omitempty"`
-	SasUri              *string                       `json:"sasUri,omitempty"`
-	ServiceEndpoint     *string                       `json:"serviceEndpoint,omitempty"`
+	SasUri              *interface{}                  `json:"sasUri,omitempty"`
+	ServiceEndpoint     *interface{}                  `json:"serviceEndpoint,omitempty"`
 }

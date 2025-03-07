@@ -9,27 +9,27 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ConcurLinkedServiceTypeProperties struct {
-	ClientId              string       `json:"clientId"`
+	ClientId              interface{}  `json:"clientId"`
 	ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 	Password              SecretBase   `json:"password"`
 	UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
 	UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
 	UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
-	Username              string       `json:"username"`
+	Username              interface{}  `json:"username"`
 }
 
 var _ json.Unmarshaler = &ConcurLinkedServiceTypeProperties{}
 
 func (s *ConcurLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ClientId              string       `json:"clientId"`
+		ClientId              interface{}  `json:"clientId"`
 		ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 		UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
 		UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
 		UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
-		Username              string       `json:"username"`
+		Username              interface{}  `json:"username"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

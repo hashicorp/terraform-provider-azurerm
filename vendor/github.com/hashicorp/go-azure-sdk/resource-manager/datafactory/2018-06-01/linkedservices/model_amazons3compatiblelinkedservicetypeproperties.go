@@ -9,21 +9,21 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AmazonS3CompatibleLinkedServiceTypeProperties struct {
-	AccessKeyId         *string    `json:"accessKeyId,omitempty"`
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	ForcePathStyle      *bool      `json:"forcePathStyle,omitempty"`
-	SecretAccessKey     SecretBase `json:"secretAccessKey"`
-	ServiceURL          *string    `json:"serviceUrl,omitempty"`
+	AccessKeyId         *interface{} `json:"accessKeyId,omitempty"`
+	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+	ForcePathStyle      *bool        `json:"forcePathStyle,omitempty"`
+	SecretAccessKey     SecretBase   `json:"secretAccessKey"`
+	ServiceURL          *interface{} `json:"serviceUrl,omitempty"`
 }
 
 var _ json.Unmarshaler = &AmazonS3CompatibleLinkedServiceTypeProperties{}
 
 func (s *AmazonS3CompatibleLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AccessKeyId         *string `json:"accessKeyId,omitempty"`
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
-		ForcePathStyle      *bool   `json:"forcePathStyle,omitempty"`
-		ServiceURL          *string `json:"serviceUrl,omitempty"`
+		AccessKeyId         *interface{} `json:"accessKeyId,omitempty"`
+		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+		ForcePathStyle      *bool        `json:"forcePathStyle,omitempty"`
+		ServiceURL          *interface{} `json:"serviceUrl,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

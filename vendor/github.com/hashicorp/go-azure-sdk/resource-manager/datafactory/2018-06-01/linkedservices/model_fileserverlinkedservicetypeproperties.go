@@ -9,19 +9,19 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type FileServerLinkedServiceTypeProperties struct {
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	Host                string     `json:"host"`
-	Password            SecretBase `json:"password"`
-	UserId              *string    `json:"userId,omitempty"`
+	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+	Host                interface{}  `json:"host"`
+	Password            SecretBase   `json:"password"`
+	UserId              *interface{} `json:"userId,omitempty"`
 }
 
 var _ json.Unmarshaler = &FileServerLinkedServiceTypeProperties{}
 
 func (s *FileServerLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
-		Host                string  `json:"host"`
-		UserId              *string `json:"userId,omitempty"`
+		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+		Host                interface{}  `json:"host"`
+		UserId              *interface{} `json:"userId,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

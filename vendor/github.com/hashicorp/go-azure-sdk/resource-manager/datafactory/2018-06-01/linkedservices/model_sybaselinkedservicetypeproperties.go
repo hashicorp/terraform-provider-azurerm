@@ -10,12 +10,12 @@ import (
 
 type SybaseLinkedServiceTypeProperties struct {
 	AuthenticationType  *SybaseAuthenticationType `json:"authenticationType,omitempty"`
-	Database            string                    `json:"database"`
+	Database            interface{}               `json:"database"`
 	EncryptedCredential *string                   `json:"encryptedCredential,omitempty"`
 	Password            SecretBase                `json:"password"`
-	Schema              *string                   `json:"schema,omitempty"`
-	Server              string                    `json:"server"`
-	Username            *string                   `json:"username,omitempty"`
+	Schema              *interface{}              `json:"schema,omitempty"`
+	Server              interface{}               `json:"server"`
+	Username            *interface{}              `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &SybaseLinkedServiceTypeProperties{}
@@ -23,11 +23,11 @@ var _ json.Unmarshaler = &SybaseLinkedServiceTypeProperties{}
 func (s *SybaseLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType  *SybaseAuthenticationType `json:"authenticationType,omitempty"`
-		Database            string                    `json:"database"`
+		Database            interface{}               `json:"database"`
 		EncryptedCredential *string                   `json:"encryptedCredential,omitempty"`
-		Schema              *string                   `json:"schema,omitempty"`
-		Server              string                    `json:"server"`
-		Username            *string                   `json:"username,omitempty"`
+		Schema              *interface{}              `json:"schema,omitempty"`
+		Server              interface{}               `json:"server"`
+		Username            *interface{}              `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

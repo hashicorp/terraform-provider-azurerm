@@ -9,23 +9,23 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SalesforceV2LinkedServiceTypeProperties struct {
-	ApiVersion          *string    `json:"apiVersion,omitempty"`
-	AuthenticationType  *string    `json:"authenticationType,omitempty"`
-	ClientId            *string    `json:"clientId,omitempty"`
-	ClientSecret        SecretBase `json:"clientSecret"`
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	EnvironmentURL      *string    `json:"environmentUrl,omitempty"`
+	ApiVersion          *interface{} `json:"apiVersion,omitempty"`
+	AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
+	ClientId            *interface{} `json:"clientId,omitempty"`
+	ClientSecret        SecretBase   `json:"clientSecret"`
+	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+	EnvironmentURL      *interface{} `json:"environmentUrl,omitempty"`
 }
 
 var _ json.Unmarshaler = &SalesforceV2LinkedServiceTypeProperties{}
 
 func (s *SalesforceV2LinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ApiVersion          *string `json:"apiVersion,omitempty"`
-		AuthenticationType  *string `json:"authenticationType,omitempty"`
-		ClientId            *string `json:"clientId,omitempty"`
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
-		EnvironmentURL      *string `json:"environmentUrl,omitempty"`
+		ApiVersion          *interface{} `json:"apiVersion,omitempty"`
+		AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
+		ClientId            *interface{} `json:"clientId,omitempty"`
+		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+		EnvironmentURL      *interface{} `json:"environmentUrl,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

@@ -11,16 +11,16 @@ import (
 type GreenplumLinkedServiceTypeProperties struct {
 	AuthenticationType  *GreenplumAuthenticationType  `json:"authenticationType,omitempty"`
 	CommandTimeout      *int64                        `json:"commandTimeout,omitempty"`
-	ConnectionString    *string                       `json:"connectionString,omitempty"`
+	ConnectionString    *interface{}                  `json:"connectionString,omitempty"`
 	ConnectionTimeout   *int64                        `json:"connectionTimeout,omitempty"`
-	Database            *string                       `json:"database,omitempty"`
+	Database            *interface{}                  `json:"database,omitempty"`
 	EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
-	Host                *string                       `json:"host,omitempty"`
+	Host                *interface{}                  `json:"host,omitempty"`
 	Password            SecretBase                    `json:"password"`
 	Port                *int64                        `json:"port,omitempty"`
 	Pwd                 *AzureKeyVaultSecretReference `json:"pwd,omitempty"`
 	SslMode             *int64                        `json:"sslMode,omitempty"`
-	Username            *string                       `json:"username,omitempty"`
+	Username            *interface{}                  `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &GreenplumLinkedServiceTypeProperties{}
@@ -29,15 +29,15 @@ func (s *GreenplumLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error
 	var decoded struct {
 		AuthenticationType  *GreenplumAuthenticationType  `json:"authenticationType,omitempty"`
 		CommandTimeout      *int64                        `json:"commandTimeout,omitempty"`
-		ConnectionString    *string                       `json:"connectionString,omitempty"`
+		ConnectionString    *interface{}                  `json:"connectionString,omitempty"`
 		ConnectionTimeout   *int64                        `json:"connectionTimeout,omitempty"`
-		Database            *string                       `json:"database,omitempty"`
+		Database            *interface{}                  `json:"database,omitempty"`
 		EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
-		Host                *string                       `json:"host,omitempty"`
+		Host                *interface{}                  `json:"host,omitempty"`
 		Port                *int64                        `json:"port,omitempty"`
 		Pwd                 *AzureKeyVaultSecretReference `json:"pwd,omitempty"`
 		SslMode             *int64                        `json:"sslMode,omitempty"`
-		Username            *string                       `json:"username,omitempty"`
+		Username            *interface{}                  `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

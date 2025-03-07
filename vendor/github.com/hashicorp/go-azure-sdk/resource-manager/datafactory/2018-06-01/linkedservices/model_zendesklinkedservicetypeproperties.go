@@ -13,8 +13,8 @@ type ZendeskLinkedServiceTypeProperties struct {
 	AuthenticationType  ZendeskAuthenticationType `json:"authenticationType"`
 	EncryptedCredential *string                   `json:"encryptedCredential,omitempty"`
 	Password            SecretBase                `json:"password"`
-	Url                 string                    `json:"url"`
-	UserName            *string                   `json:"userName,omitempty"`
+	Url                 interface{}               `json:"url"`
+	UserName            *interface{}              `json:"userName,omitempty"`
 }
 
 var _ json.Unmarshaler = &ZendeskLinkedServiceTypeProperties{}
@@ -23,8 +23,8 @@ func (s *ZendeskLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType  ZendeskAuthenticationType `json:"authenticationType"`
 		EncryptedCredential *string                   `json:"encryptedCredential,omitempty"`
-		Url                 string                    `json:"url"`
-		UserName            *string                   `json:"userName,omitempty"`
+		Url                 interface{}               `json:"url"`
+		UserName            *interface{}              `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

@@ -4,7 +4,7 @@ package linkedservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AzureSynapseArtifactsLinkedServiceTypeProperties struct {
-	Authentication      *string `json:"authentication,omitempty"`
-	Endpoint            string  `json:"endpoint"`
-	WorkspaceResourceId *string `json:"workspaceResourceId,omitempty"`
+	Authentication      *interface{} `json:"authentication,omitempty"`
+	Endpoint            interface{}  `json:"endpoint"`
+	WorkspaceResourceId *interface{} `json:"workspaceResourceId,omitempty"`
 }

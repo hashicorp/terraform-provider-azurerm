@@ -9,25 +9,25 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HubspotLinkedServiceTypeProperties struct {
-	AccessToken           SecretBase `json:"accessToken"`
-	ClientId              string     `json:"clientId"`
-	ClientSecret          SecretBase `json:"clientSecret"`
-	EncryptedCredential   *string    `json:"encryptedCredential,omitempty"`
-	RefreshToken          SecretBase `json:"refreshToken"`
-	UseEncryptedEndpoints *bool      `json:"useEncryptedEndpoints,omitempty"`
-	UseHostVerification   *bool      `json:"useHostVerification,omitempty"`
-	UsePeerVerification   *bool      `json:"usePeerVerification,omitempty"`
+	AccessToken           SecretBase  `json:"accessToken"`
+	ClientId              interface{} `json:"clientId"`
+	ClientSecret          SecretBase  `json:"clientSecret"`
+	EncryptedCredential   *string     `json:"encryptedCredential,omitempty"`
+	RefreshToken          SecretBase  `json:"refreshToken"`
+	UseEncryptedEndpoints *bool       `json:"useEncryptedEndpoints,omitempty"`
+	UseHostVerification   *bool       `json:"useHostVerification,omitempty"`
+	UsePeerVerification   *bool       `json:"usePeerVerification,omitempty"`
 }
 
 var _ json.Unmarshaler = &HubspotLinkedServiceTypeProperties{}
 
 func (s *HubspotLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ClientId              string  `json:"clientId"`
-		EncryptedCredential   *string `json:"encryptedCredential,omitempty"`
-		UseEncryptedEndpoints *bool   `json:"useEncryptedEndpoints,omitempty"`
-		UseHostVerification   *bool   `json:"useHostVerification,omitempty"`
-		UsePeerVerification   *bool   `json:"usePeerVerification,omitempty"`
+		ClientId              interface{} `json:"clientId"`
+		EncryptedCredential   *string     `json:"encryptedCredential,omitempty"`
+		UseEncryptedEndpoints *bool       `json:"useEncryptedEndpoints,omitempty"`
+		UseHostVerification   *bool       `json:"useHostVerification,omitempty"`
+		UsePeerVerification   *bool       `json:"usePeerVerification,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

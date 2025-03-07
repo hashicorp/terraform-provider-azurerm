@@ -9,12 +9,12 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SquareLinkedServiceTypeProperties struct {
-	ClientId              *string      `json:"clientId,omitempty"`
+	ClientId              *interface{} `json:"clientId,omitempty"`
 	ClientSecret          SecretBase   `json:"clientSecret"`
 	ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
-	Host                  *string      `json:"host,omitempty"`
-	RedirectUri           *string      `json:"redirectUri,omitempty"`
+	Host                  *interface{} `json:"host,omitempty"`
+	RedirectUri           *interface{} `json:"redirectUri,omitempty"`
 	UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
 	UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
 	UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
@@ -24,11 +24,11 @@ var _ json.Unmarshaler = &SquareLinkedServiceTypeProperties{}
 
 func (s *SquareLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ClientId              *string      `json:"clientId,omitempty"`
+		ClientId              *interface{} `json:"clientId,omitempty"`
 		ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
-		Host                  *string      `json:"host,omitempty"`
-		RedirectUri           *string      `json:"redirectUri,omitempty"`
+		Host                  *interface{} `json:"host,omitempty"`
+		RedirectUri           *interface{} `json:"redirectUri,omitempty"`
 		UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
 		UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
 		UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`

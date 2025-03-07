@@ -14,15 +14,15 @@ type SparkLinkedServiceTypeProperties struct {
 	AuthenticationType        SparkAuthenticationType       `json:"authenticationType"`
 	EnableSsl                 *bool                         `json:"enableSsl,omitempty"`
 	EncryptedCredential       *string                       `json:"encryptedCredential,omitempty"`
-	HTTPPath                  *string                       `json:"httpPath,omitempty"`
-	Host                      string                        `json:"host"`
+	HTTPPath                  *interface{}                  `json:"httpPath,omitempty"`
+	Host                      interface{}                   `json:"host"`
 	Password                  SecretBase                    `json:"password"`
 	Port                      int64                         `json:"port"`
 	ServerType                *SparkServerType              `json:"serverType,omitempty"`
 	ThriftTransportProtocol   *SparkThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
-	TrustedCertPath           *string                       `json:"trustedCertPath,omitempty"`
+	TrustedCertPath           *interface{}                  `json:"trustedCertPath,omitempty"`
 	UseSystemTrustStore       *bool                         `json:"useSystemTrustStore,omitempty"`
-	Username                  *string                       `json:"username,omitempty"`
+	Username                  *interface{}                  `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &SparkLinkedServiceTypeProperties{}
@@ -34,14 +34,14 @@ func (s *SparkLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 		AuthenticationType        SparkAuthenticationType       `json:"authenticationType"`
 		EnableSsl                 *bool                         `json:"enableSsl,omitempty"`
 		EncryptedCredential       *string                       `json:"encryptedCredential,omitempty"`
-		HTTPPath                  *string                       `json:"httpPath,omitempty"`
-		Host                      string                        `json:"host"`
+		HTTPPath                  *interface{}                  `json:"httpPath,omitempty"`
+		Host                      interface{}                   `json:"host"`
 		Port                      int64                         `json:"port"`
 		ServerType                *SparkServerType              `json:"serverType,omitempty"`
 		ThriftTransportProtocol   *SparkThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
-		TrustedCertPath           *string                       `json:"trustedCertPath,omitempty"`
+		TrustedCertPath           *interface{}                  `json:"trustedCertPath,omitempty"`
 		UseSystemTrustStore       *bool                         `json:"useSystemTrustStore,omitempty"`
-		Username                  *string                       `json:"username,omitempty"`
+		Username                  *interface{}                  `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

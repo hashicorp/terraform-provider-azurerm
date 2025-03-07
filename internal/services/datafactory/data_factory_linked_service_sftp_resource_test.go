@@ -52,7 +52,7 @@ func TestAccDataFactoryLinkedServiceSFTP_privateKeyContent(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content"),
+		data.ImportStep("password", "private_key_content_base64"),
 	})
 }
 
@@ -94,14 +94,14 @@ func TestAccDataFactoryLinkedServiceSFTP_authUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content"),
+		data.ImportStep("password", "private_key_content_base64"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -276,10 +276,11 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   host                = "http://www.bing.com"
   port                = 22
   username            = "foo"
-  private_key_content = <<EOF
-%s
-EOF
 
+  private_key_content_base64 = base64encode(<<EOF
+"%s
+EOF
+  )
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, keyContent)
 }
@@ -316,7 +317,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 func generatePrivateKey() ([]byte, error) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return []byte(""), err
+		return nil, err
 	}
 
 	return pem.EncodeToMemory(&pem.Block{

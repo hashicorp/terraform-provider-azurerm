@@ -14,13 +14,13 @@ type PhoenixLinkedServiceTypeProperties struct {
 	AuthenticationType        PhoenixAuthenticationType `json:"authenticationType"`
 	EnableSsl                 *bool                     `json:"enableSsl,omitempty"`
 	EncryptedCredential       *string                   `json:"encryptedCredential,omitempty"`
-	HTTPPath                  *string                   `json:"httpPath,omitempty"`
-	Host                      string                    `json:"host"`
+	HTTPPath                  *interface{}              `json:"httpPath,omitempty"`
+	Host                      interface{}               `json:"host"`
 	Password                  SecretBase                `json:"password"`
 	Port                      *int64                    `json:"port,omitempty"`
-	TrustedCertPath           *string                   `json:"trustedCertPath,omitempty"`
+	TrustedCertPath           *interface{}              `json:"trustedCertPath,omitempty"`
 	UseSystemTrustStore       *bool                     `json:"useSystemTrustStore,omitempty"`
-	Username                  *string                   `json:"username,omitempty"`
+	Username                  *interface{}              `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &PhoenixLinkedServiceTypeProperties{}
@@ -32,12 +32,12 @@ func (s *PhoenixLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 		AuthenticationType        PhoenixAuthenticationType `json:"authenticationType"`
 		EnableSsl                 *bool                     `json:"enableSsl,omitempty"`
 		EncryptedCredential       *string                   `json:"encryptedCredential,omitempty"`
-		HTTPPath                  *string                   `json:"httpPath,omitempty"`
-		Host                      string                    `json:"host"`
+		HTTPPath                  *interface{}              `json:"httpPath,omitempty"`
+		Host                      interface{}               `json:"host"`
 		Port                      *int64                    `json:"port,omitempty"`
-		TrustedCertPath           *string                   `json:"trustedCertPath,omitempty"`
+		TrustedCertPath           *interface{}              `json:"trustedCertPath,omitempty"`
 		UseSystemTrustStore       *bool                     `json:"useSystemTrustStore,omitempty"`
-		Username                  *string                   `json:"username,omitempty"`
+		Username                  *interface{}              `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

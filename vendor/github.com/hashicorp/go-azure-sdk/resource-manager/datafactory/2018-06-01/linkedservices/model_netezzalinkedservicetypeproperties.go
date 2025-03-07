@@ -4,7 +4,7 @@ package linkedservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type NetezzaLinkedServiceTypeProperties struct {
-	ConnectionString    *string                       `json:"connectionString,omitempty"`
+	ConnectionString    *interface{}                  `json:"connectionString,omitempty"`
 	EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
 	Pwd                 *AzureKeyVaultSecretReference `json:"pwd,omitempty"`
 }

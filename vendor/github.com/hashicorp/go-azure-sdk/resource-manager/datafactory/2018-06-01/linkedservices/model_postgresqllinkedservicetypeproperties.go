@@ -4,7 +4,7 @@ package linkedservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PostgreSqlLinkedServiceTypeProperties struct {
-	ConnectionString    string                        `json:"connectionString"`
+	ConnectionString    interface{}                   `json:"connectionString"`
 	EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
 	Password            *AzureKeyVaultSecretReference `json:"password,omitempty"`
 }

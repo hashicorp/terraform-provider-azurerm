@@ -10,11 +10,11 @@ import (
 
 type AzureDataExplorerLinkedServiceTypeProperties struct {
 	Credential          *CredentialReference `json:"credential,omitempty"`
-	Database            string               `json:"database"`
-	Endpoint            string               `json:"endpoint"`
-	ServicePrincipalId  *string              `json:"servicePrincipalId,omitempty"`
+	Database            interface{}          `json:"database"`
+	Endpoint            interface{}          `json:"endpoint"`
+	ServicePrincipalId  *interface{}         `json:"servicePrincipalId,omitempty"`
 	ServicePrincipalKey SecretBase           `json:"servicePrincipalKey"`
-	Tenant              *string              `json:"tenant,omitempty"`
+	Tenant              *interface{}         `json:"tenant,omitempty"`
 }
 
 var _ json.Unmarshaler = &AzureDataExplorerLinkedServiceTypeProperties{}
@@ -22,10 +22,10 @@ var _ json.Unmarshaler = &AzureDataExplorerLinkedServiceTypeProperties{}
 func (s *AzureDataExplorerLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		Credential         *CredentialReference `json:"credential,omitempty"`
-		Database           string               `json:"database"`
-		Endpoint           string               `json:"endpoint"`
-		ServicePrincipalId *string              `json:"servicePrincipalId,omitempty"`
-		Tenant             *string              `json:"tenant,omitempty"`
+		Database           interface{}          `json:"database"`
+		Endpoint           interface{}          `json:"endpoint"`
+		ServicePrincipalId *interface{}         `json:"servicePrincipalId,omitempty"`
+		Tenant             *interface{}         `json:"tenant,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

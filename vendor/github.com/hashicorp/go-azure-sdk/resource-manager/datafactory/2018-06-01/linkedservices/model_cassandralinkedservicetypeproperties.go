@@ -9,23 +9,23 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CassandraLinkedServiceTypeProperties struct {
-	AuthenticationType  *string    `json:"authenticationType,omitempty"`
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	Host                string     `json:"host"`
-	Password            SecretBase `json:"password"`
-	Port                *int64     `json:"port,omitempty"`
-	Username            *string    `json:"username,omitempty"`
+	AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
+	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+	Host                interface{}  `json:"host"`
+	Password            SecretBase   `json:"password"`
+	Port                *int64       `json:"port,omitempty"`
+	Username            *interface{} `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &CassandraLinkedServiceTypeProperties{}
 
 func (s *CassandraLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AuthenticationType  *string `json:"authenticationType,omitempty"`
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
-		Host                string  `json:"host"`
-		Port                *int64  `json:"port,omitempty"`
-		Username            *string `json:"username,omitempty"`
+		AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
+		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+		Host                interface{}  `json:"host"`
+		Port                *int64       `json:"port,omitempty"`
+		Username            *interface{} `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

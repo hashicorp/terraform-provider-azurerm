@@ -9,22 +9,22 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SalesforceLinkedServiceTypeProperties struct {
-	ApiVersion          *string    `json:"apiVersion,omitempty"`
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	EnvironmentURL      *string    `json:"environmentUrl,omitempty"`
-	Password            SecretBase `json:"password"`
-	SecurityToken       SecretBase `json:"securityToken"`
-	Username            *string    `json:"username,omitempty"`
+	ApiVersion          *interface{} `json:"apiVersion,omitempty"`
+	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+	EnvironmentURL      *interface{} `json:"environmentUrl,omitempty"`
+	Password            SecretBase   `json:"password"`
+	SecurityToken       SecretBase   `json:"securityToken"`
+	Username            *interface{} `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &SalesforceLinkedServiceTypeProperties{}
 
 func (s *SalesforceLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		ApiVersion          *string `json:"apiVersion,omitempty"`
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
-		EnvironmentURL      *string `json:"environmentUrl,omitempty"`
-		Username            *string `json:"username,omitempty"`
+		ApiVersion          *interface{} `json:"apiVersion,omitempty"`
+		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+		EnvironmentURL      *interface{} `json:"environmentUrl,omitempty"`
+		Username            *interface{} `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

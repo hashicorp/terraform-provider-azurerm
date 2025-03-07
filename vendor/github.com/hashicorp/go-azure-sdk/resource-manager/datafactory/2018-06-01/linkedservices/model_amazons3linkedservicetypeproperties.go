@@ -9,22 +9,22 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AmazonS3LinkedServiceTypeProperties struct {
-	AccessKeyId         *string    `json:"accessKeyId,omitempty"`
-	AuthenticationType  *string    `json:"authenticationType,omitempty"`
-	EncryptedCredential *string    `json:"encryptedCredential,omitempty"`
-	SecretAccessKey     SecretBase `json:"secretAccessKey"`
-	ServiceURL          *string    `json:"serviceUrl,omitempty"`
-	SessionToken        SecretBase `json:"sessionToken"`
+	AccessKeyId         *interface{} `json:"accessKeyId,omitempty"`
+	AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
+	EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+	SecretAccessKey     SecretBase   `json:"secretAccessKey"`
+	ServiceURL          *interface{} `json:"serviceUrl,omitempty"`
+	SessionToken        SecretBase   `json:"sessionToken"`
 }
 
 var _ json.Unmarshaler = &AmazonS3LinkedServiceTypeProperties{}
 
 func (s *AmazonS3LinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AccessKeyId         *string `json:"accessKeyId,omitempty"`
-		AuthenticationType  *string `json:"authenticationType,omitempty"`
-		EncryptedCredential *string `json:"encryptedCredential,omitempty"`
-		ServiceURL          *string `json:"serviceUrl,omitempty"`
+		AccessKeyId         *interface{} `json:"accessKeyId,omitempty"`
+		AuthenticationType  *interface{} `json:"authenticationType,omitempty"`
+		EncryptedCredential *string      `json:"encryptedCredential,omitempty"`
+		ServiceURL          *interface{} `json:"serviceUrl,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

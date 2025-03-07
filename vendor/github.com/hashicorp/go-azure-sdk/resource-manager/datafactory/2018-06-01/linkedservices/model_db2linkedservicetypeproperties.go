@@ -10,14 +10,14 @@ import (
 
 type Db2LinkedServiceTypeProperties struct {
 	AuthenticationType    *Db2AuthenticationType `json:"authenticationType,omitempty"`
-	CertificateCommonName *string                `json:"certificateCommonName,omitempty"`
-	ConnectionString      *string                `json:"connectionString,omitempty"`
-	Database              *string                `json:"database,omitempty"`
+	CertificateCommonName *interface{}           `json:"certificateCommonName,omitempty"`
+	ConnectionString      *interface{}           `json:"connectionString,omitempty"`
+	Database              *interface{}           `json:"database,omitempty"`
 	EncryptedCredential   *string                `json:"encryptedCredential,omitempty"`
-	PackageCollection     *string                `json:"packageCollection,omitempty"`
+	PackageCollection     *interface{}           `json:"packageCollection,omitempty"`
 	Password              SecretBase             `json:"password"`
-	Server                *string                `json:"server,omitempty"`
-	Username              *string                `json:"username,omitempty"`
+	Server                *interface{}           `json:"server,omitempty"`
+	Username              *interface{}           `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &Db2LinkedServiceTypeProperties{}
@@ -25,13 +25,13 @@ var _ json.Unmarshaler = &Db2LinkedServiceTypeProperties{}
 func (s *Db2LinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType    *Db2AuthenticationType `json:"authenticationType,omitempty"`
-		CertificateCommonName *string                `json:"certificateCommonName,omitempty"`
-		ConnectionString      *string                `json:"connectionString,omitempty"`
-		Database              *string                `json:"database,omitempty"`
+		CertificateCommonName *interface{}           `json:"certificateCommonName,omitempty"`
+		ConnectionString      *interface{}           `json:"connectionString,omitempty"`
+		Database              *interface{}           `json:"database,omitempty"`
 		EncryptedCredential   *string                `json:"encryptedCredential,omitempty"`
-		PackageCollection     *string                `json:"packageCollection,omitempty"`
-		Server                *string                `json:"server,omitempty"`
-		Username              *string                `json:"username,omitempty"`
+		PackageCollection     *interface{}           `json:"packageCollection,omitempty"`
+		Server                *interface{}           `json:"server,omitempty"`
+		Username              *interface{}           `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

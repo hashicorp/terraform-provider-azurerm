@@ -75,7 +75,6 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"username": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				Description:  "The user who has access to the SFTP server",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -124,7 +123,6 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"private_key_passphrase": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Description:   "Specify the password to decrypt the private key if the key file or the key content is password protected",
 				ConflictsWith: []string{"password"},
 			},
 
@@ -133,26 +131,24 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Optional:      true,
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"private_key_content", "private_key_path", "private_key_passphrase"},
-				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+				ConflictsWith: []string{"private_key_content_base64", "private_key_path", "private_key_passphrase"},
+				AtLeastOneOf:  []string{"password", "private_key_content_base64", "private_key_path"},
 			},
 
-			"private_key_content": {
+			"private_key_content_base64": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Sensitive:     true,
-				Description:   "SSH private key content in OpenSSH format",
-				ValidateFunc:  validate.SSHPrivateKey,
+				ValidateFunc:  validation.StringIsBase64,
 				ConflictsWith: []string{"private_key_path", "password"},
-				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+				AtLeastOneOf:  []string{"password", "private_key_content_base64", "private_key_path"},
 			},
 
 			"private_key_path": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Description:   "Specify the absolute path to the private key file that the integration runtime can access. This applies only when using a self-hosted integration runtime as opposed to the default Azure-hosted runtime, as indicated by providing a value for `integration_runtime_name`.",
-				ConflictsWith: []string{"private_key_content", "password"},
-				AtLeastOneOf:  []string{"password", "private_key_content", "private_key_path"},
+				ConflictsWith: []string{"private_key_content_base64", "password"},
+				AtLeastOneOf:  []string{"password", "private_key_content_base64", "private_key_path"},
 			},
 
 			"skip_host_key_validation": {
@@ -210,7 +206,7 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 		sftpProperties.Password = &passwordSecureString
 	}
 
-	if v, ok := d.GetOk("private_key_content"); ok {
+	if v, ok := d.GetOk("private_key_content_base64"); ok {
 		privateKeyContent := datafactory.SecureString{
 			Value: pointer.To(v.(string)),
 			Type:  datafactory.TypeSecureString,
@@ -223,7 +219,7 @@ func resourceDataFactoryLinkedServiceSFTPCreateUpdate(d *pluginsdk.ResourceData,
 			Value: pointer.To(v.(string)),
 			Type:  datafactory.TypeSecureString,
 		}
-		sftpProperties.PrivateKeyContent = &passphrase
+		sftpProperties.PassPhrase = &passphrase
 	}
 
 	if v, ok := d.GetOk("private_key_path"); ok {

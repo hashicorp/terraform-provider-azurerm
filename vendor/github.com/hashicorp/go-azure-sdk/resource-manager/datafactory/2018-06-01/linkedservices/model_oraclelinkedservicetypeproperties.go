@@ -5,20 +5,20 @@ package linkedservices
 
 type OracleLinkedServiceTypeProperties struct {
 	AuthenticationType        *OracleAuthenticationType     `json:"authenticationType,omitempty"`
-	ConnectionString          string                        `json:"connectionString"`
-	CryptoChecksumClient      *string                       `json:"cryptoChecksumClient,omitempty"`
-	CryptoChecksumTypesClient *string                       `json:"cryptoChecksumTypesClient,omitempty"`
+	ConnectionString          interface{}                   `json:"connectionString"`
+	CryptoChecksumClient      *interface{}                  `json:"cryptoChecksumClient,omitempty"`
+	CryptoChecksumTypesClient *interface{}                  `json:"cryptoChecksumTypesClient,omitempty"`
 	EnableBulkLoad            *bool                         `json:"enableBulkLoad,omitempty"`
 	EncryptedCredential       *string                       `json:"encryptedCredential,omitempty"`
-	EncryptionClient          *string                       `json:"encryptionClient,omitempty"`
-	EncryptionTypesClient     *string                       `json:"encryptionTypesClient,omitempty"`
+	EncryptionClient          *interface{}                  `json:"encryptionClient,omitempty"`
+	EncryptionTypesClient     *interface{}                  `json:"encryptionTypesClient,omitempty"`
 	FetchSize                 *int64                        `json:"fetchSize,omitempty"`
 	FetchTswtzAsTimestamp     *bool                         `json:"fetchTswtzAsTimestamp,omitempty"`
 	InitialLobFetchSize       *int64                        `json:"initialLobFetchSize,omitempty"`
-	InitializationString      *string                       `json:"initializationString,omitempty"`
+	InitializationString      *interface{}                  `json:"initializationString,omitempty"`
 	Password                  *AzureKeyVaultSecretReference `json:"password,omitempty"`
-	Server                    *string                       `json:"server,omitempty"`
+	Server                    *interface{}                  `json:"server,omitempty"`
 	StatementCacheSize        *int64                        `json:"statementCacheSize,omitempty"`
 	SupportV1DataTypes        *bool                         `json:"supportV1DataTypes,omitempty"`
-	Username                  *string                       `json:"username,omitempty"`
+	Username                  *interface{}                  `json:"username,omitempty"`
 }

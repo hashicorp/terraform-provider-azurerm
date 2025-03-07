@@ -9,16 +9,16 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AppFiguresLinkedServiceTypeProperties struct {
-	ClientKey SecretBase `json:"clientKey"`
-	Password  SecretBase `json:"password"`
-	UserName  string     `json:"userName"`
+	ClientKey SecretBase  `json:"clientKey"`
+	Password  SecretBase  `json:"password"`
+	UserName  interface{} `json:"userName"`
 }
 
 var _ json.Unmarshaler = &AppFiguresLinkedServiceTypeProperties{}
 
 func (s *AppFiguresLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		UserName string `json:"userName"`
+		UserName interface{} `json:"userName"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

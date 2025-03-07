@@ -17,7 +17,7 @@ type WebClientCertificateAuthentication struct {
 	// Fields inherited from WebLinkedServiceTypeProperties
 
 	AuthenticationType WebAuthenticationType `json:"authenticationType"`
-	Url                string                `json:"url"`
+	Url                interface{}           `json:"url"`
 }
 
 func (s WebClientCertificateAuthentication) WebLinkedServiceTypeProperties() BaseWebLinkedServiceTypePropertiesImpl {
@@ -57,7 +57,7 @@ var _ json.Unmarshaler = &WebClientCertificateAuthentication{}
 func (s *WebClientCertificateAuthentication) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AuthenticationType WebAuthenticationType `json:"authenticationType"`
-		Url                string                `json:"url"`
+		Url                interface{}           `json:"url"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

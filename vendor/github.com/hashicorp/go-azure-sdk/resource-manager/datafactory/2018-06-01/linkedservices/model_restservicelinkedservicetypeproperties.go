@@ -9,49 +9,49 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RestServiceLinkedServiceTypeProperties struct {
-	AadResourceId                        *string                       `json:"aadResourceId,omitempty"`
+	AadResourceId                        *interface{}                  `json:"aadResourceId,omitempty"`
 	AuthHeaders                          *interface{}                  `json:"authHeaders,omitempty"`
 	AuthenticationType                   RestServiceAuthenticationType `json:"authenticationType"`
-	AzureCloudType                       *string                       `json:"azureCloudType,omitempty"`
-	ClientId                             *string                       `json:"clientId,omitempty"`
+	AzureCloudType                       *interface{}                  `json:"azureCloudType,omitempty"`
+	ClientId                             *interface{}                  `json:"clientId,omitempty"`
 	ClientSecret                         SecretBase                    `json:"clientSecret"`
 	Credential                           *CredentialReference          `json:"credential,omitempty"`
 	EnableServerCertificateValidation    *bool                         `json:"enableServerCertificateValidation,omitempty"`
 	EncryptedCredential                  *string                       `json:"encryptedCredential,omitempty"`
 	Password                             SecretBase                    `json:"password"`
-	Resource                             *string                       `json:"resource,omitempty"`
-	Scope                                *string                       `json:"scope,omitempty"`
-	ServicePrincipalCredentialType       *string                       `json:"servicePrincipalCredentialType,omitempty"`
+	Resource                             *interface{}                  `json:"resource,omitempty"`
+	Scope                                *interface{}                  `json:"scope,omitempty"`
+	ServicePrincipalCredentialType       *interface{}                  `json:"servicePrincipalCredentialType,omitempty"`
 	ServicePrincipalEmbeddedCert         SecretBase                    `json:"servicePrincipalEmbeddedCert"`
 	ServicePrincipalEmbeddedCertPassword SecretBase                    `json:"servicePrincipalEmbeddedCertPassword"`
-	ServicePrincipalId                   *string                       `json:"servicePrincipalId,omitempty"`
+	ServicePrincipalId                   *interface{}                  `json:"servicePrincipalId,omitempty"`
 	ServicePrincipalKey                  SecretBase                    `json:"servicePrincipalKey"`
-	Tenant                               *string                       `json:"tenant,omitempty"`
-	TokenEndpoint                        *string                       `json:"tokenEndpoint,omitempty"`
-	Url                                  string                        `json:"url"`
-	UserName                             *string                       `json:"userName,omitempty"`
+	Tenant                               *interface{}                  `json:"tenant,omitempty"`
+	TokenEndpoint                        *interface{}                  `json:"tokenEndpoint,omitempty"`
+	Url                                  interface{}                   `json:"url"`
+	UserName                             *interface{}                  `json:"userName,omitempty"`
 }
 
 var _ json.Unmarshaler = &RestServiceLinkedServiceTypeProperties{}
 
 func (s *RestServiceLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AadResourceId                     *string                       `json:"aadResourceId,omitempty"`
+		AadResourceId                     *interface{}                  `json:"aadResourceId,omitempty"`
 		AuthHeaders                       *interface{}                  `json:"authHeaders,omitempty"`
 		AuthenticationType                RestServiceAuthenticationType `json:"authenticationType"`
-		AzureCloudType                    *string                       `json:"azureCloudType,omitempty"`
-		ClientId                          *string                       `json:"clientId,omitempty"`
+		AzureCloudType                    *interface{}                  `json:"azureCloudType,omitempty"`
+		ClientId                          *interface{}                  `json:"clientId,omitempty"`
 		Credential                        *CredentialReference          `json:"credential,omitempty"`
 		EnableServerCertificateValidation *bool                         `json:"enableServerCertificateValidation,omitempty"`
 		EncryptedCredential               *string                       `json:"encryptedCredential,omitempty"`
-		Resource                          *string                       `json:"resource,omitempty"`
-		Scope                             *string                       `json:"scope,omitempty"`
-		ServicePrincipalCredentialType    *string                       `json:"servicePrincipalCredentialType,omitempty"`
-		ServicePrincipalId                *string                       `json:"servicePrincipalId,omitempty"`
-		Tenant                            *string                       `json:"tenant,omitempty"`
-		TokenEndpoint                     *string                       `json:"tokenEndpoint,omitempty"`
-		Url                               string                        `json:"url"`
-		UserName                          *string                       `json:"userName,omitempty"`
+		Resource                          *interface{}                  `json:"resource,omitempty"`
+		Scope                             *interface{}                  `json:"scope,omitempty"`
+		ServicePrincipalCredentialType    *interface{}                  `json:"servicePrincipalCredentialType,omitempty"`
+		ServicePrincipalId                *interface{}                  `json:"servicePrincipalId,omitempty"`
+		Tenant                            *interface{}                  `json:"tenant,omitempty"`
+		TokenEndpoint                     *interface{}                  `json:"tokenEndpoint,omitempty"`
+		Url                               interface{}                   `json:"url"`
+		UserName                          *interface{}                  `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

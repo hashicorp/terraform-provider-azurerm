@@ -4,7 +4,7 @@ package linkedservices
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CosmosDbMongoDbApiLinkedServiceTypeProperties struct {
-	ConnectionString       string `json:"connectionString"`
-	Database               string `json:"database"`
-	IsServerVersionAbove32 *bool  `json:"isServerVersionAbove32,omitempty"`
+	ConnectionString       interface{} `json:"connectionString"`
+	Database               interface{} `json:"database"`
+	IsServerVersionAbove32 *bool       `json:"isServerVersionAbove32,omitempty"`
 }

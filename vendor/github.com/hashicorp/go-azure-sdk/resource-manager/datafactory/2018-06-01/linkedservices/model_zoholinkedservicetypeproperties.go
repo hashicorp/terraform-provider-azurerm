@@ -12,7 +12,7 @@ type ZohoLinkedServiceTypeProperties struct {
 	AccessToken           SecretBase   `json:"accessToken"`
 	ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
-	Endpoint              *string      `json:"endpoint,omitempty"`
+	Endpoint              *interface{} `json:"endpoint,omitempty"`
 	UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
 	UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
 	UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
@@ -24,7 +24,7 @@ func (s *ZohoLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		ConnectionProperties  *interface{} `json:"connectionProperties,omitempty"`
 		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
-		Endpoint              *string      `json:"endpoint,omitempty"`
+		Endpoint              *interface{} `json:"endpoint,omitempty"`
 		UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
 		UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
 		UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`

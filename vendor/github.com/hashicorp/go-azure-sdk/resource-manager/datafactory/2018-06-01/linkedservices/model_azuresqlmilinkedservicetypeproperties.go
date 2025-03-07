@@ -10,20 +10,20 @@ import (
 
 type AzureSqlMILinkedServiceTypeProperties struct {
 	AlwaysEncryptedSettings        *SqlAlwaysEncryptedProperties `json:"alwaysEncryptedSettings,omitempty"`
-	ApplicationIntent              *string                       `json:"applicationIntent,omitempty"`
+	ApplicationIntent              *interface{}                  `json:"applicationIntent,omitempty"`
 	AuthenticationType             *AzureSqlMIAuthenticationType `json:"authenticationType,omitempty"`
-	AzureCloudType                 *string                       `json:"azureCloudType,omitempty"`
+	AzureCloudType                 *interface{}                  `json:"azureCloudType,omitempty"`
 	CommandTimeout                 *int64                        `json:"commandTimeout,omitempty"`
 	ConnectRetryCount              *int64                        `json:"connectRetryCount,omitempty"`
 	ConnectRetryInterval           *int64                        `json:"connectRetryInterval,omitempty"`
 	ConnectTimeout                 *int64                        `json:"connectTimeout,omitempty"`
-	ConnectionString               *string                       `json:"connectionString,omitempty"`
+	ConnectionString               *interface{}                  `json:"connectionString,omitempty"`
 	Credential                     *CredentialReference          `json:"credential,omitempty"`
-	Database                       *string                       `json:"database,omitempty"`
-	Encrypt                        *string                       `json:"encrypt,omitempty"`
+	Database                       *interface{}                  `json:"database,omitempty"`
+	Encrypt                        *interface{}                  `json:"encrypt,omitempty"`
 	EncryptedCredential            *string                       `json:"encryptedCredential,omitempty"`
-	FailoverPartner                *string                       `json:"failoverPartner,omitempty"`
-	HostNameInCertificate          *string                       `json:"hostNameInCertificate,omitempty"`
+	FailoverPartner                *interface{}                  `json:"failoverPartner,omitempty"`
+	HostNameInCertificate          *interface{}                  `json:"hostNameInCertificate,omitempty"`
 	IntegratedSecurity             *bool                         `json:"integratedSecurity,omitempty"`
 	LoadBalanceTimeout             *int64                        `json:"loadBalanceTimeout,omitempty"`
 	MaxPoolSize                    *int64                        `json:"maxPoolSize,omitempty"`
@@ -33,14 +33,14 @@ type AzureSqlMILinkedServiceTypeProperties struct {
 	PacketSize                     *int64                        `json:"packetSize,omitempty"`
 	Password                       *AzureKeyVaultSecretReference `json:"password,omitempty"`
 	Pooling                        *bool                         `json:"pooling,omitempty"`
-	Server                         *string                       `json:"server,omitempty"`
+	Server                         *interface{}                  `json:"server,omitempty"`
 	ServicePrincipalCredential     SecretBase                    `json:"servicePrincipalCredential"`
-	ServicePrincipalCredentialType *string                       `json:"servicePrincipalCredentialType,omitempty"`
-	ServicePrincipalId             *string                       `json:"servicePrincipalId,omitempty"`
+	ServicePrincipalCredentialType *interface{}                  `json:"servicePrincipalCredentialType,omitempty"`
+	ServicePrincipalId             *interface{}                  `json:"servicePrincipalId,omitempty"`
 	ServicePrincipalKey            SecretBase                    `json:"servicePrincipalKey"`
-	Tenant                         *string                       `json:"tenant,omitempty"`
+	Tenant                         *interface{}                  `json:"tenant,omitempty"`
 	TrustServerCertificate         *bool                         `json:"trustServerCertificate,omitempty"`
-	UserName                       *string                       `json:"userName,omitempty"`
+	UserName                       *interface{}                  `json:"userName,omitempty"`
 }
 
 var _ json.Unmarshaler = &AzureSqlMILinkedServiceTypeProperties{}
@@ -48,20 +48,20 @@ var _ json.Unmarshaler = &AzureSqlMILinkedServiceTypeProperties{}
 func (s *AzureSqlMILinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AlwaysEncryptedSettings        *SqlAlwaysEncryptedProperties `json:"alwaysEncryptedSettings,omitempty"`
-		ApplicationIntent              *string                       `json:"applicationIntent,omitempty"`
+		ApplicationIntent              *interface{}                  `json:"applicationIntent,omitempty"`
 		AuthenticationType             *AzureSqlMIAuthenticationType `json:"authenticationType,omitempty"`
-		AzureCloudType                 *string                       `json:"azureCloudType,omitempty"`
+		AzureCloudType                 *interface{}                  `json:"azureCloudType,omitempty"`
 		CommandTimeout                 *int64                        `json:"commandTimeout,omitempty"`
 		ConnectRetryCount              *int64                        `json:"connectRetryCount,omitempty"`
 		ConnectRetryInterval           *int64                        `json:"connectRetryInterval,omitempty"`
 		ConnectTimeout                 *int64                        `json:"connectTimeout,omitempty"`
-		ConnectionString               *string                       `json:"connectionString,omitempty"`
+		ConnectionString               *interface{}                  `json:"connectionString,omitempty"`
 		Credential                     *CredentialReference          `json:"credential,omitempty"`
-		Database                       *string                       `json:"database,omitempty"`
-		Encrypt                        *string                       `json:"encrypt,omitempty"`
+		Database                       *interface{}                  `json:"database,omitempty"`
+		Encrypt                        *interface{}                  `json:"encrypt,omitempty"`
 		EncryptedCredential            *string                       `json:"encryptedCredential,omitempty"`
-		FailoverPartner                *string                       `json:"failoverPartner,omitempty"`
-		HostNameInCertificate          *string                       `json:"hostNameInCertificate,omitempty"`
+		FailoverPartner                *interface{}                  `json:"failoverPartner,omitempty"`
+		HostNameInCertificate          *interface{}                  `json:"hostNameInCertificate,omitempty"`
 		IntegratedSecurity             *bool                         `json:"integratedSecurity,omitempty"`
 		LoadBalanceTimeout             *int64                        `json:"loadBalanceTimeout,omitempty"`
 		MaxPoolSize                    *int64                        `json:"maxPoolSize,omitempty"`
@@ -71,12 +71,12 @@ func (s *AzureSqlMILinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) erro
 		PacketSize                     *int64                        `json:"packetSize,omitempty"`
 		Password                       *AzureKeyVaultSecretReference `json:"password,omitempty"`
 		Pooling                        *bool                         `json:"pooling,omitempty"`
-		Server                         *string                       `json:"server,omitempty"`
-		ServicePrincipalCredentialType *string                       `json:"servicePrincipalCredentialType,omitempty"`
-		ServicePrincipalId             *string                       `json:"servicePrincipalId,omitempty"`
-		Tenant                         *string                       `json:"tenant,omitempty"`
+		Server                         *interface{}                  `json:"server,omitempty"`
+		ServicePrincipalCredentialType *interface{}                  `json:"servicePrincipalCredentialType,omitempty"`
+		ServicePrincipalId             *interface{}                  `json:"servicePrincipalId,omitempty"`
+		Tenant                         *interface{}                  `json:"tenant,omitempty"`
 		TrustServerCertificate         *bool                         `json:"trustServerCertificate,omitempty"`
-		UserName                       *string                       `json:"userName,omitempty"`
+		UserName                       *interface{}                  `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

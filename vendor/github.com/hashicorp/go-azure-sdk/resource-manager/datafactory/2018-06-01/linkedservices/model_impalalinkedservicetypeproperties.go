@@ -14,12 +14,12 @@ type ImpalaLinkedServiceTypeProperties struct {
 	AuthenticationType        ImpalaAuthenticationType `json:"authenticationType"`
 	EnableSsl                 *bool                    `json:"enableSsl,omitempty"`
 	EncryptedCredential       *string                  `json:"encryptedCredential,omitempty"`
-	Host                      string                   `json:"host"`
+	Host                      interface{}              `json:"host"`
 	Password                  SecretBase               `json:"password"`
 	Port                      *int64                   `json:"port,omitempty"`
-	TrustedCertPath           *string                  `json:"trustedCertPath,omitempty"`
+	TrustedCertPath           *interface{}             `json:"trustedCertPath,omitempty"`
 	UseSystemTrustStore       *bool                    `json:"useSystemTrustStore,omitempty"`
-	Username                  *string                  `json:"username,omitempty"`
+	Username                  *interface{}             `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &ImpalaLinkedServiceTypeProperties{}
@@ -31,11 +31,11 @@ func (s *ImpalaLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 		AuthenticationType        ImpalaAuthenticationType `json:"authenticationType"`
 		EnableSsl                 *bool                    `json:"enableSsl,omitempty"`
 		EncryptedCredential       *string                  `json:"encryptedCredential,omitempty"`
-		Host                      string                   `json:"host"`
+		Host                      interface{}              `json:"host"`
 		Port                      *int64                   `json:"port,omitempty"`
-		TrustedCertPath           *string                  `json:"trustedCertPath,omitempty"`
+		TrustedCertPath           *interface{}             `json:"trustedCertPath,omitempty"`
 		UseSystemTrustStore       *bool                    `json:"useSystemTrustStore,omitempty"`
-		Username                  *string                  `json:"username,omitempty"`
+		Username                  *interface{}             `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

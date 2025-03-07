@@ -11,11 +11,10 @@ import (
 var _ WebLinkedServiceTypeProperties = WebAnonymousAuthentication{}
 
 type WebAnonymousAuthentication struct {
-
 	// Fields inherited from WebLinkedServiceTypeProperties
 
 	AuthenticationType WebAuthenticationType `json:"authenticationType"`
-	Url                string                `json:"url"`
+	Url                interface{}           `json:"url"`
 }
 
 func (s WebAnonymousAuthentication) WebLinkedServiceTypeProperties() BaseWebLinkedServiceTypePropertiesImpl {

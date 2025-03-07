@@ -9,36 +9,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ODataLinkedServiceTypeProperties struct {
-	AadResourceId                        *string                                 `json:"aadResourceId,omitempty"`
+	AadResourceId                        *interface{}                            `json:"aadResourceId,omitempty"`
 	AadServicePrincipalCredentialType    *ODataAadServicePrincipalCredentialType `json:"aadServicePrincipalCredentialType,omitempty"`
 	AuthHeaders                          *map[string]string                      `json:"authHeaders,omitempty"`
 	AuthenticationType                   *ODataAuthenticationType                `json:"authenticationType,omitempty"`
-	AzureCloudType                       *string                                 `json:"azureCloudType,omitempty"`
+	AzureCloudType                       *interface{}                            `json:"azureCloudType,omitempty"`
 	EncryptedCredential                  *string                                 `json:"encryptedCredential,omitempty"`
 	Password                             SecretBase                              `json:"password"`
 	ServicePrincipalEmbeddedCert         SecretBase                              `json:"servicePrincipalEmbeddedCert"`
 	ServicePrincipalEmbeddedCertPassword SecretBase                              `json:"servicePrincipalEmbeddedCertPassword"`
-	ServicePrincipalId                   *string                                 `json:"servicePrincipalId,omitempty"`
+	ServicePrincipalId                   *interface{}                            `json:"servicePrincipalId,omitempty"`
 	ServicePrincipalKey                  SecretBase                              `json:"servicePrincipalKey"`
-	Tenant                               *string                                 `json:"tenant,omitempty"`
-	Url                                  string                                  `json:"url"`
-	UserName                             *string                                 `json:"userName,omitempty"`
+	Tenant                               *interface{}                            `json:"tenant,omitempty"`
+	Url                                  interface{}                             `json:"url"`
+	UserName                             *interface{}                            `json:"userName,omitempty"`
 }
 
 var _ json.Unmarshaler = &ODataLinkedServiceTypeProperties{}
 
 func (s *ODataLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AadResourceId                     *string                                 `json:"aadResourceId,omitempty"`
+		AadResourceId                     *interface{}                            `json:"aadResourceId,omitempty"`
 		AadServicePrincipalCredentialType *ODataAadServicePrincipalCredentialType `json:"aadServicePrincipalCredentialType,omitempty"`
 		AuthHeaders                       *map[string]string                      `json:"authHeaders,omitempty"`
 		AuthenticationType                *ODataAuthenticationType                `json:"authenticationType,omitempty"`
-		AzureCloudType                    *string                                 `json:"azureCloudType,omitempty"`
+		AzureCloudType                    *interface{}                            `json:"azureCloudType,omitempty"`
 		EncryptedCredential               *string                                 `json:"encryptedCredential,omitempty"`
-		ServicePrincipalId                *string                                 `json:"servicePrincipalId,omitempty"`
-		Tenant                            *string                                 `json:"tenant,omitempty"`
-		Url                               string                                  `json:"url"`
-		UserName                          *string                                 `json:"userName,omitempty"`
+		ServicePrincipalId                *interface{}                            `json:"servicePrincipalId,omitempty"`
+		Tenant                            *interface{}                            `json:"tenant,omitempty"`
+		Url                               interface{}                             `json:"url"`
+		UserName                          *interface{}                            `json:"userName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

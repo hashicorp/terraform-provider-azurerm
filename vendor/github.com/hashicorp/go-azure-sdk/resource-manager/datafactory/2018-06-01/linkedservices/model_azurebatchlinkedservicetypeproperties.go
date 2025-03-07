@@ -10,24 +10,24 @@ import (
 
 type AzureBatchLinkedServiceTypeProperties struct {
 	AccessKey           SecretBase             `json:"accessKey"`
-	AccountName         string                 `json:"accountName"`
-	BatchUri            string                 `json:"batchUri"`
+	AccountName         interface{}            `json:"accountName"`
+	BatchUri            interface{}            `json:"batchUri"`
 	Credential          *CredentialReference   `json:"credential,omitempty"`
 	EncryptedCredential *string                `json:"encryptedCredential,omitempty"`
 	LinkedServiceName   LinkedServiceReference `json:"linkedServiceName"`
-	PoolName            string                 `json:"poolName"`
+	PoolName            interface{}            `json:"poolName"`
 }
 
 var _ json.Unmarshaler = &AzureBatchLinkedServiceTypeProperties{}
 
 func (s *AzureBatchLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AccountName         string                 `json:"accountName"`
-		BatchUri            string                 `json:"batchUri"`
+		AccountName         interface{}            `json:"accountName"`
+		BatchUri            interface{}            `json:"batchUri"`
 		Credential          *CredentialReference   `json:"credential,omitempty"`
 		EncryptedCredential *string                `json:"encryptedCredential,omitempty"`
 		LinkedServiceName   LinkedServiceReference `json:"linkedServiceName"`
-		PoolName            string                 `json:"poolName"`
+		PoolName            interface{}            `json:"poolName"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

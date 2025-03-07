@@ -10,19 +10,19 @@ import (
 
 type AzureBlobStorageLinkedServiceTypeProperties struct {
 	AccountKey          *AzureKeyVaultSecretReference   `json:"accountKey,omitempty"`
-	AccountKind         *string                         `json:"accountKind,omitempty"`
+	AccountKind         *interface{}                    `json:"accountKind,omitempty"`
 	AuthenticationType  *AzureStorageAuthenticationType `json:"authenticationType,omitempty"`
-	AzureCloudType      *string                         `json:"azureCloudType,omitempty"`
-	ConnectionString    *string                         `json:"connectionString,omitempty"`
-	ContainerUri        *string                         `json:"containerUri,omitempty"`
+	AzureCloudType      *interface{}                    `json:"azureCloudType,omitempty"`
+	ConnectionString    *interface{}                    `json:"connectionString,omitempty"`
+	ContainerUri        *interface{}                    `json:"containerUri,omitempty"`
 	Credential          *CredentialReference            `json:"credential,omitempty"`
 	EncryptedCredential *string                         `json:"encryptedCredential,omitempty"`
 	SasToken            *AzureKeyVaultSecretReference   `json:"sasToken,omitempty"`
-	SasUri              *string                         `json:"sasUri,omitempty"`
-	ServiceEndpoint     *string                         `json:"serviceEndpoint,omitempty"`
-	ServicePrincipalId  *string                         `json:"servicePrincipalId,omitempty"`
+	SasUri              *interface{}                    `json:"sasUri,omitempty"`
+	ServiceEndpoint     *interface{}                    `json:"serviceEndpoint,omitempty"`
+	ServicePrincipalId  *interface{}                    `json:"servicePrincipalId,omitempty"`
 	ServicePrincipalKey SecretBase                      `json:"servicePrincipalKey"`
-	Tenant              *string                         `json:"tenant,omitempty"`
+	Tenant              *interface{}                    `json:"tenant,omitempty"`
 }
 
 var _ json.Unmarshaler = &AzureBlobStorageLinkedServiceTypeProperties{}
@@ -30,18 +30,18 @@ var _ json.Unmarshaler = &AzureBlobStorageLinkedServiceTypeProperties{}
 func (s *AzureBlobStorageLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		AccountKey          *AzureKeyVaultSecretReference   `json:"accountKey,omitempty"`
-		AccountKind         *string                         `json:"accountKind,omitempty"`
+		AccountKind         *interface{}                    `json:"accountKind,omitempty"`
 		AuthenticationType  *AzureStorageAuthenticationType `json:"authenticationType,omitempty"`
-		AzureCloudType      *string                         `json:"azureCloudType,omitempty"`
-		ConnectionString    *string                         `json:"connectionString,omitempty"`
-		ContainerUri        *string                         `json:"containerUri,omitempty"`
+		AzureCloudType      *interface{}                    `json:"azureCloudType,omitempty"`
+		ConnectionString    *interface{}                    `json:"connectionString,omitempty"`
+		ContainerUri        *interface{}                    `json:"containerUri,omitempty"`
 		Credential          *CredentialReference            `json:"credential,omitempty"`
 		EncryptedCredential *string                         `json:"encryptedCredential,omitempty"`
 		SasToken            *AzureKeyVaultSecretReference   `json:"sasToken,omitempty"`
-		SasUri              *string                         `json:"sasUri,omitempty"`
-		ServiceEndpoint     *string                         `json:"serviceEndpoint,omitempty"`
-		ServicePrincipalId  *string                         `json:"servicePrincipalId,omitempty"`
-		Tenant              *string                         `json:"tenant,omitempty"`
+		SasUri              *interface{}                    `json:"sasUri,omitempty"`
+		ServiceEndpoint     *interface{}                    `json:"serviceEndpoint,omitempty"`
+		ServicePrincipalId  *interface{}                    `json:"servicePrincipalId,omitempty"`
+		Tenant              *interface{}                    `json:"tenant,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

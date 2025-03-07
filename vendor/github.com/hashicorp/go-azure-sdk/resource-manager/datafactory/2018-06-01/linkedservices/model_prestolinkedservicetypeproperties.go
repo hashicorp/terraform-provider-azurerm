@@ -12,17 +12,17 @@ type PrestoLinkedServiceTypeProperties struct {
 	AllowHostNameCNMismatch   *bool                    `json:"allowHostNameCNMismatch,omitempty"`
 	AllowSelfSignedServerCert *bool                    `json:"allowSelfSignedServerCert,omitempty"`
 	AuthenticationType        PrestoAuthenticationType `json:"authenticationType"`
-	Catalog                   string                   `json:"catalog"`
+	Catalog                   interface{}              `json:"catalog"`
 	EnableSsl                 *bool                    `json:"enableSsl,omitempty"`
 	EncryptedCredential       *string                  `json:"encryptedCredential,omitempty"`
-	Host                      string                   `json:"host"`
+	Host                      interface{}              `json:"host"`
 	Password                  SecretBase               `json:"password"`
 	Port                      *int64                   `json:"port,omitempty"`
-	ServerVersion             string                   `json:"serverVersion"`
-	TimeZoneID                *string                  `json:"timeZoneID,omitempty"`
-	TrustedCertPath           *string                  `json:"trustedCertPath,omitempty"`
+	ServerVersion             interface{}              `json:"serverVersion"`
+	TimeZoneID                *interface{}             `json:"timeZoneID,omitempty"`
+	TrustedCertPath           *interface{}             `json:"trustedCertPath,omitempty"`
 	UseSystemTrustStore       *bool                    `json:"useSystemTrustStore,omitempty"`
-	Username                  *string                  `json:"username,omitempty"`
+	Username                  *interface{}             `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &PrestoLinkedServiceTypeProperties{}
@@ -32,16 +32,16 @@ func (s *PrestoLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 		AllowHostNameCNMismatch   *bool                    `json:"allowHostNameCNMismatch,omitempty"`
 		AllowSelfSignedServerCert *bool                    `json:"allowSelfSignedServerCert,omitempty"`
 		AuthenticationType        PrestoAuthenticationType `json:"authenticationType"`
-		Catalog                   string                   `json:"catalog"`
+		Catalog                   interface{}              `json:"catalog"`
 		EnableSsl                 *bool                    `json:"enableSsl,omitempty"`
 		EncryptedCredential       *string                  `json:"encryptedCredential,omitempty"`
-		Host                      string                   `json:"host"`
+		Host                      interface{}              `json:"host"`
 		Port                      *int64                   `json:"port,omitempty"`
-		ServerVersion             string                   `json:"serverVersion"`
-		TimeZoneID                *string                  `json:"timeZoneID,omitempty"`
-		TrustedCertPath           *string                  `json:"trustedCertPath,omitempty"`
+		ServerVersion             interface{}              `json:"serverVersion"`
+		TimeZoneID                *interface{}             `json:"timeZoneID,omitempty"`
+		TrustedCertPath           *interface{}             `json:"trustedCertPath,omitempty"`
 		UseSystemTrustStore       *bool                    `json:"useSystemTrustStore,omitempty"`
-		Username                  *string                  `json:"username,omitempty"`
+		Username                  *interface{}             `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
