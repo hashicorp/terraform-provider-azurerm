@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/configurations` Documentation
 
-The `configurations` SDK allows for interaction with Azure Resource Manager `postgresql` (API Version `2021-06-01`).
+The `configurations` SDK allows for interaction with Azure Resource Manager `postgresql` (API Version `2024-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/configurations"
 ```
 
 
@@ -76,7 +76,7 @@ if err := client.PutThenPoll(ctx, id, payload); err != nil {
 ctx := context.TODO()
 id := configurations.NewConfigurationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "flexibleServerName", "configurationName")
 
-payload := configurations.Configuration{
+payload := configurations.ConfigurationForUpdate{
 	// ...
 }
 
