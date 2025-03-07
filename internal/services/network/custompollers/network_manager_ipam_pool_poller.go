@@ -9,21 +9,21 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
-var _ pollers.PollerType = &networkManagerIPAMPoolPoller{}
+var _ pollers.PollerType = &networkManagerIPAMPoolDeletePoller{}
 
-type networkManagerIPAMPoolPoller struct {
+type networkManagerIPAMPoolDeletePoller struct {
 	client *ipampools.IPamPoolsClient
 	id     ipampools.IPamPoolId
 }
 
-func NewNetworkManagerIPAMPoolPoller(client *ipampools.IPamPoolsClient, id ipampools.IPamPoolId) *networkManagerIPAMPoolPoller {
-	return &networkManagerIPAMPoolPoller{
+func NewNetworkManagerIPAMPoolDeletePoller(client *ipampools.IPamPoolsClient, id ipampools.IPamPoolId) *networkManagerIPAMPoolDeletePoller {
+	return &networkManagerIPAMPoolDeletePoller{
 		client: client,
 		id:     id,
 	}
 }
 
-func (p networkManagerIPAMPoolPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p networkManagerIPAMPoolDeletePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {

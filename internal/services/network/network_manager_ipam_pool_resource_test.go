@@ -15,7 +15,7 @@ import (
 
 type ManagerIpamPoolResource struct{}
 
-func testAccNetorkManagerIpamPool_basic(t *testing.T) {
+func testAccNetworkManagerIpamPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -30,7 +30,7 @@ func testAccNetorkManagerIpamPool_basic(t *testing.T) {
 	})
 }
 
-func testAccNetorkManagerIpamPool_basicIPv6(t *testing.T) {
+func testAccNetworkManagerIpamPool_basicIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -45,7 +45,7 @@ func testAccNetorkManagerIpamPool_basicIPv6(t *testing.T) {
 	})
 }
 
-func testAccNetorkManagerIpamPool_update(t *testing.T) {
+func testAccNetworkManagerIpamPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -74,7 +74,7 @@ func testAccNetorkManagerIpamPool_update(t *testing.T) {
 	})
 }
 
-func testAccNetorkManagerIpamPool_requiresImport(t *testing.T) {
+func testAccNetworkManagerIpamPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -89,7 +89,7 @@ func testAccNetorkManagerIpamPool_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccNetorkManagerIpamPool_complete(t *testing.T) {
+func testAccNetworkManagerIpamPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool", "test")
 	r := ManagerIpamPoolResource{}
 
@@ -120,11 +120,11 @@ func (r ManagerIpamPoolResource) Exists(ctx context.Context, client *clients.Cli
 
 func (r ManagerIpamPoolResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
 provider "azurerm" {
   features {}
 }
+
+%[1]s
 
 resource "azurerm_network_manager_ipam_pool" "test" {
   name               = "acctest-ipampool-%[2]d"
@@ -138,11 +138,11 @@ resource "azurerm_network_manager_ipam_pool" "test" {
 
 func (r ManagerIpamPoolResource) basicIpv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
 provider "azurerm" {
   features {}
 }
+
+%[1]s
 
 resource "azurerm_network_manager_ipam_pool" "test" {
   name               = "acctest-ipampool-%[2]d"
@@ -170,11 +170,11 @@ resource "azurerm_network_manager_ipam_pool" "import" {
 
 func (r ManagerIpamPoolResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
 provider "azurerm" {
   features {}
 }
+
+%[1]s
 
 resource "azurerm_network_manager_ipam_pool" "test" {
   name               = "acctest-ipampool-%[2]d"
@@ -193,11 +193,11 @@ resource "azurerm_network_manager_ipam_pool" "test" {
 
 func (r ManagerIpamPoolResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
-
 provider "azurerm" {
   features {}
 }
+
+%[1]s
 
 resource "azurerm_network_manager_ipam_pool" "parent" {
   name               = "acctest-ipampool-p-%[2]d"

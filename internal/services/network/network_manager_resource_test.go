@@ -96,11 +96,11 @@ func TestAccNetworkManager(t *testing.T) {
 			"requiresImport": testAccNetworkManagerDeployment_requiresImport,
 		},
 		"IPAMPool": {
-			"basic":          testAccNetorkManagerIpamPool_basic,
-			"basicIPv6":      testAccNetorkManagerIpamPool_basicIPv6,
-			"complete":       testAccNetorkManagerIpamPool_complete,
-			"update":         testAccNetorkManagerIpamPool_update,
-			"requiresImport": testAccNetorkManagerIpamPool_requiresImport,
+			"basic":          testAccNetworkManagerIpamPool_basic,
+			"basicIPv6":      testAccNetworkManagerIpamPool_basicIPv6,
+			"complete":       testAccNetworkManagerIpamPool_complete,
+			"update":         testAccNetworkManagerIpamPool_update,
+			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
 		},
 		"VerifierWorkspace": {
 			"basic":          testAccNetorkManagerVerifierWorkspace_basic,

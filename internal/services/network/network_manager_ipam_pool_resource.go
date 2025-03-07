@@ -53,7 +53,7 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
-				"name must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
+				"`name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
 			),
 		},
 
@@ -66,7 +66,7 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
-				"display_name must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
+				"`display_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
 			),
 		},
 
@@ -86,7 +86,7 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
-				"parent_pool_name must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
+				"`parent_pool_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
 			),
 		},
 
@@ -252,7 +252,7 @@ func (r ManagerIpamPoolResource) Delete() sdk.ResourceFunc {
 			}
 
 			// https://github.com/Azure/azure-rest-api-specs/issues/31688
-			pollerType := custompollers.NewNetworkManagerIPAMPoolPoller(client, *id)
+			pollerType := custompollers.NewNetworkManagerIPAMPoolDeletePoller(client, *id)
 			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return err
