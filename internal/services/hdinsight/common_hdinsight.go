@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -401,6 +402,16 @@ func flattenHDInsightAzureMonitor(input *extensions.AzureMonitorResponse) []inte
 		})
 	}
 
+	return output
+}
+
+func expandHDInsightAvailabilityZones(input interface{}) []string {
+	output := make([]string, 0)
+
+	v := input.(*schema.Set)
+	for _, az := range v.List() {
+		output = append(output, az.(string))
+	}
 	return output
 }
 
