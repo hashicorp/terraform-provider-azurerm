@@ -47,8 +47,8 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
-			name:  "B_Standard_B1s",
-			input: "B_Standard_B1s",
+			name:  "B_Standard_B1ms",
+			input: "B_Standard_B1ms",
 			valid: true,
 		},
 		{
