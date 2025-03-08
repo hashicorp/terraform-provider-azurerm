@@ -336,10 +336,10 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 
 	var logs []diagnosticsettings.LogSettings
 	hasEnabledLogs := false
-	logChanged := false
 
 	if d.HasChange("enabled_log") {
 		enabledLogs := d.Get("enabled_log").(*pluginsdk.Set).List()
+		log.Printf("[DEBUG] enabled_logs: %+v", enabledLogs)
 		if len(enabledLogs) > 0 {
 			expandEnabledLogs, err := expandMonitorDiagnosticsSettingsEnabledLogs(enabledLogs)
 			if err != nil {
@@ -347,8 +347,15 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 			}
 			logs = *expandEnabledLogs
 			hasEnabledLogs = true
+		} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Logs != nil {
+			// if the enabled_log is updated to empty, we disable the log explicitly
+			for _, v := range *existing.Model.Properties.Logs {
+				disabledLog := v
+				disabledLog.Enabled = false
+				logs = append(logs, disabledLog)
+			}
 		}
-	} else if !logChanged && existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Logs != nil {
+	} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Logs != nil {
 		logs = *existing.Model.Properties.Logs
 		for _, v := range logs {
 			if v.Enabled {
