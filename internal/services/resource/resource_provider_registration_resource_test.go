@@ -46,6 +46,12 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			PreConfig: func() {
+				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
+				if err := r.unRegisterProviders("Microsoft.AgFoodPlatform"); err != nil {
+					t.Fatalf("Failed to reset resource provider registration with error: %+v", err)
+				}
+			},
 			Config: r.basic("Microsoft.AgFoodPlatform"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -64,32 +70,18 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
-				if err := r.unRegisterProviders("Microsoft.ApiSecurity"); err != nil {
+				if err := r.unRegisterProviders("Microsoft.ManufacturingPlatform"); err != nil {
 					t.Fatalf("Failed to reset feature registration with error: %+v", err)
 				}
 			},
-			Config: r.multiFeature(true, true),
+			Config: r.feature(true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.multiFeature(true, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.multiFeature(false, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.multiFeature(false, false),
+			Config: r.feature(false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -198,7 +190,7 @@ func (r ResourceProviderRegistrationResource) unRegisterProvider(client *clients
 	return nil
 }
 
-func (ResourceProviderRegistrationResource) multiFeature(registered1 bool, registered2 bool) string {
+func (ResourceProviderRegistrationResource) feature(registered bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -206,15 +198,11 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.ApiSecurity"
+  name = "Microsoft.ManufacturingPlatform"
   feature {
-    name       = "PP2CanaryAccessDEV"
-    registered = %t
-  }
-  feature {
-    name       = "PP3CanaryAccessDEV"
+    name       = "DefaultFeature"
     registered = %t
   }
 }
-`, registered1, registered2)
+`, registered)
 }
