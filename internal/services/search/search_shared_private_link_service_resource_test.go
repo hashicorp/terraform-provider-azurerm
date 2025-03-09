@@ -33,6 +33,21 @@ func TestAccSearchSharedPrivateLinkServiceResource_basic(t *testing.T) {
 	})
 }
 
+func TestAccSearchSharedPrivateLinkServiceResource_multiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_shared_private_link_service", "test")
+	r := SearchSharedPrivateLinkServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("request_message").HasValue("please approve")),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSearchSharedPrivateLinkServiceResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_shared_private_link_service", "test")
 	r := SearchSharedPrivateLinkServiceResource{}
@@ -74,6 +89,38 @@ resource "azurerm_search_shared_private_link_service" "test" {
   request_message    = "please approve"
 }
 `, template, data.RandomInteger)
+}
+
+func (r SearchSharedPrivateLinkServiceResource) multiple(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test2" {
+  name                = "acc2%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_search_shared_private_link_service" "test" {
+  name               = "acctest%[3]d"
+  search_service_id  = azurerm_search_service.test.id
+  subresource_name   = "blob"
+  target_resource_id = azurerm_storage_account.test.id
+  request_message    = "please approve"
+}
+
+resource "azurerm_search_shared_private_link_service" "test2" {
+  name               = "acctest2%[3]d"
+  search_service_id  = azurerm_search_service.test.id
+  subresource_name   = "blob"
+  target_resource_id = azurerm_storage_account.test2.id
+  request_message    = "please approve"
+}
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r SearchSharedPrivateLinkServiceResource) requiresImport(data acceptance.TestData) string {
