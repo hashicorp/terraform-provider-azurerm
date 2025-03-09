@@ -112,6 +112,29 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
 				return old.(string) != ""
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if _, ok := d.GetOk("network_profile.0.advanced_networking"); ok {
+
+					advancedNetworkingEnabled := d.Get("network_profile.0.advanced_networking.0.enabled").(bool)
+					observabilityEnabled := d.Get("network_profile.0.advanced_networking.0.observability_enabled").(bool)
+					securityEnabled := d.Get("network_profile.0.advanced_networking.0.fqdn_policy_enabled").(bool)
+
+					if advancedNetworkingEnabled && !(observabilityEnabled || securityEnabled) {
+						return fmt.Errorf("for Advanced Container Networking Services to be enabled, at least one of the options should be enabled")
+					}
+
+					if !advancedNetworkingEnabled && !(!observabilityEnabled && !securityEnabled) {
+						return fmt.Errorf("for Advanced Container Networking Services to be disabled, both options need to be disabled")
+					}
+
+					networkDataPlane := d.Get("network_profile.0.network_data_plane").(string)
+					if securityEnabled && networkDataPlane != string(managedclusters.NetworkDataplaneCilium) {
+						return fmt.Errorf("only clusters with the Cilium dataplane supports Container Network Security. Configured data plane: %q", networkDataPlane)
+					}
+				}
+
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -1215,6 +1238,30 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								}, false),
 							},
 						},
+
+						"advanced_networking": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Required: true,
+									},
+									"observability_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"fqdn_policy_enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -2153,6 +2200,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if outboundType != managedclusters.OutboundTypeManagedNATGateway && outboundType != managedclusters.OutboundTypeUserAssignedNATGateway {
 				existing.Model.Properties.NetworkProfile.NatGatewayProfile = nil
 			}
+		}
+
+		if key := "network_profile.0.advanced_networking"; d.HasChange(key) {
+			existing.Model.Properties.NetworkProfile.AdvancedNetworking = expandAdvancedNetworking(d.Get(key).([]interface{}))
 		}
 	}
 	if d.HasChange("service_mesh_profile") {
@@ -3290,7 +3341,35 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
+	if v, ok := config["advanced_networking"]; ok {
+		networkProfile.AdvancedNetworking = expandAdvancedNetworking(v.([]interface{}))
+	}
+
 	return &networkProfile, nil
+}
+
+func expandAdvancedNetworking(input []interface{}) *managedclusters.AdvancedNetworking {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	enabled := config["enabled"].(bool)
+	observabilityEnabled := config["observability_enabled"].(bool)
+	fqdnPolicyEnabled := config["fqdn_policy_enabled"].(bool)
+
+	advancedNetworking := managedclusters.AdvancedNetworking{
+		Enabled: pointer.To(enabled),
+		Observability: &managedclusters.AdvancedNetworkingObservability{
+			Enabled: pointer.To(observabilityEnabled),
+		},
+		Security: &managedclusters.AdvancedNetworkingSecurity{
+			Enabled: pointer.To(fqdnPolicyEnabled),
+		},
+	}
+
+	return &advancedNetworking
 }
 
 func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterLoadBalancerProfile {
@@ -3571,6 +3650,36 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		"service_cidr":          serviceCidr,
 		"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
 		"outbound_type":         outboundType,
+		"advanced_networking":   flattenAdvancedNetworking(profile.AdvancedNetworking),
+	}
+
+	return []interface{}{result}
+}
+
+func flattenAdvancedNetworking(advancedNetworking *managedclusters.AdvancedNetworking) []interface{} {
+	if advancedNetworking == nil {
+		return nil
+	}
+
+	advancedNetworkingEnabled := false
+	if v := advancedNetworking.Enabled; v != nil && *v {
+		advancedNetworkingEnabled = true
+	}
+
+	observabilityEnabled := false
+	if v := advancedNetworking.Observability; v != nil && v.Enabled != nil && *v.Enabled {
+		observabilityEnabled = true
+	}
+
+	fqdnPolicyEnabled := false
+	if v := advancedNetworking.Security; v != nil && v.Enabled != nil && *v.Enabled {
+		fqdnPolicyEnabled = true
+	}
+
+	result := map[string]interface{}{
+		"enabled":               advancedNetworkingEnabled,
+		"observability_enabled": observabilityEnabled,
+		"fqdn_policy_enabled":   fqdnPolicyEnabled,
 	}
 
 	return []interface{}{result}
