@@ -106,6 +106,32 @@ func TestAccComputeInstance_identity(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMachineLearningComputeInstance_rootAccessEnabled(t *testing.T) {
+    resource.Test(t, resource.TestCase{
+        PreCheck:     func() { testAccPreCheck(t) },
+        Providers:    testAccProviders,
+        CheckDestroy: testCheckAzureRMMachineLearningComputeInstanceDestroy,
+        Steps: []resource.TestStep{
+            {
+                Config: testAccAzureRMMachineLearningComputeInstance_rootAccessEnabled,
+                Check: resource.ComposeTestCheckFunc(
+                    testCheckAzureRMMachineLearningComputeInstanceExists("azurerm_machine_learning_compute_instance.test"),
+                    resource.TestCheckResourceAttr("azurerm_machine_learning_compute_instance.test", "root_access_enabled", "true"),
+                ),
+            },
+        },
+    })
+}
+
+const testAccAzureRMMachineLearningComputeInstance_rootAccessEnabled = `
+resource "azurerm_machine_learning_compute_instance" "test" {
+    name                = "acctestmlci-%d"
+    location            = azurerm_resource_group.test.location
+    resource_group_name = azurerm_resource_group.test.name
+    root_access_enabled = true
+}
+`
+
 func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClient := client.MachineLearning.MachineLearningComputes
 	id, err := machinelearningcomputes.ParseComputeID(state.ID)
