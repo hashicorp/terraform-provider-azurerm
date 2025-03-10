@@ -93,6 +93,8 @@ A `volume` block supports the following:
 
 * `storage_type` - The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
 
+* `mount_options` - Mount options used while mounting the AzureFile.
+
 ---
 
 A `init_container` block supports the following:
@@ -267,6 +269,8 @@ An `identity` block supports the following:
 An `ingress` block supports the following:
 
 * `allow_insecure_connections` - Should this ingress allow insecure connections?
+
+* `client_certificate_mode` - The client certificate mode for the Ingress.
 
 * `custom_domain` - One or more `custom_domain` block as detailed below.
 
