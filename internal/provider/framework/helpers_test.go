@@ -23,7 +23,9 @@ func Test_getOidcToken(t *testing.T) {
 
 	if result == nil {
 		t.Fatalf("getOidcToken returned nil result without an error")
-	} else if *result != expectedString {
+	}
+
+	if *result != expectedString {
 		t.Fatalf("getOidcToken did not return expected string (%s), got %+v", expectedString, *result)
 	}
 }
@@ -41,7 +43,9 @@ func Test_getOidcTokenFromFile(t *testing.T) {
 
 	if result == nil {
 		t.Fatalf("getOidcToken returned nil result without an error")
-	} else if *result != expectedString {
+	}
+
+	if *result != expectedString {
 		t.Fatalf("getOidcToken did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -113,7 +117,8 @@ func Test_getClientSecret(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientSecret returned nil result without an error")
-	} else if *result != expectedString {
+	}
+	if *result != expectedString {
 		t.Fatalf("getCLientSecret did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -147,7 +152,8 @@ func Test_getClientSecretFromFile(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientSecretFromFile returned nil result without an error")
-	} else if *result != expectedString {
+	}
+	if *result != expectedString {
 		t.Fatalf("getClientSecret did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -179,7 +185,8 @@ func Test_getClientID(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientID returned nil result without an error")
-	} else if *result != expectedString {
+	}
+	if *result != expectedString {
 		t.Fatalf("getClientID did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -211,7 +218,8 @@ func Test_getClientIDFromFile(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientID returned nil result without an error")
-	} else if *result != expectedString {
+	}
+	if *result != expectedString {
 		t.Fatalf("getClientID did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -230,7 +238,8 @@ func Test_getClientIDAKSWorkload(t *testing.T) {
 	}
 	if result == nil {
 		t.Fatalf("getClientID returned nil result without an error")
-	} else if *result != expectedString {
+	}
+	if *result != expectedString {
 		t.Fatalf("getClientID did not return expected string `%s`, got `%s`", expectedString, *result)
 	}
 }
@@ -261,7 +270,9 @@ func Test_decodeCertificate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("decodeCertificate returned unexpected error %v", err)
 	}
-
+	if result == nil {
+		t.Fatalf("decodeCertificate returned nil result without an error")
+	}
 	if string(result) != expected {
 		t.Fatalf("decodeCertificate did not return expected result `%s`, got `%s`", expected, result)
 	}

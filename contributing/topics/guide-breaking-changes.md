@@ -4,13 +4,14 @@ To keep up with and accommodate the changing pace of Azure, the provider needs t
 
 The `azurerm` provider attempts to be as "surface stable" as possible during minor and patch releases meaning breaking changes are typically only made during major releases, however exceptions are sometimes made for minor releases when the breaking change is deemed necessary or is unavoidable. Terraform users rely on the stability of Terraform providers as not only can configuration changes be costly to make, test, and deploy they can also affect downstream tooling such as modules. Even as part of a major release, breaking changes that are overly large or have little benefit can delay users upgrading to the next major version.
 
-Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.FivePointOhBeta()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. 
+Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the `features.FivePointOh()` flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. 
 
 Types of breaking changes covered are:
 
 - [Removing Resources or Data Sources](#removing-resources-or-data-sources)
 - [Breaking Schema Changes](#breaking-schema-changes-and-deprecations)
 - [Updating Default Values](#updating-default-values)
+- [Post Release Breaking Change Clean Up](#post-release-breaking-change-clean-up)
 
 ## Removing Resources or Data Sources
 
@@ -75,7 +76,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
             MySqlFlexibleServerResource{},
         }
         
-        if !features.FivePointOhBeta() {
+        if !features.FivePointOh() {
             resources = append(resources, ExampleResource{})
         }
         
@@ -91,7 +92,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     
         }
     
-        if !features.FivePointOhBeta() {
+        if !features.FivePointOh() {
             resources["azurerm_example"] = resourceExample()
         }
     
@@ -103,7 +104,7 @@ The steps outlined below uses an example resource that is deprecated, but the sa
 
     ```go
     func TestAccExample_basic(t *testing.T) {
-        if features.FivePointOhBeta() {
+        if features.FivePointOh() {
             t.Skipf("Skipping since `azurerm_example` is deprecated and will be removed in 5.0")
         }
         data := acceptance.BuildTestData(t, "azurerm_example", "test")
@@ -170,7 +171,7 @@ The following example follows a fictional resource that will have the following 
          },
       }
    
-      if !features.FivePointOhBeta() {
+      if !features.FivePointOh() {
          args["enable_scaling"] = &pluginsdk.Schema{
             Type:     pluginsdk.TypeBool,
             Optional: true,
@@ -189,7 +190,7 @@ The following example follows a fictional resource that will have the following 
       return args
    }
    ```
-   **Note:** In the past we've accepted in-lined functions to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
+> **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
 
 2. Update the Create/Read/Update methods if necessary.
 
@@ -201,7 +202,7 @@ The following example follows a fictional resource that will have the following 
 
    ```go
    func (ExampleResource) complete(data acceptance.TestData) string {
-   if !features.FivePointOhBeta() {
+   if !features.FivePointOh() {
         return fmt.Sprintf(`
    provider "azurerm" {
      features {}
@@ -235,7 +236,7 @@ The following example follows a fictional resource that will have the following 
    `, data.RandomInteger, data.Locations.Primary)
    }
    ```
-   **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
+> **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
 
 4. Update the upgrade guide under `website/docs/5.0-upgrade-guide.markdown`
    
@@ -359,7 +360,7 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
             },
         }
 
-    if !features.FivePointOhBeta() {
+    if !features.FivePointOh() {
         args["spark_version"].Default = "2.4"
     }
 	
@@ -391,3 +392,11 @@ Our tests were failing because the Azure API was returning this value as true wh
 ```
 
 There are many ways to accidentally add a breaking change when looking at properties with a Default or lack thereof so extra work needs to be done to confirm what Terraform and the Azure API are returning before deciding how best to incorporate the Default tag.
+
+## Post Release Breaking Change Clean Up
+
+Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. `if !features.FivePointOh() { ... }`) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for.
+
+1. For typed resources, if you are removing a property, make sure you also remove it from the model(s). The fields should have a `removedInNextMajorVersion` tag. 
+2. For typed resources, there may be properties that were only included once the major version was released, make sure you remove the `addedInNextMajorVersion` tag from these properties in the model(s).
+3. Confirm the documentation is up-to-date with what is in code, generally this should already be the case, but it's good to double check.

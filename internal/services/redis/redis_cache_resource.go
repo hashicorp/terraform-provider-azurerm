@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -350,7 +350,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"redis_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      6,
+				Default:      "6",
 				ValidateFunc: validation.StringInSlice([]string{"4", "6"}, false),
 				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 					n := strings.Split(old, ".")
@@ -397,7 +397,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,

@@ -56,9 +56,16 @@ The following arguments are supported:
 
 * `job_agent_id` - (Required) The ID of the Elastic Job Agent. Changing this forces a new Elastic Job Credential to be created.
 
-* `username` - (Required) The username part of the credential.
+* `username` - (Required) The username to use for this Elastic Job credential.
 
-* `password` - (Required) The password part of the credential.
+* `password` - (Optional) The password to use for this Elastic Job credential.
+
+* `password_wo` - (Optional, Write-Only) The password to use for this Elastic Job credential.
+
+~> **Note:** One of `password` or `password_wo` must be specified.
+
+* `password_wo_version` - (Optional) An integer value used to trigger an update for `password_wo`. This property should be incremented when updating `password_wo`.
+
 
 ## Attributes Reference
 

@@ -63,6 +63,8 @@ type MsSqlManagedInstanceModel struct {
 	AzureActiveDirectoryAdministrator []AzureActiveDirectoryAdministrator `tfschema:"azure_active_directory_administrator"`
 	ZoneRedundantEnabled              bool                                `tfschema:"zone_redundant_enabled"`
 	Tags                              map[string]string                   `tfschema:"tags"`
+	DatabaseFormat                    string                              `tfschema:"database_format"`
+	HybridSecondaryUsage              string                              `tfschema:"hybrid_secondary_usage"`
 }
 
 type AzureActiveDirectoryAdministrator struct {
@@ -230,10 +232,24 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 		},
 
+		"database_format": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      managedinstances.ManagedInstanceDatabaseFormatSQLServerTwoZeroTwoTwo,
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForManagedInstanceDatabaseFormat(), false),
+		},
+
 		"dns_zone_partner_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.ManagedInstanceID,
+		},
+
+		"hybrid_secondary_usage": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      managedinstances.HybridSecondaryUsageActive,
+			ValidateFunc: validation.StringInSlice(managedinstances.PossibleValuesForHybridSecondaryUsage(), false),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -313,7 +329,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": tags.Schema(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		args["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:     schema.TypeString,
 			Optional: true,
@@ -361,11 +377,19 @@ func (r MsSqlManagedInstanceResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			// Once the `AlwaysUpToDate` is enabled, you can't go back to `SQLServer2022` update policy.
+			if oldVal, newVal := rd.GetChange("database_format"); oldVal.(string) == string(managedinstances.ManagedInstanceDatabaseFormatAlwaysUpToDate) && newVal.(string) == string(managedinstances.ManagedInstanceDatabaseFormatSQLServerTwoZeroTwoTwo) {
+				if err := rd.ForceNew("database_format"); err != nil {
+					return err
+				}
+			}
+
 			_, aadAdminOk := rd.GetOk("azure_active_directory_administrator")
 			authOnlyEnabled := rd.Get("azure_active_directory_administrator.0.azuread_authentication_only_enabled").(bool)
-			_, loginOk := rd.GetOk("administrator_login")
-			_, pwsOk := rd.GetOk("administrator_login_password")
-			if aadAdminOk && !authOnlyEnabled && (!loginOk || !pwsOk) {
+			adminLogin := rd.GetRawConfig().AsValueMap()["administrator_login"]
+			adminPassword := rd.GetRawConfig().AsValueMap()["administrator_login_password"]
+
+			if aadAdminOk && !authOnlyEnabled && (adminLogin.IsNull() || adminPassword.IsNull()) {
 				return fmt.Errorf("`administrator_login` and `administrator_login_password` are required when `azuread_authentication_only_enabled` is false")
 			}
 
@@ -426,7 +450,9 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					VCores:                           pointer.To(model.VCores),
 					ZoneRedundant:                    pointer.To(model.ZoneRedundantEnabled),
 					// `Administrators` is only valid when specified during creation`
-					Administrators: expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator),
+					Administrators:       expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator),
+					DatabaseFormat:       pointer.To(managedinstances.ManagedInstanceDatabaseFormat(model.DatabaseFormat)),
+					HybridSecondaryUsage: pointer.To(managedinstances.HybridSecondaryUsage(model.HybridSecondaryUsage)),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -583,7 +609,13 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.Logger.Infof("Updating %s", *id)
+			if metadata.ResourceData.HasChange("database_format") {
+				properties.Properties.DatabaseFormat = pointer.To(managedinstances.ManagedInstanceDatabaseFormat(state.DatabaseFormat))
+			}
+
+			if metadata.ResourceData.HasChange("hybrid_secondary_usage") {
+				properties.Properties.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
+			}
 
 			err = client.CreateOrUpdateThenPoll(ctx, *id, properties)
 			if err != nil {
@@ -674,6 +706,8 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					if props.ServicePrincipal != nil {
 						model.ServicePrincipalType = string(pointer.From(props.ServicePrincipal.Type))
 					}
+					model.DatabaseFormat = string(pointer.From(props.DatabaseFormat))
+					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
 				}
 			}
 			return metadata.Encode(&model)
