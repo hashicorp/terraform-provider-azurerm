@@ -72,6 +72,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
+		// Optional
 		"address_space": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
@@ -83,7 +84,6 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// Optional
 		"bgp_community": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -149,8 +149,8 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"ip_address_pool": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
+			MaxItems:     1,
 			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
-			MinItems:     1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"id": {
@@ -497,8 +497,23 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if payload.Properties.AddressSpace == nil {
 			payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
 		}
+		if v := d.Get("address_space").(*pluginsdk.Set).List(); len(v) > 0 {
+			payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(v)
+		} else {
+			payload.Properties.AddressSpace.AddressPrefixes = nil
+		}
+	}
 
-		payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").(*pluginsdk.Set).List())
+	if d.HasChange("ip_address_pool") {
+		if payload.Properties.AddressSpace == nil {
+			payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+		}
+
+		if v := d.Get("ip_address_pool").([]interface{}); len(v) > 0 {
+			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = expandVirtualNetworkIPAddressPool(v)
+		} else {
+			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = nil
+		}
 	}
 
 	if d.HasChange("bgp_community") {
@@ -533,14 +548,6 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if v := d.Get("flow_timeout_in_minutes"); v.(int) != 0 {
 			payload.Properties.FlowTimeoutInMinutes = utils.Int64(int64(v.(int)))
 		}
-	}
-
-	if d.HasChange("ip_address_pool") {
-		if payload.Properties.AddressSpace == nil {
-			payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
-		}
-
-		payload.Properties.AddressSpace.IPamPoolPrefixAllocations = expandVirtualNetworkIPAddressPool(d.Get("ip_address_pool").([]interface{}))
 	}
 
 	if d.HasChange("subnet") {

@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `flow_timeout_in_minutes` - (Optional) The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between `4` and `30` minutes.
 
-* `ip_address_pool` - (Optional) One or more `ip_address_pool` blocks as defined below.
+* `ip_address_pool` - (Optional) A `ip_address_pool` blocks as defined below.
 
 -> **NOTE** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
