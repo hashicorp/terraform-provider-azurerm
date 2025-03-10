@@ -31,6 +31,7 @@ func TestAccStorageTable_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%s.table.core.windows.net/Tables('acctestst%d')", data.RandomString, data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -50,6 +51,7 @@ func TestAccStorageTable_basicDeprecated(t *testing.T) {
 			Config: r.basicDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%s.table.core.windows.net/Tables('acctestst%d')", data.RandomString, data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),

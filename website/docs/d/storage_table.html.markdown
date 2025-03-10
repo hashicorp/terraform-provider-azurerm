@@ -41,6 +41,8 @@ The following arguments are supported:
 
 ~> **NOTE:** `resource_manager_id` will be removed in version 5.0 of the Provider.
 
+* `url` - The data plane URL of the Storage Table in the format of `<storage table endpoint>/Tables('<table name>')`. E.g. `https://example.table.core.windows.net/Tables('mytable')"`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

@@ -29,6 +29,7 @@ type TableDataSourceModel struct {
 	StorageAccountId string     `tfschema:"storage_account_id"`
 	ACL              []ACLModel `tfschema:"acl"`
 	Id               string     `tfschema:"id"`
+	URL              string     `tfschema:"url"`
 
 	// TODO 5.0: Remove this
 	StorageAccountName string `tfschema:"storage_account_name"`
@@ -118,6 +119,11 @@ func (k storageTableDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"url": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -191,6 +197,7 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 
 					resourceManagerId := parse.NewStorageTableResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", model.Name)
 					model.ResourceManagerId = resourceManagerId.ID()
+					model.URL = id.ID()
 					metadata.SetID(id)
 
 					return metadata.Encode(&model)
@@ -218,6 +225,22 @@ func (k storageTableDataSource) Read() sdk.ResourceFunc {
 					model.ACL = acl
 				}
 			}
+
+			account, err := metadata.Client.Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account for Table %q: %v", id, err)
+			}
+			// Determine the table endpoint, so we can build a data plane ID
+			endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
+			if err != nil {
+				return fmt.Errorf("determining Table endpoint: %v", err)
+			}
+			// Parse the table endpoint as a data plane account ID
+			accountDpId, err := accounts.ParseAccountID(*endpoint, metadata.Client.Storage.StorageDomainSuffix)
+			if err != nil {
+				return fmt.Errorf("parsing Account ID: %v", err)
+			}
+			model.URL = tables.NewTableID(*accountDpId, id.TableName).ID()
 
 			if !features.FivePointOh() {
 				model.ResourceManagerId = id.ID()

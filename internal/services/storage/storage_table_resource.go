@@ -113,6 +113,11 @@ func resourceStorageTable() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 
@@ -299,6 +304,7 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("name", id.TableName)
 		d.Set("storage_account_name", id.AccountId.AccountName)
 		d.Set("resource_manager_id", parse.NewStorageTableResourceManagerID(subscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.TableName).ID())
+		d.Set("url", id.ID())
 
 		if err = d.Set("acl", flattenStorageTableACLsDeprecated(acls)); err != nil {
 			return fmt.Errorf("setting `acl`: %v", err)
@@ -342,6 +348,25 @@ func resourceStorageTableRead(d *pluginsdk.ResourceData, meta interface{}) error
 			}
 		}
 	}
+
+	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+	if err != nil {
+		return fmt.Errorf("retrieving Account for Table %q: %v", id, err)
+	}
+
+	// Determine the table endpoint, so we can build a data plane ID
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeTable)
+	if err != nil {
+		return fmt.Errorf("determining Table endpoint: %v", err)
+	}
+
+	// Parse the table endpoint as a data plane account ID
+	accountId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+
+	d.Set("url", tables.NewTableID(*accountId, id.TableName).ID())
 
 	return nil
 }

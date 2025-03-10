@@ -24,6 +24,7 @@ func TestAccDataSourceStorageTable_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("acl.#").HasValue("1"),
 				check.That(data.ResourceName).Key("acl.0.id").HasValue("MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"),
 				check.That(data.ResourceName).Key("acl.0.access_policy.0.permissions").HasValue("raud"),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctesttedsc%s.table.core.windows.net/Tables('tabletesttedsc%s')", data.RandomString, data.RandomString)),
 			),
 		},
 	})
@@ -43,6 +44,7 @@ func TestAccDataSourceStorageTable_basicDeprecated(t *testing.T) {
 				check.That(data.ResourceName).Key("acl.#").HasValue("1"),
 				check.That(data.ResourceName).Key("acl.0.id").HasValue("MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"),
 				check.That(data.ResourceName).Key("acl.0.access_policy.0.permissions").HasValue("raud"),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctesttedsc%s.table.core.windows.net/Tables('tabletesttedsc%s')", data.RandomString, data.RandomString)),
 			),
 		},
 	})
