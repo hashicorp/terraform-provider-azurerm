@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `logs_destination` - (Optional) Where the application logs will be saved for this Container Apps Managed Environment. Possible values include `log-analytics` and `azure-monitor`. Omitting this value will result in logs being streamed only.
 
-* `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
+* `workload_profile` - (Optional) One or more `workload_profile` blocks as defined below.
 
 * `mutual_tls_enabled` - (Optional) Should mutual transport layer security (mTLS) be enabled? Defaults to `false`.
 

@@ -6,5 +6,5 @@ package pipelines
 type StagingSettings struct {
 	EnableCompression *bool                  `json:"enableCompression,omitempty"`
 	LinkedServiceName LinkedServiceReference `json:"linkedServiceName"`
-	Path              *string                `json:"path,omitempty"`
+	Path              *interface{}           `json:"path,omitempty"`
 }

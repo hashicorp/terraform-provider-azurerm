@@ -12,16 +12,16 @@ var _ CopySource = LakeHouseTableSource{}
 
 type LakeHouseTableSource struct {
 	AdditionalColumns *interface{} `json:"additionalColumns,omitempty"`
-	TimestampAsOf     *string      `json:"timestampAsOf,omitempty"`
+	TimestampAsOf     *interface{} `json:"timestampAsOf,omitempty"`
 	VersionAsOf       *int64       `json:"versionAsOf,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s LakeHouseTableSource) CopySource() BaseCopySourceImpl {
