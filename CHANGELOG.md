@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource**: `azurerm_network_manager_ipam_pool` [GH-28695]
 
+ENHANCEMENTS:
+
+* dependencies: update `Go` version to `1.24.1` [GH-28999]
+
 BUG FIXES:
 
 * `azurerm_postgresql_flexible_server` - fix validation for `customer_managed_key.key_vault_key_id` and `customer_managed_key.geo_backup_key_id` to disallow versionless keys preventing unclear error messages [GH-28981]
