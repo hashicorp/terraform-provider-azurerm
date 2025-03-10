@@ -85,7 +85,7 @@ This means that at this point in time, there are four types of Data Source/Resou
 
 At this point in time the codebase uses a mixture of both (primarily the Untyped Data Sources/Resources) - in time we plan to migrate across to using Typed Data Sources/Resources instead. For differences between these two patterns, see [the Typed vs Untyped guide](best-practices.md#typed-vs-untyped-resources).
 
-Ultimately this approach will allow us to switch from using the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) to [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework), enabling us to fix a number of long-standing issues in the Provider - whilst reducing the total lines of code needed for each resource.
+Ultimately this approach will allow us to switch from using the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) to [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework), enabling us to fix a number of long-standing issues in the Provider - whilst reducing the lines of code needed for each resource.
 
 ## Interaction with Azure
 
