@@ -58,6 +58,11 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://aka.ms/AzureMapsCreatorDeprecation).
 
+### `azurerm_spatial_anchors_account`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+
 ## Removed Data Sources
 
 Please follow the format in the example below for adding removed data sources:
@@ -72,6 +77,10 @@ This deprecated data source has been superseded/retired and has been removed fro
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 
+### `azurerm_spatial_anchors_account`
+
+* This deprecated data source has been retired and has been removed from the Azure Provider.
+
 ## Breaking Changes in Resources
 
 Please follow the format in the example below for listing breaking changes in resources:
@@ -83,6 +92,14 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `example_property_with_no_replacement` property has been removed.
 * The `example_property_with_changed_default` property now defaults to `NewDefault`.
 ```
+
+### `azurerm_app_service`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_app_service_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
 ### `azurerm_cdn_endpoint_custom_domain`
 
@@ -111,6 +128,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `logs_destination` property is no longer Computed and now must be set to `log-analytics` to be able to specify a value for `log_analytics_workspace_id`. It will now default to empty, meaning Streaming Only in the Azure Portal.
 
+### `azurerm_datadog_monitor_sso_configuration`
+
+* The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
+
 ### `azurerm_eventhub`
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
@@ -123,6 +144,31 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_express_route_connection`
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
+
+### `azurerm_kusto_eventgrid_data_connection`
+
+* The deprecated `eventgrid_resource_id` property has been removed in favour of the `eventgrid_event_subscription_id` property.
+* The deprecated `managed_identity_resource_id` property has been removed in favour of the `managed_identity_id` property.
+
+### `azurerm_kusto_attached_database_configuration`
+
+* The deprecated `cluster_resource_id` property has been removed in favour of the `cluster_id` property.
+
+### `azurerm_linux_function_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_function_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_web_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_linux_web_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
 ### `azurerm_logic_app_standard`
 
@@ -207,6 +253,26 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
 
+### `azurerm_mssql_virtual_machine`
+
+* The deprecated `auto_backup.encryption_enabled` property has been removed.
+
+### `azurerm_windows_function_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_function_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_web_app`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_windows_web_app_slot`
+
+* The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:
@@ -235,6 +301,26 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `logging_storage_account` block has been removed.
 * The deprecated `managed_resource_group` property has been removed.
+
+### `azurerm_servicebus_namespace_disaster_recovery_config`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+
+### `azurerm_servicebus_queue`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
+* The deprecated `enable_express` property has been removed in favour of the `express_enabled` property.
+* The deprecated `enable_partitioning` property has been removed in favour of the `partitioning_enabled` property.
+
+### `azurerm_servicebus_subscription`
+
+* The deprecated `namespace_name` property has been removed.
+* The deprecated `resource_group_name` property has been removed.
+* The deprecated `topic_name` property has been removed.
+* The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
 
 ### `azurerm_storage_container`
 

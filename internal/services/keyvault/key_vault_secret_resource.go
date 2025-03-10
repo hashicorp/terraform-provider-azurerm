@@ -101,6 +101,16 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 
 			"tags": tags.SchemaWithMax(15),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.ForceNewIfChange("expiration_date", func(ctx context.Context, oldVal, newVal interface{}, meta interface{}) bool {
+				// if change from non-nil to nil, we need to force new
+				if oldVal != nil && oldVal.(string) != "" {
+					return newVal == nil || newVal.(string) == ""
+				}
+				return false
+			}),
+		),
 	}
 }
 

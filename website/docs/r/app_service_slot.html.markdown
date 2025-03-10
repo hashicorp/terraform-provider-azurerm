@@ -275,7 +275,7 @@ Additional examples of how to run Containers via the `azurerm_app_service_slot` 
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2017`, `VS2019`, and `VS2022`.
+* `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Currently only `VS2022` is supported.
 
 * `scm_type` - (Optional) The type of Source Control enabled for this App Service Slot. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 

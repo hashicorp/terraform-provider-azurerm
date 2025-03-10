@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type ServiceBusQueueDataSource struct{}
@@ -26,9 +27,9 @@ func TestAccDataSourceServiceBusQueue_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("dead_lettering_on_message_expiration").Exists(),
 				check.That(data.ResourceName).Key("default_message_ttl").Exists(),
 				check.That(data.ResourceName).Key("duplicate_detection_history_time_window").Exists(),
-				check.That(data.ResourceName).Key("enable_batched_operations").Exists(),
-				check.That(data.ResourceName).Key("enable_express").Exists(),
-				check.That(data.ResourceName).Key("enable_partitioning").Exists(),
+				check.That(data.ResourceName).Key("batched_operations_enabled").Exists(),
+				check.That(data.ResourceName).Key("express_enabled").Exists(),
+				check.That(data.ResourceName).Key("partitioning_enabled").Exists(),
 				check.That(data.ResourceName).Key("lock_duration").Exists(),
 				check.That(data.ResourceName).Key("max_delivery_count").Exists(),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").Exists(),
@@ -41,6 +42,10 @@ func TestAccDataSourceServiceBusQueue_basic(t *testing.T) {
 }
 
 func TestAccDataSourceServiceBusQueue_withNamespaceName(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("This test includes attributes that were removed in 5.0 -- skipping.")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueDataSource{}
 

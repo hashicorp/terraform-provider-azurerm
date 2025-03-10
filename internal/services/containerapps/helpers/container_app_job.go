@@ -499,6 +499,9 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 			storageType := jobs.StorageType(v.StorageType)
 			volume.StorageType = &storageType
 		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
+		}
 		volumes = append(volumes, volume)
 	}
 
@@ -838,6 +841,9 @@ func flattenContainerAppJobVolumes(input *[]jobs.Volume) []ContainerVolume {
 		}
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
+		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
 
 		result = append(result, containerVolume)
