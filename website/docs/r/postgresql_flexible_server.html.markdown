@@ -159,7 +159,7 @@ The following arguments are supported:
 
 * `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15` and `16`. Required when `create_mode` is `Default`.
 
--> **Note:** When `create_mode` is `Update`, upgrading version wouldn't force a new resource to be created.
+-> **Note:** Upgrading version wouldn't force a new resource to be created whilst it can still cause the server out of service for a while. Downgrading the version will force a new resource to be created.
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
