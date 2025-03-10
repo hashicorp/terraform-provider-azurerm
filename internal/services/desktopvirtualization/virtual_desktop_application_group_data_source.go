@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -117,7 +117,7 @@ func (r DesktopVirtualizationApplicationGroupDataSource) Read() sdk.ResourceFunc
 
 			state.ApplicationGroupName = id.ApplicationGroupName
 			state.ResourceGroupName = id.ResourceGroupName
-			state.Location = location.NormalizeNilable(model.Location)
+			state.Location = location.Normalize(model.Location)
 			state.Tags = pointer.From(model.Tags)
 			state.ApplicationGroupType = string(model.Properties.ApplicationGroupType)
 

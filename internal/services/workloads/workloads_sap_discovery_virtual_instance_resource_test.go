@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -198,14 +198,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
-  name                              = "%s"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
-  environment                       = "NonProd"
-  sap_product                       = "S4HANA"
-  managed_resource_group_name       = "acctestmanagedRG%d"
-  central_server_virtual_machine_id = "%s"
-  managed_storage_account_name      = "acctestmanagedsa%s"
+  name                                  = "%s"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
+  environment                           = "NonProd"
+  sap_product                           = "S4HANA"
+  managed_resource_group_name           = "acctestmanagedRG%d"
+  central_server_virtual_machine_id     = "%s"
+  managed_storage_account_name          = "acctestmanagedsa%s"
+  managed_resources_network_access_type = "Private"
 
   identity {
     type = "UserAssigned"
@@ -234,14 +235,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_workloads_sap_discovery_virtual_instance" "test" {
-  name                              = "%s"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
-  environment                       = "NonProd"
-  sap_product                       = "S4HANA"
-  managed_resource_group_name       = "acctestmanagedRG%d"
-  central_server_virtual_machine_id = "%s"
-  managed_storage_account_name      = "acctestmanagedsa%s"
+  name                                  = "%s"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
+  environment                           = "NonProd"
+  sap_product                           = "S4HANA"
+  managed_resource_group_name           = "acctestmanagedRG%d"
+  central_server_virtual_machine_id     = "%s"
+  managed_storage_account_name          = "acctestmanagedsa%s"
+  managed_resources_network_access_type = "Public"
 
   tags = {
     env = "Test2"
