@@ -15,13 +15,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/directories"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/directories"
 )
 
 type StorageShareDirectoryResourceDeprecated struct{}
 
 func TestAccStorageShareDirectory_basic_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -40,7 +40,7 @@ func TestAccStorageShareDirectory_basic_deprecated(t *testing.T) {
 }
 
 func TestAccStorageShareDirectory_basicAzureADAuth_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -59,7 +59,7 @@ func TestAccStorageShareDirectory_basicAzureADAuth_deprecated(t *testing.T) {
 }
 
 func TestAccStorageShareDirectory_uppercase_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -78,7 +78,7 @@ func TestAccStorageShareDirectory_uppercase_deprecated(t *testing.T) {
 }
 
 func TestAccStorageShareDirectory_requiresImport_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -97,7 +97,7 @@ func TestAccStorageShareDirectory_requiresImport_deprecated(t *testing.T) {
 }
 
 func TestAccStorageShareDirectory_complete_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -116,7 +116,7 @@ func TestAccStorageShareDirectory_complete_deprecated(t *testing.T) {
 }
 
 func TestAccStorageShareDirectory_update_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -142,7 +142,7 @@ func TestAccStorageShareDirectory_update_deprecated(t *testing.T) {
 }
 
 func TestAccStorageShareDirectory_nested_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -164,7 +164,7 @@ func TestAccStorageShareDirectory_nested_deprecated(t *testing.T) {
 }
 
 func TestAccStorageShareDirectory_nestedWithBackslashes_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 

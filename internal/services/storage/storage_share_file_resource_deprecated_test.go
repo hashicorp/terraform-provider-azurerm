@@ -17,13 +17,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
 )
 
 type StorageShareFileResourceDeprecated struct{}
 
 func TestAccAzureRMStorageShareFile_basic_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -42,7 +42,7 @@ func TestAccAzureRMStorageShareFile_basic_deprecated(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_basicAzureADAuth_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -61,7 +61,7 @@ func TestAccAzureRMStorageShareFile_basicAzureADAuth_deprecated(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_requiresImport_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -80,7 +80,7 @@ func TestAccAzureRMStorageShareFile_requiresImport_deprecated(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_complete_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -99,7 +99,7 @@ func TestAccAzureRMStorageShareFile_complete_deprecated(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_update_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -133,7 +133,7 @@ func TestAccAzureRMStorageShareFile_update_deprecated(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_withFile_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -161,7 +161,7 @@ func TestAccAzureRMStorageShareFile_withFile_deprecated(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_withEmptyFile_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -182,7 +182,7 @@ func TestAccAzureRMStorageShareFile_withEmptyFile_deprecated(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_withPath_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -201,7 +201,7 @@ func TestAccAzureRMStorageShareFile_withPath_deprecated(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShareFile_withPathUsingBackslashes_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
@@ -220,7 +220,7 @@ func TestAccAzureRMStorageShareFile_withPathUsingBackslashes_deprecated(t *testi
 }
 
 func TestAccAzureRMStorageShareFile_withPathInNameUsingBackslashes_deprecated(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skip("skipping as test is not valid in 5.0")
 	}
 
