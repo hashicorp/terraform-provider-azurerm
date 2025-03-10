@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers` Documentation
 
-The `servers` SDK allows for interaction with Azure Resource Manager `postgresql` (API Version `2023-06-01-preview`).
+The `servers` SDK allows for interaction with Azure Resource Manager `postgresql` (API Version `2024-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
 ```
 
 
