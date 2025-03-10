@@ -3045,7 +3045,7 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
-  virtual_network_subnet_id = azurerm_subnet.test.id
+  virtual_network_subnet_id              = azurerm_subnet.test.id
   virtual_network_backup_restore_enabled = true
 
   backup {
@@ -4318,7 +4318,7 @@ resource "azurerm_subnet" "test" {
 resource "azurerm_storage_account_network_rules" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
-  default_action = "Deny"
+  default_action             = "Deny"
   virtual_network_subnet_ids = [azurerm_subnet.test.id]
 }
 
