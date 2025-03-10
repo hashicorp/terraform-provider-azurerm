@@ -58,9 +58,10 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 			},
 
 			"scope": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             pluginsdk.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
 					// Elevated access (aka User Access Administrator role) is needed to assign roles in the following scopes:
 					// https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#azure-cli
