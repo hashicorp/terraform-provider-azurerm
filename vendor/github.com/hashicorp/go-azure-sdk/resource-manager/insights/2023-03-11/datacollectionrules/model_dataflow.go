@@ -5,6 +5,7 @@ package datacollectionrules
 
 type DataFlow struct {
 	BuiltInTransform *string                 `json:"builtInTransform,omitempty"`
+	CaptureOverflow  *bool                   `json:"captureOverflow,omitempty"`
 	Destinations     *[]string               `json:"destinations,omitempty"`
 	OutputStream     *string                 `json:"outputStream,omitempty"`
 	Streams          *[]KnownDataFlowStreams `json:"streams,omitempty"`

@@ -9,4 +9,5 @@ type LogFilesDataSource struct {
 	Name         *string                       `json:"name,omitempty"`
 	Settings     *LogFileSettings              `json:"settings,omitempty"`
 	Streams      []string                      `json:"streams"`
+	TransformKql *string                       `json:"transformKql,omitempty"`
 }
