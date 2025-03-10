@@ -54,6 +54,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `resource_manager_id` - The Resource Manager ID of this Storage Queue.
 
+* `url` - The data plane URL of the Storage Queue in the format of `<storage queue endpoint>/<queue name>`. E.g. `https://example.queue.core.windows.net/queue1`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

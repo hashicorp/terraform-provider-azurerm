@@ -24,6 +24,7 @@ func TestAccDataSourceStorageQueue_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestsadsc%[1]s.queue.core.windows.net/queuedstest-%[1]s", data.RandomString)),
 			),
 		},
 	})
@@ -43,6 +44,7 @@ func TestAccDataSourceStorageQueue_basicDeprecated(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestsadsc%[1]s.queue.core.windows.net/queuedstest-%[1]s", data.RandomString)),
 			),
 		},
 	})

@@ -76,6 +76,11 @@ func resourceStorageQueue() *pluginsdk.Resource {
 			},
 
 			"metadata": MetaDataSchema(),
+
+			"url": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
 		},
 	}
 
@@ -314,6 +319,7 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		resourceManagerId := parse.NewStorageQueueResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, id.AccountId.AccountName, "default", id.QueueName)
 		d.Set("resource_manager_id", resourceManagerId.ID())
+		d.Set("url", id.ID())
 
 		return nil
 	}
@@ -345,6 +351,22 @@ func resourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error
 			}
 		}
 	}
+
+	account, err := meta.(*clients.Client).Storage.GetAccount(ctx, commonids.NewStorageAccountID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName))
+	if err != nil {
+		return fmt.Errorf("retrieving Account for Queue %q: %v", id, err)
+	}
+	// Determine the queue endpoint, so we can build a data plane ID
+	endpoint, err := account.DataPlaneEndpoint(client.EndpointTypeQueue)
+	if err != nil {
+		return fmt.Errorf("determining Queue endpoint: %v", err)
+	}
+	// Parse the queue endpoint as a data plane account ID
+	accountDpId, err := accounts.ParseAccountID(*endpoint, meta.(*clients.Client).Storage.StorageDomainSuffix)
+	if err != nil {
+		return fmt.Errorf("parsing Account ID: %v", err)
+	}
+	d.Set("url", queues.NewQueueID(*accountDpId, id.QueueName).ID())
 
 	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.ID())
