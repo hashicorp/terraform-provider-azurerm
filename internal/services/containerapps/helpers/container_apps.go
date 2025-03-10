@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -160,6 +161,7 @@ type Ingress struct {
 	Transport              string                  `tfschema:"transport"`
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
+	AdditionalPortMappings []IngressPortMapping    `tfschema:"additional_port_mapping"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -227,6 +229,7 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 					}, false),
 					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
+				"additional_port_mapping": ContainerAppIngressAdditionalPortMapping(),
 			},
 		},
 	}
@@ -285,6 +288,7 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 					Computed:    true,
 					Description: "Client certificate mode for mTLS authentication. Ignore indicates server drops client certificate on forwarding. Accept indicates server forwards client certificate but does not require a client certificate. Require indicates server requires a client certificate.",
 				},
+				"additional_port_mapping": ContainerAppIngressAdditionalPortMappingComputed(),
 			},
 		},
 	}
@@ -305,6 +309,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		ExposedPort:            pointer.To(ingress.ExposedPort),
 		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
 		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
+		AdditionalPortMappings: expandAdditionalPortMappings(ingress.AdditionalPortMappings),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
@@ -331,6 +336,7 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 		ExposedPort:            pointer.From(ingress.ExposedPort),
 		TrafficWeights:         flattenContainerAppIngressTraffic(ingress.Traffic, appName),
 		IpSecurityRestrictions: flattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
+		AdditionalPortMappings: flattenContainerAppIngressAdditionalPortMappings(ingress.AdditionalPortMappings),
 	}
 
 	if ingress.Transport != nil {
@@ -489,6 +495,12 @@ type IpSecurityRestriction struct {
 	Name           string `tfschema:"name"`
 }
 
+type IngressPortMapping struct {
+	ExposedPort *int64 `tfschema:"exposed_port"`
+	External    bool   `tfschema:"external"`
+	TargetPort  int64  `tfschema:"target_port"`
+}
+
 func ContainerAppIngressIpSecurityRestriction() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -598,6 +610,59 @@ func ContainerAppIngressTrafficWeight() *pluginsdk.Schema {
 	}
 }
 
+func ContainerAppIngressAdditionalPortMapping() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"external": {
+					Type:        pluginsdk.TypeBool,
+					Required:    true,
+					Description: "Whether the app port is accessible outside of the environment",
+				},
+				"target_port": {
+					Type:        pluginsdk.TypeInt,
+					Required:    true,
+					Description: "The additional target port on the container for the Ingress traffic.",
+				},
+				"exposed_port": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 65535),
+					Description:  "The additional exposed port for the Ingress traffic.",
+				},
+			},
+		},
+	}
+}
+
+func ContainerAppIngressAdditionalPortMappingComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*schema.Schema{
+				"external": {
+					Type:        pluginsdk.TypeBool,
+					Computed:    true,
+					Description: "Whether the app port is accessible outside of the environment",
+				},
+				"target_port": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The additional target port on the container for the Ingress traffic.",
+				},
+				"exposed_port": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The additional exposed port for the Ingress traffic.",
+				},
+			},
+		},
+	}
+}
+
 func ContainerAppIngressTrafficWeightComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -695,6 +760,36 @@ func expandIpSecurityRestrictions(input []IpSecurityRestriction) *[]containerapp
 	}
 
 	return &result
+}
+
+func expandAdditionalPortMappings(input []IngressPortMapping) *[]containerapps.IngressPortMapping {
+	if input == nil {
+		return &[]containerapps.IngressPortMapping{}
+	}
+	result := make([]containerapps.IngressPortMapping, len(input))
+	for i, mapping := range input {
+		result[i] = containerapps.IngressPortMapping{
+			ExposedPort: mapping.ExposedPort,
+			External:    mapping.External,
+			TargetPort:  mapping.TargetPort,
+		}
+	}
+	return &result
+}
+
+func flattenContainerAppIngressAdditionalPortMappings(input *[]containerapps.IngressPortMapping) []IngressPortMapping {
+	if input == nil {
+		return []IngressPortMapping{}
+	}
+	result := make([]IngressPortMapping, len(*input))
+	for i, v := range *input {
+		result[i] = IngressPortMapping{
+			ExposedPort: v.ExposedPort,
+			External:    v.External,
+			TargetPort:  v.TargetPort,
+		}
+	}
+	return result
 }
 
 type Dapr struct {
