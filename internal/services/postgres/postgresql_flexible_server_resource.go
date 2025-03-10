@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -352,7 +353,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-
 			if d.HasChange("version") {
 				oldVersionVal, newVersionVal := d.GetChange("version")
 				// `version` value has been validated already, ignore the parse errors is safe
@@ -364,31 +364,35 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 				return nil
 			}
-
 			return nil
 		}, func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-
+			var err error
 			createMode := servers.CreateMode(d.Get("create_mode").(string))
+			values := d.GetRawConfig().AsValueMap()
 
-			if _, ok := d.GetOk("replication_role"); ok {
-				return fmt.Errorf("`replication_role` cannot be set while creating")
+			switch createMode {
+			case servers.CreateModePointInTimeRestore, servers.CreateModeGeoRestore:
+				if values["source_server_id"].IsNull() {
+					err = multierror.Append(err, fmt.Errorf("`source_server_id` is required when `create_mode` is  %s", createMode))
+				}
+				if values["point_in_time_restore_time_in_utc"].IsNull() {
+					err = multierror.Append(err, fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is  %s", createMode))
+				}
+			case servers.CreateModeReplica:
+				if values["source_server_id"].IsNull() {
+					err = multierror.Append(err, fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`"))
+				}
+			case "", servers.CreateModeDefault:
+				if values["sku_name"].IsNull() {
+					err = multierror.Append(err, fmt.Errorf("`sku_name` is required when `create_mode` is `Default`"))
+				}
+
+				if values["version"].IsNull() {
+					err = multierror.Append(err, fmt.Errorf("`version` is required when `create_mode` is `Default`"))
+				}
 			}
 
-			if createMode == servers.CreateModePointInTimeRestore || createMode == servers.CreateModeGeoRestore {
-				if _, ok := d.GetOk("source_server_id"); !ok {
-					return fmt.Errorf("`source_server_id` is required when `create_mode` is  %s", createMode)
-				}
-				if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
-					return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is  %s", createMode)
-				}
-			}
-
-			if createMode == servers.CreateModeReplica {
-				if _, ok := d.GetOk("source_server_id"); !ok {
-					return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
-				}
-			}
-			return nil
+			return err
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			oldLoginName, _ := diff.GetChange("administrator_login")
 			if oldLoginName != "" {
@@ -512,14 +516,6 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			}
 		} else if adminLoginSet || adminPwdSet || !woPassword.IsNull() {
 			return fmt.Errorf("`administrator_login`, `administrator_password` and `administrator_password_wo` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
-		}
-
-		if _, ok := d.GetOk("sku_name"); !ok {
-			return fmt.Errorf("`sku_name` is required when `create_mode` is `Default`")
-		}
-
-		if _, ok := d.GetOk("version"); !ok {
-			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
 		}
 	}
 
