@@ -153,6 +153,12 @@ func resourceComputeInstance() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			 "root_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": commonschema.TagsForceNew(),
 		},
 	}
@@ -247,6 +253,10 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		props.Properties.ComputeInstanceAuthorizationType = pointer.To(machinelearningcomputes.ComputeInstanceAuthorizationType(v.(string)))
 	}
 
+	if v, ok := d.GetOk("root_access_enabled"); ok {
+		props.Properties.EnableRootAccess = pointer.To(v.(bool))
+	}
+
 	parameters.Properties = props
 
 	future, err := client.ComputeCreateOrUpdate(ctx, id, parameters)
@@ -326,6 +336,10 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 
 		d.Set("node_public_ip_enabled", enableNodePublicIP)
+	}
+
+	if v, ok := resp.Properties["enableRootAccess"].(bool); ok {
+		d.Set("root_access_enabled", v)
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)

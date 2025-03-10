@@ -122,6 +122,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Instance. Changing this forces a new Machine Learning Compute Instance to be created.
 
+* `root_access_enabled` - (Optional) Specifies whether root access is enabled for the compute instance. Defaults to `false`.
+
 ---
 
 An `identity` block supports the following:
