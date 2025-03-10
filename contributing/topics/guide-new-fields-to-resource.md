@@ -20,7 +20,7 @@ The position of the new property is determined based on the order found in [addi
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
+			Type:	 pluginsdk.TypeString,
 			Required: true,
 		},
 		
@@ -29,7 +29,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		"logging_enabled": {
 			Type: pluginsdk.TypeBool,
 			Optional: true,
-        }       
+		}	   
 
 		"tags": commonschema.TagsDataSource(),
 	}
@@ -50,7 +50,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 props := machinelearning.Workspace{
 	Properties: &machinelearning.WorkspaceProperties{
 		LoggingEnabled: pointer.To(model.LoggingEnabled)
-    }
+	}
 }
 ```
 
@@ -110,11 +110,11 @@ As an example, let's deprecate and replace the property `enable_compression` wit
 
 ```go
 func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
-    return map[string]*pluginsdk.Schema{
-        "enable_compression": {
-            Type:     pluginsdk.TypeBool,
-            Optional: true,
-        },
+	return map[string]*pluginsdk.Schema{
+		"enable_compression": {
+			Type:	 pluginsdk.TypeBool,
+			Optional: true,
+		},
 }
 ```
 
@@ -122,32 +122,32 @@ After deprecation the schema might look like the example below.
 
 ```go
 func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
-    return map[string]*pluginsdk.Schema{
-            // The deprecated property is moved out of the schema and conditionally added back via the feature flag
-            "compression_enabled": {
-                Type:       pluginsdk.TypeBool,
-                Optional:   true,
-                Computed:   true 
-            },
-        }
-    }
-    
-    if !features.FourPointOhBeta() {
+	return map[string]*pluginsdk.Schema{
+			// The deprecated property is moved out of the schema and conditionally added back via the feature flag
+			"compression_enabled": {
+				Type:	   pluginsdk.TypeBool,
+				Optional:   true,
+				Computed:   true 
+			},
+		}
+	}
+	
+	if !features.FourPointOhBeta() {
 		resource.Schema["compression_enabled"] = &pluginsdk.Schema{
-            Type:       pluginsdk.TypeBool,
-            Optional:   true,
-        }
-		
-    	resource.Schema["enable_compression"] = &pluginsdk.Schema{
-            Type:       pluginsdk.TypeBool,
-            Optional:   true,
-            Computed:   true,
-            Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v4.0 of the provider",
-            ConflictsWith: []string{"compression_enabled"}
-        }   
-    }
-    
-    return resource
+			Type:	   pluginsdk.TypeBool,
+			Optional:   true,
+		}
+
+		resource.Schema["enable_compression"] = &pluginsdk.Schema{
+			Type:	   pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v4.0 of the provider",
+			ConflictsWith: []string{"compression_enabled"}
+		}   
+	}
+	
+	return resource
 }
 ```
 
@@ -160,23 +160,23 @@ func (r ExampleResource) Create() sdk.ResourceFunc {
 	if !features.FourPointOhBeta() {
 		if _, ok := d.GetOk("enable_compression"); ok {
 			compressionEnabled = model.CompressionEnabled
-		}       
-    }
-    
-    if _, ok := d.GetOk("compression_enabled"); ok {
-        compressionEnabled = model.EnableCompression
-    }
+		}	   
+	}
+	
+	if _, ok := d.GetOk("compression_enabled"); ok {
+		compressionEnabled = model.EnableCompression
+	}
 	...
 }
 
 func (r ExampleResource) Read() sdk.ResourceFunc {
 	...
-    state.CompressionEnabled = pointer.From(resp.Model.Properties.CompressionEnabled)
+	state.CompressionEnabled = pointer.From(resp.Model.Properties.CompressionEnabled)
 
 
 if !features.FourPointOhBeta() {
-        state.EnableCompression = pointer.From(resp.Model.Properties.CompressionEnabled)
-    }   
+		state.EnableCompression = pointer.From(resp.Model.Properties.CompressionEnabled)
+	}   
 	...
 }
 ```
@@ -185,7 +185,7 @@ When deprecating a property in a Typed Resource, it is important to ensure that 
 
 ```go
 type ExampleResourceModel struct {
-	Name               string `tfschema:"name"`
+	Name			   string `tfschema:"name"`
 	EnableCompression  bool `tfschema:"enable_compression,removedInNextMajorVersion"`
 	CompressionEnabled bool `tfschema:"compression_enabled"`
 }
