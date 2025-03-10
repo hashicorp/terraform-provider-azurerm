@@ -352,31 +352,42 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			createModeVal := d.Get("create_mode").(string)
 
-			if createModeVal == string(servers.CreateModeUpdate) {
+			if d.HasChange("version") {
 				oldVersionVal, newVersionVal := d.GetChange("version")
+				// `version` value has been validated already, ignore the parse errors is safe
+				oldVersion, _ := strconv.ParseInt(oldVersionVal.(string), 10, 32)
+				newVersion, _ := strconv.ParseInt(newVersionVal.(string), 10, 32)
 
-				if oldVersionVal != "" && newVersionVal != "" {
-					oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
+				if oldVersion > newVersion {
+					d.ForceNew("version")
+				}
+				return nil
+			}
 
-					newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
+			return nil
+		}, func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 
-					if oldVersion < newVersion {
-						return nil
-					}
+			createMode := servers.CreateMode(d.Get("create_mode").(string))
+
+			if _, ok := d.GetOk("replication_role"); ok {
+				return fmt.Errorf("`replication_role` cannot be set while creating")
+			}
+
+			if createMode == servers.CreateModePointInTimeRestore || createMode == servers.CreateModeGeoRestore {
+				if _, ok := d.GetOk("source_server_id"); !ok {
+					return fmt.Errorf("`source_server_id` is required when `create_mode` is  %s", createMode)
+				}
+				if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
+					return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is  %s", createMode)
 				}
 			}
 
-			d.ForceNew("create_mode")
-			d.ForceNew("version")
-
+			if createMode == servers.CreateModeReplica {
+				if _, ok := d.GetOk("source_server_id"); !ok {
+					return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
+				}
+			}
 			return nil
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			oldLoginName, _ := diff.GetChange("administrator_login")
@@ -472,21 +483,6 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 
 	if _, ok := d.GetOk("replication_role"); ok {
 		return fmt.Errorf("`replication_role` cannot be set while creating")
-	}
-
-	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore || servers.CreateMode(createMode) == servers.CreateModeGeoRestore {
-		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is  %s", createMode)
-		}
-		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
-			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is  %s", createMode)
-		}
-	}
-
-	if servers.CreateMode(createMode) == servers.CreateModeReplica {
-		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
-		}
 	}
 
 	woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
