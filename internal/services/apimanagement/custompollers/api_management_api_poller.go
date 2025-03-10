@@ -35,6 +35,8 @@ var (
 	}
 )
 
+// NewAPIManagementAPIPoller - creates a new poller for API Management API operations to handle the case there is a query string
+// parameter "asyncId" in the Location header of the response. This is used to poll the status of the operation.
 func NewAPIManagementAPIPoller(cli *api.ApiClient, id api.ApiId, response *http.Response) *apiManagementAPIPoller {
 	urlStr := response.Header.Get("location")
 	var asyncId string

@@ -21,7 +21,7 @@ paths:
           name: status
           schema:
             type: string
-            default: PRODUCTIVEInvalide
+            default: PRODUCTIVEInvalid
             enum:
               - PRODUCTIVE
               - ARCHIVED

@@ -233,19 +233,19 @@ func TestAccApiManagementApi_importOpenapi(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementApi_importOpenapiInvalide(t *testing.T) {
+func TestAccApiManagementApi_importOpenapiInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.importOpenapiInvalide(data),
+			Config:      r.importOpenapiInvalid(data),
 			ExpectError: regexp.MustCompile("ValidationError"),
 		},
 	})
 }
 
-func TestAccApiManagementApi_updateImportOpenapiInvalide(t *testing.T) {
+func TestAccApiManagementApi_updateImportOpenapiInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
 
@@ -258,7 +258,7 @@ func TestAccApiManagementApi_updateImportOpenapiInvalide(t *testing.T) {
 		},
 		data.ImportStep("import"),
 		{
-			Config:      r.importOpenapiInvalide(data),
+			Config:      r.importOpenapiInvalid(data),
 			ExpectError: regexp.MustCompile("ValidationError"),
 		},
 		{
@@ -659,7 +659,7 @@ resource "azurerm_api_management_api" "test" {
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
 }
 
-func (r ApiManagementApiResource) importOpenapiInvalide(data acceptance.TestData) string {
+func (r ApiManagementApiResource) importOpenapiInvalid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -673,7 +673,7 @@ resource "azurerm_api_management_api" "test" {
   revision            = "current"
 
   import {
-    content_value  = file("testdata/api_management_api_openapi_invalide.yaml")
+    content_value  = file("testdata/api_management_api_openapi_invalid.yaml")
     content_format = "openapi"
   }
 }

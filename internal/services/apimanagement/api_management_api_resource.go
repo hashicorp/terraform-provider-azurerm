@@ -409,7 +409,6 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	description := d.Get("description").(string)
 	serviceUrl := d.Get("service_url").(string)
 	subscriptionRequired := d.Get("subscription_required").(bool)
 
@@ -452,8 +451,8 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 		params.Properties.SourceApiId = pointer.To(sourceApiId)
 	}
 
-	if description != "" {
-		params.Properties.Description = pointer.To(description)
+	if description, ok := d.GetOk("description"); ok {
+		params.Properties.Description = pointer.To(description.(string))
 	}
 
 	if displayName != "" {
