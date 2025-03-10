@@ -14,51 +14,56 @@ The Provider is split up into Service Packages (see [terminology](reference-glos
 
 At a high-level, the Provider structure is:
 
-* `./examples` - More complete example usages of Data Sources and Resources offered by this Provider.
-* `./helpers` - **This package is deprecated (and so intentionally not documented) - new functionality should instead be added to either the Service Package or [go-azure-helpers](https://github.com/hashicorp/go-azure-helpers)**.
-* `./internal`
-    * `./acceptance` - the Acceptance Test wrappers that we use in the Azure Provider, offering common patterns across the Provider to be reused.
-    * `./clients` - refers to the Client from each Service Package, which is used in Data Sources and Resources to access the Azure APIs.
-    * `./common` - helper functions for registering Clients (for example, setting the user agent, configuring credentials etc.).
-    * `./features` - feature Toggles for Provider functionality and behaviour (for example, enabling Betas or changing a resource type's soft delete or purge protection). This also contains the struct and parsing of/default values for the `features` block (within the Provider block).
-    * `./locks` - common locking across resources where necessary to workaround API consistency issues.
-    * `./provider` - the Provider implementation itself, the Provider schema and a reference to each Service Registration so that Data Sources and Resources can be surfaced within the Provider.
-    * `./resourceid` - helper functions and types for working with Azure Resource IDs. This package is **deprecated** in favour of `github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids` and will be removed in the future.
-    * `./resourceproviders` - the list of Resource Providers which should be auto-registered by the Provider.
-    * `./sdk` - the Typed Plugin SDK functionality used in this Provider.
-    * `./services` - packages for each service that the provider supports (e.g. `appconfiguration`, `compute`) which contain the Data Sources and Resources supported by the service.
-    * `./tags` - helpers for parsing Tags from the Terraform Configuration and setting Tags into the Terraform State.
-    * `./tf` - helpers and abstractions on top of the Terraform Plugin SDK.
-    * `./timeouts` - helpers for computing the Timeouts for a Data Source / Resource - used in Untyped Data Sources and Untyped Resources.
-    * `./tools` - tooling used to generate functionality within the Provider, for example for Resource IDs and Website Documentation.
-* `./scripts` - scripts used during testing, linting, and building the provider.
-* `./utils` - helper functions for converting simple types (e.g. bool/int/strings) to pointers (e.g. `pointer.To(“someValue”)`). **We intend to deprecate this folder in time** and new functionality should be added to individual service packages where possible. The existing functions will be gradually moved (via aliasing) into another repository.
-* `./vendor` - vendored copies of the go modules the provider uses. For more information please refer to the official [Go Documentation](https://go.dev/ref/mod#vendoring).
-* `./website` - guides and documentation for each resource (in `./website/docs/r`) and data source (in `./website/docs/d`) that are published to the Terraform [registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs).
+| Directory/Package | Description |
+|-------------------|-------------|
+| `./examples` | More complete example usages of Data Sources and Resources offered by this Provider. |
+| `./helpers` | **This package is deprecated (and so intentionally not documented) - new functionality should instead be added to either the Service Package or [go-azure-helpers](https://github.com/hashicorp/go-azure-helpers)**. |
+| `./internal/acceptance` | The Acceptance Test wrappers that we use in the Azure Provider, offering common patterns across the Provider to be reused. |
+| `./internal/clients` | Refers to the Client from each Service Package, which is used in Data Sources and Resources to access the Azure APIs. |
+| `./internal/common` | Helper functions for registering Clients (for example, setting the user agent, configuring credentials etc.). |
+| `./internal/features` | Feature Toggles for Provider functionality and behaviour (for example, enabling Betas or changing a resource type's soft delete or purge protection). This also contains the struct and parsing of/default values for the `features` block (within the Provider block). |
+| `./internal/locks` | Common locking across resources where necessary to workaround API consistency issues. |
+| `./internal/provider` | The Provider implementation itself, the Provider schema and a reference to each Service Registration so that Data Sources and Resources can be surfaced within the Provider. |
+| `./internal/resourceid` | Helper functions and types for working with Azure Resource IDs. This package is **deprecated** in favour of `github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids` and will be removed in the future. |
+| `./internal/resourceproviders` | The list of Resource Providers which should be auto-registered by the Provider. |
+| `./internal/sdk` | The Typed Plugin SDK functionality used in this Provider. |
+| `./internal/services` | Packages for each service that the provider supports (e.g. `appconfiguration`, `compute`) which contain the Data Sources and Resources supported by the service. |
+| `./internal/tags` | Helpers for parsing Tags from the Terraform Configuration and setting Tags into the Terraform State. |
+| `./internal/tf` | Helpers and abstractions on top of the Terraform Plugin SDK. |
+| `./internal/timeouts` | Helpers for computing the Timeouts for a Data Source / Resource - used in Untyped Data Sources and Untyped Resources. |
+| `./internal/tools` | Tooling used to generate functionality within the Provider, for example for Resource IDs and Website Documentation. |
+| `./scripts` | Scripts used during testing, linting, and building the provider. |
+| `./utils` | Helper functions for converting simple types (e.g. bool/int/strings) to pointers (e.g. `pointer.To(“someValue”)`). **We intend to deprecate this folder in time** and new functionality should be added to individual service packages where possible. The existing functions will be gradually moved (via aliasing) into another repository. |
+| `./vendor` | Vendored copies of the go modules the provider uses. For more information please refer to the official [Go Documentation](https://go.dev/ref/mod#vendoring). |
+| `./website` | Guides and documentation for each resource (in `./website/docs/r`) and data source (in `./website/docs/d`) that are published to the Terraform [registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs). |.
 
 > **Note:** Due to the size of the codebase and open Pull Requests - when functionality is moved we use aliasing to try and avoid breaking open Pull Requests / big-bang migrations. These aliases stick around for a few weeks to allow open PRs to be merged without extra out-of-scope changes - at which point these aliases are removed.
 
 Each Service Package consists of (to take `appconfiguration` as an example):
 
-* `./services/appconfiguration`
-    * `./client` - a Client struct, with a reference to any SDK Clients used to access the Azure APIs within this Service Package.
-    * `./parse` - resource ID Formatters and Parsers.
-    * `./validate` - validation functions for this Service Package, including Resource ID Validators.
-    * `./app_configuration_data_source.go` - the Data Source `azurerm_app_configuration`
-    * `./app_configuration_data_source_test.go` - Acceptance tests for the Data Source `azurerm_app_configuration`
-    * `./app_configuration_key_resource.go` - the Resource `azurerm_app_configuration_key`
-    * `./app_configuration_key_resource_test.go` - Acceptance Tests for the Resource `azurerm_app_configuration_key`
-    * `./app_configuration_resource.go` - the Resource `azurerm_app_configuration`
-    * `./app_configuration_resource_test.go` - Acceptance tests for the Resource `azurerm_app_configuration`
-    * `./registration.go` - the Service Registration for this Service Package
+| File/Directory | Description |
+|----------------|-------------|
+| `./services/appconfiguration` | |
+| `./client` | A Client struct, with a reference to any SDK Clients used to access the Azure APIs within this Service Package. |
+| `./parse` | Resource ID Formatters and Parsers. |
+| `./validate` | Validation functions for this Service Package, including Resource ID Validators. |
+| `./app_configuration_data_source.go` | The Data Source `azurerm_app_configuration`. |
+| `./app_configuration_data_source_test.go` | Acceptance tests for the Data Source `azurerm_app_configuration`. |
+| `./app_configuration_key_resource.go` | The Resource `azurerm_app_configuration_key`. |
+| `./app_configuration_key_resource_test.go` | Acceptance Tests for the Resource `azurerm_app_configuration_key`. |
+| `./app_configuration_resource.go` | The Resource `azurerm_app_configuration`. |
+| `./app_configuration_resource_test.go` | Acceptance tests for the Resource `azurerm_app_configuration`. |
+| `./registration.go` | The Service Registration for this Service Package. |
 
 Some Service Packages may also contain:
 
-* `./migration` - any State Migrations used in Resources.
-* `./sdk` - any Embedded SDKs used to access the Azure APIs (either Resource Manager or Data Plane).
-* `./resourceids.go` - used to generate Resource ID Formatters, Parsers and Validators.
+| File/Directory         | Description                                                                                  |
+|------------------------|----------------------------------------------------------------------------------------------|
+| `./migration`          | Any State Migrations used in Resources.                                                      |
+| `./sdk`                | Any Embedded SDKs used to access the Azure APIs (either Resource Manager or Data Plane).     |
+| `./resourceids.go`     | Used to generate Resource ID Formatters, Parsers and Validators.                             |
 
-—-
+---
 
 * Data Sources use the filename format: `{name}_data_source.go`
 * Acceptance Tests for Data Sources use the filename format: `{name}_data_source_test.go` (note: Golang requires that Tests are contained within a `test.go` file)
