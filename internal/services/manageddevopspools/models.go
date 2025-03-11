@@ -9,7 +9,7 @@ const (
 	AgentProfileKindStateful  = "Stateful"
 )
 
-type ManagedDevOpsPoolResourceModel struct {
+type ManagedDevOpsPoolModel struct {
 	AgentProfile               AgentProfileModel                          `tfschema:"agent_profile"`
 	DevCenterProjectResourceId string                                     `tfschema:"dev_center_project_id"`
 	FabricProfile              FabricProfileModel                         `tfschema:"fabric_profile"`
@@ -18,6 +18,7 @@ type ManagedDevOpsPoolResourceModel struct {
 	MaximumConcurrency         int64                                      `tfschema:"maximum_concurrency"`
 	Name                       string                                     `tfschema:"name"`
 	OrganizationProfile        OrganizationProfileModel                   `tfschema:"organization_profile"`
+	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
 	Tags                       map[string]string                          `tfschema:"tags"`
 	Type                       string                                     `tfschema:"type"`
 }

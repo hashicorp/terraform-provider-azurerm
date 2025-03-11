@@ -51,7 +51,7 @@ func (ManagedDevOpsPoolResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (ManagedDevOpsPoolResource) ModelObject() interface{} {
-	return &ManagedDevOpsPoolResourceModel{}
+	return &ManagedDevOpsPoolModel{}
 }
 
 func (ManagedDevOpsPoolResource) ResourceType() string {
@@ -64,7 +64,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedDevOpsPools.PoolsClient
 
-			var config ManagedDevOpsPoolResourceModel
+			var config ManagedDevOpsPoolModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -104,7 +104,7 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedDevOpsPools.PoolsClient
 
-			var config ManagedDevOpsPoolResourceModel
+			var config ManagedDevOpsPoolModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -161,7 +161,7 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ManagedDevOpsPoolResourceModel{
+			state := ManagedDevOpsPoolModel{
 				Name: id.PoolName,
 			}
 
@@ -203,7 +203,7 @@ func (ManagedDevOpsPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 	return pools.ValidatePoolID
 }
 
-func (r ManagedDevOpsPoolResource) mapResourceModelToPool(input ManagedDevOpsPoolResourceModel, output *pools.Pool) error {
+func (r ManagedDevOpsPoolResource) mapResourceModelToPool(input ManagedDevOpsPoolModel, output *pools.Pool) error {
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding SystemAndUserAssigned Identity: %+v", err)
