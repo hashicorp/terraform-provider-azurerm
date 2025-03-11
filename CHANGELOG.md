@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: update `Go` version to `1.24.1` [GH-28999]
+* `azurerm_mongo_cluster` - add support for `M10`, `M20`, and `M200` compute tiers [GH-29026]
 
 BUG FIXES:
 
