@@ -9,7 +9,9 @@ type Registration struct{}
 var _ sdk.TypedServiceRegistration = Registration{}
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		ManagedDevOpsPoolDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
