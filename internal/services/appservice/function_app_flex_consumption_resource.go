@@ -6,7 +6,6 @@ package appservice
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
@@ -1054,7 +1054,7 @@ func ExpandAlwaysReadyConfiguration(input []FunctionAppAlwaysReadyConfig, maximu
 	var totalInstanceCount int64
 	arList := make([]webapps.FunctionsAlwaysReadyConfig, 0)
 	for _, v := range input {
-		totalInstanceCount = totalInstanceCount + v.InstanceCount
+		totalInstanceCount += v.InstanceCount
 		arList = append(arList, webapps.FunctionsAlwaysReadyConfig{
 			Name:          pointer.To(v.Name),
 			InstanceCount: pointer.To(v.InstanceCount),
