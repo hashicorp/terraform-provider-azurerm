@@ -213,21 +213,13 @@ func TestAccBackupProtectedVm_protectionStoppedOnDestroy(t *testing.T) {
 	})
 }
 
-<<<<<<< HEAD
 func TestAccBackupProtectedVm_protectionStoppedOnDestroyWithGuard(t *testing.T) {
-=======
-func TestAccBackupProtectedVm_protectionSuspendedOnDestroy(t *testing.T) {
->>>>>>> main
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 	r := BackupProtectedVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-<<<<<<< HEAD
 			Config: r.basicWithGuard(data),
-=======
-			Config: r.basicWithSuspendProtection(data, false),
->>>>>>> main
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -235,11 +227,26 @@ func TestAccBackupProtectedVm_protectionSuspendedOnDestroy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-<<<<<<< HEAD
 			Config: r.protectionStoppedOnDestroy(data),
-=======
+		},
+	})
+}
+
+func TestAccBackupProtectedVm_protectionSuspendedOnDestroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
+	r := BackupProtectedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithSuspendProtection(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basicWithSuspendProtection(data, true),
->>>>>>> main
 		},
 	})
 }
@@ -1028,20 +1035,14 @@ provider "azurerm" {
 `, r.baseWithSoftDelete(data), protectedVMBlock)
 }
 
-<<<<<<< HEAD
 func (r BackupProtectedVmResource) basicWithGuard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-=======
-func (r BackupProtectedVmResource) basicWithSuspendProtection(data acceptance.TestData, deleted bool) string {
-	protectedVMBlock := `
->>>>>>> main
 resource "azurerm_backup_protected_vm" "test" {
   resource_group_name = azurerm_resource_group.test.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
   source_vm_id        = azurerm_virtual_machine.test.id
-<<<<<<< HEAD
   backup_policy_id    = azurerm_backup_policy_vm.test.id
 
   include_disk_luns = [0]
@@ -1060,7 +1061,14 @@ resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
   resource_guard_id = azurerm_data_protection_resource_guard.test.id
 }
 `, r.base(data), data.RandomInteger)
-=======
+}
+
+func (r BackupProtectedVmResource) basicWithSuspendProtection(data acceptance.TestData, deleted bool) string {
+	protectedVMBlock := `
+resource "azurerm_backup_protected_vm" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  source_vm_id        = azurerm_virtual_machine.test.id
   backup_policy_id    = join("/", [azurerm_recovery_services_vault.test.id, "backupPolicies/EnhancedPolicy"])
 
   include_disk_luns = [0]
@@ -1208,5 +1216,4 @@ resource "azurerm_recovery_services_vault" "test" {
 
 %[4]s
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, protectedVMBlock)
->>>>>>> main
 }
