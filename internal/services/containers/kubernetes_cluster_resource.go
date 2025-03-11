@@ -1465,6 +1465,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsRFC3339Time,
+							Default:      time.Now().UTC().Add(72 * time.Hour).Format(time.RFC3339),
 						},
 					},
 				},
