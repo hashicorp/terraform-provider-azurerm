@@ -119,9 +119,9 @@ A `encryption` block supports the following:
 
 An `ip_address_pool` block supports the following:
 
-* `id` - (Required) The ID of the Network Manager IPAM Pool.
+* `id` - (Required) The ID of the Network Manager IP Address Management (IPAM) Pool.
 
-* `ip_address_number` - (Required) The number of IP addresses to allocated to the Virtual Network. The value should be positive integer but in string format, e.g., `"100"`.
+* `ip_address_number` - (Required) The number of IP addresses to allocated to the Virtual Network. The value must be a string that represents a positive number, e.g., `"100"`.
 
 ---
 

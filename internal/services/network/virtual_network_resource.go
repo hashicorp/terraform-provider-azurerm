@@ -164,7 +164,8 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						Required: true,
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[1-9]\d*$`),
-							"ip_address_number must be positive integer"),
+							"`ip_address_number` must be a string that represents a positive number",
+						),
 					},
 
 					"allocated_ip_address_prefixes": {

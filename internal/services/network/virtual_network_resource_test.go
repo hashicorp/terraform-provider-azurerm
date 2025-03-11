@@ -332,6 +332,7 @@ func TestAccVirtualNetwork_ipAddressPoolUpdateNumber(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		// The ip_address_number can only be increated, so here we don't update back
 	})
 }
 
