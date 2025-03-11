@@ -1516,7 +1516,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	// Start of Data Plane access - this entire block can be removed for 5.0, as the data_plane_available flag becomes redundant at that time.
 	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage
-		dataPlaneAccount, err := storageUtils.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+		dataPlaneAccount, err := storageUtils.GetAccount(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -1952,7 +1952,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 			}
 
-			account, err := dataPlaneClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := dataPlaneClient.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -1980,7 +1980,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 			}
 
-			account, err := dataPlaneClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := dataPlaneClient.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -2057,7 +2057,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// we then need to find the storage account
-	account, err := storageUtils.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+	account, err := storageUtils.GetAccount(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
