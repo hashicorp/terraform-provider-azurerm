@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package containers
 
 import (
@@ -56,7 +59,7 @@ func (KubernetesFleetManagerDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20231015.Fleets
+			client := metadata.Client.ContainerService.V20240401.Fleets
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state KubernetesFleetManagerDataSourceModel

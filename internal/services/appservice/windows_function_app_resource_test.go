@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -179,12 +178,22 @@ func TestAccWindowsFunctionApp_withCustomContentShareElasticPremiumPlan(t *testi
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan),
+			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan, "test-acc-custom-content-share"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("3"),
 				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("test-acc-custom-content-share"),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan, "test-acc-custom-content-updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("3"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("test-acc-custom-content-updated"),
 			),
 		},
 		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
@@ -1182,6 +1191,14 @@ func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackNode(data, SkuBasicPlan, "~22"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1503,15 +1520,9 @@ func TestAccWindowsFunctionApp_vNetIntegration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
 
-	var vnetIntegrationProperties string
-	if features.FourPointOhBeta() {
-		vnetIntegrationProperties = r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan)
-	} else {
-		vnetIntegrationProperties = r.vNetIntegration_subnet1(data, SkuStandardPlan)
-	}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: vnetIntegrationProperties,
+			Config: r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -1831,7 +1842,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r WindowsFunctionAppResource) appSettingsCustomContentShare(data acceptance.TestData, planSku string) string {
+func (r WindowsFunctionAppResource) appSettingsCustomContentShare(data acceptance.TestData, planSku string, customShareName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1851,12 +1862,12 @@ resource "azurerm_windows_function_app" "test" {
   app_settings = {
     foo                  = "bar"
     secret               = "sauce"
-    WEBSITE_CONTENTSHARE = "test-acc-custom-content-share"
+    WEBSITE_CONTENTSHARE = "%s"
   }
 
   site_config {}
 }
-`, r.template(data, planSku), data.RandomInteger)
+`, r.template(data, planSku), data.RandomInteger, customShareName)
 }
 
 func (r WindowsFunctionAppResource) appSettingsCustomContentShareVnetEnabled(data acceptance.TestData, planSku string) string {
@@ -3901,33 +3912,6 @@ resource "azurerm_windows_function_app" "test" {
 
 // TODO 4.0 enable the vnet_image_pull_enabled property for app running in ase env
 func (r WindowsFunctionAppResource) withASEV3(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_windows_function_app" "test" {
-  name                = "acctest-WFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
-
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-
-  site_config {
-    vnet_route_all_enabled = true
-  }
-}
-`, ServicePlanResource{}.aseV3(data), data.RandomString, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 %s
 

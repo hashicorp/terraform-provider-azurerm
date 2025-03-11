@@ -20,7 +20,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,10 +80,26 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"administrator_password": {
-				Type:         pluginsdk.TypeString,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"administrator_password_wo"},
+			},
+
+			"administrator_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"administrator_password"},
+				RequiredWith:  []string{"administrator_password_wo_version"},
+			},
+
+			"administrator_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"administrator_password_wo"},
 			},
 
 			"authentication": {
@@ -439,10 +456,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := servers.NewFlexibleServerID(subscriptionId, resourceGroup, name)
+	id := servers.NewFlexibleServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -475,6 +489,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+
 	if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
 		_, adminLoginSet := d.GetOk("administrator_login")
 		_, adminPwdSet := d.GetOk("administrator_password")
@@ -492,11 +511,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
 
-			if !adminPwdSet {
-				return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
+			if !adminPwdSet && woPassword.IsNull() {
+				return fmt.Errorf("`administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
-		} else if adminLoginSet || adminPwdSet {
-			return fmt.Errorf("`administrator_login` and `administrator_password` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
+		} else if adminLoginSet || adminPwdSet || !woPassword.IsNull() {
+			return fmt.Errorf("`administrator_login`, `administrator_password` and `administrator_password_wo` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
 		}
 
 		if _, ok := d.GetOk("sku_name"); !ok {
@@ -556,6 +575,10 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 
 	if v, ok := d.GetOk("administrator_password"); ok && v.(string) != "" {
 		parameters.Properties.AdministratorLoginPassword = utils.String(v.(string))
+	}
+
+	if !woPassword.IsNull() {
+		parameters.Properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
 	}
 
 	if createMode != "" {
@@ -644,9 +667,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("administrator_password_wo_version", d.Get("administrator_password_wo_version").(int))
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin) // if pwdEnabled is set to false, then the service does not return the value of AdministratorLogin
@@ -749,6 +773,11 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	requireUpdateOnLogin := false // it's required to call Create with `createMode` set to `Update` to update login name.
 
+	woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+
 	createMode := d.Get("create_mode").(string)
 	if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
 		_, adminLoginSet := d.GetOk("administrator_login")
@@ -766,8 +795,8 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 			if !adminLoginSet {
 				return fmt.Errorf("`administrator_login` is required when `authentication.password_auth_enabled` is set to `true`")
 			}
-			if !adminPwdSet {
-				return fmt.Errorf("`administrator_password` is required when `authentication.password_auth_enabled` is set to `true`")
+			if !adminPwdSet && woPassword.IsNull() {
+				return fmt.Errorf("`administrator_password` or `administrator_password_wo` is required when `authentication.password_auth_enabled` is set to `true`")
 			}
 		}
 
@@ -844,6 +873,12 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("administrator_password") {
 		parameters.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
+	}
+
+	if d.HasChange("administrator_password_wo_version") {
+		if !woPassword.IsNull() {
+			parameters.Properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
+		}
 	}
 
 	if d.HasChange("authentication") {

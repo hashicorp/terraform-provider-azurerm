@@ -19,12 +19,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
@@ -104,8 +105,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(redis.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.TlsVersionOnePointZero),
-					string(redis.TlsVersionOnePointOne),
 					string(redis.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -351,7 +350,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"redis_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      6,
+				Default:      "6",
 				ValidateFunc: validation.StringInSlice([]string{"4", "6"}, false),
 				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 					n := strings.Split(old, ".")
@@ -396,6 +395,19 @@ func resourceRedisCache() *pluginsdk.Resource {
 				return nil
 			}),
 		),
+	}
+
+	if !features.FivePointOh() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(redis.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redis.TlsVersionOnePointZero),
+				string(redis.TlsVersionOnePointOne),
+				string(redis.TlsVersionOnePointTwo),
+			}, false),
+		}
 	}
 
 	return resource
@@ -849,30 +861,28 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	skuName := d.Get("sku_name").(string)
 
 	if v := raw["maxclients"].(int); v > 0 {
-		output.Maxclients = utils.String(strconv.Itoa(v))
+		output.Maxclients = pointer.To(strconv.Itoa(v))
 	}
 
 	if d.Get("sku_name").(string) != string(redis.SkuNameBasic) {
 		if v := raw["maxmemory_delta"].(int); v > 0 {
-			output.MaxmemoryDelta = utils.String(strconv.Itoa(v))
+			output.MaxmemoryDelta = pointer.To(strconv.Itoa(v))
 		}
 
 		if v := raw["maxmemory_reserved"].(int); v > 0 {
-			output.MaxmemoryReserved = utils.String(strconv.Itoa(v))
+			output.MaxmemoryReserved = pointer.To(strconv.Itoa(v))
 		}
 
 		if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
-			output.MaxfragmentationmemoryReserved = utils.String(strconv.Itoa(v))
+			output.MaxfragmentationmemoryReserved = pointer.To(strconv.Itoa(v))
 		}
 	}
 
 	if v := raw["maxmemory_policy"].(string); v != "" {
-		output.MaxmemoryPolicy = utils.String(v)
+		output.MaxmemoryPolicy = pointer.To(v)
 	}
 
-	if v := raw["data_persistence_authentication_method"].(string); v != "" {
-		output.PreferredDataPersistenceAuthMethod = utils.String(v)
-	}
+	output.PreferredDataPersistenceAuthMethod = pointer.To(raw["data_persistence_authentication_method"].(string))
 
 	// AAD/Entra support
 	// nolint : staticcheck

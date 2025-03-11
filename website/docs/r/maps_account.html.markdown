@@ -38,6 +38,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Azure Maps Account should exist. Changing this forces a new resource to be created.
 
+* `location` - (Required) The Location in which the Azure Maps Account should be provisioned. Changing this forces a new resource to be created.
+
 * `sku_name` - (Required) The SKU of the Azure Maps Account. Possible values are `S0`, `S1` and `G2`. Changing this forces a new resource to be created.
 
 ~> **Note:** Gen1 SKUs (`S0` and `S1`) are deprecated and can no longer be used for new deployments, which should instead use a Gen2 SKU (`G2`) - more information can be found [in the Azure documentation](https://learn.microsoft.com/azure/azure-maps/how-to-manage-pricing-tier).
@@ -49,8 +51,6 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `local_authentication_enabled` - (Optional) Is local authentication enabled for this Azure Maps Account? When `false`, all authentication to the Azure Maps data-plane REST API is disabled, except Azure AD authentication. Defaults to `true`.
-
-* `location` - (Optional) The Location in which the Azure Maps Account should be provisioned. Changing this forces a new resource to be created. Defaults to `global`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Azure Maps Account.
 

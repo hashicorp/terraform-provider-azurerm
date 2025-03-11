@@ -30,6 +30,7 @@ resource "azurerm_container_app_environment" "example" {
   name                       = "my-environment"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  logs_destination           = "log-analytics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 }
 ```
@@ -64,7 +65,11 @@ The following arguments are supported:
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
 
-* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.
+* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. 
+
+~> **Note:** required if `logs_destination` is set to `log-analytics`. Cannot be set if `logs_destination` is set to `azure-monitor`.
+
+* `logs_destination` - (Optional) Where the application logs will be saved for this Container Apps Managed Environment. Possible values include `log-analytics` and `azure-monitor`. Omitting this value will result in logs being streamed only.
 
 * `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
 
