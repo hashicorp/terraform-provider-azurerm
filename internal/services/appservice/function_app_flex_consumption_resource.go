@@ -6,6 +6,7 @@ package appservice
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"strconv"
 	"strings"
 	"time"
@@ -189,15 +190,17 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.IntBetween(40, 1000),
 		},
 
+		// the name is always being lower-cased by the api: https://github.com/Azure/azure-rest-api-specs/issues/33095
 		"always_ready_config": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ValidateFunc:     validation.StringIsNotEmpty,
+						DiffSuppressFunc: suppress.CaseDifference,
 					},
 
 					"instance_count": {

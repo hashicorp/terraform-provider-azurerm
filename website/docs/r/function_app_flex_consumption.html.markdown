@@ -74,8 +74,6 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
----
-
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
 ~> **Note:** For storage related settings, please use related properties that are available such as `storage_account_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
@@ -134,9 +132,7 @@ The following arguments are supported:
 
 * `runtime_version` - (Optional) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
 
-* `always_ready_config` - (Optional) The always ready configurations of the Linux Function App.
-
-~> **Note:** The total number of `instance_count` under `always_ready_config` cannot exceed the number of `maximum_instance_count`.
+* `always_ready_config` - (Optional) A list of `always_ready_config` of the Linux Function App. Each `always_ready_config` block supports fields documented below.
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
@@ -157,6 +153,14 @@ The following arguments are supported:
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+
+---
+
+An `always_ready_config` block supports the following:
+
+* `name` - (Required) The name of the `always_ready_config` of the flex function app.
+
+* `instance_count` - (Required) The instance count of the `always_ready_config` of the flex function app. The minimum number is `0` and the total number of `instance_count` under `always_ready_config` should not exceed the number of `maximum_instance_count`.
 
 ---
 

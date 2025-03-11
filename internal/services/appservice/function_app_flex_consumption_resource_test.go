@@ -6,6 +6,7 @@ package appservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -207,6 +208,18 @@ func TestAccFunctionAppFlexConsumption_alwaysReady(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccFunctionAppFlexConsumption_alwaysReadyInstanceCountError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.alwaysReadyInstanceCountError(data),
+			ExpectError: regexp.MustCompile("the total of always-ready instances should not exceed the maximum sacle out limit"),
+		},
 	})
 }
 
@@ -1025,8 +1038,57 @@ resource "azurerm_function_app_flex_consumption" "test" {
     instance_count = 20
   }
 
+  site_config {
+    application_insights_key               = azurerm_application_insights.test.instrumentation_key
+    application_insights_connection_string = azurerm_application_insights.test.connection_string
+  }
+
+  lifecycle {
+    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r FunctionAppFlexConsumptionResource) alwaysReadyInstanceCountError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acct-uai2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_container_type            = "blobContainer"
+  storage_container_endpoint        = azurerm_storage_container.test.id
+  storage_authentication_type       = "UserAssignedIdentity"
+  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  runtime_name                      = "node"
+  runtime_version                   = "20"
+  maximum_instance_count            = 30
+  instance_memory_in_mb             = 2048
+  always_ready_config {
+    name           = "blob"
+    instance_count = 20
+  }
+  always_ready_config {
+    name           = "function:myHelloWorldFunction"
+    instance_count = 20
+  }
+
   site_config {}
-lifecycle {
+  lifecycle {
     ignore_changes = [webdeploy_publish_basic_authentication_enabled]
   }
 }
@@ -1070,8 +1132,11 @@ resource "azurerm_function_app_flex_consumption" "test" {
     instance_count = 20
   }
 
-  site_config {}
-lifecycle {
+  site_config {
+    application_insights_key               = azurerm_application_insights.test.instrumentation_key
+    application_insights_connection_string = azurerm_application_insights.test.connection_string
+  }
+  lifecycle {
     ignore_changes = [webdeploy_publish_basic_authentication_enabled]
   }
 }
