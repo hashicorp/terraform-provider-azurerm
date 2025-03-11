@@ -4,11 +4,11 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DataLakeAnalyticsUSQLActivityTypeProperties struct {
-	CompilationMode     *string                `json:"compilationMode,omitempty"`
-	DegreeOfParallelism *int64                 `json:"degreeOfParallelism,omitempty"`
-	Parameters          *map[string]string     `json:"parameters,omitempty"`
-	Priority            *int64                 `json:"priority,omitempty"`
-	RuntimeVersion      *string                `json:"runtimeVersion,omitempty"`
-	ScriptLinkedService LinkedServiceReference `json:"scriptLinkedService"`
-	ScriptPath          string                 `json:"scriptPath"`
+	CompilationMode     *interface{}            `json:"compilationMode,omitempty"`
+	DegreeOfParallelism *int64                  `json:"degreeOfParallelism,omitempty"`
+	Parameters          *map[string]interface{} `json:"parameters,omitempty"`
+	Priority            *int64                  `json:"priority,omitempty"`
+	RuntimeVersion      *interface{}            `json:"runtimeVersion,omitempty"`
+	ScriptLinkedService LinkedServiceReference  `json:"scriptLinkedService"`
+	ScriptPath          interface{}             `json:"scriptPath"`
 }

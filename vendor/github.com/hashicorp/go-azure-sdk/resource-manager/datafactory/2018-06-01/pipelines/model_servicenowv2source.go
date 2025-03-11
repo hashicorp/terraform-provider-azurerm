@@ -14,15 +14,15 @@ type ServiceNowV2Source struct {
 	AdditionalColumns *interface{}  `json:"additionalColumns,omitempty"`
 	Expression        *ExpressionV2 `json:"expression,omitempty"`
 	PageSize          *int64        `json:"pageSize,omitempty"`
-	QueryTimeout      *string       `json:"queryTimeout,omitempty"`
+	QueryTimeout      *interface{}  `json:"queryTimeout,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s ServiceNowV2Source) CopySource() BaseCopySourceImpl {

@@ -14,5 +14,5 @@ type ExecutePowerQueryActivityTypeProperties struct {
 	Sinks                    *map[string]PowerQuerySink                    `json:"sinks,omitempty"`
 	SourceStagingConcurrency *int64                                        `json:"sourceStagingConcurrency,omitempty"`
 	Staging                  *DataFlowStagingInfo                          `json:"staging,omitempty"`
-	TraceLevel               *string                                       `json:"traceLevel,omitempty"`
+	TraceLevel               *interface{}                                  `json:"traceLevel,omitempty"`
 }
