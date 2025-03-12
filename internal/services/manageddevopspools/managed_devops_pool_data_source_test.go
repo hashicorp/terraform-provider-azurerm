@@ -15,7 +15,7 @@ import (
 
 type ManagedDevOpsPoolDataSource struct{}
 
-func TestManagedDevOpsPoolDataSource_basic(t *testing.T) {
+func TestAccManagedDevOpsPoolDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
 	r := ManagedDevOpsPoolDataSource{}
 

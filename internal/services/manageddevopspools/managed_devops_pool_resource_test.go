@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ManagedDevOpsPoolsTestResource struct{}
+type ManagedDevOpsPoolTestResource struct{}
 
-func TestAccResourceGroupExample_basic(t *testing.T) {
+func TestAccManagedDevOpsPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-	r := ManagedDevOpsPoolsTestResource{}
+	r := ManagedDevOpsPoolTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,9 +30,9 @@ func TestAccResourceGroupExample_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceGroupExample_requiresImport(t *testing.T) {
+func TestAccManagedDevOpsPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-	r := ManagedDevOpsPoolsTestResource{}
+	r := ManagedDevOpsPoolTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,9 +45,9 @@ func TestAccResourceGroupExample_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccResourceGroupExample_complete(t *testing.T) {
+func TestAccManagedDevOpsPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-	r := ManagedDevOpsPoolsTestResource{}
+	r := ManagedDevOpsPoolTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,9 +60,9 @@ func TestAccResourceGroupExample_complete(t *testing.T) {
 	})
 }
 
-func TestAccResourceGroupExample_update(t *testing.T) {
+func TestAccManagedDevOpsPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-	r := ManagedDevOpsPoolsTestResource{}
+	r := ManagedDevOpsPoolTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccResourceGroupExample_update(t *testing.T) {
 	})
 }
 
-func (ManagedDevOpsPoolsTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ManagedDevOpsPoolTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pools.ParsePoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (ManagedDevOpsPoolsTestResource) Exists(ctx context.Context, client *client
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (ManagedDevOpsPoolsTestResource) basic(data acceptance.TestData) string {
+func (ManagedDevOpsPoolTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -109,7 +109,7 @@ resource "azurerm_managed_devops_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ManagedDevOpsPoolsTestResource) requiresImport(data acceptance.TestData) string {
+func (r ManagedDevOpsPoolTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -120,7 +120,7 @@ resource "azurerm_managed_devops_pool" "import" {
 `, r.basic(data))
 }
 
-func (ManagedDevOpsPoolsTestResource) complete(data acceptance.TestData) string {
+func (ManagedDevOpsPoolTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
