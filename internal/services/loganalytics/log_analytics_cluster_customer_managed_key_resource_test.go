@@ -130,11 +130,10 @@ func (r LogAnalyticsClusterCustomerManagedKeyResource) managedHsmKey(data accept
 
 resource "azurerm_log_analytics_cluster_customer_managed_key" "test" {
   log_analytics_cluster_id = azurerm_log_analytics_cluster.test.id
-  managed_hsm_key_id         = %s
+  managed_hsm_key_id       = %s
 
   depends_on = [azurerm_key_vault_access_policy.system_identity]
 }
-
 `, r.managedHsmKeyTemplate(data), keyId)
 }
 
@@ -352,13 +351,13 @@ resource "azurerm_key_vault_access_policy" "principal" {
   ]
 
   certificate_permissions = [
-      "Create",
-      "Delete",
-      "DeleteIssuers",
-      "Get",
-      "Purge",
-      "Update"
-    ]
+    "Create",
+    "Delete",
+    "DeleteIssuers",
+    "Get",
+    "Purge",
+    "Update"
+  ]
 }
 
 resource "azurerm_key_vault_access_policy" "system_identity" {
