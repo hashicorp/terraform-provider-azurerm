@@ -161,6 +161,10 @@ The following arguments are supported:
 
 -> **Note:** Upgrading version wouldn't force a new resource to be created whilst it can still cause the server out of service for a while. Downgrading the version will force a new resource to be created.
 
+-> **Note:** An in-place version update requires that the `create_mode` is set to `Update` **OR** the `allow_major_version_update_enabled` is set to `true`.
+
+* `allow_major_version_update_enabled` - (Optional) Indicates whether major version updates are permitted for this server when `create_mode` is not set to `Update`. Defaults to `false`.
+
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
 -> **Note:** Azure will automatically assign an Availability Zone if one is not specified. If the PostgreSQL Flexible Server fails-over to the Standby Availability Zone, the `zone` will be updated to reflect the current Primary Availability Zone. You can use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore changes to the `zone` and `high_availability[0].standby_availability_zone` fields should you wish for Terraform to not migrate the PostgreSQL Flexible Server back to it's primary Availability Zone after a fail-over.
