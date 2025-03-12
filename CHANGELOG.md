@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: update `Go` version to `1.24.1` [GH-28999]
+* dependences: `hashicorp/go-azure-sdk` - update to `v0.20250310.1130319` [GH-29009]
 * `azurerm_mongo_cluster` - add support for `M10`, `M20`, and `M200` compute tiers [GH-29026]
 * `azurerm_cognitive_deployment` - add support for `DataZoneBatch` in the s`ku.name` property [GH-28973]
 
