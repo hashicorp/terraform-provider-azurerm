@@ -131,6 +131,8 @@ The following arguments are supported:
 
 * `source_server_id` - (Optional)The resource ID of the source MySQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, and `Replica`. Changing this forces a new MySQL Flexible Server to be created.
 
+-> **NOTE:** The replica server is always created in the same resource group and same subscription as the source server.
+
 * `storage` - (Optional) A `storage` block as defined below.
 
 * `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, and `8.0.21`. Changing this forces a new MySQL Flexible Server to be created.
