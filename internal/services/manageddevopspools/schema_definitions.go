@@ -12,30 +12,55 @@ func AgentProfileSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"vm_size": {
+				"kind": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"grace_period_time_span": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"os_type": {
+				"max_agent_lifetime": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"os_sku": {
+				"prediction_preference": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"image": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+				"resource_predictions": {
+					Type:     pluginsdk.TypeList,
+                    Optional: true,
+                    Elem: &pluginsdk.Schema{
+                        Type: pluginsdk.TypeMap,
+                        Elem: &pluginsdk.Schema{
+                            Type: pluginsdk.TypeInt,
+                        },
+                    },
 				},
-				"image_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+				"resource_predictions_profile": ResourcePredictionsProfileSchema(),
+			},
+		},
+	}
+}
+
+func ResourcePredictionsProfileSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type: pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"kind": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+				},
+				"prediction_preference": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
 				},
 			},
 		},
@@ -49,7 +74,7 @@ func FabricProfileSchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"image": ImageSchema(),
+				"images": ImagesSchema(),
 				"kind": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
@@ -60,6 +85,7 @@ func FabricProfileSchema() *pluginsdk.Schema {
 				"network_profile": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"subnet_id": {
@@ -73,6 +99,7 @@ func FabricProfileSchema() *pluginsdk.Schema {
 				"sku": {
 					Type:     pluginsdk.TypeList,
 					Required: true,
+					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
@@ -88,9 +115,10 @@ func FabricProfileSchema() *pluginsdk.Schema {
 	}
 }
 
-func ImageSchema() *pluginsdk.Schema {
+func ImagesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type: pluginsdk.TypeList,
+		Required: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"aliases": {
@@ -120,6 +148,8 @@ func ImageSchema() *pluginsdk.Schema {
 func OsProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type: pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"logon_type": {
@@ -135,6 +165,8 @@ func OsProfileSchema() *pluginsdk.Schema {
 func SecretsManagementSettingsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type: pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"certificate_store_location": {
@@ -160,6 +192,8 @@ func SecretsManagementSettingsSchema() *pluginsdk.Schema {
 func StorageProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type: pluginsdk.TypeList,
+		MaxItems: 1,
+		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"data_disks": {
@@ -203,7 +237,6 @@ func OrganizationProfileSchema() *pluginsdk.Schema {
 					Required: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string("AzureDevOps"),
-						string("GitHub"),
 					}, false),
 				},
 				"organizations": {
@@ -216,13 +249,6 @@ func OrganizationProfileSchema() *pluginsdk.Schema {
 								Optional: true,
 							},
 							"projects": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-							"repositories": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
 								Elem: &pluginsdk.Schema{

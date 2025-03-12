@@ -18,29 +18,15 @@ type ManagedDevOpsPoolDataSource struct{}
 
 func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"agent_profile": AgentProfileSchema(),
-		"dev_center_project_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-		},
-		"fabric_profile": FabricProfileSchema(),
-		"identity":       commonschema.SystemAssignedUserAssignedIdentityOptional(),
-		"location":       commonschema.Location(),
-		"maximum_concurrency": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-		},
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
-		"organization_profile": OrganizationProfileSchema(),
-		"resource_group_name":  commonschema.ResourceGroupNameForDataSource(),
-		"tags":                 commonschema.Tags(),
-		"type": {
+		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Required: true,
+			ForceNew: true,
 		},
 	}
 }
@@ -48,8 +34,15 @@ func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
-
-		"tags": commonschema.TagsDataSource(),
+		"dev_center_project_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"maximum_concurrency": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"agent_profile": AgentProfileSchema(),
 	}
 }
 
@@ -78,6 +71,7 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
+				log.Printf("[DEBUG] Failed in reading %q", id)
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
@@ -86,6 +80,8 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
+			log.Printf("[DEBUG] success in reading %q", id)
 
 			state = ManagedDevOpsPoolModel{
 				Name: id.PoolName,

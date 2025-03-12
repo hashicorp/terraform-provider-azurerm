@@ -38,6 +38,11 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 		"organization_profile": OrganizationProfileSchema(),
+		"resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 		"tags":                 commonschema.Tags(),
 	}
 }
@@ -67,7 +72,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id := pools.NewPoolID(subscriptionId, config.Name, config.Name)
+			id := pools.NewPoolID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -215,10 +220,7 @@ func (r ManagedDevOpsPoolResource) mapResourceModelToPool(input ManagedDevOpsPoo
 		output.Properties = &pools.PoolProperties{}
 	}
 
-	if err := r.mapAgentProfileModelToPoolProperties(input.AgentProfile, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "AgentProfile", "Properties", err)
-	}
-
+	// map model to sdk model
 	if err := r.mapFabricProfileSchemaToPoolProperties(input.FabricProfile, output.Properties); err != nil {
 		return fmt.Errorf("mapping schema model to sdk model: %+v", err)
 	}
