@@ -1076,7 +1076,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   runtime_name                      = "node"
   runtime_version                   = "20"
-  maximum_instance_count            = 30
+  maximum_instance_count            = 50
   instance_memory_in_mb             = 2048
   always_ready_config {
     name           = "blob"
@@ -1084,7 +1084,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   }
   always_ready_config {
     name           = "function:myHelloWorldFunction"
-    instance_count = 20
+    instance_count = 50
   }
 
   site_config {}
