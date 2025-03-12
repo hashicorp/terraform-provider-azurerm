@@ -71,7 +71,6 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
-				log.Printf("[DEBUG] Failed in reading %q", id)
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
@@ -80,8 +79,6 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-
-			log.Printf("[DEBUG] success in reading %q", id)
 
 			state = ManagedDevOpsPoolModel{
 				Name: id.PoolName,
