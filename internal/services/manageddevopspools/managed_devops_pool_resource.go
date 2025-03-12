@@ -39,10 +39,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"organization_profile": OrganizationProfileSchema(),
 		"tags":                 commonschema.Tags(),
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 	}
 }
 
