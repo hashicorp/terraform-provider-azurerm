@@ -11,7 +11,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `azurerm_linux_function_app` - fix validation for `application_stack.node_version` to allow `22` [GH-28988]
+* `azurerm_linux_function_app` - fix validation for `site_config.application_stack.node_version` to allow `22` [GH-28988]
 * `azurerm_postgresql_flexible_server` - fix validation for `customer_managed_key.key_vault_key_id` and `customer_managed_key.geo_backup_key_id` to disallow versionless keys preventing unclear error messages [GH-28981]
 * `azurerm_web_pubsub_hub` - validation for the `auth.managed_identity_id` now supports token audience as a valid input [GH-28495]
 
