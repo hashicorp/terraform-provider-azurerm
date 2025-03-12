@@ -244,6 +244,8 @@ resource "azurerm_key_vault_managed_hardware_security_module" "test" {
 
   security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.test : cert.id]
   security_domain_quorum                    = 3
+
+  depends_on = [azurerm_key_vault_access_policy.principal]
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "crypto_user_system" {
