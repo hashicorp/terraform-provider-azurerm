@@ -84,8 +84,8 @@ resource "azurerm_virtual_machine_restore_point_collection" "example" {
 }
 
 resource "azurerm_virtual_machine_restore_point" "example" {
-  name                        = "example-restore-point"
-  restore_point_collection_id = azurerm_restore_point_collection.test.id
+  name                                        = "example-restore-point"
+  virtual_machine_restore_point_collection_id = azurerm_virtual_machine_restore_point_collection.example.id
 }
 ```
 
