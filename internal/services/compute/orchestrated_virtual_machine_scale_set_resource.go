@@ -299,8 +299,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"upgrade_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
-				Default:  string(virtualmachinescalesets.UpgradeModeManual),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(virtualmachinescalesets.UpgradeModeAutomatic),
 					string(virtualmachinescalesets.UpgradeModeManual),
@@ -356,6 +356,10 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				}
 
 				upgradeMode := virtualmachinescalesets.UpgradeMode(diff.Get("upgrade_mode").(string))
+				if !hasSkuName && upgradeMode != "" {
+					return fmt.Errorf("`upgrade_mode` can only be set when `sku_name` is set")
+				}
+
 				rollingUpgradePolicyRaw := diff.Get("rolling_upgrade_policy").([]interface{})
 
 				shouldHaveRollingUpgradePolicy := upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic || upgradeMode == virtualmachinescalesets.UpgradeModeRolling
