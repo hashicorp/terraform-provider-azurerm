@@ -1,5 +1,9 @@
 ## 4.23.0 (Unreleased)
 
+NOTES:
+
+* `azurerm_key_vault_secret` - resource now supports the `value_wo`[write-only argument](https://developer.hashicorp.com/terraform/language/v1.11.x/resources/ephemeral#write-only-arguments) [GH-28947]
+
 FEATURES:
 
 * **New Resource**: `azurerm_network_manager_ipam_pool` [GH-28695]
