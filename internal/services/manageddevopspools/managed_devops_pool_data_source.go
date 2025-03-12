@@ -7,8 +7,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2024-10-19/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -76,10 +74,7 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id, err := pools.NewPoolID(subscriptionId, state.ResourceGroupName, state.Name)
-			if err != nil {
-				return err
-			}
+			id := pools.NewPoolID(subscriptionId, state.ResourceGroupName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -92,16 +87,12 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			state := ManagedDevOpsPoolModel{
+			state = ManagedDevOpsPoolModel{
 				Name: id.PoolName,
 			}
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Location = location.NormalizeNilable(model.Location)
-					state.Tags = pointer.From(model.Tags)
-					state.Type = model.Type
-					state.ResourceGroupName = pools.ResourceGroupNameFromID(model.ID)
 					// if there are properties to set into state do that here
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
 					state.MaximumConcurrency = props.MaximumConcurrency
