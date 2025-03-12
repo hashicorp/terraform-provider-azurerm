@@ -179,7 +179,10 @@ func TestAccDatabricksWorkspace_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
+		data.ImportStep(
+			"custom_parameters.0.public_subnet_network_security_group_association_id",
+			"custom_parameters.0.private_subnet_network_security_group_association_id",
+			"delete_unity_catalog_on_workspace_deletion"),
 	})
 }
 
@@ -218,14 +221,20 @@ func TestAccDatabricksWorkspace_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
+		data.ImportStep(
+			"custom_parameters.0.public_subnet_network_security_group_association_id",
+			"custom_parameters.0.private_subnet_network_security_group_association_id",
+			"delete_unity_catalog_on_workspace_deletion"),
 		{
 			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
+		data.ImportStep(
+			"custom_parameters.0.public_subnet_network_security_group_association_id",
+			"custom_parameters.0.private_subnet_network_security_group_association_id",
+			"delete_unity_catalog_on_workspace_deletion"),
 	})
 }
 

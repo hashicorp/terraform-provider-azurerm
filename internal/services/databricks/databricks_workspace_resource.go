@@ -91,6 +91,9 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			// NOTE: This property does not correlate to any property of the Azure Databricks Workspace resource.
+			// It is only persisted in Terraform state, and only used during the DELETE call to determine if the Unity
+			// Catalog should be deleted along with the Workspace, via the `forceDeletion` (bool) query string parameter.
 			"delete_unity_catalog_on_workspace_deletion": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -943,9 +946,6 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("delete_unity_catalog_on_workspace_deletion"); ok {
 		options.ForceDeletion = pointer.To(v.(bool))
-		log.Printf("[DEBUG][azurerm_databricks_workspace] `delete_unity_catalog_on_workspace_deletion` set to %t", v.(bool))
-	} else {
-		log.Println("[DEBUG][azurerm_databricks_workspace] `delete_unity_catalog_on_workspace_deletion` not set")
 	}
 
 	if err = client.DeleteThenPoll(ctx, *id, options); err != nil {
