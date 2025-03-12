@@ -10,9 +10,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -219,6 +223,76 @@ func TestAccKeyVaultSecret_purge(t *testing.T) {
 		{
 			Config:  r.basic(data),
 			Destroy: true,
+		},
+	})
+}
+
+func TestAccKeyVaultSecret_writeOnlyValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	r := KeyVaultSecretResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				VersionConstraint: "=3.7.1",
+				Source:            "registry.terraform.io/hashicorp/random",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyValue(data, 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("value", "value_wo_version"),
+			{
+				Config: r.writeOnlyValue(data, 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("value", "value_wo_version"),
+		},
+	})
+}
+
+func TestAccKeyVaultSecret_updateToWriteOnlyValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	r := KeyVaultSecretResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				VersionConstraint: "=3.7.1",
+				Source:            "registry.terraform.io/hashicorp/random",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+				),
+			},
+			{
+				Config: r.writeOnlyValue(data, 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("value", "value_wo_version"),
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+				),
+			},
+			data.ImportStep("value", "value_wo_version"),
 		},
 	})
 }
@@ -524,6 +598,31 @@ resource "azurerm_key_vault_secret" "test" {
   depends_on   = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (r KeyVaultSecretResource) writeOnlyValue(data acceptance.TestData, version int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+ephemeral "random_password" "password1" {
+  length = 16
+}
+
+ephemeral "random_password" "password2" {
+  length = 16
+}
+
+%[1]s
+
+resource "azurerm_key_vault_secret" "test" {
+  name             = "secret-%[2]s"
+  value_wo         = ephemeral.random_password.password%[3]d.result
+  value_wo_version = %[3]d
+  key_vault_id     = azurerm_key_vault.test.id
+}
+`, r.template(data), data.RandomString, version)
 }
 
 func (KeyVaultSecretResource) template(data acceptance.TestData) string {

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -57,9 +58,25 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"value": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ExactlyOneOf: []string{"value", "value_wo"},
+			},
+
+			"value_wo": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				WriteOnly:    true,
+				Sensitive:    true,
+				ExactlyOneOf: []string{"value", "value_wo"},
+			},
+
+			"value_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"value_wo"},
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"content_type": {
@@ -144,13 +161,22 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_key_vault_secret", *existing.ID)
 	}
 
-	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	woValue, err := pluginsdk.GetWriteOnly(d, "value_wo", cty.String)
+	if err != nil {
+		return err
+	}
+
+	value := d.Get("value").(string)
+	if !woValue.IsNull() {
+		value = woValue.AsString()
+	}
+
 	parameters := keyvault.SecretSetParameters{
-		Value:            utils.String(value),
-		ContentType:      utils.String(contentType),
+		Value:            pointer.To(value),
+		ContentType:      pointer.To(contentType),
 		Tags:             tags.Expand(t),
 		SecretAttributes: &keyvault.SecretAttributes{},
 	}
@@ -253,7 +279,6 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return nil
 	}
 
-	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -271,11 +296,24 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		secretAttributes.Expires = &expirationUnixTime
 	}
 
+	value := ""
 	if d.HasChange("value") {
-		// for changing the value of the secret we need to create a new version
+		value = d.Get("value").(string)
+	} else if d.HasChange("value_wo_version") {
+		woValue, err := pluginsdk.GetWriteOnly(d, "value_wo", cty.String)
+		if err != nil {
+			return err
+		}
+
+		if !woValue.IsNull() {
+			value = woValue.AsString()
+		}
+	}
+
+	if value != "" {
 		parameters := keyvault.SecretSetParameters{
-			Value:            utils.String(value),
-			ContentType:      utils.String(contentType),
+			Value:            pointer.To(value),
+			ContentType:      pointer.To(contentType),
 			Tags:             tags.Expand(t),
 			SecretAttributes: secretAttributes,
 		}
@@ -285,7 +323,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
-			ContentType:      utils.String(contentType),
+			ContentType:      pointer.To(contentType),
 			Tags:             tags.Expand(t),
 			SecretAttributes: secretAttributes,
 		}
@@ -371,6 +409,12 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 	d.Set("versionless_id", id.VersionlessID())
+
+	// unset value if the value_wo_version is configured
+	if v := d.Get("value_wo_version"); v.(int) != 0 {
+		d.Set("value_wo_version", d.Get("value_wo_version"))
+		d.Set("value", nil)
+	}
 
 	if attributes := resp.Attributes; attributes != nil {
 		if v := attributes.NotBefore; v != nil {

@@ -36,22 +36,22 @@ As a result we add two new properties to the schema, `password_wo` and `password
 	Type:          pluginsdk.TypeString,
 	Optional:      true,
 	Sensitive:     true,
-	ConflictsWith: []string{"password_wo"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
+	ConflictsWith: []string{"password_wo"}, // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
 },
 
 "password_wo": {
 	Type:          pluginsdk.TypeString, 
 	Optional:      true,
 	WriteOnly:     true, 
-	RequiredWith:  []string{"password_wo_version"} // this must be set to ensure the "trigger" property is provided with the wo attribute 
-	ConflictsWith: []string{"password_wo_version"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
-}
+	RequiredWith:  []string{"password_wo_version"}, // this must be set to ensure the "trigger" property is provided with the wo attribute 
+	ConflictsWith: []string{"password_wo_version"}, // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
+},
 
 "password_wo_version": {
 	Type:         pluginsdk.TypeInt,
 	Optional:     true,
-	RequiredWith: []string{"password_wo"} // this must be set to ensure the "trigger" property is provided with the wo attribute
-}
+	RequiredWith: []string{"password_wo"}, // this must be set to ensure the "trigger" property is provided with the wo attribute
+},
 
 ... // omitted for brevity
 ```
