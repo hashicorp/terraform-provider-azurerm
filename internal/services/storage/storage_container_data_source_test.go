@@ -28,6 +28,7 @@ func TestAccStorageContainerDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%s.blob.core.windows.net/vhds", data.RandomString)),
 			),
 		},
 	})
@@ -63,6 +64,7 @@ func TestAccStorageContainerDataSource_basicDeprecated(t *testing.T) {
 				check.That(data.ResourceName).Key("metadata.%").HasValue("2"),
 				check.That(data.ResourceName).Key("metadata.k1").HasValue("v1"),
 				check.That(data.ResourceName).Key("metadata.k2").HasValue("v2"),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestsadsc%[1]s.blob.core.windows.net/containerdstest-%[1]s", data.RandomString)),
 			),
 		},
 	})
