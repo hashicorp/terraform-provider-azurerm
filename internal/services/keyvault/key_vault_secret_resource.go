@@ -76,6 +76,7 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				RequiredWith: []string{"value_wo"},
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"content_type": {

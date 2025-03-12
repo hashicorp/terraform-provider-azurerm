@@ -412,10 +412,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_secret" "test" {
-  name              = "secret-%s"
-  value_wo          = "%s"
-  value_wo_version  = %d
-  key_vault_id      = azurerm_key_vault.test.id
+  name             = "secret-%s"
+  value_wo         = "%s"
+  value_wo_version = %d
+  key_vault_id     = azurerm_key_vault.test.id
 }
 `, r.template(data), data.RandomString, secret, version)
 }
