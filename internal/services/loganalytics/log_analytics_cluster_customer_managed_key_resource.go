@@ -6,6 +6,7 @@ package loganalytics
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,11 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/customermanagedkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
+	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -55,8 +58,16 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
 
 			"key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+				ExactlyOneOf: []string{"key_vault_key_id", "managed_hsm_key_id"},
+			},
+
+			"managed_hsm_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_key_id"},
 			},
 		},
 	}
@@ -64,6 +75,7 @@ func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
 
 func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
+	accountClient := meta.(*clients.Client).Account
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -107,15 +119,16 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	//		Please refer to https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/logs-dedicated-clusters#link-a-workspace-to-the-cluster for more information on how to associate a workspace to the cluster.
 	props.AssociatedWorkspaces = nil
 
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
-	if err != nil {
-		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
-	}
-
-	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
-		KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
-		KeyName:     pointer.To(keyId.Name),
-		KeyVersion:  pointer.To(keyId.Version),
+	if cmkID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
+		return fmt.Errorf("expanding Customer Managed Key: %+v", err)
+	} else if cmkID.IsSet() {
+		model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
+			KeyVaultUri: pointer.To(cmkID.BaseUri()),
+			KeyName:     pointer.To(cmkID.Name()),
+			KeyVersion:  pointer.To(cmkID.Version()),
+		}
+	} else {
+		return fmt.Errorf("expanding Customer Managed Key: no ID returned")
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
@@ -136,6 +149,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 
 func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
+	accountClient := meta.(*clients.Client).Account
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -146,11 +160,6 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
-
-	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
-	if err != nil {
-		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
-	}
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
@@ -173,10 +182,16 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 	// This is a read only property, please see comment in the create function.
 	model.Properties.AssociatedWorkspaces = nil
 
-	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
-		KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
-		KeyName:     pointer.To(keyId.Name),
-		KeyVersion:  pointer.To(keyId.Version),
+	if cmkID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
+		return fmt.Errorf("expanding Customer Managed Key: %+v", err)
+	} else if cmkID.IsSet() {
+		model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
+			KeyVaultUri: pointer.To(cmkID.BaseUri()),
+			KeyName:     pointer.To(cmkID.Name()),
+			KeyVersion:  pointer.To(cmkID.Version()),
+		}
+	} else {
+		return fmt.Errorf("expanding Customer Managed Key: no ID returned")
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
@@ -188,6 +203,7 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 
 func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
+	accountClient := meta.(*clients.Client).Account
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -206,33 +222,38 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keyVaultKeyId := ""
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if kvProps := props.KeyVaultProperties; kvProps != nil {
-				keyVaultUri := pointer.From(kvProps.KeyVaultUri)
-				keyName := pointer.From(kvProps.KeyName)
-				keyVersion := pointer.From(kvProps.KeyVersion)
+				cmkUri := pointer.From(kvProps.KeyVaultUri)
+				cmkName := pointer.From(kvProps.KeyName)
+				cmkVersion := pointer.From(kvProps.KeyVersion)
 
-				if keyVaultUri != "" && keyName != "" {
-					keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
-					if err != nil {
-						return err
+				if cmkUri != "" && cmkName != "" {
+					keyId := fmt.Sprintf("%s/keys/%s", strings.TrimSuffix(cmkUri, "/"), cmkName)
+					if cmkVersion != "" {
+						keyId = fmt.Sprintf("%s/%s", keyId, cmkVersion)
 					}
-					keyVaultKeyId = keyId.ID()
+
+					if cmkID, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMID(keyId, accountClient.Environment.ManagedHSM); err != nil {
+						return fmt.Errorf("flattening %s: %+v", keyId, err)
+					} else if cmkID.IsSet() {
+						if cmkID.KeyVaultKeyId != nil {
+							d.Set("key_vault_key_id", cmkID.KeyVaultKeyID())
+						} else {
+							d.Set("managed_hsm_key_id", cmkID.ManagedHSMKeyID())
+						}
+					} else {
+						log.Printf("[DEBUG] %s has no Customer Managed Key - removing from state", *id)
+						d.SetId("")
+						return nil
+					}
 				}
 			}
 		}
 	}
 
-	if keyVaultKeyId == "" {
-		log.Printf("[DEBUG] %s has no Customer Managed Key - removing from state", *id)
-		d.SetId("")
-		return nil
-	}
-
 	d.Set("log_analytics_cluster_id", d.Id())
-	d.Set("key_vault_key_id", keyVaultKeyId)
 
 	return nil
 }
