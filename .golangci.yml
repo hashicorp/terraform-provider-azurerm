@@ -3,16 +3,16 @@
 
 run:
   timeout: 60m
-  go: 1.24
+  go: "1.24"
   modules-download-mode: vendor
-  skip-dirs:
-    - /sdk/ # Excluding sdk folders as these are externally generated
-  skip-files:
-    - "internal/services/.*/.*_gen.go$"
 
 issues:
-  max-per-linter: 0
+  max-issues-per-linter: 0
   max-same-issues: 0
+  exclude-dirs:
+    - /sdk/ # Excluding sdk folders as these are externally generated
+  exclude-files:
+    - "internal/services/.*/.*_gen.go$"
 
 linters:
   disable-all: true
@@ -73,7 +73,12 @@ linters:
 
 linters-settings:
   errcheck:
-    ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
+    exclude-functions:
+      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).ForceNew
+      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNew
+      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNewComputed
+      - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceData).Set
+      - io.Close
   misspell:
     ignore-words:
       - hdinsight
