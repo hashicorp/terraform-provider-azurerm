@@ -48,6 +48,8 @@ The following arguments are supported:
 
 ~> **Note:** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 
+* `delete_unity_catalog_on_workspace_deletion` - (Optional) Should the Unity Catalog metastore be deleted when the workspace is deleted? Possible values are `true` or `false`. Defaults to `false`.
+
 * `managed_services_cmk_key_vault_id` - (Optional) Resource ID of the Key Vault which contains the `managed_services_cmk_key_vault_key_id` key.
 
 -> **Note:** The `managed_services_cmk_key_vault_id` field is only required if the Key Vault exists in a different subscription than the Databricks Workspace. If the `managed_services_cmk_key_vault_id` field is not specified it is assumed that the `managed_services_cmk_key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.

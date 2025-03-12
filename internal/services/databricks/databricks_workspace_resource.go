@@ -91,6 +91,12 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"delete_unity_catalog_on_workspace_deletion": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"managed_disk_identity": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -674,6 +680,11 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 			PublicNetworkAccess:    &publicNetworkAccess,
 			ManagedResourceGroupId: managedResourceGroupID,
 			Parameters:             customParams,
+			// TODO determine if default catalog must be set in order to use Unity Catalog
+			//DefaultCatalog: pointer.To(workspaces.DefaultCatalogProperties{
+			//	InitialType: pointer.To(workspaces.InitialTypeUnityCatalog),
+			//	InitialName: pointer.To("catalogname"),
+			//}),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -787,6 +798,10 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.WorkspaceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if v, ok := d.GetOk("delete_unity_catalog_on_workspace_deletion"); ok {
+		d.Set("delete_unity_catalog_on_workspace_deletion", v.(bool))
+	}
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
@@ -924,7 +939,16 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	if err = client.DeleteThenPoll(ctx, *id, workspaces.DeleteOperationOptions{}); err != nil {
+	options := workspaces.DeleteOperationOptions{}
+
+	if v, ok := d.GetOk("delete_unity_catalog_on_workspace_deletion"); ok {
+		options.ForceDeletion = pointer.To(v.(bool))
+		log.Printf("[DEBUG][azurerm_databricks_workspace] `delete_unity_catalog_on_workspace_deletion` set to %t", v.(bool))
+	} else {
+		log.Println("[DEBUG][azurerm_databricks_workspace] `delete_unity_catalog_on_workspace_deletion` not set")
+	}
+
+	if err = client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

@@ -903,11 +903,12 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  name                        = "acctestDBW-%[1]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  sku                         = "standard"
-  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  name                                       = "acctestDBW-%[1]d"
+  resource_group_name                        = azurerm_resource_group.test.name
+  location                                   = azurerm_resource_group.test.location
+  sku                                        = "standard"
+  managed_resource_group_name                = "acctestRG-DBW-%[1]d-managed"
+  delete_unity_catalog_on_workspace_deletion = true
 
   custom_parameters {
     no_public_ip        = false
