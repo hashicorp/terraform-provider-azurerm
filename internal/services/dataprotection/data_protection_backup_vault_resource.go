@@ -343,5 +343,6 @@ func flattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails
 			}
 		}
 	}
+
 	return identity.FlattenSystemAndUserAssignedMap(config)
 }

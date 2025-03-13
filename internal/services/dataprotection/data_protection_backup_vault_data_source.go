@@ -125,5 +125,6 @@ func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdent
 			}
 		}
 	}
+
 	return identity.FlattenSystemAndUserAssignedMap(config)
 }
