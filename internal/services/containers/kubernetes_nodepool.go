@@ -84,7 +84,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"fips_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 					},
 
 					"gpu_instance": {
