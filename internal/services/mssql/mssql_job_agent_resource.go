@@ -16,9 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -58,6 +60,15 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
+			// This is a top level argument rather than a block because while Azure accepts input for both sku name and capacity fields,
+			// the capacity must always be equal to the number included in the sku name.
+			"sku_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      helper.SqlJobAgentSkuNameJA100,
+				ValidateFunc: validation.StringInSlice(helper.PossibleValuesForJobAgentSkuName(), false),
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -93,6 +104,9 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &jobagents.JobAgentProperties{
 			DatabaseId: databaseId,
+		},
+		Sku: &jobagents.Sku{
+			Name: d.Get("sku_name").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -135,6 +149,12 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	if d.HasChanges("sku_name") {
+		params.Sku = &jobagents.Sku{
+			Name: d.Get("sku_name").(string),
+		}
+	}
+
 	err = client.CreateOrUpdateThenPoll(ctx, id, *params)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
@@ -159,7 +179,7 @@ func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading %s: %s", *id, err)
+		return fmt.Errorf("retrieving %s: %s", *id, err)
 	}
 
 	d.Set("name", id.JobAgentName)
@@ -167,9 +187,14 @@ func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
-		if props := resp.Model.Properties; props != nil {
+		if props := model.Properties; props != nil {
 			d.Set("database_id", props.DatabaseId)
 		}
+
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", sku.Name)
+		}
+
 		return tags.FlattenAndSet(d, model.Tags)
 	}
 	return nil
