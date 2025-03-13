@@ -53,7 +53,7 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 			"tags": commonschema.TagsDataSource(),
 		},
@@ -92,9 +92,11 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
 
-		if err = d.Set("identity", dataSourceFlattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
+		identity, err := dataSourceFlattenBackupVaultDppIdentityDetails(model.Identity)
+		if err != nil {
+			return err
 		}
+		d.Set("identity", identity)
 
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
@@ -103,23 +105,25 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) []interface{} {
-	var config *identity.SystemAssigned
+func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) (*[]interface{}, error) {
+	var config *identity.SystemOrUserAssignedMap
 	if input != nil {
-		principalId := ""
-		if input.PrincipalId != nil {
-			principalId = *input.PrincipalId
+		config = &identity.SystemOrUserAssignedMap{
+			Type: identity.Type(*input.Type),
 		}
 
-		tenantId := ""
-		if input.TenantId != nil {
-			tenantId = *input.TenantId
-		}
-		config = &identity.SystemAssigned{
-			Type:        identity.Type(*input.Type),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
+		config.PrincipalId = pointer.From(input.PrincipalId)
+		config.TenantId = pointer.From(input.TenantId)
+
+		if len(pointer.From(input.UserAssignedIdentities)) > 0 {
+			config.IdentityIds = make(map[string]identity.UserAssignedIdentityDetails)
+			for k, v := range *input.UserAssignedIdentities {
+				config.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    v.ClientId,
+					PrincipalId: v.PrincipalId,
+				}
+			}
 		}
 	}
-	return identity.FlattenSystemAssigned(config)
+	return identity.FlattenSystemOrUserAssignedMap(config)
 }
