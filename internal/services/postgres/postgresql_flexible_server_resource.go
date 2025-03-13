@@ -177,7 +177,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
 			},
 
-			"allow_major_version_update_enabled": {
+			"allow_major_version_upgrade_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -373,10 +373,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					return nil
 				}
 
-				// if create_mode is not Update and allow_major_version_update_enabled is not set to true, then major version update is not allowed
+				// if create_mode is not Update and allow_major_version_upgrade_enabled is not set to true, then major version upgrade is not allowed
 				if d.Get("create_mode").(string) != string(servers.CreateModeUpdate) &&
-					!d.Get("allow_major_version_update_enabled").(bool) {
-					return fmt.Errorf("major version update is not allowed, set `create_mode` to `Update` or set `allow_major_version_update_enabled` to true")
+					!d.Get("allow_major_version_upgrade_enabled").(bool) {
+					return fmt.Errorf("major version update is not allowed, set `create_mode` to `Update` or set `allow_major_version_upgrade_enabled` to true")
 				}
 				return nil
 			}
@@ -671,7 +671,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("administrator_password_wo_version", d.Get("administrator_password_wo_version").(int))
-	d.Set("allow_major_version_update_enabled", d.Get("allow_major_version_update_enabled").(bool))
+	d.Set("allow_major_version_upgrade_enabled", d.Get("allow_major_version_upgrade_enabled").(bool))
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))

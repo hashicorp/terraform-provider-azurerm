@@ -191,7 +191,7 @@ func TestAccPostgresqlFlexibleServer_updateVersion(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config:      r.withVersion(data, 13, "", false),
-			ExpectError: regexp.MustCompile("major version update is not allowed, set `create_mode` to `Update` or set `allow_major_version_update_enabled` to true"),
+			ExpectError: regexp.MustCompile("major version update is not allowed, set `create_mode` to `Update` or set `allow_major_version_upgrade_enabled` to true"),
 		},
 		{
 			Config: r.withVersion(data, 13, "Update", false),
@@ -206,7 +206,7 @@ func TestAccPostgresqlFlexibleServer_updateVersion(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "allow_major_version_update_enabled"),
+		data.ImportStep("administrator_password", "create_mode", "allow_major_version_upgrade_enabled"),
 	})
 }
 
@@ -796,7 +796,7 @@ func (r PostgresqlFlexibleServerResource) withVersion(data acceptance.TestData, 
 	}
 
 	if allowMajorVersionUpdate {
-		allowMajorVersionUpdateProp = fmt.Sprintf("allow_major_version_update_enabled = %t", allowMajorVersionUpdate)
+		allowMajorVersionUpdateProp = fmt.Sprintf("allow_major_version_upgrade_enabled = %t", allowMajorVersionUpdate)
 	}
 
 	return fmt.Sprintf(`

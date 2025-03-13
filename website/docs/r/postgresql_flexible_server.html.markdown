@@ -161,9 +161,9 @@ The following arguments are supported:
 
 -> **Note:** Upgrading version wouldn't force a new resource to be created whilst it can still cause the server out of service for a while. Downgrading the version will force a new resource to be created.
 
--> **Note:** An in-place version update requires that the `create_mode` is set to `Update` **OR** the `allow_major_version_update_enabled` is set to `true`.
+-> **Note:** An in-place version update requires that the `create_mode` is set to `Update` **OR** the `allow_major_version_upgrade_enabled` is set to `true`.
 
-* `allow_major_version_update_enabled` - (Optional) Indicates whether major version updates are permitted for this server when `create_mode` is not set to `Update`. Defaults to `false`.
+* `allow_major_version_upgrade_enabled` - (Optional) Indicates whether major version updates are permitted for this server when `create_mode` is not set to `Update`. Defaults to `false`.
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
