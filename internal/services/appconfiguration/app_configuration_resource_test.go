@@ -737,7 +737,7 @@ resource "azurerm_app_configuration" "test" {
   local_auth_enabled                               = true
   public_network_access                            = "Enabled"
   purge_protection_enabled                         = false
-  soft_delete_retention_days                       = 1
+  soft_delete_retention_days                       = 7
 
   identity {
     type = "UserAssigned"
@@ -919,7 +919,7 @@ resource "azurerm_app_configuration" "test" {
   local_auth_enabled         = true
   public_network_access      = "Enabled"
   purge_protection_enabled   = true
-  soft_delete_retention_days = 1
+  soft_delete_retention_days = 7
 
   identity {
     type = "UserAssigned"
