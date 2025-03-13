@@ -44,7 +44,7 @@ var (
 )
 
 func postgresqlFlexibleServerPollingUriForLongRunningOperation(resp *http.Response) string {
-	pollingUrl := resp.Header.Get(http.CanonicalHeaderKey("Azure-AsyncOperation"))
+	pollingUrl := resp.Header.Get("Azure-AsyncOperation")
 	if pollingUrl == "" {
 		pollingUrl = resp.Header.Get("Location")
 	}
