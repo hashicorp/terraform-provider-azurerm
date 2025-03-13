@@ -1460,6 +1460,9 @@ func TestAccLinuxWebApp_stickySettings(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.0").HasValue("Second"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.1").HasValue("Fourth"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
@@ -1489,6 +1492,9 @@ func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.0").HasValue("Second"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.1").HasValue("Fourth"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
@@ -1501,6 +1507,9 @@ func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("3"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.#").HasValue("4"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.0").HasValue("First"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.1").HasValue("Second"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1511,6 +1520,9 @@ func TestAccLinuxWebApp_stickySettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("app_settings.foo").HasValue("bar"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sticky_settings.0.app_setting_names.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.0").HasValue("Second"),
+				check.That(data.ResourceName).Key("sticky_settings.0.azure_storage_config_names.1").HasValue("Fourth"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.#").HasValue("2"),
 				check.That(data.ResourceName).Key("sticky_settings.0.connection_string_names.0").HasValue("First"),
 			),
@@ -2325,12 +2337,49 @@ resource "azurerm_linux_web_app" "test" {
     type  = "PostgreSQL"
   }
 
+	storage_account {
+    name         = "First"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_container.first.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/first"
+  }
+
+	storage_account {
+    name         = "Second"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_container.second.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/second"
+  }
+
+  storage_account {
+    name         = "Third"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.third.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/third"
+  }
+
+  storage_account {
+    name         = "Fourth"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.fourth.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/fourth"
+  }
+
   sticky_settings {
-    app_setting_names       = ["foo", "secret"]
-    connection_string_names = ["First", "Third"]
+    app_setting_names          = ["foo", "secret"]
+    azure_storage_config_names = ["Second", "Fourth"]
+    connection_string_names    = ["First", "Third"]
   }
 }
-`, r.baseTemplate(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) stickySettingsRemoved(data acceptance.TestData) string {
@@ -2372,8 +2421,44 @@ resource "azurerm_linux_web_app" "test" {
     value = "some-postgresql-connection-string"
     type  = "PostgreSQL"
   }
+
+  storage_account {
+    name         = "First"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_container.first.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/first"
+  }
+
+  storage_account {
+    name         = "Second"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_container.second.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/second"
+  }
+
+  storage_account {
+    name         = "Third"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.third.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/third"
+  }
+
+  storage_account {
+    name         = "Fourth"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.fourth.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/fourth"
+  }
 }
-`, r.baseTemplate(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) stickySettingsUpdate(data acceptance.TestData) string {
@@ -2416,11 +2501,48 @@ resource "azurerm_linux_web_app" "test" {
     type  = "PostgreSQL"
   }
 
+	storage_account {
+    name         = "First"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_container.first.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/first"
+  }
+
+	storage_account {
+    name         = "Second"
+    type         = "AzureBlob"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_container.second.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/second"
+  }
+
+  storage_account {
+    name         = "Third"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.third.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/third"
+  }
+
+  storage_account {
+    name         = "Fourth"
+    type         = "AzureFiles"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.fourth.name
+    access_key   = azurerm_storage_account.test.primary_access_key
+    mount_path   = "/fourth"
+  }
+
   sticky_settings {
     app_setting_names = ["foo", "secret", "third"]
+    azure_storage_config_names = ["First", "Second", "Third", "Fourth"]
   }
 }
-`, r.baseTemplate(data), data.RandomInteger)
+`, r.templateWithStorageAccount_stickySettings(data), data.RandomInteger)
 }
 
 func (r LinuxWebAppResource) secondServicePlan(data acceptance.TestData) string {
@@ -3669,6 +3791,45 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.standardPlanTemplate(data), data.RandomInteger, data.RandomString)
+}
+
+func (r LinuxWebAppResource) templateWithStorageAccount_stickySettings(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "first" {
+  name                  = "first"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "second" {
+  name                  = "second"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_share" "third" {
+  name                 = "third"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
+}
+
+resource "azurerm_storage_share" "fourth" {
+  name                 = "fourth"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 1
+}
+`, r.standardPlanTemplate(data), data.RandomString)
 }
 
 func (r LinuxWebAppResource) vNetIntegrationWebApp_basic(data acceptance.TestData) string {
