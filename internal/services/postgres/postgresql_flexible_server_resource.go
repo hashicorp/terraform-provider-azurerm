@@ -21,11 +21,13 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -998,8 +1000,30 @@ func resourcePostgresqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+	resp, err := client.Delete(ctx, *id)
+	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+	if resp.HttpResponse == nil {
+		return fmt.Errorf("HttpResponse is nil")
+	}
+
+	// custom poller and GET retry will be removed and use DeleteThenPoll once this issue https://github.com/Azure/azure-rest-api-specs/issues/33173 is fixed
+	pollerType := custompollers.NewPostgresqlFlexibleServerPoller(client.Client, resp.HttpResponse)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{"Exists"},
+		Target:  []string{"NotFound"},
+		Refresh: postgresqlFlexibleServerDeletedRefreshFunc(ctx, client, *id),
+		Timeout: d.Timeout(pluginsdk.TimeoutDelete),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 	}
 
 	return nil
@@ -1314,4 +1338,19 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 	}
 
 	return []interface{}{item}, nil
+}
+
+func postgresqlFlexibleServerDeletedRefreshFunc(ctx context.Context, client *servers.ServersClient, id servers.FlexibleServerId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if response.WasNotFound(res.HttpResponse) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("checking if %s has been deleted: %+v", id, err)
+		}
+
+		return res, "Exists", nil
+	}
 }
