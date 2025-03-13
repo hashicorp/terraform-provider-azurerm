@@ -441,6 +441,20 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.PeerTrafficConfiguration.Encryption.Enabled = pointer.To(state.Mtls)
 			}
 
+			if metadata.ResourceData.Get("log_analytics_workspace_id") != "" {
+				customerId, sharedKey, err := getSharedKeyForWorkspace(ctx, metadata, state.LogAnalyticsWorkspaceId)
+				if err != nil {
+					return fmt.Errorf("retrieving access keys to Log Analytics Workspace for %s: %+v", id, err)
+				}
+				existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					Destination: pointer.To("log-analytics"),
+					LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
+						CustomerId: customerId,
+						SharedKey:  sharedKey,
+					},
+				}
+			}
+
 			if metadata.ResourceData.HasChanges("logs_destination", "log_analytics_workspace_id") {
 				// For 4.x we need to be compensate for the legacy behaviour of setting log destination based on the presence of log_analytics_workspace_id
 				if !features.FivePointOh() && metadata.ResourceData.GetRawConfig().AsValueMap()["logs_destination"].IsNull() && state.LogAnalyticsWorkspaceId == "" {
