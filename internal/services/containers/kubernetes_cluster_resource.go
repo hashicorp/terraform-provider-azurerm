@@ -4629,11 +4629,11 @@ func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsCli
 
 func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managedclusters.ClusterUpgradeSettings {
 	if len(input) == 0 || input[0] == nil {
+		// Return nil only when upgrade_override block is not set
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
-
 	return &managedclusters.ClusterUpgradeSettings{
 		OverrideSettings: &managedclusters.UpgradeOverrideSettings{
 			ForceUpgrade: pointer.To(raw["force_upgrade_enabled"].(bool)),
