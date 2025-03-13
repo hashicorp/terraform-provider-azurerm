@@ -143,7 +143,14 @@ func TestAccWindowsWebApp_withBackupVnetIntegration(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withBackupVnetIntegration(data),
+			Config: r.withBackupVnetIntegration(data, "true"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withBackupVnetIntegration(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1813,7 +1820,7 @@ resource "azurerm_windows_web_app" "test" {
 `, r.templateWithStorageAccount(data), data.RandomInteger)
 }
 
-func (r WindowsWebAppResource) withBackupVnetIntegration(data acceptance.TestData) string {
+func (r WindowsWebAppResource) withBackupVnetIntegration(data acceptance.TestData, enabled string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1828,7 +1835,7 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   virtual_network_subnet_id              = azurerm_subnet.test.id
-  virtual_network_backup_restore_enabled = true
+  virtual_network_backup_restore_enabled = %s
 
   backup {
     name                = "acctest"
@@ -1841,7 +1848,7 @@ resource "azurerm_windows_web_app" "test" {
 
   site_config {}
 }
-`, r.templateStorageWithVnetIntegration(data), data.RandomInteger)
+`, r.templateStorageWithVnetIntegration(data), data.RandomInteger, enabled)
 }
 
 func (r WindowsWebAppResource) withConnectionStrings(data acceptance.TestData) string {

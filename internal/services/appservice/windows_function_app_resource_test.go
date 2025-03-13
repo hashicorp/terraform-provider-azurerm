@@ -470,7 +470,14 @@ func TestAccWindowsFunctionApp_withBackupVnetIntegration(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.backupVnetIntegration(data, SkuStandardPlan),
+			Config: r.backupVnetIntegration(data, SkuStandardPlan, "true"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.backupVnetIntegration(data, SkuStandardPlan, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2136,7 +2143,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger)
 }
 
-func (r WindowsFunctionAppResource) backupVnetIntegration(data acceptance.TestData, planSku string) string {
+func (r WindowsFunctionAppResource) backupVnetIntegration(data acceptance.TestData, planSku string, enabled string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2154,7 +2161,7 @@ resource "azurerm_windows_function_app" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   virtual_network_subnet_id              = azurerm_subnet.test.id
-  virtual_network_backup_restore_enabled = true
+  virtual_network_backup_restore_enabled = %s
 
   backup {
     name                = "acctest"
@@ -2167,7 +2174,7 @@ resource "azurerm_windows_function_app" "test" {
 
   site_config {}
 }
-`, r.storageWithVnetIntegrationTemplate(data, planSku), data.RandomInteger)
+`, r.storageWithVnetIntegrationTemplate(data, planSku), data.RandomInteger, enabled)
 }
 
 func (r WindowsFunctionAppResource) consumptionComplete(data acceptance.TestData) string {
