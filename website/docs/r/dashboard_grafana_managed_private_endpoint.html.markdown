@@ -31,7 +31,7 @@ resource "azurerm_dashboard_grafana" "example" {
   name                          = "example-dg"
   resource_group_name           = azurerm_resource_group.example.name
   location                      = azurerm_resource_group.example.location
-  grafana_major_version         = 10
+  grafana_major_version         = 11
   public_network_access_enabled = false
 
   azure_monitor_workspace_integrations {
