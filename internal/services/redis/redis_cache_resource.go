@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -83,6 +84,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
+			// Example for valid values:
+			// Standard or Basic Sku: (C0, C1, C2, C3, C4, C5, C6)
+			// Premium Sku:               (P1, P2, P3, P4, P5)
 
 			"family": {
 				Type:         pluginsdk.TypeString,
@@ -392,6 +396,22 @@ func resourceRedisCache() *pluginsdk.Resource {
 					return fmt.Errorf("`active_directory_authentication_enabled` must be enabled in order to disable `access_keys_authentication_enabled`")
 				}
 
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				// Only certain `sku_name`, `family` and `capacity` combinations are valid
+				skuName := diff.Get("sku_name").(string)
+				family := diff.Get("family").(string)
+				capacity := diff.Get("capacity").(int)
+				validCombinations := map[string][]string{
+					string(redis.SkuNameBasic):    {"C0", "C1", "C2", "C3", "C4", "C5", "C6"},
+					string(redis.SkuNameStandard): {"C0", "C1", "C2", "C3", "C4", "C5", "C6"},
+					string(redis.SkuNamePremium):  {"P1", "P2", "P3", "P4", "P5"},
+				}
+				familyCapacity := fmt.Sprintf("%s%d", strings.ToUpper(family), capacity)
+				if !slices.Contains(validCombinations[skuName], familyCapacity) {
+					return fmt.Errorf("`sku_name`, `family` and `capacity` combination '%s: %s' is not valid. Valid combinations are: %v", skuName, familyCapacity, validCombinations)
+				}
 				return nil
 			}),
 		),
