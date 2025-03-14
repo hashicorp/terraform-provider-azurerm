@@ -8,5 +8,6 @@ type GalleryImageVersionProperties struct {
 	PublishingProfile *GalleryArtifactPublishingProfileBase `json:"publishingProfile,omitempty"`
 	ReplicationStatus *ReplicationStatus                    `json:"replicationStatus,omitempty"`
 	SafetyProfile     *GalleryImageVersionSafetyProfile     `json:"safetyProfile,omitempty"`
+	SecurityProfile   *ImageVersionSecurityProfile          `json:"securityProfile,omitempty"`
 	StorageProfile    GalleryImageVersionStorageProfile     `json:"storageProfile"`
 }
