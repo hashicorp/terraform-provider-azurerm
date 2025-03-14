@@ -105,14 +105,14 @@ func main() {
 
 	// Validate and determine the correct header for the new entry
 	var selectedHeader string
-	if strings.HasPrefix(newEntry, "[BUG]") {
+	switch {
+	case strings.HasPrefix(newEntry, "[BUG]"):
 		selectedHeader = "BUG FIXES:"
-	} else if strings.HasPrefix(newEntry, "[ENHANCEMENT]") {
+	case strings.HasPrefix(newEntry, "[ENHANCEMENT]"):
 		selectedHeader = "ENHANCEMENTS:"
-	} else if strings.HasPrefix(newEntry, "[FEATURE]") {
+	case strings.HasPrefix(newEntry, "[FEATURE]"):
 		selectedHeader = "FEATURES:"
-	} else {
-		// If the entry doesn't match one of the expected headers, print an error
+	default:
 		fmt.Println("Error: New entry must start with one of the headers [BUG], [ENHANCEMENT], or [FEATURE].")
 		return
 	}
