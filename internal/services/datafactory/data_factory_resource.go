@@ -21,10 +21,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/customermanagedkeys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	hsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -200,16 +201,23 @@ func resourceDataFactory() *pluginsdk.Resource {
 			},
 
 			"customer_managed_key_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"customer_managed_hsm_key_id"},
+				ValidateFunc:  keyVaultValidate.NestedItemId,
+			},
+
+			"customer_managed_hsm_key_id": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"customer_managed_key_id"},
+				ValidateFunc:  validation.Any(hsmValidate.ManagedHSMDataPlaneVersionedKeyID, hsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
 			},
 
 			"customer_managed_key_identity_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-				RequiredWith: []string{"customer_managed_key_id"},
 			},
 
 			"tags": commonschema.Tags(),
@@ -227,6 +235,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	client := meta.(*clients.Client).DataFactory.Factories
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	envs := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -271,19 +280,30 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyID.(string))
-		if err != nil {
-			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+	if cmk, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeAny,
+		"customer_managed_key_id", "customer_managed_hsm_key_id", envs.KeyVault, envs.ManagedHSM); err != nil {
+		return fmt.Errorf("expanding CMK: %+v", err)
+	} else if cmk != nil {
+		enc := &factories.EncryptionConfiguration{
+			VaultBaseURL: cmk.BaseUri(),
 		}
 
-		payload.Properties.Encryption = &factories.EncryptionConfiguration{
-			VaultBaseURL: keyVaultKey.KeyVaultBaseUrl,
-			KeyName:      keyVaultKey.Name,
-			KeyVersion:   &keyVaultKey.Version,
-			Identity: &factories.CMKIdentityDefinition{
-				UserAssignedIdentity: utils.String(d.Get("customer_managed_key_identity_id").(string)),
-			},
+		switch {
+		case cmk.KeyVaultKeyId != nil:
+			enc.KeyName = cmk.KeyVaultKeyId.Name
+			enc.KeyVersion = pointer.To(cmk.KeyVaultKeyId.Version)
+		case cmk.ManagedHSMKeyId != nil:
+			enc.KeyName = cmk.ManagedHSMKeyId.KeyName
+			enc.KeyVersion = pointer.To(cmk.ManagedHSMKeyId.KeyVersion)
+		case cmk.ManagedHSMKeyVersionlessId != nil:
+			enc.KeyName = cmk.ManagedHSMKeyVersionlessId.KeyName
+		}
+		payload.Properties.Encryption = enc
+
+		if identityStr, ok := d.GetOk("customer_managed_key_identity_id"); ok {
+			payload.Properties.Encryption.Identity = &factories.CMKIdentityDefinition{
+				UserAssignedIdentity: pointer.To(identityStr.(string)),
+			}
 		}
 	}
 
@@ -370,19 +390,19 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		if props := model.Properties; props != nil {
-			customerManagedKeyId := ""
-			customerManagedKeyIdentityId := ""
 			if enc := props.Encryption; enc != nil {
-				if enc.VaultBaseURL != "" && enc.KeyName != "" && enc.KeyVersion != nil {
-					version := ""
-					if enc.KeyVersion != nil && *enc.KeyVersion != "" {
-						version = *enc.KeyVersion
+				if enc.VaultBaseURL != "" && enc.KeyName != "" {
+					if cmk, err := customermanagedkeys.FlattenKeyVaultOrManagedHSMIDByComponents(
+						enc.VaultBaseURL, enc.KeyName, pointer.From(enc.KeyVersion),
+						meta.(*clients.Client).Account.Environment.ManagedHSM); err != nil {
+						return fmt.Errorf("flattening CMK: %+v", err)
+					} else if cmk != nil {
+						if cmk.KeyVaultKeyId != nil {
+							d.Set("customer_managed_key_id", cmk.KeyVaultKeyId.ID())
+						} else {
+							d.Set("customer_managed_hsm_key_id", cmk.ManagedHSMKeyID())
+						}
 					}
-					keyId, err := keyVaultParse.NewNestedKeyID(enc.VaultBaseURL, enc.KeyName, version)
-					if err != nil {
-						return fmt.Errorf("parsing Nested Item ID: %+v", err)
-					}
-					customerManagedKeyId = keyId.ID()
 				}
 
 				if encIdentity := enc.Identity; encIdentity != nil && encIdentity.UserAssignedIdentity != nil {
@@ -390,11 +410,9 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					if err != nil {
 						return fmt.Errorf("parsing %q: %+v", *encIdentity.UserAssignedIdentity, err)
 					}
-					customerManagedKeyIdentityId = parsed.ID()
+					d.Set("customer_managed_key_identity_id", parsed.ID())
 				}
 			}
-			d.Set("customer_managed_key_id", customerManagedKeyId)
-			d.Set("customer_managed_key_identity_id", customerManagedKeyIdentityId)
 
 			globalParameters, err := flattenDataFactoryGlobalParameters(props.GlobalParameters)
 			if err != nil {
