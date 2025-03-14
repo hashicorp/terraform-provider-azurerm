@@ -1,3 +1,15 @@
+## 4.24.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: `postgresql` - partial update to API version `2024-08-01` [GH-28964]
+* `azurerm_ai_services` - add support for the `network_acls.bypass` property [GH-28569]
+
+BUG FIXES:
+
+* `azurerm_app_configuration` - the `encryption` block can now be removed [GH-28173]
+* `azurerm_mssql_database` fix validation for `auto_pause_delay_in_minutes` [GH-28670]
+
 ## 4.23.0 (March 13, 2025)
 
 NOTES:
