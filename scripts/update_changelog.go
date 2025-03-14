@@ -81,7 +81,12 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			println("file open error ", err.Error())
+		}
+	}(file)
 
 	// Write the updated content back to the file
 	writer := bufio.NewWriter(file)
