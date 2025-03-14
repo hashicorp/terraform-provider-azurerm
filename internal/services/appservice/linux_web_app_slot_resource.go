@@ -30,41 +30,42 @@ import (
 type LinuxWebAppSlotResource struct{}
 
 type LinuxWebAppSlotModel struct {
-	Name                             string                                     `tfschema:"name"`
-	AppServiceId                     string                                     `tfschema:"app_service_id"`
-	ServicePlanID                    string                                     `tfschema:"service_plan_id"`
-	AppSettings                      map[string]string                          `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                           `tfschema:"backup"`
-	ClientAffinityEnabled            bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                          bool                                       `tfschema:"enabled"`
-	HttpsOnly                        bool                                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
-	LogsConfig                       []helpers.LogsConfig                       `tfschema:"logs"`
-	MetaData                         map[string]string                          `tfschema:"app_metadata"`
-	SiteConfig                       []helpers.SiteConfigLinuxWebAppSlot        `tfschema:"site_config"`
-	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
-	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
-	ZipDeployFile                    string                                     `tfschema:"zip_deploy_file"`
-	Tags                             map[string]string                          `tfschema:"tags"`
-	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
-	DefaultHostname                  string                                     `tfschema:"default_hostname"`
-	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
-	Kind                             string                                     `tfschema:"kind"`
-	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
-	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
+	Name                               string                                     `tfschema:"name"`
+	AppServiceId                       string                                     `tfschema:"app_service_id"`
+	ServicePlanID                      string                                     `tfschema:"service_plan_id"`
+	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                             []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled              bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                            bool                                       `tfschema:"enabled"`
+	HttpsOnly                          bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
+	LogsConfig                         []helpers.LogsConfig                       `tfschema:"logs"`
+	MetaData                           map[string]string                          `tfschema:"app_metadata"`
+	SiteConfig                         []helpers.SiteConfigLinuxWebAppSlot        `tfschema:"site_config"`
+	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
+	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`
+	Tags                               map[string]string                          `tfschema:"tags"`
+	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
+	DefaultHostname                    string                                     `tfschema:"default_hostname"`
+	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`
+	Kind                               string                                     `tfschema:"kind"`
+	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	OutboundIPAddresses                string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList              []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses        string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList      []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
+	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxWebAppSlotResource{}
@@ -155,6 +156,12 @@ func (r LinuxWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"https_only": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"virtual_network_backup_restore_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -344,14 +351,15 @@ func (r LinuxWebAppSlotResource) Create() sdk.ResourceFunc {
 				Identity: expandedIdentity,
 				Tags:     pointer.To(webAppSlot.Tags),
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:          pointer.To(servicePlanId.ID()),
-					Enabled:               pointer.To(webAppSlot.Enabled),
-					HTTPSOnly:             pointer.To(webAppSlot.HttpsOnly),
-					SiteConfig:            siteConfig,
-					ClientAffinityEnabled: pointer.To(webAppSlot.ClientAffinityEnabled),
-					ClientCertEnabled:     pointer.To(webAppSlot.ClientCertEnabled),
-					ClientCertMode:        pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
-					VnetRouteAllEnabled:   siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:             pointer.To(servicePlanId.ID()),
+					Enabled:                  pointer.To(webAppSlot.Enabled),
+					HTTPSOnly:                pointer.To(webAppSlot.HttpsOnly),
+					SiteConfig:               siteConfig,
+					ClientAffinityEnabled:    pointer.To(webAppSlot.ClientAffinityEnabled),
+					ClientCertEnabled:        pointer.To(webAppSlot.ClientCertEnabled),
+					ClientCertMode:           pointer.To(webapps.ClientCertMode(webAppSlot.ClientCertMode)),
+					VnetBackupRestoreEnabled: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
+					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -604,6 +612,7 @@ func (r LinuxWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)
@@ -806,6 +815,10 @@ func (r LinuxWebAppSlotResource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
+				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
