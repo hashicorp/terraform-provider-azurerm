@@ -410,6 +410,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				if !slices.Contains(validCombinations[skuName], familyCapacity) {
 					return fmt.Errorf("invalid combination of `sku_name`, `family`, and `capacity`: '%s: %s'. Valid combinations are: %v", skuName, familyCapacity, validCombinations)
 				}
+
 				return nil
 			}),
 		),
