@@ -121,6 +121,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
 
+* `public_network_access` - (Optional) Whether public network access is allowed for the MySql Flexible Server. Possible values are `Enabled`, `Disabled`. Defaults to `Enabled`.
+
 * `replication_role` - (Optional) The replication role. Possible value is `None`.
 
 ~> **NOTE:** The `replication_role` cannot be set while creating and only can be updated from `Replica` to `None`.
@@ -212,8 +214,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the MySQL Flexible Server.
 
 * `fqdn` - The fully qualified domain name of the MySQL Flexible Server.
-
-* `public_network_access_enabled` - Is the public network access enabled?
 
 * `replica_capacity` - The maximum number of replicas that a primary MySQL Flexible Server can have.
 
