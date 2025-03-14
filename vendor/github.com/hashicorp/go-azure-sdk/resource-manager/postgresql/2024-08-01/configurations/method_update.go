@@ -22,11 +22,12 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c ConfigurationsClient) Update(ctx context.Context, id ConfigurationId, input Configuration) (result UpdateOperationResponse, err error) {
+func (c ConfigurationsClient) Update(ctx context.Context, id ConfigurationId, input ConfigurationForUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
+			http.StatusCreated,
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPatch,
@@ -61,7 +62,7 @@ func (c ConfigurationsClient) Update(ctx context.Context, id ConfigurationId, in
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c ConfigurationsClient) UpdateThenPoll(ctx context.Context, id ConfigurationId, input Configuration) error {
+func (c ConfigurationsClient) UpdateThenPoll(ctx context.Context, id ConfigurationId, input ConfigurationForUpdate) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
