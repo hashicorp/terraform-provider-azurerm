@@ -1,6 +1,6 @@
-# Guide: Adding a new Feature to the Feature Block
+# Guide: Adding a new Feature to the Features Block
 
-This guide covers how to add a new Feature to the Feature Block that will change the default behaviour for how a resource or service works. Reasons for this can include:
+This guide covers how to add a new Feature to the Features Block ([Terraform Docs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block)) that will change the default behaviour for how a resource or service works. Reasons for this can include:
 
 * Purging a resource during delete
 
