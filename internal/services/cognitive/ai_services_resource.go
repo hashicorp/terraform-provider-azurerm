@@ -787,8 +787,8 @@ func flattenNetworkACLs(input *cognitiveservicesaccounts.NetworkRuleSet) []Netwo
 	}
 
 	return []NetworkACLs{{
-		Bypass:              string(*input.Bypass),
-		DefaultAction:       string(*input.DefaultAction),
+		Bypass:              string(pointer.From(input.Bypass)),
+		DefaultAction:       string(pointer.From(input.DefaultAction)),
 		IpRules:             ipRules,
 		VirtualNetworkRules: virtualNetworkRules,
 	}}
