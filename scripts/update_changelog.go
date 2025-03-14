@@ -54,16 +54,15 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 	// Remove the header prefix from the new entry
 	// Trim the header prefix based on which one it matches
 	var trimmedEntry string
-	if strings.HasPrefix(newEntry, "[BUG]") {
+	switch {
+	case strings.HasPrefix(newEntry, "[BUG]"):
 		trimmedEntry = strings.TrimPrefix(newEntry, "[BUG] ")
-	} else if strings.HasPrefix(newEntry, "[ENHANCEMENT]") {
+	case strings.HasPrefix(newEntry, "[ENHANCEMENT]"):
 		trimmedEntry = strings.TrimPrefix(newEntry, "[ENHANCEMENT] ")
-	} else if strings.HasPrefix(newEntry, "[FEATURE]") {
+	case strings.HasPrefix(newEntry, "[FEATURE]"):
 		trimmedEntry = strings.TrimPrefix(newEntry, "[FEATURE] ")
-	} else {
-		// If the entry doesn't match one of the expected headers, print an error
-		fmt.Println("Error: New entry must start with one of the headers [BUG], [ENHANCEMENT], or [FEATURE].")
-		return nil
+	default:
+		return fmt.Errorf("new entry must start with one of the headers [BUG], [ENHANCEMENT], or [FEATURE]")
 	}
 
 	// Insert the new entry under the header
