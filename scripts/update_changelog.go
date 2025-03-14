@@ -66,7 +66,7 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 	}
 
 	// Insert the new entry under the header
-	var section []string
+	section := make([]string, 0)
 	for i := headerIndex + 1; i < insertIndex; i++ {
 		section = append(section, lines[i])
 	}
