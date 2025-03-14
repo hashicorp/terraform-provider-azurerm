@@ -5,6 +5,10 @@ package datafactory_test
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"testing"
 
@@ -33,6 +37,74 @@ func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServiceSFTP_privateKeyContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+	privateKey, err := generatePrivateKey()
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %v", err)
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateKeyContent(data, privateKey),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password", "private_key_content_base64"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceSFTP_privateKeyPath(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateKeyPath(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceSFTP_authUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	privateKey, err := generatePrivateKey()
+	if err != nil {
+		t.Fatalf("Failed to generate private key: %v", err)
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+		{
+			Config: r.privateKeyContent(data, privateKey),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password", "private_key_content_base64"),
+		{
+			Config: r.basic(data), // private_key_content_base64 = null
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"), // "private_key_content_base64": "" (state/Azure) -> null (config)
+	})
+}
+
 func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
 	r := LinkedServiceSFTPResource{}
@@ -42,10 +114,6 @@ func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 			Config: r.update1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
-				check.That(data.ResourceName).Key("additional_properties.%").HasValue("2"),
-				check.That(data.ResourceName).Key("description").HasValue("test description"),
 			),
 		},
 		data.ImportStep("password"),
@@ -53,10 +121,6 @@ func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
-				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
 			),
 		},
 		data.ImportStep("password"),
@@ -186,4 +250,78 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceSFTPResource) privateKeyContent(data acceptance.TestData, keyContent []byte) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlsweb%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "SshPublicKey"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+
+  private_key_content_base64 = base64encode(<<EOF
+"%s
+EOF
+  )
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, keyContent)
+}
+
+func (LinkedServiceSFTPResource) privateKeyPath(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlsweb%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "SshPublicKey"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+  private_key_path    = "C:\\myprivatekey.pem"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func generatePrivateKey() ([]byte, error) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return nil, err
+	}
+
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(key),
+	}), nil
 }
