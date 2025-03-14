@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -829,7 +830,9 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 
 func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveservicesaccounts.Encryption {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &cognitiveservicesaccounts.Encryption{
+			KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
+		}
 	}
 
 	v := input[0].(map[string]interface{})
@@ -857,7 +860,7 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 }
 
 func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
-	if input == nil {
+	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
 		return []interface{}{}, nil
 	}
 
