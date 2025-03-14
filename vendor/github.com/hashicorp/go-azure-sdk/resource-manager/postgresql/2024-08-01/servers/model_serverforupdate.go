@@ -8,8 +8,8 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ServerForUpdate struct {
-	Identity   *identity.SystemOrUserAssignedMap `json:"identity,omitempty"`
-	Properties *ServerPropertiesForUpdate        `json:"properties,omitempty"`
-	Sku        *Sku                              `json:"sku,omitempty"`
-	Tags       *map[string]string                `json:"tags,omitempty"`
+	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
+	Properties *ServerPropertiesForUpdate               `json:"properties,omitempty"`
+	Sku        *Sku                                     `json:"sku,omitempty"`
+	Tags       *map[string]string                       `json:"tags,omitempty"`
 }

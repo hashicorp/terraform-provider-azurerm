@@ -612,7 +612,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = authConfig
 	}
 
-	identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`")
 	}
@@ -734,7 +734,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -931,7 +931,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity` for %s: %+v", *id, err)
 		}
