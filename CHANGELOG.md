@@ -1,5 +1,9 @@
 ## 4.24.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: `postgresql` - partial update to API version `2024-08-01` [GH-28964]
+
 BUG FIXES:
 
 * `azurerm_app_configuration` - the `encryption` block can now be removed [GH-28173]
