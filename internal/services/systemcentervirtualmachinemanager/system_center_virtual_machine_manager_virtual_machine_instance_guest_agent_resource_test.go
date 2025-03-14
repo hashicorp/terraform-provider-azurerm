@@ -86,7 +86,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 
 	resp, err := clients.SystemCenterVirtualMachineManager.GuestAgents.Get(ctx, commonids.NewScopeID(id.Scope))
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
