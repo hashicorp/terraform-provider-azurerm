@@ -6,6 +6,8 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -389,6 +391,54 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_withNetworkSecurityGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withNetworkSecurityGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnet_invalidNetworkSecurityGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidNetworkSecurityGroup(data),
+			ExpectError: regexp.MustCompile(`network_security_group_id.*valid Azure NSG resource ID.*invalid_nsg_id`),
+		},
+	})
+}
+
+func TestAccSubnet_emptyNetworkSecurityGroup(t *testing.T) {
+	if v := os.Getenv("TF_ACC_SKIP_EMPTY_NSG_TEST"); v != "" {
+		t.Skip("Skipping TestAccSubnet_emptyNetworkSecurityGroup because policy enforcement prevents empty NSG")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.emptyNetworkSecurityGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				// Verify that the attribute remains empty
+				check.That(data.ResourceName).Key("network_security_group_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
@@ -414,6 +464,54 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 	}
 
 	return utils.Bool(true), nil
+}
+
+func (r SubnetResource) withNetworkSecurityGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestnsg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                      = "internal"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test.name
+  address_prefixes          = ["10.0.2.0/24"]
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SubnetResource) invalidNetworkSecurityGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                      = "internal"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test.name
+  address_prefixes          = ["10.0.2.0/24"]
+  network_security_group_id = "invalid_nsg_id"
+}
+`, r.template(data))
+}
+
+func (r SubnetResource) emptyNetworkSecurityGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                      = "internal"
+  resource_group_name       = azurerm_resource_group.test.name
+  virtual_network_name      = azurerm_virtual_network.test.name
+  address_prefixes          = ["10.0.2.0/24"]
+  network_security_group_id = ""
+}
+`, r.template(data))
 }
 
 func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
