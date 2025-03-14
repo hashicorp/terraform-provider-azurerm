@@ -1,5 +1,8 @@
 ## 4.24.0 (Unreleased)
 
+BUG FIXES:
+
+* `azurerm_app_configuration` - the `encryption` block can now be removed [GH-28173]
 
 ## 4.23.0 (March 13, 2025)
 
