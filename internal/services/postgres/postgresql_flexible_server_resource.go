@@ -176,6 +176,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForServerVersion(), false),
 			},
 
+			"allow_major_version_upgrade_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"zone": commonschema.ZoneSingleOptional(),
 
 			"create_mode": {
@@ -351,31 +357,28 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			createModeVal := d.Get("create_mode").(string)
-
-			if createModeVal == string(servers.CreateModeUpdate) {
+			if d.HasChange("version") {
 				oldVersionVal, newVersionVal := d.GetChange("version")
+				// `version` value has been validated already, ignore the parse errors is safe
+				oldVersion, _ := strconv.ParseInt(oldVersionVal.(string), 10, 32)
+				newVersion, _ := strconv.ParseInt(newVersionVal.(string), 10, 32)
 
-				if oldVersionVal != "" && newVersionVal != "" {
-					oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					if oldVersion < newVersion {
-						return nil
-					}
+				if oldVersion == 0 {
+					return nil
 				}
+
+				if oldVersion > newVersion {
+					d.ForceNew("version")
+					return nil
+				}
+
+				// if create_mode is not Update and allow_major_version_upgrade_enabled is not set to true, then major version upgrade is not allowed
+				if d.Get("create_mode").(string) != string(servers.CreateModeUpdate) &&
+					!d.Get("allow_major_version_upgrade_enabled").(bool) {
+					return fmt.Errorf("major version update is not allowed, set `create_mode` to `Update` or set `allow_major_version_upgrade_enabled` to true")
+				}
+				return nil
 			}
-
-			d.ForceNew("create_mode")
-			d.ForceNew("version")
-
 			return nil
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			oldLoginName, _ := diff.GetChange("administrator_login")
@@ -667,6 +670,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("administrator_password_wo_version", d.Get("administrator_password_wo_version").(int))
+	d.Set("allow_major_version_upgrade_enabled", d.Get("allow_major_version_upgrade_enabled").(bool))
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))

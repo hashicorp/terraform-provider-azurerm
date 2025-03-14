@@ -113,11 +113,9 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica` and `Update`. Changing this forces a new PostgreSQL Flexible Server to be created.
+* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica` and `Update`.
 
--> **Note:** `create_mode` cannot be changed once it's set since it's a parameter at creation.
-
--> **Note:** While creating the resource, `create_mode` cannot be set to `Update`.
+-> **Note:** `create_mode` cannot be changed to other values than `Update`, it's set since it's a parameter at creation. It's optional to change it to `Update` when do a major version upgrade.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -161,7 +159,11 @@ The following arguments are supported:
 
 * `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15` and `16`. Required when `create_mode` is `Default`.
 
--> **Note:** When `create_mode` is `Update`, upgrading version wouldn't force a new resource to be created.
+-> **Note:** Upgrading version wouldn't force a new resource to be created whilst it can still cause the server out of service for a while. Downgrading the version will force a new resource to be created.
+
+-> **Note:** An in-place version update requires that the `create_mode` is set to `Update` **OR** the `allow_major_version_upgrade_enabled` is set to `true`.
+
+* `allow_major_version_upgrade_enabled` - (Optional) Indicates whether major version updates are permitted for this server when `create_mode` is not set to `Update`. Defaults to `false`.
 
 * `zone` - (Optional) Specifies the Availability Zone in which the PostgreSQL Flexible Server should be located.
 
