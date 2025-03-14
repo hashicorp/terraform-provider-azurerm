@@ -84,9 +84,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Required: true,
 			},
-			// Example for valid values:
-			// Standard or Basic Sku: (C0, C1, C2, C3, C4, C5, C6)
-			// Premium Sku:               (P1, P2, P3, P4, P5)
 
 			"family": {
 				Type:         pluginsdk.TypeString,
@@ -399,7 +396,8 @@ func resourceRedisCache() *pluginsdk.Resource {
 				return nil
 			}),
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				// Only certain `sku_name`, `family` and `capacity` combinations are valid
+				// Replicates validation rules from Azure CLI
+				// https://github.com/Azure/azure-cli/blob/131634d374fe704920862a2e5b0745e61af9bc89/src/azure-cli/azure/cli/command_modules/redis/custom.py#L13
 				skuName := diff.Get("sku_name").(string)
 				family := diff.Get("family").(string)
 				capacity := diff.Get("capacity").(int)
@@ -410,7 +408,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				}
 				familyCapacity := fmt.Sprintf("%s%d", strings.ToUpper(family), capacity)
 				if !slices.Contains(validCombinations[skuName], familyCapacity) {
-					return fmt.Errorf("`sku_name`, `family` and `capacity` combination '%s: %s' is not valid. Valid combinations are: %v", skuName, familyCapacity, validCombinations)
+					return fmt.Errorf("invalid combination of `sku_name`, `family`, and `capacity`: '%s: %s'. Valid combinations are: %v", skuName, familyCapacity, validCombinations)
 				}
 				return nil
 			}),
