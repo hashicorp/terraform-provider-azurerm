@@ -26,6 +26,7 @@ resource "azurerm_custom_ip_prefix" "example" {
   cidr  = "1.2.3.4/22"
   zones = ["1", "2", "3"]
 
+  prefix_type           = "Singular"
   commissioning_enabled = true
 
   roa_validity_end_date         = "2099-12-12"
@@ -49,7 +50,8 @@ resource "azurerm_custom_ip_prefix" "global" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  cidr = "2001:db8:1::/48"
+  cidr        = "2001:db8:1::/48"
+  prefix_type = "Parent"
 
   roa_validity_end_date         = "2199-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
@@ -60,6 +62,7 @@ resource "azurerm_custom_ip_prefix" "regional" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   parent_custom_ip_prefix_id = azurerm_custom_ip_prefix.global.id
+  prefix_type                = "Child"
 
   cidr  = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
   zones = ["1"]
@@ -87,6 +90,8 @@ The following arguments are supported:
 !> **Warning** Changing the value of `internet_advertising_disabled` from `true` to `false` causes the IP prefix to stop being advertised by Azure and is functionally equivalent to deleting it when used in a production setting.
 
 * `parent_custom_ip_prefix_id` - (Optional) Specifies the ID of the parent prefix. Only needed when creating a regional/child IPv6 prefix. Changing this forces a new resource to be created.
+
+* `prefix_type` - (Optional) Type of custom IP prefix. Possible values are `Child`, `Parent`, or `Singular`. Changing this forces a new resource to be created.
 
 * `roa_validity_end_date` - (Optional) The expiration date of the Route Origin Authorization (ROA) document which has been filed with the Routing Internet Registry (RIR) for this prefix. The expected format is `YYYY-MM-DD`. Required when provisioning an IPv4 prefix or IPv6 global prefix. Changing this forces a new resource to be created.
 
