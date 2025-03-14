@@ -8,6 +8,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_app_configuration` - the `encryption` block can now be removed [GH-28173]
+* `azurerm_mssql_database` fix validation for `auto_pause_delay_in_minutes` [GH-28670]
 
 ## 4.23.0 (March 13, 2025)
 
