@@ -117,11 +117,11 @@ The following arguments are supported:
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
-* `storage_container_type` - (Optional) The storage container type used for the Function App. The current supported type is `blobContainer`.
+* `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
 
-* `storage_container_endpoint` - (Optional) The backend storage container endpoint which will be used by this Function App.
+* `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
 
-* `storage_authentication_type` - (Optional) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `storageaccountconnectionstring`, `systemassignedidentity`, and `userassignedidentity`.
+* `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `storageaccountconnectionstring`, `systemassignedidentity`, and `userassignedidentity`.
 
 * `storage_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
 
@@ -131,9 +131,9 @@ The following arguments are supported:
 
 ~> **Note:** The`storage_user_assigned_identity_id` must be specified when `storage_authentication_type` sets to `userassignedidentity`.
 
-* `runtime_name` - (Optional) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
+* `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
 
-* `runtime_version` - (Optional) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
+* `runtime_version` - (Required) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
