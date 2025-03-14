@@ -128,7 +128,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           
-          go run scripts/update_changelog.go CHANGELOG.md '${{ needs.changelog-entry.outputs.entry }}'
+          go run internal/tools/changelog-updater/update_changelog.go CHANGELOG.md '${{ needs.changelog-entry.outputs.entry }}'
           
           git add CHANGELOG.md
           git commit -m "Update changelog"
