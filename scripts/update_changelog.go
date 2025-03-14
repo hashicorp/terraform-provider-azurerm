@@ -118,8 +118,7 @@ func main() {
 	}
 
 	// Call the function to append under the appropriate header
-	err := appendUnderHeader(filePath, newEntry, selectedHeader)
-	if err != nil {
+	if err := appendUnderHeader(filePath, newEntry, selectedHeader); err != nil {
 		fmt.Println("Error appending to file:", err)
 		return
 	}
