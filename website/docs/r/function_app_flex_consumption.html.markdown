@@ -51,7 +51,7 @@ resource "azurerm_function_app_flex_consumption" "example" {
   service_plan_id     = azurerm_service_plan.example.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.example.id
+  storage_container_endpoint  = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.example.primary_access_key
   runtime_name                = "node"
@@ -101,19 +101,11 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
-* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
-
 * `enabled` - (Optional) Is the Function App enabled? Defaults to `true`.
-
-* `content_share_force_disabled` - (Optional) Should the settings for linking the Function App to storage be suppressed.
-
-* `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
 * `identity` - (Optional) A `identity` block as defined below.
-
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
@@ -661,8 +653,6 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
-
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
@@ -676,22 +666,6 @@ A `sticky_settings` block supports the following:
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
 
 * `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
-
----
-
-A `storage_account` block supports the following:
-
-* `access_key` - (Required) The Access key for the storage account.
-
-* `account_name` - (Required) The Name of the Storage Account.
-
-* `name` - (Required) The name which should be used for this Storage Account.
-
-* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
-
-* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`.
-
-* `mount_path` - (Optional) The path at which to mount the storage share.
 
 ---
 
