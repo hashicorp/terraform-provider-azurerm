@@ -313,7 +313,11 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("bandwidth_in_gbps") {
-		payload.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
+		payload.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
+	}
+
+	if d.HasChange("bandwidth_in_mbps") {
+		payload.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
