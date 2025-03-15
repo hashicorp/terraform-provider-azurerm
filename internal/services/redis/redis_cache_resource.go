@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -390,6 +391,24 @@ func resourceRedisCache() *pluginsdk.Resource {
 
 				if !accessKeysAuthenticationEnabled && !activeDirectoryAuthenticationEnabled {
 					return fmt.Errorf("`active_directory_authentication_enabled` must be enabled in order to disable `access_keys_authentication_enabled`")
+				}
+
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				// Replicates validation rules from Azure CLI
+				// https://github.com/Azure/azure-cli/blob/131634d374fe704920862a2e5b0745e61af9bc89/src/azure-cli/azure/cli/command_modules/redis/custom.py#L13
+				skuName := diff.Get("sku_name").(string)
+				family := diff.Get("family").(string)
+				capacity := diff.Get("capacity").(int)
+				validCombinations := map[string][]string{
+					string(redis.SkuNameBasic):    {"C0", "C1", "C2", "C3", "C4", "C5", "C6"},
+					string(redis.SkuNameStandard): {"C0", "C1", "C2", "C3", "C4", "C5", "C6"},
+					string(redis.SkuNamePremium):  {"P1", "P2", "P3", "P4", "P5"},
+				}
+				familyCapacity := fmt.Sprintf("%s%d", strings.ToUpper(family), capacity)
+				if !slices.Contains(validCombinations[skuName], familyCapacity) {
+					return fmt.Errorf("invalid combination of `sku_name`, `family`, and `capacity`: '%s: %s'. Valid combinations are: %v", skuName, familyCapacity, validCombinations)
 				}
 
 				return nil
