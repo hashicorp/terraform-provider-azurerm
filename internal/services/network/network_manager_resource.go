@@ -103,7 +103,7 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"scope_accesses": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
