@@ -150,6 +150,8 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 			"monitor": SchemaHDInsightsMonitor(),
 
 			"extension": SchemaHDInsightsExtension(),
+
+			"availability_zones": commonschema.ZonesMultipleOptional(),
 		},
 	}
 }
@@ -272,6 +274,10 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if v, ok := d.GetOk("availability_zones"); ok {
+		payload.Zones = pointer.To(expandHDInsightAvailabilityZones(v))
+	}
+
 	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating Spark %s: %+v", id, err)
 	}
@@ -382,6 +388,10 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
 				return fmt.Errorf("flattening setting `disk_encryption`: %+v", err)
+			}
+
+			if model.Zones != nil {
+				d.Set("availability_zones", pointer.From(model.Zones))
 			}
 
 			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
