@@ -284,7 +284,7 @@ A `data_sources` block supports the following:
 * `extension` - (Optional) One or more `extension` blocks as defined below.
 
 * `iis_log` - (Optional) One or more `iis_log` blocks as defined below.
- 
+
 * `log_file` - (Optional) One or more `log_file` blocks as defined below.
 
 * `performance_counter` - (Optional) One or more `performance_counter` blocks as defined below.
@@ -368,7 +368,7 @@ An `extension` block supports the following:
 An `iis_log` block supports the following:
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
- 
+
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value is `Microsoft-W3CIISLog`.
 
 * `log_directories` - (Optional) Specifies a list of absolute paths where the log files are located.
@@ -409,7 +409,7 @@ An `log_file` block supports the following:
 
 * `file_patterns` - (Required) Specifies a list of file patterns where the log files are located. For example, `C:\\JavaLogs\\*.log`.
 
-* `format` - (Required) The data format of the log files. possible value is `text`.
+* `format` - (Required) The data format of the log files. Possible values are `text` and `json`.
 
 * `settings` - (Optional) A `settings` block as defined below.
 
@@ -448,7 +448,7 @@ A `prometheus_forwarder` block supports the following:
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value is `Microsoft-PrometheusMetrics`.
- 
+
 * `label_include_filter` - (Optional) One or more `label_include_filter` blocks as defined above.
 
 ---
@@ -478,7 +478,6 @@ A `storage_blob_direct` block supports the following:
 * `storage_account_id` - (Required) The resource ID of the Storage Account.
 
 ---
-
 
 ---
 

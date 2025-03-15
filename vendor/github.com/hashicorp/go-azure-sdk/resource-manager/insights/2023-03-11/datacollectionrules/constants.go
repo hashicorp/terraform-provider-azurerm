@@ -9,6 +9,47 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type KnownAgentSettingName string
+
+const (
+	KnownAgentSettingNameMaxDiskQuotaInMB                  KnownAgentSettingName = "MaxDiskQuotaInMB"
+	KnownAgentSettingNameUseTimeReceivedForForwardedEvents KnownAgentSettingName = "UseTimeReceivedForForwardedEvents"
+)
+
+func PossibleValuesForKnownAgentSettingName() []string {
+	return []string{
+		string(KnownAgentSettingNameMaxDiskQuotaInMB),
+		string(KnownAgentSettingNameUseTimeReceivedForForwardedEvents),
+	}
+}
+
+func (s *KnownAgentSettingName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKnownAgentSettingName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseKnownAgentSettingName(input string) (*KnownAgentSettingName, error) {
+	vals := map[string]KnownAgentSettingName{
+		"maxdiskquotainmb":                  KnownAgentSettingNameMaxDiskQuotaInMB,
+		"usetimereceivedforforwardedevents": KnownAgentSettingNameUseTimeReceivedForForwardedEvents,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KnownAgentSettingName(input)
+	return &out, nil
+}
+
 type KnownColumnDefinitionType string
 
 const (
@@ -324,11 +365,13 @@ func parseKnownLogFileTextSettingsRecordStartTimestampFormat(input string) (*Kno
 type KnownLogFilesDataSourceFormat string
 
 const (
+	KnownLogFilesDataSourceFormatJson KnownLogFilesDataSourceFormat = "json"
 	KnownLogFilesDataSourceFormatText KnownLogFilesDataSourceFormat = "text"
 )
 
 func PossibleValuesForKnownLogFilesDataSourceFormat() []string {
 	return []string{
+		string(KnownLogFilesDataSourceFormatJson),
 		string(KnownLogFilesDataSourceFormatText),
 	}
 }
@@ -348,6 +391,7 @@ func (s *KnownLogFilesDataSourceFormat) UnmarshalJSON(bytes []byte) error {
 
 func parseKnownLogFilesDataSourceFormat(input string) (*KnownLogFilesDataSourceFormat, error) {
 	vals := map[string]KnownLogFilesDataSourceFormat{
+		"json": KnownLogFilesDataSourceFormatJson,
 		"text": KnownLogFilesDataSourceFormatText,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -435,6 +479,47 @@ func parseKnownPrometheusForwarderDataSourceStreams(input string) (*KnownPrometh
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := KnownPrometheusForwarderDataSourceStreams(input)
+	return &out, nil
+}
+
+type KnownStorageBlobLookupType string
+
+const (
+	KnownStorageBlobLookupTypeCidr   KnownStorageBlobLookupType = "Cidr"
+	KnownStorageBlobLookupTypeString KnownStorageBlobLookupType = "String"
+)
+
+func PossibleValuesForKnownStorageBlobLookupType() []string {
+	return []string{
+		string(KnownStorageBlobLookupTypeCidr),
+		string(KnownStorageBlobLookupTypeString),
+	}
+}
+
+func (s *KnownStorageBlobLookupType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKnownStorageBlobLookupType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseKnownStorageBlobLookupType(input string) (*KnownStorageBlobLookupType, error) {
+	vals := map[string]KnownStorageBlobLookupType{
+		"cidr":   KnownStorageBlobLookupTypeCidr,
+		"string": KnownStorageBlobLookupTypeString,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KnownStorageBlobLookupType(input)
 	return &out, nil
 }
 
@@ -692,5 +777,49 @@ func parseKnownWindowsEventLogDataSourceStreams(input string) (*KnownWindowsEven
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := KnownWindowsEventLogDataSourceStreams(input)
+	return &out, nil
+}
+
+type KnownWindowsFirewallLogsDataSourceProfileFilter string
+
+const (
+	KnownWindowsFirewallLogsDataSourceProfileFilterDomain  KnownWindowsFirewallLogsDataSourceProfileFilter = "Domain"
+	KnownWindowsFirewallLogsDataSourceProfileFilterPrivate KnownWindowsFirewallLogsDataSourceProfileFilter = "Private"
+	KnownWindowsFirewallLogsDataSourceProfileFilterPublic  KnownWindowsFirewallLogsDataSourceProfileFilter = "Public"
+)
+
+func PossibleValuesForKnownWindowsFirewallLogsDataSourceProfileFilter() []string {
+	return []string{
+		string(KnownWindowsFirewallLogsDataSourceProfileFilterDomain),
+		string(KnownWindowsFirewallLogsDataSourceProfileFilterPrivate),
+		string(KnownWindowsFirewallLogsDataSourceProfileFilterPublic),
+	}
+}
+
+func (s *KnownWindowsFirewallLogsDataSourceProfileFilter) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseKnownWindowsFirewallLogsDataSourceProfileFilter(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseKnownWindowsFirewallLogsDataSourceProfileFilter(input string) (*KnownWindowsFirewallLogsDataSourceProfileFilter, error) {
+	vals := map[string]KnownWindowsFirewallLogsDataSourceProfileFilter{
+		"domain":  KnownWindowsFirewallLogsDataSourceProfileFilterDomain,
+		"private": KnownWindowsFirewallLogsDataSourceProfileFilterPrivate,
+		"public":  KnownWindowsFirewallLogsDataSourceProfileFilterPublic,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := KnownWindowsFirewallLogsDataSourceProfileFilter(input)
 	return &out, nil
 }

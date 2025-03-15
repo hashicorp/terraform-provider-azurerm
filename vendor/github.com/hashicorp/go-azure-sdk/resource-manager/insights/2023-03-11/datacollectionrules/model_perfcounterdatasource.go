@@ -8,4 +8,5 @@ type PerfCounterDataSource struct {
 	Name                       *string                              `json:"name,omitempty"`
 	SamplingFrequencyInSeconds *int64                               `json:"samplingFrequencyInSeconds,omitempty"`
 	Streams                    *[]KnownPerfCounterDataSourceStreams `json:"streams,omitempty"`
+	TransformKql               *string                              `json:"transformKql,omitempty"`
 }
