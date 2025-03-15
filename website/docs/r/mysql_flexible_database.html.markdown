@@ -28,7 +28,7 @@ resource "azurerm_mysql_flexible_server" "example" {
   location               = azurerm_resource_group.example.location
   administrator_login    = "mysqladminun"
   administrator_password = "H@Sh1CoR3!"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
 }
 
 resource "azurerm_mysql_flexible_database" "example" {
