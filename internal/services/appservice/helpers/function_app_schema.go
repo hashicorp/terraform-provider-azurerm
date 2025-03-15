@@ -58,6 +58,7 @@ type SiteConfigLinuxFunctionApp struct {
 	ApplicationStack              []ApplicationStackLinuxFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                             `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                             `tfschema:"scm_minimum_tls_version"`
+	MinTlsCipherSuite             string                             `tfschema:"minimum_tls_cipher_suite"`
 	Cors                          []CorsSetting                      `tfschema:"cors"`
 	DetailedErrorLogging          bool                               `tfschema:"detailed_error_logging_enabled"`
 	LinuxFxVersion                string                             `tfschema:"linux_fx_version"`
@@ -323,6 +324,13 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
 				},
 
+				"minimum_tls_cipher_suite": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+				},
+
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
@@ -523,6 +531,11 @@ func SiteConfigSchemaLinuxFunctionAppComputed() *pluginsdk.Schema {
 				},
 
 				"scm_minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"minimum_tls_cipher_suite": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -847,6 +860,7 @@ type SiteConfigWindowsFunctionApp struct {
 	ApplicationStack              []ApplicationStackWindowsFunctionApp `tfschema:"application_stack"`
 	MinTlsVersion                 string                               `tfschema:"minimum_tls_version"`
 	ScmMinTlsVersion              string                               `tfschema:"scm_minimum_tls_version"`
+	MinTlsCipherSuite             string                               `tfschema:"minimum_tls_cipher_suite"`
 	Cors                          []CorsSetting                        `tfschema:"cors"`
 	DetailedErrorLogging          bool                                 `tfschema:"detailed_error_logging_enabled"`
 	WindowsFxVersion              string                               `tfschema:"windows_fx_version"`
@@ -1095,6 +1109,13 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 					Description:  "Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and  `1.3`. Defaults to `1.2`.",
 				},
 
+				"minimum_tls_cipher_suite": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForTlsCipherSuites(), false),
+					Description:  "Configures the minimum TLS cipher suite for the incoming requests to the Site.",
+				},
+
 				"cors": CorsSettingsSchema(),
 
 				"vnet_route_all_enabled": {
@@ -1284,6 +1305,11 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 				},
 
 				"scm_minimum_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"minimum_tls_cipher_suite": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -2043,6 +2069,10 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(linuxSiteConfig.ScmMinTlsVersion))
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
+		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(linuxSiteConfig.MinTlsCipherSuite))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		cors := ExpandCorsSettings(linuxSiteConfig.Cors)
 		expanded.Cors = cors
@@ -2437,6 +2467,10 @@ func ExpandSiteConfigWindowsFunctionApp(siteConfig []SiteConfigWindowsFunctionAp
 		expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(windowsSiteConfig.ScmMinTlsVersion))
 	}
 
+	if metadata.ResourceData.HasChange("site_config.0.minimum_tls_cipher_suite") {
+		expanded.MinTlsCipherSuite = pointer.To(webapps.TlsCipherSuites(windowsSiteConfig.MinTlsCipherSuite))
+	}
+
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		cors := ExpandCorsSettings(windowsSiteConfig.Cors)
 		expanded.Cors = cors
@@ -2488,6 +2522,7 @@ func FlattenSiteConfigLinuxFunctionApp(functionAppSiteConfig *webapps.SiteConfig
 		RuntimeScaleMonitoring:        pointer.From(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
 		MinTlsVersion:                 string(pointer.From(functionAppSiteConfig.MinTlsVersion)),
 		ScmMinTlsVersion:              string(pointer.From(functionAppSiteConfig.ScmMinTlsVersion)),
+		MinTlsCipherSuite:             string(pointer.From(functionAppSiteConfig.MinTlsCipherSuite)),
 		PreWarmedInstanceCount:        pointer.From(functionAppSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSiteConfig.Use32BitWorkerProcess),
@@ -2605,6 +2640,7 @@ func FlattenSiteConfigWindowsFunctionApp(functionAppSiteConfig *webapps.SiteConf
 		RuntimeScaleMonitoring:        pointer.From(functionAppSiteConfig.FunctionsRuntimeScaleMonitoringEnabled),
 		MinTlsVersion:                 string(pointer.From(functionAppSiteConfig.MinTlsVersion)),
 		ScmMinTlsVersion:              string(pointer.From(functionAppSiteConfig.ScmMinTlsVersion)),
+		MinTlsCipherSuite:             string(pointer.From(functionAppSiteConfig.MinTlsCipherSuite)),
 		PreWarmedInstanceCount:        pointer.From(functionAppSiteConfig.PreWarmedInstanceCount),
 		ElasticInstanceMinimum:        pointer.From(functionAppSiteConfig.MinimumElasticInstanceCount),
 		Use32BitWorker:                pointer.From(functionAppSiteConfig.Use32BitWorkerProcess),
