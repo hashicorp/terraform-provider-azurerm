@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions` Documentation
 
-The `galleryimageversions` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2022-03-03`).
+The `galleryimageversions` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2023-07-03`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 ```
 
 
