@@ -27,7 +27,7 @@ resource "azurerm_windows_web_app" "example" {
   site_config {
     application_stack {
       current_stack = "node"
-      node_version = "~22"
+      node_version  = "~22"
     }
   }
 }
