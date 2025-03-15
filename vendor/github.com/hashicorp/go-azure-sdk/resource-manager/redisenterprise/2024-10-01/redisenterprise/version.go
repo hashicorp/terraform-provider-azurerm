@@ -3,8 +3,8 @@ package redisenterprise
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-const defaultApiVersion = "2024-06-01-preview"
+const defaultApiVersion = "2024-10-01"
 
 func userAgent() string {
-	return "hashicorp/go-azure-sdk/redisenterprise/2024-06-01-preview"
+	return "hashicorp/go-azure-sdk/redisenterprise/2024-10-01"
 }
