@@ -232,6 +232,7 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The approval stages for the activation",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
+						Computed:    true,
 						MaxItems:    1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
