@@ -203,7 +203,7 @@ func (r MsSqlJobAgentResource) userAssignedIdentity(data acceptance.TestData) st
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestuai"
   resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_mssql_job_agent" "test" {
