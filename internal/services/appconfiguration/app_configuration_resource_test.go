@@ -321,6 +321,13 @@ func TestAccAppConfiguration_encryptionUpdated(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -737,7 +744,7 @@ resource "azurerm_app_configuration" "test" {
   local_auth_enabled                               = true
   public_network_access                            = "Enabled"
   purge_protection_enabled                         = false
-  soft_delete_retention_days                       = 1
+  soft_delete_retention_days                       = 7
 
   identity {
     type = "UserAssigned"
@@ -919,7 +926,7 @@ resource "azurerm_app_configuration" "test" {
   local_auth_enabled         = true
   public_network_access      = "Enabled"
   purge_protection_enabled   = true
-  soft_delete_retention_days = 1
+  soft_delete_retention_days = 7
 
   identity {
     type = "UserAssigned"
@@ -956,7 +963,6 @@ provider "azurerm" {
     }
   }
 }
-
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appconfig-%[1]d"

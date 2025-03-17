@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
@@ -59,6 +60,8 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 			},
 
 			"location": commonschema.Location(),
+
+			"identity": commonschema.UserAssignedIdentityOptional(),
 
 			// This is a top level argument rather than a block because while Azure accepts input for both sku name and capacity fields,
 			// the capacity must always be equal to the number included in the sku name.
@@ -111,6 +114,12 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	params.Identity = expandedIdentity
+
 	err = client.CreateOrUpdateThenPoll(ctx, id, params)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
@@ -145,14 +154,22 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 	params := existing.Model
 
-	if d.HasChanges("tags") {
-		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	if d.HasChanges("identity") {
+		expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		params.Identity = expandedIdentity
 	}
 
 	if d.HasChanges("sku_name") {
 		params.Sku = &jobagents.Sku{
 			Name: d.Get("sku_name").(string),
 		}
+	}
+
+	if d.HasChanges("tags") {
+		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, *params)
@@ -190,6 +207,12 @@ func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		if props := model.Properties; props != nil {
 			d.Set("database_id", props.DatabaseId)
 		}
+
+		flattenedIdentity, err := identity.FlattenUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		d.Set("identity", flattenedIdentity)
 
 		if sku := model.Sku; sku != nil {
 			d.Set("sku_name", sku.Name)

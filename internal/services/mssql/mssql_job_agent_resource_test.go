@@ -72,6 +72,35 @@ func TestAccMsSqlJobAgent_update(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlJobAgent_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_agent", "test")
+	r := MsSqlJobAgentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlJobAgent_skus(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_agent", "test")
 	r := MsSqlJobAgentResource{}
@@ -165,6 +194,29 @@ resource "azurerm_mssql_job_agent" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, sku)
+}
+
+func (r MsSqlJobAgentResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuai"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.name
+}
+
+resource "azurerm_mssql_job_agent" "test" {
+  name        = "acctestmssqljobagent%[2]d"
+  location    = azurerm_resource_group.test.location
+  database_id = azurerm_mssql_database.test.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (MsSqlJobAgentResource) template(data acceptance.TestData) string {
