@@ -59,7 +59,7 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Arguments() ma
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
-				"name must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
+				"`name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
 			),
 		},
 
