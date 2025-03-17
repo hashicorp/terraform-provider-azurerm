@@ -330,7 +330,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"failover_test_static_ip_secondary": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -345,7 +344,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"target_static_ip_secondary": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -360,8 +358,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"failover_test_subnet_name_secondary": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
-				ForceNew:     false,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -382,16 +378,12 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"failover_test_public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
-				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"failover_test_public_ip_address_id_secondary": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
-				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -423,7 +415,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			"recovery_public_ip_address_id_secondary": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     false,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
