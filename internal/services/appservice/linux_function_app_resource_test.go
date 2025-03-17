@@ -4537,7 +4537,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                       = "acctestWA-%d"
+  name                       = "acctest-LFA-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   service_plan_id            = azurerm_service_plan.test.id
@@ -4567,7 +4567,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_linux_function_app" "test" {
-  name                       = "acctestWA-%d"
+  name                       = "acctest-LFA-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   service_plan_id            = azurerm_service_plan.test.id

@@ -168,7 +168,7 @@ func TestAccMsSqlDatabase_gpServerless(t *testing.T) {
 			Config: r.gpServerless(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_pause_delay_in_minutes").HasValue("70"),
+				check.That(data.ResourceName).Key("auto_pause_delay_in_minutes").HasValue("42"),
 				check.That(data.ResourceName).Key("min_capacity").HasValue("0.75"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_S_Gen5_2"),
 			),
@@ -1279,7 +1279,7 @@ func (r MsSqlDatabaseResource) gpServerless(data acceptance.TestData) string {
 resource "azurerm_mssql_database" "test" {
   name                        = "acctest-db-%[2]d"
   server_id                   = azurerm_mssql_server.test.id
-  auto_pause_delay_in_minutes = 70
+  auto_pause_delay_in_minutes = 42
   min_capacity                = 0.75
   sku_name                    = "GP_S_Gen5_2"
 }

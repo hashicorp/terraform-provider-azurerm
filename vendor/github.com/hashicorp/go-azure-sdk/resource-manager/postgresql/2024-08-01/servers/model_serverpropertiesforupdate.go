@@ -4,6 +4,7 @@ package servers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ServerPropertiesForUpdate struct {
+	AdministratorLogin         *string              `json:"administratorLogin,omitempty"`
 	AdministratorLoginPassword *string              `json:"administratorLoginPassword,omitempty"`
 	AuthConfig                 *AuthConfig          `json:"authConfig,omitempty"`
 	Backup                     *Backup              `json:"backup,omitempty"`
