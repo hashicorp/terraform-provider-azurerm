@@ -15,6 +15,10 @@ Manages a Fabric Capacity.
 ```hcl
 data "azurerm_client_config" "current" {}
 
+data "azuread_user" "current" {
+  object_id = data.azurerm_client_config.current.object_id
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -25,7 +29,7 @@ resource "azurerm_fabric_capacity" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
 
-  administration_members = [data.azurerm_client_config.current.object_id]
+  administration_members = [data.azuread_user.current.user_principal_name]
 
   sku {
     name = "F32"
@@ -50,7 +54,7 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `administration_members` - (Optional) An array of administrator user identities. The member must be an Entra member user or a service principal.
+* `administration_members` - (Optional) An array of administrator user principal names. Each administrator must be an Entra user.
 
 * `tags` - (Optional) A mapping of tags to assign to the Fabric Capacity.
 
