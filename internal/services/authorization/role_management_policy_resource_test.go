@@ -511,7 +511,9 @@ resource "azurerm_role_management_policy" "test" {
   scope              = azurerm_resource_group.test.id
   role_definition_id = data.azurerm_role_definition.contributor.id
 
-  activation_rules {}
+  activation_rules {
+    maximum_duration = "PT1H"
+  }
 }
 `, r.resourceGroupTemplate(data), data.RandomString, requireApproval)
 }
