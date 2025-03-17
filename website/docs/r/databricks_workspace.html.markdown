@@ -48,7 +48,7 @@ The following arguments are supported:
 
 ~> **Note:** Downgrading to a `trial sku` from a `standard` or `premium sku` will force a new resource to be created.
 
-* `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties using a versioned Key Vaule Key ID for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
+* `managed_services_cmk_key_vault_key_id` - (Optional) Customer managed encryption properties using a versioned Key Vault Key ID for the Databricks Workspace managed resources(e.g. Notebooks and Artifacts).
 
 * `managed_services_cmk_managed_hsm_key_id` - (Optional) Customer managed encryption properties using a versioned Managed Hardware Security Key ID for the Databricks Workspace managed resources e.g. Notebooks and Artifacts.
 
