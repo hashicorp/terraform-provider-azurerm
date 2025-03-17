@@ -27,9 +27,8 @@ type WebPubSubSocketIOResourceModel struct {
 	Name                             string                                     `tfschema:"name"`
 	ResourceGroupName                string                                     `tfschema:"resource_group_name"`
 	Location                         string                                     `tfschema:"location"`
-	Sku                              string                                     `tfschema:"sku"`
+	Sku                              []SkuModel                                 `tfschema:"sku"`
 	AADAuthEnabled                   bool                                       `tfschema:"aad_auth_enabled"`
-	Capacity                         int64                                      `tfschema:"capacity"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	LiveTraceEnabled                 bool                                       `tfschema:"live_trace_enabled"`
 	LiveTraceConnectivityLogsEnabled bool                                       `tfschema:"live_trace_connectivity_logs_enabled"`
@@ -48,6 +47,11 @@ type WebPubSubSocketIOResourceModel struct {
 	ServerPort                       int64                                      `tfschema:"server_port"`
 	SecondaryAccessKey               string                                     `tfschema:"secondary_access_key"`
 	SecondaryConnectionString        string                                     `tfschema:"secondary_connection_string"`
+}
+
+type SkuModel struct {
+	Name     string `tfschema:"name"`
+	Capacity int64  `tfschema:"capacity"`
 }
 
 var (
@@ -69,25 +73,33 @@ func (w WebPubSubSocketIOResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"sku": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(helpers.PossibleValuesForSkuName(), false),
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(helpers.PossibleValuesForSkuName(), false),
+					},
+					"capacity": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  1,
+						ValidateFunc: validation.IntInSlice([]int{
+							1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
+							300, 400, 500, 600, 700, 800, 900, 1000,
+						}),
+					},
+				},
+			},
 		},
 
 		"aad_auth_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
-		},
-
-		"capacity": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
-			Default:  1,
-			ValidateFunc: validation.IntInSlice([]int{
-				1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
-				300, 400, 500, 600, 700, 800, 900, 1000,
-			}),
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
@@ -203,32 +215,35 @@ func (w WebPubSubSocketIOResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			capacity := config.Capacity
-			sku := config.Sku
-			switch sku {
-			case helpers.SkuNameFreeF1:
-				if capacity > 1 {
-					return fmt.Errorf("`capacity` can only be `1` when `sku` is set to `%s`", sku)
-				}
+			if len(config.Sku) > 0 {
+				capacity := config.Sku[0].Capacity
+				sku := config.Sku[0].Name
 
-				if config.PublicNetworkAccess == helpers.PublicNetworkAccessDisabled {
-					return fmt.Errorf("`public_network_access` cannot be set to `Disabled` when `sku` is set to `%s`", sku)
-				}
+				switch sku {
+				case helpers.SkuNameFreeF1:
+					if capacity > 1 {
+						return fmt.Errorf("`capacity` can only be `1` when `sku` is set to `%s`", sku)
+					}
 
-				if config.TlsClientCertEnabled {
-					return fmt.Errorf("tls_client_cert_enabled` cannot be set to `true` when `sku` is set to `%s`", sku)
-				}
-			case helpers.SkuNameStandardS1:
-				if capacity > 100 {
-					return fmt.Errorf("`capacity` cannot be greater than `100` when `sku` is set to `%s`", sku)
-				}
-			case helpers.SkuNamePremiumP1:
-				if capacity > 100 {
-					return fmt.Errorf("`capacity` cannot be greater than `100` when `sku` is set to `%s`", sku)
-				}
-			case helpers.SkuNamePremiumP2:
-				if capacity < 100 {
-					return fmt.Errorf("`capacity` must be greater than or equal to `100` when `sku` is set to `%s`", sku)
+					if config.PublicNetworkAccess == helpers.PublicNetworkAccessDisabled {
+						return fmt.Errorf("`public_network_access` cannot be set to `Disabled` when `sku` is set to `%s`", sku)
+					}
+
+					if config.TlsClientCertEnabled {
+						return fmt.Errorf("tls_client_cert_enabled` cannot be set to `true` when `sku` is set to `%s`", sku)
+					}
+				case helpers.SkuNameStandardS1:
+					if capacity > 100 {
+						return fmt.Errorf("`capacity` cannot be greater than `100` when `sku` is set to `%s`", sku)
+					}
+				case helpers.SkuNamePremiumP1:
+					if capacity > 100 {
+						return fmt.Errorf("`capacity` cannot be greater than `100` when `sku` is set to `%s`", sku)
+					}
+				case helpers.SkuNamePremiumP2:
+					if capacity < 100 {
+						return fmt.Errorf("`capacity` must be greater than or equal to `100` when `sku` is set to `%s`", sku)
+					}
 				}
 			}
 
@@ -292,10 +307,7 @@ func (w WebPubSubSocketIOResource) Create() sdk.ResourceFunc {
 						ClientCertEnabled: pointer.To(config.TlsClientCertEnabled),
 					},
 				},
-				Sku: &webpubsub.ResourceSku{
-					Name:     config.Sku,
-					Capacity: pointer.To(config.Capacity),
-				},
+				Sku:  expandSkuFromModel(config.Sku),
 				Tags: pointer.To(config.Tags),
 			}
 
@@ -350,8 +362,7 @@ func (w WebPubSubSocketIOResource) Read() sdk.ResourceFunc {
 				state.Identity = pointer.From(flattenedIdentity)
 
 				if sku := model.Sku; sku != nil {
-					state.Sku = sku.Name
-					state.Capacity = pointer.From(sku.Capacity)
+					state.Sku = flattenSkuToModel(sku)
 				}
 
 				if props := model.Properties; props != nil {
@@ -431,18 +442,11 @@ func (w WebPubSubSocketIOResource) Update() sdk.ResourceFunc {
 
 			rd := metadata.ResourceData
 			if rd.HasChange("sku") {
-				skuParts := strings.Split(config.Sku, "_")
-				payload.Sku.Name = config.Sku
-				payload.Sku.Tier = pointer.To(webpubsub.WebPubSubSkuTier(skuParts[0]))
-				payload.Sku.Size = pointer.To(skuParts[1])
+				payload.Sku = expandSkuFromModel(config.Sku)
 			}
 
 			if rd.HasChange("aad_auth_enabled") {
 				props.DisableAadAuth = pointer.To(!config.AADAuthEnabled)
-			}
-
-			if rd.HasChange("capacity") {
-				payload.Sku.Capacity = pointer.To(config.Capacity)
 			}
 
 			if rd.HasChange("identity") {
@@ -583,6 +587,33 @@ func flattenLiveTraceConfigToMap(input *webpubsub.LiveTraceConfiguration) map[st
 			}
 		}
 	}
+
+	return result
+}
+
+func expandSkuFromModel(input []SkuModel) *webpubsub.ResourceSku {
+	result := webpubsub.ResourceSku{}
+	if len(input) == 0 {
+		return &result
+	}
+
+	v := input[0]
+	result.Name = v.Name
+	result.Capacity = pointer.To(v.Capacity)
+
+	return &result
+}
+
+func flattenSkuToModel(input *webpubsub.ResourceSku) []SkuModel {
+	result := make([]SkuModel, 0)
+	if input == nil {
+		return result
+	}
+
+	result = append(result, SkuModel{
+		Name:     input.Name,
+		Capacity: pointer.From(input.Capacity),
+	})
 
 	return result
 }

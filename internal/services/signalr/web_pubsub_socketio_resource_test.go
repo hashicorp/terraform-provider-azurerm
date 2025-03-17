@@ -165,8 +165,11 @@ resource "azurerm_web_pubsub_socketio" "test" {
   name                = "acctestWebPubsubSocketIO-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "%s"
-  capacity            = %d
+
+  sku {
+    name = "%s"
+    capacity = %d
+  }
 }
 `, r.template(data), data.RandomInteger, sku, capacity)
 }
@@ -179,7 +182,11 @@ resource "azurerm_web_pubsub_socketio" "import" {
   name                = azurerm_web_pubsub_socketio.test.name
   location            = azurerm_web_pubsub_socketio.test.location
   resource_group_name = azurerm_web_pubsub_socketio.test.resource_group_name
-  sku                 = azurerm_web_pubsub_socketio.test.sku
+  
+  sku {
+    name = azurerm_web_pubsub_socketio.test.sku.0.name
+    capacity = azurerm_web_pubsub_socketio.test.sku.0.capacity
+  }
 }`, r.basic(data, "Standard_S1", 1))
 }
 
@@ -191,10 +198,13 @@ resource "azurerm_web_pubsub_socketio" "test" {
   name                = "acctestWebPubsubSocketIO-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_S1"
+  
+  sku {
+    name = "%s"
+    capacity = %d
+  }
 
   aad_auth_enabled = true
-  capacity         = 2
 
   identity {
     type = "SystemAssigned"
@@ -231,7 +241,10 @@ resource "azurerm_web_pubsub_socketio" "test" {
   name                = "acctestWebPubsubSocketIO-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_S1"
+  
+  sku {
+    name = "%s"
+  }
 
   identity {
     type         = "UserAssigned"
