@@ -120,38 +120,34 @@ func TestAccSharedImageVersion_blobURI(t *testing.T) {
 	})
 }
 
-func TestAccSharedImageVersion_uefiSettings(t *testing.T) {
+func TestAccSharedImageVersion_uefiSettingsDb(t *testing.T) {
 	r := SharedImageVersionResource{}
 
 	// certificate data
-	signatureTemplateNameDb := "MicrosoftUefiCertificateAuthorityTemplate"
-	signatureTemplateNamePk := "NoSignatureTemplate"
+	signatureTemplateName := "MicrosoftUefiCertificateAuthorityTemplate"
 	certDb := "MIIDNzCCAh+gAwIBAgIRANcuAK10JUqNpehWlkldzxEwDQYJKoZIhvcNAQELBQAwFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMB4XDTIzMDYxOTEwNTI0MloXDTMzMDYxNjEwNTI0MlowFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq+QdB6n3TDk12Qa/JcbmdfEpIrx4dKG9d5D/SRHWfJACInxtH64jzvGohVnAqIDqcKK+FvVLDPrqD7hbzV34AOXkyVoRtHEsdDErkG9CVBJlWleuew+if9TkW8wabFT3/sHSzVbG6+6AFOHsnDbO1Rpvh1ZPp2AgqiNg7XUHQM9zH00BYz7xtL9XEr+sRRgp0Bn0PGQGQU1Q302TK6jlHwJGMidke4Le2IIDJTUTGx3yWuX7f/T/u6alZeKjg+hYysJ7dpaaC5DyRTT5pJv62pZBJa3DkwWWSKroJozp9ujf93KYP7NoCLHkyiITAUK04hsHm/UvIt7ZhayTS24MbwIDAQABo34wfDAfBgNVHSMEGDAWgBQBXPUO5tTx8gh9G1iwS1KMwXUi/zAVBglghkgBhvhCAQEBAf8EBQMDAPABMBMGA1UdJQQMMAoGCCsGAQUFBwMDMA4GA1UdDwEB/wQEAwIEsDAdBgNVHQ4EFgQUAVz1DubU8fIIfRtYsEtSjMF1Iv8wDQYJKoZIhvcNAQELBQADggEBAA4xZmr3HhDOc2xzDMjqiVnCBMPT8nS9P+jCXezTeG1SIWrMmQUSs8rtU0YoNRIq1wbT/rqbYIwwhRfth0nUGf22zp4UdigVcpt+FQj9eGgeF6sJyHVWmMZu8rEi8BhHEsS6jHqExckp0vshhyW5whr86znWFWf/EsVGFkxd7kjv/KB0ff2ide5vLOWxoTfYmSxYyg2K1FQXP7L87Rb7O6PKzo0twVgeZ616e/yFLcmUQgnHBhb2IKtdo+CdTCxcw9/nNqGPwsNLsti2jyr5oNm9mX6wVaAuXCC3maX35DdWFVK0gXcENEw+Q6+JSyPV1ItXc5CD0NU9pd+R85qsFlY="
-	certDbx := certDb // Using same cert for simplicity
-	certKek := certDb
-	certPk := certDb
 	keyType := "x509"
 
 	// Test with signature template name and DB
-	dataDb := acceptance.BuildTestData(t, "azurerm_shared_image_version", "testDb")
-	dataDb.ResourceTest(t, r, []acceptance.TestStep{
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  r.setup(dataDb),
+			Config:  r.setup(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
-				dataDb.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				dataDb.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(dataDb), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.imageVersionUefiSettingsDb(dataDb, signatureTemplateNameDb, keyType, certDb),
+			Config: r.imageVersionUefiSettingsDb(data, signatureTemplateName, keyType, certDb),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(dataDb.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			ResourceName:      dataDb.ResourceName,
+			ResourceName:      data.ResourceName,
 			ImportState:       true,
 			ImportStateVerify: true,
 			// The security profile and hence the uefi_settings are not returned by the API
@@ -170,27 +166,39 @@ func TestAccSharedImageVersion_uefiSettings(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccSharedImageVersion_uefiSettingsPk(t *testing.T) {
+	r := SharedImageVersionResource{}
+
+	// certificate data
+	signatureTemplateName := "NoSignatureTemplate"
+	certDb := "MIIDNzCCAh+gAwIBAgIRANcuAK10JUqNpehWlkldzxEwDQYJKoZIhvcNAQELBQAwFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMB4XDTIzMDYxOTEwNTI0MloXDTMzMDYxNjEwNTI0MlowFzEVMBMGA1UEAxMMQ3VzdG9tRGJLZXkzMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq+QdB6n3TDk12Qa/JcbmdfEpIrx4dKG9d5D/SRHWfJACInxtH64jzvGohVnAqIDqcKK+FvVLDPrqD7hbzV34AOXkyVoRtHEsdDErkG9CVBJlWleuew+if9TkW8wabFT3/sHSzVbG6+6AFOHsnDbO1Rpvh1ZPp2AgqiNg7XUHQM9zH00BYz7xtL9XEr+sRRgp0Bn0PGQGQU1Q302TK6jlHwJGMidke4Le2IIDJTUTGx3yWuX7f/T/u6alZeKjg+hYysJ7dpaaC5DyRTT5pJv62pZBJa3DkwWWSKroJozp9ujf93KYP7NoCLHkyiITAUK04hsHm/UvIt7ZhayTS24MbwIDAQABo34wfDAfBgNVHSMEGDAWgBQBXPUO5tTx8gh9G1iwS1KMwXUi/zAVBglghkgBhvhCAQEBAf8EBQMDAPABMBMGA1UdJQQMMAoGCCsGAQUFBwMDMA4GA1UdDwEB/wQEAwIEsDAdBgNVHQ4EFgQUAVz1DubU8fIIfRtYsEtSjMF1Iv8wDQYJKoZIhvcNAQELBQADggEBAA4xZmr3HhDOc2xzDMjqiVnCBMPT8nS9P+jCXezTeG1SIWrMmQUSs8rtU0YoNRIq1wbT/rqbYIwwhRfth0nUGf22zp4UdigVcpt+FQj9eGgeF6sJyHVWmMZu8rEi8BhHEsS6jHqExckp0vshhyW5whr86znWFWf/EsVGFkxd7kjv/KB0ff2ide5vLOWxoTfYmSxYyg2K1FQXP7L87Rb7O6PKzo0twVgeZ616e/yFLcmUQgnHBhb2IKtdo+CdTCxcw9/nNqGPwsNLsti2jyr5oNm9mX6wVaAuXCC3maX35DdWFVK0gXcENEw+Q6+JSyPV1ItXc5CD0NU9pd+R85qsFlY="
+	certDbx := certDb // Using same cert for simplicity
+	certKek := certDb
+	certPk := certDb
+	keyType := "x509"
 
 	// Test with NoSignatureTemplate and DB, DBX, KEK, PK
-	dataPk := acceptance.BuildTestData(t, "azurerm_shared_image_version", "testPk")
-	dataPk.ResourceTest(t, r, []acceptance.TestStep{
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// need to create a vm and then reference it in the image creation
-			Config:  r.setup(dataPk),
+			Config:  r.setup(data),
 			Destroy: false,
 			Check: acceptance.ComposeTestCheckFunc(
-				dataPk.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
-				dataPk.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(dataPk), "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.virtualMachineExists, "azurerm_virtual_machine.testsource"),
+				data.CheckWithClientForResource(ImageResource{}.generalizeVirtualMachine(data), "azurerm_virtual_machine.testsource"),
 			),
 		},
 		{
-			Config: r.imageVersionUefiSettingsPk(dataPk, signatureTemplateNamePk, keyType, certDb, certDbx, certKek, certPk),
+			Config: r.imageVersionUefiSettingsPk(data, signatureTemplateName, keyType, certDb, certDbx, certKek, certPk),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(dataPk.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			ResourceName:      dataPk.ResourceName,
+			ResourceName:      data.ResourceName,
 			ImportState:       true,
 			ImportStateVerify: true,
 			// The security profile and hence the uefi_settings are not returned by the API
@@ -542,7 +550,7 @@ func (r SharedImageVersionResource) imageVersionUefiSettingsDb(data acceptance.T
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_shared_image_version" "testDb" {
+resource "azurerm_shared_image_version" "test" {
   name                = "0.0.1"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
@@ -573,7 +581,7 @@ func (r SharedImageVersionResource) imageVersionUefiSettingsPk(data acceptance.T
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_shared_image_version" "testPk" {
+resource "azurerm_shared_image_version" "test" {
   name                = "0.0.1"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
