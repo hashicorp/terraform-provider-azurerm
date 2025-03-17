@@ -5,15 +5,15 @@ package pipelines
 
 type ExecuteSSISPackageActivityTypeProperties struct {
 	ConnectVia                IntegrationRuntimeReference                   `json:"connectVia"`
-	EnvironmentPath           *string                                       `json:"environmentPath,omitempty"`
+	EnvironmentPath           *interface{}                                  `json:"environmentPath,omitempty"`
 	ExecutionCredential       *SSISExecutionCredential                      `json:"executionCredential,omitempty"`
 	LogLocation               *SSISLogLocation                              `json:"logLocation,omitempty"`
-	LoggingLevel              *string                                       `json:"loggingLevel,omitempty"`
+	LoggingLevel              *interface{}                                  `json:"loggingLevel,omitempty"`
 	PackageConnectionManagers *map[string]map[string]SSISExecutionParameter `json:"packageConnectionManagers,omitempty"`
 	PackageLocation           SSISPackageLocation                           `json:"packageLocation"`
 	PackageParameters         *map[string]SSISExecutionParameter            `json:"packageParameters,omitempty"`
 	ProjectConnectionManagers *map[string]map[string]SSISExecutionParameter `json:"projectConnectionManagers,omitempty"`
 	ProjectParameters         *map[string]SSISExecutionParameter            `json:"projectParameters,omitempty"`
 	PropertyOverrides         *map[string]SSISPropertyOverride              `json:"propertyOverrides,omitempty"`
-	Runtime                   *string                                       `json:"runtime,omitempty"`
+	Runtime                   *interface{}                                  `json:"runtime,omitempty"`
 }

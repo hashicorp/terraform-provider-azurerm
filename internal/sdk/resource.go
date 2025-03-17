@@ -156,6 +156,15 @@ type ResourceWithCustomizeDiff interface {
 	CustomizeDiff() ResourceFunc
 }
 
+// ResourceWithConfigValidation is an optional interface
+// Resources implementing this interface will have a write-only attribute that requires
+// this specific validation
+type ResourceWithConfigValidation interface {
+	Resource
+
+	ValidateRawResourceConfig() []schema.ValidateRawResourceConfigFunc
+}
+
 // ResourceRunFunc is the function which can be run
 // ctx provides a Context instance with the user-provided timeout
 // metadata is a reference to an object containing the Client, ResourceData and a Logger

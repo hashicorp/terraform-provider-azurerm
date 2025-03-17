@@ -4,6 +4,6 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SynapseNotebookReference struct {
-	ReferenceName string                `json:"referenceName"`
+	ReferenceName interface{}           `json:"referenceName"`
 	Type          NotebookReferenceType `json:"type"`
 }
