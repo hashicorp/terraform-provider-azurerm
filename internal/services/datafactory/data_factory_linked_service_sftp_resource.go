@@ -370,7 +370,7 @@ func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	return nil
+	return resourceDataFactoryLinkedServiceSFTPRead(d, meta)
 }
 
 func resourceDataFactoryLinkedServiceSFTPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
