@@ -406,6 +406,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 					string(redis.SkuNameStandard): {"C0", "C1", "C2", "C3", "C4", "C5", "C6"},
 					string(redis.SkuNamePremium):  {"P1", "P2", "P3", "P4", "P5"},
 				}
+				
 				familyCapacity := fmt.Sprintf("%s%d", strings.ToUpper(family), capacity)
 				if !slices.Contains(validCombinations[skuName], familyCapacity) {
 					return fmt.Errorf("invalid combination of `sku_name`, `family`, and `capacity`: '%s: %s'. Valid combinations are: %v", skuName, familyCapacity, validCombinations)
