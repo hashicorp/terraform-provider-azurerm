@@ -599,7 +599,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	encrypt := &workspaces.WorkspacePropertiesEncryption{}
 	encrypt.Entities = workspaces.EncryptionEntitiesDefinition{}
 
-	if cmkID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeAny, "managed_services_cmk_key_vault_key_id", "managed_services_cmk_managed_hsm_key_id", accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
+	if cmkID, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKeyWithCustomFieldKey(d, customermanagedkeys.VersionTypeVersioned, "managed_services_cmk_key_vault_key_id", "managed_services_cmk_managed_hsm_key_id", accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
 		return fmt.Errorf("expanding customer-managed key for managed services encryption: %+v", err)
 	} else if cmkID != nil {
 		setEncrypt = true
