@@ -299,8 +299,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"upgrade_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
+				Default:  string(virtualmachinescalesets.UpgradeModeManual),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(virtualmachinescalesets.UpgradeModeAutomatic),
 					string(virtualmachinescalesets.UpgradeModeManual),
@@ -356,10 +356,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				}
 
 				upgradeMode := virtualmachinescalesets.UpgradeMode(diff.Get("upgrade_mode").(string))
-				if !hasSkuName && upgradeMode != "" {
-					return fmt.Errorf("`upgrade_mode` can only be set when `sku_name` is set")
-				}
-
 				rollingUpgradePolicyRaw := diff.Get("rolling_upgrade_policy").([]interface{})
 
 				shouldHaveRollingUpgradePolicy := upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic || upgradeMode == virtualmachinescalesets.UpgradeModeRolling
@@ -1356,6 +1352,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			d.Set("zone_balance", props.ZoneBalance)
 
 			extensionOperationsEnabled := true
+			// if `VirtualMachineProfile` is nil, `UpgradeMode` will not exist in the response
+			upgradeMode := string(virtualmachinescalesets.UpgradeModeManual)
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if err := d.Set("boot_diagnostics", flattenBootDiagnosticsVMSS(profile.DiagnosticsProfile)); err != nil {
 					return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
@@ -1452,6 +1450,14 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				}
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 				d.Set("user_data_base64", profile.UserData)
+
+				if policy := props.UpgradePolicy; policy != nil {
+					upgradeMode = string(pointer.From(policy.Mode))
+					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
+					if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+						return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
+					}
+				}
 			}
 
 			if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {
@@ -1461,15 +1467,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			}
 
 			d.Set("extension_operations_enabled", extensionOperationsEnabled)
-
-			if policy := props.UpgradePolicy; policy != nil {
-				d.Set("upgrade_mode", string(pointer.From(policy.Mode)))
-
-				flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
-				if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
-					return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
-				}
-			}
+			d.Set("upgrade_mode", upgradeMode)
 		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}
