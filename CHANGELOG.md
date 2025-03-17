@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: `hashicorp/go-azure-sdk` - update to `v0.20250314.1213156` [GH-29081]
 * dependencies: `postgresql` - partial update to API version `2024-08-01` [GH-28964]
 * `azurerm_ai_services` - add support for the `network_acls.bypass` property [GH-28569]
 
