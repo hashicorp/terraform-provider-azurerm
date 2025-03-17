@@ -106,7 +106,6 @@ func TestAccCdnFrontDoorOriginGroup_disableHealthProbe(t *testing.T) {
 }
 
 func TestAccCdnFrontDoorOriginGroup_updateHealthProbe(t *testing.T) {
-	// NOTE: Regression test case for issue #22131
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin_group", "test")
 	r := CdnFrontDoorOriginGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
