@@ -737,7 +737,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	// subnet NSG association along with the backend Pool Id since they are not
 	// returned in the read from Azure...
 	custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
-	d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
+	d.Set("load_balancer_backend_address_pool_id", pointer.From(backendPoolReadId))
 
 	if err := d.Set("custom_parameters", custom); err != nil {
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
@@ -841,7 +841,10 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `custom_parameters`: %+v", err)
 			}
 
-			d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
+			// The backend pool id is not returned in the response, so we need to set it only when it's not nil
+			if backendPoolReadId != nil {
+				d.Set("load_balancer_backend_address_pool_id", *backendPoolReadId)
+			}
 		}
 
 		if err := d.Set("storage_account_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
@@ -1289,12 +1292,13 @@ func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfigurat
 	return []interface{}{e}
 }
 
-func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]interface{}, string) {
+func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameters, publicSubnetAssociation, privateSubnetAssociation *string) ([]interface{}, *string) {
 	if input == nil {
-		return nil, ""
+		return nil, nil
 	}
 
-	var backendAddressPoolId, backendName, loadBalancerId string
+	var backendName, loadBalancerId string
+	var backendAddressPoolId *string
 	parameters := make(map[string]interface{})
 
 	if publicSubnetAssociation != nil && *publicSubnetAssociation != "" {
@@ -1355,9 +1359,10 @@ func flattenWorkspaceCustomParameters(input *workspaces.WorkspaceCustomParameter
 
 	lbId, err := loadbalancers.ParseLoadBalancerIDInsensitively(loadBalancerId)
 
-	if err == nil {
+	// If the load balancer ID is not empty, we need to set the backend address pool ID
+	if err == nil && backendName != "" {
 		backendId := loadbalancers.NewLoadBalancerBackendAddressPoolID(lbId.SubscriptionId, lbId.ResourceGroupName, lbId.LoadBalancerName, backendName)
-		backendAddressPoolId = backendId.ID()
+		backendAddressPoolId = pointer.To(backendId.ID())
 	}
 
 	return []interface{}{parameters}, backendAddressPoolId
