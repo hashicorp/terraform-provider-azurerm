@@ -27,7 +27,6 @@ func TestReplicationProtectionContainerMappingsID(t *testing.T) {
 		Error    bool
 		Expected *ReplicationProtectionContainerMappingsId
 	}{
-
 		{
 			// empty
 			Input: "",

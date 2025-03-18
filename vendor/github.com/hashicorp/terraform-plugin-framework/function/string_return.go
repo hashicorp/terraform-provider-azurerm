@@ -19,6 +19,8 @@ var _ Return = StringReturn{}
 //
 // - If CustomType is set, use its associated value type.
 // - Otherwise, use [types.String], *string, or string.
+//
+// Return documentation is expected in the function [Definition] documentation.
 type StringReturn struct {
 	// CustomType enables the use of a custom data type in place of the
 	// default [basetypes.StringType]. When setting data, the

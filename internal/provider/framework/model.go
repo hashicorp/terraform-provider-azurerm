@@ -9,35 +9,36 @@ import (
 )
 
 type ProviderModel struct {
-	SubscriptionId                types.String `tfsdk:"subscription_id"`
-	ClientId                      types.String `tfsdk:"client_id"`
-	ClientIdFilePath              types.String `tfsdk:"client_id_file_path"`
-	TenantId                      types.String `tfsdk:"tenant_id"`
-	AuxiliaryTenantIds            types.List   `tfsdk:"auxiliary_tenant_ids"`
-	Environment                   types.String `tfsdk:"environment"`
-	MetaDataHost                  types.String `tfsdk:"metadata_host"`
-	ClientCertificate             types.String `tfsdk:"client_certificate"`
-	ClientCertificatePath         types.String `tfsdk:"client_certificate_path"`
-	ClientCertificatePassword     types.String `tfsdk:"client_certificate_password"`
-	ClientSecret                  types.String `tfsdk:"client_secret"`
-	ClientSecretFilePath          types.String `tfsdk:"client_secret_file_path"`
-	OIDCRequestToken              types.String `tfsdk:"oidc_request_token"`
-	OIDCRequestURL                types.String `tfsdk:"oidc_request_url"`
-	OIDCToken                     types.String `tfsdk:"oidc_token"`
-	OIDCTokenFilePath             types.String `tfsdk:"oidc_token_file_path"`
-	UseOIDC                       types.Bool   `tfsdk:"use_oidc"`
-	UseMSI                        types.Bool   `tfsdk:"use_msi"`
-	MSIEndpoint                   types.String `tfsdk:"msi_endpoint"`
-	UseCLI                        types.Bool   `tfsdk:"use_cli"`
-	UseAKSWorkloadIdentity        types.Bool   `tfsdk:"use_aks_workload_identity"`
-	PartnerId                     types.String `tfsdk:"partner_id"`
-	DisableCorrelationRequestId   types.Bool   `tfsdk:"disable_correlation_request_id"`
-	DisableTerraformPartnerId     types.Bool   `tfsdk:"disable_terraform_partner_id"`
-	StorageUseAzureAD             types.Bool   `tfsdk:"storage_use_azuread"`
-	Features                      types.List   `tfsdk:"features"`
-	SkipProviderRegistration      types.Bool   `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
-	ResourceProviderRegistrations types.String `tfsdk:"resource_provider_registrations"`
-	ResourceProvidersToRegister   types.List   `tfsdk:"resource_providers_to_register"`
+	SubscriptionId                 types.String `tfsdk:"subscription_id"`
+	ClientId                       types.String `tfsdk:"client_id"`
+	ClientIdFilePath               types.String `tfsdk:"client_id_file_path"`
+	TenantId                       types.String `tfsdk:"tenant_id"`
+	AuxiliaryTenantIds             types.List   `tfsdk:"auxiliary_tenant_ids"`
+	Environment                    types.String `tfsdk:"environment"`
+	MetaDataHost                   types.String `tfsdk:"metadata_host"`
+	ClientCertificate              types.String `tfsdk:"client_certificate"`
+	ClientCertificatePath          types.String `tfsdk:"client_certificate_path"`
+	ClientCertificatePassword      types.String `tfsdk:"client_certificate_password"`
+	ClientSecret                   types.String `tfsdk:"client_secret"`
+	ClientSecretFilePath           types.String `tfsdk:"client_secret_file_path"`
+	ADOPipelineServiceConnectionID types.String `tfsdk:"ado_pipeline_service_connection_id"`
+	OIDCRequestToken               types.String `tfsdk:"oidc_request_token"`
+	OIDCRequestURL                 types.String `tfsdk:"oidc_request_url"`
+	OIDCToken                      types.String `tfsdk:"oidc_token"`
+	OIDCTokenFilePath              types.String `tfsdk:"oidc_token_file_path"`
+	UseOIDC                        types.Bool   `tfsdk:"use_oidc"`
+	UseMSI                         types.Bool   `tfsdk:"use_msi"`
+	MSIEndpoint                    types.String `tfsdk:"msi_endpoint"`
+	UseCLI                         types.Bool   `tfsdk:"use_cli"`
+	UseAKSWorkloadIdentity         types.Bool   `tfsdk:"use_aks_workload_identity"`
+	PartnerId                      types.String `tfsdk:"partner_id"`
+	DisableCorrelationRequestId    types.Bool   `tfsdk:"disable_correlation_request_id"`
+	DisableTerraformPartnerId      types.Bool   `tfsdk:"disable_terraform_partner_id"`
+	StorageUseAzureAD              types.Bool   `tfsdk:"storage_use_azuread"`
+	Features                       types.List   `tfsdk:"features"`
+	SkipProviderRegistration       types.Bool   `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
+	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
+	ResourceProvidersToRegister    types.List   `tfsdk:"resource_providers_to_register"`
 }
 
 type Features struct {
@@ -58,6 +59,7 @@ type Features struct {
 	MachineLearning          types.List `tfsdk:"machine_learning"`
 	RecoveryService          types.List `tfsdk:"recovery_service"`
 	RecoveryServicesVaults   types.List `tfsdk:"recovery_services_vaults"`
+	NetApp                   types.List `tfsdk:"netapp"`
 }
 
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
@@ -80,6 +82,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"machine_learning":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes)),
 	"recovery_service":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes)),
 	"recovery_services_vaults":   types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes)),
+	"netapp":                     types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(NetAppAttributes)),
 }
 
 type APIManagement struct {
@@ -239,13 +242,15 @@ var MachineLearningAttributes = map[string]attr.Type{
 }
 
 type RecoveryService struct {
-	VMBackupStopProtectionAndRetainDataOnDestroy types.Bool `tfsdk:"vm_backup_stop_protection_and_retain_data_on_destroy"`
-	PurgeProtectedItemsFromVaultOnDestroy        types.Bool `tfsdk:"purge_protected_items_from_vault_on_destroy"`
+	VMBackupStopProtectionAndRetainDataOnDestroy    types.Bool `tfsdk:"vm_backup_stop_protection_and_retain_data_on_destroy"`
+	VMBackupSuspendProtectionAndRetainDataOnDestroy types.Bool `tfsdk:"vm_backup_suspend_protection_and_retain_data_on_destroy"`
+	PurgeProtectedItemsFromVaultOnDestroy           types.Bool `tfsdk:"purge_protected_items_from_vault_on_destroy"`
 }
 
 var RecoveryServiceAttributes = map[string]attr.Type{
-	"vm_backup_stop_protection_and_retain_data_on_destroy": types.BoolType,
-	"purge_protected_items_from_vault_on_destroy":          types.BoolType,
+	"vm_backup_stop_protection_and_retain_data_on_destroy":    types.BoolType,
+	"vm_backup_suspend_protection_and_retain_data_on_destroy": types.BoolType,
+	"purge_protected_items_from_vault_on_destroy":             types.BoolType,
 }
 
 type RecoveryServiceVaults struct {
@@ -254,4 +259,14 @@ type RecoveryServiceVaults struct {
 
 var RecoveryServiceVaultsAttributes = map[string]attr.Type{
 	"recover_soft_deleted_backup_protected_vm": types.BoolType,
+}
+
+type NetApp struct {
+	DeleteBackupsOnBackupVaultDestroy types.Bool `tfsdk:"delete_backups_on_backup_vault_destroy"`
+	PreventVolumeDestruction          types.Bool `tfsdk:"prevent_volume_destruction"`
+}
+
+var NetAppAttributes = map[string]attr.Type{
+	"delete_backups_on_backup_vault_destroy": types.BoolType,
+	"prevent_volume_destruction":             types.BoolType,
 }

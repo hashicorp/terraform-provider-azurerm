@@ -49,7 +49,7 @@ const (
 	//
 	// In the future, it may be possible to include this information directly
 	// in the protocol buffers rather than recreating a constant here.
-	protocolVersionMinor uint = 6
+	protocolVersionMinor uint = 8
 )
 
 // protocolVersion represents the combined major and minor version numbers of
@@ -717,6 +717,7 @@ func (s *server) ValidateResourceConfig(ctx context.Context, protoReq *tfplugin6
 
 	req := fromproto.ValidateResourceConfigRequest(protoReq)
 
+	tf6serverlogging.ValidateResourceConfigClientCapabilities(ctx, req.ClientCapabilities)
 	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
 
 	ctx = tf6serverlogging.DownstreamRequest(ctx)
@@ -999,6 +1000,121 @@ func (s *server) GetFunctions(ctx context.Context, protoReq *tfplugin6.GetFuncti
 	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
 
 	protoResp := toproto.GetFunctions_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) ValidateEphemeralResourceConfig(ctx context.Context, protoReq *tfplugin6.ValidateEphemeralResourceConfig_Request) (*tfplugin6.ValidateEphemeralResourceConfig_Response, error) {
+	rpc := "ValidateEphemeralResourceConfig"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.EphemeralResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.ValidateEphemeralResourceConfigRequest(protoReq)
+
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	resp, err := s.downstream.ValidateEphemeralResourceConfig(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.ValidateEphemeralResourceConfig_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) OpenEphemeralResource(ctx context.Context, protoReq *tfplugin6.OpenEphemeralResource_Request) (*tfplugin6.OpenEphemeralResource_Response, error) {
+	rpc := "OpenEphemeralResource"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.EphemeralResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.OpenEphemeralResourceRequest(protoReq)
+
+	tf6serverlogging.OpenEphemeralResourceClientCapabilities(ctx, req.ClientCapabilities)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	resp, err := s.downstream.OpenEphemeralResource(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Response", "Result", resp.Result)
+	tf6serverlogging.Deferred(ctx, resp.Deferred)
+
+	if resp.Deferred != nil && (req.ClientCapabilities == nil || !req.ClientCapabilities.DeferralAllowed) {
+		resp.Diagnostics = append(resp.Diagnostics, invalidDeferredResponseDiag(resp.Deferred.Reason))
+	}
+
+	protoResp := toproto.OpenEphemeralResource_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) RenewEphemeralResource(ctx context.Context, protoReq *tfplugin6.RenewEphemeralResource_Request) (*tfplugin6.RenewEphemeralResource_Response, error) {
+	rpc := "RenewEphemeralResource"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.EphemeralResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.RenewEphemeralResourceRequest(protoReq)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	resp, err := s.downstream.RenewEphemeralResource(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.RenewEphemeralResource_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) CloseEphemeralResource(ctx context.Context, protoReq *tfplugin6.CloseEphemeralResource_Request) (*tfplugin6.CloseEphemeralResource_Response, error) {
+	rpc := "CloseEphemeralResource"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.EphemeralResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.CloseEphemeralResourceRequest(protoReq)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	resp, err := s.downstream.CloseEphemeralResource(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]any{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.CloseEphemeralResource_Response(resp)
 
 	return protoResp, nil
 }

@@ -116,18 +116,6 @@ func validateMessageDeclarations(file *filedesc.File, ms []filedesc.Message, mds
 			if m.ExtensionRanges().Len() > 0 {
 				return errors.New("message %q using proto3 semantics cannot have extension ranges", m.FullName())
 			}
-			// Verify that field names in proto3 do not conflict if lowercased
-			// with all underscores removed.
-			// See protoc v3.8.0: src/google/protobuf/descriptor.cc:5830-5847
-			names := map[string]protoreflect.FieldDescriptor{}
-			for i := 0; i < m.Fields().Len(); i++ {
-				f1 := m.Fields().Get(i)
-				s := strings.Replace(strings.ToLower(string(f1.Name())), "_", "", -1)
-				if f2, ok := names[s]; ok {
-					return errors.New("message %q using proto3 semantics has conflict: %q with %q", m.FullName(), f1.Name(), f2.Name())
-				}
-				names[s] = f1
-			}
 		}
 
 		for j, fd := range md.GetField() {
@@ -161,7 +149,7 @@ func validateMessageDeclarations(file *filedesc.File, ms []filedesc.Message, mds
 					return errors.New("message field %q under proto3 optional semantics must be within a single element oneof", f.FullName())
 				}
 			}
-			if f.IsWeak() && !flags.ProtoLegacy {
+			if f.IsWeak() && !flags.ProtoLegacyWeak {
 				return errors.New("message field %q is a weak field, which is a legacy proto1 feature that is no longer supported", f.FullName())
 			}
 			if f.IsWeak() && (!f.HasPresence() || !isOptionalMessage(f) || f.ContainingOneof() != nil) {

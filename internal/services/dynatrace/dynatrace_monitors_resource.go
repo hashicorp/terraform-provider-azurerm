@@ -1,7 +1,11 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package dynatrace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -273,7 +277,7 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 					MarketplaceSubscriptionStatus: string(*props.MarketplaceSubscriptionStatus),
 					Identity:                      identityProps,
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),
-					UserInfo:                      FlattenDynatraceUserInfo(metadata.ResourceData.Get("user").([]interface{})),
+					UserInfo:                      FlattenDynatraceUserInfo(props.UserInfo),
 				}
 
 				if model.Tags != nil {
@@ -362,7 +366,7 @@ func expandDynatraceIdentity(input []identity.ModelSystemAssigned) (*monitors.Id
 
 func flattenDynatraceIdentity(input *monitors.IdentityProperties) ([]identity.ModelSystemAssigned, error) {
 	if input == nil {
-		return nil, fmt.Errorf("flattening Dynatrace identity: input is nil")
+		return nil, errors.New("flattening Dynatrace identity: input is nil")
 	}
 	var identityProp identity.ModelSystemAssigned
 

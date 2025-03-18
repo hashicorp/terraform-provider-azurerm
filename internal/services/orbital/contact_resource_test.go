@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -21,6 +22,9 @@ import (
 type ContactResource struct{}
 
 func TestAccContact_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_orbital_contact` is deprecated and will be removed in 5.0")
+	}
 	skipContact(t)
 
 	data := acceptance.BuildTestData(t, "azurerm_orbital_contact", "test")

@@ -27,7 +27,6 @@ func TestDiskEncryptionSetID(t *testing.T) {
 		Error    bool
 		Expected *DiskEncryptionSetId
 	}{
-
 		{
 			// empty
 			Input: "",

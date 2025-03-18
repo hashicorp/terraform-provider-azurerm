@@ -384,15 +384,15 @@ func TestResourceEncode_TopLevelOmitted(t *testing.T) {
 
 func TestResourceEncode_TopLevelComputed(t *testing.T) {
 	type SimpleType struct {
-		ComputedString        string             `tfschema:"computed_string" computed:"true"`
-		ComputedNumber        int64              `tfschema:"computed_number" computed:"true"`
-		ComputedBool          bool               `tfschema:"computed_bool" computed:"true"`
+		ComputedString        string             `tfschema:"computed_string"          computed:"true"`
+		ComputedNumber        int64              `tfschema:"computed_number"          computed:"true"`
+		ComputedBool          bool               `tfschema:"computed_bool"            computed:"true"`
 		ComputedListOfNumbers []int64            `tfschema:"computed_list_of_numbers" computed:"true"`
 		ComputedListOfStrings []string           `tfschema:"computed_list_of_strings" computed:"true"`
-		ComputedMapOfBools    map[string]bool    `tfschema:"computed_map_of_bools" computed:"true"`
-		ComputedMapOfFloats   map[string]float64 `tfschema:"computed_map_of_floats" computed:"true"`
-		ComputedMapOfInts     map[string]int64   `tfschema:"computed_map_of_ints" computed:"true"`
-		ComputedMapOfStrings  map[string]string  `tfschema:"computed_map_of_strings" computed:"true"`
+		ComputedMapOfBools    map[string]bool    `tfschema:"computed_map_of_bools"    computed:"true"`
+		ComputedMapOfFloats   map[string]float64 `tfschema:"computed_map_of_floats"   computed:"true"`
+		ComputedMapOfInts     map[string]int64   `tfschema:"computed_map_of_ints"     computed:"true"`
+		ComputedMapOfStrings  map[string]string  `tfschema:"computed_map_of_strings"  computed:"true"`
 	}
 	encodeTestData{
 		Input: &SimpleType{
@@ -573,9 +573,9 @@ func TestResourceEncode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 		MapOfBools           map[string]bool    `tfschema:"map_of_bools"`
 		MapOfNumbers         map[string]int64   `tfschema:"map_of_numbers"`
 		MapOfStrings         map[string]string  `tfschema:"map_of_strings"`
-		ComputedMapOfBools   map[string]bool    `tfschema:"computed_map_of_bools" computed:"true"`
-		ComputedMapOfFloats  map[string]float64 `tfschema:"computed_map_of_floats" computed:"true"`
-		ComputedMapOfInts    map[string]int64   `tfschema:"computed_map_of_ints" computed:"true"`
+		ComputedMapOfBools   map[string]bool    `tfschema:"computed_map_of_bools"   computed:"true"`
+		ComputedMapOfFloats  map[string]float64 `tfschema:"computed_map_of_floats"  computed:"true"`
+		ComputedMapOfInts    map[string]int64   `tfschema:"computed_map_of_ints"    computed:"true"`
 		ComputedMapOfStrings map[string]string  `tfschema:"computed_map_of_strings" computed:"true"`
 	}
 	type Type struct {

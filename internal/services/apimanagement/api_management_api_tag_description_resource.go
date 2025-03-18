@@ -39,7 +39,6 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"api_tag_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,

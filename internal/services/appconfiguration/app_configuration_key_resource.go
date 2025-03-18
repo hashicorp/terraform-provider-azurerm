@@ -6,6 +6,7 @@ package appconfiguration
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -13,7 +14,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/migration"
@@ -162,7 +163,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration

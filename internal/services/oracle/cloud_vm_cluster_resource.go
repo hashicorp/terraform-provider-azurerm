@@ -403,7 +403,6 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
 			id, err := cloudvmclusters.ParseCloudVMClusterID(metadata.ResourceData.Id())
 			if err != nil {

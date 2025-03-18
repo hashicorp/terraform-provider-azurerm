@@ -391,6 +391,7 @@ func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -399,14 +400,7 @@ func TestAccEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("capacity").HasValue("2"),
 			),
 		},
-		{
-			Config: r.premium(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue("Premium"),
-				check.That(data.ResourceName).Key("capacity").HasValue("1"),
-			),
-		},
+		data.ImportStep(),
 	})
 }
 
@@ -482,6 +476,9 @@ func TestAccEventHubNamespace_publicNetworkAccessUpdate(t *testing.T) {
 }
 
 func TestAccEventHubNamespace_minimumTLSUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("The `minimum_tls_version` has only one possible value `1.2`, we can not update it.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 	r := EventHubNamespaceResource{}
 
@@ -582,12 +579,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ehn-%[1]d-1"
+  name     = "acctestRG-eh-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-ehn-%[1]d"
+  name     = "acctestRG-eh-%[1]d-2"
   location = "%[3]s"
 }
 
@@ -654,49 +651,6 @@ resource "azurerm_eventhub_namespace" "test" {
       action  = "Allow"
     }
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (EventHubNamespaceResource) premium(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eh-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = "1"
-  zone_redundant      = true
-}
-		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eh-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Premium"
-  capacity            = "1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -866,7 +820,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-eh-%[1]d"
   location = "%[2]s"
 }
 
@@ -937,7 +891,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -960,7 +914,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -981,7 +935,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -1010,7 +964,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -1036,7 +990,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -1057,7 +1011,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -1078,7 +1032,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -1099,7 +1053,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -1120,7 +1074,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 
@@ -1143,7 +1097,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eh-%d"
   location = "%s"
 }
 

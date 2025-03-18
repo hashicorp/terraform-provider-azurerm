@@ -27,6 +27,7 @@ func TestAccMongoClusterFreeTier(t *testing.T) {
 		},
 	})
 }
+
 func testAccMongoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
 	r := MongoClusterResource{}
@@ -35,9 +36,12 @@ func testAccMongoCluster_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("connection_strings.0.value").HasValue(
+					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
+						data.RandomInteger)),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
 	})
 }
 
@@ -52,14 +56,14 @@ func testAccMongoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
 	})
 }
 
@@ -89,14 +93,29 @@ func TestAccMongoCluster_previewFeature(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 		{
 			Config: r.geoReplica(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "source_location"),
+		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+func TestAccMongoCluster_geoReplica(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoReplica(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -123,7 +142,7 @@ resource "azurerm_mongo_cluster" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123"
+  administrator_password = "QAZwsx123basic"
   shard_count            = "1"
   compute_tier           = "Free"
   high_availability_mode = "Disabled"

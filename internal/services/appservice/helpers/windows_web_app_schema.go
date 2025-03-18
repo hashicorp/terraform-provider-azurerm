@@ -60,7 +60,7 @@ type SiteConfigWindows struct {
 }
 
 func SiteConfigSchemaWindows() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -185,8 +185,6 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
 						"VS2022",
 					}, false),
 				},
@@ -220,28 +218,17 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_eviction_time_in_min"}
-						}
-						return []string{}
-					}(),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_path"}
-						}
-						return []string{}
-					}(),
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: []string{"site_config.0.health_check_path"},
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -295,6 +282,16 @@ func SiteConfigSchemaWindows() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 func SiteConfigSchemaWindowsComputed() *pluginsdk.Schema {
@@ -543,16 +540,6 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 			}
 		}
 
-		if !features.FourPointOhBeta() {
-			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
-				if winAppStack.DockerContainerRegistry != "" {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				} else {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				}
-			}
-		}
-
 		if winAppStack.DockerImageName != "" {
 			if appSettings == nil {
 				appSettings = make(map[string]string)
@@ -562,9 +549,7 @@ func (s *SiteConfigWindows) ExpandForCreate(appSettings map[string]string) (*web
 			appSettings["DOCKER_REGISTRY_SERVER_URL"] = winAppStack.DockerRegistryUrl
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
-
 		}
-
 	} else {
 		expanded.WindowsFxVersion = pointer.To("")
 	}
@@ -684,7 +669,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 		if winAppStack.PythonVersion != "" || winAppStack.Python {
 			expanded.PythonVersion = pointer.To(winAppStack.PythonVersion)
 		}
-		if metadata.ResourceData.HasChange("site_config.0.application_stack.0.java_version") {
+		if metadata.ResourceData.HasChanges("site_config.0.application_stack.0.java_version", "site_config.0.application_stack.0.tomcat_version") {
 			if winAppStack.JavaVersion != "" {
 				expanded.JavaVersion = pointer.To(winAppStack.JavaVersion)
 				switch {
@@ -704,15 +689,6 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 				expanded.JavaContainerVersion = nil
 			}
 		}
-		if !features.FourPointOhBeta() {
-			if winAppStack.DockerContainerName != "" || winAppStack.DockerContainerRegistry != "" || winAppStack.DockerContainerTag != "" {
-				if winAppStack.DockerContainerRegistry != "" {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s/%s:%s", winAppStack.DockerContainerRegistry, winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				} else {
-					expanded.WindowsFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", winAppStack.DockerContainerName, winAppStack.DockerContainerTag))
-				}
-			}
-		}
 
 		if winAppStack.DockerImageName != "" {
 			expanded.WindowsFxVersion = pointer.To(EncodeDockerFxStringWindows(winAppStack.DockerImageName, winAppStack.DockerRegistryUrl))
@@ -720,7 +696,6 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 			appSettings["DOCKER_REGISTRY_SERVER_USERNAME"] = winAppStack.DockerRegistryUsername
 			appSettings["DOCKER_REGISTRY_SERVER_PASSWORD"] = winAppStack.DockerRegistryPassword
 		}
-
 	} else {
 		expanded.WindowsFxVersion = pointer.To("")
 	}

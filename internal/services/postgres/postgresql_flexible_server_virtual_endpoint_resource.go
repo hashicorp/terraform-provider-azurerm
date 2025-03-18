@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/virtualendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -154,33 +154,35 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 				if props := model.Properties; props != nil {
 					state.Type = string(pointer.From(props.EndpointType))
 
-					if props.Members == nil || len(*props.Members) != 2 {
-						// if members list is nil, this is an endpoint that was previously deleted
+					if props.Members == nil || len(*props.Members) == 0 {
+						// if members list is nil or empty, this is an endpoint that was previously deleted
 						log.Printf("[INFO] Postgresql Flexible Server Endpoint %q was previously deleted - removing from state", id.ID())
 						return metadata.MarkAsGone(id)
 					}
 
-					// Model.Properties.Members is a tuple => [source_server_id, replication_server_name]
-					sourceServerName := (*props.Members)[0]
-					replicaServerName := (*props.Members)[1]
+					state.SourceServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*props.Members)[0]).ID()
 
-					sourceServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, sourceServerName).ID()
+					// Model.Properties.Members can contain 1 member which means source and replica are identical, or it can contain
+					// 2 members when source and replica are different => [source_server_id, replication_server_name]
+					replicaServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*props.Members)[0]).ID()
 
-					replicaServer, err := lookupFlexibleServerByName(ctx, flexibleServerClient, id, replicaServerName, sourceServerId)
-					if err != nil {
-						return err
-					}
-
-					state.SourceServerId = sourceServerId
-
-					if replicaServer != nil {
-						replicaId, err := servers.ParseFlexibleServerID(*replicaServer.Id)
+					if len(*props.Members) == 2 {
+						replicaServer, err := lookupFlexibleServerByName(ctx, flexibleServerClient, id, (*props.Members)[1], state.SourceServerId)
 						if err != nil {
 							return err
 						}
 
-						state.ReplicaServerId = replicaId.ID()
+						if replicaServer != nil {
+							replicaId, err := servers.ParseFlexibleServerID(*replicaServer.Id)
+							if err != nil {
+								return err
+							}
+
+							replicaServerId = replicaId.ID()
+						}
 					}
+
+					state.ReplicaServerId = replicaServerId
 				}
 			}
 

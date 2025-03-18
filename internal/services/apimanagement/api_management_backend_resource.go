@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -483,7 +484,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 	}
 
 	if properties.ClientCertificateId == nil && properties.ClientCertificatethumbprint == nil {
-		return fmt.Errorf("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set"), nil
+		return errors.New("at least one of `client_certificate_thumbprint` and `client_certificate_id` must be set"), nil
 	}
 
 	serverCertificateThumbprintsUnset := true
@@ -497,7 +498,7 @@ func expandApiManagementBackendServiceFabricCluster(input []interface{}) (error,
 		serverX509NamesUnset = false
 	}
 	if serverCertificateThumbprintsUnset && serverX509NamesUnset {
-		return fmt.Errorf("One of `server_certificate_thumbprints` or `server_x509_name` must be set"), nil
+		return errors.New("one of `server_certificate_thumbprints` or `server_x509_name` must be set"), nil
 	}
 	return nil, &properties
 }

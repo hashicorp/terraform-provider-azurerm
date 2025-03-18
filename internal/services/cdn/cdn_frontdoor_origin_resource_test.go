@@ -11,14 +11,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type CdnFrontDoorOriginResource struct {
-}
+type CdnFrontDoorOriginResource struct{}
 
 func TestAccCdnFrontDoorOrigin_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
@@ -32,24 +30,6 @@ func TestAccCdnFrontDoorOrigin_basic(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
-}
-
-func TestAccCdnFrontDoorOrigin_basicThreePointOh(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_origin", "test")
-		r := CdnFrontDoorOriginResource{}
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.basicThreePointOh(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-		})
-	} else {
-		t.Skip("Test no longer valid due to deprecation of the 'health_probes_enabled' field in the 4.x version of the provider")
-	}
 }
 
 func TestAccCdnFrontDoorOrigin_requiresImport(t *testing.T) {
@@ -488,31 +468,6 @@ resource "azurerm_cdn_frontdoor_origin" "test" {
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   enabled                       = true
 
-  certificate_name_check_enabled = false
-  host_name                      = "contoso.com"
-  http_port                      = 80
-  https_port                     = 443
-  origin_host_header             = "www.contoso.com"
-  priority                       = 1
-  weight                         = 1
-}
-`, template, data.RandomInteger)
-}
-
-func (r CdnFrontDoorOriginResource) basicThreePointOh(data acceptance.TestData) string {
-	template := r.template(data, "Standard_AzureFrontDoor", false)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cdn_frontdoor_origin" "test" {
-  name                          = "acctest-cdnfdorigin-%d"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-
-  health_probes_enabled          = true
   certificate_name_check_enabled = false
   host_name                      = "contoso.com"
   http_port                      = 80

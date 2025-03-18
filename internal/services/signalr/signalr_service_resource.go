@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -139,7 +139,7 @@ func resourceArmSignalRServiceCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	resourceLogsData := expandSignalRResourceLogConfig(connectivityLogsEnabled, messagingLogsEnabled, httpLogsEnabled)
 	resourceType := signalr.SignalRResource{
-		Location: utils.String(location),
+		Location: location,
 		Identity: identity,
 		Properties: &signalr.SignalRProperties{
 			Cors:                     expandSignalRCors(cors),
@@ -199,7 +199,7 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if err = d.Set("sku", flattenSignalRServiceSku(model.Sku)); err != nil {
 			return fmt.Errorf("setting `sku`: %+v", err)
@@ -835,8 +835,10 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:     pluginsdk.TypeInt,
 						Required: true,
-						ValidateFunc: validation.IntInSlice([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
-							300, 400, 500, 600, 700, 800, 900, 1000}),
+						ValidateFunc: validation.IntInSlice([]int{
+							1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
+							300, 400, 500, 600, 700, 800, 900, 1000,
+						}),
 					},
 				},
 			},

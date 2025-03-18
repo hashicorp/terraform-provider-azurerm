@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-11-01/frontdoor" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
@@ -49,6 +49,11 @@ func dataSourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"js_challenge_cookie_expiration_in_minutes": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"redirect_url": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -66,41 +71,45 @@ func dataSourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 }
 
 func dataSourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorLegacyFirewallPoliciesClient
+	client := meta.(*clients.Client).Cdn.FrontDoorFirewallPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFrontDoorFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorWebApplicationFirewallPolicyName)
+	id := waf.NewFrontDoorWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name)
+
+	result, err := client.PoliciesGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(result.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	skuName := ""
-	if sku := resp.Sku; sku != nil {
-		skuName = string(sku.Name)
-	}
-
 	d.SetId(id.ID())
-	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("sku_name", skuName)
 
-	if properties := resp.WebApplicationFirewallPolicyProperties; properties != nil {
-		if policy := properties.PolicySettings; policy != nil {
-			d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
-			d.Set("mode", string(policy.Mode))
-			d.Set("redirect_url", policy.RedirectURL)
+	if model := result.Model; model != nil {
+		d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
+		d.Set("resource_group_name", id.ResourceGroupName)
+		if sku := model.Sku; sku != nil {
+			d.Set("sku_name", string(pointer.From(sku.Name)))
 		}
 
-		if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
-			return fmt.Errorf("flattening 'frontend_endpoint_ids': %+v", err)
+		if props := model.Properties; props != nil {
+			if err := d.Set("frontend_endpoint_ids", flattenFrontendEndpointLinkSlice(props.FrontendEndpointLinks)); err != nil {
+				return fmt.Errorf("flattening 'frontend_endpoint_ids': %+v", err)
+			}
+
+			if policy := props.PolicySettings; policy != nil {
+				d.Set("enabled", pointer.From(policy.EnabledState) == waf.PolicyEnabledStateEnabled)
+				d.Set("mode", pointer.From(policy.Mode))
+				d.Set("redirect_url", policy.RedirectURL)
+				d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+			}
 		}
 	}
 

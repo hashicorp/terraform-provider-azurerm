@@ -14,8 +14,8 @@ import (
 
 // GetProviderSchema merges the schemas returned by the
 // tfprotov5.ProviderServers associated with muxServer into a single schema.
-// Resources and data sources must be returned from only one server. Provider
-// and ProviderMeta schemas must be identical between all servers.
+// Resources, data sources, ephemeral resources, and functions must be returned
+// from only one server. Provider and ProviderMeta schemas must be identical between all servers.
 func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	rpc := "GetProviderSchema"
 	ctx = logging.InitContext(ctx)
@@ -25,10 +25,11 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 	defer s.serverDiscoveryMutex.Unlock()
 
 	resp := &tfprotov5.GetProviderSchemaResponse{
-		DataSourceSchemas:  make(map[string]*tfprotov5.Schema),
-		Functions:          make(map[string]*tfprotov5.Function),
-		ResourceSchemas:    make(map[string]*tfprotov5.Schema),
-		ServerCapabilities: serverCapabilities,
+		DataSourceSchemas:        make(map[string]*tfprotov5.Schema),
+		EphemeralResourceSchemas: make(map[string]*tfprotov5.Schema),
+		Functions:                make(map[string]*tfprotov5.Function),
+		ResourceSchemas:          make(map[string]*tfprotov5.Schema),
+		ServerCapabilities:       serverCapabilities,
 	}
 
 	for _, server := range s.servers {
@@ -105,6 +106,17 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 
 			s.functions[name] = server
 			resp.Functions[name] = definition
+		}
+
+		for ephemeralResourceType, schema := range serverResp.EphemeralResourceSchemas {
+			if _, ok := resp.EphemeralResourceSchemas[ephemeralResourceType]; ok {
+				resp.Diagnostics = append(resp.Diagnostics, ephemeralResourceDuplicateError(ephemeralResourceType))
+
+				continue
+			}
+
+			s.ephemeralResources[ephemeralResourceType] = server
+			resp.EphemeralResourceSchemas[ephemeralResourceType] = schema
 		}
 	}
 

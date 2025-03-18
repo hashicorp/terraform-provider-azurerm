@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/adminrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/adminrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -405,7 +405,7 @@ func (r ManagerAdminRuleResource) Delete() sdk.ResourceFunc {
 }
 
 func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]adminrules.AddressPrefixItem {
-	var outputList []adminrules.AddressPrefixItem
+	outputList := make([]adminrules.AddressPrefixItem, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := adminrules.AddressPrefixItem{
@@ -423,11 +423,11 @@ func expandAddressPrefixItemModel(inputList []AddressPrefixItemModel) *[]adminru
 }
 
 func flattenAddressPrefixItemModel(inputList *[]adminrules.AddressPrefixItem) []AddressPrefixItemModel {
-	var outputList []AddressPrefixItemModel
 	if inputList == nil {
-		return outputList
+		return []AddressPrefixItemModel{}
 	}
 
+	outputList := make([]AddressPrefixItemModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := AddressPrefixItemModel{}
 

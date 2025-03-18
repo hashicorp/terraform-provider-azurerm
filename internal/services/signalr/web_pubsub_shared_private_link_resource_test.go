@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -47,6 +47,7 @@ func TestAccWebPubsubSharedPrivateLinkResource_requiresImport(t *testing.T) {
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func (r WebPubsubSharedPrivateLinkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webpubsub.ParseSharedPrivateLinkResourceID(state.ID)
 	if err != nil {

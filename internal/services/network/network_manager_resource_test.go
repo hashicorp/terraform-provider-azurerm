@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -94,6 +94,19 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerDeployment_update,
 			"withTriggers":   testAccNetworkManagerDeployment_withTriggers,
 			"requiresImport": testAccNetworkManagerDeployment_requiresImport,
+		},
+		"IPAMPool": {
+			"basic":          testAccNetworkManagerIpamPool_basic,
+			"basicIPv6":      testAccNetworkManagerIpamPool_basicIPv6,
+			"complete":       testAccNetworkManagerIpamPool_complete,
+			"update":         testAccNetworkManagerIpamPool_update,
+			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
+		},
+		"VerifierWorkspace": {
+			"basic":          testAccNetorkManagerVerifierWorkspace_basic,
+			"complete":       testAccNetorkManagerVerifierWorkspace_complete,
+			"update":         testAccNetorkManagerVerifierWorkspace_update,
+			"requiresImport": testAccNetorkManagerVerifierWorkspace_requiresImport,
 		},
 	}
 
@@ -240,7 +253,7 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["Connectivity", "SecurityAdmin"]
+  scope_accesses = ["Connectivity", "SecurityAdmin", "Routing"]
   description    = "test network manager"
   tags = {
     foo = "bar"

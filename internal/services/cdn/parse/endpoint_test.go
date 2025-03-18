@@ -27,7 +27,6 @@ func TestEndpointID(t *testing.T) {
 		Error    bool
 		Expected *EndpointId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestEndpointIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *EndpointId
 	}{
-
 		{
 			// empty
 			Input: "",

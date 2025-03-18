@@ -250,7 +250,6 @@ func (EmailCommunicationServiceDomainResource) Read() sdk.ResourceFunc {
 
 					if props.UserEngagementTracking != nil {
 						state.UserEngagementTrackingEnabled = *props.UserEngagementTracking == domains.UserEngagementTrackingEnabled
-
 					}
 
 					domainVerificationRecords := EmailDomainVerificationRecords{}

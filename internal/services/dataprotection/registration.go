@@ -10,8 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistration = Registration{}
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/data-protection"
@@ -64,5 +66,6 @@ func (r Registration) Resources() []sdk.Resource {
 		DataProtectionBackupInstanceKubernatesClusterResource{},
 		DataProtectionBackupInstanceMySQLFlexibleServerResource{},
 		DataProtectionBackupInstancePostgreSQLFlexibleServerResource{},
+		DataProtectionBackupVaultCustomerManagedKeyResource{},
 	}
 }

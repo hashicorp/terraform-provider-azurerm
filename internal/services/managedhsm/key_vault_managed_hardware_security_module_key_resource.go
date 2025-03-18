@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultMHSMKeyResource struct{}
@@ -77,6 +77,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 			ValidateFunc: validation.StringInSlice([]string{
 				string(keyvault.JSONWebKeyTypeECHSM),
+				string(keyvault.JSONWebKeyTypeOctHSM),
 				string(keyvault.JSONWebKeyTypeRSAHSM),
 			}, false),
 		},

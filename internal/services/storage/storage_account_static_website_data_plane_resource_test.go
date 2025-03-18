@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package storage_test
 
 import (
@@ -29,6 +32,7 @@ func TestAccountStaticWebsiteResource_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccountStaticWebsiteResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
 	r := AccountStaticWebsiteResource{}
@@ -101,7 +105,7 @@ func (r AccountStaticWebsiteResource) Exists(ctx context.Context, client *client
 		return nil, err
 	}
 
-	accountDetails, err := client.Storage.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+	accountDetails, err := client.Storage.GetAccount(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -162,6 +166,10 @@ resource "azurerm_storage_account_static_website" "test" {
 
 func (r AccountStaticWebsiteResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"

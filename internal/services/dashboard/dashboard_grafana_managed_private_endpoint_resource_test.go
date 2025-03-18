@@ -146,7 +146,6 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "import" {
   private_link_resource_id = azurerm_dashboard_grafana_managed_private_endpoint.test.private_link_resource_id
 }
 `, config)
-
 }
 
 func (r ManagedPrivateEndpointResource) complete(data acceptance.TestData) string {

@@ -12,9 +12,9 @@ In order to incorporate a new property into a resource, modifications need to be
 
 Building on the example found in [adding a new resource](guide-new-resource.md) the new property will need to be added to either the user configurable list of `Arguments`, or `Attributes` if non-configurable.
 
-Our hypothetical property `public_network_access_enabled` will be user configurable and thus will need to be added to the `Arguments` list.
+Our hypothetical property `logging_enabled` will be user configurable and thus will need to be added to the `Arguments` list.
 
-The position of the new property is determined alphabetically and will end up looking like the code block below.
+The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource) and will end up looking like the code block below.
 
 ```go
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
@@ -26,7 +26,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		
 		"location": commonschema.Location(),
 		
-		"public_network_access_enabled": {
+		"logging_enabled": {
 			Type: pluginsdk.TypeBool,
 			Optional: true,
         }       
@@ -49,7 +49,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 ```go
 props := machinelearning.Workspace{
 	Properties: &machinelearning.WorkspaceProperties{
-		PublicNetworkAccess: pointer.To(d.Get("public_network_access_enabled").(bool))
+		PublicNetworkAccess: pointer.To(d.Get("logging_enabled").(bool))
     }
 }
 ```
@@ -59,8 +59,8 @@ props := machinelearning.Workspace{
 * When performing selective updates check whether the property has changed.
 
 ```go
-if d.HasChange("public_network_access_enabled") {
-	existing.Model.Properties.PublicNetworkAccess = pointer.From(d.Get("public_network_access_enabled").(bool))
+if d.HasChange("logging_enabled") {
+	existing.Model.Properties.PublicNetworkAccess = pointer.From(d.Get("logging_enabled").(bool))
 }
 ```
 
@@ -75,7 +75,7 @@ publicNetworkAccess := true
 if v := props.PublicNetworkAccess; v != nil {
 	publicNetworkAccess = *v
 }
-d.Set("public_network_access_enabled", publicNetworkAccess)
+d.Set("logging_enabled", publicNetworkAccess)
 ```
 
 ## Tests
@@ -106,12 +106,12 @@ This is a breaking change and can be done by deprecating the old property, repla
 
 A feature flag is essentially a function that returns a boolean and allows the provider to accommodate alternate behaviours that are meant for major releases. A release feature flag will always return `false` until it has been hooked up to an environment variable that allows users to toggle the behaviour and can be found in the `./internal/features` directory.
 
-As an example, let's deprecate and replace the property `enable_public_network_access` with `public_network_access_enabled`.
+As an example, let's deprecate and replace the property `enable_compression` with `compression_enabled`.
 
 ```go
 Schema: map[string]*pluginsdk.Schema{
     ...
-    "enable_public_network_access": {
+    "enable_compression": {
         Type:     pluginsdk.TypeBool,
         Optional: true,
     },
@@ -129,13 +129,13 @@ func resource() *pluginsdk.Resource {
 
             // The deprecated property is moved out of the schema and conditionally added back via the feature flag
         	
-            "public_network_access_enabled": {
+            "compression_enabled": {
                 Type:       pluginsdk.TypeBool,
                 Optional:   true,
                 Computed:   !features.FourPointOhBeta()  // Conditionally computed to avoid diffs when both properties are set into state
                 ConflictsWith: func() []string{          // Conditionally conflict with the deprecated property which will no longer exist in the next major release
                 	if !features.FourPointOhBeta() {
-                		return []string{"public_network_access_enabled"}
+                		return []string{"compression_enabled"}
                     }      
                     return []string{}
                 }(),       
@@ -144,12 +144,12 @@ func resource() *pluginsdk.Resource {
     }
     
     if !features.FourPointOhBeta() {
-    	resource.Schema["enable_public_network_access"] = &pluginsdk.Schema{
+    	resource.Schema["enable_compression"] = &pluginsdk.Schema{
             Type:       pluginsdk.TypeBool,
             Optional:   true,
             Computed:   true,
-            Deprecated: "This property has been renamed to `public_network_access_enabled` and will be removed in v4.0 of the provider",
-            ConflictsWith: []string{"public_network_access_enabled"}
+            Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v4.0 of the provider",
+            ConflictsWith: []string{"compression_enabled"}
         }   
     }
     
@@ -164,12 +164,12 @@ func create() {
 	...
 	publicNetworkAccess := false
 	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOkExists("enable_public_network_access"); ok {
+		if v, ok := d.GetOkExists("enable_compression"); ok {
 			publicNetworkAccess = v.(bool)
 		}       
     }
     
-    if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
+    if v, ok := d.GetOkExists("compression_enabled"); ok {
         publicNetworkAccess = v.(bool)
     }
 	...
@@ -177,10 +177,10 @@ func create() {
 
 func read() {
 	...
-	d.Set("public_network_access_enabled", props.PublicNetworkAccess)
+	d.Set("compression_enabled", props.PublicNetworkAccess)
 	
 	if !features.FourPointOhBeta() {
-		d.Set("enable_public_network_access", props.PublicNetworkAccess)
+		d.Set("enable_compression", props.PublicNetworkAccess)
     }   
 	...
 }
@@ -191,7 +191,7 @@ When deprecating a property in a Typed Resource it is important to ensure that t
 ```go
 type ExampleResourceModel struct {
 	Name                       string `tfschema:"name"`
-	EnablePublicNetworkAccess  bool   `tfschema:"enable_public_network_access,removedInNextMajorVersion"`
-	PublicNetworkAccessEnabled bool   `tfschema:"public_network_access_enabled"`
+	EnablePublicNetworkAccess  bool   `tfschema:"enable_compression,removedInNextMajorVersion"`
+	PublicNetworkAccessEnabled bool   `tfschema:"compression_enabled"`
 }
 ```

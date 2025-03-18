@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `storage_sku` - (Optional) Sku of the storage associated with the resource, Possible values are `standard` and `basic`. Changing this forces a new Fluid Relay Server to be created.
 
-* `encryption` - (Optional) An `encryption` block as defined below. Changing this forces a new resource to be created.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Fluid Relay Server.
 
@@ -57,7 +57,7 @@ An `identity` block supports the following:
 
 ---
 
-An `encryption` block supports the following:
+An `customer_managed_key` block supports the following:
 
 * `key_vault_key_id` - (Required) The Key Vault Key Id that will be used to encrypt the Fluid Relay Server.
 

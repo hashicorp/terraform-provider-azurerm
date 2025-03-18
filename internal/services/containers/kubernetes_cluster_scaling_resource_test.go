@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -81,7 +81,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
@@ -97,7 +97,6 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
-
 }
 
 func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *testing.T) {
@@ -140,11 +139,11 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
-					if err := client.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
+					if err := client.DeleteThenPoll(ctx, defaultNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 						return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 					}
 
@@ -1067,6 +1066,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)
 }
+
 func (KubernetesClusterResource) autoScalingProfileConfigMinimal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/adminrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/adminrulecollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -237,7 +237,7 @@ func (r ManagerAdminRuleCollectionResource) Delete() sdk.ResourceFunc {
 }
 
 func expandNetworkManagerNetworkGroupIds(inputList []string) []adminrulecollections.NetworkManagerSecurityGroupItem {
-	var outputList []adminrulecollections.NetworkManagerSecurityGroupItem
+	outputList := make([]adminrulecollections.NetworkManagerSecurityGroupItem, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := adminrulecollections.NetworkManagerSecurityGroupItem{
@@ -251,7 +251,7 @@ func expandNetworkManagerNetworkGroupIds(inputList []string) []adminrulecollecti
 }
 
 func flattenNetworkManagerNetworkGroupIds(inputList []adminrulecollections.NetworkManagerSecurityGroupItem) []string {
-	var outputList []string
+	outputList := make([]string, 0, len(inputList))
 
 	for _, input := range inputList {
 		outputList = append(outputList, input.NetworkGroupId)

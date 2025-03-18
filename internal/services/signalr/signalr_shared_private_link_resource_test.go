@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -156,6 +156,7 @@ resource "azurerm_signalr_shared_private_link_resource" "test" {
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
+
 func (SignalrSharedPrivateLinkResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
