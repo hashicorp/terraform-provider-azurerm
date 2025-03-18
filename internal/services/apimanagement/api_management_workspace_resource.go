@@ -12,7 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+<<<<<<< HEAD
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+=======
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+>>>>>>> 03c1de59bb (refactor(internal/services/apimanagement): update service_name to api_management_id in workspace data source and resource models; adds validate function for api_managemen_id)
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -23,7 +27,7 @@ import (
 type ApiManagementWorkspaceModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
-	ServiceName       string `tfschema:"service_name"`
+	ApiManagementId   string `tfschema:"api_management_id"`
 	DisplayName       string `tfschema:"display_name"`
 }
 
@@ -34,12 +38,12 @@ var _ sdk.Resource = ApiManagementWorkspaceResource{}
 func (r ApiManagementWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"service_name": {
+		"api_management_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The name of the API Management Service in which this Workspace should be created.",
+			ValidateFunc: apimanagementservice.ValidateServiceID,
+			Description:  "The ID of the API Management Service in which this Workspace should be created.",
 		},
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -87,8 +91,13 @@ func (r ApiManagementWorkspaceResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
+			id, err := apimanagementservice.ParseServiceID(model.ApiManagementId)
+			if err != nil {
+				return err
+			}
+
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			newId := workspace.NewWorkspaceID(subscriptionId, model.ResourceGroupName, model.ServiceName, model.Name)
+			newId := workspace.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.ServiceName, model.Name)
 
 			existing, err := client.Get(ctx, newId)
 			if err != nil {
@@ -137,9 +146,12 @@ func (r ApiManagementWorkspaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			subscriptionId := metadata.Client.Account.SubscriptionId
+			apiManagementId := apimanagementservice.NewServiceID(subscriptionId, id.ResourceGroup, id.ServiceName)
+
 			state := ApiManagementWorkspaceModel{
 				Name:              id.WorkspaceId,
-				ServiceName:       id.ServiceName,
+				ApiManagementId:   apiManagementId.ID(),
 				ResourceGroupName: id.ResourceGroup,
 			}
 
