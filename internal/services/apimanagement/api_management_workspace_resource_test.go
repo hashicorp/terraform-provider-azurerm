@@ -27,6 +27,33 @@ func TestAccApiManagementWorkspace_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("workspace_name").HasValue("acctest-workspace"),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("service_name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementWorkspace_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
+	r := ApiManagementWorkspaceTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("workspace_name").HasValue("acctest-workspace-updated"),
 			),
 		},
 		data.ImportStep(),
@@ -52,41 +79,6 @@ func TestAccApiManagementWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
 	r := ApiManagementWorkspaceTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccApiManagementWorkspace_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace", "test")
-	r := ApiManagementWorkspaceTestResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -138,38 +130,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_api_management_workspace" "test" {
-  name              = "acctest-aw-%d"
-  api_management_id = azurerm_api_management.test.id
-  display_name      = "my workspace"
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r ApiManagementWorkspaceTestResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_workspace" "import" {
-  name              = azurerm_api_management_workspace.test.name
-  api_management_id = azurerm_api_management_workspace.test.api_management_id
-  display_name      = azurerm_api_management_workspace.test.display_name
-}
-`, r.basic(data))
-}
-
-func (r ApiManagementWorkspaceTestResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_api_management_workspace" "test" {
-  name              = "acctest-aw-%d"
-  api_management_id = azurerm_api_management.test.id
-  description       = "terraform test workspace"
-  display_name      = "my workspace"
+  name                = "acctest-ws-%d"
+  workspace_name      = "acctest-workspace"
+  service_name        = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -183,10 +147,40 @@ provider "azurerm" {
 %s
 
 resource "azurerm_api_management_workspace" "test" {
-  name              = "acctest-aw-%d"
-  api_management_id = azurerm_api_management.test.id
-  description       = "terraform test workspace 2"
-  display_name      = "my workspace 2"
+  name                = "acctest-ws-%d"
+  workspace_name      = "acctest-workspace-updated"
+  service_name        = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementWorkspaceTestResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_workspace" "import" {
+  name                = azurerm_api_management_workspace.test.name
+  workspace_name      = azurerm_api_management_workspace.test.workspace_name
+  service_name        = azurerm_api_management_workspace.test.service_name
+  resource_group_name = azurerm_api_management_workspace.test.resource_group_name
+}
+`, r.basic(data))
+}
+
+func (r ApiManagementWorkspaceTestResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_management_workspace" "test" {
+  name                = "acctest-ws-%d"
+  workspace_name      = "acctest-workspace-complete"
+  service_name        = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, r.template(data), data.RandomInteger)
 }
