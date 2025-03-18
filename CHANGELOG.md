@@ -8,9 +8,20 @@ ENHANCEMENTS:
 
 * dependencies: `hashicorp/go-azure-sdk` - update to `v0.20250314.1213156` [GH-29081]
 * dependencies: `postgresql` - partial update to API version `2024-08-01` [GH-28964]
+* Data Source: `azurerm_linux_function_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
+* Data Source: `azurerm_linux_web_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
+* Data Source: `azurerm_windows_function_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
 * `azurerm_ai_services` - add support for the `network_acls.bypass` property [GH-28569]
+* `azurerm_linux_function_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
+* `azurerm_linux_function_app_slot` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
+* `azurerm_linux_web_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
+* `azurerm_linux_web_app_slot` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
+* `azurerm_windows_function_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
+* `azurerm_windows_function_app_slot` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
 * `azurerm_windows_web_app` - add support for node version `~22` [GH-29082]
+* `azurerm_windows_web_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
 * `azurerm_windows_web_app_slot` - add support for node version `~22` [GH-29082]
+* `azurerm_windows_web_app_slot` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
 
 BUG FIXES:
 
