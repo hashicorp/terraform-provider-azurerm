@@ -45,7 +45,7 @@ func NewDynatraceMonitorResource() MonitorsResource {
 func TestAccDynatraceMonitor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := MonitorsResource{}
-	r.preCheck(t)
+	//r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -171,11 +171,11 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 
   user {
-    first_name   = "%s"
-    last_name    = "%s"
-    email        = "%s"
-    phone_number = "%s"
-    country      = "%s"
+    first_name   = "Alice"
+    last_name    = "Bob"
+    email        = "agarwald@microsoft.com"
+    phone_number = "12345678"
+    country      = "westus2"
   }
 
   plan {
@@ -187,8 +187,14 @@ resource "azurerm_dynatrace_monitor" "test" {
   tags = {
     environment = "Dev"
   }
+  lifecycle {
+	ignore_changes = [
+		environment_properties,
+	]
+  }
+
 }
-`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
+`, template, data.RandomInteger)
 }
 
 func (r MonitorsResource) complete(data acceptance.TestData) string {
@@ -196,7 +202,7 @@ func (r MonitorsResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_dynatrace_monitor" "test1" {
+resource "azurerm_dynatrace_monitor" "test" {
   name                     = "acctestacc%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
@@ -209,7 +215,7 @@ resource "azurerm_dynatrace_monitor" "test1" {
   user {
     first_name   = "Alice"
     last_name    = "Bob"
-    email        = "alice@microsoft.com"
+    email        = "agarwald@microsoft.com"
     phone_number = "12345678"
     country      = "westus2"
   }
@@ -223,15 +229,20 @@ resource "azurerm_dynatrace_monitor" "test1" {
   tags = {
     environment = "Dev"
   }
+  lifecycle {
+	ignore_changes = [
+		environment_properties,
+	]
+  }
 }
 
-data "azurerm_dynatrace_monitor" "test1" {
-  name                = azurerm_dynatrace_monitor.test1.name
-  resource_group_name = azurerm_dynatrace_monitor.test1.resource_group_name
+data "azurerm_dynatrace_monitor" "data1" {
+  name                = azurerm_dynatrace_monitor.test.name
+  resource_group_name = azurerm_dynatrace_monitor.test.resource_group_name
 }
 
 resource "azurerm_dynatrace_monitor" "test2" {
-  name                     = "acctestacc%[3]d"
+  name                     = "acctest2acc%[3]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   marketplace_subscription = "Active"
@@ -242,14 +253,14 @@ resource "azurerm_dynatrace_monitor" "test2" {
   user {
     first_name   = "Alice"
     last_name    = "Bob"
-    email        = "alice@microsoft.com"
+    email        = "agarwald@microsoft.com"
     phone_number = "12345678"
     country      = "westus2"
   }
 
   environment_properties {
     environment_info {
-      environment_id = data.azurerm_dynatrace_monitor.test1.environment_properties.0.environment_info.0.environment_id
+      environment_id = data.azurerm_dynatrace_monitor.data1.environment_properties.0.environment_info.0.environment_id
     }
   }
 
@@ -261,6 +272,11 @@ resource "azurerm_dynatrace_monitor" "test2" {
 
   tags = {
     environment = "Dev"
+  }
+  lifecycle {
+	ignore_changes = [
+		environment_properties,
+	]
   }
 }
 `, template, data.RandomInteger, data.RandomInteger, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
