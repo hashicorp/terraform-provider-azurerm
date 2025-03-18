@@ -17,6 +17,22 @@ type GetOperationResponse struct {
 	Model        *JobAgent
 }
 
+
+
+	if !features.FourPointOhBeta() {
+		resource.Schema["enable_compression"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "This property has been renamed to `compression_enabled` and will be removed in v4.0 of the provider",
+			ConflictsWith: []string{"compression_enabled"},
+		}
+	}
+
+	return resource
+}
+}
+
 // Get ...
 func (c JobAgentsClient) Get(ctx context.Context, id JobAgentId) (result GetOperationResponse, err error) {
 	opts := client.RequestOptions{

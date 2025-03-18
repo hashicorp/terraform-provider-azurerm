@@ -4,11 +4,11 @@ As Azure services evolve and new features or functionalities enter public previe
 
 Oftentimes this involves the addition of a new property or perhaps even the renaming of an existing property.
 
-# Adding a new property
+## Adding a new property
 
 In order to incorporate a new property into a resource, modifications need to be made in multiple places. These are outlined below with pointers on what to consider and look out for as well as examples.
 
-## Schema
+### Schema
 
 Building on the example found in [adding a new resource](guide-new-resource.md) the new property will need to be added to either the user configurable list of `Arguments`, or `Attributes` if non-configurable.
 
@@ -42,7 +42,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
 * When adding multiple properties or blocks thought should be given on how to map these, see [schema design considerations](schema-design-considerations.md) for specific examples. 
 
-## Create function
+### Create function
 
 * The new property needs to be set in the properties struct for the resource.
 
@@ -54,7 +54,7 @@ props := machinelearning.Workspace{
 }
 ```
 
-## Update function
+### Update function
 
 * When performing selective updates check whether the property has changed.
 
@@ -64,7 +64,7 @@ if d.HasChange("logging_enabled") {
 }
 ```
 
-## Read function
+### Read function
 
 * Generally speaking all properties should have a value set into state.
 
@@ -78,7 +78,7 @@ if v := props.LoggingEnabled; v != nil {
 d.Set("logging_enabled", loggingEnabled)
 ```
 
-## Tests
+### Tests
 
 * It is often sufficient to add a new property to one of the existing, non-basic tests.
 
@@ -90,7 +90,7 @@ d.Set("logging_enabled", loggingEnabled)
 
 * Adding a new property or updating an existing property with a default should be checked properly against the current version of Terraform State and the Azure API as tests won't be able to catch a potential breaking change, see our [section on defaults and breaking changes](guide-breaking-changes.md)
 
-## Docs
+### Docs
 
 * Lastly, don't forget to update the docs with this new property!
 
@@ -98,7 +98,7 @@ d.Set("logging_enabled", loggingEnabled)
 
 * `Computed` only values should be added under `Attributes Reference`
 
-# Renaming and Deprecating a Property
+## Renaming and Deprecating a Property
 
 Fixing typos in property names or renaming them to improve the meaning is unfortunately not just a matter of updating the name in the resource's code.
 
@@ -109,6 +109,15 @@ A feature flag is essentially a function that returns a boolean and allows the p
 As an example, let's deprecate and replace the property `enable_compression` with `compression_enabled`.
 
 ```go
+### Untyped ###
+Schema: map[string]*pluginsdk.Schema{
+	...
+	"enable_compression": {
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+},
+
+### Typed ###
 func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"enable_compression": {
@@ -121,8 +130,40 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 After deprecation the schema might look like the example below.
 
 ```go
+### Untyped ###
+func resource() *pluginsdk.Resource {
+    resource := &pluginsdk.Resource{
+        Schema: map[string]*pluginsdk.Schema{
+            // The deprecated property is moved out of the schema and conditionally added back via the feature flag
+            "compression_enabled": {
+                Type:     pluginsdk.TypeBool,
+                Optional: true,
+                Computed: true
+            },
+        },
+    }
+
+    if !features.FivePointOhBeta() {
+        resource["compression_enabled"] = &pluginsdk.Schema{
+            Type:	   pluginsdk.TypeBool,
+            Optional:   true,
+        }
+        
+        resource["enable_compression"] = &pluginsdk.Schema{
+            Type:	   pluginsdk.TypeBool,
+            Optional:   true,
+            Computed:   true,
+            Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v4.0 of the provider",
+            ConflictsWith: []string{"compression_enabled"}
+        }   
+    }
+
+    return resource
+}
+
+### Typed ###
 func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 			// The deprecated property is moved out of the schema and conditionally added back via the feature flag
 			"compression_enabled": {
 				Type:	   pluginsdk.TypeBool,
@@ -132,28 +173,54 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		}
 	}
 	
-	if !features.FivePointOh() {
-		resource.Schema["compression_enabled"] = &pluginsdk.Schema{
+	if !features.FivePointOhBeta() {
+		schema["compression_enabled"] = &pluginsdk.Schema{
 			Type:	   pluginsdk.TypeBool,
 			Optional:   true,
 		}
 
-		resource.Schema["enable_compression"] = &pluginsdk.Schema{
+		schema["enable_compression"] = &pluginsdk.Schema{
 			Type:	   pluginsdk.TypeBool,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the AzureRM provider",
+			Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v4.0 of the provider",
 			ConflictsWith: []string{"compression_enabled"}
 		}   
 	}
 	
-	return resource
+	return schema
 }
 ```
 
 Also make sure to feature flag the behaviour in the `Create()`, `Update()` and `Read()` methods.
 
 ```go
+### Untyped ###
+func myResourceCreate() {
+    ...
+    enableCompression := false
+    if !features.FivePointOhBeta() {
+        if v, ok := d.GetOkExists("enable_compression"); ok {
+            enableCompression = v.(bool)
+        }       
+    }
+    
+    if v, ok := d.GetOkExists("compression_enabled"); ok {
+        compressionEnabled = v.(bool)
+    }
+}
+
+func myResourceRead() {
+    ...
+	d.Set("compression_enabled", props.CompressionEnabled)
+    
+    if !features.FivePointOhBeta() {
+        d.Set("enable_compression", props.EnableCompression)
+    }
+    ...
+}
+
+### Typed ###
 func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
 	compressionEnabled := false
@@ -172,9 +239,8 @@ func (r ExampleResource) Create() sdk.ResourceFunc {
 func (r ExampleResource) Read() sdk.ResourceFunc {
 	...
 	state.CompressionEnabled = pointer.From(resp.Model.Properties.CompressionEnabled)
-
-
-if !features.FivePointOh() {
+	
+    if !features.FivePointOh() {
 		state.EnableCompression = pointer.From(resp.Model.Properties.CompressionEnabled)
 	}   
 	...

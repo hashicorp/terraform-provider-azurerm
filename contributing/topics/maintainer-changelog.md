@@ -11,7 +11,7 @@ When a PR is merged it may or may not be included in the changelog. While most P
 Otherwise, every PR that affects users should be added to the appropriate section:
 
 * `FEATURES` - new resources and data sources
-* `ENHANCEMENTS` - new properties, functionality, and features (including SDK/API upgrades), or anything that doesn't fit under the other two sections
+* `ENHANCEMENTS` - new properties, functionality, and features (including SDK/API upgrades)
 * `BUG FIXES` - bug fixes
 
 When adding a changelog entry, the following rules should be followed:
