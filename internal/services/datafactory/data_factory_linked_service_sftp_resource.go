@@ -173,10 +173,10 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
-		Host:               utils.String(host),
+		Host:               pointer.To(host),
 		Port:               port,
 		AuthenticationType: datafactory.SftpAuthenticationType(authenticationType),
-		UserName:           utils.String(username),
+		UserName:           pointer.To(username),
 		Password:           &passwordSecureString,
 	}
 
@@ -247,7 +247,11 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 
 	sftp, ok := resp.Properties.AsSftpServerLinkedService()
 	if !ok {
-		return fmt.Errorf("classifying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSftp, *resp.Type)
+		receivedTypeMessage := ""
+		if resp.Type != nil {
+			receivedTypeMessage = fmt.Sprintf(" Received: %q", *resp.Type)
+		}
+		return fmt.Errorf("classifying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q%s", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSftp, receivedTypeMessage)
 	}
 
 	d.Set("authentication_type", sftp.AuthenticationType)
