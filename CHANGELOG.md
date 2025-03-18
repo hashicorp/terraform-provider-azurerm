@@ -1,5 +1,9 @@
 ## 4.24.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_servicebus_namespace_customer_managed_key` [GH-28888]
+
 ENHANCEMENTS:
 
 * dependencies: `hashicorp/go-azure-sdk` - update to `v0.20250314.1213156` [GH-29081]
