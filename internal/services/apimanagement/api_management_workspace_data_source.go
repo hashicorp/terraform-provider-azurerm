@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -16,7 +17,7 @@ import (
 type ApiManagementWorkspaceDataSourceModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
-	ServiceName       string `tfschema:"service_name"`
+	ApiManagementId   string `tfschema:"api_management_id"`
 	DisplayName       string `tfschema:"display_name"`
 }
 
@@ -30,9 +31,10 @@ func (d ApiManagementWorkspaceDataSource) Arguments() map[string]*pluginsdk.Sche
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"service_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+		"api_management_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: apimanagementservice.ValidateServiceID,
 		},
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
@@ -67,20 +69,25 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := workspace.NewWorkspaceID(subscriptionId, model.ResourceGroupName, model.ServiceName, model.Name)
+			id, err := apimanagementservice.ParseServiceID(model.ApiManagementId)
+			if err != nil {
+				return err
+			}
 
-			resp, err := client.Get(ctx, id)
+			workspaceId := workspace.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.ServiceName, model.Name)
+
+			resp, err := client.Get(ctx, workspaceId)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return fmt.Errorf("%s was not found", id)
+					return fmt.Errorf("%s was not found", workspaceId)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", workspaceId, err)
 			}
 
 			state := ApiManagementWorkspaceDataSourceModel{
-				Name:              id.WorkspaceId,
-				ServiceName:       id.ServiceName,
-				ResourceGroupName: id.ResourceGroup,
+				Name:              workspaceId.WorkspaceId,
+				ApiManagementId:   model.ApiManagementId,
+				ResourceGroupName: workspaceId.ResourceGroup,
 			}
 
 			if model := resp.Model; model != nil {
@@ -89,7 +96,7 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
+			metadata.SetID(workspaceId)
 			return metadata.Encode(&state)
 		},
 	}

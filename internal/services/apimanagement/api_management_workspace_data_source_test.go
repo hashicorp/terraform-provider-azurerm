@@ -30,7 +30,7 @@ func (r ApiManagementWorkspaceDataSource) basic(data acceptance.TestData) string
 
 data "azurerm_api_management_workspace" "test" {
   name                = azurerm_api_management_workspace.test.name
-  service_name        = azurerm_api_management_workspace.test.service_name
+  api_management_id   = azurerm_api_management.test.id
   resource_group_name = azurerm_api_management_workspace.test.resource_group_name
 }
 `, r.template(data))
@@ -58,7 +58,7 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_workspace" "test" {
   name                = "acctestws%d"
-  service_name        = azurerm_api_management.test.name
+  api_management_id   = azurerm_api_management.test.id
   resource_group_name = azurerm_resource_group.test.name
   display_name        = "acctest-workspace-%d"
 }
