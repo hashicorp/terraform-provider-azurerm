@@ -241,6 +241,10 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 	d.Set("name", resp.Name)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
+	if resp.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` is nil", id)
+	}
+
 	sftp, ok := resp.Properties.AsSftpServerLinkedService()
 	if !ok {
 		receivedTypeMessage := ""

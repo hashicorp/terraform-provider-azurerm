@@ -33,6 +33,21 @@ func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryLinkedServiceSFTP_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password"),
+	})
+}
+
 func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
 	r := LinkedServiceSFTPResource{}
@@ -77,23 +92,9 @@ func (t LinkedServiceSFTPResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.ID != nil), nil
 }
 
-func (LinkedServiceSFTPResource) basic(data acceptance.TestData) string {
+func (t LinkedServiceSFTPResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
+%s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
   name                = "acctestlsweb%d"
   data_factory_id     = azurerm_data_factory.test.id
@@ -103,26 +104,12 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   username            = "foo"
   password            = "bar"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, t.template(data), data.RandomInteger)
 }
 
-func (LinkedServiceSFTPResource) update1(data acceptance.TestData) string {
+func (t LinkedServiceSFTPResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
+%s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
   name                = "acctestlsweb%d"
   data_factory_id     = azurerm_data_factory.test.id
@@ -144,26 +131,12 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
     bar = "test2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, t.template(data), data.RandomInteger)
 }
 
-func (LinkedServiceSFTPResource) update2(data acceptance.TestData) string {
+func (t LinkedServiceSFTPResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
+%s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
   name                = "acctestlsweb%d"
   data_factory_id     = azurerm_data_factory.test.id
@@ -185,5 +158,54 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
     foo = "test1"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, t.template(data), data.RandomInteger)
+}
+
+func (t LinkedServiceSFTPResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                     = "acctestlsweb%d"
+  data_factory_id          = azurerm_data_factory.test.id
+  authentication_type      = "Basic"
+  host                     = "http://www.bing.com"
+  port                     = 22
+  username                 = "foo"
+  password                 = "bar"
+  annotations              = ["test1", "test2"]
+  description              = "test description 2"
+  skip_host_key_validation = true
+  host_key_fingerprint     = "fingerprint"
+
+  parameters = {
+    foo = "test1"
+    bar = "test2"
+  }
+
+  additional_properties = {
+    foo = "test1"
+    bar = "test1"
+  }
+}
+`, t.template(data), data.RandomInteger)
+}
+
+func (LinkedServiceSFTPResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+`, data.RandomInteger, data.Locations.Primary)
 }
