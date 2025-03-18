@@ -28,7 +28,6 @@ func TestAccApiManagementWorkspace_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("display_name").HasValue("acctest-workspace"),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("api_management_id").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -111,10 +110,9 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_workspace" "test" {
-  name                = "acctest-ws-%d"
-  display_name        = "acctest-workspace"
-  api_management_id   = azurerm_api_management.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  name              = "acctest-ws-%d"
+  display_name      = "acctest-workspace"
+  api_management_id = azurerm_api_management.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -140,10 +138,9 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_workspace" "test" {
-  name                = "acctest-ws-%d"
-  display_name        = "acctest-workspace-updated"
-  api_management_id   = azurerm_api_management.test.id
-  resource_group_name = azurerm_resource_group.test.name
+  name              = "acctest-ws-%d"
+  display_name      = "acctest-workspace-updated"
+  api_management_id = azurerm_api_management.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -154,10 +151,9 @@ func (r ApiManagementWorkspaceResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_api_management_workspace" "import" {
-  name                = azurerm_api_management_workspace.test.name
-  display_name        = azurerm_api_management_workspace.test.display_name
-  api_management_id   = azurerm_api_management_workspace.test.api_management_id
-  resource_group_name = azurerm_api_management_workspace.test.resource_group_name
+  name              = azurerm_api_management_workspace.test.name
+  display_name      = azurerm_api_management_workspace.test.display_name
+  api_management_id = azurerm_api_management_workspace.test.api_management_id
 }
 `, template)
 }
