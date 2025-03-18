@@ -67,6 +67,13 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Set: pluginsdk.HashString,
 			},
 
+			"destination_ip_address": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPv4Address,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
+			},
+
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_proxy_protocol": {
 				Type:     pluginsdk.TypeBool,
@@ -151,13 +158,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			"alias": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
-			},
-
-			"destination_ip_address": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsIPv4Address,
-				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
 			"tags": commonschema.Tags(),
