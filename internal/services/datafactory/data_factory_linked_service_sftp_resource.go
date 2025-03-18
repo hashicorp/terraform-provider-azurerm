@@ -147,47 +147,43 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 
 	id := parse.NewLinkedServiceID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory SFTP %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sftp", id.ID())
+			return fmt.Errorf("checking for presence of existing Data Factory SFTP %s: %+v", id, err)
 		}
 	}
 
-	authenticationType := d.Get("authentication_type").(string)
-
-	host := d.Get("host").(string)
-	port := d.Get("port").(int)
-	username := d.Get("username").(string)
-	password := d.Get("password").(string)
-
-	passwordSecureString := datafactory.SecureString{
-		Value: &password,
-		Type:  datafactory.TypeSecureString,
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sftp", id.ID())
 	}
 
 	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
-		Host:               pointer.To(host),
-		Port:               port,
-		AuthenticationType: datafactory.SftpAuthenticationType(authenticationType),
-		UserName:           pointer.To(username),
-		Password:           &passwordSecureString,
+		Host:               d.Get("host").(string),
+		Port:               d.Get("port").(int),
+		AuthenticationType: datafactory.SftpAuthenticationType(d.Get("authentication_type").(string)),
+		UserName:           d.Get("username").(string),
+		Password: pointer.To(datafactory.SecureString{
+			Value: pointer.To(d.Get("password").(string)),
+			Type:  datafactory.TypeSecureString,
+		}),
 	}
 
-	sftpProperties.SkipHostKeyValidation = d.Get("skip_host_key_validation").(bool)
-	sftpProperties.HostKeyFingerprint = d.Get("host_key_fingerprint").(string)
-	description := d.Get("description").(string)
+	if v, ok := d.GetOk("skip_host_key_validation"); ok {
+		sftpProperties.SkipHostKeyValidation = pointer.To(v.(bool))
+	}
+
+	if v, ok := d.GetOk("host_key_fingerprint"); ok {
+		sftpProperties.HostKeyFingerprint = pointer.To(v.(string))
+	}
 
 	sftpLinkedService := &datafactory.SftpServerLinkedService{
-		Description:                           &description,
 		SftpServerLinkedServiceTypeProperties: sftpProperties,
 		Type:                                  datafactory.TypeBasicLinkedServiceTypeSftp,
+	}
+
+	if v, ok := d.GetOk("description"); ok {
+		sftpLinkedService.Description = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
