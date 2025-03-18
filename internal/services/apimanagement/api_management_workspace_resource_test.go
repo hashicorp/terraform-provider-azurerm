@@ -26,7 +26,7 @@ func TestAccApiManagementWorkspace_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("workspace_name").HasValue("acctest-workspace"),
-				check.That(data.ResourceName).Key("workspace_id").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("service_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 			),
@@ -111,7 +111,7 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_workspace" "test" {
-  workspace_id        = "acctest-ws-%d"
+  name                = "acctest-ws-%d"
   workspace_name      = "acctest-workspace"
   service_name        = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -140,7 +140,7 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_workspace" "test" {
-  workspace_id        = "acctest-ws-%d"
+  name                = "acctest-ws-%d"
   workspace_name      = "acctest-workspace-updated"
   service_name        = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -154,7 +154,7 @@ func (r ApiManagementWorkspaceResource) requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_api_management_workspace" "import" {
-  workspace_id        = azurerm_api_management_workspace.test.workspace_id
+  name                = azurerm_api_management_workspace.test.name
   workspace_name      = azurerm_api_management_workspace.test.workspace_name
   service_name        = azurerm_api_management_workspace.test.service_name
   resource_group_name = azurerm_api_management_workspace.test.resource_group_name
