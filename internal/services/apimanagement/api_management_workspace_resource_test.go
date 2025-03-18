@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -78,11 +77,8 @@ func (r ApiManagementWorkspaceResource) Exists(ctx context.Context, client *clie
 		return nil, err
 	}
 
-	resp, err := client.ApiManagement.WorkspaceClient.Get(ctx, *id)
+	_, err = client.ApiManagement.WorkspaceClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
