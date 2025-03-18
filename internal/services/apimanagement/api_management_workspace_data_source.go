@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -15,10 +14,9 @@ import (
 )
 
 type ApiManagementWorkspaceDataSourceModel struct {
-	Name              string `tfschema:"name"`
-	ResourceGroupName string `tfschema:"resource_group_name"`
-	ApiManagementId   string `tfschema:"api_management_id"`
-	DisplayName       string `tfschema:"display_name"`
+	Name            string `tfschema:"name"`
+	ApiManagementId string `tfschema:"api_management_id"`
+	DisplayName     string `tfschema:"display_name"`
 }
 
 type ApiManagementWorkspaceDataSource struct{}
@@ -36,7 +34,6 @@ func (d ApiManagementWorkspaceDataSource) Arguments() map[string]*pluginsdk.Sche
 			Required:     true,
 			ValidateFunc: apimanagementservice.ValidateServiceID,
 		},
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
@@ -85,9 +82,8 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := ApiManagementWorkspaceDataSourceModel{
-				Name:              workspaceId.WorkspaceId,
-				ApiManagementId:   model.ApiManagementId,
-				ResourceGroupName: workspaceId.ResourceGroup,
+				Name:            workspaceId.WorkspaceId,
+				ApiManagementId: model.ApiManagementId,
 			}
 
 			if model := resp.Model; model != nil {
