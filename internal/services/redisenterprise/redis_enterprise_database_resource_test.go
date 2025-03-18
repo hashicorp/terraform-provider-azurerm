@@ -232,12 +232,12 @@ resource "azurerm_redis_enterprise_database" "test" {
 
   module {
     name = "RedisBloom"
-    args = "ERROR_RATE 1 INITIAL_SIZE 400"
+    args = ""
   }
 
   module {
     name = "RedisTimeSeries"
-    args = "RETENTION_POLICY 20"
+    args = ""
   }
 
   module {
