@@ -17,7 +17,7 @@ type ApiManagementWorkspaceDataSourceModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	ServiceName       string `tfschema:"service_name"`
-	WorkspaceName     string `tfschema:"workspace_name"`
+	DisplayName       string `tfschema:"display_name"`
 }
 
 type ApiManagementWorkspaceDataSource struct{}
@@ -40,7 +40,7 @@ func (d ApiManagementWorkspaceDataSource) Arguments() map[string]*pluginsdk.Sche
 
 func (d ApiManagementWorkspaceDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-		"workspace_name": {
+		"display_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -85,7 +85,7 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.WorkspaceName = props.DisplayName
+					state.DisplayName = props.DisplayName
 				}
 			}
 
