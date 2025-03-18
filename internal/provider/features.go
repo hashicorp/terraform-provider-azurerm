@@ -416,6 +416,22 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"databricks": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"workspace_delete_unity_catalog_data_on_destroy": {
+						Description: "When enabled, Unity Catalog data will be deleted when the workspace is destroyed.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -691,6 +707,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := netappRaw["prevent_volume_destruction"]; ok {
 				featuresMap.NetApp.PreventVolumeDestruction = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["databricks"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			databricksRaw := items[0].(map[string]interface{})
+			if v, ok := databricksRaw["workspace_delete_unity_catalog_data_on_destroy"]; ok {
+				featuresMap.Databricks.WorkspaceDeleteUnityCatalogDataOnDestroy = v.(bool)
 			}
 		}
 	}

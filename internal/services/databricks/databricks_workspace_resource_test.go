@@ -515,6 +515,34 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceS
 	})
 }
 
+func TestAccDatabricksWorkspace_withWorkspaceDeleteUnityCatalogDataOnDestroyFeatureSetToTrue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workspaceForceDeletionOnDestroy(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccDatabricksWorkspace_withWorkspaceDeleteUnityCatalogDataOnDestroyFeatureSetToFalse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workspaceForceDeletionOnDestroy(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func getDatabricksPrincipalId(subscriptionId string) string {
 	databricksPrincipalID := "bb9ef821-a78b-4312-90cc-5ece3fad3430"
 	if strings.HasPrefix(strings.ToLower(subscriptionId), "85b3dbca") {
@@ -3100,4 +3128,28 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, automaticClusterUpdateEnabled, complianceSecurityProfileEnabled, complianceSecurityProfileStandardsStr, enhancedSecurityMonitoringEnabled)
+}
+
+func (DatabricksWorkspaceResource) workspaceForceDeletionOnDestroy(data acceptance.TestData, workspaceForceDeletionOnDestroyFeature bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    databricks {
+      workspace_delete_unity_catalog_data_on_destroy = %t
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%d"
+  location = "%s"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "premium"
+}
+  `, workspaceForceDeletionOnDestroyFeature, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

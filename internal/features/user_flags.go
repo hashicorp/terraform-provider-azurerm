@@ -22,6 +22,7 @@ type UserFeatures struct {
 	MachineLearning          MachineLearningFeatures
 	RecoveryService          RecoveryServiceFeatures
 	NetApp                   NetAppFeatures
+	Databricks               DatabricksFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -115,4 +116,8 @@ type RecoveryServiceFeatures struct {
 type NetAppFeatures struct {
 	DeleteBackupsOnBackupVaultDestroy bool
 	PreventVolumeDestruction          bool
+}
+
+type DatabricksFeatures struct {
+	WorkspaceDeleteUnityCatalogDataOnDestroy bool
 }

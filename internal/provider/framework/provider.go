@@ -491,6 +491,16 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"databricks": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"workspace_delete_unity_catalog_data_on_destroy": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, Unity Catalog data will be deleted when the workspace is destroyed.",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
