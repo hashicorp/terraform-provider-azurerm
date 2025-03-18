@@ -105,7 +105,7 @@ type Client struct {
 	TagClient                          *tag.TagClient
 	TenantAccessClient                 *tenantaccess.TenantAccessClient
 	UsersClient                        *user.UserClient
-	WorkspaceClient										 *workspace.WorkspaceClient
+	WorkspaceClient                    *workspace.WorkspaceClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -445,6 +445,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		TagClient:                          tagClient,
 		TenantAccessClient:                 tenantAccessClient,
 		UsersClient:                        usersClient,
-		WorkspaceClient:										workspaceClient,
+		WorkspaceClient:                    workspaceClient,
 	}, nil
 }
