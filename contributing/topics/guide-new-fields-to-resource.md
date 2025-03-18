@@ -132,7 +132,7 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		}
 	}
 	
-	if !features.FourPointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["compression_enabled"] = &pluginsdk.Schema{
 			Type:	   pluginsdk.TypeBool,
 			Optional:   true,
@@ -142,7 +142,7 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:	   pluginsdk.TypeBool,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v4.0 of the provider",
+			Deprecated: "This property has been renamed to `compression_enabled` and will be removed in v5.0 of the AzureRM provider",
 			ConflictsWith: []string{"compression_enabled"}
 		}   
 	}
@@ -157,7 +157,7 @@ Also make sure to feature flag the behaviour in the `Create()`, `Update()` and `
 func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
 	compressionEnabled := false
-	if !features.FourPointOhBeta() {
+	if !features.FivePointOh() {
 		if _, ok := d.GetOk("enable_compression"); ok {
 			compressionEnabled = model.CompressionEnabled
 		}	   
@@ -174,7 +174,7 @@ func (r ExampleResource) Read() sdk.ResourceFunc {
 	state.CompressionEnabled = pointer.From(resp.Model.Properties.CompressionEnabled)
 
 
-if !features.FourPointOhBeta() {
+if !features.FivePointOh() {
 		state.EnableCompression = pointer.From(resp.Model.Properties.CompressionEnabled)
 	}   
 	...
