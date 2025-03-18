@@ -61,6 +61,20 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_privatelinkResource(t *testing.T) {
 	})
 }
 
+func TestAccPrivateDnsZoneVirtualNetworkLink_privatelinkResourceNxDomainRedirect(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
+	r := PrivateDnsZoneVirtualNetworkLinkResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privatelinkResourceNxDomainRedirect(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPrivateDnsZoneVirtualNetworkLink_crossTenant(t *testing.T) {
 	// Multiple tenants are needed for this test
 	altTenantId := os.Getenv("ARM_TENANT_ID_ALT")
@@ -209,6 +223,44 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
 }
 
 func (PrivateDnsZoneVirtualNetworkLinkResource) privatelinkResource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+
+  subnet {
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
+  }
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "acctestVnetZone%d.com"
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.test.name
+  registration_enabled  = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (PrivateDnsZoneVirtualNetworkLinkResource) privatelinkResourceNxDomainRedirect(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
