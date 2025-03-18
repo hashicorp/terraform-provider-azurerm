@@ -1289,19 +1289,19 @@ resource "azurerm_function_app_flex_consumption" "test" {
 func (FunctionAppFlexConsumptionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-LFA-%[1]d"
+  name     = "acctestRG-LFA-%d"
   location = "%s"
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%[1]d"
+  name                = "acctestappinsights-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
+  name                     = "acctestsa%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -1321,7 +1321,7 @@ resource "azurerm_storage_container" "test1" {
 }
 
 resource "azurerm_storage_account" "test1" {
-  name                     = "acctestsa%[4]s"
+  name                     = "acctestsa1%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -1369,11 +1369,11 @@ data "azurerm_storage_account_sas" "test" {
 }
 
 resource "azurerm_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
+  name                = "acctestASP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-`, data.RandomInteger, "eastus2", data.RandomString, data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+`, data.RandomInteger, "eastus2", data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 }
