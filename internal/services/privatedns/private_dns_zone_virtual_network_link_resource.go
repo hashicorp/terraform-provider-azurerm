@@ -81,6 +81,8 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(virtualnetworklinks.PossibleValuesForResolutionPolicy(), false),
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					// If the API returns the Default resolution policy, suppress the diff if there is no
+					// resolution_policy set in the configuration.
 					return old == string(virtualnetworklinks.ResolutionPolicyDefault) && new == ""
 				},
 			},
