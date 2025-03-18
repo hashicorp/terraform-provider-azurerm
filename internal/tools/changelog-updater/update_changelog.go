@@ -81,7 +81,7 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 	lines = append(lines[:headerIndex+1], append(section, lines[insertIndex:]...)...)
 
 	// Open the file for writing and overwrite the content
-	writtenFile, err = os.OpenFile(filePath, os.O_RDWR|os.O_TRUNC, 0644)
+	writtenFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 	}(writtenFile)
 
 	// Write the updated content back to the file
-	writer := bufio.NewWriter(file)
+	writer := bufio.NewWriter(writtenFile)
 	for _, line := range lines {
 		_, err := writer.WriteString(line + "\n")
 		if err != nil {
