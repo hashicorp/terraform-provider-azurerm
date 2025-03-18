@@ -334,7 +334,7 @@ func defaultFeaturesList() types.List {
 	netappList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(NetAppAttributes), []attr.Value{netapp})
 
 	databricks, _ := basetypes.NewObjectValueFrom(context.Background(), DatabricksAttributes, map[string]attr.Value{
-		"purge_soft_delete_on_destroy": basetypes.NewBoolNull(),
+		"workspace_delete_unity_catalog_data_on_destroy": basetypes.NewBoolNull(),
 	})
 	databricksList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksAttributes), []attr.Value{databricks})
 
