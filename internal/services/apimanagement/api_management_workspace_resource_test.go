@@ -27,7 +27,7 @@ func TestAccApiManagementWorkspace_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workspace_name").HasValue("acctest-workspace"),
+				check.That(data.ResourceName).Key("display_name").HasValue("acctest-workspace"),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("service_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
@@ -53,7 +53,7 @@ func TestAccApiManagementWorkspace_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workspace_name").HasValue("acctest-workspace-updated"),
+				check.That(data.ResourceName).Key("display_name").HasValue("acctest-workspace-updated"),
 			),
 		},
 		data.ImportStep(),
@@ -131,7 +131,7 @@ provider "azurerm" {
 
 resource "azurerm_api_management_workspace" "test" {
   name                = "acctest-ws-%d"
-  workspace_name      = "acctest-workspace"
+  display_name        = "acctest-workspace"
   service_name        = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -148,7 +148,7 @@ provider "azurerm" {
 
 resource "azurerm_api_management_workspace" "test" {
   name                = "acctest-ws-%d"
-  workspace_name      = "acctest-workspace-updated"
+  display_name        = "acctest-workspace-updated"
   service_name        = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -161,7 +161,7 @@ func (r ApiManagementWorkspaceTestResource) requiresImport(data acceptance.TestD
 
 resource "azurerm_api_management_workspace" "import" {
   name                = azurerm_api_management_workspace.test.name
-  workspace_name      = azurerm_api_management_workspace.test.workspace_name
+  display_name        = azurerm_api_management_workspace.test.display_name
   service_name        = azurerm_api_management_workspace.test.service_name
   resource_group_name = azurerm_api_management_workspace.test.resource_group_name
 }
