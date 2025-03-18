@@ -21,7 +21,7 @@ import (
 )
 
 type ApiManagementWorkspaceModel struct {
-	WorkspaceId       string `tfschema:"workspace_id"`
+	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	ServiceName       string `tfschema:"service_name"`
 	WorkspaceName     string `tfschema:"workspace_name"`
@@ -33,16 +33,6 @@ var _ sdk.Resource = ApiManagementWorkspaceResource{}
 
 func (r ApiManagementWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"workspace_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`),
-				"Workspace ID must be 1 - 80 characters long, contain only letters, numbers and hyphens.",
-			),
-			Description: "The ID of the API Management Workspace.",
-		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"service_name": {
 			Type:         pluginsdk.TypeString,
@@ -50,6 +40,16 @@ func (r ApiManagementWorkspaceResource) Arguments() map[string]*pluginsdk.Schema
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The name of the API Management Service in which this Workspace should be created.",
+		},
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9-]{1,80}$`),
+				"Workspace name must be 1 - 80 characters long, contain only letters, numbers and hyphens.",
+			),
+			Description: "The name of the API Management Workspace.",
 		},
 		"workspace_name": {
 			Type:         pluginsdk.TypeString,
@@ -88,7 +88,7 @@ func (r ApiManagementWorkspaceResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			newId := workspace.NewWorkspaceID(subscriptionId, model.ResourceGroupName, model.ServiceName, model.WorkspaceId)
+			newId := workspace.NewWorkspaceID(subscriptionId, model.ResourceGroupName, model.ServiceName, model.Name)
 
 			existing, err := client.Get(ctx, newId)
 			if err != nil {
@@ -138,7 +138,7 @@ func (r ApiManagementWorkspaceResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ApiManagementWorkspaceModel{
-				WorkspaceId:       id.WorkspaceId,
+				Name:              id.WorkspaceId,
 				ServiceName:       id.ServiceName,
 				ResourceGroupName: id.ResourceGroup,
 			}

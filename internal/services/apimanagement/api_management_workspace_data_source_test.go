@@ -29,7 +29,7 @@ func (r ApiManagementWorkspaceDataSource) basic(data acceptance.TestData) string
 %s
 
 data "azurerm_api_management_workspace" "test" {
-  workspace_id        = azurerm_api_management_workspace.test.workspace_id
+  name                = azurerm_api_management_workspace.test.name
   service_name        = azurerm_api_management_workspace.test.service_name
   resource_group_name = azurerm_api_management_workspace.test.resource_group_name
 }
@@ -57,7 +57,7 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_workspace" "test" {
-  workspace_id        = "acctestws%d"
+  name                = "acctestws%d"
   service_name        = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = "acctest-workspace-%d"
