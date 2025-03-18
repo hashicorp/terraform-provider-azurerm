@@ -34,7 +34,7 @@ func TestAccFunctionAppFlexConsumption_basic(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_deploymentStorageEndpointUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_deploymentStorageBlobUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -49,6 +49,38 @@ func TestAccFunctionAppFlexConsumption_deploymentStorageEndpointUpdate(t *testin
 		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.blobEndpoint1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccFunctionAppFlexConsumption_deploymentStorageEndpointUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.deploymentStorageUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -362,6 +394,22 @@ func TestAccFunctionAppFlexConsumption_userAssignedIdentityUpdate(t *testing.T) 
 	})
 }
 
+func TestAccFunctionAppFlexConsumption_backendStorageUseMsi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.backendStorageUseMsi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccFunctionAppFlexConsumption_sameBackendStorageAndDeploymentStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
@@ -445,6 +493,9 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
@@ -473,6 +524,9 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test1.name}"
   storage_authentication_type = "StorageAccountConnectionString"
@@ -500,6 +554,9 @@ resource "azurerm_function_app_flex_consumption" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
+
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test1.primary_blob_endpoint}${azurerm_storage_container.test1-1.name}"
@@ -631,6 +688,9 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
@@ -660,10 +720,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-tf%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -717,10 +779,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-tf%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -757,10 +821,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-tf%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -870,10 +936,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-tf%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -902,10 +970,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-tf%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -936,10 +1006,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-tf%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -967,10 +1039,12 @@ provider "azurerm" {
 }
 %s
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -995,10 +1069,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1023,10 +1099,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1051,10 +1129,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1079,10 +1159,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-%[2]d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1111,10 +1193,12 @@ resource "azurerm_user_assigned_identity" "test1" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-%[2]d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1145,10 +1229,12 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-%[2]d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1179,10 +1265,12 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                                    = "acctest-LFA-%[2]d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  service_plan_id                         = azurerm_service_plan.test.id
+  function_app_storage_account_name       = azurerm_storage_account.test.name
+  function_app_storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
