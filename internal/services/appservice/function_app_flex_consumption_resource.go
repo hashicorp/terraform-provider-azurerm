@@ -6,6 +6,8 @@ package appservice
 import (
 	"context"
 	"fmt"
+	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"strconv"
 	"strings"
 	"time"
@@ -39,6 +41,11 @@ type FunctionAppFlexConsumptionModel struct {
 	Location      string `tfschema:"location"`
 	ServicePlanId string `tfschema:"service_plan_id"`
 
+	FunctionAppStorageAccountName      string `tfschema:"function_app_storage_account_name"`
+	FunctionAppStorageAccountAccessKey string `tfschema:"function_app_storage_account_access_key"`
+	FunctionAppStorageUsesMSI          bool   `tfschema:"function_app_storage_uses_managed_identity"`
+	FunctionAppStorageKeyVaultSecretID string `tfschema:"function_app_storage_key_vault_secret_id"`
+
 	Enabled                          bool                       `tfschema:"enabled"`
 	AppSettings                      map[string]string          `tfschema:"app_settings"`
 	StickySettings                   []helpers.StickySettings   `tfschema:"sticky_settings"`
@@ -52,6 +59,7 @@ type FunctionAppFlexConsumptionModel struct {
 	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	KeyVaultReferenceIdentityID      string                     `tfschema:"key_vault_reference_identity_id"`
 
 	StorageContainerType          string                                         `tfschema:"storage_container_type"`
 	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint"`
@@ -114,6 +122,59 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The ID of the App Service Plan within which to create this Function App",
 		},
 
+		"function_app_storage_account_name": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: storageValidate.StorageAccountName,
+			Description:  "The backend storage account name which will be used by this Function App.",
+			ExactlyOneOf: []string{
+				"function_app_storage_account_name",
+				"function_app_storage_key_vault_secret_id",
+			},
+		},
+
+		"function_app_storage_account_access_key": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.NoZeroValues,
+			ConflictsWith: []string{
+				"function_app_storage_uses_managed_identity",
+				"function_app_storage_key_vault_secret_id",
+			},
+			Description: "The access key which will be used to access the storage account for the Function App.",
+		},
+
+		"function_app_storage_uses_managed_identity": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+			ConflictsWith: []string{
+				"function_app_storage_account_access_key",
+				"function_app_storage_key_vault_secret_id",
+			},
+			Description: "Should the Function App use its Managed Identity to access storage?",
+		},
+
+		"function_app_storage_key_vault_secret_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			ExactlyOneOf: []string{
+				"function_app_storage_account_name",
+				"function_app_storage_key_vault_secret_id",
+			},
+			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
+		},
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			Description:  "The User Assigned Identity to use for Key Vault access.",
+		},
+
 		"storage_container_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -142,6 +203,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		"storage_access_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -384,6 +446,15 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
+			functionAppStorageAccountString := functionAppFlexConsumption.FunctionAppStorageAccountName
+			if !functionAppFlexConsumption.FunctionAppStorageUsesMSI {
+				if functionAppFlexConsumption.FunctionAppStorageKeyVaultSecretID != "" {
+					functionAppStorageAccountString = fmt.Sprintf(helpers.StorageStringFmtKV, functionAppFlexConsumption.FunctionAppStorageKeyVaultSecretID)
+				} else {
+					functionAppStorageAccountString = fmt.Sprintf(helpers.StorageStringFmt, functionAppFlexConsumption.FunctionAppStorageAccountName, functionAppFlexConsumption.FunctionAppStorageAccountAccessKey, *storageDomainSuffix)
+				}
+			}
+
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(functionAppFlexConsumption.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
@@ -398,24 +469,19 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			}
 			storageAuthType := webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType)
 			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-			endpoint := strings.TrimPrefix(functionAppFlexConsumption.StorageContainerEndpoint, "https://")
-			var storageString string
-			if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
-				storageName := endpoint[:storageNameIndex]
-				storageString = fmt.Sprintf(StorageStringFmt, storageName, functionAppFlexConsumption.StorageAccessKey, *storageDomainSuffix)
-			} else {
-				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
-			}
+			functionAppDeploymentStorageString := functionAppFlexConsumption.StorageAccessKey
+
 			storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
 				Type: &storageAuthType,
 			}
 
 			if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
-				if functionAppFlexConsumption.StorageAccessKey == "" {
+				if functionAppDeploymentStorageString == "" {
 					return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
 				}
 			} else {
 				storageConnStringForFCApp = ""
+				functionAppDeploymentStorageString = ""
 				if functionAppFlexConsumption.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
 					if functionAppFlexConsumption.StorageUserAssignedIdentityID == "" {
 						return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
@@ -443,7 +509,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, false, storageString, storageConnStringForFCApp)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, functionAppFlexConsumption.FunctionAppStorageUsesMSI, functionAppStorageAccountString, storageConnStringForFCApp, functionAppDeploymentStorageString)
 			if err != nil {
 				return fmt.Errorf("expanding `site_config` for %s: %+v", id, err)
 			}
@@ -463,6 +529,10 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
 					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
 				},
+			}
+
+			if functionAppFlexConsumption.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(functionAppFlexConsumption.KeyVaultReferenceIdentityID)
 			}
 
 			pna := helpers.PublicNetworkAccessEnabled
@@ -628,7 +698,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 				state.DefaultHostname = pointer.From(props.DefaultHostName)
 				state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-
+				state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
 				servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 				if err != nil {
 					return err
@@ -741,6 +811,11 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving App Settings for %s: %+v", id, err)
+			}
+
 			var state FunctionAppFlexConsumptionModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
@@ -759,6 +834,15 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			model := *existing.Model
+
+			functionAppStorageString := state.FunctionAppStorageAccountName
+			if !state.FunctionAppStorageUsesMSI {
+				if state.FunctionAppStorageKeyVaultSecretID != "" {
+					functionAppStorageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.FunctionAppStorageKeyVaultSecretID)
+				} else {
+					functionAppStorageString = fmt.Sprintf(helpers.StorageStringFmt, state.FunctionAppStorageAccountName, state.FunctionAppStorageAccountAccessKey, *storageDomainSuffix)
+				}
+			}
 
 			if metadata.ResourceData.HasChange("enabled") {
 				model.Properties.Enabled = pointer.To(state.Enabled)
@@ -801,31 +885,36 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(state.Tags)
 			}
 
-			var storageString string
-			if state.StorageContainerEndpoint != "" || metadata.ResourceData.HasChange("storage_container_endpoint") {
-				endpoint := strings.TrimPrefix(state.StorageContainerEndpoint, "https://")
+			if metadata.ResourceData.HasChange("storage_container_endpoint") {
 				model.Properties.FunctionAppConfig.Deployment.Storage.Value = pointer.To(state.StorageContainerEndpoint)
-				if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
-					storageName := endpoint[:storageNameIndex]
-					storageString = fmt.Sprintf(StorageStringFmt, storageName, state.StorageAccessKey, *storageDomainSuffix)
-				} else {
-					return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.StorageContainerEndpoint)
+			}
+
+			storageConnStringForFCApp := ""
+			storageConnStringForFcAppValue := ""
+			if appSettingsResp.Model != nil && appSettingsResp.Model.Properties != nil {
+				for k, v := range *appSettingsResp.Model.Properties {
+					if k == "DEPLOYMENT_STORAGE_CONNECTION_STRING" && v != "" {
+						storageConnStringForFCApp = "DEPLOYMENT_STORAGE_CONNECTION_STRING"
+						storageConnStringForFcAppValue = v
+					}
 				}
 			}
 
-			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 			if metadata.ResourceData.HasChange("storage_authentication_type") {
 				storageAuthType := webapps.AuthenticationType(state.StorageAuthType)
 				storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
 					Type: &storageAuthType,
 				}
 				if state.StorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
-					if state.StorageAccessKey == "" {
+					storageConnStringForFCApp = "DEPLOYMENT_STORAGE_CONNECTION_STRING"
+					storageConnStringForFcAppValue = state.StorageAccessKey
+					if storageConnStringForFcAppValue == "" {
 						return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
 					}
 					storageAuth.StorageAccountConnectionStringName = pointer.To(storageConnStringForFCApp)
 				} else {
 					storageConnStringForFCApp = ""
+					storageConnStringForFcAppValue = ""
 					if state.StorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
 						if state.StorageUserAssignedIdentityID == "" {
 							return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
@@ -836,12 +925,16 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication = &storageAuth
 			}
 
+			if metadata.ResourceData.HasChange("storage_access_key") {
+				storageConnStringForFcAppValue = state.StorageAccessKey
+			}
+
 			if metadata.ResourceData.HasChange("storage_user_assigned_identity_id") {
 				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication.UserAssignedIdentityResourceId = &state.StorageUserAssignedIdentityID
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, false, storageString, storageConnStringForFCApp)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, state.FunctionAppStorageUsesMSI, functionAppStorageString, storageConnStringForFCApp, storageConnStringForFcAppValue)
 			if err != nil {
 				return fmt.Errorf("expanding Site Config for %s: %+v", id, err)
 			}
@@ -870,6 +963,10 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
@@ -987,14 +1084,22 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 			m.SiteConfig[0].AppInsightsConnectionString = v
 
 		case "AzureWebJobsStorage":
-			_, m.StorageAccessKey = helpers.ParseWebJobsStorageString(v)
+			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
+				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
+				m.FunctionAppStorageKeyVaultSecretID = trimmed
+			} else {
+				m.FunctionAppStorageAccountName, m.FunctionAppStorageAccountAccessKey = helpers.ParseWebJobsStorageString(v)
+			}
+		case "AzureWebJobsStorage__accountName":
+			m.FunctionAppStorageUsesMSI = true
+			m.FunctionAppStorageAccountName = v
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(v)
 			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
 		case "DEPLOYMENT_STORAGE_CONNECTION_STRING":
-			// Filter out - not user faced
+			m.StorageAccessKey = v
 
 		default:
 			appSettings[k] = v
