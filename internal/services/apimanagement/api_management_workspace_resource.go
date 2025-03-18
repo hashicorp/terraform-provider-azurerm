@@ -78,29 +78,29 @@ func (r ApiManagementWorkspaceResource) Create() sdk.ResourceFunc {
 		Timeout: 45 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ApiManagement.WorkspaceClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model ApiManagementWorkspaceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			id, err := apimanagementservice.ParseServiceID(model.ApiManagementId)
+			serviceId, err := apimanagementservice.ParseServiceID(model.ApiManagementId)
 			if err != nil {
 				return err
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-			newId := workspace.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.ServiceName, model.Name)
+			id := workspace.NewWorkspaceID(subscriptionId, serviceId.ResourceGroupName, serviceId.ServiceName, model.Name)
 
-			existing, err := client.Get(ctx, newId)
+			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for presence of existing %s: %s", newId, err)
+					return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 				}
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), newId)
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			properties := workspace.WorkspaceContract{
@@ -109,11 +109,11 @@ func (r ApiManagementWorkspaceResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, newId, properties); err != nil {
-				return fmt.Errorf("creating %s: %+v", newId, err)
+			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			metadata.SetID(newId)
+			metadata.SetID(id)
 			return nil
 		},
 	}
