@@ -20,7 +20,7 @@ func findHeaderIndex(lines []string, header string) int {
 // Function to append the new entry under the appropriate header in alphabetical order
 func appendUnderHeader(filePath string, newEntry, header string) error {
 	// Open the file for reading and appending
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0o644)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func appendUnderHeader(filePath string, newEntry, header string) error {
 	lines = append(lines[:headerIndex+1], append(section, lines[insertIndex:]...)...)
 
 	// Open the file for writing and overwrite the content
-	writtenFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_TRUNC, 0644)
+	writtenFile, err := os.OpenFile(filePath, os.O_RDWR|os.O_TRUNC, 0o644)
 	if err != nil {
 		return err
 	}
