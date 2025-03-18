@@ -83,7 +83,7 @@ An `identity` block supports the following:
 
 -> **Note:** Once customer-managed key encryption has been enabled, it cannot be disabled.
 
--> **Note:** The `customer_managed_key` block should only be used for Service Bus Namespaces with a User Assigned identity. To create a Customer Managed Key for a Service Bus Namespaces with a System Assigned identity, use the `azurerm_servicebus_namespace_customer_managed_key` resource and add `customer_managed_key` to `ignore_changes`.
+-> **Note:** The `customer_managed_key` block should only be used for Service Bus Namespaces with a User Assigned identity. To create a Customer Managed Key for a Service Bus Namespace with a System Assigned identity, use the `azurerm_servicebus_namespace_customer_managed_key` resource and add `customer_managed_key` to `ignore_changes`.
 
 ---
 
