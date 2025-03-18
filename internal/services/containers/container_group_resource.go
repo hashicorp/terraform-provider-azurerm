@@ -178,6 +178,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 
 			"dns_name_label_reuse_policy": {
 				Type:     pluginsdk.TypeString,
+				ForceNew: true,
 				Optional: true,
 				Default:  string(containerinstance.DnsNameLabelReusePolicyUnsecure),
 				ValidateFunc: validation.StringInSlice([]string{
