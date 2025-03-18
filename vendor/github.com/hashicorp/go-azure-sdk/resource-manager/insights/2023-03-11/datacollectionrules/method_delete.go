@@ -2,6 +2,7 @@ package datacollectionrules
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -16,16 +17,45 @@ type DeleteOperationResponse struct {
 	OData        *odata.OData
 }
 
+type DeleteOperationOptions struct {
+	DeleteAssociations *bool
+}
+
+func DefaultDeleteOperationOptions() DeleteOperationOptions {
+	return DeleteOperationOptions{}
+}
+
+func (o DeleteOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+
+	return &out
+}
+
+func (o DeleteOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+
+	return &out
+}
+
+func (o DeleteOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+	if o.DeleteAssociations != nil {
+		out.Append("deleteAssociations", fmt.Sprintf("%v", *o.DeleteAssociations))
+	}
+	return &out
+}
+
 // Delete ...
-func (c DataCollectionRulesClient) Delete(ctx context.Context, id DataCollectionRuleId) (result DeleteOperationResponse, err error) {
+func (c DataCollectionRulesClient) Delete(ctx context.Context, id DataCollectionRuleId, options DeleteOperationOptions) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodDelete,
-		Path:       id.ID(),
+		HttpMethod:    http.MethodDelete,
+		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

@@ -8,4 +8,5 @@ type SyslogDataSource struct {
 	LogLevels     *[]KnownSyslogDataSourceLogLevels     `json:"logLevels,omitempty"`
 	Name          *string                               `json:"name,omitempty"`
 	Streams       *[]KnownSyslogDataSourceStreams       `json:"streams,omitempty"`
+	TransformKql  *string                               `json:"transformKql,omitempty"`
 }
