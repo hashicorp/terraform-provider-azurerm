@@ -602,6 +602,8 @@ An `ip_restriction` block supports the following:
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
+* `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
