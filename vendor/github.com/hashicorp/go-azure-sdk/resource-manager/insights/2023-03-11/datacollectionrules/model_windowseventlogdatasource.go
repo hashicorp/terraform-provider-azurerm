@@ -6,5 +6,6 @@ package datacollectionrules
 type WindowsEventLogDataSource struct {
 	Name         *string                                  `json:"name,omitempty"`
 	Streams      *[]KnownWindowsEventLogDataSourceStreams `json:"streams,omitempty"`
+	TransformKql *string                                  `json:"transformKql,omitempty"`
 	XPathQueries *[]string                                `json:"xPathQueries,omitempty"`
 }
