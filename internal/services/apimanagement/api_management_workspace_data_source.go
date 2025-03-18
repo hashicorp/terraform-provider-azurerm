@@ -14,7 +14,7 @@ import (
 )
 
 type ApiManagementWorkspaceDataSourceModel struct {
-	WorkspaceId       string `tfschema:"workspace_id"`
+	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	ServiceName       string `tfschema:"service_name"`
 	WorkspaceName     string `tfschema:"workspace_name"`
@@ -26,7 +26,7 @@ var _ sdk.DataSource = ApiManagementWorkspaceDataSource{}
 
 func (d ApiManagementWorkspaceDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"workspace_id": {
+		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
@@ -67,7 +67,7 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := workspace.NewWorkspaceID(subscriptionId, model.ResourceGroupName, model.ServiceName, model.WorkspaceId)
+			id := workspace.NewWorkspaceID(subscriptionId, model.ResourceGroupName, model.ServiceName, model.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -78,7 +78,7 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := ApiManagementWorkspaceDataSourceModel{
-				WorkspaceId:       id.WorkspaceId,
+				Name:              id.WorkspaceId,
 				ServiceName:       id.ServiceName,
 				ResourceGroupName: id.ResourceGroup,
 			}
