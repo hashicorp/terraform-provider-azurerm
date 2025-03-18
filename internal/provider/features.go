@@ -417,14 +417,14 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		"databricks": {
+		"databricks_workspace": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"workspace_delete_unity_catalog_data_on_destroy": {
-						Description: "When enabled, Unity Catalog data will be deleted when the workspace is destroyed.",
+					"force_delete": {
+						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be deleted when the workspace is destroyed.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
@@ -711,12 +711,12 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		}
 	}
 
-	if raw, ok := val["databricks"]; ok {
+	if raw, ok := val["databricks_workspace"]; ok {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			databricksRaw := items[0].(map[string]interface{})
-			if v, ok := databricksRaw["workspace_delete_unity_catalog_data_on_destroy"]; ok {
-				featuresMap.Databricks.WorkspaceDeleteUnityCatalogDataOnDestroy = v.(bool)
+			if v, ok := databricksRaw["force_delete"]; ok {
+				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
 			}
 		}
 	}

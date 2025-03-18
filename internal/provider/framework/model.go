@@ -60,7 +60,7 @@ type Features struct {
 	RecoveryService          types.List `tfsdk:"recovery_service"`
 	RecoveryServicesVaults   types.List `tfsdk:"recovery_services_vaults"`
 	NetApp                   types.List `tfsdk:"netapp"`
-	Databricks               types.List `tfsdk:"databricks"`
+	DatabricksWorkspace      types.List `tfsdk:"databricks_workspace"`
 }
 
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
@@ -84,7 +84,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"recovery_service":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes)),
 	"recovery_services_vaults":   types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes)),
 	"netapp":                     types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(NetAppAttributes)),
-	"databricks":                 types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(DatabricksAttributes)),
+	"databricks_workspace":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes)),
 }
 
 type APIManagement struct {
@@ -273,10 +273,10 @@ var NetAppAttributes = map[string]attr.Type{
 	"prevent_volume_destruction":             types.BoolType,
 }
 
-type Databricks struct {
-	WorkspaceDeleteUnityCatalogDataOnDestroy types.Bool `tfsdk:"workspace_delete_unity_catalog_data_on_destroy"`
+type DatabricksWorkspace struct {
+	ForceDelete types.Bool `tfsdk:"force_delete"`
 }
 
-var DatabricksAttributes = map[string]attr.Type{
-	"workspace_delete_unity_catalog_data_on_destroy": types.BoolType,
+var DatabricksWorkspaceAttributes = map[string]attr.Type{
+	"force_delete": types.BoolType,
 }

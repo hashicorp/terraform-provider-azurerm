@@ -215,8 +215,8 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected netapp.PreventVolumeDestruction to be true")
 	}
 
-	if !features.Databricks.WorkspaceDeleteUnityCatalogDataOnDestroy {
-		t.Errorf("expected databricks.WorkspaceDeleteUnityCatalogDataOnDestroy to be true")
+	if !features.DatabricksWorkspace.ForceDelete {
+		t.Errorf("expected databricks_workspace.ForceDelete to be true")
 	}
 }
 
@@ -333,10 +333,10 @@ func defaultFeaturesList() types.List {
 	})
 	netappList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(NetAppAttributes), []attr.Value{netapp})
 
-	databricks, _ := basetypes.NewObjectValueFrom(context.Background(), DatabricksAttributes, map[string]attr.Value{
-		"workspace_delete_unity_catalog_data_on_destroy": basetypes.NewBoolNull(),
+	databricksWorkspace, _ := basetypes.NewObjectValueFrom(context.Background(), DatabricksWorkspaceAttributes, map[string]attr.Value{
+		"force_delete": basetypes.NewBoolNull(),
 	})
-	databricksList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksAttributes), []attr.Value{databricks})
+	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
 
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
 		"api_management":             apiManagementList,
@@ -357,7 +357,7 @@ func defaultFeaturesList() types.List {
 		"recovery_service":           recoveryServicesList,
 		"recovery_services_vaults":   recoveryServicesVaultsList,
 		"netapp":                     netappList,
-		"databricks":                 databricksList,
+		"databricks_workspace":       databricksWorkspaceList,
 	})
 
 	fmt.Printf("%+v", d)

@@ -509,20 +509,20 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.NetApp.PreventVolumeDestruction = true
 		}
 
-		if !features.Databricks.IsNull() && !features.Databricks.IsUnknown() {
-			var feature []Databricks
-			d := features.Databricks.ElementsAs(ctx, &feature, true)
+		if !features.DatabricksWorkspace.IsNull() && !features.DatabricksWorkspace.IsUnknown() {
+			var feature []DatabricksWorkspace
+			d := features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)
 			diags.Append(d...)
 			if diags.HasError() {
 				return
 			}
 
-			f.Databricks.WorkspaceDeleteUnityCatalogDataOnDestroy = false
-			if !feature[0].WorkspaceDeleteUnityCatalogDataOnDestroy.IsNull() && !feature[0].WorkspaceDeleteUnityCatalogDataOnDestroy.IsUnknown() {
-				f.Databricks.WorkspaceDeleteUnityCatalogDataOnDestroy = feature[0].WorkspaceDeleteUnityCatalogDataOnDestroy.ValueBool()
+			f.DatabricksWorkspace.ForceDelete = false
+			if !feature[0].ForceDelete.IsNull() && !feature[0].ForceDelete.IsUnknown() {
+				f.DatabricksWorkspace.ForceDelete = feature[0].ForceDelete.ValueBool()
 			}
 		} else {
-			f.Databricks.WorkspaceDeleteUnityCatalogDataOnDestroy = false
+			f.DatabricksWorkspace.ForceDelete = false
 		}
 	}
 

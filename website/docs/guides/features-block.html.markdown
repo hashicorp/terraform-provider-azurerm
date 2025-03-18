@@ -45,8 +45,8 @@ provider "azurerm" {
       purge_soft_delete_on_destroy = true
     }
 
-    databricks {
-      workspace_delete_unity_catalog_data_on_destroy = false
+    databricks_workspace {
+      force_delete = false
     }
 
     key_vault {
@@ -125,7 +125,7 @@ The `features` block supports the following:
 
 * `cognitive_account` - (Optional) A `cognitive_account` block as defined below.
 
-* `databricks` - (Optional) A `databricks` block as defined below.
+* `databricks_workspace` - (Optional) A `databricks_workspace` block as defined below.
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
@@ -179,9 +179,9 @@ The `cognitive_account` block supports the following:
 
 ---
 
-The `databricks` block supports the following:
+The `databricks_workspace` block supports the following:
 
-* `workspace_delete_unity_catalog_data_on_destroy` - (Optional) Should the Unity Catalog data be deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
+* `force_delete` - (Optional) Should the managed resource group that contains the Unity Catalog data be deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
 
 ---
 

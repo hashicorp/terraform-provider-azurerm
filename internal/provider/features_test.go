@@ -96,8 +96,8 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteBackupsOnBackupVaultDestroy: false,
 					PreventVolumeDestruction:          true,
 				},
-				Databricks: features.DatabricksFeatures{
-					WorkspaceDeleteUnityCatalogDataOnDestroy: false,
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
@@ -216,9 +216,9 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_volume_destruction":             true,
 						},
 					},
-					"databricks": []interface{}{
+					"databricks_workspace": []interface{}{
 						map[string]interface{}{
-							"workspace_delete_unity_catalog_data_on_destroy": true,
+							"force_delete": true,
 						},
 					},
 				},
@@ -299,8 +299,8 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteBackupsOnBackupVaultDestroy: true,
 					PreventVolumeDestruction:          true,
 				},
-				Databricks: features.DatabricksFeatures{
-					WorkspaceDeleteUnityCatalogDataOnDestroy: true,
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: true,
 				},
 			},
 		},
@@ -419,9 +419,9 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_volume_destruction":             false,
 						},
 					},
-					"databricks": []interface{}{
+					"databricks_workspace": []interface{}{
 						map[string]interface{}{
-							"workspace_delete_unity_catalog_data_on_destroy": false,
+							"force_delete": false,
 						},
 					},
 				},
@@ -502,8 +502,8 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteBackupsOnBackupVaultDestroy: false,
 					PreventVolumeDestruction:          false,
 				},
-				Databricks: features.DatabricksFeatures{
-					WorkspaceDeleteUnityCatalogDataOnDestroy: false,
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
@@ -1888,7 +1888,7 @@ func TestExpandFeaturesNetApp(t *testing.T) {
 	}
 }
 
-func TestExpandFeaturesDatabricks(t *testing.T) {
+func TestExpandFeaturesDatabricksWorkspace(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    []interface{}
@@ -1899,46 +1899,46 @@ func TestExpandFeaturesDatabricks(t *testing.T) {
 			Name: "Empty Block",
 			Input: []interface{}{
 				map[string]interface{}{
-					"databricks": []interface{}{},
+					"databricks_workspace": []interface{}{},
 				},
 			},
 			Expected: features.UserFeatures{
-				Databricks: features.DatabricksFeatures{
-					WorkspaceDeleteUnityCatalogDataOnDestroy: false,
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
 		{
-			Name: "Databricks Features Enabled",
+			Name: "Databricks Workspace Features Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"databricks": []interface{}{
+					"databricks_workspace": []interface{}{
 						map[string]interface{}{
-							"workspace_delete_unity_catalog_data_on_destroy": true,
+							"force_delete": true,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
-				Databricks: features.DatabricksFeatures{
-					WorkspaceDeleteUnityCatalogDataOnDestroy: true,
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: true,
 				},
 			},
 		},
 		{
-			Name: "Databricks Features Disabled",
+			Name: "Databricks Workspace Features Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
-					"databricks": []interface{}{
+					"databricks_workspace": []interface{}{
 						map[string]interface{}{
-							"workspace_delete_unity_catalog_data_on_destroy": false,
+							"force_delete": false,
 						},
 					},
 				},
 			},
 			Expected: features.UserFeatures{
-				Databricks: features.DatabricksFeatures{
-					WorkspaceDeleteUnityCatalogDataOnDestroy: false,
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
@@ -1947,8 +1947,8 @@ func TestExpandFeaturesDatabricks(t *testing.T) {
 	for _, testCase := range testData {
 		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
 		result := expandFeatures(testCase.Input)
-		if !reflect.DeepEqual(result.Databricks, testCase.Expected.Databricks) {
-			t.Fatalf("Expected %+v but got %+v", result.Databricks, testCase.Expected.Databricks)
+		if !reflect.DeepEqual(result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace) {
+			t.Fatalf("Expected %+v but got %+v", result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace)
 		}
 	}
 }
