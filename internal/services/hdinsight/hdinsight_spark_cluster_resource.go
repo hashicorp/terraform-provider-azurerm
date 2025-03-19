@@ -5,6 +5,8 @@ package hdinsight
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"time"
 
@@ -151,7 +153,7 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 
 			"extension": SchemaHDInsightsExtension(),
 
-			"availability_zones": commonschema.ZonesMultipleOptional(),
+			"zones": commonschema.ZonesMultipleOptional(),
 		},
 	}
 }
@@ -274,8 +276,8 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if v, ok := d.GetOk("availability_zones"); ok {
-		payload.Zones = pointer.To(expandHDInsightAvailabilityZones(v))
+	if _, ok := d.GetOk("zones"); ok {
+		payload.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
 	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -391,7 +393,7 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			if model.Zones != nil {
-				d.Set("availability_zones", pointer.From(model.Zones))
+				d.Set("zones", zones.FlattenUntyped(model.Zones))
 			}
 
 			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
