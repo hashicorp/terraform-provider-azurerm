@@ -238,11 +238,12 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving Data Factory SFTP %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.Name)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
-	if resp.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` is nil", id)
+	if props := resp.Properties; props != nil {
+		// we do the type assertion here
+		// then we set things into state
 	}
 
 	sftp, ok := resp.Properties.AsSftpServerLinkedService()
