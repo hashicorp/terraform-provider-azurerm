@@ -442,7 +442,7 @@ func TestAccFunctionAppFlexConsumption_differentBackendStorageAndDeploymentStora
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_BackendStorageAndDeploymentStorageUpdate(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_backendStorageAndDeploymentStorageUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 
@@ -580,14 +580,6 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_storage_account" "test1" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 resource "azurerm_function_app_flex_consumption" "test" {
   name                = "acctest-LFA-tf%d"
   location            = azurerm_resource_group.test.location
@@ -608,7 +600,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
 
   site_config {}
 }
-`, r.template(data), data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r FunctionAppFlexConsumptionResource) sameBackendStorageAndDeploymentStorage(data acceptance.TestData) string {
