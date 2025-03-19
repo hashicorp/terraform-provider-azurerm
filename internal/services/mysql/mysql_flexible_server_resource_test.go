@@ -568,6 +568,28 @@ func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 	})
 }
 
+func TestAccMySqlFlexibleServer_upgradeVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeVersion(data, "5.7"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.upgradeVersion(data, "8.0.21"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+	})
+}
+
 func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
@@ -678,7 +700,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
   zone                         = "1"
-  version                      = "8.0.21"
+  version                      = "5.7"
   backup_retention_days        = 7
   geo_redundant_backup_enabled = false
 
@@ -1358,4 +1380,28 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                          = "B_Standard_B1s"
 }
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
+}
+
+func (r MySqlFlexibleServerResource) upgradeVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "GP_Standard_D2ds_v4"
+  version                = "%s"
+  zone                   = "1"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test" {
+  name                = "sql_mode"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_AUTO_VALUE_ON_ZERO"
+}
+`, r.template(data), data.RandomInteger, version)
 }
