@@ -181,7 +181,7 @@ The `cognitive_account` block supports the following:
 
 The `databricks_workspace` block supports the following:
 
-* `force_delete` - (Optional) Should the managed resource group that contains the Unity Catalog data be deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
+* `force_delete` - (Optional) Should the managed resource group that contains the Unity Catalog data be forcibly deleted when the `azurerm_databricks_workspace` is destroyed? Defaults to `false`.
 
 ---
 
