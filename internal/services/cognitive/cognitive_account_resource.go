@@ -473,6 +473,17 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if d.HasChanges("customer_managed_key") {
+		old, new := d.GetChange("customer_managed_key")
+		// Remove `customer_managed_key` (switch using a customer managed key to microsoft managed), and explicitly specify KeySource as `Microsoft.CognitiveServices`.
+		if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+			props.Properties.Encryption = &cognitiveservicesaccounts.Encryption{
+				KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
+			}
+		}
+	}
+
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
 	if err != nil {
@@ -830,9 +841,7 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 
 func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveservicesaccounts.Encryption {
 	if len(input) == 0 || input[0] == nil {
-		return &cognitiveservicesaccounts.Encryption{
-			KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
-		}
+		return nil
 	}
 
 	v := input[0].(map[string]interface{})
