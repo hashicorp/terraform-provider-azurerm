@@ -30,25 +30,33 @@ type AutonomousDatabaseRegularResourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Required
-	AdminPassword                string  `tfschema:"admin_password"`
-	BackupRetentionPeriodInDays  int64   `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                 string  `tfschema:"character_set"`
-	ComputeCount                 float64 `tfschema:"compute_count"`
-	ComputeModel                 string  `tfschema:"compute_model"`
-	DataStorageSizeInTbs         int64   `tfschema:"data_storage_size_in_tbs"`
-	DbVersion                    string  `tfschema:"db_version"`
-	DbWorkload                   string  `tfschema:"db_workload"`
-	DisplayName                  string  `tfschema:"display_name"`
-	LicenseModel                 string  `tfschema:"license_model"`
-	AutoScalingEnabled           bool    `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled bool    `tfschema:"auto_scaling_for_storage_enabled"`
-	MtlsConnectionRequired       bool    `tfschema:"mtls_connection_required"`
-	NationalCharacterSet         string  `tfschema:"national_character_set"`
-	SubnetId                     string  `tfschema:"subnet_id"`
-	VnetId                       string  `tfschema:"virtual_network_id"`
+	AdminPassword                string                             `tfschema:"admin_password"`
+	BackupRetentionPeriodInDays  int64                              `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                 string                             `tfschema:"character_set"`
+	ComputeCount                 float64                            `tfschema:"compute_count"`
+	ComputeModel                 string                             `tfschema:"compute_model"`
+	DataStorageSizeInTbs         int64                              `tfschema:"data_storage_size_in_tbs"`
+	DbVersion                    string                             `tfschema:"db_version"`
+	DbWorkload                   string                             `tfschema:"db_workload"`
+	DisplayName                  string                             `tfschema:"display_name"`
+	LicenseModel                 string                             `tfschema:"license_model"`
+	LongTermBackUpSchedule       LongTermBackUpScheduleDetailsModel `tfschema:"long_term_backup_schedule"`
+	AutoScalingEnabled           bool                               `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled bool                               `tfschema:"auto_scaling_for_storage_enabled"`
+	MtlsConnectionRequired       bool                               `tfschema:"mtls_connection_required"`
+	NationalCharacterSet         string                             `tfschema:"national_character_set"`
+	SubnetId                     string                             `tfschema:"subnet_id"`
+	VnetId                       string                             `tfschema:"virtual_network_id"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
+}
+
+type LongTermBackUpScheduleDetailsModel struct {
+	RepeatCadence         autonomousdatabases.RepeatCadenceType `tfschema:"repeatCadence,omitempty"`
+	TimeOfBackup          string                                `tfschema:"time_of_backup"`
+	RetentionPeriodInDays int64                                 `tfschema:"retention_period_in_days"`
+	IsDisabled            bool                                  `tfschema:"is_disabled"`
 }
 
 func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schema {
@@ -76,7 +84,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"backup_retention_period_in_days": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1, 60),
 		},
 
@@ -154,6 +161,41 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 				string(autonomousdatabases.LicenseModelLicenseIncluded),
 				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
 			}, false),
+		},
+
+		"long_term_backup_schedule": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"repeat_cadence": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(autonomousdatabases.RepeatCadenceTypeMonthly),
+							string(autonomousdatabases.RepeatCadenceTypeOneTime),
+							string(autonomousdatabases.RepeatCadenceTypeWeekly),
+							string(autonomousdatabases.RepeatCadenceTypeYearly),
+						}, false),
+					},
+					"time_of_backup": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"retention_period_in_days": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 365),
+					},
+					"is_disabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
 		},
 
 		"national_character_set": {
@@ -303,6 +345,14 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
 				update.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
 			}
+			if metadata.ResourceData.HasChange("long_term_backup_schedule") {
+				update.Properties.LongTermBackupSchedule = &autonomousdatabases.LongTermBackUpScheduleDetails{
+					RepeatCadence:         pointer.To(model.LongTermBackUpSchedule.RepeatCadence),
+					TimeOfBackup:          pointer.To(model.LongTermBackUpSchedule.TimeOfBackup),
+					RetentionPeriodInDays: pointer.To(model.LongTermBackUpSchedule.RetentionPeriodInDays),
+					IsDisabled:            pointer.To(model.LongTermBackUpSchedule.IsDisabled),
+				}
+			}
 
 			err = client.UpdateThenPoll(ctx, *id, *update)
 			if err != nil {
@@ -360,7 +410,17 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
+				longTermBackupSchedule := props.LongTermBackupSchedule
+				if longTermBackupSchedule != nil {
+					state.LongTermBackUpSchedule = LongTermBackUpScheduleDetailsModel{
+						RepeatCadence:         pointer.From(longTermBackupSchedule.RepeatCadence),
+						TimeOfBackup:          pointer.From(longTermBackupSchedule.TimeOfBackup),
+						RetentionPeriodInDays: pointer.From(longTermBackupSchedule.RetentionPeriodInDays),
+						IsDisabled:            pointer.From(longTermBackupSchedule.IsDisabled),
+					}
+				}
 			}
+
 			return metadata.Encode(&state)
 		},
 	}
