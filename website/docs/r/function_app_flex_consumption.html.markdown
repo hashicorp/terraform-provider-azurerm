@@ -121,7 +121,7 @@ The following arguments are supported:
 
 * `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
 
-* `storage_authentication_type` - (Optional) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
+* `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
 
 * `storage_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
 
