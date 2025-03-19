@@ -197,11 +197,6 @@ func (r JobStorageAccountResource) Update() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			_, err = client.Get(ctx, *id, streamingjobs.DefaultGetOperationOptions())
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-
 			payload := streamingjobs.StreamingJob{
 				Properties: &streamingjobs.StreamingJobProperties{
 					JobStorageAccount: &streamingjobs.JobStorageAccount{},
