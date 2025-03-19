@@ -700,7 +700,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
   zone                         = "1"
-  version                      = "5.7"
+  version                      = "8.0.21"
   backup_retention_days        = 7
   geo_redundant_backup_enabled = false
 
