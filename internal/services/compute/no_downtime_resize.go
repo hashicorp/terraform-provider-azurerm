@@ -24,36 +24,45 @@ import (
 
 // @tombuildsstuff: this is intentionally split out into it's own file since this'll need to be reused
 
-func determineIfDataDiskSupportsNoDowntimeResize(disk *disks.Disk, oldSizeGb, newSizeGb int) (bool, bool) {
-	needToDetach := false
-
-	if disk == nil || disk.Properties == nil || disk.Sku == nil {
-		return false, needToDetach
+func determineIfDataDiskSupportsNoDowntimeResize(disk *disks.Disk, requiresDetaching bool) bool {
+	if disk == nil || disk.Properties == nil {
+		return false
 	}
 
 	// Only supported for data disks.
 	isDataDisk := disk.Properties.OsType != nil && string(*disk.Properties.OsType) != ""
 	if isDataDisk {
-		return false, needToDetach
+		return false
 	}
 
 	// Not supported for shared disks, the maxShares of which is greater than 1: https://learn.microsoft.com/azure/virtual-machines/disks-shared-enable?tabs=azure-portal#deploy-an-ultra-disk-as-a-shared-disk
 	isSharedDisk := disk.Properties.MaxShares != nil && *disk.Properties.MaxShares > 1
 	if isSharedDisk {
 		log.Printf("[DEBUG] Disk is shared so does not support no-downtime-resize")
-		return false, needToDetach
+		return false
+	}
+
+	if requiresDetaching {
+		return false
+	}
+
+	return true
+}
+
+func determineIfDataDiskRequiresDetaching(disk *disks.Disk, oldSizeGb, newSizeGb int) bool {
+	if disk == nil || disk.Sku == nil {
+		return false
 	}
 
 	// This limitation doesn't apply to Premium SSD v2 or Ultra Disks:
 	// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without deallocating the VM.
 	// If a disk is already greater than 4 TiB, you can expand it without deallocating the VM.
-	isPremiumV2DiskOrUltra := strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesPremiumVTwoLRS)) || strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesUltraSSDLRS))
-	if !isPremiumV2DiskOrUltra && oldSizeGb < 4096 && newSizeGb >= 4096 {
-		needToDetach = true
-		return false, needToDetach
+	diskTypeIsSupported := strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesPremiumVTwoLRS)) || strings.EqualFold(string(*disk.Sku.Name), string(disks.DiskStorageAccountTypesUltraSSDLRS))
+	if !diskTypeIsSupported && oldSizeGb < 4096 && newSizeGb >= 4096 {
+		return true
 	}
 
-	return true, needToDetach
+	return false
 }
 
 func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk *disks.Disk, virtualMachinesClient *virtualmachines.VirtualMachinesClient, skusClient *skus.SkusClient) (*bool, error) {
@@ -80,13 +89,13 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 	vmDiskControllerType := ""
 	if model := virtualMachine.Model; model != nil {
 		vmLocation = location.Normalize(model.Location)
-		if model.Properties != nil {
-			if model.Properties.HardwareProfile != nil && model.Properties.HardwareProfile.VMSize != nil {
-				vmSku = string(*model.Properties.HardwareProfile.VMSize)
+		if props := model.Properties; props != nil {
+			if props.HardwareProfile != nil && props.HardwareProfile.VMSize != nil {
+				vmSku = string(*props.HardwareProfile.VMSize)
 			}
 
-			if model.Properties.StorageProfile != nil && model.Properties.StorageProfile.DiskControllerType != nil {
-				vmDiskControllerType = string(*model.Properties.StorageProfile.DiskControllerType)
+			if props.StorageProfile != nil && props.StorageProfile.DiskControllerType != nil {
+				vmDiskControllerType = string(*props.StorageProfile.DiskControllerType)
 			}
 		}
 	}
@@ -112,9 +121,16 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 		return nil, fmt.Errorf("retrieving information about the Resource SKUs to check if the Virtual Machine/Disk combination supports no-downtime-resizing: %+v", err)
 	}
 
-	result := false
 	for _, sku := range skusResponse.Items {
-		if !strings.EqualFold(pointer.From(sku.ResourceType), "virtualMachines") || sku.Capabilities == nil || !strings.EqualFold(pointer.From(sku.Name), vmSku) {
+		if !strings.EqualFold(pointer.From(sku.ResourceType), "virtualMachines") {
+			continue
+		}
+
+		if sku.Capabilities == nil {
+			continue
+		}
+
+		if !strings.EqualFold(pointer.From(sku.Name), vmSku) {
 			continue
 		}
 
@@ -139,16 +155,11 @@ func determineIfVirtualMachineSupportsNoDowntimeResize(ctx context.Context, disk
 				supportsPremiumIO = true
 			}
 
-			result = supportsEphemeralOSDisks || supportsPremiumIO || supportsHyperVGen2
-			if result {
-				break
+			if supportsEphemeralOSDisks || supportsPremiumIO || supportsHyperVGen2 {
+				return pointer.To(true), nil
 			}
-		}
-
-		if result {
-			break
 		}
 	}
 
-	return pointer.To(result), nil
+	return pointer.To(false), nil
 }

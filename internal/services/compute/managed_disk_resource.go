@@ -725,14 +725,13 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if oldSize, newSize := d.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
 			canBeResizedWithoutDowntime := false
 			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
-				diskSupportsNoDowntimeResize, needToDetach := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
+				shouldDetach = determineIfDataDiskRequiresDetaching(disk.Model, oldSize.(int), newSize.(int))
+				diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, shouldDetach)
 
 				vmSupportsNoDowntimeResize, err := determineIfVirtualMachineSupportsNoDowntimeResize(ctx, disk.Model, virtualMachinesClient, skusClient)
 				if err != nil {
 					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
 				}
-
-				shouldDetach = needToDetach
 
 				canBeResizedWithoutDowntime = *vmSupportsNoDowntimeResize && diskSupportsNoDowntimeResize
 			}
