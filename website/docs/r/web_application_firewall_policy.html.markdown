@@ -146,6 +146,8 @@ The `custom_rules` block supports the following:
 
 * `action` - (Required) Type of action. Possible values are `Allow`, `Block` and `Log`.
 
+~> **Note:** If the `rule_type` is specified as `RateLimitRule`, the `Allow` is not supported.
+
 * `rate_limit_duration` - (Optional) Specifies the duration at which the rate limit policy will be applied. Should be used with `RateLimitRule` rule type. Possible values are `FiveMins` and `OneMin`.
 
 * `rate_limit_threshold` - (Optional) Specifies the threshold value for the rate limit policy. Must be greater than or equal to 1 if provided.

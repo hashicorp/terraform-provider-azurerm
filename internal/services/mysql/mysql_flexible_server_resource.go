@@ -21,8 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	pluginSdkValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -59,10 +57,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			_, err := servers.ParseFlexibleServerID(id)
 			return err
 		}),
-
-		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
-			pluginSdkValidation.PreferWriteOnlyAttribute(cty.GetAttrPath("administrator_password"), cty.GetAttrPath("administrator_password_wo")),
-		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

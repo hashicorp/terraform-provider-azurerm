@@ -4,5 +4,5 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SapHanaPartitionSettings struct {
-	PartitionColumnName *string `json:"partitionColumnName,omitempty"`
+	PartitionColumnName *interface{} `json:"partitionColumnName,omitempty"`
 }

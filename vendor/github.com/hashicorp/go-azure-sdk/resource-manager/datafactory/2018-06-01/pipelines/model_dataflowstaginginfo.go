@@ -4,6 +4,6 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DataFlowStagingInfo struct {
-	FolderPath    *string                 `json:"folderPath,omitempty"`
+	FolderPath    *interface{}            `json:"folderPath,omitempty"`
 	LinkedService *LinkedServiceReference `json:"linkedService,omitempty"`
 }

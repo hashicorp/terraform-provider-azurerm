@@ -28,7 +28,7 @@ Here are some general guidelines you can turn to when naming properties:
 * For booleans these guidelines apply:
 
   * As a general rule, booleans should be appended with `_enabled` e.g.
-  >`public_network_access_enabled`
+  >`compression_enabled`
 
   * Booleans named `disableSomething` in the API should be flipped and exposed as `something_enabled` in the provider.
   
