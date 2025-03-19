@@ -28,7 +28,8 @@ BUG FIXES:
 * `azurerm_app_configuration` - the `encryption` block can now be removed [GH-28173]
 * `azurerm_cdn_frontdoor_origin_group` - `health_probe` no longer resets during update unless specified [GH-29094]
 * `azurerm_monitor_diagnostic_setting` - the `enabled_log` block can now be removed [GH-28485]
-* `azurerm_mssql_database` fix validation for `auto_pause_delay_in_minutes` [GH-28670]
+* `azurerm_mssql_database` - fix validation for `auto_pause_delay_in_minutes` [GH-28670]
+* `azurerm_mssql_server` - fix an issue where the provider would incorrectly error during plan operations if `administrator_login` or `administrator_login_password` were added to `lifecycle.ignore_changes` [GH-29107]
 
 
 ## 4.23.0 (March 13, 2025)
