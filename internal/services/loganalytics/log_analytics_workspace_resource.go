@@ -452,10 +452,8 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 			}
 
 			props.Sku.CapacityReservationLevel = pointer.To(workspaces.CapacityReservationLevel(int64(capacityReservationLevel.(int))))
-		} else {
-			if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
-				return errors.New("`reservation_capacity_in_gb_per_day` must be set when using the `CapacityReservation` SKU")
-			}
+		} else if strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumCapacityReservation)) {
+			return errors.New("`reservation_capacity_in_gb_per_day` must be set when using the `CapacityReservation` SKU")
 		}
 	}
 
@@ -538,7 +536,7 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 
 			d.Set("workspace_id", pointer.From(props.CustomerId))
 
-			skuName := ""
+			var skuName string
 			if sku := props.Sku; sku != nil {
 				skuName = string(sku.Name)
 				d.Set("sku", skuName)
