@@ -924,7 +924,7 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	deleteOperationOptions := workspaces.DeleteOperationOptions{}
+	deleteOperationOptions := workspaces.DefaultDeleteOperationOptions()
 	if meta.(*clients.Client).Features.DatabricksWorkspace.ForceDelete {
 		deleteOperationOptions.ForceDeletion = pointer.To(true)
 	}
