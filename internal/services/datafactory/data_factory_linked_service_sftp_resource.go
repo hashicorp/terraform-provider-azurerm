@@ -241,51 +241,44 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 	d.Set("name", id.Name)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
-	if props := resp.Properties; props != nil {
-		// we do the type assertion here
-		// then we set things into state
-	}
-
-	sftp, ok := resp.Properties.AsSftpServerLinkedService()
-	if !ok {
-		receivedTypeMessage := ""
-		if resp.Type != nil {
-			receivedTypeMessage = fmt.Sprintf(" Received: %q", *resp.Type)
-		}
-		return fmt.Errorf("classifying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q%s", id.Name, id.FactoryName, id.ResourceGroup, datafactory.TypeBasicLinkedServiceTypeSftp, receivedTypeMessage)
-	}
-
-	d.Set("authentication_type", sftp.AuthenticationType)
-	d.Set("username", sftp.UserName)
-	d.Set("port", sftp.Port)
-	d.Set("host", sftp.Host)
-
-	d.Set("additional_properties", sftp.AdditionalProperties)
-	d.Set("description", sftp.Description)
-
-	annotations := flattenDataFactoryAnnotations(sftp.Annotations)
-	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("setting `annotations`: %+v", err)
-	}
-
-	parameters := flattenLinkedServiceParameters(sftp.Parameters)
-	if err := d.Set("parameters", parameters); err != nil {
-		return fmt.Errorf("setting `parameters`: %+v", err)
-	}
-
-	if connectVia := sftp.ConnectVia; connectVia != nil {
-		if connectVia.ReferenceName != nil {
-			d.Set("integration_runtime_name", connectVia.ReferenceName)
-		}
-	}
-
-	if props := sftp.SftpServerLinkedServiceTypeProperties; props != nil {
-		if skipHostKeyValidation := props.SkipHostKeyValidation; skipHostKeyValidation != nil {
-			d.Set("skip_host_key_validation", skipHostKeyValidation.(bool))
+	if resp.Properties != nil {
+		sftp, ok := resp.Properties.AsSftpServerLinkedService()
+		if !ok {
+			return fmt.Errorf("classifying Data Factory Linked Service SFTP %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeSftp, pointer.From(resp.Type))
 		}
 
-		if hostKeyFingerprint := props.HostKeyFingerprint; hostKeyFingerprint != nil {
-			d.Set("host_key_fingerprint", hostKeyFingerprint)
+		d.Set("authentication_type", sftp.AuthenticationType)
+		d.Set("username", sftp.UserName)
+		d.Set("port", sftp.Port)
+		d.Set("host", sftp.Host)
+
+		d.Set("additional_properties", sftp.AdditionalProperties)
+		d.Set("description", sftp.Description)
+
+		annotations := flattenDataFactoryAnnotations(sftp.Annotations)
+		if err := d.Set("annotations", annotations); err != nil {
+			return fmt.Errorf("setting `annotations`: %+v", err)
+		}
+
+		parameters := flattenLinkedServiceParameters(sftp.Parameters)
+		if err := d.Set("parameters", parameters); err != nil {
+			return fmt.Errorf("setting `parameters`: %+v", err)
+		}
+
+		if connectVia := sftp.ConnectVia; connectVia != nil {
+			if connectVia.ReferenceName != nil {
+				d.Set("integration_runtime_name", connectVia.ReferenceName)
+			}
+		}
+
+		if props := sftp.SftpServerLinkedServiceTypeProperties; props != nil {
+			if skipHostKeyValidation := props.SkipHostKeyValidation; skipHostKeyValidation != nil {
+				d.Set("skip_host_key_validation", skipHostKeyValidation.(bool))
+			}
+
+			if hostKeyFingerprint := props.HostKeyFingerprint; hostKeyFingerprint != nil {
+				d.Set("host_key_fingerprint", hostKeyFingerprint)
+			}
 		}
 	}
 

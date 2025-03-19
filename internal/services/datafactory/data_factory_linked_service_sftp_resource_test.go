@@ -96,7 +96,7 @@ func (t LinkedServiceSFTPResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlsweb%d"
+  name                = "acctestlssftp%d"
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Basic"
   host                = "http://www.bing.com"
@@ -111,7 +111,7 @@ func (t LinkedServiceSFTPResource) update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlsweb%d"
+  name                = "acctestlssftp%d"
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "Basic"
   host                = "http://www.bing.com"
@@ -138,15 +138,17 @@ func (t LinkedServiceSFTPResource) update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlsweb%d"
-  data_factory_id     = azurerm_data_factory.test.id
-  authentication_type = "Basic"
-  host                = "http://www.bing.com"
-  port                = 22
-  username            = "foo"
-  password            = "bar"
-  annotations         = ["test1", "test2"]
-  description         = "test description 2"
+  name                     = "acctestlssftp%d"
+  data_factory_id          = azurerm_data_factory.test.id
+  authentication_type      = "Basic"
+  host                     = "http://www.bing.com"
+  port                     = 22
+  username                 = "foo"
+  password                 = "bar"
+  annotations              = ["test1", "test2"]
+  description              = "test description 2"
+  skip_host_key_validation = true
+  host_key_fingerprint     = "fingerprint"
 
   parameters = {
     foo  = "test1"
@@ -165,7 +167,7 @@ func (t LinkedServiceSFTPResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                     = "acctestlsweb%d"
+  name                     = "acctestlssftp%[2]d"
   data_factory_id          = azurerm_data_factory.test.id
   authentication_type      = "Basic"
   host                     = "http://www.bing.com"
@@ -176,6 +178,7 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   description              = "test description 2"
   skip_host_key_validation = true
   host_key_fingerprint     = "fingerprint"
+  integration_runtime_name = azurerm_data_factory_integration_runtime_azure.test.name
 
   parameters = {
     foo = "test1"
@@ -186,6 +189,12 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
     foo = "test1"
     bar = "test1"
   }
+}
+
+resource "azurerm_data_factory_integration_runtime_azure" "test" {
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  name            = "acctestlssftp%[2]d"
 }
 `, t.template(data), data.RandomInteger)
 }
