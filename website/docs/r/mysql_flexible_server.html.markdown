@@ -85,7 +85,13 @@ The following arguments are supported:
 
 * `administrator_login` - (Optional) The Administrator login for the MySQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new MySQL Flexible Server to be created.
 
-* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the MySQL Flexible Server. Required when `create_mode` is `Default`.
+* `administrator_password` - (Optional) The Password associated with the `administrator_login` for the MySQL Flexible Server.
+
+* `administrator_password_wo` - (Optional, Write-Only) The Password associated with the `administrator_login` for the MySQL Flexible Server.
+
+* `administrator_password_wo_version` - (Optional) An integer value used to trigger an update for `administrator_password_wo`. This property should be incremented when updating `administrator_password_wo`.
+
+~> **Note:** Either `administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default`.
 
 * `backup_retention_days` - (Optional) The backup retention days for the MySQL Flexible Server. Possible values are between `1` and `35` days. Defaults to `7`.
 
@@ -123,7 +129,9 @@ The following arguments are supported:
 
 -> **NOTE:** `sku_name` should start with SKU tier `B (Burstable)`, `GP (General Purpose)`, `MO (Memory Optimized)` like `B_Standard_B1s`.
 
-* `source_server_id` - (Optional)The resource ID of the source MySQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, and `Replica`. Changing this forces a new MySQL Flexible Server to be created.
+* `source_server_id` - (Optional) The resource ID of the source MySQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, and `Replica`. Changing this forces a new MySQL Flexible Server to be created.
+
+-> **Note:** The replica server is always created in the same resource group and subscription as the source server.
 
 * `storage` - (Optional) A `storage` block as defined below.
 

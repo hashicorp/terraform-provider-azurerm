@@ -5,6 +5,7 @@ package privatedns
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -83,7 +84,7 @@ func resourcePrivateDnsTxtRecord() *pluginsdk.Resource {
 			"ttl": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 2147483647),
+				ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 			},
 
 			"fqdn": {
