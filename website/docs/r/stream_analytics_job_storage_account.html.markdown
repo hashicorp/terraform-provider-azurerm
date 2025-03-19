@@ -52,9 +52,17 @@ QUERY
   }
 }
 
-resource "azurerm_stream_analytics_job_storage_account" "test" {
-  stream_analytics_job_id = azurerm_stream_analytics_job.test.id
-  storage_account_name    = azurerm_storage_account.test.name
+resource "azurerm_storage_account" "example" {
+  name                     = "exampleaccount"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_stream_analytics_job_storage_account" "example" {
+  stream_analytics_job_id = azurerm_stream_analytics_job.example.id
+  storage_account_name    = azurerm_storage_account.example.name
   authentication_mode     = "Msi"
 }
 ```
@@ -65,13 +73,13 @@ The following arguments are supported:
 
 * `stream_analytics_job_id` - (Required) The ID of the Stream Analytics Job. Changing this forces a new resource to be created.
 
-* `authentication_mode` - (Required) The authentication mode for the Stream Analytics Job's Storage Account. Possible values are `ConnectionString`, `Msi`, and `UserToken`.
+* `authentication_mode` - (Required) The authentication mode for the Stream Analytics Job's Storage Account. Possible values are `ConnectionString`, and `Msi`.
 
 -> **Note:** The parent Stream Analytics Job must have the `identity` block set when using `Msi` as the `authentication_mode`.
 
 * `storage_account_name` - (Required) The Storage Account name for the Stream Analytics Job.
 
-* `storage_account_key` - (Optional) The Storage Account Key for the Stream Analytics Job should run.
+* `storage_account_key` - (Optional) The Storage Account Key for accessing the Storage Account of the Stream Analytics Job.
 
 -> **Note:** `storage_account_key` must be specified when `authentication_mode` is `ConnectionString` and must be absent if `authentication_mode` is `Msi`.
 

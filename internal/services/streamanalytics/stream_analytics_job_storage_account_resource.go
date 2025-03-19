@@ -79,7 +79,7 @@ func (r JobStorageAccountResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r JobStorageAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 90 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.JobsClient
 
@@ -179,7 +179,7 @@ func (r JobStorageAccountResource) Read() sdk.ResourceFunc {
 
 func (r JobStorageAccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 90 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.JobsClient
 
@@ -212,7 +212,7 @@ func (r JobStorageAccountResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("storage_account_key") {
 				if model.StorageAccountKey != "" {
-					payload.Properties.JobStorageAccount.AccountName = pointer.To(model.StorageAccountKey)
+					payload.Properties.JobStorageAccount.AccountKey = pointer.To(model.StorageAccountKey)
 				}
 			}
 
@@ -227,7 +227,7 @@ func (r JobStorageAccountResource) Update() sdk.ResourceFunc {
 
 func (r JobStorageAccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 90 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StreamAnalytics.JobsClient
 
