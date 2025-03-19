@@ -463,7 +463,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if d.HasChange("daily_quota_gb") {
 		props.WorkspaceCapping = &workspaces.WorkspaceCapping{
-			DailyQuotaGb: pointer.To(d.Get("daily_quote_gb").(float64)),
+			DailyQuotaGb: pointer.To(d.Get("daily_quota_gb").(float64)),
 		}
 	}
 
