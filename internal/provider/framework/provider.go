@@ -496,7 +496,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								Attributes: map[string]schema.Attribute{
 									"force_delete": schema.BoolAttribute{
 										Optional:    true,
-										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be deleted when the workspace is destroyed.",
+										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
 									},
 								},
 							},

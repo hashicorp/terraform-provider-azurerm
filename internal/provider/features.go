@@ -424,7 +424,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"force_delete": {
-						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be deleted when the workspace is destroyed.",
+						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     false,
