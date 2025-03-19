@@ -410,6 +410,38 @@ func TestAccLinuxVirtualMachine_otherLicenseTypeDefault(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherLicenseTypeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherLicenseTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("license_type").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherLicenseType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("license_type").HasValue("UBUNTU_PRO"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherLicenseTypeDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("license_type").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherPrioritySpot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
