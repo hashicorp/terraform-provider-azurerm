@@ -100,8 +100,10 @@ func (r JobStorageAccountResource) Create() sdk.ResourceFunc {
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			// TODO better check here
-			if !response.WasNotFound(existing.HttpResponse) && existing.Model.Properties.JobStorageAccount != nil {
+
+			jobStorageAccountExists := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.JobStorageAccount != nil
+
+			if !response.WasNotFound(existing.HttpResponse) && jobStorageAccountExists {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 

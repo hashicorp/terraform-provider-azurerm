@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `authentication_mode` - (Required) The authentication mode for the Stream Analytics Job's Storage Account. Possible values are `ConnectionString`, `Msi`, and `UserToken`.
 
--> **Note:** The parent Stream Analytics Job must have the `identity` block set when using the `Msi` as the `authentication_mode`.
+-> **Note:** The parent Stream Analytics Job must have the `identity` block set when using `Msi` as the `authentication_mode`.
 
 * `storage_account_name` - (Required) The Storage Account name for the Stream Analytics Job.
 
@@ -80,7 +80,6 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Stream Analytics Job.
-
 
 ## Timeouts
 
