@@ -215,8 +215,8 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected netapp.PreventVolumeDestruction to be true")
 	}
 
-	if !features.DatabricksWorkspace.ForceDelete {
-		t.Errorf("expected databricks_workspace.ForceDelete to be true")
+	if features.DatabricksWorkspace.ForceDelete {
+		t.Errorf("expected databricks_workspace.ForceDelete to be false")
 	}
 }
 
