@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description of the Network Manager.
 
-* `scope_accesses` - (Optional) A list of configuration deployment type. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`, corresponds to if Connectivity Configuration, Security Admin Configuration or Routing Configuration is allowed for the Network Manager.
+* `scope_accesses` - (Optional) A list of configuration deployment types. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`, which specify whether Connectivity Configuration, Security Admin Configuration or Routing Configuration are allowed for the Network Manager.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Manager.
 
