@@ -33,6 +33,21 @@ func TestAccStreamAnalyticsJobStorageAccount_basic(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsJobStorageAccount_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job_storage_account", "test")
+	r := StreamAnalyticsJobStorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccStreamAnalyticsJobStorageAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job_storage_account", "test")
 	r := StreamAnalyticsJobStorageAccountResource{}
@@ -55,18 +70,25 @@ func TestAccStreamAnalyticsJobStorageAccount_update(t *testing.T) {
 	})
 }
 
-func TestAccStreamAnalyticsJobStorageAccount_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job_storage_account", "test")
+func TestAccStreamAnalyticsJobStorageAccount_updateResource(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 	r := StreamAnalyticsJobStorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.template2(data),
+			//Check:  acceptance.ComposeTestCheckFunc(
+			//// check.That(data.ResourceName).ExistsInAzure(r),
+			//),
+		},
+		//data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.ImportStep(),
 	})
 }
 
@@ -110,8 +132,6 @@ resource "azurerm_stream_analytics_job_storage_account" "test" {
   storage_account_key     = azurerm_storage_account.test.primary_access_key
   authentication_mode     = "ConnectionString"
 }
-
-
 `, r.template(data))
 }
 
@@ -149,10 +169,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_stream_analytics_job" "test" {
-  name                = "acctestjob-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  streaming_units     = 3
+  name                   = "acctestjob-%[1]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  streaming_units        = 3
+  content_storage_policy = "JobStorageAccount"
 
   tags = {
     environment = "Test"
@@ -172,6 +193,55 @@ QUERY
   lifecycle {
     ignore_changes = [job_storage_account]
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StreamAnalyticsJobStorageAccountResource) template2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_stream_analytics_job" "test" {
+  name                   = "acctestjob-%[1]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  streaming_units        = 3
+  content_storage_policy = "JobStorageAccount"
+
+  job_storage_account {
+    authentication_mode = "ConnectionString"
+    account_name        = azurerm_storage_account.test.name
+    account_key         = azurerm_storage_account.test.primary_access_key
+  }
+
+  tags = {
+    environment = "Test"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  transformation_query = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

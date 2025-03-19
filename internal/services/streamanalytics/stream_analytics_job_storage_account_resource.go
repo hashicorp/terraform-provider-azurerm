@@ -26,7 +26,6 @@ type JobStorageAccountModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = JobStorageAccountResource{}
-var _ sdk.ResourceWithCustomizeDiff = JobStorageAccountResource{}
 
 func (r JobStorageAccountResource) ModelObject() interface{} {
 	return &JobStorageAccountModel{}
@@ -50,9 +49,13 @@ func (r JobStorageAccountResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"authentication_mode": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(streamingjobs.PossibleValuesForAuthenticationMode(), false),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(streamingjobs.AuthenticationModeMsi),
+				string(streamingjobs.AuthenticationModeConnectionString),
+				// auth mode `UserToken` is not supported
+			}, false),
 		},
 
 		"storage_account_name": {
@@ -72,28 +75,6 @@ func (r JobStorageAccountResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (r JobStorageAccountResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
-}
-
-func (r JobStorageAccountResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 15 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var config JobStorageAccountModel
-			if err := metadata.DecodeDiff(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			//if config.AuthenticationMode == string(streamingjobs.AuthenticationModeMsi) && config.StorageAccountKey != "" {
-			//	return fmt.Errorf("`storage_account_key` cannot be set if `authentication_mode` is `Msi`")
-			//}
-			//
-			//if config.AuthenticationMode == string(streamingjobs.AuthenticationModeConnectionString) && config.StorageAccountKey == "" {
-			//	return fmt.Errorf("`storage_account_key` cannot be empty if `authentication_mode` is `ConnectionString`")
-			//}
-
-			return nil
-		},
-	}
 }
 
 func (r JobStorageAccountResource) Create() sdk.ResourceFunc {
