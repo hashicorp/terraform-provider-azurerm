@@ -168,7 +168,6 @@ func (r JobStorageAccountResource) Read() sdk.ResourceFunc {
 						state.AuthenticationMode = string(pointer.From(jobStorage.AuthenticationMode))
 						state.StorageAccountKey = metadata.ResourceData.Get("storage_account_key").(string)
 						state.StorageAccountName = pointer.From(jobStorage.AccountName)
-
 					}
 				}
 			}

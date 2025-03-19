@@ -117,14 +117,12 @@ func (r StreamAnalyticsJobStorageAccountResource) requiresImport(data acceptance
 	return fmt.Sprintf(`
 %s
 
-%s
-
 resource "azurerm_stream_analytics_job_storage_account" "import" {
   stream_analytics_job_id = azurerm_stream_analytics_job_storage_account.test.stream_analytics_job_id
   storage_account_name    = azurerm_stream_analytics_job_storage_account.test.storage_account_name
   authentication_mode     = azurerm_stream_analytics_job_storage_account.test.authentication_mode
 }
-`, r.template(data), r.basic(data))
+`, r.basic(data))
 }
 
 func (r StreamAnalyticsJobStorageAccountResource) template(data acceptance.TestData) string {
@@ -147,11 +145,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_stream_analytics_job" "test" {
-  name                   = "acctestjob-%[1]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  streaming_units        = 3
-  content_storage_policy = "JobStorageAccount"
+  name                = "acctestjob-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  streaming_units     = 3
 
   tags = {
     environment = "Test"

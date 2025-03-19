@@ -564,7 +564,7 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccount {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 

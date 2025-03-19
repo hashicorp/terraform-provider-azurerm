@@ -32,7 +32,7 @@ resource "azurerm_stream_analytics_job" "example" {
   output_error_policy                      = "Drop"
   streaming_units                          = 3
   sku_name                                 = "StandardV2"
-  
+
   identity {
     type = "SystemAssigned"
   }
@@ -46,7 +46,7 @@ resource "azurerm_stream_analytics_job" "example" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
-  
+
   lifecycle {
     ignore_changes = [job_storage_account]
   }
