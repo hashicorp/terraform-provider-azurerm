@@ -408,7 +408,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 
 				familyCapacity := fmt.Sprintf("%s%d", strings.ToUpper(family), capacity)
 				if !slices.Contains(validCombinations[skuName], familyCapacity) {
-					return fmt.Errorf("invalid combination of `sku_name`, `family`, and `capacity`: '%s: %s'. Valid combinations are: %v", skuName, familyCapacity, validCombinations)
+					return fmt.Errorf("invalid combination of `sku_name`, `family`, and `capacity`: '%[1]s: %[2]s'. Valid combinations for '%[1]s' are: %[3]v", skuName, familyCapacity, validCombinations[skuName])
 				}
 
 				return nil
