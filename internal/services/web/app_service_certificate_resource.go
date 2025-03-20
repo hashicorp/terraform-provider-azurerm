@@ -136,7 +136,6 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
-	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
