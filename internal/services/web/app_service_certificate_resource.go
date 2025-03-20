@@ -166,6 +166,8 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("subject_name", props.SubjectName)
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
+		d.Set("app_service_plan_id", props.ServerFarmID)
+
 		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
 			envId, err := parse.AppServiceEnvironmentID(*props.HostingEnvironmentProfile.ID)
 			if err != nil {
