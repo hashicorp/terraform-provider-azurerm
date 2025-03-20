@@ -27,6 +27,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ClusterResource{},
 		JobScheduleResource{},
+		JobStorageAccountResource{},
 		ManagedPrivateEndpointResource{},
 		OutputFunctionResource{},
 		OutputTableResource{},
