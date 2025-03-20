@@ -845,7 +845,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 			// The backend pool id is not returned in the response, so we need to set it only when it's not nil
 			if backendPoolReadId != nil {
-				d.Set("load_balancer_backend_address_pool_id", *backendPoolReadId)
+				d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
 			}
 		}
 
