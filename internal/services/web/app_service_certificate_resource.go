@@ -136,6 +136,7 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -167,6 +168,25 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
 		d.Set("app_service_plan_id", props.ServerFarmID)
+		d.Set("key_vault_id", props.KeyVaultID)
+		if props.KeyVaultID != nil && *props.KeyVaultID != "" && props.KeyVaultSecretName != nil && *props.KeyVaultSecretName != "" {
+			parsedKeyvaultId, err := commonids.ParseKeyVaultID(*props.KeyVaultID)
+			if err != nil {
+				return err
+			}
+
+			keyVaultUrl, err := keyVaultsClient.BaseUriForKeyVault(ctx, *parsedKeyvaultId)
+			if err != nil {
+				return fmt.Errorf("retrieving the Base Url for the Key Vault %q: %s", parsedKeyvaultId, err)
+			}
+
+			// We can not retrieve the version from response, since set a versionless id to it.
+			keyVaultSecretId, err := keyVaultParse.NewNestedItemID(*keyVaultUrl, keyVaultParse.NestedItemTypeCertificate, *props.KeyVaultSecretName, "")
+			if err != nil {
+				return err
+			}
+			d.Set("key_vault_secret_id", keyVaultSecretId)
+		}
 
 		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
 			envId, err := parse.AppServiceEnvironmentID(*props.HostingEnvironmentProfile.ID)
