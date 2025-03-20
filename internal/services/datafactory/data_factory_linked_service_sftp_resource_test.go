@@ -166,6 +166,12 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 func (t LinkedServiceSFTPResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+resource "azurerm_data_factory_integration_runtime_azure" "test" {
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  name            = "acctestlssftp%[2]d"
+}
+
 resource "azurerm_data_factory_linked_service_sftp" "test" {
   name                     = "acctestlssftp%[2]d"
   data_factory_id          = azurerm_data_factory.test.id
@@ -189,12 +195,6 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
     foo = "test1"
     bar = "test1"
   }
-}
-
-resource "azurerm_data_factory_integration_runtime_azure" "test" {
-  data_factory_id = azurerm_data_factory.test.id
-  location        = azurerm_resource_group.test.location
-  name            = "acctestlssftp%[2]d"
 }
 `, t.template(data), data.RandomInteger)
 }
