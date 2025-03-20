@@ -554,12 +554,12 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("source_server_id", props.SourceServerResourceId)
 
 			if network := props.Network; network != nil {
-				if network.DelegatedSubnetResourceId != nil {
-					d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
-					d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
-					d.Set("public_network_access", string(servers.EnableStatusEnumDisabled))
-				} else {
+				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
+				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
+
+				if network.DelegatedSubnetResourceId == nil {
 					d.Set("public_network_access", string(pointer.From(network.PublicNetworkAccess)))
+
 					if !features.FivePointOh() {
 						d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
 					}
@@ -820,7 +820,6 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	}
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
 		network.DelegatedSubnetResourceId = pointer.To(v.(string))
-		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumDisabled)
 	} else if v, ok := d.GetOk("public_network_access"); ok {
 		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(v.(string)))
 	}
