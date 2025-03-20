@@ -487,8 +487,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
-		shardCount := int64(v.(int))
-		parameters.Properties.ShardCount = &shardCount
+		parameters.Properties.ShardCount = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("replicas_per_master"); ok {
@@ -595,43 +594,31 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		Tags: expandedTags,
 	}
 
-	if v, ok := d.GetOk("shard_count"); ok {
-		if d.HasChange("shard_count") {
-			shardCount := int64(v.(int))
-			parameters.Properties.ShardCount = &shardCount
-		}
+	if d.HasChange("shard_count") {
+		parameters.Properties.ShardCount = pointer.To(int64(d.Get("shard_count").(int)))
 	}
 
-	if v, ok := d.GetOk("replicas_per_master"); ok {
-		if d.HasChange("replicas_per_master") {
-			parameters.Properties.ReplicasPerMaster = pointer.To(int64(v.(int)))
-		}
+	if d.HasChange("replicas_per_master") {
+		parameters.Properties.ReplicasPerMaster = pointer.To(int64(d.Get("replicas_per_master").(int)))
 	}
 
-	if v, ok := d.GetOk("replicas_per_primary"); ok {
-		if d.HasChange("replicas_per_primary") {
-			parameters.Properties.ReplicasPerPrimary = pointer.To(int64(v.(int)))
-		}
+	if d.HasChange("replicas_per_primary") {
+		parameters.Properties.ReplicasPerPrimary = pointer.To(int64(d.Get("replicas_per_primary").(int)))
 	}
 
-	if v, ok := d.GetOk("redis_version"); ok {
-		if d.HasChange("redis_version") {
-			parameters.Properties.RedisVersion = pointer.To(v.(string))
-		}
+	if d.HasChange("redis_version") {
+		parameters.Properties.RedisVersion = pointer.To(d.Get("redis_version").(string))
 	}
 
-	if v, ok := d.GetOk("tenant_settings"); ok {
-		if d.HasChange("tenant_settings") {
-			parameters.Properties.TenantSettings = expandTenantSettings(v.(map[string]interface{}))
-		}
+	if d.HasChange("tenant_settings") {
+		parameters.Properties.TenantSettings = expandTenantSettings(d.Get("tenant_settings").(map[string]interface{}))
 	}
 
 	if d.HasChange("public_network_access_enabled") {
-		publicNetworkAccess := redis.PublicNetworkAccessEnabled
-		if !d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccess = redis.PublicNetworkAccessDisabled
+		parameters.Properties.PublicNetworkAccess = pointer.To(redis.PublicNetworkAccessDisabled)
+		if d.Get("public_network_access_enabled").(bool) {
+			parameters.Properties.PublicNetworkAccess = pointer.To(redis.PublicNetworkAccessEnabled)
 		}
-		parameters.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	if d.HasChange("redis_configuration") {
