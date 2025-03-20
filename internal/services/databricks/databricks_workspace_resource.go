@@ -737,7 +737,9 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	// subnet NSG association along with the backend Pool Id since they are not
 	// returned in the read from Azure...
 	custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
-	d.Set("load_balancer_backend_address_pool_id", pointer.From(backendPoolReadId))
+	if backendPoolReadId != nil {
+		d.Set("load_balancer_backend_address_pool_id", pointer.From(backendPoolReadId))
+	}
 
 	if err := d.Set("custom_parameters", custom); err != nil {
 		return fmt.Errorf("setting `custom_parameters`: %+v", err)
