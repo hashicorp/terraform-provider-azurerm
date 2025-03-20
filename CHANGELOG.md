@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app_slot` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
 * `azurerm_linux_web_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
 * `azurerm_linux_web_app_slot` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
+* `azurerm_redis_cache` - tighten validation for `sku_name`, `family`, `capacity` [GH-29079]
 * `azurerm_windows_function_app` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
 * `azurerm_windows_function_app` - set `pre_warmed_instance_count` on create [GH-28739]
 * `azurerm_windows_function_app_slot` - add support for the `virtual_network_backup_restore_enabled` property [GH-29012]
