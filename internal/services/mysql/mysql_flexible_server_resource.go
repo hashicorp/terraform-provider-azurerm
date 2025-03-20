@@ -244,7 +244,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			"public_network_access": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				Default:       servers.EnableStatusEnumEnabled,
 				ValidateFunc:  validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
 				ConflictsWith: []string{"delegated_subnet_id", "private_dns_zone_id"},
 			},
@@ -555,11 +554,15 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("source_server_id", props.SourceServerResourceId)
 
 			if network := props.Network; network != nil {
-				d.Set("public_network_access", string(pointer.From(network.PublicNetworkAccess)))
-				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
-				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
-				if !features.FivePointOh() {
-					d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
+				if network.DelegatedSubnetResourceId != nil {
+					d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
+					d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
+					d.Set("public_network_access", string(servers.EnableStatusEnumDisabled))
+				} else {
+					d.Set("public_network_access", string(pointer.From(network.PublicNetworkAccess)))
+					if !features.FivePointOh() {
+						d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
+					}
 				}
 			}
 
@@ -812,17 +815,14 @@ func resourceMysqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta interface
 func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	network := servers.Network{}
 
-	if v, ok := d.GetOk("delegated_subnet_id"); ok {
-		network.DelegatedSubnetResourceId = pointer.To(v.(string))
-	}
-
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
 		network.PrivateDnsZoneResourceId = pointer.To(v.(string))
 	}
-
-	if v, ok := d.GetOk("public_network_access"); ok {
-		publicNetworkAccess := servers.EnableStatusEnum(v.(string))
-		network.PublicNetworkAccess = &publicNetworkAccess
+	if v, ok := d.GetOk("delegated_subnet_id"); ok {
+		network.DelegatedSubnetResourceId = pointer.To(v.(string))
+		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnumDisabled)
+	} else if v, ok := d.GetOk("public_network_access"); ok {
+		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(v.(string)))
 	}
 
 	return &network
