@@ -1161,7 +1161,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		appLogs := *props.ApplicationLogs
 		applicationLog := ApplicationLog{}
 
-		if appLogs.FileSystem != nil && pointer.From(appLogs.FileSystem.Level) != webapps.LogLevelOff {
+		if appLogs.FileSystem != nil {
 			applicationLog.FileSystemLevel = string(pointer.From(appLogs.FileSystem.Level))
 			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasURL != nil {
 				blobStorage := AzureBlobStorage{
@@ -1401,8 +1401,8 @@ func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []Handl
 	return handlerMappings
 }
 
-func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication) []VirtualApplication {
-	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications) {
+func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication, alwaysOn bool) []VirtualApplication {
+	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications, alwaysOn) {
 		return []VirtualApplication{}
 	}
 
@@ -1432,7 +1432,7 @@ func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplica
 	return virtualApplications
 }
 
-func onlyDefaultVirtualApplication(input []webapps.VirtualApplication) bool {
+func onlyDefaultVirtualApplication(input []webapps.VirtualApplication, alwaysOn bool) bool {
 	if len(input) > 1 {
 		return false
 	}
@@ -1440,8 +1440,13 @@ func onlyDefaultVirtualApplication(input []webapps.VirtualApplication) bool {
 	if app.VirtualPath == nil || app.PhysicalPath == nil {
 		return false
 	}
-	if *app.VirtualPath == "/" && *app.PhysicalPath == "site\\wwwroot" && *app.PreloadEnabled && app.VirtualDirectories == nil {
-		return true
+
+	if *app.VirtualPath == "/" && *app.PhysicalPath == "site\\wwwroot" && app.VirtualDirectories == nil {
+		// if alwaysOn is true, then the default for PreloadEnabled is true
+		// if alwaysOn is false, then the default for PreloadEnabled to false
+		if (alwaysOn && *app.PreloadEnabled) || (!alwaysOn && !*app.PreloadEnabled) {
+			return true
+		}
 	}
 	return false
 }
