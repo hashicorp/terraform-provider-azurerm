@@ -180,12 +180,12 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("retrieving the Base Url for the Key Vault %q: %s", parsedKeyvaultId, err)
 			}
 
-			// We can not retrieve the version from response, since set a versionless id to it.
+			// We can not retrieve the version from response, just pass an empty string and use the versionless id in state
 			keyVaultSecretId, err := keyVaultParse.NewNestedItemID(*keyVaultUrl, keyVaultParse.NestedItemTypeCertificate, *props.KeyVaultSecretName, "")
 			if err != nil {
 				return err
 			}
-			d.Set("key_vault_secret_id", keyVaultSecretId)
+			d.Set("key_vault_secret_id", keyVaultSecretId.VersionlessID())
 		}
 
 		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
