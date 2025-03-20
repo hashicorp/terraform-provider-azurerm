@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource**: `azurerm_servicebus_namespace_customer_managed_key` [GH-28888]
 * **New Resource**: `azurerm_stream_analytics_job_storage_account` [GH-29113]
+* **New Resource**: `azurerm_web_pubsub_socketio` [GH-28992]
 
 ENHANCEMENTS:
 
