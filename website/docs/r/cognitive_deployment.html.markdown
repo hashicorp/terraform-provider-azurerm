@@ -64,7 +64,7 @@ The following arguments are supported:
 
 A `model` block supports the following:
 
-* `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created. Possible value is `OpenAI`.
+* `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
