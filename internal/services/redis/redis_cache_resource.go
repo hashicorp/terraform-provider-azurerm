@@ -35,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var skuWeight = map[string]int8{
@@ -493,15 +492,15 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("replicas_per_master"); ok {
-		parameters.Properties.ReplicasPerMaster = utils.Int64(int64(v.(int)))
+		parameters.Properties.ReplicasPerMaster = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("replicas_per_primary"); ok {
-		parameters.Properties.ReplicasPerPrimary = utils.Int64(int64(v.(int)))
+		parameters.Properties.ReplicasPerPrimary = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("redis_version"); ok {
-		parameters.Properties.RedisVersion = utils.String(v.(string))
+		parameters.Properties.RedisVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("tenant_settings"); ok {
@@ -509,7 +508,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("private_static_ip_address"); ok {
-		parameters.Properties.StaticIP = utils.String(v.(string))
+		parameters.Properties.StaticIP = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
@@ -524,7 +523,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		locks.ByName(parsed.SubnetName, network.SubnetResourceName)
 		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
 
-		parameters.Properties.SubnetId = utils.String(v.(string))
+		parameters.Properties.SubnetId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
@@ -605,19 +604,19 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if v, ok := d.GetOk("replicas_per_master"); ok {
 		if d.HasChange("replicas_per_master") {
-			parameters.Properties.ReplicasPerMaster = utils.Int64(int64(v.(int)))
+			parameters.Properties.ReplicasPerMaster = pointer.To(int64(v.(int)))
 		}
 	}
 
 	if v, ok := d.GetOk("replicas_per_primary"); ok {
 		if d.HasChange("replicas_per_primary") {
-			parameters.Properties.ReplicasPerPrimary = utils.Int64(int64(v.(int)))
+			parameters.Properties.ReplicasPerPrimary = pointer.To(int64(v.(int)))
 		}
 	}
 
 	if v, ok := d.GetOk("redis_version"); ok {
 		if d.HasChange("redis_version") {
-			parameters.Properties.RedisVersion = utils.String(v.(string))
+			parameters.Properties.RedisVersion = pointer.To(v.(string))
 		}
 	}
 
@@ -909,7 +908,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
-		output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
+		output.AadEnabled = pointer.To(strconv.FormatBool(entraEnabled))
 	}
 
 	// RDB Backup
@@ -925,22 +924,22 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 					return nil, fmt.Errorf("the rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
 				}
 			}
-			output.RdbBackupEnabled = utils.String(strconv.FormatBool(rdbBackupEnabled))
+			output.RdbBackupEnabled = pointer.To(strconv.FormatBool(rdbBackupEnabled))
 		} else if rdbBackupEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
 			return nil, fmt.Errorf("the `rdb_backup_enabled` property requires a `Premium` sku to be set")
 		}
 	}
 
 	if v := raw["rdb_backup_frequency"].(int); v > 0 {
-		output.RdbBackupFrequency = utils.String(strconv.Itoa(v))
+		output.RdbBackupFrequency = pointer.To(strconv.Itoa(v))
 	}
 
 	if v := raw["rdb_backup_max_snapshot_count"].(int); v > 0 {
-		output.RdbBackupMaxSnapshotCount = utils.String(strconv.Itoa(v))
+		output.RdbBackupMaxSnapshotCount = pointer.To(strconv.Itoa(v))
 	}
 
 	if v := raw["rdb_storage_connection_string"].(string); v != "" {
-		output.RdbStorageConnectionString = utils.String(v)
+		output.RdbStorageConnectionString = pointer.To(v)
 	}
 
 	if v := raw["notify_keyspace_events"].(string); v != "" {
@@ -953,16 +952,16 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	if valExists {
 		// aof_backup_enabled is available when SKU is Premium
 		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-			output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
+			output.AofBackupEnabled = pointer.To(strconv.FormatBool(v.(bool)))
 		}
 	}
 
 	if v := raw["aof_storage_connection_string_0"].(string); v != "" {
-		output.AofStorageConnectionString0 = utils.String(v)
+		output.AofStorageConnectionString0 = pointer.To(v)
 	}
 
 	if v := raw["aof_storage_connection_string_1"].(string); v != "" {
-		output.AofStorageConnectionString1 = utils.String(v)
+		output.AofStorageConnectionString1 = pointer.To(v)
 	}
 
 	authEnabled := raw["authentication_enabled"].(bool)
@@ -974,7 +973,7 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		}
 	} else {
 		value := isAuthNotRequiredAsString(authEnabled)
-		output.Authnotrequired = utils.String(value)
+		output.Authnotrequired = pointer.To(value)
 	}
 
 	if v := raw["storage_account_subscription_id"].(string); v != "" {
@@ -999,7 +998,7 @@ func expandRedisPatchSchedule(d *pluginsdk.ResourceData) *patchschedules.RedisPa
 
 		entries = append(entries, patchschedules.ScheduleEntry{
 			DayOfWeek:         patchschedules.DayOfWeek(dayOfWeek),
-			MaintenanceWindow: utils.String(maintenanceWindow),
+			MaintenanceWindow: pointer.To(maintenanceWindow),
 			StartHourUtc:      int64(startHourUtc),
 		})
 	}
