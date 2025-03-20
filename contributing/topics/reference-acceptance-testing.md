@@ -10,7 +10,9 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 > **Note:** Acceptance Tests provision real resources within Azure - which may have an associated charge for each resource.
 
-> When selecting SKUs for testing, pick the lowest/cheapest SKU which covers the test - unless there's good reason to otherwise (e.g. some configurations can provision more quickly using one SKU over another).
+* When selecting SKUs for testing, **pick the lowest or cheapest SKU** which covers the test - unless there's good reason to otherwise (e.g. some configurations can provision more quickly using one SKU over another).
+
+* Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/virtual_machine_resource_test.go)
 
 ### Running the Tests
 
@@ -306,7 +308,7 @@ func TestAccExampleResource_update(t *testing.T) {
 }
 ```
 
-However this doesn't necessarily cover all of the use-cases for this resource - or may be too broad depending on the resource, as such it's also common to have tests covering a subset of the fields, for example:
+However, this doesn't necessarily cover all use-cases for this resource - or may be too broad depending on the resource, as such it's also common to have tests covering a subset of the fields, for example:
 
 > **Note:** This is a simplified example for testing purposes, we'd generally recommend a test covering a related subset of the resource (e.g. enabling/disabling a block within the resource), rather than a single field - but it depends on the resource.
 
