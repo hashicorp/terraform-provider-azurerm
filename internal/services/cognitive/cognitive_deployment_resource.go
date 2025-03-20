@@ -88,12 +88,10 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"format": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"OpenAI",
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
 					"name": {
