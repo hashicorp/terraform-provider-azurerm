@@ -27,7 +27,7 @@ type WebPubSubSocketIOResourceModel struct {
 	Name                             string                                     `tfschema:"name"`
 	ResourceGroupName                string                                     `tfschema:"resource_group_name"`
 	Location                         string                                     `tfschema:"location"`
-	Sku                              []SkuModel                                 `tfschema:"sku"`
+	Sku                              []WebPubSubSocketIOSkuModel                `tfschema:"sku"`
 	AADAuthEnabled                   bool                                       `tfschema:"aad_auth_enabled"`
 	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	LiveTraceEnabled                 bool                                       `tfschema:"live_trace_enabled"`
@@ -49,7 +49,7 @@ type WebPubSubSocketIOResourceModel struct {
 	SecondaryConnectionString        string                                     `tfschema:"secondary_connection_string"`
 }
 
-type SkuModel struct {
+type WebPubSubSocketIOSkuModel struct {
 	Name     string `tfschema:"name"`
 	Capacity int64  `tfschema:"capacity"`
 }
@@ -307,7 +307,7 @@ func (w WebPubSubSocketIOResource) Create() sdk.ResourceFunc {
 						ClientCertEnabled: pointer.To(config.TlsClientCertEnabled),
 					},
 				},
-				Sku:  expandSkuFromModel(config.Sku),
+				Sku:  expandWebPubSubSocketIOSkuFromModel(config.Sku),
 				Tags: pointer.To(config.Tags),
 			}
 
@@ -362,7 +362,7 @@ func (w WebPubSubSocketIOResource) Read() sdk.ResourceFunc {
 				state.Identity = pointer.From(flattenedIdentity)
 
 				if sku := model.Sku; sku != nil {
-					state.Sku = flattenSkuToModel(sku)
+					state.Sku = flattenWebPubSubSocketIOSkuToModel(sku)
 				}
 
 				if props := model.Properties; props != nil {
@@ -442,7 +442,7 @@ func (w WebPubSubSocketIOResource) Update() sdk.ResourceFunc {
 
 			rd := metadata.ResourceData
 			if rd.HasChange("sku") {
-				payload.Sku = expandSkuFromModel(config.Sku)
+				payload.Sku = expandWebPubSubSocketIOSkuFromModel(config.Sku)
 			}
 
 			if rd.HasChange("aad_auth_enabled") {
@@ -591,7 +591,7 @@ func flattenLiveTraceConfigToMap(input *webpubsub.LiveTraceConfiguration) map[st
 	return result
 }
 
-func expandSkuFromModel(input []SkuModel) *webpubsub.ResourceSku {
+func expandWebPubSubSocketIOSkuFromModel(input []WebPubSubSocketIOSkuModel) *webpubsub.ResourceSku {
 	result := webpubsub.ResourceSku{}
 	if len(input) == 0 {
 		return &result
@@ -604,13 +604,13 @@ func expandSkuFromModel(input []SkuModel) *webpubsub.ResourceSku {
 	return &result
 }
 
-func flattenSkuToModel(input *webpubsub.ResourceSku) []SkuModel {
-	result := make([]SkuModel, 0)
+func flattenWebPubSubSocketIOSkuToModel(input *webpubsub.ResourceSku) []WebPubSubSocketIOSkuModel {
+	result := make([]WebPubSubSocketIOSkuModel, 0)
 	if input == nil {
 		return result
 	}
 
-	result = append(result, SkuModel{
+	result = append(result, WebPubSubSocketIOSkuModel{
 		Name:     input.Name,
 		Capacity: pointer.From(input.Capacity),
 	})
