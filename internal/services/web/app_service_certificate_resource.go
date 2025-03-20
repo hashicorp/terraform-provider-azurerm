@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -167,7 +168,6 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
 		d.Set("app_service_plan_id", props.ServerFarmID)
-		d.Set("key_vault_id", props.KeyVaultID)
 
 		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
 			envId, err := parse.AppServiceEnvironmentID(*props.HostingEnvironmentProfile.ID)
@@ -244,11 +244,12 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateKeyVaultID,
-			RequiredWith: []string{"key_vault_secret_id"},
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     commonids.ValidateKeyVaultID,
+			RequiredWith:     []string{"key_vault_secret_id"},
 		},
 
 		"key_vault_secret_id": {
