@@ -73,21 +73,8 @@ func TestAccCdnProfile_withTags(t *testing.T) {
 // Removed 'TestAccCdnProfile_basicToStandardAkamai' and 'TestAccCdnProfile_standardAkamai' test cases
 // due to Akamai support being retired.
 
-func TestAccCdnProfile_standardMicrosoft(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
-	r := CdnProfileResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.standardMicrosoft(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				acceptance.TestCheckResourceAttr(data.ResourceName, "sku", "Standard_Microsoft"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+// Removed 'TestAccCdnProfile_standardMicrosoft' due to Edgio being shut down on or before 15 January 2025
+// the 'TestAccCdnProfile_standardMicrosoft' is now the 'TestAccCdnProfile_basic' test case...
 
 func (r CdnProfileResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProfileID(state.ID)
@@ -120,7 +107,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -154,7 +141,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 
   tags = {
     environment = "Production"
@@ -179,31 +166,11 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 
   tags = {
     environment = "staging"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r CdnProfileResource) standardMicrosoft(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_profile" "test" {
-  name                = "acctestcdnprof%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard_Microsoft"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
