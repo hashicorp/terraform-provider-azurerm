@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `public_network_access` - (Optional) Whether approved public traffic is allowed through the firewall to this server.
 
-~> **Note:**  `public_network_access` is not available as an argument if the server is created with VNet Integration, i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`."
+~> **Note:**  If the server is created with VNet Integration (i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`"), `public_network_access` can only be set to `Disabled`.
 
 * `replication_role` - (Optional) The replication role. Possible value is `None`.
 

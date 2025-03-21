@@ -807,12 +807,14 @@ func resourceMysqlFlexibleServerDelete(d *pluginsdk.ResourceData, meta interface
 func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	network := servers.Network{}
 
-	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		network.PrivateDnsZoneResourceId = pointer.To(v.(string))
-	}
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
 		network.DelegatedSubnetResourceId = pointer.To(v.(string))
 	}
+
+	if v, ok := d.GetOk("private_dns_zone_id"); ok {
+		network.PrivateDnsZoneResourceId = pointer.To(v.(string))
+	}
+
 	if v, ok := d.GetOk("public_network_access"); ok {
 		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(v.(string)))
 	}
