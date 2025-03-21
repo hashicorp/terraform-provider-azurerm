@@ -54,7 +54,7 @@ resource "azurerm_batch_pool" "example" {
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_batch_account.example.name
   display_name        = "Test Acc Pool Auto"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   auto_scale {
