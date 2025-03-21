@@ -297,6 +297,10 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_paths = ["/definition/id"]
+  computed_property {
+    name  = "cp_lowerName"
+    query = "SELECT VALUE LOWER(c.name) FROM c"
+  }
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
@@ -394,6 +398,14 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name         = azurerm_cosmosdb_sql_database.test.name
   partition_key_paths   = ["/definition/id"]
   partition_key_version = 1
+  computed_property {
+    name  = "cp_upperName"
+    query = "SELECT VALUE UPPER(c.name) FROM c"
+  }
+  computed_property {
+    name  = "cp_lowerName"
+    query = "SELECT VALUE LOWER(c.name) FROM c"
+  }
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
