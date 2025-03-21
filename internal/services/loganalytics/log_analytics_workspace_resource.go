@@ -354,7 +354,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace update.")
 
 	var isLACluster bool
 
