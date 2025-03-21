@@ -418,14 +418,14 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	skuName := d.Get("sku").(string)
-	if sku := props.Sku; sku != nil {
-		if strings.EqualFold(string(sku.Name), string(workspaces.WorkspaceSkuNameEnumLACluster)) {
-			isLACluster = true
-		}
-	}
-
 	if d.HasChange("sku") {
+		skuName := d.Get("sku").(string)
+		if sku := props.Sku; sku != nil {
+			if strings.EqualFold(string(sku.Name), string(workspaces.WorkspaceSkuNameEnumLACluster)) {
+				isLACluster = true
+			}
+		}
+
 		if props.Sku == nil {
 			props.Sku = &workspaces.WorkspaceSku{}
 		}
@@ -442,6 +442,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("reservation_capacity_in_gb_per_day") {
+		skuName := d.Get("sku").(string)
 		if payload.Properties.Sku == nil {
 			payload.Properties.Sku = &workspaces.WorkspaceSku{}
 		}
