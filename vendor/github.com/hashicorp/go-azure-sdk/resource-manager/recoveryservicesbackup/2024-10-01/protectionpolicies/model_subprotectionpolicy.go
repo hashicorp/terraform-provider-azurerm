@@ -9,24 +9,27 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SubProtectionPolicy struct {
-	PolicyType      *PolicyType               `json:"policyType,omitempty"`
-	RetentionPolicy RetentionPolicy           `json:"retentionPolicy"`
-	SchedulePolicy  SchedulePolicy            `json:"schedulePolicy"`
-	TieringPolicy   *map[string]TieringPolicy `json:"tieringPolicy,omitempty"`
+	PolicyType                      *PolicyType                      `json:"policyType,omitempty"`
+	RetentionPolicy                 RetentionPolicy                  `json:"retentionPolicy"`
+	SchedulePolicy                  SchedulePolicy                   `json:"schedulePolicy"`
+	SnapshotBackupAdditionalDetails *SnapshotBackupAdditionalDetails `json:"snapshotBackupAdditionalDetails,omitempty"`
+	TieringPolicy                   *map[string]TieringPolicy        `json:"tieringPolicy,omitempty"`
 }
 
 var _ json.Unmarshaler = &SubProtectionPolicy{}
 
 func (s *SubProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		PolicyType    *PolicyType               `json:"policyType,omitempty"`
-		TieringPolicy *map[string]TieringPolicy `json:"tieringPolicy,omitempty"`
+		PolicyType                      *PolicyType                      `json:"policyType,omitempty"`
+		SnapshotBackupAdditionalDetails *SnapshotBackupAdditionalDetails `json:"snapshotBackupAdditionalDetails,omitempty"`
+		TieringPolicy                   *map[string]TieringPolicy        `json:"tieringPolicy,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.PolicyType = decoded.PolicyType
+	s.SnapshotBackupAdditionalDetails = decoded.SnapshotBackupAdditionalDetails
 	s.TieringPolicy = decoded.TieringPolicy
 
 	var temp map[string]json.RawMessage
