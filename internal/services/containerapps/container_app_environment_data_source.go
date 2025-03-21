@@ -72,7 +72,7 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 		"log_analytics_workspace_name": {
 			Type:        pluginsdk.TypeString,
 			Computed:    true,
-			Description: "The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to. (Only available if workspace is in same subscription)",
+			Description: "The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to.",
 		},
 
 		"infrastructure_subnet_id": {
