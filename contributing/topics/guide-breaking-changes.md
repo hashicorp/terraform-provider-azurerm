@@ -190,7 +190,7 @@ The following example follows a fictional resource that will have the following 
       return args
    }
    ```
-> **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
+   > **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
 
 2. Update the Create/Read/Update methods if necessary.
 
@@ -236,7 +236,7 @@ The following example follows a fictional resource that will have the following 
    `, data.RandomInteger, data.Locations.Primary)
    }
    ```
-> **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
+   > **Note:** Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.
 
 4. Update the upgrade guide under `website/docs/5.0-upgrade-guide.markdown`
    
@@ -370,7 +370,7 @@ func (r SparkResource) Arguments() map[string]*pluginsdk.Schema{
 
 ## Adding a new property with a default value
 
-When adding a new property with a default value, we can introduce a similar breaking change as the one noted above but it's even harder to pinpoint. Take for example the following property recently added to `azurerm_kusto_account`:
+When adding a new property with a default value, we can introduce a similar breaking change as the one noted above, but it's even harder to pinpoint. Take for example the following property recently added to `azurerm_kusto_account`:
                              
 It originally came in like this:
 
@@ -395,8 +395,8 @@ There are many ways to accidentally add a breaking change when looking at proper
 
 ## Post Release Breaking Change Clean Up
 
-Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. `if !features.FivePointOh() { ... }`) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for.
+Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. `if !features.FivePointOh() { ... }`) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for:
 
 1. For typed resources, if you are removing a property, make sure you also remove it from the model(s). The fields should have a `removedInNextMajorVersion` tag. 
 2. For typed resources, there may be properties that were only included once the major version was released, make sure you remove the `addedInNextMajorVersion` tag from these properties in the model(s).
-3. Confirm the documentation is up-to-date with what is in code, generally this should already be the case, but it's good to double check.
+3. Confirm the documentation is up-to-date with what is in code, generally this should already be the case, but it's good to double-check.
