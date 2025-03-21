@@ -208,5 +208,5 @@ func findLogAnalyticsWorkspaceName(ctx context.Context, client *workspaces.Works
 		}
 	}
 
-	return "", fmt.Errorf("no matching workspace found")
+	return "", nil
 }
