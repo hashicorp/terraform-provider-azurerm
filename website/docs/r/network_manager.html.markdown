@@ -3,13 +3,13 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_manager"
 description: |-
-  Manages a Network Managers.
+  Manages a Network Manager.
 
 ---
 
 # azurerm_network_manager
 
-Manages a Network Managers.
+Manages a Network Manager.
 
 ## Example Usage
 
@@ -41,19 +41,19 @@ resource "azurerm_network_manager" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Network Managers. Changing this forces a new Network Managers to be created.
+* `name` - (Required) Specifies the name which should be used for this Network Manager. Changing this forces a new Network Manager to be created.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Network Managers should exist. Changing this forces a new Network Managers to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Network Manager should exist. Changing this forces a new Network Manager to be created.
 
-* `location` - (Required) Specifies the Azure Region where the Network Managers should exist. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the Azure Region where the Network Manager should exist. Changing this forces a new resource to be created.
 
 * `scope` - (Required) A `scope` block as defined below.
 
-* `scope_accesses` - (Required) A list of configuration deployment type. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`, corresponds to if Connectivity Configuration, Security Admin Configuration or Routing Configuration is allowed for the Network Manager.
+* `description` - (Optional) A description of the Network Manager.
 
-* `description` - (Optional) A description of the network manager.
+* `scope_accesses` - (Optional) A list of configuration deployment types. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`, which specify whether Connectivity Configuration, Security Admin Configuration or Routing Configuration are allowed for the Network Manager.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Network Managers.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Network Manager.
 
 ---
 
@@ -69,7 +69,7 @@ A `scope` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Network Managers.
+* `id` - The ID of the Network Manager.
 
 * `cross_tenant_scopes` - One or more `cross_tenant_scopes` blocks as defined below.
 
@@ -87,14 +87,14 @@ A `cross_tenant_scopes` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Network Managers.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Network Managers.
-* `update` - (Defaults to 30 minutes) Used when updating the Network Managers.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Network Managers.
+* `create` - (Defaults to 30 minutes) Used when creating the Network Manager.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Manager.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Manager.
 
 ## Import
 
-Network Managers can be imported using the `resource id`, e.g.
+Network Manager can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_network_manager.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1
