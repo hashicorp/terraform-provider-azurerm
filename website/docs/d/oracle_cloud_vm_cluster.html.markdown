@@ -112,6 +112,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `scan_listener_port_tcp_ssl` - The TCPS Single Client Access Name (SCAN) port. The default port is 2484.
 
+* `system_version` - (Optional) Operating system version of the Exadata image.
+
 * `shape` - The model name of the Exadata hardware running the Cloud VM Cluster.
 
 * `ssh_public_keys` - The public key portion of one or more key pairs used for SSH access to the Cloud VM Cluster.
