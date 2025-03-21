@@ -29,6 +29,7 @@ resource "azurerm_cognitive_account" "example" {
 resource "azurerm_cognitive_deployment" "example" {
   name                 = "example-cd"
   cognitive_account_id = azurerm_cognitive_account.example.id
+  
   model {
     format  = "OpenAI"
     name    = "text-curie-001"
