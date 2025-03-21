@@ -180,7 +180,7 @@ ASP.NET V4.8 | v4.0
 
 * `tomcat_version` - (Optional) The version of Tomcat the Java App should use. Conflicts with `java_embedded_server_enabled`
 
-~> **NOTE:** See the official documentation for current supported versions.  Some example valuess include: `10.0`, `10.0.20`.
+~> **NOTE:** See the official documentation for current supported versions. Some example values include: `10.0`, `10.0.20`.
 
 * `java_embedded_server_enabled` - (Optional) Should the Java Embedded Server (Java SE) be used to run the app.
 
@@ -392,7 +392,7 @@ A `facebook_v2` block supports the following:
 
 A `github_v2` block supports the following:
 
-* `client_id` - (Required) The ID of the GitHub app used for login..
+* `client_id` - (Required) The ID of the GitHub app used for login.
 
 * `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for GitHub Login.
 

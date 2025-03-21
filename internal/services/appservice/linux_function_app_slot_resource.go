@@ -74,7 +74,7 @@ type LinuxFunctionAppSlotModel struct {
 	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
 	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
 	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
+	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
 }
 
 var _ sdk.ResourceWithUpdate = LinuxFunctionAppSlotResource{}

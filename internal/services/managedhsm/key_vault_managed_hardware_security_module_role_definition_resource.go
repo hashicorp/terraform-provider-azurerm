@@ -32,9 +32,6 @@ type KeyVaultMHSMRoleDefinitionModel struct {
 	Permission        []Permission `tfschema:"permission"`
 	RoleType          string       `tfschema:"role_type"`
 	ResourceManagerId string       `tfschema:"resource_manager_id"`
-
-	// TODO: remove in 4.0
-	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 type Permission struct {
@@ -312,9 +309,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 			state := KeyVaultMHSMRoleDefinitionModel{
 				Name:         pointer.From(result.Name),
 				ManagedHSMID: managedHsmId.ID(),
-
-				// TODO: remove in 4.0
-				VaultBaseUrl: id.BaseURI(),
 			}
 
 			if v := pointer.From(result.ID); v != "" {
