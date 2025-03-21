@@ -5,12 +5,12 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -1213,7 +1213,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 					}
 				},
 			*/
-			if strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) && len(applicationLog.AzureBlobStorage) > 0 {
+			if !strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) && len(applicationLog.AzureBlobStorage) > 0 {
 				logs.ApplicationLogs = []ApplicationLog{applicationLog}
 			}
 		}
@@ -1484,7 +1484,7 @@ func onlyDefaultVirtualApplication(input []webapps.VirtualApplication, alwaysOn 
 
 	if *app.VirtualPath == "/" && *app.PhysicalPath == "site\\wwwroot" && app.VirtualDirectories == nil {
 		// if alwaysOn is true, then the default for PreloadEnabled is true
-		// if alwaysOn is false, then the default for PreloadEnabled to false
+		// if alwaysOn is false, then the default for PreloadEnabled is false
 		if (alwaysOn && *app.PreloadEnabled) || (!alwaysOn && !*app.PreloadEnabled) {
 			return true
 		}
