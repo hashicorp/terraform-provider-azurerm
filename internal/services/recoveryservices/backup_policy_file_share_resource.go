@@ -223,25 +223,6 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	log.Printf("[DEBUG] Deleting %s", id)
-
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
-}
-
 func expandBackupProtectionPolicyFileShareSchedule(d *pluginsdk.ResourceData, times []string) *protectionpolicies.SimpleSchedulePolicy {
 	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
 		block := bb[0].(map[string]interface{})
@@ -633,6 +614,25 @@ func resourceBackupProtectionPolicyFileShareRefreshFunc(ctx context.Context, cli
 
 		return resp, "Found", nil
 	}
+}
+
+func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[DEBUG] Deleting %s", id)
+
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
 }
 
 func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schema {
