@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/environmenttypes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/projects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/environmenttypes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -122,7 +122,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.EnvironmentTypes
+			client := metadata.Client.DevCenter.V20250201.EnvironmentTypes
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model DevCenterProjectEnvironmentTypeResourceModel
@@ -185,7 +185,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.EnvironmentTypes
+			client := metadata.Client.DevCenter.V20250201.EnvironmentTypes
 
 			id, err := environmenttypes.ParseEnvironmentTypeID(metadata.ResourceData.Id())
 			if err != nil {
@@ -234,7 +234,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.EnvironmentTypes
+			client := metadata.Client.DevCenter.V20250201.EnvironmentTypes
 
 			id, err := environmenttypes.ParseEnvironmentTypeID(metadata.ResourceData.Id())
 			if err != nil {
@@ -300,7 +300,7 @@ func (r DevCenterProjectEnvironmentTypeResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.EnvironmentTypes
+			client := metadata.Client.DevCenter.V20250201.EnvironmentTypes
 
 			id, err := environmenttypes.ParseEnvironmentTypeID(metadata.ResourceData.Id())
 			if err != nil {

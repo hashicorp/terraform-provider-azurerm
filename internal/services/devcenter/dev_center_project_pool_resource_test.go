@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/pools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -105,7 +105,7 @@ func (r DevCenterProjectPoolTestResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.DevCenter.V20230401.Pools.Get(ctx, *id)
+	resp, err := clients.DevCenter.V20250201.Pools.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
