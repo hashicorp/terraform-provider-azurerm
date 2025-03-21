@@ -27,7 +27,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 		
 		"logging_enabled": {
-			Type: pluginsdk.TypeBool,
+			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		}
 
