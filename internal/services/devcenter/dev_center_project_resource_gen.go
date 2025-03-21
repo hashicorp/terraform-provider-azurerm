@@ -245,7 +245,7 @@ func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectProp
 
 func (r DevCenterProjectResource) mapProjectPropertiesToDevCenterProjectResourceSchema(input projects.ProjectProperties, output *DevCenterProjectResourceSchema) error {
 	output.Description = pointer.From(input.Description)
-	output.DevCenterId = *input.DevCenterId
+	output.DevCenterId = pointer.From(input.DevCenterId)
 	output.DevCenterUri = pointer.From(input.DevCenterUri)
 	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
 	return nil
