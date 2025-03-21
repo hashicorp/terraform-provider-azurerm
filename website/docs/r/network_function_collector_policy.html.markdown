@@ -105,6 +105,8 @@ An `ipfx_emission` block supports the following:
 
 * `destination_types` - (Required) A list of emission destination types. The only possible value is `AzureMonitor`. Changing this forces a new Network Function Collector Policy to be created.
 
+~> **Note:** Please use the [`azurerm_monitor_diagnostic_setting`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) resource to forward logs to a Log Analytics Workspace.
+
 ---
 
 An `ipfx_ingestion` block supports the following:

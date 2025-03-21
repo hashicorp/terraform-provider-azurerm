@@ -12,15 +12,15 @@ var _ CopySource = SnowflakeV2Source{}
 
 type SnowflakeV2Source struct {
 	ExportSettings SnowflakeExportCopyCommand `json:"exportSettings"`
-	Query          *string                    `json:"query,omitempty"`
+	Query          *interface{}               `json:"query,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s SnowflakeV2Source) CopySource() BaseCopySourceImpl {

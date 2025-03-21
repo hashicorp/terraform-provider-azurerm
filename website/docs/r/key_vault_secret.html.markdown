@@ -75,7 +75,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault Secret. Changing this forces a new resource to be created.
 
-* `value` - (Required) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
+* `value` - (Optional) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
+
+* `value_wo` - (Optional, Write-Only) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
+
+* ~> **Note:** One of `value` or `value_wo` must be specified.
+
+* `value_wo_version` - (Optional) An integer value used to trigger an update for `value_wo`. This property should be incremented when updating `value_wo`.
 
 ~> **Note:** Key Vault strips newlines. To preserve newlines in multi-line secrets try replacing them with `\n` or by base 64 encoding them with `replace(file("my_secret_file"), "/\n/", "\n")` or `base64encode(file("my_secret_file"))`, respectively.
 
@@ -87,7 +93,7 @@ The following arguments are supported:
 
 * `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
 
-* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z'). Removing this forces a new resource to be created.
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
 
 ## Attributes Reference
 

@@ -73,8 +73,8 @@ resource "azurerm_ai_foundry" "example" {
 
 resource "azurerm_ai_foundry_project" "example" {
   name               = "example"
-  location           = azurerm_ai_services_hub.example.location
-  ai_services_hub_id = azurerm_ai_services_hub.example.id
+  location           = azurerm_ai_foundry.example.location
+  ai_services_hub_id = azurerm_ai_foundry.example.id
 }
 ```
 
@@ -86,7 +86,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the AI Foundry Project should exist. Changing this forces a new AI Foundry Project to be created.
 
-* `ai_services_hub_id` - (Required) The AI Services Hub ID under which this Project should be created. Changing this forces a new AI Foundry Project to be created.
+* `ai_services_hub_id` - (Required) The AI Foundry ID under which this Project should be created. Changing this forces a new AI Foundry Project to be created.
 
 ---
 
@@ -112,7 +112,7 @@ A `identity` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the AI Foundry Project.
 

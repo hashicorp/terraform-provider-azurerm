@@ -4,6 +4,6 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SSISPropertyOverride struct {
-	IsSensitive *bool  `json:"isSensitive,omitempty"`
-	Value       string `json:"value"`
+	IsSensitive *bool       `json:"isSensitive,omitempty"`
+	Value       interface{} `json:"value"`
 }
