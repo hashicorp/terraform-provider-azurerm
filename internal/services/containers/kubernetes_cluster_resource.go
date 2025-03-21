@@ -2402,6 +2402,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			nodePublicIpEnabled,
 			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
+			"default_node_pool.0.kubelet_disk_type",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
 			"default_node_pool.0.only_critical_addons_enabled",
