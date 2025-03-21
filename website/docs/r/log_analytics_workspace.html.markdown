@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
-  name                = "acctest-01"
+  name                = "example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
@@ -37,21 +37,23 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+---
+
 * `allow_resource_only_permissions` - (Optional) Specifies if the log Analytics Workspace allow users accessing to data associated with resources they have permission to view, without permission to workspace. Defaults to `true`.
 
 * `local_authentication_disabled` - (Optional) Specifies if the log Analytics workspace should enforce authentication using Azure AD. Defaults to `false`.
 
-* `sku` - (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, `CapacityReservation`, and `PerGB2018` (new SKU as of `2018-04-03`). Defaults to `PerGB2018`.
+* `sku` - (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, `CapacityReservation`, `PerGB2018`, and `LACluster`. Defaults to `PerGB2018`.
 
-~> **NOTE:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you're provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKUs defined above. More information about [the Pricing SKUs is available at the following URI](https://aka.ms/PricingTierWarning).
+~> **Note:** `sku` should only be set to `LACluster` when the Log Analytics Workspace is linked to a Log Analytics Cluster. Additionally, `sku` cannot be modified while linked.
 
-~> **NOTE:** Changing `sku` forces a new Log Analytics Workspace to be created, except when changing between `PerGB2018` and `CapacityReservation`. However, changing `sku` to `CapacityReservation` or changing `reservation_capacity_in_gb_per_day` to a higher tier will lead to a 31-days commitment period, during which the SKU cannot be changed to a lower one. Please refer to [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#commitment-tiers) for further information.
+~> **Note:** Changing `sku` forces a new Log Analytics Workspace to be created, except when changing between `PerGB2018` and `CapacityReservation`. Changing `sku` to `CapacityReservation` or changing `reservation_capacity_in_gb_per_day` to a higher tier will lead to a 31-days commitment period, during which the SKU cannot be changed to a lower one. Please refer to [official documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#commitment-tiers) for further information.
 
-* `retention_in_days` - (Optional) The workspace data retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
+-> **Note:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you've provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKUs defined above. More information about [the Pricing SKUs is available at the following URI](https://aka.ms/PricingTierWarning).
 
-* `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB. Defaults to -1 (unlimited) if omitted.
+* `retention_in_days` - (Optional) The workspace data retention in days. Possible values are between `30` and `730`.
 
-~> **NOTE:** When `sku` is set to `Free` this field should not be set and has a default value of `0.5`.
+* `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB. Defaults to `-1` (unlimited) if omitted.
 
 * `cmk_for_query_forced` - (Optional) Is Customer Managed Storage mandatory for query management?
 
@@ -63,7 +65,7 @@ The following arguments are supported:
 
 * `reservation_capacity_in_gb_per_day` - (Optional) The capacity reservation level in GB for this workspace. Possible values are `100`, `200`, `300`, `400`, `500`, `1000`, `2000` and `5000`.
 
-~> **NOTE:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
+~> **Note:** `reservation_capacity_in_gb_per_day` can only be used when the `sku` is set to `CapacityReservation`.
 
 * `data_collection_rule_id` - (Optional) The ID of the Data Collection Rule to use for this workspace.
 
@@ -71,15 +73,13 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-~> **NOTE:** If a `azurerm_log_analytics_workspace` is connected to a `azurerm_log_analytics_cluster` via a `azurerm_log_analytics_linked_service` you will not be able to modify the workspaces `sku` field until the link between the workspace and the cluster has been broken by deleting the `azurerm_log_analytics_linked_service` resource. All other fields are modifiable while the workspace is linked to a cluster.
-
 ---
 
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Log Analytics Workspace. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you) and `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field.
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Log Analytics Workspace has been created.
+-> **Note:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Log Analytics Workspace has been created.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
@@ -100,8 +100,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Workspace.
 
 ## Import
