@@ -1721,7 +1721,7 @@ resource "azurerm_windows_function_app_slot" "test" {
   builtin_logging_enabled            = false
   client_certificate_enabled         = true
   client_certificate_mode            = "Required"
-  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
+  client_certificate_exclusion_paths = ""
 
   connection_string {
     name  = "Second"
@@ -1808,7 +1808,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
     minimum_tls_version      = "1.1"
     scm_minimum_tls_version  = "1.1"
-    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
+    minimum_tls_cipher_suite = "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
 
     cors {
       allowed_origins = [
@@ -1902,8 +1902,8 @@ resource "azurerm_windows_function_app_slot" "test" {
 
   builtin_logging_enabled            = false
   client_certificate_enabled         = true
-  client_certificate_mode            = "OptionalInteractiveUser"
-  client_certificate_exclusion_paths = "/foo;/bar;/hello;/world"
+  client_certificate_mode            = "Required"
+  client_certificate_exclusion_paths = ""
 
   connection_string {
     name  = "First"
@@ -1994,7 +1994,7 @@ resource "azurerm_windows_function_app_slot" "test" {
 
     minimum_tls_version      = "1.1"
     scm_minimum_tls_version  = "1.1"
-    minimum_tls_cipher_suite = "TLS_AES_128_GCM_SHA256"
+    minimum_tls_cipher_suite = "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
 
     cors {
       allowed_origins = [
