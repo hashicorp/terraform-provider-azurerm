@@ -133,7 +133,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 		Properties: AzureFileShareProtectionPolicyProperties,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, policy); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, policy, protectionpolicies.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 

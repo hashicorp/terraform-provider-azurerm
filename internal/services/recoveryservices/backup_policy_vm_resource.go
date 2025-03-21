@@ -170,7 +170,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 		Properties: vmProtectionPolicyProperties,
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, id, policy); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, policy, protectionpolicies.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -404,7 +404,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	model.Properties = properties
-	if _, err = client.CreateOrUpdate(ctx, *id, model); err != nil {
+	if _, err = client.CreateOrUpdate(ctx, *id, model, protectionpolicies.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
