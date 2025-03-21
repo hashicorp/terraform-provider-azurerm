@@ -59,7 +59,7 @@ props := machinelearning.Workspace{
 * When performing selective updates check whether the property has changed.
 
 ```go
-if d.HasChange("logging_enabled") {
+if metadata.ResourceData.HasChange("logging_enabled") {
 	existing.Model.Properties.LoggingEnabled = pointer.From(model.LoggingEnabled)
 }
 ```
@@ -68,14 +68,16 @@ if d.HasChange("logging_enabled") {
 
 * Generally speaking all properties should have a value set into state.
 
-* If the value returned by the API is a pointer we should nil check this to prevent panics in the provider.
+* If the value returned by the API is a pointer we should account for the possibility of a nil reference to prevent panics in the provider. One way to do this is to use `pointer.From()`:
 
 ```go
-loggingEnabled := true
-if v := props.LoggingEnabled; v != nil {
-	loggingEnabled = *v
+state := MyResourceModel{}
+
+if model := resp.Model; model != nil {
+    state.LoggingEnabled = pointer.From(model.LoggingEnabled)
 }
-d.Set("logging_enabled", loggingEnabled)
+
+return metadata.Encode(&state)
 ```
 
 ### Tests
