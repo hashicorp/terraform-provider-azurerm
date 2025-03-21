@@ -1,5 +1,9 @@
 ## 4.25.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
+
 ## 4.24.0 (March 21, 2025)
 
 FEATURES:
