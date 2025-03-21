@@ -335,6 +335,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 		),
 	}
 
+	// TODO temporary fix until v0.71.1 of go-azure-helpers is brought in
 	resource.Schema["zone"].Computed = true
 
 	if !features.FivePointOh() {
