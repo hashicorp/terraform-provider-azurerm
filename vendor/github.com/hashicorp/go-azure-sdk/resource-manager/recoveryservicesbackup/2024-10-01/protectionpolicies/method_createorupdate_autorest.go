@@ -16,9 +16,33 @@ type CreateOrUpdateOperationResponse struct {
 	Model        *ProtectionPolicyResource
 }
 
+type CreateOrUpdateOperationOptions struct {
+	XMsAuthorizationAuxiliary *string
+}
+
+func DefaultCreateOrUpdateOperationOptions() CreateOrUpdateOperationOptions {
+	return CreateOrUpdateOperationOptions{}
+}
+
+func (o CreateOrUpdateOperationOptions) toHeaders() map[string]interface{} {
+	out := make(map[string]interface{})
+
+	if o.XMsAuthorizationAuxiliary != nil {
+		out["x-ms-authorization-auxiliary"] = *o.XMsAuthorizationAuxiliary
+	}
+
+	return out
+}
+
+func (o CreateOrUpdateOperationOptions) toQueryString() map[string]interface{} {
+	out := make(map[string]interface{})
+
+	return out
+}
+
 // CreateOrUpdate ...
-func (c ProtectionPoliciesClient) CreateOrUpdate(ctx context.Context, id BackupPolicyId, input ProtectionPolicyResource) (result CreateOrUpdateOperationResponse, err error) {
-	req, err := c.preparerForCreateOrUpdate(ctx, id, input)
+func (c ProtectionPoliciesClient) CreateOrUpdate(ctx context.Context, id BackupPolicyId, input ProtectionPolicyResource, options CreateOrUpdateOperationOptions) (result CreateOrUpdateOperationResponse, err error) {
+	req, err := c.preparerForCreateOrUpdate(ctx, id, input, options)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "protectionpolicies.ProtectionPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -40,15 +64,20 @@ func (c ProtectionPoliciesClient) CreateOrUpdate(ctx context.Context, id BackupP
 }
 
 // preparerForCreateOrUpdate prepares the CreateOrUpdate request.
-func (c ProtectionPoliciesClient) preparerForCreateOrUpdate(ctx context.Context, id BackupPolicyId, input ProtectionPolicyResource) (*http.Request, error) {
+func (c ProtectionPoliciesClient) preparerForCreateOrUpdate(ctx context.Context, id BackupPolicyId, input ProtectionPolicyResource, options CreateOrUpdateOperationOptions) (*http.Request, error) {
 	queryParameters := map[string]interface{}{
 		"api-version": defaultApiVersion,
+	}
+
+	for k, v := range options.toQueryString() {
+		queryParameters[k] = autorest.Encode("query", v)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(c.baseUri),
+		autorest.WithHeaders(options.toHeaders()),
 		autorest.WithPath(id.ID()),
 		autorest.WithJSON(input),
 		autorest.WithQueryParameters(queryParameters))
