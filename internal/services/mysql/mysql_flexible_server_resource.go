@@ -158,12 +158,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"delegated_subnet_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ValidateFunc:  commonids.ValidateSubnetID,
-				ConflictsWith: []string{"public_network_access"},
-				RequiredWith:  []string{"private_dns_zone_id"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateSubnetID,
 			},
 
 			"geo_redundant_backup_enabled": {
@@ -233,19 +231,17 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"private_dns_zone_id": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ValidateFunc:  privatezones.ValidatePrivateDnsZoneID,
-				ConflictsWith: []string{"public_network_access"},
-				RequiredWith:  []string{"delegated_subnet_id"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
 			"public_network_access": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ValidateFunc:  validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
-				ConflictsWith: []string{"delegated_subnet_id", "private_dns_zone_id"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      servers.EnableStatusEnumEnabled,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
 			},
 
 			"replication_role": {
@@ -556,13 +552,10 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			if network := props.Network; network != nil {
 				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
+				d.Set("public_network_access", string(pointer.From(network.PublicNetworkAccess)))
 
-				if network.DelegatedSubnetResourceId == nil {
-					d.Set("public_network_access", string(pointer.From(network.PublicNetworkAccess)))
-
-					if !features.FivePointOh() {
-						d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
-					}
+				if !features.FivePointOh() {
+					d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
 				}
 			}
 
@@ -769,11 +762,10 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("public_network_access") {
-		publicNetworkAccess := servers.EnableStatusEnum(d.Get("public_network_access").(string))
 		if parameters.Properties.Network == nil {
 			parameters.Properties.Network = &servers.Network{}
 		}
-		parameters.Properties.Network.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		parameters.Properties.Network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(d.Get("public_network_access").(string)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -820,7 +812,8 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	}
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
 		network.DelegatedSubnetResourceId = pointer.To(v.(string))
-	} else if v, ok := d.GetOk("public_network_access"); ok {
+	}
+	if v, ok := d.GetOk("public_network_access"); ok {
 		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(v.(string)))
 	}
 

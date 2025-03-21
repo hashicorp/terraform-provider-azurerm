@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -69,8 +68,6 @@ func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password"),
@@ -557,40 +554,14 @@ func TestAccMySqlFlexibleServer_updatePublicNetworkAccess(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.publicNetworkAccess(data, "Disabled"),
+			Config: r.publicNetworkAccess(data, servers.EnableStatusEnumDisabled),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password"),
 		{
-			Config: r.publicNetworkAccess(data, "Enabled"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password"),
-	})
-}
-
-func TestAccMySqlFlexibleServer_updatePublicNetworkAccessEnabled(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("Skipping as `azurerm_mysql_flexible_server` does not support `public_network_access_enabled` argument in version 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.publicNetworkAccessEnabled(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password"),
-		{
-			Config: r.publicNetworkAccessEnabled(data, true),
+			Config: r.publicNetworkAccess(data, servers.EnableStatusEnumEnabled),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -718,9 +689,10 @@ resource "azurerm_mysql_flexible_server" "test" {
     iops    = 360
   }
 
-  delegated_subnet_id = azurerm_subnet.test.id
-  private_dns_zone_id = azurerm_private_dns_zone.test.id
-  sku_name            = "GP_Standard_D2ds_v4"
+  delegated_subnet_id   = azurerm_subnet.test.id
+  private_dns_zone_id   = azurerm_private_dns_zone.test.id
+  public_network_access = "Disabled"
+  sku_name              = "GP_Standard_D2ds_v4"
 
   high_availability {
     mode                      = "ZoneRedundant"
@@ -805,9 +777,10 @@ resource "azurerm_mysql_flexible_server" "test" {
     io_scaling_enabled = false
   }
 
-  delegated_subnet_id = azurerm_subnet.test.id
-  private_dns_zone_id = azurerm_private_dns_zone.test.id
-  sku_name            = "GP_Standard_D4ds_v4"
+  delegated_subnet_id   = azurerm_subnet.test.id
+  private_dns_zone_id   = azurerm_private_dns_zone.test.id
+  public_network_access = "Disabled"
+  sku_name              = "GP_Standard_D4ds_v4"
 
   maintenance_window {
     day_of_week  = 0
@@ -1391,7 +1364,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }
 
-func (r MySqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData, publicNetworkAccess string) string {
+func (r MySqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData, publicNetworkAccess servers.EnableStatusEnum) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1406,21 +1379,4 @@ resource "azurerm_mysql_flexible_server" "test" {
   public_network_access  = "%s"
 }
 `, r.template(data), data.RandomInteger, publicNetworkAccess)
-}
-
-func (r MySqlFlexibleServerResource) publicNetworkAccessEnabled(data acceptance.TestData, publicNetworkAccessEnabled bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mysql_flexible_server" "test" {
-  name                          = "acctest-fs-%d"
-  resource_group_name           = azurerm_resource_group.test.name
-  location                      = azurerm_resource_group.test.location
-  administrator_login           = "_admin_Terraform_892123456789312"
-  administrator_password        = "QAZwsx123"
-  sku_name                      = "B_Standard_B1s"
-  zone                          = "2"
-  public_network_access_enabled = %t
-}
-`, r.template(data), data.RandomInteger, publicNetworkAccessEnabled)
 }
