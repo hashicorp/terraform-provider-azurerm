@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/projects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -88,7 +88,7 @@ func (r DevCenterProjectResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Projects
+			client := metadata.Client.DevCenter.V20250201.Projects
 
 			var config DevCenterProjectResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -128,7 +128,7 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Projects
+			client := metadata.Client.DevCenter.V20250201.Projects
 			schema := DevCenterProjectResourceSchema{}
 
 			id, err := projects.ParseProjectID(metadata.ResourceData.Id())
@@ -161,7 +161,7 @@ func (r DevCenterProjectResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Projects
+			client := metadata.Client.DevCenter.V20250201.Projects
 
 			id, err := projects.ParseProjectID(metadata.ResourceData.Id())
 			if err != nil {
@@ -181,7 +181,7 @@ func (r DevCenterProjectResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Projects
+			client := metadata.Client.DevCenter.V20250201.Projects
 
 			id, err := projects.ParseProjectID(metadata.ResourceData.Id())
 			if err != nil {
@@ -237,7 +237,7 @@ func (r DevCenterProjectResource) mapProjectToDevCenterProjectResourceSchema(inp
 
 func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectProperties(input DevCenterProjectResourceSchema, output *projects.ProjectProperties) error {
 	output.Description = &input.Description
-	output.DevCenterId = input.DevCenterId
+	output.DevCenterId = &input.DevCenterId
 
 	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
 	return nil
@@ -245,7 +245,7 @@ func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectProp
 
 func (r DevCenterProjectResource) mapProjectPropertiesToDevCenterProjectResourceSchema(input projects.ProjectProperties, output *DevCenterProjectResourceSchema) error {
 	output.Description = pointer.From(input.Description)
-	output.DevCenterId = input.DevCenterId
+	output.DevCenterId = *input.DevCenterId
 	output.DevCenterUri = pointer.From(input.DevCenterUri)
 	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
 	return nil
