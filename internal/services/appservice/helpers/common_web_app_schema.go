@@ -5,6 +5,8 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -663,6 +665,29 @@ func applicationLogSchema() *pluginsdk.Schema {
 				"azure_blob_storage": appLogBlobStorageSchema(),
 			},
 		},
+		DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
+			stateLogs, planLogs := d.GetChange("logs.0.application_logs")
+			if stateLogs == nil || planLogs == nil {
+				return false
+			}
+			stateAttrs := stateLogs.([]interface{})
+			planAttrs := planLogs.([]interface{})
+
+			// If the plan wants to set default values and the state is empty; suppress diff
+			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
+				planAttr := planAttrs[0].(map[string]interface{})
+				newFileSystemLevel, ok := planAttr["file_system_level"].(string)
+				if !ok {
+					return false
+				}
+
+				if newFileSystemLevel == string(webapps.LogLevelOff) {
+					return true
+				}
+			}
+
+			return false
+		},
 	}
 }
 
@@ -1174,7 +1199,23 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 
 				applicationLog.AzureBlobStorage = []AzureBlobStorage{blobStorage}
 			}
-			logs.ApplicationLogs = []ApplicationLog{applicationLog}
+
+			// Only set ApplicationLogs if it's not the default values
+			/*
+				"applicationLogs": {
+					"fileSystem": {
+						"level": "Off"
+					},
+					"azureBlobStorage": {
+						"level": "Off",
+						"sasUrl": null,
+						"retentionInDays": null
+					}
+				},
+			*/
+			if strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) && len(applicationLog.AzureBlobStorage) > 0 {
+				logs.ApplicationLogs = []ApplicationLog{applicationLog}
+			}
 		}
 	}
 
