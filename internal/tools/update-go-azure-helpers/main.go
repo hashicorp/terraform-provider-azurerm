@@ -144,7 +144,10 @@ func updateVersionOfGoAzureHelpers(ctx context.Context, workingDirectory string,
 	}
 	cmd := exec.CommandContext(ctx, "go", args...)
 	cmd.Dir = workingDirectory
-	_ = cmd.Start()
+	err := cmd.Start()
+	if err != nil {
+		return fmt.Errorf("running `go get` in %q: %+v", workingDirectory, err)
+	}
 	_ = cmd.Wait()
 	logger.Debug(fmt.Sprintf("Updated the version of `go-azure-helpers` to %q", newApiVersion))
 
