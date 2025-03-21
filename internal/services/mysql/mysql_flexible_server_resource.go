@@ -335,6 +335,8 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 		),
 	}
 
+	resource.Schema["zone"].Computed = true
+
 	if !features.FivePointOh() {
 		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
