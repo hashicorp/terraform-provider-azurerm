@@ -6,4 +6,5 @@ package galleryimageversions
 type GalleryArtifactVersionFullSource struct {
 	CommunityGalleryImageId *string `json:"communityGalleryImageId,omitempty"`
 	Id                      *string `json:"id,omitempty"`
+	VirtualMachineId        *string `json:"virtualMachineId,omitempty"`
 }
