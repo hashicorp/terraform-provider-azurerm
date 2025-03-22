@@ -50,7 +50,9 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `administration_members` - (Optional) An array of administrator user identities. The member must be an Entra member user or a service principal.
+* `administration_members` - (Optional) An array of administrator user identities. The member must be an Entra user or a service principal.
+
+~> **Note:** If the member is an Entra user, use user principal name (UPN) format. If the user is a service principal, use object ID.
 
 * `tags` - (Optional) A mapping of tags to assign to the Fabric Capacity.
 
