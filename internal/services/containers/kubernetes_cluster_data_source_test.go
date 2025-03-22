@@ -314,6 +314,70 @@ func TestAccDataSourceKubernetesCluster_advancedNetworkingKubenetComplete(t *tes
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_advancedContainerNetworkingServicesDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.advancedContainerNetworkingServicesDisabledConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.fqdn_policy_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_advancedContainerNetworkingServicesObservabilityEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.advancedContainerNetworkingServicesObservabilityEnabledConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.fqdn_policy_enabled").HasValue("false"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_advancedContainerNetworkingServicesFqdnPolicyEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.advancedContainerNetworkingServicesFqdnPolicyEnabledConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.fqdn_policy_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_advancedContainerNetworkingServicesAllEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.advancedContainerNetworkingServicesAllEnabledConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.fqdn_policy_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
@@ -813,6 +877,50 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "kubenet"))
+}
+
+func (KubernetesClusterDataSource) advancedContainerNetworkingServicesDisabledConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.advancedContainerNetworkingServicesConfig(data, false, false, false))
+}
+
+func (KubernetesClusterDataSource) advancedContainerNetworkingServicesObservabilityEnabledConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.advancedContainerNetworkingServicesConfig(data, true, true, false))
+}
+
+func (KubernetesClusterDataSource) advancedContainerNetworkingServicesFqdnPolicyEnabledConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.advancedContainerNetworkingServicesConfig(data, true, false, true))
+}
+
+func (KubernetesClusterDataSource) advancedContainerNetworkingServicesAllEnabledConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.advancedContainerNetworkingServicesConfig(data, true, true, true))
 }
 
 func (KubernetesClusterDataSource) addOnProfileOMSConfig(data acceptance.TestData) string {
