@@ -1641,6 +1641,50 @@ func (r HDInsightInteractiveQueryClusterResource) diskEncryption(data acceptance
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "test-keyvault"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  enabled_for_deployment          = true
+  enabled_for_disk_encryption     = true
+  enabled_for_template_deployment = true
+  enable_rbac_authorization       = true
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "test-key"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "test-identity"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1654,7 +1698,9 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   disk_encryption {
-    encryption_at_host_enabled = true
+    encryption_at_host_enabled    = true
+    key_vault_key_id              = azurerm_key_vault_key.test.id
+    key_vault_managed_identity_id = azurerm_user_assigned_identity.test.id
   }
 
   gateway {
