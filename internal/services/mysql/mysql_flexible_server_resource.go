@@ -335,9 +335,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 		),
 	}
 
-	// TODO temporary fix until v0.71.1 of go-azure-helpers is brought in
-	resource.Schema["zone"].Computed = true
-
 	if !features.FivePointOh() {
 		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
