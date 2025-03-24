@@ -121,9 +121,9 @@ The following arguments are supported:
 
 ~> **Note:** The `private_dns_zone_id` is required when setting a `delegated_subnet_id`. The `azurerm_private_dns_zone` should end with suffix `.mysql.database.azure.com`.
 
-* `public_network_access` - (Optional) Whether approved public traffic is allowed through the firewall to this server.
+* `public_network_access` - (Optional) Whether approved public traffic is allowed through the firewall to this server. Defaults to `Enabled`.
 
-~> **Note:**  If the server is created with VNet Integration (i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`"), `public_network_access` can only be set to `Disabled`.
+~> **Note:**  If the server is created with VNet Integration (i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`"), `public_network_access` must be set to `Disabled`.
 
 * `replication_role` - (Optional) The replication role. Possible value is `None`.
 
