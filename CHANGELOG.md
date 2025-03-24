@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
+* `azurerm_powerbi_embedded `- add support for `A7` and `A8` values for `sku_name` [GH-29153]
 
 BUG FIXES
 
