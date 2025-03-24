@@ -3,6 +3,10 @@
 ENHANCEMENTS:
 
 * `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
+* `azurerm_linux_function_app` - add support for Python version `3.13` [GH-29131]
+* `azurerm_linux_function_app_slot` - add support for Python version `3.13` [GH-29131]
+* `azurerm_linux_web_app` - add support for Python version `3.13` [GH-29131]
+* `azurerm_linux_web_app_slot` - add support for Python version `3.13` [GH-29131]
 * `azurerm_powerbi_embedded `- add support for `A7` and `A8` values for `sku_name` [GH-29153]
 
 BUG FIXES
