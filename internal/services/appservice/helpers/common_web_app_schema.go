@@ -681,6 +681,12 @@ func applicationLogSchema() *pluginsdk.Schema {
 					return false
 				}
 
+				// if something is in `azure_blob_storage`, then we don't suppress the diff as we don't allow the default values for `azure_blob_storage` to be passed in
+				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]interface{})
+				if !ok || len(newAzureBlobStorage) != 0 {
+					return false
+				}
+
 				if newFileSystemLevel == string(webapps.LogLevelOff) {
 					return true
 				}
