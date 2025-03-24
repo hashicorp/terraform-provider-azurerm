@@ -80,8 +80,8 @@ This means that at this point in time, there are four types of Data Source/Resou
 
 1. (Untyped) Data Sources (based on the Terraform Plugin SDK) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_data_source.go#L16-L131)).
 2. (Untyped) Resources (based on the Terraform Plugin SDK) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_resource.go#L24-L289)).
-3. Typed Data Sources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_data_source.go)).
-4. Typed Resources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_resource.go)).
+3. Typed Data Sources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_data_source.go)).
+4. Typed Resources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_resource.go)).
 
 At this point in time the codebase uses a mixture of both (primarily the Untyped Data Sources/Resources) - in time we plan to migrate across to using Typed Data Sources/Resources instead. For differences between these two patterns, see [the Typed vs Untyped guide](best-practices.md#typed-vs-untyped-resources).
 

@@ -211,7 +211,7 @@ func myResourceCreate() {
     }
     
     if v, ok := d.GetOkExists("compression_enabled"); ok {
-        compressionEnabled = v.(bool)
+        enableCompression = v.(bool)
     }
 }
 
@@ -230,10 +230,10 @@ func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
 	compressionEnabled := false
 	if !features.FivePointOh() {
-        compressionEnabled = model.CompressionEnabled
+		compressionEnabled = model.CompressionEnabled
 	}
 	
-    compressionEnabled = model.EnableCompression
+	compressionEnabled = model.EnableCompression
 	...
 }
 
@@ -241,7 +241,7 @@ func (r ExampleResource) Read() sdk.ResourceFunc {
 	...
 	state.CompressionEnabled = pointer.From(props.CompressionEnabled)
 	
-    if !features.FivePointOh() {
+	if !features.FivePointOh() {
 		state.EnableCompression = pointer.From(props.CompressionEnabled)
 	}   
 	...
