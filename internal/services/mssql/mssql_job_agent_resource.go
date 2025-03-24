@@ -65,11 +65,11 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 
 			// This is a top level argument rather than a block because while Azure accepts input for both sku name and capacity fields,
 			// the capacity must always be equal to the number included in the sku name.
-			"sku_name": {
+			"sku": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      helper.SqlJobAgentSkuNameJA100,
-				ValidateFunc: validation.StringInSlice(helper.PossibleValuesForJobAgentSkuName(), false),
+				Default:      helper.SqlJobAgentSkuJA100,
+				ValidateFunc: validation.StringInSlice(helper.PossibleValuesForJobAgentSku(), false),
 			},
 
 			"tags": commonschema.Tags(),
@@ -109,7 +109,7 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			DatabaseId: databaseId,
 		},
 		Sku: &jobagents.Sku{
-			Name: d.Get("sku_name").(string),
+			Name: d.Get("sku").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -162,9 +162,9 @@ func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		params.Identity = expandedIdentity
 	}
 
-	if d.HasChanges("sku_name") {
+	if d.HasChanges("sku") {
 		params.Sku = &jobagents.Sku{
-			Name: d.Get("sku_name").(string),
+			Name: d.Get("sku").(string),
 		}
 	}
 
@@ -215,7 +215,7 @@ func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("identity", flattenedIdentity)
 
 		if sku := model.Sku; sku != nil {
-			d.Set("sku_name", sku.Name)
+			d.Set("sku", sku.Name)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
