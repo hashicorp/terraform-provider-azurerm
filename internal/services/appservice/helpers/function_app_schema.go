@@ -274,29 +274,18 @@ func SiteConfigSchemaLinuxFunctionApp() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Description: "The path to be checked for this function app health.",
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_eviction_time_in_min"}
-						}
-						return []string{}
-					}(),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Description:  "The path to be checked for this function app health.",
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_path"}
-						}
-						return []string{}
-					}(),
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: []string{"site_config.0.health_check_path"},
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -771,7 +760,6 @@ func SiteConfigSchemaFunctionAppFlexConsumption() *pluginsdk.Schema {
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
 					RequiredWith: []string{"site_config.0.health_check_path"},
 
@@ -1046,29 +1034,18 @@ func SiteConfigSchemaWindowsFunctionApp() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Description: "The path to be checked for this function app health.",
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_eviction_time_in_min"}
-						}
-						return []string{}
-					}(),
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Description:  "The path to be checked for this function app health.",
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": { // NOTE: Will evict the only node in single node configurations.
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     !features.FourPointOhBeta(),
 					ValidateFunc: validation.IntBetween(2, 10),
-					RequiredWith: func() []string {
-						if features.FourPointOhBeta() {
-							return []string{"site_config.0.health_check_path"}
-						}
-						return []string{}
-					}(),
-					Description: "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: []string{"site_config.0.health_check_path"},
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {

@@ -134,10 +134,9 @@ The following arguments are supported:
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
-[//]: # (TODO 4.0 add it in 4.0 provider)
-[//]: # (* `vnet_image_pull_enabled` - &#40;Optional&#41; Specifies whether traffic for the image pull should be routed over virtual network. Defaults to `false`.)
+* `vnet_image_pull_enabled` - (Optional) Specifies whether traffic for the image pull should be routed over virtual network. Defaults to `false`.
 
-[//]: # (~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. The Setting is enabled by default for app running in the App Service Environment.)
+~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. The Setting is enabled by default for an app running in the App Service Environment.
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
@@ -335,7 +334,7 @@ A `facebook_v2` block supports the following:
 
 A `github_v2` block supports the following:
 
-* `client_id` - (Required) The ID of the GitHub app used for login..
+* `client_id` - (Required) The ID of the GitHub app used for login.
 
 * `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for GitHub Login.
 
@@ -731,7 +730,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
-* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.ENDEXPERIMENT
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
@@ -800,8 +799,8 @@ A `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Linux Function App Slot.
-* `update` - (Defaults to 30 minutes) Used when updating the Linux Function App Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Linux Function App Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the Linux Function App Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Linux Function App Slot.
 
 ## Import
