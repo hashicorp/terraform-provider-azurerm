@@ -367,9 +367,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -403,9 +400,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     name  = "Example"
     value = "some-postgresql-connection-string"
     type  = "PostgreSQL"
-  }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -464,9 +458,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     app_setting_names       = ["foo", "secret"]
     connection_string_names = ["First", "Third"]
   }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -506,9 +497,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     name  = "AnotherExample"
     value = "some-other-connection-string"
     type  = "Custom"
-  }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -622,9 +610,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
       support_credentials = true
     }
   }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -656,9 +641,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
 
   app_settings = {
     "tftest" : "tftestvalue"
-  }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -694,9 +676,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     "tftestkvp1" : "tftestkvpvalue1"
     "tftestkvp2" : "tftestkvpvalue2"
   }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -730,9 +709,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
     "tftest" : "tftestvalue",
     "tftestkvp1" : "tftestkvpvalue1"
   }
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -759,9 +735,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, pythonVersion)
 }
@@ -790,9 +763,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, javaVersion)
 }
@@ -821,9 +791,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, dotNetVersion)
 }
@@ -852,9 +819,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, powerShellVersion)
 }
@@ -882,9 +846,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb       = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -918,9 +879,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb             = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -955,9 +913,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb             = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -992,9 +947,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
   instance_memory_in_mb             = 2048
 
   site_config {}
-  lifecycle {
-    ignore_changes = [webdeploy_publish_basic_authentication_enabled]
-  }
 }
 `, r.template(data), data.RandomInteger, nodeVersion)
 }
