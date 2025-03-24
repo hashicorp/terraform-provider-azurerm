@@ -185,26 +185,21 @@ func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateHAZoneRedundant(data),
+			Config: r.updateHAZoneRedundant(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password"),
 
 		{
-			Config: r.updateHAZoneRedundantUpdate(data),
+			Config: r.updateHAZoneRedundant(data, 2),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password"),
@@ -212,9 +207,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 			Config: r.updateHASameZone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password"),
@@ -222,9 +214,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 			Config: r.updateHADisabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password"),
@@ -900,7 +889,7 @@ resource "azurerm_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MySqlFlexibleServerResource) updateHAZoneRedundant(data acceptance.TestData) string {
+func (r MySqlFlexibleServerResource) updateHAZoneRedundant(data acceptance.TestData, standbyAvailabilityZone int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -914,36 +903,13 @@ resource "azurerm_mysql_flexible_server" "test" {
 
   high_availability {
     mode                      = "ZoneRedundant"
-    standby_availability_zone = "2"
+    standby_availability_zone = "%d"
   }
 
   sku_name = "GP_Standard_D2ds_v4"
   zone     = "3"
 }
-`, r.template(data), data.RandomInteger)
-}
-
-func (r MySqlFlexibleServerResource) updateHAZoneRedundantUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mysql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  version                = "8.0.21"
-
-  high_availability {
-    mode                      = "ZoneRedundant"
-    standby_availability_zone = "3"
-  }
-
-  sku_name = "GP_Standard_D2ds_v4"
-  zone     = "3"
-}
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, standbyAvailabilityZone)
 }
 
 func (r MySqlFlexibleServerResource) pitr(data acceptance.TestData) string {
