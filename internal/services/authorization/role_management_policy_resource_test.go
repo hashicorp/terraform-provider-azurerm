@@ -63,7 +63,7 @@ func TestAccRoleManagementPolicy_resourceGroup(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.resourceGroupUpdateUpdateRemovedNestedNotificationRules(data),
+			Config: r.resourceGroupRemovedNestedNotificationRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -415,7 +415,7 @@ resource "azurerm_role_management_policy" "test" {
 `, r.resourceGroupTemplate(data), data.RandomString)
 }
 
-func (r RoleManagementPolicyResource) resourceGroupUpdateUpdateRemovedNestedNotificationRules(data acceptance.TestData) string {
+func (r RoleManagementPolicyResource) resourceGroupRemovedNestedNotificationRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 

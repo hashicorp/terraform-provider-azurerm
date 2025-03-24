@@ -122,7 +122,7 @@ resource "azurerm_role_management_policy" "example" {
 
 * `notification_rules` - (Optional) A `notification_rules` block as defined below.
 
-* ~> **NOTE:** The default notification rules provided by Azure are not set into state. Removing the `notification_rules` block or any of the nested blocks for `notification_rules` will reset them back to the default values for those rules.
+* ~> **Note:** The default notification rules provided by Azure are not set into state. Removing the `notification_rules` block or any of the nested blocks for `notification_rules` will reset them back to the default values for those rules.
 
 * `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy will apply. Changing this forces a new resource to be created.
 
