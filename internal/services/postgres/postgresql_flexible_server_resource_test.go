@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
@@ -392,6 +392,21 @@ func TestAccPostgresqlFlexibleServer_upgradeVersion(t *testing.T) {
 		data.ImportStep("administrator_password", "create_mode"),
 		{
 			Config: r.upgradeVersion(data, "15"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_identitySystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identitySystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1149,7 +1164,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = 32768
   version                = "12"
   sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
+  zone                   = "1"
 
   authentication {
     active_directory_auth_enabled = %[3]t
@@ -1159,6 +1174,27 @@ resource "azurerm_postgresql_flexible_server" "test" {
 
 }
 `, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
+}
+
+func (r PostgresqlFlexibleServerResource) identitySystemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PostgresqlFlexibleServerResource) cmkTemplate(data acceptance.TestData) string {

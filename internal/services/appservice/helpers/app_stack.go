@@ -123,6 +123,7 @@ func windowsApplicationStackSchema() *pluginsdk.Schema {
 						"~16",
 						"~18",
 						"~20",
+						"~22",
 					}, false),
 					AtLeastOneOf: windowsApplicationStackConstraint,
 				},

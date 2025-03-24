@@ -481,12 +481,12 @@ func resourceStreamAnalyticsJobUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("content_storage_policy") {
-		payload.Properties.ContentStoragePolicy = pointer.To(streamingjobs.ContentStoragePolicy(d.Get("contentStoragePolicy").(string)))
+		payload.Properties.ContentStoragePolicy = pointer.To(streamingjobs.ContentStoragePolicy(d.Get("content_storage_policy").(string)))
 	}
 
 	if d.HasChange("job_storage_account") {
 		storageAccount := d.Get("job_storage_account").([]interface{})
-		if d.Get("contentStoragePolicy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
+		if d.Get("content_storage_policy").(string) == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
 			if len(storageAccount) == 0 {
 				return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
 			}
@@ -564,7 +564,7 @@ func resourceStreamAnalyticsJobDelete(d *pluginsdk.ResourceData, meta interface{
 }
 
 func expandJobStorageAccount(input []interface{}) *streamingjobs.JobStorageAccount {
-	if input == nil {
+	if len(input) == 0 {
 		return nil
 	}
 
