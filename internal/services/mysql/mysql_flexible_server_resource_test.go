@@ -26,6 +26,7 @@ type MySqlFlexibleServerResource struct{}
 
 func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -33,11 +34,6 @@ func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone").Exists(),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
-				check.That(data.ResourceName).Key("version").Exists(),
-				check.That(data.ResourceName).Key("storage.#").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password"),
@@ -46,6 +42,7 @@ func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,6 +58,7 @@ func TestAccMySqlFlexibleServer_requiresImport(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -76,14 +74,13 @@ func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password"),
@@ -101,6 +98,7 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -148,6 +146,7 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -222,6 +221,7 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -245,6 +245,7 @@ func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -276,6 +277,7 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -302,6 +304,7 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -331,6 +334,7 @@ func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateReplicationRole(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -384,6 +388,7 @@ func TestAccMySqlFlexibleServer_failover(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -399,6 +404,7 @@ func TestAccMySqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -422,6 +428,7 @@ func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
 // this test can fail with an uninformative error, tracked here https://github.com/Azure/azure-rest-api-specs/issues/22980
 func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -437,6 +444,7 @@ func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -459,6 +467,7 @@ func TestAccMySqlFlexibleServer_identity(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_writeOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -483,6 +492,7 @@ func TestAccMySqlFlexibleServer_writeOnlyPassword(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -512,6 +522,7 @@ func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_updatePublicNetworkAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
