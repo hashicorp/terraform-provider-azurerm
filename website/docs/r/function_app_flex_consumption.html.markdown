@@ -139,13 +139,13 @@ The following arguments are supported:
 
 * `storage_access_key` - (Optional) The access key which will be used to access the storage account for the Function App deployment package.
 
-~> **Note:** The`storage_access_key` must be specified when `storage_authentication_type` sets to `StorageAccountConnectionString`.
+~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
 
 ~> **Note:** The`storage_access_key` could be accessed by the app environment variable `DEPLOYMENT_STORAGE_CONNECTION_STRING`.
 
 * `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **Note:** The`storage_user_assigned_identity_id` must be specified when `storage_authentication_type` sets to `UserAssignedIdentity`.
+~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
 * `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
 
@@ -153,7 +153,7 @@ The following arguments are supported:
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
-* `instance_memory_in_mb` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 

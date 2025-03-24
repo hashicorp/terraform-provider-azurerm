@@ -180,6 +180,14 @@ func TestAccMonitorDiagnosticSetting_enabledLogsMix(t *testing.T) {
 	r := MonitorDiagnosticSettingResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.eventhub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.enabledLogs(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -208,6 +216,14 @@ func TestAccMonitorDiagnosticSetting_enabledLogsMix(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled_log.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.eventhub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enabled_log.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
