@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
 
+BUG FIXES
+
+* Data source: `azurerm_container_app_environment` - prevent an error when the log analytics workspace is in a different subscription [GH-28647]
+
 ## 4.24.0 (March 21, 2025)
 
 FEATURES:
