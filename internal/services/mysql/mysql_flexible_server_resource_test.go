@@ -641,7 +641,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
-  zone                         = "3"
+  zone                         = "1"
   version                      = "8.0.21"
   backup_retention_days        = 7
   geo_redundant_backup_enabled = false
@@ -727,7 +727,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_password       = "123wsxQAZ"
-  zone                         = "3"
+  zone                         = "1"
   version                      = "8.0.21"
   backup_retention_days        = 10
   geo_redundant_backup_enabled = false
@@ -770,7 +770,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "3"
+  zone                   = "1"
 
   maintenance_window {
     day_of_week  = 0
@@ -792,7 +792,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "3"
+  zone                   = "1"
 
   maintenance_window {
     day_of_week  = 3
@@ -814,7 +814,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "MO_Standard_E2ds_v4"
-  zone                   = "3"
+  zone                   = "1"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -830,7 +830,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D2ds_v4"
-  zone                   = "3"
+  zone                   = "1"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -851,7 +851,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "3"
+  zone     = "1"
 
   lifecycle {
     ignore_changes = [
@@ -880,7 +880,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "3"
+  zone     = "1"
 }
 `, r.template(data), data.RandomInteger, standbyAvailabilityZone)
 }
@@ -896,7 +896,7 @@ resource "azurerm_mysql_flexible_server" "pitr" {
   create_mode                       = "PointInTimeRestore"
   source_server_id                  = azurerm_mysql_flexible_server.test.id
   point_in_time_restore_time_in_utc = "%s"
-  zone                              = "3"
+  zone                              = "1"
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
@@ -913,7 +913,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D4ds_v4"
   version                = "8.0.21"
-  zone                   = "3"
+  zone                   = "1"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -929,7 +929,7 @@ resource "azurerm_mysql_flexible_server" "replica" {
   create_mode         = "Replica"
   source_server_id    = azurerm_mysql_flexible_server.test.id
   version             = "8.0.21"
-  zone                = "3"
+  zone                = "1"
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -946,7 +946,7 @@ resource "azurerm_mysql_flexible_server" "replica" {
   source_server_id    = azurerm_mysql_flexible_server.test.id
   replication_role    = "None"
   version             = "8.0.21"
-  zone                = "3"
+  zone                = "1"
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -994,7 +994,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
   version                      = "8.0.21"
-  zone                         = "3"
+  zone                         = "1"
 
   storage {
     size_gb            = %d
@@ -1019,7 +1019,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
   version                      = "8.0.21"
-  zone                         = "3"
+  zone                         = "1"
 
   storage {
     size_gb            = %d
@@ -1127,7 +1127,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "3"
+  zone                   = "1"
 }
 `, r.cmkTemplate(data), data.RandomInteger)
 }
@@ -1143,7 +1143,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "3"
+  zone                   = "1"
 
   identity {
     type         = "UserAssigned"
@@ -1253,7 +1253,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "3"
+  zone                   = "1"
 
   identity {
     type         = "UserAssigned"
@@ -1280,7 +1280,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1s"
-  zone                   = "3"
+  zone                   = "1"
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
