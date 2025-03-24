@@ -47,7 +47,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 * `description` - (Optional) The description for the Data Factory Linked Service.
 
-* `integration_runtime_name` - (Optional) The integration runtime reference to associate with the Data Factory Linked Service.
+* `integration_runtime_name` - (Optional) The name of the integration runtime to associate with the Data Factory Linked Service.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service.
 
