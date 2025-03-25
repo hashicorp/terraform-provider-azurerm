@@ -153,7 +153,7 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 
 			"extension": SchemaHDInsightsExtension(),
 
-			"zones": commonschema.ZonesMultipleOptional(),
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 		},
 	}
 }
