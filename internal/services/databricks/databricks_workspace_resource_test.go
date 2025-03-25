@@ -515,6 +515,12 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceS
 	})
 }
 
+// TODO: the ideal test would be:
+// 1. Create workspace
+// 2. Issue SELECT CURRENT_METASTORE(); SQL to populate Unity Catalog
+// 3. Destroy workspace
+// 4. Assert no dangling resource
+// But currently this is not feasible because step 2 require Databricks API call which involves token setup via UI console
 func TestAccDatabricksWorkspace_withForceDeleteSetToTrue(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
