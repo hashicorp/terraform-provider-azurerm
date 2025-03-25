@@ -6,6 +6,7 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -306,7 +307,8 @@ func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *c
 }
 
 func (MonitorDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -365,6 +367,64 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
       enabled = false
       days    = 7
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctest-EH-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = "example"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  listen              = true
+  send                = true
+  manage              = true
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_key_vault.test.id
+  eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
+  eventhub_name                  = azurerm_eventhub.test.name
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -433,11 +493,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -455,11 +510,6 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 }
 `, r.eventhub(data))
@@ -502,11 +552,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -637,10 +682,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -683,11 +724,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -730,11 +766,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -881,11 +912,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   metric {
     category = "AllMetrics"
     enabled  = true
-
-    retention_policy {
-      enabled = false
-      days    = 7
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -955,11 +981,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   metric {
     category = "AllMetrics"
     enabled  = true
-
-    retention_policy {
-      enabled = false
-      days    = 7
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1038,11 +1059,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   metric {
     category = "AllMetrics"
     enabled  = true
-
-    retention_policy {
-      enabled = false
-      days    = 7
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1112,11 +1128,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   metric {
     category = "AllMetrics"
     enabled  = true
-
-    retention_policy {
-      enabled = false
-      days    = 7
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1246,10 +1257,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   metric {
     category = "AllMetrics"
     enabled  = false
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1381,10 +1388,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   metric {
     category = "AllMetrics"
     enabled  = false
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

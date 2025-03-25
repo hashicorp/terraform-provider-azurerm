@@ -180,6 +180,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `enabled_log.retention_policy` block has been removed.
 
+### `azurerm_monitor_diagnostic_setting`
+
+* The deprecated `metric.retention_policy` block has been removed.
+
 ### `azurerm_mssql_database`
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.

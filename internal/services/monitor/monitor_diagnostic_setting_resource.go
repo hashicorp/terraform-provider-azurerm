@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"strings"
 	"time"
@@ -167,32 +168,34 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 							Optional: true,
 							Default:  true,
 						},
-
-						"retention_policy": {
-							Type:       pluginsdk.TypeList,
-							Optional:   true,
-							MaxItems:   1,
-							Deprecated: "`retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more https://aka.ms/diagnostic_settings_log_retention",
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-									},
-								},
-							},
-						},
 					},
 				},
-				Set: resourceMonitorDiagnosticMetricsSettingHash,
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		resource.Schema["metric"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "`retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource and will be removed in v5.0 of the AzureRM provider - to learn more https://aka.ms/diagnostic_settings_log_retention",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+
+					"days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+			},
+		}
+		resource.Schema["metric"].Set = resourceMonitorDiagnosticMetricsSettingHash
 	}
 
 	return resource
@@ -648,24 +651,24 @@ func expandMonitorDiagnosticsSettingsMetrics(input []interface{}) []diagnosticse
 	for _, raw := range input {
 		v := raw.(map[string]interface{})
 
-		category := v["category"].(string)
-		enabled := v["enabled"].(bool)
-
-		policiesRaw := v["retention_policy"].([]interface{})
-		var retentionPolicy *diagnosticsettings.RetentionPolicy
-		if len(policiesRaw) > 0 && policiesRaw[0] != nil {
-			policyRaw := policiesRaw[0].(map[string]interface{})
-			retentionDays := policyRaw["days"].(int)
-			retentionEnabled := policyRaw["enabled"].(bool)
-			retentionPolicy = &diagnosticsettings.RetentionPolicy{
-				Days:    int64(retentionDays),
-				Enabled: retentionEnabled,
-			}
-		}
 		output := diagnosticsettings.MetricSettings{
-			Category:        utils.String(category),
-			Enabled:         enabled,
-			RetentionPolicy: retentionPolicy,
+			Category: pointer.To(v["category"].(string)),
+			Enabled:  v["enabled"].(bool),
+		}
+
+		if !features.FivePointOh() {
+			policiesRaw := v["retention_policy"].([]interface{})
+			var retentionPolicy *diagnosticsettings.RetentionPolicy
+			if len(policiesRaw) > 0 && policiesRaw[0] != nil {
+				policyRaw := policiesRaw[0].(map[string]interface{})
+				retentionDays := policyRaw["days"].(int)
+				retentionEnabled := policyRaw["enabled"].(bool)
+				retentionPolicy = &diagnosticsettings.RetentionPolicy{
+					Days:    int64(retentionDays),
+					Enabled: retentionEnabled,
+				}
+			}
+			output.RetentionPolicy = retentionPolicy
 		}
 
 		results = append(results, output)
@@ -689,19 +692,20 @@ func flattenMonitorDiagnosticMetrics(input *[]diagnosticsettings.MetricSettings)
 
 		output["enabled"] = v.Enabled
 
-		policies := make([]interface{}, 0)
+		if !features.FivePointOh() {
+			policies := make([]interface{}, 0)
 
-		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			outputPolicy := make(map[string]interface{})
+			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
+				outputPolicy := make(map[string]interface{})
 
-			outputPolicy["days"] = int(inputPolicy.Days)
+				outputPolicy["days"] = int(inputPolicy.Days)
 
-			outputPolicy["enabled"] = inputPolicy.Enabled
+				outputPolicy["enabled"] = inputPolicy.Enabled
 
-			policies = append(policies, outputPolicy)
+				policies = append(policies, outputPolicy)
+			}
+			output["retention_policy"] = policies
 		}
-
-		output["retention_policy"] = policies
 
 		results = append(results, output)
 	}
