@@ -61,7 +61,7 @@ func (r DevCenterDevBoxDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 
 		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}),
 
-		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.ImageId{}),
+		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.GalleryImageId{}),
 
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
