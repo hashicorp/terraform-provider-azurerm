@@ -160,68 +160,6 @@ resource "azurerm_compute_fleet" "test" {
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func (r ComputeFleetTestResource) networkProfileBasicWithZones(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_compute_fleet" "test" {
-  name                        = "acctest-fleet-%[2]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = "%[3]s"
-  platform_fault_domain_count = 1
-  zones                       = ["1", "2"]
-
-  spot_priority_profile {
-    min_capacity     = 0
-    maintain_enabled = false
-    capacity         = 1
-  }
-
-  vm_sizes_profile {
-    name = "Standard_D1_v2"
-  }
-
-  compute_api_version = "2024-03-01"
-
-  virtual_machine_profile {
-    network_api_version = "2020-11-01"
-    os_profile {
-      linux_configuration {
-        computer_name_prefix            = "testvm"
-        admin_username                  = local.admin_username
-        admin_password                  = local.admin_password
-        password_authentication_enabled = true
-      }
-    }
-
-    network_interface {
-      name                              = "nic-test"
-      primary_network_interface_enabled = true
-
-      ip_configuration {
-        name                                   = "primary"
-        primary_ip_configuration_enabled       = true
-        subnet_id                              = azurerm_subnet.test.id
-        load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-      }
-    }
-
-    os_disk {
-      storage_account_type = "Standard_LRS"
-      caching              = "ReadWrite"
-    }
-
-    source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
-      version   = "latest"
-    }
-  }
-}
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
-}
-
 func (r ComputeFleetTestResource) netWorkProfileCompleteForBaseVirtualMachineProfile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s

@@ -172,9 +172,10 @@ resource "azurerm_compute_fleet" "test" {
   compute_api_version = "2024-03-01"
 
   virtual_machine_profile {
-    network_api_version = "2020-11-01"
-    secure_boot_enabled = true
-    vtpm_enabled        = true
+    network_api_version        = "2020-11-01"
+    encryption_at_host_enabled = true
+    secure_boot_enabled        = true
+    vtpm_enabled               = true
 
     os_profile {
       linux_configuration {
@@ -226,9 +227,10 @@ resource "azurerm_compute_fleet" "test" {
     location = "%[5]s"
 
     virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      secure_boot_enabled = true
-      vtpm_enabled        = true
+      network_api_version        = "2020-11-01"
+      encryption_at_host_enabled = true
+      secure_boot_enabled        = true
+      vtpm_enabled               = true
 
       os_profile {
         linux_configuration {
