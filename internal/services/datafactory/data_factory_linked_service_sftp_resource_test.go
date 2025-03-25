@@ -5,10 +5,6 @@ package datafactory_test
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"testing"
 
@@ -33,7 +29,7 @@ func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password"),
+		data.ImportStep("password", "private_key_content_base64"),
 	})
 }
 
@@ -48,7 +44,7 @@ func TestAccDataFactoryLinkedServiceSFTP_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password"),
+		data.ImportStep("password", "private_key_content_base64"),
 	})
 }
 
@@ -63,14 +59,29 @@ func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password"),
+		data.ImportStep("password", "private_key_content_base64"),
 		{
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password"),
+		data.ImportStep("password", "private_key_content_base64"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceSFTP_sshKeyKeyvaultReference(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sshKeyKeyVaultReference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password", "private_key_content_base64"),
 	})
 }
 
@@ -233,7 +244,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlsweb%d"
+  name                = "acctestlssftp%d"
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "SshPublicKey"
   host                = "http://www.bing.com"
@@ -266,7 +277,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlsweb%d"
+  name                = "acctestlssftp%d"
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "SshPublicKey"
   host                = "http://www.bing.com"
@@ -277,14 +288,42 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func generatePrivateKey() ([]byte, error) {
-	key, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return nil, err
-	}
+func (r LinkedServiceSFTPResource) sshKeyKeyVaultReference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+data "azurerm_client_config" "current" {}
 
-	return pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(key),
-	}), nil
+resource "azurerm_key_vault" "test" {
+  name                = "acctkv%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
+}
+
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlssftp%[2]d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "SshPublicKey"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+
+  key_vault_private_key_content_base64 {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "private_key_content_base64"
+  }
+
+  key_vault_private_key_passphrase {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "private_key_passphrase"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

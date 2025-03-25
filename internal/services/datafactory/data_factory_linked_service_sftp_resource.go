@@ -124,7 +124,43 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Sensitive:     true,
-				ConflictsWith: []string{"password"},
+				ConflictsWith: []string{"password", "key_vault_private_key_passphrase"},
+			},
+
+			"key_vault_private_key_passphrase": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"password", "private_key_passphrase"},
+				MaxItems:      1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"linked_service_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"secret_version": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"password": {
@@ -133,7 +169,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"private_key_content_base64", "private_key_path", "private_key_passphrase"},
-				AtLeastOneOf:  []string{"password", "private_key_content_base64", "private_key_path"},
+				AtLeastOneOf:  []string{"password", "private_key_content_base64", "private_key_path", "key_vault_private_key_content_base64"},
 			},
 
 			"private_key_content_base64": {
@@ -141,15 +177,49 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Optional:      true,
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsBase64,
-				ConflictsWith: []string{"private_key_path", "password"},
-				AtLeastOneOf:  []string{"password", "private_key_content_base64", "private_key_path"},
+				ConflictsWith: []string{"private_key_path", "password", "key_vault_private_key_content_base64"},
+			},
+
+			"key_vault_private_key_content_base64": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"private_key_path", "password", "private_key_content_base64"},
+				MaxItems:      1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"linked_service_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"secret_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"parameters": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"secret_version": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
 			},
 
 			"private_key_path": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"private_key_content_base64", "password"},
-				AtLeastOneOf:  []string{"password", "private_key_content_base64", "private_key_path"},
 			},
 
 			"skip_host_key_validation": {
@@ -189,10 +259,50 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 		Port:               d.Get("port").(int),
 		AuthenticationType: datafactory.SftpAuthenticationType(d.Get("authentication_type").(string)),
 		UserName:           d.Get("username").(string),
-		Password: pointer.To(datafactory.SecureString{
-			Value: pointer.To(d.Get("password").(string)),
+	}
+
+	if v, ok := d.GetOk("password"); ok {
+		passwordSecureString := datafactory.SecureString{
+			Value: pointer.To(v.(string)),
 			Type:  datafactory.TypeSecureString,
-		}),
+		}
+		sftpProperties.Password = &passwordSecureString
+	}
+
+	if v, ok := d.GetOk("key_vault_password"); ok {
+		sftpProperties.Password = expandAzureKeyVaultSecretReference(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("private_key_content_base64"); ok {
+		privateKeyContent := datafactory.SecureString{
+			Value: pointer.To(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+		sftpProperties.PrivateKeyContent = &privateKeyContent
+	}
+
+	if v, ok := d.GetOk("key_vault_private_key_content_base64"); ok {
+		sftpProperties.PrivateKeyContent = expandAzureKeyVaultSecretReference(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("private_key_passphrase"); ok {
+		passphrase := datafactory.SecureString{
+			Value: pointer.To(v.(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+		sftpProperties.PassPhrase = &passphrase
+	}
+
+	if v, ok := d.GetOk("key_vault_private_key_passphrase"); ok {
+		sftpProperties.PassPhrase = expandAzureKeyVaultSecretReference(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("private_key_path"); ok {
+		sftpProperties.PrivateKeyPath = pointer.To(v.(string))
+	}
+
+	if _, ok := d.GetOk("private_key_content_base64"); !ok {
+		d.Set("private_key_content_base64", nil)
 	}
 
 	if v, ok := d.GetOk("skip_host_key_validation"); ok {
@@ -281,6 +391,24 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 		d.Set("additional_properties", sftp.AdditionalProperties)
 		d.Set("description", sftp.Description)
 
+		if sftp.Password != nil {
+			if v, ok := sftp.Password.AsAzureKeyVaultSecretReference(); ok {
+				d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(v))
+			}
+		}
+
+		if sftp.PrivateKeyContent != nil {
+			if v, ok := sftp.PrivateKeyContent.AsAzureKeyVaultSecretReference(); ok {
+				d.Set("key_vault_private_key_content_base64", flattenAzureKeyVaultSecretReference(v))
+			}
+		}
+
+		if sftp.PassPhrase != nil {
+			if v, ok := sftp.PassPhrase.AsAzureKeyVaultSecretReference(); ok {
+				d.Set("key_vault_private_key_passphrase", flattenAzureKeyVaultSecretReference(v))
+			}
+		}
+
 		annotations := flattenDataFactoryAnnotations(sftp.Annotations)
 		if err := d.Set("annotations", annotations); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
@@ -358,6 +486,18 @@ func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
+	if d.HasChange("key_vault_password") {
+		sftp.Password = expandAzureKeyVaultSecretReference(d.Get("key_vault_password").([]interface{}))
+	}
+
+	if d.HasChange("key_vault_private_key_base64") {
+		sftp.PrivateKeyContent = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_base64").([]interface{}))
+	}
+
+	if d.HasChange("key_vault_private_key_passphrase") {
+		sftp.PassPhrase = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_passphrase").([]interface{}))
+	}
+
 	if d.HasChange("skip_host_key_validation") {
 		sftp.SkipHostKeyValidation = pointer.To(d.Get("skip_host_key_validation").(bool))
 	}
@@ -415,4 +555,27 @@ func resourceDataFactoryLinkedServiceSFTPDelete(d *pluginsdk.ResourceData, meta 
 	}
 
 	return nil
+}
+
+func expandDataFactoryLinkedServiceSftpKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	reference := &datafactory.AzureKeyVaultSecretReference{
+		SecretName: raw["secret_name"].(string),
+		Store: &datafactory.LinkedServiceReference{
+			Type:          pointer.To("LinkedServiceReference"),
+			ReferenceName: pointer.To(raw["linked_service_name"].(string)),
+		},
+		Type: datafactory.TypeAzureKeyVaultSecret,
+	}
+	if v := raw["secret_version"].(string); v != "" {
+		reference.SecretVersion = v
+	}
+	if v := raw["parameters"].(map[string]interface{}); len(v) > 0 {
+		reference.Store.Parameters = v
+	}
+	return reference
 }

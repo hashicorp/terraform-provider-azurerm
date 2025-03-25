@@ -67,19 +67,51 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `password` - (Optional) Password to log on to the SFTP Server for Basic Authentication.
 
+* `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Password to log on to the SFTP Server for Basic Authentication.
+
 ~> **Note:** `password` is required when `authentication_type` is set to `Basic`.
 
 * `private_key_content_base64` - (Optional) The base 64 encoded private key content in OpenSSH format used to log on to the SFTP server.
+
+* `key_vault_private_key_content_base64` - (Optional) A `key_vault_private_key_content_base64` block as defined below. The base 64 encoded private key content in OpenSSH format used to log on to the SFTP server.
 
 * `private_key_path` - (Optional) The absolute path to the private key file that the integration runtime can access. This only applies when using a self-hosted integration runtime instead of the default Azure provided runtime, as indicated by supplying a value for `integration_runtime_name`.
 
 * `private_key_passphrase` - (Optional) The passphrase for the private key if the key is encrypted.
 
-~> **Note:** One of `private_key_content_base64` or `private_key_path` is required when `authentication_type` is set to `SshPublicKey`.
+* `key_vault_private_key_passphrase` - (Optional) A `key_vault_private_key_passphrase` block as defined below. The passphrase for the private key if the key is encrypted.
+
+~> **Note:** One of `private_key_content_base64` or `private_key_path` (or their Key Vault equivalent) is required when `authentication_type` is set to `SshPublicKey`.
 
 * `host_key_fingerprint` - (Optional) The host key fingerprint of the SFTP server.
 
 * `skip_host_key_validation` - (Optional) Whether to validate host key fingerprint while connecting. If set to `false`, `host_key_fingerprint` must also be set.
+
+---
+
+A `key_vault_password` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Snowflake password.
+
+---
+
+A `key_vault_private_key_content_base64` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Snowflake password.
+
+---
+
+A `key_vault_private_key_passphrase` block supports the following:
+
+* `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
+
+* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Snowflake password.
+
+---
 
 ## Attributes Reference
 
