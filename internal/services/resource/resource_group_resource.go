@@ -147,7 +147,12 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	// @tombuildsstuff: intentionally leaving this for now, since this'll need
 	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
 	// but needs to be fixed (resourcegroups -> resourceGroups)
-	d.SetId(*resp.ID)
+	id, err := parse.ResourceGroupIDInsensitively(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
 
 	return resourceResourceGroupRead(d, meta)
 }
@@ -191,7 +196,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
-		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
+		resourceClient := meta.(*clients.Client).Resource.LegacyResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
 			results, err := resourceClient.ListByResourceGroup(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
