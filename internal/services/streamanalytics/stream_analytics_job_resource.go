@@ -296,12 +296,11 @@ func resourceStreamAnalyticsJobCreate(d *pluginsdk.ResourceData, meta interface{
 		props.Properties.CompatibilityLevel = pointer.To(streamingjobs.CompatibilityLevel(d.Get("compatibility_level").(string)))
 	}
 
-	if contentStoragePolicy == string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
-		if v, ok := d.GetOk("job_storage_account"); ok {
-			props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
-		} else {
-			return fmt.Errorf("`job_storage_account` must be set when `content_storage_policy` is `JobStorageAccount`")
+	if v, ok := d.GetOk("job_storage_account"); ok {
+		if contentStoragePolicy != string(streamingjobs.ContentStoragePolicyJobStorageAccount) {
+			return fmt.Errorf("`job_storage_account` must not be set when `content_storage_policy` is `SystemAccount`")
 		}
+		props.Properties.JobStorageAccount = expandJobStorageAccount(v.([]interface{}))
 	}
 
 	if jobType == string(streamingjobs.JobTypeEdge) {
