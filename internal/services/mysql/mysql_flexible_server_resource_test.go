@@ -775,10 +775,9 @@ resource "azurerm_mysql_flexible_server" "test" {
     io_scaling_enabled = false
   }
 
-  public_network_access = "Disabled"
-  delegated_subnet_id   = azurerm_subnet.test.id
-  private_dns_zone_id   = azurerm_private_dns_zone.test.id
-  sku_name              = "GP_Standard_D4ds_v4"
+  delegated_subnet_id = azurerm_subnet.test.id
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  sku_name            = "GP_Standard_D4ds_v4"
 
   maintenance_window {
     day_of_week  = 0

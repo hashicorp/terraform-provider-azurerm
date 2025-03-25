@@ -237,10 +237,13 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
+			// This property is Optional & Computed because of the complex behavior in the Azure API:
+			// If values are provided for subnet and DNS, the API will set public network access to "Disabled",
+			// Otherwise, it will default to "Enabled".
 			"public_network_access": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      servers.EnableStatusEnumEnabled,
+				Computed:     true,
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
 			},
 
@@ -334,6 +337,9 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	// TODO When using >= v0.71.1 of go-azure-helpers, remove next line and update the schema to use `OptionalComputed` zone validation
+	resource.Schema["zone"].Computed = true
 
 	if !features.FivePointOh() {
 		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
