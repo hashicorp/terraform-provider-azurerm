@@ -919,22 +919,6 @@ func (r ComputeFleetResource) Update() sdk.ResourceFunc {
 				properties.Plan = expandPlanModel(model.Plan)
 			}
 
-			if metadata.ResourceData.HasChange("additional_location_profile") {
-				additionalLocationsProfileValue, err := expandAdditionalLocationProfileModel(model.AdditionalLocationProfile, metadata.ResourceData)
-				if err != nil {
-					return err
-				}
-				properties.Properties.AdditionalLocationsProfile = additionalLocationsProfileValue
-			}
-
-			if metadata.ResourceData.HasChange("virtual_machine_profile") {
-				baseVirtualMachineProfileValue, err := expandVirtualMachineProfileModel(model.VirtualMachineProfile, metadata.ResourceData, false, -1, len(model.VMAttributes) > 0)
-				if err != nil {
-					return err
-				}
-				properties.Properties.ComputeProfile.BaseVirtualMachineProfile = pointer.From(baseVirtualMachineProfileValue)
-			}
-
 			if metadata.ResourceData.HasChange("compute_api_version") {
 				properties.Properties.ComputeProfile.ComputeApiVersion = pointer.To(model.ComputeApiVersion)
 			}

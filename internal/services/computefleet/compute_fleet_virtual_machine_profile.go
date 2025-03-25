@@ -41,6 +41,7 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				"network_api_version": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -51,12 +52,14 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				"boot_diagnostic_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
 				"boot_diagnostic_storage_account_endpoint": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -67,6 +70,7 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				"encryption_at_host_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
@@ -75,12 +79,14 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				"extension_operations_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  true,
 				},
 
 				"extensions_time_budget": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 				},
 
@@ -89,6 +95,7 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				"license_type": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"RHEL_BYOS",
 						"SLES_BYOS",
@@ -102,6 +109,7 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				"scheduled_event_os_image_timeout": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						"PT15M",
 					}, false),
@@ -110,18 +118,21 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				"scheduled_event_termination_timeout": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
 				},
 
 				"secure_boot_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
 				"source_image_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					ValidateFunc: validation.Any(
 						images.ValidateImageID,
 						computeValidate.SharedImageID,
@@ -138,12 +149,14 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 				"user_data_base64": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsBase64,
 				},
 
 				"vtpm_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 			},
@@ -161,24 +174,28 @@ func galleryApplicationSchema() *pluginsdk.Schema {
 				"version_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
 				},
 
 				"automatic_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
 				"configuration_blob_uri": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 				},
 
 				"order": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					ForceNew:     true,
 					Default:      0,
 					ValidateFunc: validation.IntBetween(0, 2147483647),
 				},
@@ -186,12 +203,14 @@ func galleryApplicationSchema() *pluginsdk.Schema {
 				"tag": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"treat_failure_as_deployment_failure_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 			},
@@ -208,42 +227,49 @@ func extensionSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"publisher": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"type_handler_version": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"auto_upgrade_minor_version_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
 				"automatic_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
 				"extensions_to_provision_after_vm_creation": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					ForceNew: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -253,12 +279,14 @@ func extensionSchema() *pluginsdk.Schema {
 				"failure_suppression_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
 				"force_extension_execution_on_change": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 				},
 
 				"protected_settings_from_key_vault": {
@@ -270,6 +298,7 @@ func extensionSchema() *pluginsdk.Schema {
 							"secret_url": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
+								ForceNew:     true,
 								ValidateFunc: keyVaultValidate.NestedItemId,
 							},
 
@@ -281,6 +310,7 @@ func extensionSchema() *pluginsdk.Schema {
 				"protected_settings_json": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsJSON,
 				},
@@ -288,6 +318,7 @@ func extensionSchema() *pluginsdk.Schema {
 				"settings_json": {
 					Type:             pluginsdk.TypeString,
 					Optional:         true,
+					ForceNew:         true,
 					ValidateFunc:     validation.StringIsJSON,
 					DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 				},
@@ -305,6 +336,7 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -313,12 +345,14 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 				"accelerated_networking_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
 				"auxiliary_mode": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// NOTE: because there is a `None` value in the possible values, it's handled in the Create/Update and Read functions.
 						string(fleets.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
@@ -329,6 +363,7 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 				"auxiliary_sku": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// NOTE: because there is a `None` value in the possible values, it's handled in the Create/Update and Read functions.
 						string(fleets.NetworkInterfaceAuxiliarySkuATwo),
@@ -341,12 +376,14 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 				"delete_option": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDiskDeleteOptionTypes(), false),
 				},
 
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					ForceNew: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
@@ -356,6 +393,7 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 				"ip_forwarding_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
@@ -364,6 +402,7 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 				"primary_network_interface_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 			},
@@ -380,18 +419,21 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"subnet_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: commonids.ValidateSubnetID,
 				},
 
 				"application_gateway_backend_address_pool_ids": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
+					ForceNew: true,
 					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					Set:      pluginsdk.HashString,
 				},
@@ -399,6 +441,7 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 				"application_security_group_ids": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
+					ForceNew: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
@@ -410,6 +453,7 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 				"load_balancer_backend_address_pool_ids": {
 					Type:     pluginsdk.TypeSet,
 					Optional: true,
+					ForceNew: true,
 					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 					Set:      pluginsdk.HashString,
 				},
@@ -417,6 +461,7 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 				"primary_ip_configuration_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 
@@ -425,6 +470,7 @@ func ipConfigurationSchema() *pluginsdk.Schema {
 				"version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					Default:      string(fleets.IPVersionIPvFour),
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForIPVersion(), false),
 				},
@@ -442,30 +488,35 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"delete_option": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDeleteOptions(), false),
 				},
 
 				"domain_name_label": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"domain_name_label_scope": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDomainNameLabelScopeTypes(), false),
 				},
 
 				"idle_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.IntBetween(4, 32),
 				},
 
@@ -477,11 +528,13 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 							"tag": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
+								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"type": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
+								ForceNew:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
@@ -491,6 +544,7 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 				"public_ip_prefix_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 				},
 
@@ -498,6 +552,7 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 				"sku_name": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string("Standard_Regional"),
 						string("Standard_Global"),
@@ -507,6 +562,7 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 				"version": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					Default:      string(fleets.IPVersionIPvFour),
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForIPVersion(), false),
 				},
@@ -525,6 +581,7 @@ func osProfileSchema() *pluginsdk.Schema {
 				"custom_data_base64": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsBase64,
 				},
@@ -539,18 +596,21 @@ func osProfileSchema() *pluginsdk.Schema {
 							"admin_username": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
+								ForceNew:     true,
 								ValidateFunc: computeValidate.LinuxAdminUsername,
 							},
 
 							"computer_name_prefix": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
+								ForceNew:     true,
 								ValidateFunc: computeValidate.LinuxComputerNamePrefix,
 							},
 
 							"admin_password": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
+								ForceNew:     true,
 								Sensitive:    true,
 								ValidateFunc: computeValidate.LinuxAdminPassword,
 							},
@@ -558,6 +618,7 @@ func osProfileSchema() *pluginsdk.Schema {
 							"admin_ssh_keys": {
 								Type:     pluginsdk.TypeSet,
 								Optional: true,
+								ForceNew: true,
 								Elem: &pluginsdk.Schema{
 									Type:         pluginsdk.TypeString,
 									ValidateFunc: validation.StringIsNotEmpty,
@@ -567,18 +628,21 @@ func osProfileSchema() *pluginsdk.Schema {
 							"bypass_platform_safety_checks_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  false,
 							},
 
 							"password_authentication_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  false,
 							},
 
 							"patch_assessment_mode": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
+								ForceNew: true,
 								// 'patchSettings.assessmentMode' cannot be set to 'AutomaticByPlatform' as its not supported on Virtual Machine Scale Sets.
 								ValidateFunc: validation.StringInSlice([]string{string(fleets.LinuxPatchAssessmentModeImageDefault)}, false),
 							},
@@ -586,18 +650,21 @@ func osProfileSchema() *pluginsdk.Schema {
 							"patch_mode": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
+								ForceNew:     true,
 								ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForLinuxVMGuestPatchMode(), false),
 							},
 
 							"provision_vm_agent_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  true,
 							},
 
 							"reboot_setting": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
+								ForceNew:     true,
 								ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForLinuxVMGuestPatchAutomaticByPlatformRebootSetting(), false),
 							},
 
@@ -619,6 +686,7 @@ func osProfileSchema() *pluginsdk.Schema {
 													"url": {
 														Type:         pluginsdk.TypeString,
 														Required:     true,
+														ForceNew:     true,
 														ValidateFunc: keyVaultValidate.NestedItemId,
 													},
 												},
@@ -631,6 +699,7 @@ func osProfileSchema() *pluginsdk.Schema {
 							"vm_agent_platform_updates_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  false,
 							},
 						},
@@ -647,12 +716,14 @@ func osProfileSchema() *pluginsdk.Schema {
 							"admin_username": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
+								ForceNew:     true,
 								ValidateFunc: computeValidate.WindowsAdminUsername,
 							},
 
 							"admin_password": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
+								ForceNew:     true,
 								Sensitive:    true,
 								ValidateFunc: computeValidate.WindowsAdminPassword,
 							},
@@ -660,6 +731,7 @@ func osProfileSchema() *pluginsdk.Schema {
 							"computer_name_prefix": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
+								ForceNew:     true,
 								ValidateFunc: computeValidate.WindowsComputerNamePrefix,
 							},
 
@@ -671,11 +743,13 @@ func osProfileSchema() *pluginsdk.Schema {
 										"content": {
 											Type:      pluginsdk.TypeString,
 											Required:  true,
+											ForceNew:  true,
 											Sensitive: true,
 										},
 										"setting": {
 											Type:         pluginsdk.TypeString,
 											Required:     true,
+											ForceNew:     true,
 											ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForSettingNames(), false),
 										},
 									},
@@ -685,24 +759,28 @@ func osProfileSchema() *pluginsdk.Schema {
 							"automatic_updates_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  true,
 							},
 
 							"bypass_platform_safety_checks_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  false,
 							},
 
 							"hot_patching_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  false,
 							},
 
 							"patch_assessment_mode": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
+								ForceNew: true,
 								// 'patchSettings.assessmentMode' cannot be set to 'AutomaticByPlatform' as its not supported on Virtual Machine Scale Sets.
 								ValidateFunc: validation.StringInSlice([]string{string(fleets.WindowsPatchAssessmentModeImageDefault)}, false),
 							},
@@ -710,18 +788,21 @@ func osProfileSchema() *pluginsdk.Schema {
 							"patch_mode": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
+								ForceNew:     true,
 								ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForWindowsVMGuestPatchMode(), false),
 							},
 
 							"provision_vm_agent_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  true,
 							},
 
 							"reboot_setting": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
+								ForceNew:     true,
 								ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForWindowsVMGuestPatchAutomaticByPlatformRebootSetting(), false),
 							},
 
@@ -741,12 +822,14 @@ func osProfileSchema() *pluginsdk.Schema {
 													"url": {
 														Type:         pluginsdk.TypeString,
 														Required:     true,
+														ForceNew:     true,
 														ValidateFunc: keyVaultValidate.NestedItemId,
 													},
 
 													"store": {
 														Type:     pluginsdk.TypeString,
 														Optional: true,
+														ForceNew: true,
 													},
 												},
 											},
@@ -765,6 +848,7 @@ func osProfileSchema() *pluginsdk.Schema {
 							"vm_agent_platform_updates_enabled": {
 								Type:     pluginsdk.TypeBool,
 								Optional: true,
+								ForceNew: true,
 								Default:  false,
 							},
 
@@ -806,6 +890,7 @@ func storageProfileDataDiskSchema() *pluginsdk.Schema {
 				"create_option": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(fleets.DiskCreateOptionTypesEmpty),
 						string(fleets.DiskCreateOptionTypesFromImage),
@@ -815,6 +900,7 @@ func storageProfileDataDiskSchema() *pluginsdk.Schema {
 				"caching": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// NOTE: because there is a `None` value in the possible values, it's handled in the Create/Update and Read functions.
 						string(fleets.CachingTypesReadOnly),
@@ -825,36 +911,42 @@ func storageProfileDataDiskSchema() *pluginsdk.Schema {
 				"delete_option": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDiskDeleteOptionTypes(), false),
 				},
 
 				"disk_encryption_set_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: computeValidate.DiskEncryptionSetID,
 				},
 
 				"disk_size_in_gb": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.IntBetween(1, 32767),
 				},
 
 				"lun": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.IntBetween(0, 2000),
 				},
 
 				"storage_account_type": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForStorageAccountTypes(), false),
 				},
 
 				"write_accelerator_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 			},
@@ -872,6 +964,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 				"caching": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						// NOTE: because there is a `None` value in the possible values, it's handled in the Create/Update and Read functions.
 						string(fleets.CachingTypesReadOnly),
@@ -882,6 +975,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 				"delete_option": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					Default:      string(fleets.DiskDeleteOptionTypesDelete),
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDiskDeleteOptionTypes(), false),
 				},
@@ -889,36 +983,42 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 				"diff_disk_option": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDiffDiskOptions(), false),
 				},
 
 				"diff_disk_placement": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDiffDiskPlacement(), false),
 				},
 
 				"disk_encryption_set_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: computeValidate.DiskEncryptionSetID,
 				},
 
 				"disk_size_in_gb": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.IntBetween(1, 32767),
 				},
 
 				"security_encryption_type": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForSecurityEncryptionTypes(), false),
 				},
 
 				"storage_account_type": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ForceNew: true,
 					// NOTE: OS Disks don't support Ultra SSDs or PremiumV2_LRS
 					ValidateFunc: validation.StringInSlice([]string{
 						string(fleets.StorageAccountTypesPremiumLRS),
@@ -932,6 +1032,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 				"write_accelerator_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					ForceNew: true,
 					Default:  false,
 				},
 			},
@@ -949,24 +1050,28 @@ func storageProfileSourceImageReferenceSchema() *pluginsdk.Schema {
 				"offer": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"publisher": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"sku": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"version": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
+					ForceNew:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
