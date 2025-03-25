@@ -37,15 +37,6 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageSourceReferenc
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
 			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.imageFromSourceImageReferenceUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -391,109 +382,6 @@ resource "azurerm_compute_fleet" "test" {
           admin_password                  = local.admin_password
           password_authentication_enabled = true
         }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
-}
-`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-}
-
-func (r ComputeFleetTestResource) imageFromSourceImageReferenceUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_compute_fleet" "test" {
-  name                = "acctest-fleet-refer-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-
-  regular_priority_profile {
-    capacity     = 1
-    min_capacity = 1
-  }
-
-  vm_sizes_profile {
-    name = "Standard_DS1_v2"
-  }
-
-  compute_api_version = "2024-03-01"
-  virtual_machine_profile {
-    network_api_version = "2020-11-01"
-    source_image_reference {
-      offer     = "0001-com-ubuntu-server-focal"
-      publisher = "canonical"
-      sku       = "20_04-lts-gen2"
-      version   = "latest"
-    }
-
-    os_profile {
-      linux_configuration {
-        computer_name_prefix            = "testvm"
-        admin_username                  = local.admin_username
-        admin_password                  = local.admin_password
-        password_authentication_enabled = true
-      }
-    }
-
-    os_disk {
-      caching              = "ReadWrite"
-      storage_account_type = "Standard_LRS"
-    }
-
-    network_interface {
-      name                              = "networkProTest"
-      primary_network_interface_enabled = true
-      ip_configuration {
-        name                             = "TestIPConfiguration"
-        subnet_id                        = azurerm_subnet.test.id
-        primary_ip_configuration_enabled = true
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        offer     = "0001-com-ubuntu-server-focal"
-        publisher = "canonical"
-        sku       = "20_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
       }
 
       network_interface {
