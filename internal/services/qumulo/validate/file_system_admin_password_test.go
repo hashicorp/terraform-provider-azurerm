@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestFileSystemAdminPassword(t *testing.T) {
+func TestFileSystemName(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
@@ -14,15 +14,15 @@ func TestFileSystemAdminPassword(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    "ab",
+			Value:    "abB1091",
+			ErrCount: 1,
+		},
+		{
+			Value:    "abB10919",
 			ErrCount: 0,
 		},
 		{
-			Value:    "1---2",
-			ErrCount: 0,
-		},
-		{
-			Value:    "hello-world",
+			Value:    "hello-world!",
 			ErrCount: 0,
 		},
 		{
@@ -31,18 +31,18 @@ func TestFileSystemAdminPassword(t *testing.T) {
 		},
 		{
 			Value:    "-helloWorld",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "helloWorld-",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "hello@world",
 			ErrCount: 1,
 		},
 		{
-			Value:    "123456789012345",
+			Value:    "hello@World",
 			ErrCount: 0,
 		},
 		{
@@ -53,12 +53,16 @@ func TestFileSystemAdminPassword(t *testing.T) {
 			Value:    "123456789012345-",
 			ErrCount: 1,
 		},
+		{
+			Value:    "123456789012345-A",
+			ErrCount: 1,
+		},
 	}
 
 	for _, tc := range cases {
-		_, errors := FileSystemName(tc.Value, "name")
+		_, errors := ValidatePasswordComplexity(tc.Value, "adminPassword")
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected FileSystemName to have %d not %d errors for %q", tc.ErrCount, len(errors), tc.Value)
+			t.Fatalf("Expected ValidatePasswordComplexity to have %d not %d errors for %q", tc.ErrCount, len(errors), tc.Value)
 		}
 	}
 }

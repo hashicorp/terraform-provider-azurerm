@@ -3,12 +3,12 @@ subcategory: "Qumulo"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_qumulo_file_system"
 description: |-
-  Manages a Azure Native Qumulo Scalable File System.
+  Manages an Azure Native Qumulo Scalable File System.
 ---
 
 # azurerm_qumulo_file_system
 
-Manages a Azure Native Qumulo Scalable File System.
+Manages an Azure Native Qumulo Scalable File System.
 
 ## Example Usage
 
@@ -47,9 +47,9 @@ resource "azurerm_qumulo_file_system" "example" {
   admin_password      = ")^X#ZX#JRyIY}t9"
   availability_zone   = "1"
   delegated_subnet_id = azurerm_subnet.example.id
-  marketplace_plan_id = "qumulo-on-azure-v1%%gmz7xq9ge3py%%P1M"
+  plan_id             = "azure-native-qumulo-v3"
   storage_sku         = "Standard"
-  user_email_address  = "test@test.com"
+  email               = "test@test.com"
   tags = {
     environment = "test"
   }
@@ -68,13 +68,13 @@ The following arguments are supported:
 
 * `admin_password` - (Required) Initial administrator password of the Azure Native Qumulo Scalable File System. Changing this forces a new resource to be created.
 
-* `marketplace_plan_id` - (Required) Specifies the marketplace plan ID. Changing this forces a new resource to be created.
+* `plan_id` - (Required) Specifies the marketplace plan ID. Changing this forces a new resource to be created.
 
 * `storage_sku` - (Required) The storage Sku. Possible values are `Cold_LRS`, `Hot_LRS` and `Hot_ZRS`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) Delegated subnet ID for Vnet injection. Changing this forces a new resource to be created.
 
-* `user_email_address` - (Required) The email address. Changing this forces a new resource to be created.
+* `email` - (Required) The email address. Changing this forces a new resource to be created.
 
 * `zone` - (Optional) Availability zone. Changing this forces a new resource to be created.
 

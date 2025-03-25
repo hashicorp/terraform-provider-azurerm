@@ -26,7 +26,7 @@ func TestAccQumuloFileSystem_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_email_address"),
+		data.ImportStep("admin_password", "email"),
 	})
 }
 
@@ -56,7 +56,7 @@ func TestAccQumuloFileSystem_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_email_address"),
+		data.ImportStep("admin_password", "email"),
 	})
 }
 
@@ -71,21 +71,21 @@ func TestAccQumuloFileSystem_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_email_address"),
+		data.ImportStep("admin_password", "email"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_email_address"),
+		data.ImportStep("admin_password", "email"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "user_email_address"),
+		data.ImportStep("admin_password", "email"),
 	})
 }
 
@@ -97,7 +97,7 @@ func (r FileSystemTestResource) Exists(ctx context.Context, clients *clients.Cli
 
 	resp, err := clients.Qumulo.FileSystemsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
@@ -112,10 +112,10 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  marketplace_plan_id = "azure-native-qumulo-v3"
+  plan_id             = "azure-native-qumulo-v3"
   storage_sku         = "Cold_LRS"
   subnet_id           = azurerm_subnet.test.id
-  user_email_address  = "test@test.com"
+  email               = "test@test.com"
   zone                = "1"
 }
 `, r.template(data), data.RandomString)
@@ -130,10 +130,10 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  marketplace_plan_id = "azure-native-qumulo-v3"
+  plan_id             = "azure-native-qumulo-v3"
   storage_sku         = "Cold_LRS"
   subnet_id           = azurerm_subnet.test.id
-  user_email_address  = "test@test.com"
+  email               = "test@test.com"
   zone                = "1"
   tags = {
     environment = "terraform-acctests"
@@ -152,10 +152,10 @@ resource "azurerm_qumulo_file_system" "import" {
   resource_group_name = azurerm_qumulo_file_system.test.resource_group_name
   location            = azurerm_qumulo_file_system.test.location
   admin_password      = azurerm_qumulo_file_system.test.admin_password
-  marketplace_plan_id = azurerm_qumulo_file_system.test.marketplace_plan_id
+  plan_id             = azurerm_qumulo_file_system.test.marketplace_plan_id
   storage_sku         = azurerm_qumulo_file_system.test.storage_sku
   subnet_id           = azurerm_qumulo_file_system.test.subnet_id
-  user_email_address  = azurerm_qumulo_file_system.test.user_email_address
+  email               = azurerm_qumulo_file_system.test.user_email_address
   zone                = azurerm_qumulo_file_system.test.zone
 }
 `, r.basic(data))
@@ -170,10 +170,10 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  marketplace_plan_id = "azure-native-qumulo-v3"
+  plan_id             = "azure-native-qumulo-v3"
   storage_sku         = "Cold_LRS"
   subnet_id           = azurerm_subnet.test.id
-  user_email_address  = "test@test.com"
+  email               = "test@test.com"
   zone                = "1"
   tags = {
     environment = "terraform-acctests"

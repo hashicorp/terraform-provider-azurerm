@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/qumulostorage/2024-06-19/filesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -20,10 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.Resource           = FileSystemResource{}
-	_ sdk.ResourceWithUpdate = FileSystemResource{}
-)
+var _ sdk.ResourceWithUpdate = FileSystemResource{}
 
 const (
 	offerId     = "qumulo-saas-mpp"
@@ -37,16 +33,16 @@ func (r FileSystemResource) ModelObject() interface{} {
 }
 
 type FileSystemResourceSchema struct {
-	AdminPassword     string                 `tfschema:"admin_password"`
-	Location          string                 `tfschema:"location"`
-	MarketplacePlanId string                 `tfschema:"marketplace_plan_id"`
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	StorageSku        string                 `tfschema:"storage_sku"`
-	SubnetId          string                 `tfschema:"subnet_id"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	UserEmailAddress  string                 `tfschema:"user_email_address"`
-	Zone              string                 `tfschema:"zone"`
+	AdminPassword     string            `tfschema:"admin_password"`
+	Location          string            `tfschema:"location"`
+	PlanId            string            `tfschema:"plan_id"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	StorageSku        string            `tfschema:"storage_sku"`
+	SubnetId          string            `tfschema:"subnet_id"`
+	Tags              map[string]string `tfschema:"tags"`
+	Email             string            `tfschema:"email"`
+	Zone              string            `tfschema:"zone"`
 }
 
 func (r FileSystemResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -69,13 +65,14 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"admin_password": {
-			Type:      pluginsdk.TypeString,
-			Required:  true,
-			ForceNew:  true,
-			Sensitive: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			Sensitive:    true,
+			ValidateFunc: validate.ValidatePasswordComplexity,
 		},
 
-		"marketplace_plan_id": {
+		"plan_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -101,7 +98,7 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"user_email_address": {
+		"email": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -125,21 +122,18 @@ func (r FileSystemResource) Create() sdk.ResourceFunc {
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Qumulo.FileSystemsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config FileSystemResourceSchema
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-
 			id := filesystems.NewFileSystemID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-				}
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -152,18 +146,18 @@ func (r FileSystemResource) Create() sdk.ResourceFunc {
 
 			payload := filesystems.LiftrBaseStorageFileSystemResource{
 				Location: location.Normalize(config.Location),
-				Tags:     tags.Expand(config.Tags),
+				Tags:     pointer.To(config.Tags),
 				Properties: &filesystems.LiftrBaseStorageFileSystemResourceProperties{
 					AdminPassword:     config.AdminPassword,
 					AvailabilityZone:  pointer.To(config.Zone),
 					DelegatedSubnetId: config.SubnetId,
 					StorageSku:        config.StorageSku,
 					UserDetails: filesystems.LiftrBaseUserDetails{
-						Email: config.UserEmailAddress,
+						Email: config.Email,
 					},
 					MarketplaceDetails: filesystems.LiftrBaseMarketplaceDetails{
 						OfferId:     offerId,
-						PlanId:      config.MarketplacePlanId,
+						PlanId:      config.PlanId,
 						PublisherId: pointer.To(publisherId),
 					},
 				},
@@ -209,10 +203,10 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				// model.Properties and model.Properties.MarketplaceDetails is not pointer, so we don't need to check nil
 				config.Zone = pointer.From(model.Properties.AvailabilityZone)
-				config.MarketplacePlanId = model.Properties.MarketplaceDetails.PlanId
+				config.PlanId = model.Properties.MarketplaceDetails.PlanId
 				config.StorageSku = model.Properties.StorageSku
 				config.Location = location.Normalize(model.Location)
-				config.Tags = tags.Flatten(model.Tags)
+				config.Tags = pointer.From(model.Tags)
 
 				subnetId, err := commonids.ParseSubnetIDInsensitively(model.Properties.DelegatedSubnetId)
 				if err != nil {
@@ -265,7 +259,7 @@ func (r FileSystemResource) Update() sdk.ResourceFunc {
 			payload := filesystems.LiftrBaseStorageFileSystemResourceUpdate{}
 
 			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = tags.Expand(config.Tags)
+				payload.Tags = pointer.To(config.Tags)
 			}
 
 			if _, err := client.Update(ctx, *id, payload); err != nil {
@@ -295,9 +289,9 @@ func checkSubnet(ctx context.Context, rawSubnetId string, metadata sdk.ResourceM
 
 	if subnet.Model != nil && subnet.Model.Properties != nil && subnet.Model.Properties.Delegations != nil {
 		for _, delegation := range *subnet.Model.Properties.Delegations {
-			if delegation.Properties != nil && delegation.Properties.Actions != nil &&
-				delegation.Properties.ServiceName != nil && strings.EqualFold(*delegation.Properties.ServiceName, delegationName) {
-				for _, action := range *delegation.Properties.Actions {
+			if props := delegation.Properties; props != nil && props.Actions != nil &&
+				props.ServiceName != nil && strings.EqualFold(*props.ServiceName, delegationName) {
+				for _, action := range *props.Actions {
 					if strings.EqualFold(action, delegationAction) {
 						return nil
 					}
