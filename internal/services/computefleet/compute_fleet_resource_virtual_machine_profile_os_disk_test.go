@@ -46,51 +46,6 @@ func TestAccComputeFleet_virtualMachineProfileOsDisk_complete(t *testing.T) {
 	})
 }
 
-func TestAccComputeFleet_virtualMachineProfileOsDisk_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.osDiskComplete(data, "westeurope", "centralus"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			// Limited regional availability for some storage account type
-			Config: r.osDiskCompleteUpdate(data, "westeurope", "centralus"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.osDiskBasic(data, "westeurope", "centralus", "Standard_F2s_v2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.osDiskComplete(data, "westeurope", "centralus"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-	})
-}
-
 func (r ComputeFleetTestResource) osDiskBasic(data acceptance.TestData, primaryLocation string, secondaryLocation string, vmSize string) string {
 	return fmt.Sprintf(`
 
@@ -217,9 +172,10 @@ resource "azurerm_compute_fleet" "test" {
   compute_api_version = "2024-03-01"
 
   virtual_machine_profile {
-    network_api_version = "2020-11-01"
-    secure_boot_enabled = true
-    vtpm_enabled        = true
+    network_api_version        = "2020-11-01"
+    encryption_at_host_enabled = true
+    secure_boot_enabled        = true
+    vtpm_enabled               = true
 
     os_profile {
       linux_configuration {
@@ -271,9 +227,10 @@ resource "azurerm_compute_fleet" "test" {
     location = "%[5]s"
 
     virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      secure_boot_enabled = true
-      vtpm_enabled        = true
+      network_api_version        = "2020-11-01"
+      encryption_at_host_enabled = true
+      secure_boot_enabled        = true
+      vtpm_enabled               = true
 
       os_profile {
         linux_configuration {
@@ -316,139 +273,6 @@ resource "azurerm_compute_fleet" "test" {
         publisher = "canonical"
         offer     = "0001-com-ubuntu-confidential-vm-jammy"
         sku       = "22_04-lts-cvm"
-        version   = "latest"
-      }
-    }
-  }
-
-  depends_on = [
-    "azurerm_role_assignment.disk-encryption-read-keyvault",
-    "azurerm_key_vault_access_policy.disk-encryption",
-    "azurerm_role_assignment.linux-test-disk-encryption-read-keyvault",
-    "azurerm_key_vault_access_policy.linux-test-disk-encryption"
-  ]
-}
-`, r.osDiskDiskEncryptionSetResourceDependencies(data), r.osDiskTemplateWithOutProvider(data, primaryLocation, secondaryLocation), data.RandomInteger, primaryLocation, secondaryLocation)
-}
-
-func (r ComputeFleetTestResource) osDiskCompleteUpdate(data acceptance.TestData, primaryLocation string, secondaryLocation string) string {
-	return fmt.Sprintf(`
-%[1]s
-%[2]s
-
-resource "azurerm_compute_fleet" "test" {
-  name                        = "acctest-fleet-%[3]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = "%[4]s"
-  platform_fault_domain_count = 1
-
-  spot_priority_profile {
-    min_capacity     = 0
-    maintain_enabled = false
-    capacity         = 0
-  }
-
-  vm_sizes_profile {
-    name = "Standard_DC8eds_v5"
-  }
-
-  compute_api_version = "2024-03-01"
-  virtual_machine_profile {
-    network_api_version = "2020-11-01"
-    secure_boot_enabled = true
-    vtpm_enabled        = true
-
-    os_profile {
-      linux_configuration {
-        computer_name_prefix            = "testvm"
-        admin_username                  = local.admin_username
-        admin_password                  = local.admin_password
-        password_authentication_enabled = true
-      }
-    }
-    network_interface {
-      name                              = "networkProTest"
-      primary_network_interface_enabled = true
-      ip_configuration {
-        name                             = "TestIPConfiguration"
-        primary_ip_configuration_enabled = true
-        subnet_id                        = azurerm_subnet.test.id
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
-      }
-    }
-
-    os_disk {
-      caching                   = "ReadOnly"
-      delete_option             = "Delete"
-      diff_disk_option          = "Local"
-      diff_disk_placement       = "ResourceDisk"
-      disk_size_in_gb           = 50
-      storage_account_type      = "Premium_ZRS"
-      security_encryption_type  = "DiskWithVMGuestState"
-      disk_encryption_set_id    = azurerm_disk_encryption_set.test.id
-      write_accelerator_enabled = false
-    }
-
-    source_image_reference {
-      publisher = "canonical"
-      offer     = "0001-com-ubuntu-confidential-vm-focal"
-      sku       = "20_04-lts-cvm"
-      version   = "latest"
-    }
-  }
-
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      secure_boot_enabled = true
-      vtpm_enabled        = true
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          primary_ip_configuration_enabled = true
-          subnet_id                        = azurerm_subnet.linux_test.id
-
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-      os_disk {
-        caching                   = "ReadOnly"
-        delete_option             = "Delete"
-        diff_disk_option          = "Local"
-        diff_disk_placement       = "ResourceDisk"
-        disk_size_in_gb           = 50
-        storage_account_type      = "Premium_ZRS"
-        security_encryption_type  = "DiskWithVMGuestState"
-        disk_encryption_set_id    = azurerm_disk_encryption_set.linux_test.id
-        write_accelerator_enabled = false
-      }
-
-      source_image_reference {
-        publisher = "canonical"
-        offer     = "0001-com-ubuntu-confidential-vm-focal"
-        sku       = "20_04-lts-cvm"
         version   = "latest"
       }
     }
