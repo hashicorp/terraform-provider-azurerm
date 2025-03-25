@@ -541,19 +541,21 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("updating Connection Policy for %s: %+v", id, err)
 	}
 
-	vaState := sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateDisabled
-	if d.Get("express_vulnerability_assessment_enabled").(bool) {
-		vaState = sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateEnabled
-	}
+	if d.HasChange("express_vulnerability_assessment_enabled") {
+		vaState := sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateDisabled
+		if d.Get("express_vulnerability_assessment_enabled").(bool) {
+			vaState = sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateEnabled
+		}
 
-	va := sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessment{
-		Properties: &sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentPolicyProperties{
-			State: &vaState,
-		},
-	}
+		va := sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessment{
+			Properties: &sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentPolicyProperties{
+				State: &vaState,
+			},
+		}
 
-	if _, err := vaClient.CreateOrUpdate(ctx, *id, va); err != nil {
-		return fmt.Errorf("updating Express Vulnerability Assessment settings for %s: %+v", *id, err)
+		if _, err := vaClient.CreateOrUpdate(ctx, *id, va); err != nil {
+			return fmt.Errorf("updating Express Vulnerability Assessment settings for %s: %+v", *id, err)
+		}
 	}
 
 	return resourceMsSqlServerRead(d, meta)

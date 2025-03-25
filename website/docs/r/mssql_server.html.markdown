@@ -151,7 +151,7 @@ The following arguments are supported:
 
 * `express_vulnerability_assessment_enabled` - (Optional) Whether to enable the Express Vulnerability Assessment Configuration. Defaults to `false`.
 
-~> **Note:** if you have enabled the Classic SQL Vulnerability Assessment configuration using the `azurerm_mssql_server_vulnerability_assessment` resource, you must first delete it before enabling `express_vulnerability_assessment_enabled`. If you wish to revert back to using the Classic SQL Vulnerability Assessment configuration you must first disable this setting.
+~> **Note:** If you have enabled the Classic SQL Vulnerability Assessment configuration using the `azurerm_mssql_server_vulnerability_assessment` resource, you must first delete it before enabling `express_vulnerability_assessment_enabled`. If you wish to revert back to using the Classic SQL Vulnerability Assessment configuration you must first disable this setting.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
