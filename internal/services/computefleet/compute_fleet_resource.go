@@ -601,6 +601,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		"compute_api_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -919,26 +920,6 @@ func (r ComputeFleetResource) Update() sdk.ResourceFunc {
 				properties.Plan = expandPlanModel(model.Plan)
 			}
 
-			if metadata.ResourceData.HasChange("additional_location_profile") {
-				additionalLocationsProfileValue, err := expandAdditionalLocationProfileModel(model.AdditionalLocationProfile, metadata.ResourceData)
-				if err != nil {
-					return err
-				}
-				properties.Properties.AdditionalLocationsProfile = additionalLocationsProfileValue
-			}
-
-			if metadata.ResourceData.HasChange("virtual_machine_profile") {
-				baseVirtualMachineProfileValue, err := expandVirtualMachineProfileModel(model.VirtualMachineProfile, metadata.ResourceData, false, -1, len(model.VMAttributes) > 0)
-				if err != nil {
-					return err
-				}
-				properties.Properties.ComputeProfile.BaseVirtualMachineProfile = pointer.From(baseVirtualMachineProfileValue)
-			}
-
-			if metadata.ResourceData.HasChange("compute_api_version") {
-				properties.Properties.ComputeProfile.ComputeApiVersion = pointer.To(model.ComputeApiVersion)
-			}
-
 			if metadata.ResourceData.HasChange("regular_priority_profile") {
 				properties.Properties.RegularPriorityProfile = expandRegularPriorityProfileModel(model.RegularPriorityProfile)
 			}
@@ -956,7 +937,7 @@ func (r ComputeFleetResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				properties.Tags = &model.Tags
+				properties.Tags = pointer.To(model.Tags)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {

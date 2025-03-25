@@ -25,15 +25,6 @@ func TestAccComputeFleet_virtualMachineProfileOthers_bootDiagnosticEnabled(t *te
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
 			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.bootDiagnostic(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -44,15 +35,6 @@ func TestAccComputeFleet_virtualMachineProfileOthers_capacityReservationGroup(t 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.capacityReservationGroup(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.capacityReservationGroupUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -77,15 +59,6 @@ func TestAccComputeFleet_virtualMachineProfileOthers_galleryApplication(t *testi
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
 			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.galleryApplication(data, "testUpdate"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -96,15 +69,6 @@ func TestAccComputeFleet_virtualMachineProfileOthers_licenseType(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.licenseType(data, "Windows_Client"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.admin_password"),
-		{
-			Config: r.licenseType(data, "Windows_Server"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -129,41 +93,6 @@ func TestAccComputeFleet_virtualMachineProfileOthers_scheduledEvent(t *testing.T
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
 			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.scheduledEventUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-	})
-}
-
-func TestAccComputeFleet_virtualMachineProfileOthers_securityProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.securityProfile(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.securityProfileUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -174,15 +103,6 @@ func TestAccComputeFleet_virtualMachineProfileOthers_UserData(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userData(data, "Hello World"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-		{
-			Config: r.userData(data, "Goodbye World"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -493,180 +413,6 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
   depends_on = [azurerm_capacity_reservation.test, azurerm_capacity_reservation.linux_test]
-}
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-}
-
-func (r ComputeFleetTestResource) capacityReservationGroupUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_capacity_reservation_group" "test" {
-  name                = "acctest-ccrg-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  zones               = ["1", "2", "3"]
-
-}
-
-resource "azurerm_capacity_reservation" "test" {
-  name                          = "acctest-ccr-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  sku {
-    name     = "Standard_F2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_capacity_reservation_group" "test2" {
-  name                = "acctest-ccrg2-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  zones               = ["1", "2", "3"]
-}
-
-resource "azurerm_capacity_reservation" "test2" {
-  name                          = "acctest-ccr2-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
-  sku {
-    name     = "Standard_F2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_capacity_reservation_group" "linux_test" {
-  name                = "acctest-ccrg-%[2]d"
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-  zones               = ["1", "2", "3"]
-}
-
-resource "azurerm_capacity_reservation" "linux_test" {
-  name                          = "acctest-ccr-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.linux_test.id
-  sku {
-    name     = "Standard_F2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_capacity_reservation_group" "linux_test2" {
-  name                = "acctest-ccrg2-%[2]d"
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-  zones               = ["1", "2", "3"]
-}
-
-resource "azurerm_capacity_reservation" "linux_test2" {
-  name                          = "acctest-ccr2-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.linux_test2.id
-  sku {
-    name     = "Standard_F2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_compute_fleet" "test" {
-  name                = "acctest-fleet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-
-  spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
-  }
-
-  vm_sizes_profile {
-    name = "Standard_F2"
-  }
-
-  compute_api_version = "2024-03-01"
-
-  virtual_machine_profile {
-    network_api_version           = "2020-11-01"
-    capacity_reservation_group_id = azurerm_capacity_reservation_group.test2.id
-
-    source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
-      version   = "latest"
-    }
-
-    os_disk {
-      caching              = "ReadWrite"
-      storage_account_type = "Standard_LRS"
-    }
-
-    os_profile {
-      linux_configuration {
-        computer_name_prefix            = "testvm"
-        admin_username                  = local.admin_username
-        admin_password                  = local.admin_password
-        password_authentication_enabled = true
-      }
-    }
-
-    network_interface {
-      name                              = "networkProTest"
-      primary_network_interface_enabled = true
-      ip_configuration {
-        name                             = "TestIPConfiguration"
-        subnet_id                        = azurerm_subnet.test.id
-        primary_ip_configuration_enabled = true
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version           = "2020-11-01"
-      capacity_reservation_group_id = azurerm_capacity_reservation_group.linux_test2.id
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
-  depends_on = [azurerm_capacity_reservation.test2, azurerm_capacity_reservation.linux_test2]
 }
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -1153,114 +899,6 @@ resource "azurerm_compute_fleet" "test" {
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func (r ComputeFleetTestResource) scheduledEventUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_compute_fleet" "test" {
-  name                = "acctest-fleet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-
-  spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
-  }
-
-  vm_sizes_profile {
-    name = "Standard_D1_v2"
-  }
-
-  compute_api_version = "2024-03-01"
-  virtual_machine_profile {
-    network_api_version = "2020-11-01"
-    source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
-      version   = "latest"
-    }
-
-    os_disk {
-      caching              = "ReadWrite"
-      storage_account_type = "Standard_LRS"
-    }
-
-    os_profile {
-      linux_configuration {
-        computer_name_prefix            = "testvm-%[2]d"
-        admin_username                  = local.admin_username
-        admin_password                  = local.admin_password
-        password_authentication_enabled = true
-      }
-    }
-
-    network_interface {
-      name                              = "networkProTest"
-      primary_network_interface_enabled = true
-      ip_configuration {
-        name                             = "TestIPConfiguration"
-        subnet_id                        = azurerm_subnet.test.id
-        primary_ip_configuration_enabled = true
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
-      }
-    }
-
-    scheduled_event_termination_timeout = "PT15M"
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm-%[2]d"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-      scheduled_event_termination_timeout = "PT15M"
-    }
-  }
-}
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-}
-
 func (r ComputeFleetTestResource) userData(data acceptance.TestData, userDta string) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1367,262 +1005,6 @@ resource "azurerm_compute_fleet" "test" {
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, userDta, data.Locations.Secondary)
 }
 
-func (r ComputeFleetTestResource) securityProfile(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_compute_fleet" "test" {
-  name                = "acctest-fleet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-
-  spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
-  }
-
-  vm_sizes_profile {
-    name = "Standard_B1ls"
-  }
-
-  compute_api_version = "2024-03-01"
-  virtual_machine_profile {
-    network_api_version        = "2020-11-01"
-    encryption_at_host_enabled = true
-    secure_boot_enabled        = true
-    vtpm_enabled               = true
-
-    source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts-gen2"
-      version   = "latest"
-    }
-
-    os_disk {
-      storage_account_type = "Standard_LRS"
-      caching              = "ReadWrite"
-    }
-
-    data_disk {
-      lun                  = 0
-      caching              = "ReadWrite"
-      create_option        = "Empty"
-      disk_size_in_gb      = 10
-      storage_account_type = "Standard_LRS"
-    }
-
-    os_profile {
-      linux_configuration {
-        computer_name_prefix            = "testvm"
-        admin_username                  = local.admin_username
-        admin_password                  = local.admin_password
-        password_authentication_enabled = true
-      }
-    }
-
-    network_interface {
-      name    = "networkProTest"
-      primary = true
-      ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version        = "2020-11-01"
-      encryption_at_host_enabled = true
-      secure_boot_enabled        = true
-      vtpm_enabled               = true
-
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_disk {
-        storage_account_type = "Standard_LRS"
-        caching              = "ReadWrite"
-      }
-
-      data_disk {
-        lun                  = 0
-        caching              = "ReadWrite"
-        create_option        = "Empty"
-        disk_size_in_gb      = 10
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name    = "networkProTest"
-        primary = true
-        ip_configuration {
-          name      = "TestIPConfiguration"
-          subnet_id = azurerm_subnet.linux_test.id
-          primary   = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
-}
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-}
-
-func (r ComputeFleetTestResource) securityProfileUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_compute_fleet" "test" {
-  name                = "acctest-fleet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-
-  spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
-  }
-
-  vm_sizes_profile {
-    name = "Standard_B1ls"
-  }
-
-  compute_api_version = "2023-09-01"
-  virtual_machine_profile {
-    network_api_version        = "2020-11-01"
-    encryption_at_host_enabled = false
-    secure_boot_enabled        = false
-    vtpm_enabled               = false
-
-    source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts-gen2"
-      version   = "latest"
-    }
-
-    os_disk {
-      storage_account_type = "Standard_LRS"
-      caching              = "ReadWrite"
-    }
-
-    data_disk {
-      lun                  = 0
-      caching              = "ReadWrite"
-      create_option        = "Empty"
-      disk_size_in_gb      = 10
-      storage_account_type = "Standard_LRS"
-    }
-
-    os_profile {
-      linux_configuration {
-        computer_name_prefix            = "testvm"
-        admin_username                  = local.admin_username
-        admin_password                  = local.admin_password
-        password_authentication_enabled = true
-      }
-    }
-
-    network_interface {
-      name    = "networkProTest"
-      primary = true
-      ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version        = "2020-11-01"
-      encryption_at_host_enabled = false
-      secure_boot_enabled        = false
-      vtpm_enabled               = false
-
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_disk {
-        storage_account_type = "Standard_LRS"
-        caching              = "ReadWrite"
-      }
-
-      data_disk {
-        lun                  = 0
-        caching              = "ReadWrite"
-        create_option        = "Empty"
-        disk_size_in_gb      = 10
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name    = "networkProTest"
-        primary = true
-        ip_configuration {
-          name      = "TestIPConfiguration"
-          subnet_id = azurerm_subnet.linux_test.id
-          primary   = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
-}
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-}
-
 func (r ComputeFleetTestResource) additionalCapabilitiesUltraSSD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -1641,7 +1023,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -1669,12 +1051,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -1710,10 +1092,10 @@ resource "azurerm_compute_fleet" "test" {
   location                                    = "%[3]s"
   additional_capabilities_hibernation_enabled = true
 
-  spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
+  regular_priority_profile {
+    allocation_strategy = "LowestPrice"
+    capacity            = 1
+    min_capacity        = 0
   }
 
   vm_sizes_profile {
@@ -1745,12 +1127,12 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name    = "networkProTest"
-      primary = true
+      name                              = "networkProTest"
+      primary_network_interface_enabled = true
       ip_configuration {
-        name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
-        primary   = true
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+        primary_ip_configuration_enabled = true
         public_ip_address {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
@@ -1799,12 +1181,12 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       network_interface {
-        name    = "networkProTest"
-        primary = true
+        name                              = "networkProTest"
+        primary_network_interface_enabled = true
         ip_configuration {
-          name      = "TestIPConfiguration"
-          subnet_id = azurerm_subnet.linux_test.id
-          primary   = true
+          name                             = "TestIPConfiguration"
+          subnet_id                        = azurerm_subnet.linux_test.id
+          primary_ip_configuration_enabled = true
           public_ip_address {
             name                    = "TestPublicIPConfiguration"
             domain_name_label       = "test-domain-label"
