@@ -930,7 +930,6 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   version                = "8.0.21"
-  public_network_access  = "Disabled"
 
   high_availability {
     mode                      = "ZoneRedundant"
