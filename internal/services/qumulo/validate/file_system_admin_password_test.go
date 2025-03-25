@@ -23,7 +23,7 @@ func TestFileSystemName(t *testing.T) {
 		},
 		{
 			Value:    "hello-world!",
-			ErrCount: 0,
+			ErrCount: 1,
 		},
 		{
 			Value:    "hello_world",
@@ -55,7 +55,7 @@ func TestFileSystemName(t *testing.T) {
 		},
 		{
 			Value:    "123456789012345-A",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 	}
 
