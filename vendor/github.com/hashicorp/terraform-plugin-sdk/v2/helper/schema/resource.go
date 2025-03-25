@@ -644,6 +644,19 @@ type Resource struct {
 	// ResourceBehavior is used to control SDK-specific logic when
 	// interacting with this resource.
 	ResourceBehavior ResourceBehavior
+
+	// ValidateRawResourceConfigFuncs allows functions to define arbitrary validation
+	// logic during the ValidateResourceTypeConfig RPC. ValidateRawResourceConfigFunc receives
+	// the client capabilities from the ValidateResourceTypeConfig RPC and the raw cty
+	// config value for the entire resource before it is shimmed, and it can return error
+	// diagnostics based on the inspection of those values.
+	//
+	// ValidateRawResourceConfigFuncs is only valid for Managed Resource types and will not be
+	// called for Data Resource or Provider types.
+	//
+	// Developers should prefer other validation methods first as this validation function
+	// deals with raw cty values.
+	ValidateRawResourceConfigFuncs []ValidateRawResourceConfigFunc
 }
 
 // ResourceBehavior controls SDK-specific logic when interacting
@@ -668,6 +681,25 @@ type ProviderDeferredBehavior struct {
 	// returns a deferred response. The SDK will then automatically return a deferred response
 	// along with the modified plan.
 	EnablePlanModification bool
+}
+
+// ValidateRawResourceConfigFunc is a function used to validate the raw resource config
+// and has Diagnostic support. it is only valid for Managed Resource types and will not be
+// called for Data Resource or Block types.
+type ValidateRawResourceConfigFunc func(context.Context, ValidateResourceConfigFuncRequest, *ValidateResourceConfigFuncResponse)
+
+type ValidateResourceConfigFuncRequest struct {
+	// WriteOnlyAttributesAllowed indicates that the Terraform client
+	// initiating the request supports write-only attributes for managed
+	// resources.
+	WriteOnlyAttributesAllowed bool
+
+	// The raw config value provided by Terraform core
+	RawConfig cty.Value
+}
+
+type ValidateResourceConfigFuncResponse struct {
+	Diagnostics diag.Diagnostics
 }
 
 // SchemaMap returns the schema information for this Resource whether it is

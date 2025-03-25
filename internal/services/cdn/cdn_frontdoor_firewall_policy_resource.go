@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -79,11 +80,12 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			},
 
 			// NOTE: Through local testing, the new API js challenge expiration is always
-			// enabled no matter what and cannot be disabled...
+			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
+			// and is not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      30,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},
 
@@ -170,6 +172,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 								string(waf.ActionTypeBlock),
 								string(waf.ActionTypeLog),
 								string(waf.ActionTypeRedirect),
+								string(waf.ActionTypeJSChallenge),
 							}, false),
 						},
 
@@ -447,6 +450,57 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				},
 			},
 
+			"log_scrubbing": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"scrubbing_rule": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 100,
+							Required: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+
+									"match_variable": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+											false),
+									},
+
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										Default:  string(waf.ScrubbingRuleEntryMatchOperatorEquals),
+										ValidateFunc: validation.StringInSlice(waf.PossibleValuesForScrubbingRuleEntryMatchOperator(),
+											false),
+									},
+
+									"selector": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"frontend_endpoint_ids": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -457,6 +511,72 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				oSku, nSku := diff.GetChange("sku_name")
+
+				if oSku != "" {
+					if oSku.(string) == string(waf.SkuNamePremiumAzureFrontDoor) && nSku.(string) == string(waf.SkuNameStandardAzureFrontDoor) {
+						return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", waf.SkuNamePremiumAzureFrontDoor, waf.SkuNameStandardAzureFrontDoor, nSku.(string))
+					}
+				}
+
+				return nil
+			}),
+
+			// Verify that the Standard SKU is not setting the JSChallenge policy...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				sku := diff.Get("sku_name").(string)
+				policyInMinutes := diff.Get("js_challenge_cookie_expiration_in_minutes").(int)
+
+				if sku == string(waf.SkuNameStandardAzureFrontDoor) && policyInMinutes > 0 {
+					return fmt.Errorf("the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", waf.SkuNamePremiumAzureFrontDoor, sku)
+				}
+
+				return nil
+			}),
+
+			// Verify that the Standard SKU is not using managed rules...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				sku := diff.Get("sku_name").(string)
+				managedRules := diff.Get("managed_rule").([]interface{})
+
+				if sku == string(waf.SkuNameStandardAzureFrontDoor) && len(managedRules) > 0 {
+					return fmt.Errorf("the 'managed_rule' code block is only supported with the %q sku, got %q", waf.SkuNamePremiumAzureFrontDoor, sku)
+				}
+
+				return nil
+			}),
+
+			// Verify that the Standard SKU is not using the JSChallenge Action type for custom rules...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				sku := diff.Get("sku_name").(string)
+				customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
+
+				if sku == string(waf.SkuNameStandardAzureFrontDoor) && customRules != nil {
+					for _, v := range *customRules.Rules {
+						if v.Action == waf.ActionTypeJSChallenge {
+							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", waf.SkuNamePremiumAzureFrontDoor, waf.ActionTypeJSChallenge, *v.Name, sku)
+						}
+					}
+				}
+
+				return nil
+			}),
+
+			// Verify that the scrubbing_rule's are valid...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				if v, ok := diff.GetOk("log_scrubbing"); ok {
+					_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{}))
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			}),
+		),
 	}
 }
 
@@ -497,13 +617,18 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 	sku := d.Get("sku_name").(string)
 	mode := waf.PolicyMode(d.Get("mode").(string))
 	redirectUrl := d.Get("redirect_url").(string)
-	jsChallengeExpirationInMinutes := int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
+
 	managedRules, err := expandCdnFrontDoorFirewallManagedRules(d.Get("managed_rule").([]interface{}))
 	if err != nil {
-		return fmt.Errorf("expanding managed_rule: %+v", err)
+		return fmt.Errorf("expanding 'managed_rule': %+v", err)
+	}
+
+	logScrubbingRules, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(d.Get("log_scrubbing").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding 'log_scrubbing': %+v", err)
 	}
 
 	if sku != string(waf.SkuNamePremiumAzureFrontDoor) && managedRules != nil {
@@ -517,14 +642,27 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		},
 		Properties: &waf.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &waf.PolicySettings{
-				EnabledState:                           pointer.To(enabled),
-				Mode:                                   pointer.To(mode),
-				RequestBodyCheck:                       pointer.To(requestBodyCheck),
-				JavascriptChallengeExpirationInMinutes: pointer.To(jsChallengeExpirationInMinutes),
+				EnabledState:     pointer.To(enabled),
+				Mode:             pointer.To(mode),
+				RequestBodyCheck: pointer.To(requestBodyCheck),
 			},
 			CustomRules: expandCdnFrontDoorFirewallCustomRules(customRules),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	// NOTE: JS Challenge Expiration policy is enabled by default on Premium SKU's with a default of
+	// 30 minutes, if it is not in the config set the default and include it in the policy settings
+	// payload block...
+	if sku == string(waf.SkuNamePremiumAzureFrontDoor) {
+		// Set the Default value...
+		jsChallengeExpirationInMinutes := 30
+
+		if v, ok := d.GetOk("js_challenge_cookie_expiration_in_minutes"); ok {
+			jsChallengeExpirationInMinutes = v.(int)
+		}
+
+		payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.FromInt64(int64(jsChallengeExpirationInMinutes))
 	}
 
 	if managedRules != nil {
@@ -541,6 +679,10 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 
 	if customBlockResponseStatusCode > 0 {
 		payload.Properties.PolicySettings.CustomBlockResponseStatusCode = pointer.To(int64(customBlockResponseStatusCode))
+	}
+
+	if logScrubbingRules != nil {
+		payload.Properties.PolicySettings.LogScrubbing = logScrubbingRules
 	}
 
 	err = client.PoliciesCreateOrUpdateThenPoll(ctx, id, payload)
@@ -579,7 +721,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *model.Properties
 
-	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes") {
+	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes", "log_scrubbing") {
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
 			enabled = waf.PolicyEnabledStateEnabled
@@ -591,10 +733,22 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		}
 
 		props.PolicySettings = &waf.PolicySettings{
-			EnabledState:                           pointer.To(enabled),
-			Mode:                                   pointer.To(waf.PolicyMode(d.Get("mode").(string))),
-			RequestBodyCheck:                       pointer.To(requestBodyCheck),
-			JavascriptChallengeExpirationInMinutes: pointer.To(int64(d.Get("js_challenge_cookie_expiration_in_minutes").(int))),
+			EnabledState:     pointer.To(enabled),
+			Mode:             pointer.To(waf.PolicyMode(d.Get("mode").(string))),
+			RequestBodyCheck: pointer.To(requestBodyCheck),
+		}
+
+		// NOTE: js_challenge_cookie_expiration_in_minutes is only valid for
+		// Premium_AzureFrontDoor skus...
+		if model.Sku != nil && *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
+			// Set the Default value...
+			jsChallengeExpirationInMinutes := 30
+
+			if v, ok := d.GetOk("js_challenge_cookie_expiration_in_minutes"); ok {
+				jsChallengeExpirationInMinutes = v.(int)
+			}
+
+			props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.FromInt64(int64(jsChallengeExpirationInMinutes))
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
@@ -630,6 +784,17 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 		if managedRules != nil {
 			props.ManagedRules = managedRules
+		}
+	}
+
+	if d.HasChange("log_scrubbing") {
+		logScrubbingPolicy, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(d.Get("log_scrubbing").([]interface{}))
+		if err != nil {
+			return err
+		}
+
+		if logScrubbingPolicy != nil {
+			props.PolicySettings.LogScrubbing = logScrubbingPolicy
 		}
 	}
 
@@ -690,7 +855,16 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
-				d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+
+				// NOTE: js_challenge_cookie_expiration_in_minutes is only returned
+				// for Premium_AzureFrontDoor skus, else it will be 'nil'...
+				if policy.JavascriptChallengeExpirationInMinutes != nil {
+					d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+				}
+
+				if err := d.Set("log_scrubbing", flattenCdnFrontDoorFirewallLogScrubbingPolicy(policy.LogScrubbing)); err != nil {
+					return fmt.Errorf("flattening 'log_scrubbing': %+v", err)
+				}
 			}
 		}
 
@@ -954,6 +1128,80 @@ func expandCdnFrontDoorFirewallRuleOverride(input []interface{}, versionRaw stri
 	return &result, nil
 }
 
+func expandCdnFrontDoorFirewallLogScrubbingPolicy(input []interface{}) (*waf.PolicySettingsLogScrubbing, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	inputRaw := input[0].(map[string]interface{})
+
+	policyEnabled := waf.WebApplicationFirewallScrubbingStateDisabled
+	if inputRaw["enabled"].(bool) {
+		policyEnabled = waf.WebApplicationFirewallScrubbingStateEnabled
+	}
+
+	scrubbingRules, err := expandCdnFrontDoorFirewallScrubbingRules(inputRaw["scrubbing_rule"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
+	return &waf.PolicySettingsLogScrubbing{
+		State:          pointer.To(policyEnabled),
+		ScrubbingRules: scrubbingRules,
+	}, nil
+}
+
+func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebApplicationFirewallScrubbingRules, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	scrubbingRules := make([]waf.WebApplicationFirewallScrubbingRules, 0)
+
+	for _, rule := range input {
+		v := rule.(map[string]interface{})
+		var item waf.WebApplicationFirewallScrubbingRules
+
+		enalbed := waf.ScrubbingRuleEntryStateDisabled
+		if value := v["enabled"].(bool); value {
+			enalbed = waf.ScrubbingRuleEntryStateEnabled
+		}
+
+		item.State = pointer.To(enalbed)
+		item.MatchVariable = waf.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
+		item.SelectorMatchOperator = waf.ScrubbingRuleEntryMatchOperator(v["operator"].(string))
+
+		if selector, ok := v["selector"]; ok {
+			item.Selector = pointer.To(selector.(string))
+		}
+
+		// NOTE: Validate the rules configuration...
+		switch {
+		case item.MatchVariable == waf.ScrubbingRuleEntryMatchVariableRequestIPAddress || item.MatchVariable == waf.ScrubbingRuleEntryMatchVariableRequestUri:
+			// NOTE: 'RequestIPAddress' and 'RequestUri' 'match_variable's can only use the 'EqualsAny' 'operator'...
+			if item.SelectorMatchOperator != waf.ScrubbingRuleEntryMatchOperatorEqualsAny {
+				return nil, fmt.Errorf("the %q 'match_variable' must use the %q 'operator', got %q", item.MatchVariable, waf.ScrubbingRuleEntryMatchOperatorEqualsAny, item.SelectorMatchOperator)
+			}
+
+		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEquals:
+			// NOTE: If the 'operator' is set to 'Equals' the 'selector' cannot be 'nil'...
+			if pointer.From(item.Selector) == "" {
+				return nil, fmt.Errorf("the 'selector' field must be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEquals, "nil")
+			}
+
+		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEqualsAny:
+			// NOTE: If the 'operator' is set to 'EqualsAny' the 'selector' must be 'nil'...
+			if pointer.From(item.Selector) != "" {
+				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEqualsAny, *item.Selector)
+			}
+		}
+
+		scrubbingRules = append(scrubbingRules, item)
+	}
+
+	return pointer.To(scrubbingRules), nil
+}
+
 func flattenCdnFrontDoorFirewallCustomRules(input *waf.CustomRuleList) []interface{} {
 	if input == nil || input.Rules == nil {
 		return []interface{}{}
@@ -1116,4 +1364,36 @@ func flattenCdnFrontDoorFirewallRules(input *[]waf.ManagedRuleOverride) []interf
 	}
 
 	return results
+}
+
+func flattenCdnFrontDoorFirewallLogScrubbingPolicy(input *waf.PolicySettingsLogScrubbing) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["enabled"] = pointer.From(input.State) == waf.WebApplicationFirewallScrubbingStateEnabled
+	result["scrubbing_rule"] = flattenCdnFrontDoorFirewallLogScrubbingRules(input.ScrubbingRules)
+
+	return []interface{}{result}
+}
+
+func flattenCdnFrontDoorFirewallLogScrubbingRules(scrubbingRules *[]waf.WebApplicationFirewallScrubbingRules) interface{} {
+	result := make([]interface{}, 0)
+
+	if scrubbingRules == nil || len(*scrubbingRules) == 0 {
+		return result
+	}
+
+	for _, scrubbingRule := range *scrubbingRules {
+		item := map[string]interface{}{}
+		item["enabled"] = pointer.From(scrubbingRule.State) == waf.ScrubbingRuleEntryStateEnabled
+		item["match_variable"] = scrubbingRule.MatchVariable
+		item["operator"] = scrubbingRule.SelectorMatchOperator
+		item["selector"] = pointer.From(scrubbingRule.Selector)
+
+		result = append(result, item)
+	}
+
+	return result
 }

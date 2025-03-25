@@ -190,6 +190,8 @@ A `volume` block supports the following:
 
 * `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`. Defaults to `EmptyDir`.
 
+* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
+
 ---
 
 An `init_container` block supports:
@@ -364,6 +366,7 @@ A `volume_mounts` block supports the following:
 
 * `path` - (Required) The path in the container at which to mount this volume.
 
+* `sub_path` - (Optional) The sub path of the volume to be mounted in the container.
 ---
 
 An `identity` block supports the following:
@@ -395,6 +398,8 @@ An `ingress` block supports the following:
 * `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
 ~> **Note:**  if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
+
+* `client_certificate_mode` - (Optional) The client certificate mode for the Ingress. Possible values are `require`, `accept`, and `ignore`.
 
 ---
 
