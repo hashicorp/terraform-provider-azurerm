@@ -50,10 +50,6 @@ func NewNestedItemID(keyVaultBaseUrl string, nestedItemType NestedItemObjectType
 		keyVaultUrl.Host = hostParts[0]
 	}
 
-	if strings.Contains(strings.ToLower(keyVaultBaseUrl), ".managedhsm.") {
-		return nil, fmt.Errorf("internal-error: Managed HSM IDs are not supported as Key Vault Nested Items")
-	}
-
 	return &NestedItemId{
 		KeyVaultBaseUrl: keyVaultUrl.String(),
 		NestedItemType:  nestedItemType,
@@ -117,9 +113,6 @@ func ParseOptionallyVersionedNestedItemID(input string) (*NestedItemId, error) {
 }
 
 func parseNestedItemId(id string) (*NestedItemId, error) {
-	if strings.Contains(strings.ToLower(id), ".managedhsm.") {
-		return nil, fmt.Errorf("internal-error: Managed HSM IDs are not supported as Key Vault Nested Items")
-	}
 	// versioned example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	// versionless example: https://tharvey-keyvault.vault.azure.net/type/bird/
 	idURL, err := url.ParseRequestURI(id)
