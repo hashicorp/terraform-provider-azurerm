@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `sku_name` - (Optional) The name of the SKU to use for this Elastic Job Agent. Possible values are `JA100`, `JA200`, `JA400`, and `JA800`. Defaults to `JA100`.
+* `sku` - (Optional) The name of the SKU to use for this Elastic Job Agent. Possible values are `JA100`, `JA200`, `JA400`, and `JA800`. Defaults to `JA100`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Elastic Job Agent.
 
