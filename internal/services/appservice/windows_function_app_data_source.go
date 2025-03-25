@@ -37,27 +37,28 @@ type WindowsFunctionAppDataSourceModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"`
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings                      map[string]string                      `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings                 `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                       `tfschema:"backup"`
-	BuiltinLogging                   bool                                   `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                bool                                   `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                                 `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                                 `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                []helpers.ConnectionString             `tfschema:"connection_string"`
-	DailyMemoryTimeQuota             int64                                  `tfschema:"daily_memory_time_quota"`
-	Enabled                          bool                                   `tfschema:"enabled"`
-	FunctionExtensionsVersion        string                                 `tfschema:"functions_extension_version"`
-	ForceDisableContentShare         bool                                   `tfschema:"content_share_force_disabled"`
-	HttpsOnly                        bool                                   `tfschema:"https_only"`
-	PublicNetworkAccess              bool                                   `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteConfig                       []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
-	StickySettings                   []helpers.StickySettings               `tfschema:"sticky_settings"`
-	Tags                             map[string]string                      `tfschema:"tags"`
-	VirtualNetworkSubnetId           string                                 `tfschema:"virtual_network_subnet_id"`
+	AppSettings                        map[string]string                      `tfschema:"app_settings"`
+	AuthSettings                       []helpers.AuthSettings                 `tfschema:"auth_settings"`
+	AuthV2Settings                     []helpers.AuthV2Settings               `tfschema:"auth_settings_v2"`
+	Backup                             []helpers.Backup                       `tfschema:"backup"`
+	BuiltinLogging                     bool                                   `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                  bool                                   `tfschema:"client_certificate_enabled"`
+	ClientCertMode                     string                                 `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths           string                                 `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                  []helpers.ConnectionString             `tfschema:"connection_string"`
+	DailyMemoryTimeQuota               int64                                  `tfschema:"daily_memory_time_quota"`
+	Enabled                            bool                                   `tfschema:"enabled"`
+	FunctionExtensionsVersion          string                                 `tfschema:"functions_extension_version"`
+	ForceDisableContentShare           bool                                   `tfschema:"content_share_force_disabled"`
+	HttpsOnly                          bool                                   `tfschema:"https_only"`
+	PublicNetworkAccess                bool                                   `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled   bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                         []helpers.SiteConfigWindowsFunctionApp `tfschema:"site_config"`
+	StickySettings                     []helpers.StickySettings               `tfschema:"sticky_settings"`
+	Tags                               map[string]string                      `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled bool                                   `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetId             string                                 `tfschema:"virtual_network_subnet_id"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -259,6 +260,11 @@ func (d WindowsFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema 
 
 		"tags": tags.SchemaDataSource(),
 
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"virtual_network_subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -315,6 +321,7 @@ func (d WindowsFunctionAppDataSource) Read() sdk.ResourceFunc {
 					functionApp.DailyMemoryTimeQuota = pointer.From(props.DailyMemoryTimeQuota)
 					functionApp.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					functionApp.DefaultHostname = pointer.From(props.DefaultHostName)
+					functionApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					functionApp.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					functionApp.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 

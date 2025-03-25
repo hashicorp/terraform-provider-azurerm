@@ -132,9 +132,9 @@ func resource() *pluginsdk.Resource {
             "compression_enabled": {
                 Type:       pluginsdk.TypeBool,
                 Optional:   true,
-                Computed:   !features.FourPointOhBeta()  // Conditionally computed to avoid diffs when both properties are set into state
-                ConflictsWith: func() []string{          // Conditionally conflict with the deprecated property which will no longer exist in the next major release
-                	if !features.FourPointOhBeta() {
+                Computed:   !features.FivePointOh()  // Conditionally computed to avoid diffs when both properties are set into state
+                ConflictsWith: func() []string{      // Conditionally conflict with the deprecated property which will no longer exist in the next major release
+                	if !features.FivePointOh() {
                 		return []string{"compression_enabled"}
                     }      
                     return []string{}
@@ -143,7 +143,7 @@ func resource() *pluginsdk.Resource {
         }
     }
     
-    if !features.FourPointOhBeta() {
+    if !features.FivePointOh() {
     	resource.Schema["enable_compression"] = &pluginsdk.Schema{
             Type:       pluginsdk.TypeBool,
             Optional:   true,
@@ -163,7 +163,7 @@ Also make sure to feature flag the behaviour in the create, update and read meth
 func create() {
 	...
 	publicNetworkAccess := false
-	if !features.FourPointOhBeta() {
+	if !features.FivePointOh() {
 		if v, ok := d.GetOkExists("enable_compression"); ok {
 			publicNetworkAccess = v.(bool)
 		}       
@@ -179,7 +179,7 @@ func read() {
 	...
 	d.Set("compression_enabled", props.PublicNetworkAccess)
 	
-	if !features.FourPointOhBeta() {
+	if !features.FivePointOh() {
 		d.Set("enable_compression", props.PublicNetworkAccess)
     }   
 	...

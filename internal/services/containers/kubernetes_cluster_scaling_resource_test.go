@@ -205,14 +205,14 @@ func TestAccKubernetesCluster_cycleSystemNodePoolFipsEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.enableFips(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.enableFips(data),
+			Config: r.enableFips(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -755,7 +755,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) enableFips(data acceptance.TestData) string {
+func (KubernetesClusterResource) enableFips(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -773,10 +773,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    fips_enabled = true
-    name         = "default"
-    node_count   = 1
-    vm_size      = "Standard_DS2_v2"
+    fips_enabled                = %t
+    name                        = "default"
+    node_count                  = 1
+    temporary_name_for_rotation = "temp"
+    vm_size                     = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -791,7 +792,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (KubernetesClusterResource) updateOsDisk(data acceptance.TestData, osDiskType string, osDiskSize int) string {

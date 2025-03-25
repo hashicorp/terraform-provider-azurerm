@@ -31,7 +31,6 @@ type VaultGuardProxyResource struct{}
 var _ sdk.Resource = VaultGuardProxyResource{}
 
 type VaultGuardProxyModel struct {
-	Name            string `tfschema:"name,removedInNextMajorVersion"`
 	VaultId         string `tfschema:"vault_id"`
 	ResourceGuardId string `tfschema:"resource_guard_id"`
 }
