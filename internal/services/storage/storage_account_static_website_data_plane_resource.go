@@ -103,7 +103,7 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 			}
 			accountReplicationType := accountReplicationTypeParts[1]
 
-			accountDetails, err := storageClient.FindAccount(ctx, accountID.SubscriptionId, accountID.StorageAccountName)
+			accountDetails, err := storageClient.GetAccount(ctx, *accountID)
 			if err != nil {
 				return err
 			}
@@ -160,8 +160,8 @@ func (a AccountStaticWebsiteResource) Read() sdk.ResourceFunc {
 
 			state.StorageAccountId = id.ID()
 
-			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-			if err != nil || accountDetails == nil {
+			accountDetails, err := storageClient.GetAccount(ctx, *id)
+			if err != nil {
 				return metadata.MarkAsGone(id)
 			}
 
@@ -196,8 +196,8 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
-			if err != nil || accountDetails == nil {
+			accountDetails, err := storageClient.GetAccount(ctx, *id)
+			if err != nil {
 				return nil // lint:ignore nilerr If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
 			}
 
@@ -236,7 +236,7 @@ func (a AccountStaticWebsiteResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
 				return err
 			}

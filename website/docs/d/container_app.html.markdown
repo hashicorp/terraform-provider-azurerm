@@ -93,6 +93,8 @@ A `volume` block supports the following:
 
 * `storage_type` - The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
 
+* `mount_options` - Mount options used while mounting the AzureFile.
+
 ---
 
 A `init_container` block supports the following:
@@ -160,8 +162,6 @@ A `liveness_probe` block supports the following:
 * `path` - The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
 * `port` - The port number on which to connect. Possible values are between `1` and `65535`.
-
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -235,8 +235,6 @@ A `startup_probe` block supports the following:
 
 * `port` - The port number on which to connect. Possible values are between `1` and `65535`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 * `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
 * `transport` - Type of probe. Possible values are `TCP`, `HTTP`, and `HTTPS`.
@@ -257,6 +255,7 @@ A `volume_mounts` block supports the following:
 
 * `path` - The path in the container at which to mount this volume.
 
+* `sub_path` - The sub path of the volume to be mounted in the container.
 ---
 
 An `identity` block supports the following:
@@ -270,6 +269,8 @@ An `identity` block supports the following:
 An `ingress` block supports the following:
 
 * `allow_insecure_connections` - Should this ingress allow insecure connections?
+
+* `client_certificate_mode` - The client certificate mode for the Ingress.
 
 * `custom_domain` - One or more `custom_domain` block as detailed below.
 

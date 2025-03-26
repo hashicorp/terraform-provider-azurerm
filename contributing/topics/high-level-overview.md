@@ -22,9 +22,9 @@ At a high-level, the Provider structure is:
     * `./internal/acceptance`
         * Contains the Acceptance Test wrappers that we use in the Azure Provider, offering common patterns across the Provider to be reused.
     * `./internal/clients`
-        * Contains a reference to the Client from each Service Package, which is used in Data Sources and Resources to access the Azure API’s.
+        * Contains a reference to the Client from each Service Package, which is used in Data Sources and Resources to access the Azure APIs.
     * `./internal/common`
-        * Contains helper functions for registering Clients (for example, setting the user agent, configuring credentials etc).
+        * Contains helper functions for registering Clients (for example, setting the user agent, configuring credentials etc.).
     * `./internal/features`
         * Contains Feature Toggles for Provider functionality and behaviour (for example, enabling Betas or changing a resource type's soft delete or purge protection). This also contains the struct and parsing of/default values for the `features` block (within the Provider block).
     * `./internal/locks`
@@ -38,7 +38,7 @@ At a high-level, the Provider structure is:
     * `./internal/sdk`
         * Contains the Typed Plugin SDK functionality used in this Provider.
     * `./internal/services`
-        * Contains a packages for each service that the provider supports  (e.g. `appconfiguration`, `compute`) in which are each's Data Sources and Resources.
+        * Contains packages for each service that the provider supports (e.g. `appconfiguration`, `compute`) which contain the Data Sources and Resources supported by the service.
     * `./internal/tags`
         * Contains helpers for parsing Tags from the Terraform Configuration and setting Tags into the Terraform State.
     * `./internal/tf`
@@ -46,24 +46,24 @@ At a high-level, the Provider structure is:
     * `./internal/timeouts`
         * Contains helpers for computing the Timeouts for a Data Source / Resource - used in Untyped Data Sources and Untyped Resources.
     * `./internal/tools`
-        * This package contains tooling used to generate functionality within the Provider, for example for Resource ID’s and Website Documentation.
+        * This package contains tooling used to generate functionality within the Provider, for example for Resource IDs and Website Documentation.
 * `./scripts`
     * Contains various scripts used during testing, linting, and building the provider.
 * `./utils`
-    * This primarily contains helper functions for converting simple types (e.g. bool/int/strings) to pointers (e.g. `utils.String(“someValue”)`.
+    * This primarily contains helper functions for converting simple types (e.g. bool/int/strings) to pointers (e.g. `utils.String(“someValue”)`).
     * **We intend to deprecate this folder in time** and new functionality should be added to individual service packages where possible. The existing functions will be gradually moved (via aliasing) into another repository.
 * `./vendor`
     * Contains the vendored copies of the go modules the provider uses. For more information please refer to the official [Go Documentation](https://go.dev/ref/mod#vendoring).
 * `./website`
     * Contains the guides and documentation for each resource (in `./website/docs/r`) and data source (in `./website/docs/d`) that are published to the Terraform [registry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs).
 
-**Note:** Due to the size of the codebase and open Pull Requests - when functionality is moved we use aliasing to try and avoid breaking open Pull Requests / big-bang migrations. These aliases stick around for a few weeks to allow open PR’s to be merged without extra out of scope changes - at which point these aliases are removed.
+> **Note:** Due to the size of the codebase and open Pull Requests - when functionality is moved we use aliasing to try and avoid breaking open Pull Requests / big-bang migrations. These aliases stick around for a few weeks to allow open PRs to be merged without extra out of scope changes - at which point these aliases are removed.
 
 Each Service Package consists of (to take `appconfiguration` as an example):
 
 * `./internal/services/appconfiguration`
     * `./client`
-        * Contains a Client struct, with a reference to any SDK Clients used to access the Azure API’s within this Service Package.
+        * Contains a Client struct, with a reference to any SDK Clients used to access the Azure APIs within this Service Package.
     * `./parse`
         * Contains Resource ID Formatters and Parsers.
     * `./validate`
@@ -79,7 +79,7 @@ Each Service Package consists of (to take `appconfiguration` as an example):
 Some Service Packages may also contain:
 
 * `./migration` - any State Migrations used in Resources.
-* `./sdk` - any Embedded SDK’s used to access the Azure API’s (either Resource Manager or Data Plane).
+* `./sdk` - any Embedded SDKs used to access the Azure APIs (either Resource Manager or Data Plane).
 * `./resourceids.go` - used to generate Resource ID Formatters, Parsers and Validators.
 
 —-
@@ -89,7 +89,7 @@ Some Service Packages may also contain:
 * Resources use the filename format: `{name}_resource.go`
 * Acceptance Tests for Resources use the filename format: `{name}_resource_test.go` (note: Golang requires that Tests are contained within a `test.go` file)
 
-**Note:** there are a handful of exceptions to these to reduce stuttering (e.g. Resource Provider Registration Resource)
+> **Note:** there are a handful of exceptions to these to reduce stuttering (e.g. Resource Provider Registration Resource)
 
 ## Types of Data Sources/Resources within the Provider
 
@@ -97,10 +97,10 @@ Whilst the Azure Provider is built on-top of [the Terraform Plugin SDK](https://
 
 This means that at this point in time, there are four types of Data Source/Resources which can be added in this Provider:
 
-1. (Untyped) Data Sources (based on the Terraform Plugin SDK) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_data_source.go#L16-L131))).
-2. (Untyped) Resources (based on the Terraform Plugin SDK) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_resource.go#L24-L289))).
-3. Typed Data Sources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](XXX))).
-4. Typed Resources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](XXX))).
+1. (Untyped) Data Sources (based on the Terraform Plugin SDK) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_data_source.go#L16-L131)).
+2. (Untyped) Resources (based on the Terraform Plugin SDK) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/2ff15cca48adc7315f67d8b653409e621963ca64/internal/services/search/search_service_resource.go#L24-L289)).
+3. Typed Data Sources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_data_source.go)).
+4. Typed Resources (based [on top of the Typed SDK within this Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/sdk)) ([example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/privatednsresolver/private_dns_resolver_resource.go)).
 
 At this point in time the codebase uses a mixture of both (primarily the Untyped Data Sources/Resources) - in time we plan to migrate across to using Typed Data Sources/Resources instead.
 
@@ -113,7 +113,7 @@ This Provider makes use of a number of SDKs to interact with both the Azure Reso
 * [go-azure-sdk](https://github.com/hashicorp/go-azure-sdk) - an opinionated Go SDK generated by Hashicorp for interaction with Azure Resource Manager
 * [The Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go) - for interaction with Azure Resource Manager (generated from the Swagger files within [the Azure/azure-rest-api-specs repository](https://github.com/Azure/azure-rest-api-specs)).
 * [Hamilton](https://github.com/manicminer/hamilton) - for interaction with Microsoft Graph - and obtaining an authentication token using MSAL.
-* [Giovanni](https://github.com/tombuildsstuff/giovanni) - for interaction with the Azure Storage Data Plane APIs.
+* [Giovanni](https://github.com/jackofallops/giovanni) - for interaction with the Azure Storage Data Plane APIs.
 
 There's also a number of Embedded SDKs within the provider for interaction with Resource Manager Services which are not supported by the Azure SDK for Go - generated from the Swagger files within [the Azure/azure-rest-api-specs repository](https://github.com/Azure/azure-rest-api-specs).
 

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -123,6 +124,34 @@ func (r NextGenerationFirewallVnetResource) Exists(ctx context.Context, client *
 }
 
 func (r NextGenerationFirewallVnetResource) basic(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
+  name                = "acctest-ngfwvn-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  plan_id             = "panw-cngfw-payg"
+
+  network_profile {
+    public_ip_address_ids = [azurerm_public_ip.test.id]
+
+    vnet_configuration {
+      virtual_network_id  = azurerm_virtual_network.test.id
+      trusted_subnet_id   = azurerm_subnet.test1.id
+      untrusted_subnet_id = azurerm_subnet.test2.id
+    }
+  }
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
+}
+`, r.template(data), data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -144,14 +173,36 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
       untrusted_subnet_id = azurerm_subnet.test2.id
     }
   }
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
 }
 `, r.template(data), data.RandomInteger)
 }
 
 func (r NextGenerationFirewallVnetResource) requiresImport(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "import" {
+  name                = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.name
+  resource_group_name = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.resource_group_name
+  rulestack_id        = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.rulestack_id
+  plan_id             = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.plan_id
+
+  network_profile {
+    public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.public_ip_address_ids
+
+    vnet_configuration {
+      virtual_network_id  = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.virtual_network_id
+      trusted_subnet_id   = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.trusted_subnet_id
+      untrusted_subnet_id = azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack.test.network_profile.0.vnet_configuration.0.untrusted_subnet_id
+    }
+  }
+}
+`, r.basic(data))
+	}
 	return fmt.Sprintf(`
-
-
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "import" {
@@ -181,9 +232,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
-  name                = "acctest-ngfwvn-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  name                 = "acctest-ngfwvn-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cngfw-payg"
 
   network_profile {
     public_ip_address_ids     = [azurerm_public_ip.test.id]
@@ -226,6 +279,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
       port              = 18082
     }
   }
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -239,9 +294,11 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rulestack" "test" {
-  name                = "acctest-ngfwvn-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  name                 = "acctest-ngfwvn-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  rulestack_id         = azurerm_palo_alto_local_rulestack.test.id
+  marketplace_offer_id = "pan_swfw_cloud_ngfw"
+  plan_id              = "panw-cngfw-payg"
 
   network_profile {
     public_ip_address_ids     = [azurerm_public_ip.test.id]
@@ -271,6 +328,8 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
       port              = 18082
     }
   }
+
+  depends_on = [azurerm_palo_alto_local_rulestack_rule.test]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -288,6 +347,8 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  depends_on = [azurerm_public_ip.egress]
 }
 
 resource "azurerm_public_ip" "egress" {
@@ -365,6 +426,8 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
   name                = "testAcc-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
+
+  depends_on = [azurerm_subnet_network_security_group_association.test1, azurerm_subnet_network_security_group_association.test2]
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "test" {

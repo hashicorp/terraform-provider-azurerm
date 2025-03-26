@@ -222,8 +222,6 @@ A `liveness_probe` block supports the following:
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 ---
 
 A `header` block supports the following:
@@ -282,8 +280,6 @@ A `startup_probe` block supports the following:
 
 * `timeout` - (Optional) Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
-
 ---
 
 A `header` block supports the following:
@@ -309,6 +305,8 @@ A `volume` block supports the following:
 * `storage_type` - (Optional) The type of storage to use for the volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`.
 
 * `storage_name` - (Optional) The name of the storage to use for the volume.
+
+* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
 
 ---
 
