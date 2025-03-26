@@ -23,9 +23,9 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-
+		
 		"location": commonschema.Location(),
-
+		
 		"logging_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -34,7 +34,6 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 	}
 }
-
 ```
 
 * Remember to choose an appropriate name, see our [property naming guidelines](reference-naming.md).
