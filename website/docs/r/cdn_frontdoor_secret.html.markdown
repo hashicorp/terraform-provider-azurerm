@@ -31,7 +31,7 @@ This can be created by running Az Powershell command like this:
 ```hcl
 data "azurerm_client_config" "current" {}
 data "azuread_service_principal" "frontdoor" {
-  display_name = "Microsoft.Azure.Cdn"
+  display_name = "Microsoft.AzurefrontDoor-Cdn"
 }
 
 resource "azurerm_resource_group" "example" {
