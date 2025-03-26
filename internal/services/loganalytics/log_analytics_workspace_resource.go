@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -113,6 +114,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 					string(workspaces.WorkspaceSkuNameEnumStandalone),
 					string(workspaces.WorkspaceSkuNameEnumStandard),
 					string(workspaces.WorkspaceSkuNameEnumCapacityReservation),
+					string(workspaces.WorkspaceSkuNameEnumLACluster),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, false),
 			},
@@ -179,7 +181,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 	}
 }
 
-func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	// Since sku needs to be a force new if the sku changes we need to have this
 	// custom diff here because when you link the workspace to a cluster the
 	// cluster changes the sku to LACluster, so we need to ignore the change
@@ -205,6 +207,7 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 
 func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
+	deletedWorkspaceClient := meta.(*clients.Client).LogAnalytics.DeletedWorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,9 +229,28 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_log_analytics_workspace", id.ID())
 	}
 
+	deleted, err := deletedWorkspaceClient.List(ctx, commonids.NewSubscriptionID(id.SubscriptionId))
+	if err != nil {
+		return fmt.Errorf("listing deleted Log Analytics Workspaces: %+v", err)
+	}
+
+	if model := deleted.Model; model != nil && model.Value != nil {
+		for _, v := range *model.Value {
+			if props := v.Properties; props != nil && props.Sku != nil {
+				if pointer.From(v.Name) == name && string(props.Sku.Name) == string(workspaces.WorkspaceSkuNameEnumLACluster) {
+					isLACluster = true
+				}
+			}
+		}
+	}
+
 	skuName := d.Get("sku").(string)
 	sku := &workspaces.WorkspaceSku{
 		Name: workspaces.WorkspaceSkuNameEnum(skuName),
+	}
+
+	if !isLACluster && strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumLACluster)) {
+		return fmt.Errorf("`sku` cannot be set to `LACluster` during creation unless the workspace is in a soft-deleted state while linked to a Log Analytics Cluster")
 	}
 
 	if isLACluster {
@@ -356,8 +378,6 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace update.")
 
-	var isLACluster bool
-
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
@@ -418,6 +438,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	var isLACluster bool
 	if d.HasChange("sku") {
 		skuName := d.Get("sku").(string)
 		if sku := props.Sku; sku != nil {
