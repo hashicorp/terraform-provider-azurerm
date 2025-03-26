@@ -741,7 +741,15 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 
-		update.Identity = identityExpanded
+		existing.Model.Identity = identityExpanded
+		// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
+		// 1. The go-azure-sdk for resource manager doesn't support at the moment
+		// 2. The expand identity function doesn't behave this way
+		// For the moment updating the identity with the PUT circumvents this API behaviour
+		// See https://github.com/hashicorp/terraform-provider-azurerm/issues/25058 for more details
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating identity for Linux %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("plan") {
