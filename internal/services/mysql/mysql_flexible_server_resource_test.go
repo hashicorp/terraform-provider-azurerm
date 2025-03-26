@@ -687,10 +687,9 @@ resource "azurerm_mysql_flexible_server" "test" {
     iops    = 360
   }
 
-  public_network_access = "Disabled"
-  delegated_subnet_id   = azurerm_subnet.test.id
-  private_dns_zone_id   = azurerm_private_dns_zone.test.id
-  sku_name              = "GP_Standard_D2ds_v4"
+  delegated_subnet_id = azurerm_subnet.test.id
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
+  sku_name            = "GP_Standard_D2ds_v4"
 
   high_availability {
     mode                      = "ZoneRedundant"
@@ -931,7 +930,6 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   version                = "8.0.21"
-  public_network_access  = "Disabled"
 
   high_availability {
     mode                      = "ZoneRedundant"
