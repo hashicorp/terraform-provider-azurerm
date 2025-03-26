@@ -400,6 +400,7 @@ func linuxApplicationStackSchema() *pluginsdk.Schema {
 						"3.10",
 						"3.11",
 						"3.12",
+						"3.13",
 					}, false),
 					ExactlyOneOf: linuxApplicationStackConstraint,
 				},
