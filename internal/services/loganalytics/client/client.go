@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/deletedworkspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
 	featureWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution"
@@ -26,6 +27,7 @@ type Client struct {
 	ClusterClient              *clusters.ClustersClient
 	DataExportClient           *dataexport.DataExportClient
 	DataSourcesClient          *datasources.DataSourcesClient
+	DeletedWorkspacesClient    *deletedworkspaces.DeletedWorkspacesClient
 	LinkedServicesClient       *linkedservices.LinkedServicesClient
 	LinkedStorageAccountClient *linkedstorageaccounts.LinkedStorageAccountsClient
 	QueryPacksClient           *querypacks.QueryPacksClient
@@ -56,6 +58,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building DataSources client: %+v", err)
 	}
 	o.Configure(dataSourcesClient.Client, o.Authorizers.ResourceManager)
+
+	deletedWorkspacesClient, err := deletedworkspaces.NewDeletedWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Deleted Workspaces Client: %+v", err)
+	}
+	o.Configure(deletedWorkspacesClient.Client, o.Authorizers.ResourceManager)
 
 	workspacesClient, err := workspaces.NewWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -121,6 +129,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ClusterClient:              clusterClient,
 		DataExportClient:           dataExportClient,
 		DataSourcesClient:          dataSourcesClient,
+		DeletedWorkspacesClient:    deletedWorkspacesClient,
 		LinkedServicesClient:       linkedServicesClient,
 		LinkedStorageAccountClient: linkedStorageAccountClient,
 		QueryPacksClient:           queryPacksClient,
