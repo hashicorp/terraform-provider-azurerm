@@ -7,12 +7,14 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app_slot` - add support for Python version `3.13` [GH-29131]
 * `azurerm_linux_web_app` - add support for Python version `3.13` [GH-29131]
 * `azurerm_linux_web_app_slot` - add support for Python version `3.13` [GH-29131]
+* `azurerm_log_analytics_workspace` - add support for the `LACluster` SKU [GH-29137]
 * `azurerm_mssql_job_agent` - add support for the `identity` and `sku` properties [GH-29090]
 * `azurerm_powerbi_embedded `- add support for `A7` and `A8` values for `sku_name` [GH-29153]
 
 BUG FIXES
 
 * Data source: `azurerm_container_app_environment` - prevent an error when the log analytics workspace is in a different subscription [GH-28647]
+* `azurerm_log_analytics_workspace` - prevent an error when the workspace is in a soft-deleted state and linked to a log analytics cluster [GH-29137]
 
 ## 4.24.0 (March 21, 2025)
 
