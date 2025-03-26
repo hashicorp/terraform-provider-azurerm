@@ -241,10 +241,6 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 }
 ```
