@@ -285,7 +285,15 @@ func TestAccVirtualHubConnection_routeMapAndStaticVnetPropagateStaticRoutes(t *t
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data),
+			// Apply the non-default configuration
+			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			// Apply the default configuration
+			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -689,17 +697,17 @@ resource "azurerm_virtual_hub_connection" "test" {
 `, r.template(data), nameSuffix, data.RandomInteger)
 }
 
-func (r VirtualHubConnectionResource) routeMapAndStaticVnetPropagateStaticRoutes(data acceptance.TestData) string {
+func (r VirtualHubConnectionResource) routeMapAndStaticVnetPropagateStaticRoutes(data acceptance.TestData, isPropagateStaticRoutesEnabled bool) string {
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%[2]d"
+  name                      = "acctest-vhubconn-%[3]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
   routing {
-    static_vnet_propagate_static_routes_enabled = false
+    static_vnet_propagate_static_routes_enabled = %[2]t
 
     static_vnet_route {
       name                = "testvnetroute6"
@@ -708,5 +716,5 @@ resource "azurerm_virtual_hub_connection" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), isPropagateStaticRoutesEnabled, data.RandomInteger)
 }
