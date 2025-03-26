@@ -266,7 +266,7 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	// LinkedAuthorizationFailed may occur in cross tenant setup because of replication lag.
 	// Let's retry this error for cross tenant setup and when we are skipping principal check.
 	retryLinkedAuthorizationFailedError := len(delegatedManagedIdentityResourceID) > 0 && skipPrincipalCheck
-	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, id, params, meta, tenantId, retryLinkedAuthorizationFailedError)); err != nil {
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, id, params, meta, retryLinkedAuthorizationFailedError)); err != nil {
 		return err
 	}
 
@@ -309,7 +309,7 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("scope", normalizeScopeValue(pointer.From(props.Scope)))
 			d.Set("role_definition_id", props.RoleDefinitionId)
 			d.Set("principal_id", props.PrincipalId)
-			d.Set("principal_type", props.PrincipalType)
+			d.Set("principal_type", pointer.From(props.PrincipalType))
 			d.Set("delegated_managed_identity_resource_id", props.DelegatedManagedIdentityResourceId)
 			d.Set("description", props.Description)
 			d.Set("condition", props.Condition)
@@ -365,7 +365,7 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAssignmentId, param roleassignments.RoleAssignmentCreateParameters, meta interface{}, tenantId string, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
+func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAssignmentId, param roleassignments.RoleAssignmentCreateParameters, meta interface{}, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
