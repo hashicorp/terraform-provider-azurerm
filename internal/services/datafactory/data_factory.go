@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
@@ -510,29 +509,5 @@ func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory
 	return &datafactory.DatasetCompression{
 		Type:  props["type"].(string),
 		Level: props["level"].(string),
-	}
-}
-
-func keyVaultSecretReferenceResource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Schema: map[string]*pluginsdk.Schema{
-			"linked_service_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"secret_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"secret_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		},
 	}
 }
