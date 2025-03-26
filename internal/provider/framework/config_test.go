@@ -151,10 +151,12 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected virtual_machine.detach_implicit_data_disk_on_deletion to be false")
 	}
 
+	// TODO: Remove in 5.0
 	if features.VirtualMachine.GracefulShutdown {
 		t.Errorf("expected virtual_machine.graceful_shutdown to be false")
 	}
 
+	// TODO: Remove in 5.0
 	if features.VirtualMachine.SkipShutdownAndForceDelete {
 		t.Errorf("expected virtual_machine.skip_shutdown_and_force_delete to be false")
 	}
@@ -266,8 +268,8 @@ func defaultFeaturesList() types.List {
 
 	virtualMachine, _ := basetypes.NewObjectValueFrom(context.Background(), VirtualMachineAttributes, map[string]attr.Value{
 		"delete_os_disk_on_deletion":     basetypes.NewBoolNull(),
-		"graceful_shutdown":              basetypes.NewBoolNull(),
-		"skip_shutdown_and_force_delete": basetypes.NewBoolNull(),
+		"graceful_shutdown":              basetypes.NewBoolNull(), // TODO: Remove in 5.0
+		"skip_shutdown_and_force_delete": basetypes.NewBoolNull(), // TODO: Remove in 5.0
 	})
 	virtualMachineList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(VirtualMachineAttributes), []attr.Value{virtualMachine})
 

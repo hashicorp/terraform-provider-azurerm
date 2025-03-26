@@ -369,9 +369,13 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"delete_os_disk_on_deletion": schema.BoolAttribute{
 										Optional: true,
 									},
+
+									// TODO: Remove in 5.0
 									"graceful_shutdown": schema.BoolAttribute{
 										Optional: true,
 									},
+
+									// TODO: Remove in 5.0
 									"skip_shutdown_and_force_delete": schema.BoolAttribute{
 										Optional: true,
 									},

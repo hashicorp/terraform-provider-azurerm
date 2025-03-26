@@ -167,16 +167,16 @@ var TemplateDeploymentAttributes = map[string]attr.Type{
 
 type VirtualMachine struct {
 	DeleteOsDiskOnDeletion           types.Bool `tfsdk:"delete_os_disk_on_deletion"`
-	GracefulShutdown                 types.Bool `tfsdk:"graceful_shutdown"`
-	SkipShutdownAndForceDelete       types.Bool `tfsdk:"skip_shutdown_and_force_delete"`
+	GracefulShutdown                 types.Bool `tfsdk:"graceful_shutdown"`              // TODO: Remove in 5.0
+	SkipShutdownAndForceDelete       types.Bool `tfsdk:"skip_shutdown_and_force_delete"` // TODO: Remove in 5.0
 	DetachImplicitDataDiskOnDeletion types.Bool `tfsdk:"detach_implicit_data_disk_on_deletion"`
 }
 
 var VirtualMachineAttributes = map[string]attr.Type{
 	"delete_os_disk_on_deletion":            types.BoolType,
 	"detach_implicit_data_disk_on_deletion": types.BoolType,
-	"graceful_shutdown":                     types.BoolType,
-	"skip_shutdown_and_force_delete":        types.BoolType,
+	"graceful_shutdown":                     types.BoolType, // TODO: Remove in 5.0
+	"skip_shutdown_and_force_delete":        types.BoolType, // TODO: Remove in 5.0
 }
 
 type VirtualMachineScaleSet struct {

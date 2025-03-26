@@ -1728,36 +1728,12 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
-	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		// If the VM was in a Failed state we can skip powering off, since that'll fail
-		if existing.Model != nil && existing.Model.Properties != nil && strings.EqualFold(*existing.Model.Properties.ProvisioningState, "failed") {
-			log.Printf("[DEBUG] Powering Off Windows %s was skipped because the VM was in %q state", id, *existing.Model.Properties.ProvisioningState)
-		} else {
-			// ISSUE: 4920
-			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
-			// thus this can be a large cost-saving when deleting larger instances
-			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-			log.Printf("[DEBUG] Powering Off Windows %s.", id)
-			skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-			options := virtualmachines.PowerOffOperationOptions{
-				SkipShutdown: pointer.To(skipShutdown),
-			}
-			if err := client.PowerOffThenPoll(ctx, *id, options); err != nil {
-				return fmt.Errorf("powering off Windows %s: %+v", id, err)
-			}
-			log.Printf("[DEBUG] Powered Off Windows %s", id)
-		}
-	}
-
 	log.Printf("[DEBUG] Deleting Windows %s", id)
 
-	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
-	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
-	// conditionally set this if required
+	// Due to a change in the API to only option for virtual machines is to force delete the resource
 	options := virtualmachines.DefaultDeleteOperationOptions()
-	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		options.ForceDeletion = pointer.To(true)
-	}
+	options.ForceDeletion = pointer.To(true)
+
 	if err := client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}

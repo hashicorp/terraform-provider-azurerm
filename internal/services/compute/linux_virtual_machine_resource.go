@@ -1674,40 +1674,11 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
 
-	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		// If the VM was in a Failed state we can skip powering off, since that'll fail
-		if model := existing.Model; model != nil && model.Properties != nil && model.Properties.ProvisioningState != nil {
-			if strings.EqualFold(*existing.Model.Properties.ProvisioningState, "failed") {
-				log.Printf("[DEBUG] Powering Off Linux Virtual Machine was skipped because the VM was in %q state %s", *model.Properties.ProvisioningState, id)
-			} else {
-				// ISSUE: 4920
-				// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
-				// thus this can be a large cost-saving when deleting larger instances
-				// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-				log.Printf("[DEBUG] Powering Off Linux %s", id)
-				skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-				options := virtualmachines.PowerOffOperationOptions{
-					SkipShutdown: pointer.To(skipShutdown),
-				}
-				if err := client.PowerOffThenPoll(ctx, *id, options); err != nil {
-					return fmt.Errorf("powering off Linux %s: %+v", id, err)
-				}
-				log.Printf("[DEBUG] Powered Off Linux %s", id)
-			}
-		}
-	}
-
 	log.Printf("[DEBUG] Deleting Linux %s", id)
 
-	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
-	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
-	// conditionally set this if required
-	var forceDeletion *bool = nil
-	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		forceDeletion = pointer.To(true)
-	}
+	// Due to a change in the API to only option for virtual machines is to force delete the resource
 	deleteOptions := virtualmachines.DefaultDeleteOperationOptions()
-	deleteOptions.ForceDeletion = forceDeletion
+	deleteOptions.ForceDeletion = pointer.To(true)
 	if err := client.DeleteThenPoll(ctx, *id, deleteOptions); err != nil {
 		return fmt.Errorf("deleting Linux %s: %+v", id, err)
 	}
