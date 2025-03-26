@@ -5,6 +5,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -138,6 +139,29 @@ func dataSourceVPNGateway() *pluginsdk.Resource {
 				},
 			},
 
+			"ip_configuration": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"private_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"public_ip_address": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"scale_unit": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -175,6 +199,10 @@ func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 		if props := model.Properties; props != nil {
 			if err := d.Set("bgp_settings", dataSourceFlattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
 				return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+			}
+
+			if err := d.Set("ip_configuration", dataSourceFlattenVPNGatewayIpConfiguration(props.IPConfigurations)); err != nil {
+				return fmt.Errorf("setting `ip_configuration`: %+v", err)
 			}
 
 			scaleUnit := 0
@@ -251,4 +279,21 @@ func dataSourceFlattenVPNGatewayIPConfigurationBgpPeeringAddress(input virtualwa
 			"tunnel_ips":          utils.FlattenStringSlice(input.TunnelIPAddresses),
 		},
 	}
+}
+
+func dataSourceFlattenVPNGatewayIpConfiguration(input *[]virtualwans.VpnGatewayIPConfiguration) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, item := range *input {
+		result = append(result, map[string]interface{}{
+			"id":                 pointer.From(item.Id),
+			"private_ip_address": pointer.From(item.PrivateIPAddress),
+			"public_ip_address":  pointer.From(item.PublicIPAddress),
+		})
+	}
+
+	return result
 }
