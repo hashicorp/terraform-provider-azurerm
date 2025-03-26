@@ -1676,7 +1676,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 
 	log.Printf("[DEBUG] Deleting Linux %s", id)
 
-	// Due to a change in the API to only option for virtual machines is to force delete the resource
+	// Due to a change in the API the only option for virtual machines is to force delete the resource
 	deleteOptions := virtualmachines.DefaultDeleteOperationOptions()
 	deleteOptions.ForceDeletion = pointer.To(true)
 	if err := client.DeleteThenPoll(ctx, *id, deleteOptions); err != nil {

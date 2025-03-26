@@ -1730,7 +1730,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Deleting Windows %s", id)
 
-	// Due to a change in the API to only option for virtual machines is to force delete the resource
+	// Due to a change in the API the only option for virtual machines is to force delete the resource
 	options := virtualmachines.DefaultDeleteOperationOptions()
 	options.ForceDeletion = pointer.To(true)
 
