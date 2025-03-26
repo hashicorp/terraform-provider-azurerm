@@ -70,13 +70,20 @@ func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceSFTP_sshKeyKeyvaultReference(t *testing.T) {
+func TestAccDataFactoryLinkedServiceSFTP_keyVaultReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
 	r := LinkedServiceSFTPResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.sshKeyKeyVaultReference(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password", "private_key_content_base64"),
+		{
+			Config: r.passwordKeyVaultReference(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -288,13 +295,12 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinkedServiceSFTPResource) sshKeyKeyVaultReference(data acceptance.TestData) string {
+func (r LinkedServiceSFTPResource) keyKeyVault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%[1]s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctkv%[2]d"
+  name                = "acctkv%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -306,9 +312,15 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
   data_factory_id = azurerm_data_factory.test.id
   key_vault_id    = azurerm_key_vault.test.id
 }
+`, data.RandomInteger)
+}
 
+func (r LinkedServiceSFTPResource) sshKeyKeyVaultReference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+%[2]s
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                = "acctestlssftp%[2]d"
+  name                = "acctestlssftp%[3]d"
   data_factory_id     = azurerm_data_factory.test.id
   authentication_type = "SshPublicKey"
   host                = "http://www.bing.com"
@@ -325,5 +337,25 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
     secret_name         = "private_key_passphrase"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), r.keyKeyVault(data), data.RandomInteger)
+}
+
+func (r LinkedServiceSFTPResource) passwordKeyVaultReference(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+%[2]s
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                = "acctestlssftp%[3]d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "Basic"
+  host                = "http://www.bing.com"
+  port                = 22
+  username            = "foo"
+
+  key_vault_password {
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "password"
+  }
+}
+`, r.template(data), r.keyKeyVault(data), data.RandomInteger)
 }

@@ -132,35 +132,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Optional:      true,
 				ConflictsWith: []string{"password", "private_key_passphrase"},
 				MaxItems:      1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"parameters": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-
-						"secret_version": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
+				Elem:          keyVaultSecretReferenceResource(),
 			},
 
 			"password": {
@@ -169,7 +141,15 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
 				ConflictsWith: []string{"private_key_content_base64", "private_key_path", "private_key_passphrase"},
-				AtLeastOneOf:  []string{"password", "private_key_content_base64", "private_key_path", "key_vault_private_key_content_base64"},
+				AtLeastOneOf:  []string{"password", "key_vault_password", "private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
+			},
+
+			"key_vault_password": {
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"private_key_content_base64", "private_key_path", "private_key_passphrase"},
+				Elem:          keyVaultSecretReferenceResource(),
 			},
 
 			"private_key_content_base64": {
@@ -185,41 +165,13 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Optional:      true,
 				ConflictsWith: []string{"private_key_path", "password", "private_key_content_base64"},
 				MaxItems:      1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"parameters": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
-						},
-
-						"secret_version": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
+				Elem:          keyVaultSecretReferenceResource(),
 			},
 
 			"private_key_path": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"private_key_content_base64", "password"},
+				ConflictsWith: []string{"private_key_content_base64", "key_vault_private_key_content_base64", "key_vault_password", "password"},
 			},
 
 			"skip_host_key_validation": {
@@ -246,7 +198,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Data Factory SFTP %s: %+v", id, err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
@@ -371,7 +323,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Data Factory SFTP %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -380,7 +332,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 	if resp.Properties != nil {
 		sftp, ok := resp.Properties.AsSftpServerLinkedService()
 		if !ok {
-			return fmt.Errorf("classifying Data Factory Linked Service SFTP %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeSftp, pointer.From(resp.Type))
+			return fmt.Errorf("classifying %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeSftp, pointer.From(resp.Type))
 		}
 
 		d.Set("authentication_type", sftp.AuthenticationType)
@@ -490,8 +442,8 @@ func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta 
 		sftp.Password = expandAzureKeyVaultSecretReference(d.Get("key_vault_password").([]interface{}))
 	}
 
-	if d.HasChange("key_vault_private_key_base64") {
-		sftp.PrivateKeyContent = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_base64").([]interface{}))
+	if d.HasChange("key_vault_private_key_content_base64") {
+		sftp.PrivateKeyContent = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_content_base64").([]interface{}))
 	}
 
 	if d.HasChange("key_vault_private_key_passphrase") {
@@ -550,32 +502,9 @@ func resourceDataFactoryLinkedServiceSFTPDelete(d *pluginsdk.ResourceData, meta 
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory SFTP %s: %+v", *id, err)
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
 
 	return nil
-}
-
-func expandDataFactoryLinkedServiceSftpKeyVaultSecretReference(input []interface{}) *datafactory.AzureKeyVaultSecretReference {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	raw := input[0].(map[string]interface{})
-	reference := &datafactory.AzureKeyVaultSecretReference{
-		SecretName: raw["secret_name"].(string),
-		Store: &datafactory.LinkedServiceReference{
-			Type:          pointer.To("LinkedServiceReference"),
-			ReferenceName: pointer.To(raw["linked_service_name"].(string)),
-		},
-		Type: datafactory.TypeAzureKeyVaultSecret,
-	}
-	if v := raw["secret_version"].(string); v != "" {
-		reference.SecretVersion = v
-	}
-	if v := raw["parameters"].(map[string]interface{}); len(v) > 0 {
-		reference.Store.Parameters = v
-	}
-	return reference
 }

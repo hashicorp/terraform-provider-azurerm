@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
@@ -237,10 +239,11 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 	config := input[0].(map[string]interface{})
 
 	return &datafactory.AzureKeyVaultSecretReference{
-		SecretName: config["secret_name"].(string),
+		SecretName:    config["secret_name"].(string),
+		SecretVersion: pointer.To(config["secret_version"].(string)),
 		Store: &datafactory.LinkedServiceReference{
-			Type:          utils.String("LinkedServiceReference"),
-			ReferenceName: utils.String(config["linked_service_name"].(string)),
+			Type:          pointer.To("LinkedServiceReference"),
+			ReferenceName: pointer.To(config["linked_service_name"].(string)),
 		},
 	}
 }
@@ -507,5 +510,29 @@ func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory
 	return &datafactory.DatasetCompression{
 		Type:  props["type"].(string),
 		Level: props["level"].(string),
+	}
+}
+
+func keyVaultSecretReferenceResource() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"linked_service_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"secret_name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"secret_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 	}
 }
