@@ -39,9 +39,14 @@ type ApiPortalSsoModel struct {
 
 type SpringCloudAPIPortalResource struct{}
 
+func (s SpringCloudAPIPortalResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_api_portal` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
 var (
-	_ sdk.ResourceWithUpdate         = SpringCloudAPIPortalResource{}
-	_ sdk.ResourceWithStateMigration = SpringCloudAPIPortalResource{}
+	_ sdk.ResourceWithUpdate                      = SpringCloudAPIPortalResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudAPIPortalResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudAPIPortalResource{}
 )
 
 func (s SpringCloudAPIPortalResource) ResourceType() string {

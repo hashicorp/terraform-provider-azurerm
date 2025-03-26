@@ -21,6 +21,8 @@ import (
 
 func resourceSpringCloudActiveDeployment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_active_deployment` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
+
 		Create: resourceSpringCloudActiveDeploymentCreate,
 		Read:   resourceSpringCloudActiveDeploymentRead,
 		Update: resourceSpringCloudActiveDeploymentUpdate,

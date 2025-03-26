@@ -39,7 +39,14 @@ type SpringCloudNewRelicApplicationPerformanceMonitoringModel struct {
 
 type SpringCloudNewRelicApplicationPerformanceMonitoringResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_new_relic_application_performance_monitoring` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+)
 
 func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ResourceType() string {
 	return "azurerm_spring_cloud_new_relic_application_performance_monitoring"

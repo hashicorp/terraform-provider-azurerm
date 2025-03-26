@@ -37,7 +37,14 @@ type SsoModel struct {
 
 type SpringCloudDevToolPortalResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudDevToolPortalResource{}
+func (s SpringCloudDevToolPortalResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_dev_tool_portal` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudDevToolPortalResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudDevToolPortalResource{}
+)
 
 func (s SpringCloudDevToolPortalResource) ResourceType() string {
 	return "azurerm_spring_cloud_dev_tool_portal"

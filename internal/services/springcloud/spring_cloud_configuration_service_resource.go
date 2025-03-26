@@ -45,9 +45,14 @@ type SpringCloudRepositoryModel struct {
 
 type SpringCloudConfigurationServiceResource struct{}
 
+func (s SpringCloudConfigurationServiceResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_configuration_service` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
 var (
-	_ sdk.ResourceWithUpdate         = SpringCloudConfigurationServiceResource{}
-	_ sdk.ResourceWithStateMigration = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithUpdate                      = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudConfigurationServiceResource{}
 )
 
 func (s SpringCloudConfigurationServiceResource) ResourceType() string {

@@ -57,9 +57,14 @@ type SshAuthModel struct {
 
 type SpringCloudCustomizedAcceleratorResource struct{}
 
+func (s SpringCloudCustomizedAcceleratorResource) DeprecationMessage() string {
+	return "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_customized_accelerator` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+}
+
 var (
-	_ sdk.ResourceWithUpdate         = SpringCloudCustomizedAcceleratorResource{}
-	_ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithUpdate                      = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudCustomizedAcceleratorResource{}
 )
 
 func (s SpringCloudCustomizedAcceleratorResource) ResourceType() string {
