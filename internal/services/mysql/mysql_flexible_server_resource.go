@@ -186,7 +186,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"standby_availability_zone": commonschema.ZoneSingleOptional(),
+						"standby_availability_zone": commonschema.ZoneSingleOptionalComputed(),
 					},
 				},
 			},
@@ -337,9 +337,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			}),
 		),
 	}
-
-	// TODO When using >= v0.71.1 of go-azure-helpers, remove next line and update the schema to use `OptionalComputed` zone validation
-	resource.Schema["zone"].Computed = true
 
 	if !features.FivePointOh() {
 		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
