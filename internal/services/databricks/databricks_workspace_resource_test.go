@@ -515,12 +515,23 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceS
 	})
 }
 
-// TODO: the ideal test would be:
+// TODO: this test does not yet cover the entire flow. Ideally the test should be:
+//
 // 1. Create workspace
-// 2. Issue SELECT CURRENT_METASTORE(); SQL to populate Unity Catalog
-// 3. Destroy workspace
-// 4. Assert no dangling resource
-// But currently this is not feasible because step 2 require Databricks API call which involves token setup via UI console
+// 2. Destroy workspace with force delete set to true
+// 3. Check managed resource group is deleted
+//
+// # Not sure yet how to do step 3 as there is no PostDestroy hook in acceptance.TestStep
+//
+// There are certain condition that automatically enables Unity Catalog assignment for newly created workspaces.
+// The "isUcEnabled" prop can be used to determine if workspace has Unity Catalog enabled.
+// See MS doc: https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/enable-workspaces
+//
+// The expected behaviour of force deletion with regards to isUcEnabled is as follows:
+//
+// 1. If isUcEnabled is true, forceDeletion set to true, the managed resource group (MRG) will be deleted upon workspace deletion.
+// 2. If isUcEnabled is true, forceDeletion set to false (default), MRG will be left intact.
+// 3. If isUcEnabled is false, MRG will be deleted irrespective of forceDeletion setting.
 func TestAccDatabricksWorkspace_withForceDeleteSetToTrue(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	r := DatabricksWorkspaceResource{}
