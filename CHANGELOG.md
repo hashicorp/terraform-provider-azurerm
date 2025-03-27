@@ -4,7 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: `redisenterprise` - update to API version `2024-10-01` [GH-29073]
 * `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
-* `hdinsight_spark_cluster_resource` - add support for the `zones` property [GH-28149]
+* `azurerm_hdinsight_spark_cluster_resource` - add support for the `zones` property [GH-28149]
 * `azurerm_linux_function_app` - add support for Python version `3.13` [GH-29131]
 * `azurerm_linux_function_app_slot` - add support for Python version `3.13` [GH-29131]
 * `azurerm_linux_web_app` - add support for Python version `3.13` [GH-29131]
@@ -18,6 +18,8 @@ ENHANCEMENTS:
 BUG FIXES
 
 * Data source: `azurerm_container_app_environment` - prevent an error when the log analytics workspace is in a different subscription [GH-28647]
+* `azurerm_linux_virtual_machine` - fix issue where a user assigned identity couldn't be removed from the resource [GH-29157]
+* `azurerm_linux_virtual_machine_scale_set` - fix issue where a user assigned identity couldn't be removed from the resource [GH-29157]
 * `azurerm_log_analytics_workspace` - prevent an error when the workspace is in a soft-deleted state and linked to a log analytics cluster [GH-29137]
 * `azurerm_stream_analytics_job` - update validation to notify users if `content_storage_policy` hasn't been correctly set to setup `job_storage_account` [GH-29158]
 
