@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "example" {
   purge_protection_enabled = true
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
+resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
@@ -71,10 +71,40 @@ resource "azurerm_ai_foundry" "example" {
   }
 }
 
+resource "azurerm_user_assigned_identity" "example" {
+  location            = azurerm_resource_group.example.location
+  name                = "identity-example"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_role_assignment" "example" {
+  scope                = azurerm_resource_group.example.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
+}
+
+resource "azurerm_key_vault_access_policy" "example2" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = azurerm_user_assigned_identity.example.tenant_id
+  object_id    = azurerm_user_assigned_identity.example.client_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+  ]
+}
+
+
 resource "azurerm_ai_foundry_project" "example" {
-  name               = "example"
-  location           = azurerm_ai_foundry.example.location
-  ai_services_hub_id = azurerm_ai_foundry.example.id
+  name                           = "example"
+  location                       = azurerm_ai_foundry.example.location
+  ai_services_hub_id             = azurerm_ai_foundry.example.id
+  primary_user_assigned_identity = azurerm_user_assigned_identity.example.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
 }
 ```
 
@@ -91,6 +121,8 @@ The following arguments are supported:
 ---
 
 * `description` - (Optional) The description of this AI Foundry Project.
+
+* `primary_user_assigned_identity` - (Optional) The user assigned identity ID that represents the AI Foundry Hub identity. This must be set when enabling encryption with a user assigned identity.
 
 * `friendly_name` - (Optional) The display name of this AI Foundry Project.
 
