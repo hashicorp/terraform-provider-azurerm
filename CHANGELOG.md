@@ -16,6 +16,7 @@ BUG FIXES
 
 * Data source: `azurerm_container_app_environment` - prevent an error when the log analytics workspace is in a different subscription [GH-28647]
 * `azurerm_log_analytics_workspace` - prevent an error when the workspace is in a soft-deleted state and linked to a log analytics cluster [GH-29137]
+* `azurerm_stream_analytics_job` - update validation to notify users if `content_storage_policy` hasn't been correctly set to setup `job_storage_account` [GH-29158]
 
 ## 4.24.0 (March 21, 2025)
 
