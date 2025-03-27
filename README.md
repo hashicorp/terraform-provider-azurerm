@@ -1,3 +1,6 @@
+[![Vendor Dependencies Check](https://github.com/nodoubtz/terraform-provider-azurerm/actions/workflows/depscheck.yaml/badge.svg)](https://github.com/nodoubtz/terraform-provider-azurerm/actions/workflows/depscheck.yaml)
+
+
 <a href="https://terraform.io">
     <img src=".github/tf.png" alt="Terraform logo" title="Terraform" align="left" height="50" />
 </a>
