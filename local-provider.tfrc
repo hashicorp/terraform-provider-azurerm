@@ -1,0 +1,15 @@
+provider_installation {
+
+  # Use /home/developer/go/bin as an overridden package directory
+  # for the hashicorp/azurerm provider. This disables the version and checksum
+  # verifications for this provider and forces Terraform to look for the
+  # azurerm provider plugin in the given directory.
+  dev_overrides {
+    "hashicorp/azurerm" = "/Users/d.way/go/bin"
+  }
+
+  # For all other providers, install them directly from their origin provider
+  # registries as normal. If you omit this, Terraform will _only_ use
+  # the dev_overrides block, and so no other providers will be available.
+  direct {}
+}
