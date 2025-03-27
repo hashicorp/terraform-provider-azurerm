@@ -116,6 +116,7 @@ resource "azurerm_dev_center_project" "test" {
   location            = azurerm_resource_group.test.location
   name                = "acctestdcp-${var.random_string}"
   resource_group_name = azurerm_resource_group.test.name
+  description         = "Description for the Dev Center Project"
 }
 `, r.template(data))
 }
@@ -129,6 +130,7 @@ resource "azurerm_dev_center_project" "import" {
   location            = azurerm_dev_center_project.test.location
   name                = azurerm_dev_center_project.test.name
   resource_group_name = azurerm_dev_center_project.test.resource_group_name
+  description         = azurerm_dev_center_project.test.description
 }
 `, r.basic(data))
 }
