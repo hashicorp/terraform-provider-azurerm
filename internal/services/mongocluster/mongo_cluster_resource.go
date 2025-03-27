@@ -106,7 +106,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPreviewFeature(), false),
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
