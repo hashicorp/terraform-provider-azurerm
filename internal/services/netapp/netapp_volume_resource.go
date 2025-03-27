@@ -5,7 +5,6 @@ package netapp
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/poolchange"
 	"log"
 	"strings"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/poolchange"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
@@ -73,7 +73,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"pool_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: netAppValidate.PoolName,
 			},
 
@@ -737,14 +736,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if d.HasChange("service_level") {
-		poolChangeInput := poolchange.PoolChangeRequest{
-			NewPoolResourceId: 
-		}
-		poolChangeClient.VolumesPoolChangeThenPoll(ctx, )
-		update.Properties.ServiceLevel = pointer.To(volumes.ServiceLevel(d.Get("service_level").(string)))
-	}
-
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
@@ -757,6 +748,24 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	// Wait for volume to complete update
 	if err := waitForVolumeCreateOrUpdate(ctx, client, *id); err != nil {
 		return err
+	}
+
+	if d.HasChange("service_level") || d.HasChange("pool_name") {
+		if !d.HasChange("service_level") || !d.HasChange("pool_name") {
+			return fmt.Errorf("both `service_level` and `pool_name` must be changed when modifying `service_level`")
+		}
+
+		poolId := volumes.NewCapacityPoolID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, d.Get("pool_name").(string))
+		volumeId, err := poolchange.ParseVolumeID(id.ID())
+		if err != nil {
+			return err
+		}
+		poolChangeInput := poolchange.PoolChangeRequest{
+			NewPoolResourceId: poolId.ID(),
+		}
+		if err = poolChangeClient.VolumesPoolChangeThenPoll(ctx, *volumeId, poolChangeInput); err != nil {
+			return fmt.Errorf("updating `service_level` for %s: %+v", id, err)
+		}
 	}
 
 	return resourceNetAppVolumeRead(d, meta)
