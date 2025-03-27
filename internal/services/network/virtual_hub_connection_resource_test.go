@@ -291,6 +291,7 @@ func TestAccVirtualHubConnection_routeMapAndStaticVnetPropagateStaticRoutes(t *t
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			// Apply the default configuration
 			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data, true),
