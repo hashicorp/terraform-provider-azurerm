@@ -36,7 +36,7 @@ In the cases where `Enabled` is the only field within the object we opt to flatt
 },
 ```
 
-However when there are multiple fields in addtion to the `Enabled` one and they are all required for the object/feature like in Example B, a terraform block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
+However when there are multiple fields in addition to the `Enabled` field and they are all required for the object/feature like in Example B, a terraform block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
 
 ```go
 "vertical_pod_autoscaler": {
@@ -174,6 +174,56 @@ func (r resource) Read() sdk.ResourceFunc {
 }
 ```
 
+## SKU fields
+
+Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:
+
+1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument. 
+2. When the SKU requires multiple arguments (e.g. `name` and `capacity`), use a `sku` block.
+
+Example of a `sku` argument:
+```go
+"sku": {
+	Type:     pluginsdk.TypeString,
+	Optional: true,
+	Default:  string(firewallpolicies.FirewallPolicySkuTierStandard),
+	ForceNew: true,
+	ValidateFunc: validation.StringInSlice([]string{
+		string(firewallpolicies.FirewallPolicySkuTierPremium),
+		string(firewallpolicies.FirewallPolicySkuTierStandard),
+		string(firewallpolicies.FirewallPolicySkuTierBasic),
+	}, false),
+}
+```
+
+Example of a `sku` block:
+```go
+	"sku": {
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(helpers.PossibleValuesForSkuName(), false),
+				},
+				"capacity": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default:  1,
+					ValidateFunc: validation.IntInSlice([]int{
+						1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
+					}),
+				},
+			},
+		},
+	},
+```
+
+While you may encounter arguments like `sku_name`, `sku_family`, and `capacity` in existing resources, new arguments should avoid this format and use one of the two options above.
+
 ## The `type` field
 
 The Azure API makes use of classes and inheritance through discriminator types defined in the REST API specifications. A strong indicator that a resource is actually a discriminated type is through the definition of a `type` or `kind` property.
@@ -200,10 +250,10 @@ Taking the Data Factory Linked Service resources as an example which could have 
 ```
 
 Would be better exposed as the following resources:
+
 - `azurerm_data_factory_linked_service_azure_blob_storage`
 - `azurerm_data_factory_linked_service_azure_databricks`
 - `azurerm_data_factory_linked_service_azure_file_storage`
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
-   ...

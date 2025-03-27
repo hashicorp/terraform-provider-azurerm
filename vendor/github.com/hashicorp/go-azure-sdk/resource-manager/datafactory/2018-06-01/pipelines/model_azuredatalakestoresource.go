@@ -1,0 +1,58 @@
+package pipelines
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+var _ CopySource = AzureDataLakeStoreSource{}
+
+type AzureDataLakeStoreSource struct {
+	Recursive *bool `json:"recursive,omitempty"`
+
+	// Fields inherited from CopySource
+
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
+}
+
+func (s AzureDataLakeStoreSource) CopySource() BaseCopySourceImpl {
+	return BaseCopySourceImpl{
+		DisableMetricsCollection: s.DisableMetricsCollection,
+		MaxConcurrentConnections: s.MaxConcurrentConnections,
+		SourceRetryCount:         s.SourceRetryCount,
+		SourceRetryWait:          s.SourceRetryWait,
+		Type:                     s.Type,
+	}
+}
+
+var _ json.Marshaler = AzureDataLakeStoreSource{}
+
+func (s AzureDataLakeStoreSource) MarshalJSON() ([]byte, error) {
+	type wrapper AzureDataLakeStoreSource
+	wrapped := wrapper(s)
+	encoded, err := json.Marshal(wrapped)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling AzureDataLakeStoreSource: %+v", err)
+	}
+
+	var decoded map[string]interface{}
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
+		return nil, fmt.Errorf("unmarshaling AzureDataLakeStoreSource: %+v", err)
+	}
+
+	decoded["type"] = "AzureDataLakeStoreSource"
+
+	encoded, err = json.Marshal(decoded)
+	if err != nil {
+		return nil, fmt.Errorf("re-marshaling AzureDataLakeStoreSource: %+v", err)
+	}
+
+	return encoded, nil
+}

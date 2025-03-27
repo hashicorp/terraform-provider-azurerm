@@ -334,7 +334,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeInt,
+				Type: pluginsdk.TypeString,
 			},
 		},
 
