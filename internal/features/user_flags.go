@@ -32,7 +32,7 @@ type VirtualMachineFeatures struct {
 	DetachImplicitDataDiskOnDeletion bool
 	DeleteOSDiskOnDeletion           bool
 	GracefulShutdown                 bool // TODO: Remove in 5.0
-	SkipShutdownAndForceDelete       bool // TODO: Remove in 5.0
+	SkipShutdownAndForceDelete       bool
 }
 
 type VirtualMachineScaleSetFeatures struct {

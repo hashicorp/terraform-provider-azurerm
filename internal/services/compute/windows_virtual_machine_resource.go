@@ -1728,15 +1728,21 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
+	// Due to a breaking change in the API the power down (e.g., 'graceful_shutdown') feature flag is no longer supported...
+
 	log.Printf("[DEBUG] Deleting Windows %s", id)
 
-	// Due to a change in the API the only option for virtual machines is to force delete the resource
+	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
+	// as such we default this to `nil` which matches the previous behaviour (where this isn't sent) and
+	// conditionally set this if required
 	options := virtualmachines.DefaultDeleteOperationOptions()
-	options.ForceDeletion = pointer.To(true)
-
+	if meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
+		options.ForceDeletion = pointer.To(true)
+	}
 	if err := client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
+
 	log.Printf("[DEBUG] Deleted Windows %s", id)
 
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion

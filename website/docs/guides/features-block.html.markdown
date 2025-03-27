@@ -284,8 +284,6 @@ The `virtual_machine` block supports the following:
 
 * `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
 
-!> **Note:** `skip_shutdown_and_force_delete` has been deprecated and will be removed from v5.0 of the AzureRM provider.
-
 ---
 
 The `virtual_machine_scale_set` block supports the following:

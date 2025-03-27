@@ -340,15 +340,14 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.VirtualMachine.GracefulShutdown = feature[0].GracefulShutdown.ValueBool()
 			}
 
-			// TODO: Remove in 5.0
 			f.VirtualMachine.SkipShutdownAndForceDelete = false
 			if !feature[0].SkipShutdownAndForceDelete.IsNull() && !feature[0].SkipShutdownAndForceDelete.IsUnknown() {
 				f.VirtualMachine.SkipShutdownAndForceDelete = feature[0].SkipShutdownAndForceDelete.ValueBool()
 			}
 		} else {
 			f.VirtualMachine.DeleteOSDiskOnDeletion = false
-			f.VirtualMachine.GracefulShutdown = false           // TODO: Remove in 5.0
-			f.VirtualMachine.SkipShutdownAndForceDelete = false // TODO: Remove in 5.0
+			f.VirtualMachine.GracefulShutdown = false // TODO: Remove in 5.0
+			f.VirtualMachine.SkipShutdownAndForceDelete = false
 		}
 
 		if !features.VirtualMachineScaleSet.IsNull() && !features.VirtualMachineScaleSet.IsUnknown() {
