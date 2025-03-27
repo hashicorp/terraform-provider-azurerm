@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: `redisenterprise` - update to API version `2024-10-01` [GH-29073]
+* Data Source: `azurerm_virtual_hub_connection` - add support for the `static_vnet_propagate_static_routes` property [GH-28560]
 * `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
 * `azurerm_hdinsight_spark_cluster_resource` - add support for the `zones` property [GH-28149]
 * `azurerm_linux_function_app` - add support for Python version `3.13` [GH-29131]
@@ -15,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_network_manager` - `scope_accesses` is now optional [GH-28781]
 * `azurerm_oracle_cloud_vm_cluster` - add support for the `system_version` property [GH-29093]
 * `azurerm_powerbi_embedded `- add support for `A7` and `A8` values for `sku_name` [GH-29153]
+* `azurerm_virtual_hub_connection` - add support for the `static_vnet_propagate_static_routes` property [GH-28560]
 
 BUG FIXES
 
