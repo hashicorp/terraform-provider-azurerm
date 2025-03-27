@@ -400,11 +400,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
 
-			dataResidencyBoundary := string(domains.DataResidencyBoundaryWithinGeopair)
-			if props.DataResidencyBoundary != nil {
-				dataResidencyBoundary = string(*props.DataResidencyBoundary)
-			}
-			d.Set("data_residency_boundary", dataResidencyBoundary)
+			d.Set("data_residency_boundary", pointer.From(props.DataResidencyBoundary))
 
 			inputSchema := ""
 			if props.InputSchema != nil {
