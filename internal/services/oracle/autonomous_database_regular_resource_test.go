@@ -177,7 +177,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
   compute_model                    = "ECPU"
-  compute_count                    = 3
+  compute_count                    = 2
   license_model                    = "BringYourOwnLicense"
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
@@ -191,6 +191,12 @@ resource "azurerm_oracle_autonomous_database" "test" {
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
+  long_term_backup_schedule {
+    repeat_cadence   = "Weekly"
+    time_of_backup   = "2025-04-01T09:00:00.000Z"
+    retention_period_in_days = 360
+    is_disabled      = false
+  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
