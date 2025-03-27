@@ -46,9 +46,9 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 		Delete: resourceMysqlFlexibleServerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Create: pluginsdk.DefaultTimeout(2 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Update: pluginsdk.DefaultTimeout(2 * time.Hour),
 			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
 		},
 
