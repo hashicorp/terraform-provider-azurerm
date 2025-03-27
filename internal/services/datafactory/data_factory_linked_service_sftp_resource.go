@@ -154,14 +154,13 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Optional:      true,
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
+				ConflictsWith: []string{"private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path", "key_vault_password"},
 				AtLeastOneOf:  []string{"password", "key_vault_password", "private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
 			},
 
 			"key_vault_password": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
-				Sensitive:     true,
 				ConflictsWith: []string{"private_key_content_base64", "private_key_path", "private_key_passphrase"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -185,13 +184,13 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Optional:      true,
 				Sensitive:     true,
 				ValidateFunc:  validation.StringIsBase64,
-				ConflictsWith: []string{"private_key_path", "password", "key_vault_private_key_content_base64"},
+				ConflictsWith: []string{"private_key_path", "password", "key_vault_password", "key_vault_private_key_content_base64"},
 			},
 
 			"key_vault_private_key_content_base64": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
-				ConflictsWith: []string{"private_key_path", "password", "private_key_content_base64"},
+				ConflictsWith: []string{"private_key_path", "password", "key_vault_password", "private_key_content_base64"},
 				MaxItems:      1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -256,11 +255,10 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("password"); ok {
-		passwordSecureString := datafactory.SecureString{
+		sftpProperties.Password = &datafactory.SecureString{
 			Value: pointer.To(v.(string)),
 			Type:  datafactory.TypeSecureString,
 		}
-		sftpProperties.Password = &passwordSecureString
 	}
 
 	if v, ok := d.GetOk("key_vault_password"); ok {
@@ -268,11 +266,10 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("private_key_content_base64"); ok {
-		privateKeyContent := datafactory.SecureString{
+		sftpProperties.PrivateKeyContent = &datafactory.SecureString{
 			Value: pointer.To(v.(string)),
 			Type:  datafactory.TypeSecureString,
 		}
-		sftpProperties.PrivateKeyContent = &privateKeyContent
 	}
 
 	if v, ok := d.GetOk("key_vault_private_key_content_base64"); ok {
@@ -280,11 +277,10 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("private_key_passphrase"); ok {
-		passphrase := datafactory.SecureString{
+		sftpProperties.PassPhrase = &datafactory.SecureString{
 			Value: pointer.To(v.(string)),
 			Type:  datafactory.TypeSecureString,
 		}
-		sftpProperties.PassPhrase = &passphrase
 	}
 
 	if v, ok := d.GetOk("key_vault_private_key_passphrase"); ok {
@@ -293,10 +289,6 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 
 	if v, ok := d.GetOk("private_key_path"); ok {
 		sftpProperties.PrivateKeyPath = pointer.To(v.(string))
-	}
-
-	if _, ok := d.GetOk("private_key_content_base64"); !ok {
-		d.Set("private_key_content_base64", nil)
 	}
 
 	if v, ok := d.GetOk("skip_host_key_validation"); ok {
@@ -329,8 +321,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		sftpLinkedService.Annotations = &annotations
+		sftpLinkedService.Annotations = pointer.To(v.([]interface{}))
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -403,13 +394,11 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 			}
 		}
 
-		annotations := flattenDataFactoryAnnotations(sftp.Annotations)
-		if err := d.Set("annotations", annotations); err != nil {
+		if err := d.Set("annotations", flattenDataFactoryAnnotations(sftp.Annotations)); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
-		parameters := flattenLinkedServiceParameters(sftp.Parameters)
-		if err := d.Set("parameters", parameters); err != nil {
+		if err := d.Set("parameters", flattenLinkedServiceParameters(sftp.Parameters)); err != nil {
 			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 
