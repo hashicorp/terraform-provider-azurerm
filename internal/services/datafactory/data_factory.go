@@ -238,8 +238,7 @@ func expandAzureKeyVaultSecretReference(input []interface{}) *datafactory.AzureK
 	config := input[0].(map[string]interface{})
 
 	return &datafactory.AzureKeyVaultSecretReference{
-		SecretName:    config["secret_name"].(string),
-		SecretVersion: pointer.To(config["secret_version"].(string)),
+		SecretName: config["secret_name"].(string),
 		Store: &datafactory.LinkedServiceReference{
 			Type:          pointer.To("LinkedServiceReference"),
 			ReferenceName: pointer.To(config["linked_service_name"].(string)),
