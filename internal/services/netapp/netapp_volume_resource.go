@@ -5,6 +5,7 @@ package netapp
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/poolchange"
 	"log"
 	"strings"
 	"time"
@@ -86,7 +87,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"service_level": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(volumes.ServiceLevelPremium),
 					string(volumes.ServiceLevelStandard),
@@ -647,6 +647,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).NetApp.VolumeClient
+	poolChangeClient := meta.(*clients.Client).NetApp.PoolChangeClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -734,6 +735,14 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
 			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
 		}
+	}
+
+	if d.HasChange("service_level") {
+		poolChangeInput := poolchange.PoolChangeRequest{
+			NewPoolResourceId: 
+		}
+		poolChangeClient.VolumesPoolChangeThenPoll(ctx, )
+		update.Properties.ServiceLevel = pointer.To(volumes.ServiceLevel(d.Get("service_level").(string)))
 	}
 
 	if d.HasChange("tags") {
