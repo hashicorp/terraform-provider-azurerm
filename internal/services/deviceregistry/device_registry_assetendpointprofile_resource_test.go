@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -32,16 +33,15 @@ func TestAccAssetEndpointProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	if os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID) == "" || os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET) == "" {
-		t.Skipf("Skipping test due to missing environment variables %s and/or %s", ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID, ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
-	}
+	checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
 		{
-			Config: r.basic(data),
+			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
@@ -62,16 +62,15 @@ func TestAccAssetEndpointProfile_complete_certificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	if os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID) == "" || os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET) == "" {
-		t.Skipf("Skipping test due to missing environment variables %s and/or %s", ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID, ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
-	}
+	checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
 		{
-			Config: r.completeCertificate(data),
+			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			Config:    r.completeCertificate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
@@ -93,16 +92,15 @@ func TestAccAssetEndpointProfile_complete_usernamePassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	if os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID) == "" || os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET) == "" {
-		t.Skipf("Skipping test due to missing environment variables %s and/or %s", ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID, ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
-	}
+	checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
 		{
-			Config: r.completeUsernamePassword(data),
+			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			Config:    r.completeUsernamePassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
@@ -124,21 +122,14 @@ func TestAccAssetEndpointProfile_complete_anonymous(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	if os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID) == "" || os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET) == "" {
-		t.Skipf("Skipping test due to missing environment variables %s and/or %s", ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID, ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
-	}
+	checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			PreConfig: func() { fmt.Printf("PreConfig for Template step\n") },
-			Config:    r.template(data),
+			Config: r.template(data),
 		},
 		{
-			// PreConfig: (function that returns void and can do any setup. Perhaps see if we can execute stuff here if { r.template } doesn't work above)
-			// If sleep doesn't work, perhaps try first making this ResourceTest and if that doesn't work then
-			// try moving the ssh and execution to the PreConfig function.
-			// PreConfig: r.setupAIOClusterOnVM(t, data),
-			PreConfig: r.setupAIOClusterOnVM(t, data),
+			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
 			Config:    r.completeAnonymous(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -161,16 +152,15 @@ func TestAccAssetEndpointProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	if os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID) == "" || os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET) == "" {
-		t.Skipf("Skipping test due to missing environment variables %s and/or %s", ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID, ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
-	}
+	checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
 		{
-			Config: r.basic(data),
+			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -183,16 +173,15 @@ func TestAccAssetEndpointProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	if os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID) == "" || os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET) == "" {
-		t.Skipf("Skipping test due to missing environment variables %s and/or %s", ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID, ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
-	}
+	checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.template(data),
 		},
-		{ // first create the resource
-			Config: r.basic(data),
+		{ // create the basic resource resource
+			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -392,23 +381,16 @@ resource "azurerm_device_registry_asset_endpoint_profile" "import" {
 }
 
 /*
-Creates the terraform template for constants needed for the AIO cluster infra.
+The terraform template for all the resources needed to create an AIO cluster on a VM
+which the acceptance tests' AssetEndpointProfile resources will be provisioned to.
 */
-func (AssetEndpointProfileTestResource) constantsTemplate(data acceptance.TestData) string {
-	// Trim the random value (from acceptance.RandTimeInt which is 18 digits) to 10 digits
-	// to avoid exceeding the maximum length of the storage account name (24 chars max).
-	trimmedRandomInteger := data.RandomInteger % 10000000000
+func (r AssetEndpointProfileTestResource) template(data acceptance.TestData) string {
+	credential := r.getCredentials(data)
+	provisionTemplate := r.provisionTemplate(data, credential)
+
 	return fmt.Sprintf(`
 locals {
-  custom_location           = "acctest-cl%[1]d"
-  cluster_name              = "acctest-akcc-%[1]d"
-  storage_account           = "acctestsa%[2]d"
-  schema_registry           = "acctest-sr-%[1]d"
-  schema_registry_namespace = "acctest-rn-%[1]d"
-  resource_group_name       = "acctest-rg-%[1]d"
-  aio_cluster_resource_name = "acctest-aio%[1]d"
-  managed_identity_name     = "acctest-mi%[1]d"
-  keyvault_name             = "acctest-kv%[1]d"
+  custom_location = "acctest-cl%[1]d"
 }
 
 provider "azurerm" {
@@ -421,23 +403,9 @@ provider "azurerm" {
 }
 
 data "azurerm_client_config" "current" {}
-`, data.RandomInteger, trimmedRandomInteger)
-}
-
-/*
-The terraform template for all the resources needed to create an AIO cluster on a VM
-which the acceptance tests' AssetEndpointProfile resources will be provisioned to.
-*/
-func (r AssetEndpointProfileTestResource) template(data acceptance.TestData) string {
-	constantsTemplate := r.constantsTemplate(data)
-	credential := r.getCredentials(data)
-	provisionTemplate := r.provisionTemplate(data, credential)
-
-	return fmt.Sprintf(`
-%[5]s
 
 resource "azurerm_resource_group" "test" {
-  name     = local.resource_group_name
+  name     = "acctest-rg-%[1]d"
   location = "%[2]s"
 }
 
@@ -536,7 +504,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     azurerm_network_interface_security_group_association.test
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, credential, provisionTemplate, constantsTemplate)
+`, data.RandomInteger, data.Locations.Primary, credential, provisionTemplate)
 }
 
 /*
@@ -549,7 +517,9 @@ func (r AssetEndpointProfileTestResource) provisionTemplate(data acceptance.Test
 	clientId := os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID)
 	clientSecret := os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
 
-	//
+	// Trim the random value (from acceptance.RandTimeInt which is 18 digits) to 10 digits
+	// to avoid exceeding the maximum length of the storage account name (24 chars max).
+	trimmedRandomInteger := data.RandomInteger % 10000000000
 	return fmt.Sprintf(`
 connection {
  	type     = "ssh"
@@ -562,24 +532,39 @@ provisioner "file" {
 	content = templatefile("testdata/setup_aio_cluster.sh.tftpl", {
 		subscription_id     = data.azurerm_client_config.current.subscription_id
 		resource_group_name = azurerm_resource_group.test.name
-		cluster_name        = local.cluster_name
+		cluster_name        = "acctest-akcc-%[2]d"
 		location            = azurerm_resource_group.test.location
 		custom_location     = local.custom_location
-		storage_account     = local.storage_account
-		schema_registry     = local.schema_registry
-		schema_registry_namespace = local.schema_registry_namespace
-		aio_cluster_resource_name = local.aio_cluster_resource_name
+		storage_account     = "acctestsa%[3]d"
+		schema_registry     = "acctest-sr-%[2]d"
+		schema_registry_namespace = "acctest-rn-%[2]d"
+		aio_cluster_resource_name = "acctest-aio%[2]d"
 		tenant_id           = data.azurerm_client_config.current.tenant_id
-		client_id           = "%[4]s"
-		client_secret       = "%[5]s"
-		managed_identity_name = local.managed_identity_name
-		keyvault_name       = local.keyvault_name
+		client_id           = "%[5]s"
+		client_secret       = "%[6]s"
+		managed_identity_name = "acctest-mi%[2]d"
+		keyvault_name       = "acctest-kv%[2]d"
 	})
-	destination = "%[3]s/setup_aio_cluster.sh"
+	destination = "%[4]s/setup_aio_cluster.sh"
 }
-`, credential, data.RandomInteger, "/home/adminuser", clientId, clientSecret)
+`, credential, data.RandomInteger, trimmedRandomInteger, "/home/adminuser", clientId, clientSecret)
 }
 
+/*
+This function should be called for the PreConfig step after the template() is made to ensure
+that the Asset Endpoint Profile resource create is blocked and does not occur until the AIO
+cluster is set up on the VM. This is needed because the Asset Endpoint Profile resource
+is an arc-enabled resource and requires the VM, AIO cluster, and custom location to be set up
+before it can be created, and all of those resources it's dependent on are created by the setup
+script run by the VM's `remote-exec` provisioner. However, `remote-exec` is not waited for by
+the subsequent Asset Endpoint Profile resources even if `depends_on` is used, and will attempt
+to start creating the resource once the VM is created but the AIO cluster is not set up yet. This way,
+the setup script runs synchronously so the tests are forced to wait for it to finish before
+creating the Asset Endpoint Profile resource.
+
+This function will grab the VM's public IP address to SSH into the VM and run the setup script
+(the file was already provisioned on the VM) to create the AIO cluster.
+*/
 func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data acceptance.TestData) func() {
 	return func() {
 		fmt.Printf("Running setup steps to SSH into VM and create AIO cluster\n")
@@ -590,7 +575,7 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 			t.Fatalf("failed to build client: %+v", err)
 		}
 
-		ctx, cancel := context.WithDeadline(clientManager.StopContext, time.Now().Add(60*time.Minute))
+		ctx, cancel := context.WithDeadline(clientManager.StopContext, time.Now().Add(15*time.Minute))
 		defer cancel()
 
 		// Public IP Address metadata
@@ -638,7 +623,7 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 		fmt.Printf("Creating SSH session for stripping carriage return\n")
 		stripSession, err := conn.NewSession()
 		if err != nil {
-			t.Fatalf("failed to create session: %s", err)
+			t.Fatalf("failed to create session for stripping carriage return: %s", err)
 		}
 		defer stripSession.Close()
 		// Strip carriage return from the setup script
@@ -651,7 +636,7 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 		fmt.Printf("Creating SSH session for enabling execution for setup script\n")
 		chmodSession, err := conn.NewSession()
 		if err != nil {
-			t.Fatalf("failed to create session: %s", err)
+			t.Fatalf("failed to create session for enabling execution for setup script: %s", err)
 		}
 		defer chmodSession.Close()
 		// Enable execution for the setup script
@@ -664,7 +649,7 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 		fmt.Printf("Creating SSH session for running setup script\n")
 		runSession, err := conn.NewSession()
 		if err != nil {
-			t.Fatalf("failed to create session: %s", err)
+			t.Fatalf("failed to create session for running setup script: %s", err)
 		}
 		defer runSession.Close()
 		// Run the setup script
@@ -680,4 +665,20 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 // Generates a random password for the VM.
 func (AssetEndpointProfileTestResource) getCredentials(data acceptance.TestData) string {
 	return fmt.Sprintf("P@$$w0rd%d!", data.RandomInteger)
+}
+
+// Checks if the required environment variables are set before running the tests.
+// If any of the required variables are not set, the test will be skipped.
+func checkEnvironmentVariables(t *testing.T) {
+	envVars := []string{
+		ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID,
+		ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET,
+		ASSET_ENDPOINT_PROFILE_ARM_SUBSCRIPTION_ID,
+	}
+	for _, envVar := range envVars {
+		if os.Getenv(envVar) == "" {
+			envVarsString := strings.Join(envVars, ", ")
+			t.Skipf("Skipping test due to environment variable %s not set. Required variables: %s", envVar, envVarsString)
+		}
+	}
 }
