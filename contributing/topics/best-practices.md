@@ -239,10 +239,10 @@ If you encounter a field that must be `Optional` and `Computed`, make sure it fo
 Example:
 
 ```go
-		"etag": {
+	"etag": {
 		Type: pluginsdk.TypeString,
 		Optional: true,
 		// NOTE: O+C Azure generates a new value every time this resource is updated
 		Computed: true,
-},
+	},
 ```
