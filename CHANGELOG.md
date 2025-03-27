@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: `redisenterprise` - update to API version `2024-10-01` [GH-29073]
 * `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
 * `azurerm_linux_function_app` - add support for Python version `3.13` [GH-29131]
 * `azurerm_linux_function_app_slot` - add support for Python version `3.13` [GH-29131]
