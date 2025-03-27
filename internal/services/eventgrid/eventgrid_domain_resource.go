@@ -418,11 +418,7 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
 
-			minTlsVersion := string(domains.TlsVersionOnePointZero)
-			if props.MinimumTlsVersionAllowed != nil {
-				minTlsVersion = string(*props.MinimumTlsVersionAllowed)
-			}
-			d.Set("minimum_tls_version", minTlsVersion)
+			d.Set("minimum_tls_version", pointer.From(props.MinimumTlsVersionAllowed))
 
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == domains.PublicNetworkAccessDisabled {
