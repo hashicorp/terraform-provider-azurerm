@@ -26,9 +26,9 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
 }
 
 resource "azurerm_servicebus_topic" "example" {
-  name                = "${var.prefix}-sbtopic"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "${var.prefix}-sbtopic"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_subscription" "example" {
@@ -38,7 +38,7 @@ resource "azurerm_servicebus_subscription" "example" {
 }
 
 resource "azurerm_servicebus_queue" "example" {
-  name                = "${var.prefix}-sbqueue"
-  namespace_id        = azurerm_servicebus_namespace.example.id
-  enable_partitioning = true
+  name                 = "${var.prefix}-sbqueue"
+  namespace_id         = azurerm_servicebus_namespace.example.id
+  partitioning_enabled = true
 }

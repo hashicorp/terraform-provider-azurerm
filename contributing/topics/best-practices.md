@@ -1,12 +1,12 @@
 # Best Practices
 
-Since it's inception the provider has undergone various iterations and changes in convention, as a result there can be legacy by-products within the provider which are inadvertently used as references. This section contains a miscellaneous assortment of current best practices to be aware of when contributing to the provider.
+Since its inception, the provider has undergone various iterations and changes in convention, as a result there can be legacy by-products within the provider which are inadvertently used as references. This section contains a miscellaneous assortment of current best practices to be aware of when contributing to the provider.
 
 ## Separate Create and Update Methods
 
 Historically the Provider has opted to combine the Create and Update methods due to the behaviour of the Azure API, where the same API is used for both Create and Update, meaning that the same payload has to be sent during both the Creation and Update of the resource.
 
-In order to properly support Terraform's `ignore_changes` feature, rather than using a combined method for Create and Update, we're now requiring that these are separate, and that in the Update partial/delta differences are performed, to only update the value for a field if it's marked as changed.
+In order to properly support Terraform's `ignore_changes` feature, rather than using a combined method for Create and Update, we're now requiring that these be separate, and that in the Update partial/delta differences are performed, to only update the value for a field if it's marked as changed.
 
 For example, whilst a Create method may look similar to below:
 
@@ -15,6 +15,7 @@ payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
     Tags: tags.Expand(d.Get("tags").(map[string]interface{}),
 }
+
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
   return fmt.Errorf("creating %s: %+v", id, err)
 }
@@ -32,6 +33,7 @@ if d.HasChanges("tags") {
   // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
   payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{}))
 }
+
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
   return fmt.Errorf("updating %s: %+v", id, err)
 }
@@ -44,13 +46,16 @@ resp, err := client.Get(ctx, id)
 if err != nil {
   return fmt.Errorf("retrieving %s: %+v", id, err)
 }
+
 if resp.Model == nil {
   return fmt.Errorf("retrieving %s: model was nil", id)
 }
+
 payload := *resp.Model
 if d.HasChanges("tags") {
   payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{})
 }
+
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
   return fmt.Errorf("updating %s: %+v", id, err)
 }
@@ -69,7 +74,7 @@ Data Sources and Resources built using the Typed SDK have a number of benefits o
 
 * The Typed SDK requires that a number of Azure specific behaviours are present in each Data Source/Resource. For example, the `interface` defining the Typed SDK includes a `IDValidationFunc()` function, which is used during `terraform import` to ensure the Resource ID being specified matches what we're expecting. Whilst this is possible using the Untyped SDK, it's more work to do so, as such using the Typed SDK ensures that these behaviours become common across the provider.
 * The Typed SDK exposes an `Encode()` and `Decode()` method, allowing the marshalling/unmarshalling of the Terraform Configuration into a Go Object - which both:
-    1. Avoids logic errors when an incorrect key is used in `d.Get` and `d.Set`, since we can (TODO: https://github.com/hashicorp/terraform-provider-azurerm/blob/5652afa601d33368ebefb4a549584e214e9729cb/internal/sdk/wrapper_validate.go#L21) validate that each of the HCL keys used for the models (to get and set these from the Terraform Config) is present within the Schema via a unit test, rather than failing during the `Read` function, which takes considerably longer.
+    1. Avoids logic errors when an incorrect key is used in `d.Get` and `d.Set`, since we can validate that each of the HCL keys used for the models (to get and set these from the Terraform Config) is present within the Schema via a unit test, rather than failing during the `Read` function, which takes considerably longer.
     2. Default values can be implied for fields, rather than requiring an explicit `d.Set` in the Read function for every field - this allows us to ensure that an empty value/list is set for a field, rather than being `null` and thus unreferenceable in user configs.
 * Using the Typed SDK allows Data Sources and Resources to (in the future) be migrated across to using `hashicorp/terraform-plugin-framework` rather than `hashicorp/terraform-plugin-sdk` without rewriting the resource - which will unlock a number of benefits to end-users, but does involve some configuration changes (and as such will need to be done in a major release).
 * Using the Typed SDK means that these Data Sources/Resources can be more easily swapped out for generated versions down the line (since the code changes will be far smaller).
@@ -214,11 +219,11 @@ There's a number of API's within Azure which will specify a default value for a 
 
 The Azure Provider currently makes use of `hashicorp/terraform-plugin-sdk@v2` to define Data Sources and Resources, which under the hood uses v5 of the Terraform Protocol to interact with Terraform Core.
 
-In version 5 of the Terraform Protocol, if a field is created with one value at Create time and returns a different value immediately after creation, then an internal warning is logged (but no error is raised) - meaning that the only way this change is visible is through a diff when terraform plan is run. The next version of the Terraform Protocol (v6 - used by `hashicorp/terraform-plugin-framework`) changes this from a logged warning to an error at runtime - meaning that these diff's will become more visible to users (and need to be accounted for in the provider).
+In version 5 of the Terraform Protocol, if a field is created with one value at Create time and returns a different value immediately after creation, then an internal warning is logged (but no error is raised) - meaning that the only way this change is visible is through a diff when terraform plan is run. The next version of the Terraform Protocol (v6 - used by `hashicorp/terraform-plugin-framework`) changes this from a logged warning to an error at runtime - meaning that these diffs will become more visible to users (and need to be accounted for in the provider).
 
 To workaround situations where we need to expose the default value from the Azure API - we've historically marked fields as both Optional and Computed - meaning that a value will be returned from the API when it's not defined.
 
-Whilst this works, one side-effect is that it's hard for users to reset a field to it's default value when this is done - as such some fields today (such as the subnets block within the azurerm_virtual_network resource) require that an explicit empty value is specified (for example subnets = []) to remove this value, where this field is Optional & Computed.
+Whilst this works, one side-effect is that it's hard for users to reset a field to its default value when this is done - as such some fields today (such as the subnets block within the azurerm_virtual_network resource) require that an explicit empty value is specified (for example subnets = []) to remove this value, where this field is Optional & Computed.
 
 In order to solve this, (new) fields should no longer be marked as `Optional` + `Computed` - instead where a split Create and Update method is used (see above) users can lean on `ignore_changes` to ignore values from a field with a default value, should they wish to continue using the default value.
 

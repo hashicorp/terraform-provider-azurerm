@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/backups"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -77,6 +78,9 @@ func (r PostgresqlFlexibleServerBackupResource) Create() sdk.ResourceFunc {
 
 			id := backups.NewBackupID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, model.Name)
 
+			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -136,6 +140,9 @@ func (r PostgresqlFlexibleServerBackupResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 )
 
 type AccountStaticWebsiteResource struct{}
@@ -103,7 +103,7 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 			}
 			accountReplicationType := accountReplicationTypeParts[1]
 
-			accountDetails, err := storageClient.FindAccount(ctx, accountID.SubscriptionId, accountID.StorageAccountName)
+			accountDetails, err := storageClient.GetAccount(ctx, *accountID)
 			if err != nil {
 				return err
 			}
@@ -157,7 +157,7 @@ func (a AccountStaticWebsiteResource) Read() sdk.ResourceFunc {
 
 			state.StorageAccountId = id.ID()
 
-			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
 				return metadata.MarkAsGone(id)
 			}
@@ -193,10 +193,9 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
-				// If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
-				return nil
+				return nil // lint:ignore nilerr If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
 			}
 
 			properties := accounts.StorageServiceProperties{
@@ -234,7 +233,7 @@ func (a AccountStaticWebsiteResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			accountDetails, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
 				return err
 			}
