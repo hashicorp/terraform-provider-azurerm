@@ -153,7 +153,7 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(domains.TlsVersionOnePointZero),
+				Default:  string(domains.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(domains.TlsVersionOnePointZero),
 					string(domains.TlsVersionOnePointOne),
