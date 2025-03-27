@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_managed_disk` - allow disk expansion without downtime for all `storage_account_type` [GH-28730]
 * `azurerm_mssql_job_agent` - add support for the `identity` and `sku` properties [GH-29090]
 * `azurerm_network_manager` - `scope_accesses` is now optional [GH-28781]
+* `azurerm_oracle_cloud_vm_cluster` - add support for the `system_version` property [GH-29093]
 * `azurerm_powerbi_embedded `- add support for `A7` and `A8` values for `sku_name` [GH-29153]
 
 BUG FIXES
