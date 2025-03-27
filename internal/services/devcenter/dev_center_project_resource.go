@@ -107,9 +107,17 @@ func (r DevCenterProjectResource) Create() sdk.ResourceFunc {
 			}
 
 			var payload projects.Project
-			if err := r.mapDevCenterProjectResourceSchemaToProject(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+
+			payload.Location = location.Normalize(config.Location)
+			payload.Tags = tags.Expand(config.Tags)
+
+			if payload.Properties == nil {
+				payload.Properties = &projects.ProjectProperties{}
 			}
+
+			payload.Properties.Description = &config.Description
+			payload.Properties.DevCenterId = config.DevCenterId
+			payload.Properties.MaxDevBoxesPerUser = &config.MaximumDevBoxesPerUser
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -144,9 +152,17 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Name = id.ProjectName
 				schema.ResourceGroupName = id.ResourceGroupName
-				if err := r.mapProjectToDevCenterProjectResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
+				schema.Location = location.Normalize(model.Location)
+				schema.Tags = tags.Flatten(model.Tags)
+
+				if model.Properties == nil {
+					model.Properties = &projects.ProjectProperties{}
 				}
+
+				schema.Description = pointer.From(model.Properties.Description)
+				schema.DevCenterId = model.Properties.DevCenterId
+				schema.DevCenterUri = pointer.From(model.Properties.DevCenterUri)
+				schema.MaximumDevBoxesPerUser = pointer.From(model.Properties.MaxDevBoxesPerUser)
 			}
 
 			return metadata.Encode(&schema)
@@ -191,9 +207,14 @@ func (r DevCenterProjectResource) Update() sdk.ResourceFunc {
 			}
 
 			var payload projects.ProjectUpdate
-			if err := r.mapDevCenterProjectResourceSchemaToProjectUpdate(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+
+			payload.Tags = tags.Expand(config.Tags)
+
+			if payload.Properties == nil {
+				payload.Properties = &projects.ProjectUpdateProperties{}
 			}
+
+			payload.Properties.MaxDevBoxesPerUser = &config.MaximumDevBoxesPerUser
 
 			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -202,60 +223,4 @@ func (r DevCenterProjectResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProject(input DevCenterProjectResourceSchema, output *projects.Project) error {
-	output.Location = location.Normalize(input.Location)
-	output.Tags = tags.Expand(input.Tags)
-
-	if output.Properties == nil {
-		output.Properties = &projects.ProjectProperties{}
-	}
-	r.mapDevCenterProjectResourceSchemaToProjectProperties(input, output.Properties)
-
-	return nil
-}
-
-func (r DevCenterProjectResource) mapProjectToDevCenterProjectResourceSchema(input projects.Project, output *DevCenterProjectResourceSchema) error {
-	output.Location = location.Normalize(input.Location)
-	output.Tags = tags.Flatten(input.Tags)
-
-	if input.Properties == nil {
-		input.Properties = &projects.ProjectProperties{}
-	}
-	r.mapProjectPropertiesToDevCenterProjectResourceSchema(*input.Properties, output)
-
-	return nil
-}
-
-func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectProperties(input DevCenterProjectResourceSchema, output *projects.ProjectProperties) error {
-	output.Description = &input.Description
-	output.DevCenterId = input.DevCenterId
-
-	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
-	return nil
-}
-
-func (r DevCenterProjectResource) mapProjectPropertiesToDevCenterProjectResourceSchema(input projects.ProjectProperties, output *DevCenterProjectResourceSchema) error {
-	output.Description = pointer.From(input.Description)
-	output.DevCenterId = input.DevCenterId
-	output.DevCenterUri = pointer.From(input.DevCenterUri)
-	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
-	return nil
-}
-
-func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectUpdate(input DevCenterProjectResourceSchema, output *projects.ProjectUpdate) error {
-	output.Tags = tags.Expand(input.Tags)
-
-	if output.Properties == nil {
-		output.Properties = &projects.ProjectUpdateProperties{}
-	}
-	r.mapDevCenterProjectResourceSchemaToProjectUpdateProperties(input, output.Properties)
-
-	return nil
-}
-
-func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectUpdateProperties(input DevCenterProjectResourceSchema, output *projects.ProjectUpdateProperties) error {
-	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
-	return nil
 }

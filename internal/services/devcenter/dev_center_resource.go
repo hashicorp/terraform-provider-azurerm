@@ -211,9 +211,6 @@ func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenter
 	if output.Properties == nil {
 		output.Properties = &devcenters.DevCenterProperties{}
 	}
-	if err := r.mapDevCenterResourceSchemaToDevCenterProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "DevCenterProperties", "Properties", err)
-	}
 
 	return nil
 }
@@ -231,16 +228,8 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 	if input.Properties == nil {
 		input.Properties = &devcenters.DevCenterProperties{}
 	}
-	r.mapDevCenterPropertiesToDevCenterResourceSchema(*input.Properties, output)
 
-	return nil
-}
+	output.DevCenterUri = pointer.From(input.Properties.DevCenterUri)
 
-func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
-	return nil
-}
-
-func (r DevCenterResource) mapDevCenterPropertiesToDevCenterResourceSchema(input devcenters.DevCenterProperties, output *DevCenterResourceSchema) error {
-	output.DevCenterUri = pointer.From(input.DevCenterUri)
 	return nil
 }
