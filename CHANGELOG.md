@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: `redisenterprise` - update to API version `2024-10-01` [GH-29073]
+* dependencies: `servicefabricmanaged` - update to API version `2024-04-01` [GH-29199]
 * Data Source: `azurerm_virtual_hub_connection` - add support for the `static_vnet_propagate_static_routes` property [GH-28560]
 * `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
 * `azurerm_hdinsight_spark_cluster_resource` - add support for the `zones` property [GH-28149]
