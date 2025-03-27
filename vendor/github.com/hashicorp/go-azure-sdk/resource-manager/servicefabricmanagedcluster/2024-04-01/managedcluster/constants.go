@@ -50,50 +50,6 @@ func parseAccess(input string) (*Access, error) {
 	return &out, nil
 }
 
-type AddonFeatures string
-
-const (
-	AddonFeaturesBackupRestoreService   AddonFeatures = "BackupRestoreService"
-	AddonFeaturesDnsService             AddonFeatures = "DnsService"
-	AddonFeaturesResourceMonitorService AddonFeatures = "ResourceMonitorService"
-)
-
-func PossibleValuesForAddonFeatures() []string {
-	return []string{
-		string(AddonFeaturesBackupRestoreService),
-		string(AddonFeaturesDnsService),
-		string(AddonFeaturesResourceMonitorService),
-	}
-}
-
-func (s *AddonFeatures) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseAddonFeatures(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseAddonFeatures(input string) (*AddonFeatures, error) {
-	vals := map[string]AddonFeatures{
-		"backuprestoreservice":   AddonFeaturesBackupRestoreService,
-		"dnsservice":             AddonFeaturesDnsService,
-		"resourcemonitorservice": AddonFeaturesResourceMonitorService,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := AddonFeatures(input)
-	return &out, nil
-}
-
 type ClusterState string
 
 const (
@@ -273,6 +229,50 @@ func parseDirection(input string) (*Direction, error) {
 	return &out, nil
 }
 
+type ManagedClusterAddOnFeature string
+
+const (
+	ManagedClusterAddOnFeatureBackupRestoreService   ManagedClusterAddOnFeature = "BackupRestoreService"
+	ManagedClusterAddOnFeatureDnsService             ManagedClusterAddOnFeature = "DnsService"
+	ManagedClusterAddOnFeatureResourceMonitorService ManagedClusterAddOnFeature = "ResourceMonitorService"
+)
+
+func PossibleValuesForManagedClusterAddOnFeature() []string {
+	return []string{
+		string(ManagedClusterAddOnFeatureBackupRestoreService),
+		string(ManagedClusterAddOnFeatureDnsService),
+		string(ManagedClusterAddOnFeatureResourceMonitorService),
+	}
+}
+
+func (s *ManagedClusterAddOnFeature) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseManagedClusterAddOnFeature(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseManagedClusterAddOnFeature(input string) (*ManagedClusterAddOnFeature, error) {
+	vals := map[string]ManagedClusterAddOnFeature{
+		"backuprestoreservice":   ManagedClusterAddOnFeatureBackupRestoreService,
+		"dnsservice":             ManagedClusterAddOnFeatureDnsService,
+		"resourcemonitorservice": ManagedClusterAddOnFeatureResourceMonitorService,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ManagedClusterAddOnFeature(input)
+	return &out, nil
+}
+
 type ManagedResourceProvisioningState string
 
 const (
@@ -391,6 +391,88 @@ func parseNsgProtocol(input string) (*NsgProtocol, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := NsgProtocol(input)
+	return &out, nil
+}
+
+type PrivateEndpointNetworkPolicies string
+
+const (
+	PrivateEndpointNetworkPoliciesDisabled PrivateEndpointNetworkPolicies = "disabled"
+	PrivateEndpointNetworkPoliciesEnabled  PrivateEndpointNetworkPolicies = "enabled"
+)
+
+func PossibleValuesForPrivateEndpointNetworkPolicies() []string {
+	return []string{
+		string(PrivateEndpointNetworkPoliciesDisabled),
+		string(PrivateEndpointNetworkPoliciesEnabled),
+	}
+}
+
+func (s *PrivateEndpointNetworkPolicies) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateEndpointNetworkPolicies(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePrivateEndpointNetworkPolicies(input string) (*PrivateEndpointNetworkPolicies, error) {
+	vals := map[string]PrivateEndpointNetworkPolicies{
+		"disabled": PrivateEndpointNetworkPoliciesDisabled,
+		"enabled":  PrivateEndpointNetworkPoliciesEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateEndpointNetworkPolicies(input)
+	return &out, nil
+}
+
+type PrivateLinkServiceNetworkPolicies string
+
+const (
+	PrivateLinkServiceNetworkPoliciesDisabled PrivateLinkServiceNetworkPolicies = "disabled"
+	PrivateLinkServiceNetworkPoliciesEnabled  PrivateLinkServiceNetworkPolicies = "enabled"
+)
+
+func PossibleValuesForPrivateLinkServiceNetworkPolicies() []string {
+	return []string{
+		string(PrivateLinkServiceNetworkPoliciesDisabled),
+		string(PrivateLinkServiceNetworkPoliciesEnabled),
+	}
+}
+
+func (s *PrivateLinkServiceNetworkPolicies) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePrivateLinkServiceNetworkPolicies(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePrivateLinkServiceNetworkPolicies(input string) (*PrivateLinkServiceNetworkPolicies, error) {
+	vals := map[string]PrivateLinkServiceNetworkPolicies{
+		"disabled": PrivateLinkServiceNetworkPoliciesDisabled,
+		"enabled":  PrivateLinkServiceNetworkPoliciesEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := PrivateLinkServiceNetworkPolicies(input)
 	return &out, nil
 }
 
@@ -517,5 +599,46 @@ func parseSkuName(input string) (*SkuName, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := SkuName(input)
+	return &out, nil
+}
+
+type ZonalUpdateMode string
+
+const (
+	ZonalUpdateModeFast     ZonalUpdateMode = "Fast"
+	ZonalUpdateModeStandard ZonalUpdateMode = "Standard"
+)
+
+func PossibleValuesForZonalUpdateMode() []string {
+	return []string{
+		string(ZonalUpdateModeFast),
+		string(ZonalUpdateModeStandard),
+	}
+}
+
+func (s *ZonalUpdateMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseZonalUpdateMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseZonalUpdateMode(input string) (*ZonalUpdateMode, error) {
+	vals := map[string]ZonalUpdateMode{
+		"fast":     ZonalUpdateModeFast,
+		"standard": ZonalUpdateModeStandard,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ZonalUpdateMode(input)
 	return &out, nil
 }
