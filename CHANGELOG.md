@@ -18,6 +18,7 @@ ENHANCEMENTS:
 BUG FIXES
 
 * Data source: `azurerm_container_app_environment` - prevent an error when the log analytics workspace is in a different subscription [GH-28647]
+* `azurerm_kubernetes_cluster_node_pool` - fix issue where `kubelet_disk_type` couldn't be updated, updating this will now rotate the node pool [GH-29135]
 * `azurerm_linux_virtual_machine` - fix issue where a user assigned identity couldn't be removed from the resource [GH-29157]
 * `azurerm_linux_virtual_machine_scale_set` - fix issue where a user assigned identity couldn't be removed from the resource [GH-29157]
 * `azurerm_log_analytics_workspace` - prevent an error when the workspace is in a soft-deleted state and linked to a log analytics cluster [GH-29137]
