@@ -237,10 +237,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
 			},
 
-			// NOTE: O+C: Azure normally defaults this to `Enabled` unless values are provided for `delegated_subnet_id` and `private_dns_zone_id`
 			"public_network_access": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C: Azure normally defaults this to `Enabled` unless values are provided for `delegated_subnet_id` and `private_dns_zone_id`
 				Computed:     true,
 				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
 			},
