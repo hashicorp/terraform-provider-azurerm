@@ -72,8 +72,9 @@ provider "azurerm" {
     }
 
     recovery_service {
-      vm_backup_stop_protection_and_retain_data_on_destroy = true
-      purge_protected_items_from_vault_on_destroy          = true
+      vm_backup_stop_protection_and_retain_data_on_destroy    = true
+      vm_backup_suspend_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy             = true
     }
 
     resource_group {
@@ -204,9 +205,7 @@ The `key_vault` block supports the following:
 
 The `log_analytics_workspace` block supports the following:
 
-* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `true`.
-
--> **Note:** This will be defaulted to `false` in the next major version of the Azure Provider (4.0).
+* `permanently_delete_on_destroy` - (Optional) Should the `azurerm_log_analytics_workspace` be permanently deleted (e.g. purged) when destroyed? Defaults to `false`.
 
 ---
 
@@ -240,6 +239,8 @@ The `postgresql_flexible_server` block supports the following:
 The `recovery_service` block supports the following:
 
 * `vm_backup_stop_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and stop protection instead of destroying the backup protected vm? Defaults to `false`.
+
+* `vm_backup_suspend_protection_and_retain_data_on_destroy` - (Optional) Should we retain the data and suspend protection instead of destroying the backup protected vm? Defaults to `false`.
 
 * `purge_protected_items_from_vault_on_destroy` - (Optional) Should we purge all protected items when destroying the vault. Defaults to `false`.
 

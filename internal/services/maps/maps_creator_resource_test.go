@@ -21,7 +21,7 @@ import (
 type MapsCreatorResource struct{}
 
 func TestAccMapsCreator_basic(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
@@ -38,7 +38,7 @@ func TestAccMapsCreator_basic(t *testing.T) {
 }
 
 func TestAccMapsCreator_requiresImport(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
@@ -55,7 +55,7 @@ func TestAccMapsCreator_requiresImport(t *testing.T) {
 }
 
 func TestAccMapsCreator_complete(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
@@ -72,7 +72,7 @@ func TestAccMapsCreator_complete(t *testing.T) {
 }
 
 func TestAccMapsCreator_update(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")

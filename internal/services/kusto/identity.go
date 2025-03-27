@@ -4,7 +4,7 @@
 package kusto
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
