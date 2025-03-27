@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -38,6 +39,9 @@ type SsoModel struct {
 type SpringCloudDevToolPortalResource struct{}
 
 func (s SpringCloudDevToolPortalResource) DeprecationMessage() string {
+	if !features.FivePointOh() {
+		return ""
+	}
 	return "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_dev_tool_portal` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
 }
 

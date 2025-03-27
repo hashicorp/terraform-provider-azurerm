@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
@@ -38,6 +39,9 @@ type SpringCloudAppDynamicsApplicationPerformanceMonitoringModel struct {
 type SpringCloudAppDynamicsApplicationPerformanceMonitoringResource struct{}
 
 func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) DeprecationMessage() string {
+	if !features.FivePointOh() {
+		return ""
+	}
 	return "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
 }
 

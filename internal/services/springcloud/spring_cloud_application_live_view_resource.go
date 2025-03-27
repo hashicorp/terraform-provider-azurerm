@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,6 +28,9 @@ type SpringCloudApplicationLiveViewModel struct {
 type SpringCloudApplicationLiveViewResource struct{}
 
 func (s SpringCloudApplicationLiveViewResource) DeprecationMessage() string {
+	if !features.FivePointOh() {
+		return ""
+	}
 	return "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_application_live_view` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
 }
 

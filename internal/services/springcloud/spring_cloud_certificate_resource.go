@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -25,8 +26,13 @@ import (
 )
 
 func resourceSpringCloudCertificate() *pluginsdk.Resource {
+	deprecationMessage := "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_certificate` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
+	if !features.FivePointOh() {
+		deprecationMessage = ""
+	}
+
 	return &pluginsdk.Resource{
-		DeprecationMessage: "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_certificate` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information.",
+		DeprecationMessage: deprecationMessage,
 
 		Create: resourceSpringCloudCertificateCreate,
 		Read:   resourceSpringCloudCertificateRead,
