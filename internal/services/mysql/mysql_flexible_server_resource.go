@@ -314,7 +314,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": commonschema.ZoneSingleOptional(),
+			"zone": commonschema.ZoneSingleOptionalComputed(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
