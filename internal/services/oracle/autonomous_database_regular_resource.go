@@ -403,7 +403,6 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
 				state.LongTermBackUpSchedule = FlattenLongTermBackUpScheduleDetails(props.LongTermBackupSchedule)
-
 			}
 
 			return metadata.Encode(&state)
