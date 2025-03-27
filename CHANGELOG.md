@@ -23,6 +23,7 @@ BUG FIXES
 * `azurerm_linux_virtual_machine` - fix issue where a user assigned identity couldn't be removed from the resource [GH-29157]
 * `azurerm_linux_virtual_machine_scale_set` - fix issue where a user assigned identity couldn't be removed from the resource [GH-29157]
 * `azurerm_log_analytics_workspace` - prevent an error when the workspace is in a soft-deleted state and linked to a log analytics cluster [GH-29137]
+* `azurerm_postgresql_flexible_server_virtual_endpoint` - add a lock on the replica server to prevent a race condition [GH-29071]
 * `azurerm_signalr_service` - set `location` in payload when updating to prevent an API error [GH-29184]
 * `azurerm_stream_analytics_job` - update validation to notify users if `content_storage_policy` hasn't been correctly set to setup `job_storage_account` [GH-29158]
 
