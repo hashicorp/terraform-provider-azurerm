@@ -106,6 +106,11 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
+			if replicaServerId.FlexibleServerName != id.FlexibleServerName {
+				locks.ByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			}
+
 			// This API can be a bit flaky if the same named resource is created/destroyed quickly
 			// usually waiting a minute or two before redeploying is enough to resolve the conflict
 			if err = client.CreateThenPoll(ctx, id, virtualendpoints.VirtualEndpointResource{
@@ -237,6 +242,11 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
+
+			if replicaServerId.FlexibleServerName != id.FlexibleServerName {
+				locks.ByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			}
 
 			if err := client.UpdateThenPoll(ctx, *id, virtualendpoints.VirtualEndpointResourceForPatch{
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
