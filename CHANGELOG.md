@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app` - add support for Python version `3.13` [GH-29131]
 * `azurerm_linux_web_app_slot` - add support for Python version `3.13` [GH-29131]
 * `azurerm_log_analytics_workspace` - add support for the `LACluster` SKU [GH-29137]
+* `azurerm_managed_disk` - allow disk expansion without downtime for all `storage_account_type` [GH-28730]
 * `azurerm_mssql_job_agent` - add support for the `identity` and `sku` properties [GH-29090]
 * `azurerm_network_manager` - `scope_accesses` is now optional [GH-28781]
 * `azurerm_powerbi_embedded `- add support for `A7` and `A8` values for `sku_name` [GH-29153]
