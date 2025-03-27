@@ -211,9 +211,7 @@ func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProject(inp
 	if output.Properties == nil {
 		output.Properties = &projects.ProjectProperties{}
 	}
-	if err := r.mapDevCenterProjectResourceSchemaToProjectProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "ProjectProperties", "Properties", err)
-	}
+	r.mapDevCenterProjectResourceSchemaToProjectProperties(input, output.Properties)
 
 	return nil
 }
@@ -225,9 +223,7 @@ func (r DevCenterProjectResource) mapProjectToDevCenterProjectResourceSchema(inp
 	if input.Properties == nil {
 		input.Properties = &projects.ProjectProperties{}
 	}
-	if err := r.mapProjectPropertiesToDevCenterProjectResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "ProjectProperties", "Properties", err)
-	}
+	r.mapProjectPropertiesToDevCenterProjectResourceSchema(*input.Properties, output)
 
 	return nil
 }
@@ -254,32 +250,12 @@ func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectUpda
 	if output.Properties == nil {
 		output.Properties = &projects.ProjectUpdateProperties{}
 	}
-	if err := r.mapDevCenterProjectResourceSchemaToProjectUpdateProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "ProjectUpdateProperties", "Properties", err)
-	}
-
-	return nil
-}
-
-func (r DevCenterProjectResource) mapProjectUpdateToDevCenterProjectResourceSchema(input projects.ProjectUpdate, output *DevCenterProjectResourceSchema) error {
-	output.Tags = tags.Flatten(input.Tags)
-
-	if input.Properties == nil {
-		input.Properties = &projects.ProjectUpdateProperties{}
-	}
-	if err := r.mapProjectUpdatePropertiesToDevCenterProjectResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "ProjectUpdateProperties", "Properties", err)
-	}
+	r.mapDevCenterProjectResourceSchemaToProjectUpdateProperties(input, output.Properties)
 
 	return nil
 }
 
 func (r DevCenterProjectResource) mapDevCenterProjectResourceSchemaToProjectUpdateProperties(input DevCenterProjectResourceSchema, output *projects.ProjectUpdateProperties) error {
 	output.MaxDevBoxesPerUser = &input.MaximumDevBoxesPerUser
-	return nil
-}
-
-func (r DevCenterProjectResource) mapProjectUpdatePropertiesToDevCenterProjectResourceSchema(input projects.ProjectUpdateProperties, output *DevCenterProjectResourceSchema) error {
-	output.MaximumDevBoxesPerUser = pointer.From(input.MaxDevBoxesPerUser)
 	return nil
 }

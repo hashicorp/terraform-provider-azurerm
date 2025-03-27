@@ -231,9 +231,7 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 	if input.Properties == nil {
 		input.Properties = &devcenters.DevCenterProperties{}
 	}
-	if err := r.mapDevCenterPropertiesToDevCenterResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "DevCenterProperties", "Properties", err)
-	}
+	r.mapDevCenterPropertiesToDevCenterResourceSchema(*input.Properties, output)
 
 	return nil
 }
