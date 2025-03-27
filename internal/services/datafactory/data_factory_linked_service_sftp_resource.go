@@ -273,7 +273,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("key_vault_private_key_content_base64"); ok {
-		sftpProperties.PrivateKeyContent = expandAzureKeyVaultSecretReference(v.([]interface{})) // TestAccDataFactoryLinkedServiceSFTP_keyVaultReference -- panic: interface conversion: interface {} is nil, not string
+		sftpProperties.PrivateKeyContent = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("private_key_passphrase"); ok {
