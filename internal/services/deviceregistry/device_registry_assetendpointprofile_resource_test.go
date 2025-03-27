@@ -3,22 +3,27 @@ package deviceregistry_test
 import (
 	"context"
 	"fmt"
-	"math/rand"
+	"golang.org/x/crypto/ssh"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assetendpointprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
-	ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID     = "ARM_CLIENT_ID"
-	ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET = "ARM_CLIENT_SECRET"
+	ASSET_ENDPOINT_PROFILE_ARM_SUBSCRIPTION_ID = "ARM_SUBSCRIPTION_ID"
+	ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID       = "ARM_CLIENT_ID"
+	ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET   = "ARM_CLIENT_SECRET"
 )
 
 type AssetEndpointProfileTestResource struct{}
@@ -32,6 +37,9 @@ func TestAccAssetEndpointProfile_basic(t *testing.T) {
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.template(data),
+		},
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -59,6 +67,9 @@ func TestAccAssetEndpointProfile_complete_certificate(t *testing.T) {
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.template(data),
+		},
 		{
 			Config: r.completeCertificate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -88,6 +99,9 @@ func TestAccAssetEndpointProfile_complete_usernamePassword(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.template(data),
+		},
+		{
 			Config: r.completeUsernamePassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -116,7 +130,16 @@ func TestAccAssetEndpointProfile_complete_anonymous(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.completeAnonymous(data),
+			PreConfig: func() { fmt.Printf("PreConfig for Template step\n") },
+			Config:    r.template(data),
+		},
+		{
+			// PreConfig: (function that returns void and can do any setup. Perhaps see if we can execute stuff here if { r.template } doesn't work above)
+			// If sleep doesn't work, perhaps try first making this ResourceTest and if that doesn't work then
+			// try moving the ssh and execution to the PreConfig function.
+			// PreConfig: r.setupAIOClusterOnVM(t, data),
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			Config:    r.completeAnonymous(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
@@ -144,6 +167,9 @@ func TestAccAssetEndpointProfile_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.template(data),
+		},
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -162,6 +188,9 @@ func TestAccAssetEndpointProfile_update(t *testing.T) {
 	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.template(data),
+		},
 		{ // first create the resource
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -401,7 +430,7 @@ which the acceptance tests' AssetEndpointProfile resources will be provisioned t
 */
 func (r AssetEndpointProfileTestResource) template(data acceptance.TestData) string {
 	constantsTemplate := r.constantsTemplate(data)
-	credential := r.getCredentials()
+	credential := r.getCredentials(data)
 	provisionTemplate := r.provisionTemplate(data, credential)
 
 	return fmt.Sprintf(`
@@ -417,9 +446,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
-  depends_on = [
-    azurerm_resource_group.test
-  ]
 }
 
 resource "azurerm_subnet" "test" {
@@ -427,9 +453,6 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
-  depends_on = [
-    azurerm_resource_group.test
-  ]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -437,9 +460,6 @@ resource "azurerm_public_ip" "test" {
   location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  depends_on = [
-    azurerm_resource_group.test
-  ]
 }
 
 resource "azurerm_network_interface" "test" {
@@ -452,10 +472,6 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.test.id
   }
-
-  depends_on = [
-    azurerm_resource_group.test
-  ]
 }
 
 resource "azurerm_network_security_group" "my_terraform_nsg" {
@@ -479,18 +495,11 @@ resource "azurerm_network_security_group" "my_terraform_nsg" {
       security_rule,
     ]
   }
-
-  depends_on = [
-    azurerm_resource_group.test
-  ]
 }
 
 resource "azurerm_network_interface_security_group_association" "test" {
   network_interface_id      = azurerm_network_interface.test.id
   network_security_group_id = azurerm_network_security_group.my_terraform_nsg.id
-  depends_on = [
-    azurerm_resource_group.test
-  ]
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -531,8 +540,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 }
 
 /*
-Copies the scripts and files needed to create and provision the AIO cluster on the VM.
-Then ssh's into the VM and executes the cluster setup scripts.
+Copies the script needed to create and provision the AIO cluster on the VM via SSH.
+It does NOT run the script. That is done in the setupAIOClusterOnVM function.
 */
 func (r AssetEndpointProfileTestResource) provisionTemplate(data acceptance.TestData, credential string) string {
 	// Get client secrets from env vars because we need them
@@ -540,6 +549,7 @@ func (r AssetEndpointProfileTestResource) provisionTemplate(data acceptance.Test
 	clientId := os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID)
 	clientSecret := os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
 
+	//
 	return fmt.Sprintf(`
 connection {
  	type     = "ssh"
@@ -567,18 +577,107 @@ provisioner "file" {
 	})
 	destination = "%[3]s/setup_aio_cluster.sh"
 }
-
-provisioner "remote-exec" {
-	inline = [
-		"sudo sed -i 's/\r$//' %[3]s/setup_aio_cluster.sh",
-		"sudo chmod +x %[3]s/setup_aio_cluster.sh",
-		"sudo bash %[3]s/setup_aio_cluster.sh &> %[3]s/agent_log",
-	]
-}
 `, credential, data.RandomInteger, "/home/adminuser", clientId, clientSecret)
 }
 
+func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data acceptance.TestData) func() {
+	return func() {
+		fmt.Printf("Running setup steps to SSH into VM and create AIO cluster\n")
+
+		// Set up the test client so we can fetch the public IP address.
+		clientManager, err := testclient.Build()
+		if err != nil {
+			t.Fatalf("failed to build client: %+v", err)
+		}
+
+		ctx, cancel := context.WithDeadline(clientManager.StopContext, time.Now().Add(60*time.Minute))
+		defer cancel()
+
+		// Public IP Address metadata
+		publicIpClient := clientManager.Network.PublicIPAddresses
+		subscriptionId := os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_SUBSCRIPTION_ID)
+		// Resource group name and public IP address name will be the same as template because we are using the same random integer
+		resourceGroupName := fmt.Sprintf("acctest-rg-%d", data.RandomInteger)
+		publicIpAddressName := fmt.Sprintf("acctestpip-%d", data.RandomInteger)
+		publicIpAddressId := commonids.NewPublicIPAddressID(subscriptionId, resourceGroupName, publicIpAddressName)
+
+		// Get the public IP address
+		fmt.Printf("Getting public IP address '%s'\n", publicIpAddressName)
+		publicIpAddress, err := publicIpClient.Get(ctx, publicIpAddressId, publicipaddresses.DefaultGetOperationOptions())
+		if err != nil {
+			t.Fatalf("failed to get public ip address: %+v", err)
+		}
+
+		if publicIpAddress.Model == nil || publicIpAddress.Model.Properties.IPAddress == nil {
+			t.Fatalf("public ip address not found '%s'", publicIpAddressName)
+		}
+
+		// SSH connection details
+		ipAddress := *publicIpAddress.Model.Properties.IPAddress
+		username := "adminuser"
+		password := r.getCredentials(data)
+
+		// SSH client configuration
+		sshConfig := &ssh.ClientConfig{
+			User: username,
+			Auth: []ssh.AuthMethod{
+				ssh.Password(password),
+			},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		}
+
+		// Connect to the VM
+		fmt.Printf("Connecting to the VM with IP Address: %s\n", ipAddress)
+		conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", ipAddress), sshConfig)
+		if err != nil {
+			t.Fatalf("failed to dial ssh: %s", err)
+		}
+		defer conn.Close()
+
+		// Create a new session
+		fmt.Printf("Creating SSH session for stripping carriage return\n")
+		stripSession, err := conn.NewSession()
+		if err != nil {
+			t.Fatalf("failed to create session: %s", err)
+		}
+		defer stripSession.Close()
+		// Strip carriage return from the setup script
+		fmt.Printf("Stripping carriage return from the setup script\n")
+		if err := stripSession.Run("sudo sed -i 's/\r$//' /home/adminuser/setup_aio_cluster.sh"); err != nil {
+			t.Fatalf("failed to run command for stripping carriage return. Error: %s", err)
+		}
+
+		// Create a new session
+		fmt.Printf("Creating SSH session for enabling execution for setup script\n")
+		chmodSession, err := conn.NewSession()
+		if err != nil {
+			t.Fatalf("failed to create session: %s", err)
+		}
+		defer chmodSession.Close()
+		// Enable execution for the setup script
+		fmt.Printf("Enabling execution for setup script\n")
+		if err := chmodSession.Run("sudo chmod +x /home/adminuser/setup_aio_cluster.sh"); err != nil {
+			t.Fatalf("failed to run command for enabling execution. Error: %s", err)
+		}
+
+		// Create a new session
+		fmt.Printf("Creating SSH session for running setup script\n")
+		runSession, err := conn.NewSession()
+		if err != nil {
+			t.Fatalf("failed to create session: %s", err)
+		}
+		defer runSession.Close()
+		// Run the setup script
+		fmt.Printf("Running setup script\n")
+		if err := runSession.Run("sudo bash /home/adminuser/setup_aio_cluster.sh &> /home/adminuser/agent_log"); err != nil {
+			t.Fatalf("failed to run command for running setup script. Error: %s", err)
+		}
+
+		fmt.Printf("Setup steps to SSH into VM and create AIO cluster completed\n")
+	}
+}
+
 // Generates a random password for the VM.
-func (AssetEndpointProfileTestResource) getCredentials() string {
-	return fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
+func (AssetEndpointProfileTestResource) getCredentials(data acceptance.TestData) string {
+	return fmt.Sprintf("P@$$w0rd%d!", data.RandomInteger)
 }
