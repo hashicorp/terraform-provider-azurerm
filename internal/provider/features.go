@@ -223,18 +223,18 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 
 					// TODO: Remove in 5.0
 					"graceful_shutdown": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-						// Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Default:    false,
+						Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
 					},
 
 					// TODO: Remove in 5.0
 					"skip_shutdown_and_force_delete": {
-						Type:     schema.TypeBool,
-						Optional: true,
-						Default:  false,
-						// Deprecated: "'skip_shutdown_and_force_delete' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+						Type:       schema.TypeBool,
+						Optional:   true,
+						Default:    false,
+						Deprecated: "'skip_shutdown_and_force_delete' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
 					},
 				},
 			},

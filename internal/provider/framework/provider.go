@@ -372,12 +372,14 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 
 									// TODO: Remove in 5.0
 									"graceful_shutdown": schema.BoolAttribute{
-										Optional: true,
+										Optional:           true,
+										DeprecationMessage: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
 									},
 
 									// TODO: Remove in 5.0
 									"skip_shutdown_and_force_delete": schema.BoolAttribute{
-										Optional: true,
+										Optional:           true,
+										DeprecationMessage: "'skip_shutdown_and_force_delete' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
 									},
 									"detach_implicit_data_disk_on_deletion": schema.BoolAttribute{
 										Optional: true,
