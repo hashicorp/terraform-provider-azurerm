@@ -155,6 +155,20 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_service_fabric_managed_cluster" "test" {
   name                = "testacc-sfmc-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -163,7 +177,7 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   username            = "testUser"
   password            = "NotV3ryS3cur3P@$$w0rd"
   dns_service_enabled = true
-
+subnet_id           = azurerm_subnet.test.id
   client_connection_port = 12345
   http_gateway_port      = 23456
 
@@ -195,6 +209,20 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
 resource "azurerm_service_fabric_managed_cluster" "test" {
   name                = "testacc-sfmc-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -203,6 +231,7 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   username            = "testUser"
   password            = "NotV3ryS3cur3P@$$w0rd"
   dns_service_enabled = true
+  subnet_id           = azurerm_subnet.test.id
 
   client_connection_port = 12345
   http_gateway_port      = 23456
