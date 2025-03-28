@@ -438,8 +438,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
-			if _, n := d.GetChange("vm_agent_platform_updates_enabled"); n != "" {
-				return fmt.Errorf("'vm_agent_platform_updates_enabled' field is read-only and cannot be set")
+			if _, ok := d.GetOk("vm_agent_platform_updates_enabled"); ok {
+				return fmt.Errorf("the 'vm_agent_platform_updates_enabled' field is read-only and managed by the Azure Virtual Machine service. Its value cannot be set, modified, or updated")
 			}
 
 			return nil
