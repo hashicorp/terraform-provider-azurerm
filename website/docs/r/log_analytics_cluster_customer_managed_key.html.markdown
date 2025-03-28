@@ -101,9 +101,15 @@ resource "azurerm_log_analytics_cluster_customer_managed_key" "example" {
 
 The following arguments are supported:
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key to use for encryption.
-
 * `log_analytics_cluster_id` - (Required) The ID of the Log Analytics Cluster. Changing this forces a new Log Analytics Cluster Customer Managed Key to be created.
+
+---
+
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key to use for encryption.
+
+* `managed_hsm_key_id` - (Optional) The ID of the Managed HSM Key to use for encryption.
+
+~> **Note:** Either `key_vault_key_id` or `managed_hsm_key_id` is required.
 
 ## Attributes Reference
 
