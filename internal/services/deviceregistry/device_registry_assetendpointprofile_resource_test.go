@@ -570,7 +570,6 @@ This function will grab the VM's public IP address to SSH into the VM and run th
 */
 func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data acceptance.TestData) func() {
 	return func() {
-		fmt.Printf("Running setup steps to SSH into VM and create AIO cluster\n")
 
 		// Set up the test client so we can fetch the public IP address.
 		clientManager, err := testclient.Build()
@@ -590,7 +589,6 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 		publicIpAddressId := commonids.NewPublicIPAddressID(subscriptionId, resourceGroupName, publicIpAddressName)
 
 		// Get the public IP address
-		fmt.Printf("Getting public IP address '%s'\n", publicIpAddressName)
 		publicIpAddress, err := publicIpClient.Get(ctx, publicIpAddressId, publicipaddresses.DefaultGetOperationOptions())
 		if err != nil {
 			t.Fatalf("failed to get public ip address: %+v", err)
@@ -615,7 +613,6 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 		}
 
 		// Connect to the VM
-		fmt.Printf("Connecting to the VM with IP Address: %s\n", ipAddress)
 		conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", ipAddress), sshConfig)
 		if err != nil {
 			t.Fatalf("failed to dial ssh: %s", err)
@@ -623,45 +620,38 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 		defer conn.Close()
 
 		// Create a new session
-		fmt.Printf("Creating SSH session for stripping carriage return\n")
 		stripSession, err := conn.NewSession()
 		if err != nil {
 			t.Fatalf("failed to create session for stripping carriage return: %s", err)
 		}
 		defer stripSession.Close()
 		// Strip carriage return from the setup script
-		fmt.Printf("Stripping carriage return from the setup script\n")
 		if err := stripSession.Run("sudo sed -i 's/\r$//' /home/adminuser/setup_aio_cluster.sh"); err != nil {
 			t.Fatalf("failed to run command for stripping carriage return. Error: %s", err)
 		}
 
 		// Create a new session
-		fmt.Printf("Creating SSH session for enabling execution for setup script\n")
 		chmodSession, err := conn.NewSession()
 		if err != nil {
 			t.Fatalf("failed to create session for enabling execution for setup script: %s", err)
 		}
 		defer chmodSession.Close()
 		// Enable execution for the setup script
-		fmt.Printf("Enabling execution for setup script\n")
 		if err := chmodSession.Run("sudo chmod +x /home/adminuser/setup_aio_cluster.sh"); err != nil {
 			t.Fatalf("failed to run command for enabling execution. Error: %s", err)
 		}
 
 		// Create a new session
-		fmt.Printf("Creating SSH session for running setup script\n")
 		runSession, err := conn.NewSession()
 		if err != nil {
 			t.Fatalf("failed to create session for running setup script: %s", err)
 		}
 		defer runSession.Close()
 		// Run the setup script
-		fmt.Printf("Running setup script\n")
 		if err := runSession.Run("sudo bash /home/adminuser/setup_aio_cluster.sh &> /home/adminuser/agent_log"); err != nil {
 			t.Fatalf("failed to run command for running setup script. Error: %s", err)
 		}
 
-		fmt.Printf("Setup steps to SSH into VM and create AIO cluster completed\n")
 	}
 }
 
