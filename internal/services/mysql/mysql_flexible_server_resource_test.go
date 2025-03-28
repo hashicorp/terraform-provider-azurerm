@@ -35,7 +35,6 @@ func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 				check.That(data.ResourceName).Key("version").Exists(),
 				check.That(data.ResourceName).Key("storage.#").Exists(),
@@ -70,7 +69,6 @@ func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -87,7 +85,6 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -97,7 +94,6 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -115,7 +111,6 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -126,7 +121,6 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -137,7 +131,6 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -148,7 +141,6 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -166,7 +158,6 @@ func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -177,7 +168,6 @@ func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -188,7 +178,6 @@ func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -206,7 +195,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -218,7 +206,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -229,7 +216,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -240,7 +226,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -259,7 +244,6 @@ func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -271,7 +255,6 @@ func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.pitr").ExistsInAzure(r),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("zone").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("fqdn").Exists(),
-				check.That("azurerm_mysql_flexible_server.pitr").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("replica_capacity").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("administrator_login").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("sku_name").Exists(),
@@ -294,7 +277,6 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -306,7 +288,6 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.replica").ExistsInAzure(r),
 				check.That("azurerm_mysql_flexible_server.replica").Key("zone").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("fqdn").Exists(),
-				check.That("azurerm_mysql_flexible_server.replica").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("replica_capacity").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("replication_role").HasValue("Replica"),
 				check.That("azurerm_mysql_flexible_server.replica").Key("administrator_login").Exists(),
@@ -335,7 +316,6 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -347,7 +327,6 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.geo_restore").ExistsInAzure(r),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("zone").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("fqdn").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("replica_capacity").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("administrator_login").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("sku_name").Exists(),
@@ -564,6 +543,27 @@ func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("administrator_password"),
+		},
+	})
+}
+
+func TestAccMySqlFlexibleServer_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data, servers.EnableStatusEnumDisabled),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.publicNetworkAccess(data, servers.EnableStatusEnumEnabled),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
@@ -1358,4 +1358,20 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                          = "B_Standard_B1s"
 }
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
+}
+
+func (r MySqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData, pna servers.EnableStatusEnum) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1s"
+  public_network_access  = "%s"
+}
+`, r.template(data), data.RandomInteger, pna)
 }
