@@ -239,7 +239,7 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			return fmt.Errorf("checking for presence of existing Data Factory SFTP %s: %+v", id, err)
 		}
 	}
 
@@ -356,7 +356,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving Data Factory SFTP %s: %+v", *id, err)
 	}
 
 	d.Set("name", id.Name)
@@ -365,7 +365,7 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 	if resp.Properties != nil {
 		sftp, ok := resp.Properties.AsSftpServerLinkedService()
 		if !ok {
-			return fmt.Errorf("classifying %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeSftp, pointer.From(resp.Type))
+			return fmt.Errorf("classifying Data Factory Linked Service SFTP %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeSftp, pointer.From(resp.Type))
 		}
 
 		d.Set("authentication_type", sftp.AuthenticationType)
@@ -533,7 +533,7 @@ func resourceDataFactoryLinkedServiceSFTPDelete(d *pluginsdk.ResourceData, meta 
 	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
+			return fmt.Errorf("deleting Data Factory SFTP %s: %+v", *id, err)
 		}
 	}
 

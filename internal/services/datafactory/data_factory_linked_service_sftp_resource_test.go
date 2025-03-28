@@ -29,7 +29,7 @@ func TestAccDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content_base64"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -44,7 +44,7 @@ func TestAccDataFactoryLinkedServiceSFTP_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content_base64"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -59,14 +59,29 @@ func TestAccDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content_base64"),
+		data.ImportStep("password"),
 		{
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content_base64"),
+		data.ImportStep("password"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceSFTP_sshAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sftp", "test")
+	r := LinkedServiceSFTPResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sshAuth(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("private_key_content_base64", "private_key_passphrase"),
 	})
 }
 
@@ -81,14 +96,14 @@ func TestAccDataFactoryLinkedServiceSFTP_keyVaultReference(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content_base64"),
+		data.ImportStep(),
 		{
 			Config: r.passwordKeyVaultReference(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password", "private_key_content_base64"),
+		data.ImportStep(),
 	})
 }
 
@@ -177,60 +192,20 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinkedServiceSFTPResource) complete(data acceptance.TestData) string {
+func (r LinkedServiceSFTPResource) sshAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_data_factory_integration_runtime_azure" "test" {
-  data_factory_id = azurerm_data_factory.test.id
-  location        = azurerm_resource_group.test.location
-  name            = "acctestlssftp%[2]d"
-}
-
 resource "azurerm_data_factory_linked_service_sftp" "test" {
-  name                     = "acctestlssftp%[2]d"
-  data_factory_id          = azurerm_data_factory.test.id
-  authentication_type      = "Basic"
-  host                     = "http://www.bing.com"
-  port                     = 22
-  username                 = "foo"
-  password                 = "bar"
-  annotations              = ["test1", "test2"]
-  description              = "test description 2"
-  skip_host_key_validation = true
-  host_key_fingerprint     = "fingerprint"
-  integration_runtime_name = azurerm_data_factory_integration_runtime_azure.test.name
-
-  parameters = {
-    foo = "test1"
-    bar = "test2"
-  }
-
-  additional_properties = {
-    foo = "test1"
-    bar = "test1"
-  }
+  name                       = "acctestlssftp%d"
+  data_factory_id            = azurerm_data_factory.test.id
+  authentication_type        = "SshPublicKey"
+  host                       = "http://www.bing.com"
+  port                       = 22
+  username                   = "foo"
+  private_key_content_base64 = base64encode("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC3...")
+  private_key_passphrase     = "your_passphrase"
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (LinkedServiceSFTPResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (LinkedServiceSFTPResource) keyKeyVault(data acceptance.TestData) string {
@@ -296,4 +271,60 @@ resource "azurerm_data_factory_linked_service_sftp" "test" {
   }
 }
 `, r.template(data), r.keyKeyVault(data), data.RandomInteger)
+}
+
+func (r LinkedServiceSFTPResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_data_factory_integration_runtime_azure" "test" {
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  name            = "acctestlssftp%[2]d"
+}
+
+resource "azurerm_data_factory_linked_service_sftp" "test" {
+  name                     = "acctestlssftp%[2]d"
+  data_factory_id          = azurerm_data_factory.test.id
+  authentication_type      = "Basic"
+  host                     = "http://www.bing.com"
+  port                     = 22
+  username                 = "foo"
+  password                 = "bar"
+  annotations              = ["test1", "test2"]
+  description              = "test description 2"
+  skip_host_key_validation = true
+  host_key_fingerprint     = "fingerprint"
+  integration_runtime_name = azurerm_data_factory_integration_runtime_azure.test.name
+
+  parameters = {
+    foo = "test1"
+    bar = "test2"
+  }
+
+  additional_properties = {
+    foo = "test1"
+    bar = "test1"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (LinkedServiceSFTPResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+`, data.RandomInteger, data.Locations.Primary)
 }

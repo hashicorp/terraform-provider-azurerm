@@ -391,7 +391,6 @@ func TestAccMySqlFlexibleServer_updateStorage(t *testing.T) {
 func TestAccMySqlFlexibleServer_updateReplicationRole(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
-	data.Locations.Ternary = "eastus"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
