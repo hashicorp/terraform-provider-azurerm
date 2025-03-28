@@ -112,6 +112,10 @@ The following arguments are supported:
 
 ~> **NOTE:** `secondary_key` must and can only be specified when `authentication_type` is `keyBased`.
 
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **NOTE:** When `subscription_id` isn't specified it will be set to the subscription ID used in the provider block.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
