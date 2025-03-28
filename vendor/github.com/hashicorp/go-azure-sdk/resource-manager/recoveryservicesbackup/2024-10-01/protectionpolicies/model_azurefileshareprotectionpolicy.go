@@ -11,10 +11,11 @@ import (
 var _ ProtectionPolicy = AzureFileShareProtectionPolicy{}
 
 type AzureFileShareProtectionPolicy struct {
-	RetentionPolicy RetentionPolicy `json:"retentionPolicy"`
-	SchedulePolicy  SchedulePolicy  `json:"schedulePolicy"`
-	TimeZone        *string         `json:"timeZone,omitempty"`
-	WorkLoadType    *WorkloadType   `json:"workLoadType,omitempty"`
+	RetentionPolicy      RetentionPolicy       `json:"retentionPolicy"`
+	SchedulePolicy       SchedulePolicy        `json:"schedulePolicy"`
+	TimeZone             *string               `json:"timeZone,omitempty"`
+	VaultRetentionPolicy *VaultRetentionPolicy `json:"vaultRetentionPolicy,omitempty"`
+	WorkLoadType         *WorkloadType         `json:"workLoadType,omitempty"`
 
 	// Fields inherited from ProtectionPolicy
 
@@ -60,17 +61,19 @@ var _ json.Unmarshaler = &AzureFileShareProtectionPolicy{}
 
 func (s *AzureFileShareProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		TimeZone                       *string       `json:"timeZone,omitempty"`
-		WorkLoadType                   *WorkloadType `json:"workLoadType,omitempty"`
-		BackupManagementType           string        `json:"backupManagementType"`
-		ProtectedItemsCount            *int64        `json:"protectedItemsCount,omitempty"`
-		ResourceGuardOperationRequests *[]string     `json:"resourceGuardOperationRequests,omitempty"`
+		TimeZone                       *string               `json:"timeZone,omitempty"`
+		VaultRetentionPolicy           *VaultRetentionPolicy `json:"vaultRetentionPolicy,omitempty"`
+		WorkLoadType                   *WorkloadType         `json:"workLoadType,omitempty"`
+		BackupManagementType           string                `json:"backupManagementType"`
+		ProtectedItemsCount            *int64                `json:"protectedItemsCount,omitempty"`
+		ResourceGuardOperationRequests *[]string             `json:"resourceGuardOperationRequests,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.TimeZone = decoded.TimeZone
+	s.VaultRetentionPolicy = decoded.VaultRetentionPolicy
 	s.WorkLoadType = decoded.WorkLoadType
 	s.BackupManagementType = decoded.BackupManagementType
 	s.ProtectedItemsCount = decoded.ProtectedItemsCount

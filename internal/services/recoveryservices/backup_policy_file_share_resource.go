@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -133,7 +133,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 		Properties: AzureFileShareProtectionPolicyProperties,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, policy); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, policy, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -144,6 +144,25 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	d.SetId(id.ID())
 
 	return resourceBackupProtectionPolicyFileShareRead(d, meta)
+}
+
+func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[DEBUG] Deleting %s", id)
+
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
 }
 
 func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -221,25 +240,6 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 	}
 
 	return nil
-}
-
-func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	log.Printf("[DEBUG] Deleting %s", id)
-
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
 }
 
 func expandBackupProtectionPolicyFileShareSchedule(d *pluginsdk.ResourceData, times []string) *protectionpolicies.SimpleSchedulePolicy {
