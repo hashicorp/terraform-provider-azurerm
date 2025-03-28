@@ -39,19 +39,21 @@ type FunctionAppFlexConsumptionModel struct {
 	Location      string `tfschema:"location"`
 	ServicePlanId string `tfschema:"service_plan_id"`
 
-	Enabled                          bool                       `tfschema:"enabled"`
-	AppSettings                      map[string]string          `tfschema:"app_settings"`
-	StickySettings                   []helpers.StickySettings   `tfschema:"sticky_settings"`
-	AuthSettings                     []helpers.AuthSettings     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
-	ClientCertEnabled                bool                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                     `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                []helpers.ConnectionString `tfschema:"connection_string"`
-	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
-	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
-	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
-	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	Enabled                  bool                       `tfschema:"enabled"`
+	AppSettings              map[string]string          `tfschema:"app_settings"`
+	StickySettings           []helpers.StickySettings   `tfschema:"sticky_settings"`
+	AuthSettings             []helpers.AuthSettings     `tfschema:"auth_settings"`
+	AuthV2Settings           []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
+	ClientCertEnabled        bool                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode           string                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths string                     `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings        []helpers.ConnectionString `tfschema:"connection_string"`
+	PublicNetworkAccess      bool                       `tfschema:"public_network_access_enabled"`
+	HttpsOnly                bool                       `tfschema:"https_only"`
+
+	VirtualNetworkSubnetID           string `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile                    string `tfschema:"zip_deploy_file"`
+	PublishingDeployBasicAuthEnabled bool   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 
 	StorageContainerType          string                                         `tfschema:"storage_container_type"`
 	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint"`
@@ -240,6 +242,13 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"https_only": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Can the Function App only be accessed via HTTPS?",
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
@@ -459,6 +468,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					ServerFarmId:      pointer.To(functionAppFlexConsumption.ServicePlanId),
 					Enabled:           pointer.To(functionAppFlexConsumption.Enabled),
 					SiteConfig:        siteConfig,
+					HTTPSOnly:         pointer.To(functionAppFlexConsumption.HttpsOnly),
 					FunctionAppConfig: flexFunctionAppConfig,
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
 					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
@@ -684,6 +694,8 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 
 				state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
 
+				state.HttpsOnly = pointer.From(props.HTTPSOnly)
+
 				if props.VirtualNetworkSubnetId != nil && pointer.From(props.VirtualNetworkSubnetId) != "" {
 					subnetId, err := commonids.ParseSubnetID(*props.VirtualNetworkSubnetId)
 					if err != nil {
@@ -870,6 +882,10 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
+			}
+
+			if metadata.ResourceData.HasChange("https_only") {
+				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
