@@ -5,7 +5,7 @@ package linkedservices
 
 type OracleLinkedServiceTypeProperties struct {
 	AuthenticationType        *OracleAuthenticationType     `json:"authenticationType,omitempty"`
-	ConnectionString          interface{}                   `json:"connectionString"`
+	ConnectionString          *interface{}                  `json:"connectionString,omitempty"`
 	CryptoChecksumClient      *interface{}                  `json:"cryptoChecksumClient,omitempty"`
 	CryptoChecksumTypesClient *interface{}                  `json:"cryptoChecksumTypesClient,omitempty"`
 	EnableBulkLoad            *bool                         `json:"enableBulkLoad,omitempty"`
