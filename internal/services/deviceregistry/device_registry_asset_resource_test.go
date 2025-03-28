@@ -38,10 +38,16 @@ func TestAccAsset_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset resource once the AIO cluster is done provisioning.
 			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -67,10 +73,16 @@ func TestAccAsset_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset resource once the AIO cluster is done provisioning.
 			Config:    r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -139,10 +151,16 @@ func TestAccAsset_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset resource once the AIO cluster is done provisioning.
 			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -160,10 +178,16 @@ func TestAccAsset_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset resource once the AIO cluster is done provisioning.
 			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -596,15 +620,15 @@ provisioner "file" {
 
 /*
 This function should be called for the PreConfig step after the template() is made to ensure
-that the Asset Endpoint Profile resource create is blocked and does not occur until the AIO
-cluster is set up on the VM. This is needed because the Asset Endpoint Profile resource
+that the Asset resource create is blocked and does not occur until the AIO
+cluster is set up on the VM. This is needed because the Asset resource
 is an arc-enabled resource and requires the VM, AIO cluster, and custom location to be set up
 before it can be created, and all of those resources it's dependent on are created by the setup
 script run by the VM's `remote-exec` provisioner. However, `remote-exec` is not waited for by
-the subsequent Asset Endpoint Profile resources even if `depends_on` is used, and will attempt
+the subsequent Asset resources even if `depends_on` is used, and will attempt
 to start creating the resource once the VM is created but the AIO cluster is not set up yet. This way,
 the setup script runs synchronously so the tests are forced to wait for it to finish before
-creating the Asset Endpoint Profile resource.
+creating the Asset resource.
 
 This function will grab the VM's public IP address to SSH into the VM and run the setup script
 (the file was already provisioned on the VM) to create the AIO cluster.

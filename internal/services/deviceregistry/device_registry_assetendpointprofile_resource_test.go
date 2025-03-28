@@ -38,10 +38,16 @@ func TestAccAssetEndpointProfile_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset Endpoint Profile resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
 			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -67,10 +73,16 @@ func TestAccAssetEndpointProfile_complete_certificate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset Endpoint Profile resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
 			Config:    r.completeCertificate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -97,10 +109,16 @@ func TestAccAssetEndpointProfile_complete_usernamePassword(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset Endpoint Profile resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
 			Config:    r.completeUsernamePassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -127,10 +145,16 @@ func TestAccAssetEndpointProfile_complete_anonymous(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset Endpoint Profile resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
 			Config:    r.completeAnonymous(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -157,10 +181,16 @@ func TestAccAssetEndpointProfile_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
 		{
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset Endpoint Profile resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
 			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -178,10 +208,16 @@ func TestAccAssetEndpointProfile_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			// Apply the template to create the VM and its infra resources.
+			// The VM will setup the AIO cluster in the next step.
 			Config: r.template(data),
 		},
-		{ // create the basic resource resource
-			PreConfig: r.setupAIOClusterOnVM(t, data), // PreConfig step is needed to ensure AIO cluster is set up before resource is created
+		{
+			// Run the setup bash script on the VM to create the AIO cluster.
+			// It must be a PreConfig step to ensure AIO cluster is finished setting up
+			// before the Asset Endpoint Profile resource is created on the cluster.
+			PreConfig: r.setupAIOClusterOnVM(t, data),
+			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
 			Config:    r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
