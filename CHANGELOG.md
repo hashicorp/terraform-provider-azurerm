@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: `go-azure-helpers` - update  to `0.72.0` [GH-29206]
 * dependencies: `redisenterprise` - update to API version `2024-10-01` [GH-29073]
 * dependencies: `servicefabricmanaged` - update to API version `2024-04-01` [GH-29199]
 * Data Source: `azurerm_virtual_hub_connection` - add support for the `static_vnet_propagate_static_routes` property [GH-28560]
