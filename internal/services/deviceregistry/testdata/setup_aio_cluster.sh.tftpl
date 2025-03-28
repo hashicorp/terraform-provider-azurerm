@@ -13,7 +13,7 @@ export SCHEMA_REGISTRY_NAMESPACE=${schema_registry_namespace}
 export TENANT_ID=${tenant_id}
 export USER_ASSIGNED_MI_NAME=${managed_identity_name}
 export KEYVAULT_NAME=${keyvault_name}
-
+export OBJECT_ID=${object_id}
 export AZURE_CLIENT_ID=${client_id} # managed identity or service principal client id
 export AZURE_CLIENT_SECRET=${client_secret} # service principal client secret
 
@@ -30,6 +30,7 @@ printf "Tenant ID: $TENANT_ID\n"
 printf "Managed Identity Name: $USER_ASSIGNED_MI_NAME\n"
 printf "Key Vault Name: $KEYVAULT_NAME\n"
 printf "Azure Client ID: $AZURE_CLIENT_ID\n"
+printf "Entra App Object ID for Custom Location RP: $OBJECT_ID\n"
 
 echo "Installing k3s..."
 curl -sfL https://get.k3s.io | sh -
@@ -69,9 +70,6 @@ systemctl daemon-reload
 
 echo "Restarting k3s..."
 systemctl restart k3s
-
-echo "Getting Azure AD object ID of Azure Arc..."
-export OBJECT_ID=$(az ad sp show --id bc313c14-388c-4e7d-a58e-70017303ee3b --query id -o tsv)
 
 echo "Enabling Azure Arc connectedk8s features and custom location..."
 az connectedk8s enable-features -n $CLUSTER_NAME -g $RESOURCE_GROUP --custom-locations-oid $OBJECT_ID --features cluster-connect custom-locations

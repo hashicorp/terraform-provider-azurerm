@@ -22,9 +22,10 @@ import (
 )
 
 const (
-	ASSET_ENDPOINT_PROFILE_ARM_SUBSCRIPTION_ID = "ARM_SUBSCRIPTION_ID"
-	ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID       = "ARM_CLIENT_ID"
-	ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET   = "ARM_CLIENT_SECRET"
+	ASSET_ENDPOINT_PROFILE_ARM_SUBSCRIPTION_ID     = "ARM_SUBSCRIPTION_ID"
+	ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID           = "ARM_CLIENT_ID"
+	ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET       = "ARM_CLIENT_SECRET"
+	ASSET_ENDPOINT_PROFILE_ARM_ENTRA_APP_OBJECT_ID = "ARM_ENTRA_APP_OBJECT_ID"
 )
 
 type AssetEndpointProfileTestResource struct{}
@@ -33,7 +34,7 @@ func TestAccAssetEndpointProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	checkEnvironmentVariables(t)
+	r.checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +63,7 @@ func TestAccAssetEndpointProfile_complete_certificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	checkEnvironmentVariables(t)
+	r.checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +93,7 @@ func TestAccAssetEndpointProfile_complete_usernamePassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	checkEnvironmentVariables(t)
+	r.checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -122,7 +123,7 @@ func TestAccAssetEndpointProfile_complete_anonymous(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	checkEnvironmentVariables(t)
+	r.checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -152,7 +153,7 @@ func TestAccAssetEndpointProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	checkEnvironmentVariables(t)
+	r.checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -173,7 +174,7 @@ func TestAccAssetEndpointProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_device_registry_asset_endpoint_profile", "test")
 	r := AssetEndpointProfileTestResource{}
 
-	checkEnvironmentVariables(t)
+	r.checkEnvironmentVariables(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -516,6 +517,7 @@ func (r AssetEndpointProfileTestResource) provisionTemplate(data acceptance.Test
 	// to remote execute az cli commands on the VM.
 	clientId := os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID)
 	clientSecret := os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET)
+	objectId := os.Getenv(ASSET_ENDPOINT_PROFILE_ARM_ENTRA_APP_OBJECT_ID)
 
 	// Trim the random value (from acceptance.RandTimeInt which is 18 digits) to 10 digits
 	// to avoid exceeding the maximum length of the storage account name (24 chars max).
@@ -542,12 +544,13 @@ provisioner "file" {
 		tenant_id           = data.azurerm_client_config.current.tenant_id
 		client_id           = "%[5]s"
 		client_secret       = "%[6]s"
+		object_id					  = "%[7]s"
 		managed_identity_name = "acctest-mi%[2]d"
 		keyvault_name       = "acctest-kv%[2]d"
 	})
 	destination = "%[4]s/setup_aio_cluster.sh"
 }
-`, credential, data.RandomInteger, trimmedRandomInteger, "/home/adminuser", clientId, clientSecret)
+`, credential, data.RandomInteger, trimmedRandomInteger, "/home/adminuser", clientId, clientSecret, objectId)
 }
 
 /*
@@ -669,11 +672,12 @@ func (AssetEndpointProfileTestResource) getCredentials(data acceptance.TestData)
 
 // Checks if the required environment variables are set before running the tests.
 // If any of the required variables are not set, the test will be skipped.
-func checkEnvironmentVariables(t *testing.T) {
+func (AssetEndpointProfileTestResource) checkEnvironmentVariables(t *testing.T) {
 	envVars := []string{
 		ASSET_ENDPOINT_PROFILE_ARM_CLIENT_ID,
 		ASSET_ENDPOINT_PROFILE_ARM_CLIENT_SECRET,
 		ASSET_ENDPOINT_PROFILE_ARM_SUBSCRIPTION_ID,
+		ASSET_ENDPOINT_PROFILE_ARM_ENTRA_APP_OBJECT_ID,
 	}
 	for _, envVar := range envVars {
 		if os.Getenv(envVar) == "" {
