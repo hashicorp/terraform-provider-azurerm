@@ -452,7 +452,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, *properties, protectionpolicies.CreateOrUpdateOperationOptions{}); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, *properties, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -501,7 +501,7 @@ func (r BackupProtectionPolicyVMWorkloadResource) Update() sdk.ResourceFunc {
 
 				m.Properties = props
 
-				if _, err := client.CreateOrUpdate(ctx, *id, *m, protectionpolicies.CreateOrUpdateOperationOptions{}); err != nil {
+				if _, err := client.CreateOrUpdate(ctx, *id, *m, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}

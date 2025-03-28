@@ -133,7 +133,7 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 		Properties: AzureFileShareProtectionPolicyProperties,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, policy, protectionpolicies.CreateOrUpdateOperationOptions{}); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, policy, protectionpolicies.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -144,6 +144,25 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 	d.SetId(id.ID())
 
 	return resourceBackupProtectionPolicyFileShareRead(d, meta)
+}
+
+func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[DEBUG] Deleting %s", id)
+
+	if err = client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
 }
 
 func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -614,25 +633,6 @@ func resourceBackupProtectionPolicyFileShareRefreshFunc(ctx context.Context, cli
 
 		return resp, "Found", nil
 	}
-}
-
-func resourceBackupProtectionPolicyFileShareDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RecoveryServices.ProtectionPoliciesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := protectionpolicies.ParseBackupPolicyID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	log.Printf("[DEBUG] Deleting %s", id)
-
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	return resourceBackupProtectionPolicyFileShareWaitForDeletion(ctx, client, *id, d)
 }
 
 func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schema {
