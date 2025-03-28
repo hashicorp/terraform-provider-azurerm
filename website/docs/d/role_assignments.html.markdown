@@ -14,7 +14,7 @@ Use this data source to access information about existing Role Assignments.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name = "example"
+  name     = "example"
   location = "West Europe"
 }
 

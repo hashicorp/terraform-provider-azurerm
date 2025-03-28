@@ -29,7 +29,7 @@ func (d RoleAssignmentsDataSourceTest) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_role_assignments" "test" {
-  scope = azurerm_resource_group.test.id
+  scope        = azurerm_resource_group.test.id
   principal_id = azurerm_user_assigned_identity.test.principal_id
 
   limit_at_scope = true
@@ -47,26 +47,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctest-role-assignments-%[1]d"
+  name     = "acctest-role-assignments-%[1]d"
   location = "%s"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
-  name = "acctest-uai-%[1]d"
+  name                = "acctest-uai-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_role_assignment" "test" {
-  scope = azurerm_resource_group.test.id
+  scope                = azurerm_resource_group.test.id
   role_definition_name = "Reader"
-  principal_id = azurerm_user_assigned_identity.test.principal_id
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "time_sleep" "wait" {
-    create_duration = "30s"
+  create_duration = "30s"
 
-    depends_on = [azurerm_role_assignment.test]
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
