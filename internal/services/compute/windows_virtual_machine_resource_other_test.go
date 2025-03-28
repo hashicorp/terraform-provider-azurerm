@@ -3614,12 +3614,12 @@ func (r WindowsVirtualMachineResource) otherVmAgentPlatformUpdatesEnabledReadOnl
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_D2s_v3"
-  admin_username                  = "adminUser"
-  admin_password                  = "FooBarPassword!#!~"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D2s_v3"
+  admin_username      = "adminUser"
+  admin_password      = "FooBarPassword!#!~"
 
   vm_agent_platform_updates_enabled = true
 
