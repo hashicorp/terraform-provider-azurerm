@@ -2963,6 +2963,7 @@ func AzureQueueScaleRuleSchemaComputed() *pluginsdk.Schema {
 type CustomScaleRule struct {
 	Name            string                    `tfschema:"name"`
 	Metadata        map[string]string         `tfschema:"metadata"`
+	Identity        string                    `tfschema:"identity"`
 	CustomRuleType  string                    `tfschema:"custom_rule_type"`
 	Authentications []ScaleRuleAuthentication `tfschema:"authentication"`
 }
@@ -2985,6 +2986,16 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+				},
+
+				"identity": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.Any(
+						commonids.ValidateUserAssignedIdentityID,
+						validation.StringInSlice([]string{"system"}, true),
+					),
+					Description: "The identity to use for accessing key vault reference.",
 				},
 
 				"custom_rule_type": {
@@ -3048,6 +3059,12 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+				},
+
+				"identity": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The identity to use for accessing key vault reference.",
 				},
 
 				"custom_rule_type": {
