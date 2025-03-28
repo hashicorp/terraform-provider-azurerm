@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/pools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/projects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/pools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -98,7 +98,7 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Pools
+			client := metadata.Client.DevCenter.V20250201.Pools
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model DevCenterProjectPoolResourceModel
@@ -154,7 +154,7 @@ func (r DevCenterProjectPoolResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Pools
+			client := metadata.Client.DevCenter.V20250201.Pools
 
 			id, err := pools.ParsePoolID(metadata.ResourceData.Id())
 			if err != nil {
@@ -195,7 +195,7 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Pools
+			client := metadata.Client.DevCenter.V20250201.Pools
 
 			id, err := pools.ParsePoolID(metadata.ResourceData.Id())
 			if err != nil {
@@ -248,7 +248,7 @@ func (r DevCenterProjectPoolResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Pools
+			client := metadata.Client.DevCenter.V20250201.Pools
 
 			id, err := pools.ParsePoolID(metadata.ResourceData.Id())
 			if err != nil {
