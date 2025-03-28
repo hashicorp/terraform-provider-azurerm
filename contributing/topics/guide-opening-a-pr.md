@@ -43,7 +43,7 @@ In general, Pull Requests which add/change either code or SDK's go through the f
 
 ## What makes a good PR?
 
-* Don't send the PR from your `main` branch.
+* Don't change your forked repo's `main` branch, instead, make a feature branch.
 * The PR Title is obvious/clear about what it's changing (see `Title` below).
 * The PR Body contains a summary of what/why is included (see `Body` below).
 * any linked Issues (see `Body` below)

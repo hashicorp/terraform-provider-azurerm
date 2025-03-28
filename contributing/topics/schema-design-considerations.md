@@ -1,6 +1,6 @@
 # Schema Design Considerations
 
-Whilst it is acceptable in certain cases to map the schema of a new resource or feature when extending an existing resource, one-to-one from the Azure API, in the majority of cases more consideration needs to be given how to expose the Azure API in Terraform so that the provider presents a consistent and intuitive experience to the end user.
+Whilst it is acceptable in certain cases to map the schema of a new resource or feature when extending an existing resource one-to-one from the Azure API, in the majority of cases more consideration needs to be given how to expose the Azure API in Terraform so that the provider presents a consistent and intuitive experience to the end user.
 
 Below are a list of common patterns found in the Azure API and how these typically get mapped within Terraform.
 
@@ -36,7 +36,7 @@ In the cases where `Enabled` is the only field within the object we opt to flatt
 },
 ```
 
-However when there are multiple fields in addition to the `Enabled` field and they are all required for the object/feature like in Example B, a terraform block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
+However, when there are multiple fields in addition to the `Enabled` field, and they are all required for the object/feature like in Example B, a block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
 
 ```go
 "vertical_pod_autoscaler": {
@@ -72,7 +72,7 @@ However when there are multiple fields in addition to the `Enabled` field and th
 },
 ```
 
-Finally there are instances where the addtional fields/properties for a object/feature are optional or few in number, as shown below.
+Finally, there are instances where the additional fields/properties for an object/feature are optional or few, as shown below.
 
 Example C.
 ```go
@@ -132,7 +132,7 @@ The resulting schema in Terraform would look as follows and also requires a conv
     ValidateFunc: validation.StringInSlice([]string{
         string(labplan.ShutdownOnIdleModeUserAbsence),
         string(labplan.ShutdownOnIdleModeLowUsage),
-        // NOTE: Whilst the `None` value exists it's handled in the Create/Update and Read functions.
+        // Note: Whilst the `None` value exists it's handled in the Create/Update and Read functions.
         // string(labplan.ShutdownOnIdleModeNone),
     }, false),
 },
@@ -228,7 +228,7 @@ While you may encounter arguments like `sku_name`, `sku_family`, and `capacity` 
 
 The Azure API makes use of classes and inheritance through discriminator types defined in the REST API specifications. A strong indicator that a resource is actually a discriminated type is through the definition of a `type` or `kind` property.
 
-Rather than exposing a generic resource with all the possible fields for all the possible different `type`'s, we intentionally opt to split these resources by the `type` to improve the user experience. This means we can only output the relevant fields for this `type` which in turn allows us to provide more granular validation etc.
+Rather than exposing a generic resource with all the possible fields for all the possible different `type`s, we intentionally opt to split these resources by the `type` to improve the user experience. This means we can only output the relevant fields for this `type` which in turn allows us to provide more granular validation etc.
 
 Whilst there is a trade-off here, since this means that we have to maintain more Data Sources/Resources, this is a worthwhile trade-off since each of these resources only exposes the fields which are relevant for this resource, meaning the logic is far simpler than trying to maintain a generic resource and pushing the complexity onto end-users.
 
