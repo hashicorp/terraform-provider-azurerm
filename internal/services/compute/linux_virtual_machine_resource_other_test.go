@@ -1219,11 +1219,11 @@ func (r LinuxVirtualMachineResource) otherVmAgentPlatformUpdatesEnabled(data acc
 %s
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                              = "acctestVM-%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
-  size                              = "Standard_F2"
-  admin_username                    = "adminuser"
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
 
   network_interface_ids = [
     azurerm_network_interface.test.id,
