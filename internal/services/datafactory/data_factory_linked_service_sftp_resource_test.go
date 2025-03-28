@@ -325,6 +325,5 @@ resource "azurerm_data_factory" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-
 `, data.RandomInteger, data.Locations.Primary)
 }
