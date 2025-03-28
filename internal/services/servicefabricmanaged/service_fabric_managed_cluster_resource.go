@@ -124,6 +124,7 @@ type ClusterResourceModel struct {
 	SubnetId             string                               `tfschema:"subnet_id"`
 	Tags                 map[string]interface{}               `tfschema:"tags"`
 	UpgradeWave          managedcluster.ClusterUpgradeCadence `tfschema:"upgrade_wave"`
+	UseCustomVNet        bool                                 `tfschema:"use_custom_vnet"`
 }
 
 func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -226,6 +227,11 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				string(managedcluster.ClusterUpgradeCadenceWaveOne),
 				string(managedcluster.ClusterUpgradeCadenceWaveTwo),
 			}, false),
+		},
+
+		"use_custom_vnet": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
 		},
 	}
 }
@@ -573,6 +579,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 
 	model.DNSName = properties.DnsName
 	model.SubnetId = pointer.From(properties.SubnetId)
+	model.UseCustomVNet = pointer.From(properties.UseCustomVnet)
 
 	if features := properties.AddonFeatures; features != nil {
 		for _, feature := range *features {
@@ -764,6 +771,8 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	if v := model.SubnetId; v != "" {
 		out.SubnetId = pointer.To(v)
 	}
+
+	out.UseCustomVnet = pointer.To(model.UseCustomVNet)
 
 	if auth := model.Authentication; len(auth) > 0 {
 		if adAuth := auth[0].ADAuth; len(adAuth) > 0 {
