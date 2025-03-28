@@ -155,14 +155,12 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 				schema.Location = location.Normalize(model.Location)
 				schema.Tags = tags.Flatten(model.Tags)
 
-				if model.Properties == nil {
-					model.Properties = &projects.ProjectProperties{}
+				if props := model.Properties; props != nil {
+					schema.Description = pointer.From(props.Description)
+					schema.DevCenterId = props.DevCenterId
+					schema.DevCenterUri = pointer.From(props.DevCenterUri)
+					schema.MaximumDevBoxesPerUser = pointer.From(props.MaxDevBoxesPerUser)
 				}
-
-				schema.Description = pointer.From(model.Properties.Description)
-				schema.DevCenterId = model.Properties.DevCenterId
-				schema.DevCenterUri = pointer.From(model.Properties.DevCenterUri)
-				schema.MaximumDevBoxesPerUser = pointer.From(model.Properties.MaxDevBoxesPerUser)
 			}
 
 			return metadata.Encode(&schema)
@@ -208,13 +206,17 @@ func (r DevCenterProjectResource) Update() sdk.ResourceFunc {
 
 			var payload projects.ProjectUpdate
 
-			payload.Tags = tags.Expand(config.Tags)
+			if metadata.ResourceData.HasChanges("tags") {
+				payload.Tags = tags.Expand(config.Tags)
+			}
 
 			if payload.Properties == nil {
 				payload.Properties = &projects.ProjectUpdateProperties{}
 			}
 
-			payload.Properties.MaxDevBoxesPerUser = &config.MaximumDevBoxesPerUser
+			if metadata.ResourceData.HasChanges("maximum_dev_boxes_per_user") {
+				payload.Properties.MaxDevBoxesPerUser = pointer.To(config.MaximumDevBoxesPerUser)
+			}
 
 			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
