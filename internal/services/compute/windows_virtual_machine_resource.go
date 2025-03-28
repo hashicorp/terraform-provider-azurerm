@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -375,10 +376,11 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
+			// TODO: In 5.0 make this a computed field only
 			"vm_agent_platform_updates_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 
 			"platform_fault_domain": {
@@ -433,6 +435,14 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if _, n := d.GetChange("vm_agent_platform_updates_enabled"); n != "" {
+				return fmt.Errorf("'vm_agent_platform_updates_enabled' field is read-only and cannot be set")
+			}
+
+			return nil
 		},
 	}
 }
@@ -517,8 +527,6 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	sourceImageId := d.Get("source_image_id").(string)
 	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
-	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
-
 	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
@@ -541,10 +549,9 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				ComputerName:             pointer.To(computerName),
 				AllowExtensionOperations: pointer.To(allowExtensionOperations),
 				WindowsConfiguration: &virtualmachines.WindowsConfiguration{
-					ProvisionVMAgent:             pointer.To(provisionVMAgent),
-					EnableAutomaticUpdates:       pointer.To(enableAutomaticUpdates),
-					EnableVMAgentPlatformUpdates: pointer.To(vmAgentPlatformUpdatesEnabled),
-					WinRM:                        winRmListeners,
+					ProvisionVMAgent:       pointer.To(provisionVMAgent),
+					EnableAutomaticUpdates: pointer.To(enableAutomaticUpdates),
+					WinRM:                  winRmListeners,
 				},
 				Secrets: secrets,
 			},
@@ -988,6 +995,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 					}
 				}
 			}
+
 			// Resources created with azurerm_virtual_machine have priority set to ""
 			// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
 			priority := string(virtualmachines.VirtualMachinePriorityTypesRegular)
@@ -1159,19 +1167,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.Properties.OsProfile.AllowExtensionOperations = pointer.To(allowExtensionOperations)
-	}
-
-	if d.HasChange("vm_agent_platform_updates_enabled") {
-		shouldUpdate = true
-		if update.Properties.OsProfile == nil {
-			update.Properties.OsProfile = &virtualmachines.OSProfile{}
-		}
-
-		if update.Properties.OsProfile.WindowsConfiguration == nil {
-			update.Properties.OsProfile.WindowsConfiguration = &virtualmachines.WindowsConfiguration{}
-		}
-
-		update.Properties.OsProfile.WindowsConfiguration.EnableVMAgentPlatformUpdates = pointer.To(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {

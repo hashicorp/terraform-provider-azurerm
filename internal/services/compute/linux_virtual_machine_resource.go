@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -355,10 +356,11 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
+			// TODO: In 5.0 make this a computed field only
 			"vm_agent_platform_updates_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 
 			"vtpm_enabled": {
@@ -418,6 +420,14 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if _, n := d.GetChange("vm_agent_platform_updates_enabled"); n != "" {
+				return fmt.Errorf("'vm_agent_platform_updates_enabled' field is read-only and cannot be set")
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -463,7 +473,6 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		computerName = id.VirtualMachineName
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
-	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
 	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -514,7 +523,6 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 				AllowExtensionOperations: pointer.To(allowExtensionOperations),
 				LinuxConfiguration: &virtualmachines.LinuxConfiguration{
 					DisablePasswordAuthentication: pointer.To(disablePasswordAuthentication),
-					EnableVMAgentPlatformUpdates:  pointer.To(vmAgentPlatformUpdatesEnabled),
 					ProvisionVMAgent:              pointer.To(provisionVMAgent),
 					Ssh: &virtualmachines.SshConfiguration{
 						PublicKeys: &sshKeys,
@@ -1333,19 +1341,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{
 			VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(vmSize)),
 		}
-	}
-
-	if d.HasChange("vm_agent_platform_updates_enabled") {
-		shouldUpdate = true
-		if update.Properties.OsProfile == nil {
-			update.Properties.OsProfile = &virtualmachines.OSProfile{}
-		}
-
-		if update.Properties.OsProfile.LinuxConfiguration == nil {
-			update.Properties.OsProfile.LinuxConfiguration = &virtualmachines.LinuxConfiguration{}
-		}
-
-		update.Properties.OsProfile.LinuxConfiguration.EnableVMAgentPlatformUpdates = pointer.To(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {
