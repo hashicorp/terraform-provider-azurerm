@@ -53,3 +53,5 @@ tf.zip
 
 # do not upload secrets
 .env
+
+/export/**
