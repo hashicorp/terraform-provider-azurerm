@@ -208,13 +208,13 @@ func (r EventGridPartnerConfigurationResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				if model.Properties != nil && model.Properties.PartnerAuthorization != nil {
-					state.DefaultMaximumExpirationTimeInDays = *model.Properties.PartnerAuthorization.DefaultMaximumExpirationTimeInDays
+				if props := model.Properties; props != nil && props.PartnerAuthorization != nil {
+					state.DefaultMaximumExpirationTimeInDays = pointer.From(props.PartnerAuthorization.DefaultMaximumExpirationTimeInDays)
 					state.PartnerAuthorizations = flattenAuthorizedPartnersList(model.Properties.PartnerAuthorization.AuthorizedPartnersList)
 				}
 
 				if model.Tags != nil {
-					state.Tags = *model.Tags
+					state.Tags = pointer.From(model.Tags)
 				}
 			}
 			return metadata.Encode(&state)
