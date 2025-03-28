@@ -184,7 +184,7 @@ func TestExpandFeatures(t *testing.T) {
 							"detach_implicit_data_disk_on_deletion": true,
 							"delete_os_disk_on_deletion":            true,
 							"graceful_shutdown":                     true, // TODO: Remove in 5.0
-							"skip_shutdown_and_force_delete":        true, // TODO: Remove in 5.0
+							"skip_shutdown_and_force_delete":        true,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
