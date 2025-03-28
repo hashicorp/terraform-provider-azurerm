@@ -48,7 +48,7 @@ func TestAccAssetEndpointProfile_basic(t *testing.T) {
 			// before the Asset Endpoint Profile resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
@@ -83,7 +83,7 @@ func TestAccAssetEndpointProfile_complete_certificate(t *testing.T) {
 			// before the Asset Endpoint Profile resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
-			Config:    r.completeCertificate(data),
+			Config: r.completeCertificate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
@@ -119,7 +119,7 @@ func TestAccAssetEndpointProfile_complete_usernamePassword(t *testing.T) {
 			// before the Asset Endpoint Profile resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
-			Config:    r.completeUsernamePassword(data),
+			Config: r.completeUsernamePassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
@@ -155,7 +155,7 @@ func TestAccAssetEndpointProfile_complete_anonymous(t *testing.T) {
 			// before the Asset Endpoint Profile resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
-			Config:    r.completeAnonymous(data),
+			Config: r.completeAnonymous(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
@@ -191,7 +191,7 @@ func TestAccAssetEndpointProfile_requiresImport(t *testing.T) {
 			// before the Asset Endpoint Profile resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -218,7 +218,7 @@ func TestAccAssetEndpointProfile_update(t *testing.T) {
 			// before the Asset Endpoint Profile resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset Endpoint Profile resource once the AIO cluster is done provisioning.
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

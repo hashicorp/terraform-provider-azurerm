@@ -48,7 +48,7 @@ func TestAccAsset_basic(t *testing.T) {
 			// before the Asset resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset resource once the AIO cluster is done provisioning.
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("asset_endpoint_profile_ref").HasValue("myAssetEndpointProfile"),
@@ -83,7 +83,7 @@ func TestAccAsset_complete(t *testing.T) {
 			// before the Asset resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset resource once the AIO cluster is done provisioning.
-			Config:    r.complete(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("asset_endpoint_profile_ref").HasValue("myAssetEndpointProfile"),
@@ -161,7 +161,7 @@ func TestAccAsset_requiresImport(t *testing.T) {
 			// before the Asset resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset resource once the AIO cluster is done provisioning.
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -188,7 +188,7 @@ func TestAccAsset_update(t *testing.T) {
 			// before the Asset resource is created on the cluster.
 			PreConfig: r.setupAIOClusterOnVM(t, data),
 			// Then create the Asset resource once the AIO cluster is done provisioning.
-			Config:    r.basic(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
