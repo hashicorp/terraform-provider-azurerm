@@ -1,3 +1,14 @@
+## 4.26.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_dashboard_grafana` - `grafana_major_version` is no longer ForceNew [GH-29212]
+
+
+BUG FIXES:
+
+* `linux_virtual_machine_resource` - `license_type` can now be updated to None [GH-28786]
+
 ## 4.25.0 (March 28, 2025)
 
 ENHANCEMENTS:
