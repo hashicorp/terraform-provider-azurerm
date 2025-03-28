@@ -1,5 +1,8 @@
 ## 4.26.0 (Unreleased)
 
+ENHANCEMENTS:
+
+`azurerm_dashboard_grafana` - `grafana_major_version` is no longer ForceNew [GH-29212]
 
 ## 4.25.0 (March 28, 2025)
 
