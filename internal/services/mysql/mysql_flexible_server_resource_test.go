@@ -61,7 +61,6 @@ func TestAccMySqlFlexibleServer_requiresImport(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	data.Locations.Primary = "eastus"
 	r := MySqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -593,7 +592,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mysql-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Ternary)
 }
 
 func (r MySqlFlexibleServerResource) basic(data acceptance.TestData) string {
