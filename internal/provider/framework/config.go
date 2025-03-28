@@ -508,6 +508,22 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
 			f.NetApp.PreventVolumeDestruction = true
 		}
+
+		if !features.DatabricksWorkspace.IsNull() && !features.DatabricksWorkspace.IsUnknown() {
+			var feature []DatabricksWorkspace
+			d := features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			f.DatabricksWorkspace.ForceDelete = false
+			if !feature[0].ForceDelete.IsNull() && !feature[0].ForceDelete.IsUnknown() {
+				f.DatabricksWorkspace.ForceDelete = feature[0].ForceDelete.ValueBool()
+			}
+		} else {
+			f.DatabricksWorkspace.ForceDelete = false
+		}
 	}
 
 	p.clientBuilder.Features = f

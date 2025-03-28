@@ -416,6 +416,22 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"databricks_workspace": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"force_delete": {
+						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -691,6 +707,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := netappRaw["prevent_volume_destruction"]; ok {
 				featuresMap.NetApp.PreventVolumeDestruction = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["databricks_workspace"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			databricksRaw := items[0].(map[string]interface{})
+			if v, ok := databricksRaw["force_delete"]; ok {
+				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
 			}
 		}
 	}

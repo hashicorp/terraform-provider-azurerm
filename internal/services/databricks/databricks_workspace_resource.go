@@ -924,7 +924,12 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	if err = client.DeleteThenPoll(ctx, *id, workspaces.DeleteOperationOptions{}); err != nil {
+	deleteOperationOptions := workspaces.DefaultDeleteOperationOptions()
+	if meta.(*clients.Client).Features.DatabricksWorkspace.ForceDelete {
+		deleteOperationOptions.ForceDeletion = pointer.To(true)
+	}
+
+	if err = client.DeleteThenPoll(ctx, *id, deleteOperationOptions); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

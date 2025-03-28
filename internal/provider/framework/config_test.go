@@ -214,6 +214,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	if !features.NetApp.PreventVolumeDestruction {
 		t.Errorf("expected netapp.PreventVolumeDestruction to be true")
 	}
+
+	if features.DatabricksWorkspace.ForceDelete {
+		t.Errorf("expected databricks_workspace.ForceDelete to be false")
+	}
 }
 
 // TODO - helper functions to make setting up test date more easily so we can add more configuration coverage
@@ -329,6 +333,11 @@ func defaultFeaturesList() types.List {
 	})
 	netappList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(NetAppAttributes), []attr.Value{netapp})
 
+	databricksWorkspace, _ := basetypes.NewObjectValueFrom(context.Background(), DatabricksWorkspaceAttributes, map[string]attr.Value{
+		"force_delete": basetypes.NewBoolNull(),
+	})
+	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
+
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
 		"api_management":             apiManagementList,
 		"app_configuration":          appConfigurationList,
@@ -348,6 +357,7 @@ func defaultFeaturesList() types.List {
 		"recovery_service":           recoveryServicesList,
 		"recovery_services_vaults":   recoveryServicesVaultsList,
 		"netapp":                     netappList,
+		"databricks_workspace":       databricksWorkspaceList,
 	})
 
 	fmt.Printf("%+v", d)
