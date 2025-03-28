@@ -6,8 +6,6 @@ description: |-
   Manages a Dev Center Project.
 ---
 
-<!-- Note: This documentation is generated. Any manual changes will be overwritten -->
-
 # azurerm_dev_center_project
 
 Manages a Dev Center Project.
