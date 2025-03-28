@@ -33,11 +33,16 @@ func TestQuotedStringSlice(t *testing.T) {
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q..", v.input)
+		t.Logf("[DEBUG] Testing %q...", v.input)
 
 		actual := azure.QuotedStringSlice(v.input)
+
+		t.Logf("[DEBUG] Actual  : %s", actual)
+		t.Logf("[DEBUG] Expected: %s", v.expected)
+
 		if v.expected != actual {
 			t.Fatalf("Expected %s but got %s", v.expected, actual)
+
 		}
 	}
 }

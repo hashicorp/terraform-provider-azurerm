@@ -1728,26 +1728,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
-	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		// If the VM was in a Failed state we can skip powering off, since that'll fail
-		if existing.Model != nil && existing.Model.Properties != nil && strings.EqualFold(*existing.Model.Properties.ProvisioningState, "failed") {
-			log.Printf("[DEBUG] Powering Off Windows %s was skipped because the VM was in %q state", id, *existing.Model.Properties.ProvisioningState)
-		} else {
-			// ISSUE: 4920
-			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
-			// thus this can be a large cost-saving when deleting larger instances
-			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-			log.Printf("[DEBUG] Powering Off Windows %s.", id)
-			skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-			options := virtualmachines.PowerOffOperationOptions{
-				SkipShutdown: pointer.To(skipShutdown),
-			}
-			if err := client.PowerOffThenPoll(ctx, *id, options); err != nil {
-				return fmt.Errorf("powering off Windows %s: %+v", id, err)
-			}
-			log.Printf("[DEBUG] Powered Off Windows %s", id)
-		}
-	}
+	// Due to a breaking change in the API the power down (e.g., 'graceful_shutdown') feature flag is no longer supported...
 
 	log.Printf("[DEBUG] Deleting Windows %s", id)
 
@@ -1761,6 +1742,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	if err := client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
+
 	log.Printf("[DEBUG] Deleted Windows %s", id)
 
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion

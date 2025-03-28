@@ -220,11 +220,15 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
+
+					// TODO: Remove in 5.0
 					"graceful_shutdown": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:       pluginsdk.TypeBool,
+						Optional:   true,
+						Default:    false,
+						Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
 					},
+
 					"skip_shutdown_and_force_delete": {
 						Type:     schema.TypeBool,
 						Optional: true,
@@ -569,9 +573,12 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
 			}
+
+			// TODO: Remove in 5.0
 			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
 				featuresMap.VirtualMachine.GracefulShutdown = v.(bool)
 			}
+
 			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {
 				featuresMap.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
 			}
