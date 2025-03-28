@@ -824,7 +824,7 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 		s.Use32BitWorker = pointer.From(appSiteConfig.Use32BitWorkerProcess)
 		s.UseManagedIdentityACR = pointer.From(appSiteConfig.AcrUseManagedIdentityCreds)
 		s.HandlerMapping = flattenHandlerMapping(appSiteConfig.HandlerMappings)
-		s.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications)
+		s.VirtualApplications = flattenVirtualApplications(appSiteConfig.VirtualApplications, s.AlwaysOn)
 		s.WebSockets = pointer.From(appSiteConfig.WebSocketsEnabled)
 		s.VnetRouteAllEnabled = pointer.From(appSiteConfig.VnetRouteAllEnabled)
 		s.IpRestrictionDefaultAction = string(pointer.From(appSiteConfig.IPSecurityRestrictionsDefaultAction))

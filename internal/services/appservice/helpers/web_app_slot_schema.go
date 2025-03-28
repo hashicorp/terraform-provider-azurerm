@@ -1291,7 +1291,7 @@ func (s *SiteConfigWindowsWebAppSlot) Flatten(appSiteSlotConfig *webapps.SiteCon
 	s.Use32BitWorker = pointer.From(appSiteSlotConfig.Use32BitWorkerProcess)
 	s.UseManagedIdentityACR = pointer.From(appSiteSlotConfig.AcrUseManagedIdentityCreds)
 	s.HandlerMapping = flattenHandlerMapping(appSiteSlotConfig.HandlerMappings)
-	s.VirtualApplications = flattenVirtualApplications(appSiteSlotConfig.VirtualApplications)
+	s.VirtualApplications = flattenVirtualApplications(appSiteSlotConfig.VirtualApplications, s.AlwaysOn)
 	s.WebSockets = pointer.From(appSiteSlotConfig.WebSocketsEnabled)
 	s.VnetRouteAllEnabled = pointer.From(appSiteSlotConfig.VnetRouteAllEnabled)
 	s.IpRestrictionDefaultAction = string(pointer.From(appSiteSlotConfig.IPSecurityRestrictionsDefaultAction))
