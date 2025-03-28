@@ -1,37 +1,37 @@
-## 4.25.0 (Unreleased)
+## 4.25.0 (March 28, 2025)
 
 ENHANCEMENTS:
 
-* dependencies: `go-azure-helpers` - update  to `0.72.0` [GH-29206]
-* dependencies: `redisenterprise` - update to API version `2024-10-01` [GH-29073]
-* dependencies: `servicefabricmanaged` - update to API version `2024-04-01` [GH-29199]
-* Data Source: `azurerm_virtual_hub_connection` - add support for the `static_vnet_propagate_static_routes` property [GH-28560]
-* `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property [GH-29126]
-* `azurerm_hdinsight_spark_cluster_resource` - add support for the `zones` property [GH-28149]
-* `azurerm_linux_function_app` - add support for Python version `3.13` [GH-29131]
-* `azurerm_linux_function_app_slot` - add support for Python version `3.13` [GH-29131]
-* `azurerm_linux_web_app` - add support for Python version `3.13` [GH-29131]
-* `azurerm_linux_web_app_slot` - add support for Python version `3.13` [GH-29131]
-* `azurerm_log_analytics_workspace` - add support for the `LACluster` SKU [GH-29137]
-* `azurerm_managed_disk` - allow disk expansion without downtime for all `storage_account_type` [GH-28730]
-* `azurerm_mssql_job_agent` - add support for the `identity` and `sku` properties [GH-29090]
-* `azurerm_network_manager` - `scope_accesses` is now optional [GH-28781]
-* `azurerm_oracle_cloud_vm_cluster` - add support for the `system_version` property [GH-29093]
-* `azurerm_powerbi_embedded `- add support for `A7` and `A8` values for `sku_name` [GH-29153]
-* `azurerm_virtual_hub_connection` - add support for the `static_vnet_propagate_static_routes` property [GH-28560]
+* dependencies: `go-azure-helpers` - update  to `0.72.0` ([#29206](https://github.com/hashicorp/terraform-provider-azurerm/issues/29206))
+* dependencies: `redisenterprise` - update to API version `2024-10-01` ([#29073](https://github.com/hashicorp/terraform-provider-azurerm/issues/29073))
+* dependencies: `servicefabricmanaged` - update to API version `2024-04-01` ([#29199](https://github.com/hashicorp/terraform-provider-azurerm/issues/29199))
+* Data Source: `azurerm_virtual_hub_connection` - add support for the `static_vnet_propagate_static_routes` property ([#28560](https://github.com/hashicorp/terraform-provider-azurerm/issues/28560))
+* `azurerm_cosmosdb_account` - add support for the `DeleteAllItemsByPartitionKey` value in the `capabilities` property ([#29126](https://github.com/hashicorp/terraform-provider-azurerm/issues/29126))
+* `azurerm_hdinsight_spark_cluster_resource` - add support for the `zones` property ([#28149](https://github.com/hashicorp/terraform-provider-azurerm/issues/28149))
+* `azurerm_linux_function_app` - add support for Python version `3.13` ([#29131](https://github.com/hashicorp/terraform-provider-azurerm/issues/29131))
+* `azurerm_linux_function_app_slot` - add support for Python version `3.13` ([#29131](https://github.com/hashicorp/terraform-provider-azurerm/issues/29131))
+* `azurerm_linux_web_app` - add support for Python version `3.13` ([#29131](https://github.com/hashicorp/terraform-provider-azurerm/issues/29131))
+* `azurerm_linux_web_app_slot` - add support for Python version `3.13` ([#29131](https://github.com/hashicorp/terraform-provider-azurerm/issues/29131))
+* `azurerm_log_analytics_workspace` - add support for the `LACluster` SKU ([#29137](https://github.com/hashicorp/terraform-provider-azurerm/issues/29137))
+* `azurerm_managed_disk` - allow disk expansion without downtime for all `storage_account_type` ([#28730](https://github.com/hashicorp/terraform-provider-azurerm/issues/28730))
+* `azurerm_mssql_job_agent` - add support for the `identity` and `sku` properties ([#29090](https://github.com/hashicorp/terraform-provider-azurerm/issues/29090))
+* `azurerm_network_manager` - `scope_accesses` is now optional ([#28781](https://github.com/hashicorp/terraform-provider-azurerm/issues/28781))
+* `azurerm_oracle_cloud_vm_cluster` - add support for the `system_version` property ([#29093](https://github.com/hashicorp/terraform-provider-azurerm/issues/29093))
+* `azurerm_powerbi_embedded `- add support for `A7` and `A8` values for `sku_name` ([#29153](https://github.com/hashicorp/terraform-provider-azurerm/issues/29153))
+* `azurerm_virtual_hub_connection` - add support for the `static_vnet_propagate_static_routes` property ([#28560](https://github.com/hashicorp/terraform-provider-azurerm/issues/28560))
 
 BUG FIXES
 
-* Data source: `azurerm_container_app_environment` - prevent an error when the log analytics workspace is in a different subscription [GH-28647]
-* `azurerm_kubernetes_cluster_node_pool` - fix issue where `kubelet_disk_type` couldn't be updated, updating this will now rotate the node pool [GH-29135]
-* `azurerm_linux_virtual_machine` - fix issue where a user assigned identity couldn't be removed from the resource [GH-29157]
-* `azurerm_linux_virtual_machine_scale_set` - fix issue where a user assigned identity couldn't be removed from the resource [GH-29157]
-* `azurerm_log_analytics_workspace` - prevent an error when the workspace is in a soft-deleted state and linked to a log analytics cluster [GH-29137]
-* `azurerm_postgresql_flexible_server_virtual_endpoint` - add a lock on the replica server to prevent a race condition [GH-29071]
-* `azurerm_signalr_service` - set `location` in payload when updating to prevent an API error [GH-29184]
-* `azurerm_storage_account_queue_properties` - prevent a panic when the storage account is removed out of band [GH-28371]
-* `azurerm_storage_account_static_website` - prevent a panic when the storage account is removed out of band [GH-28371]
-* `azurerm_stream_analytics_job` - update validation to notify users if `content_storage_policy` hasn't been correctly set to setup `job_storage_account` [GH-29158]
+* Data source: `azurerm_container_app_environment` - prevent an error when the log analytics workspace is in a different subscription ([#28647](https://github.com/hashicorp/terraform-provider-azurerm/issues/28647))
+* `azurerm_kubernetes_cluster_node_pool` - fix issue where `kubelet_disk_type` couldn't be updated, updating this will now rotate the node pool ([#29135](https://github.com/hashicorp/terraform-provider-azurerm/issues/29135))
+* `azurerm_linux_virtual_machine` - fix issue where a user assigned identity couldn't be removed from the resource ([#29157](https://github.com/hashicorp/terraform-provider-azurerm/issues/29157))
+* `azurerm_linux_virtual_machine_scale_set` - fix issue where a user assigned identity couldn't be removed from the resource ([#29157](https://github.com/hashicorp/terraform-provider-azurerm/issues/29157))
+* `azurerm_log_analytics_workspace` - prevent an error when the workspace is in a soft-deleted state and linked to a log analytics cluster ([#29137](https://github.com/hashicorp/terraform-provider-azurerm/issues/29137))
+* `azurerm_postgresql_flexible_server_virtual_endpoint` - add a lock on the replica server to prevent a race condition ([#29071](https://github.com/hashicorp/terraform-provider-azurerm/issues/29071))
+* `azurerm_signalr_service` - set `location` in payload when updating to prevent an API error ([#29184](https://github.com/hashicorp/terraform-provider-azurerm/issues/29184))
+* `azurerm_storage_account_queue_properties` - prevent a panic when the storage account is removed out of band ([#28371](https://github.com/hashicorp/terraform-provider-azurerm/issues/28371))
+* `azurerm_storage_account_static_website` - prevent a panic when the storage account is removed out of band ([#28371](https://github.com/hashicorp/terraform-provider-azurerm/issues/28371))
+* `azurerm_stream_analytics_job` - update validation to notify users if `content_storage_policy` hasn't been correctly set to setup `job_storage_account` ([#29158](https://github.com/hashicorp/terraform-provider-azurerm/issues/29158))
 
 ## 4.24.0 (March 21, 2025)
 
