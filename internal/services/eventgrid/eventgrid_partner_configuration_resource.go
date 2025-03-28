@@ -210,7 +210,7 @@ func (r EventGridPartnerConfigurationResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil && props.PartnerAuthorization != nil {
 					state.DefaultMaximumExpirationTimeInDays = pointer.From(props.PartnerAuthorization.DefaultMaximumExpirationTimeInDays)
-					state.PartnerAuthorizations = flattenAuthorizedPartnersList(model.Properties.PartnerAuthorization.AuthorizedPartnersList)
+					state.PartnerAuthorizations = flattenAuthorizedPartnersList(props.PartnerAuthorization.AuthorizedPartnersList)
 				}
 
 				if model.Tags != nil {
