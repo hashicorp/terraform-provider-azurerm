@@ -557,6 +557,8 @@ resource "azurerm_mssql_server" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
+  express_vulnerability_assessment_enabled = true
+
   tags = {
     ENV      = "Staging"
     database = "NotProd"

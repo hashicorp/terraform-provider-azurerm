@@ -35,6 +35,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servervulnerabilityassessments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/sqlvulnerabilityassessmentssettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/virtualnetworkrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
@@ -73,6 +74,7 @@ type Client struct {
 	ServerSecurityAlertPoliciesClient                  *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
 	LegacyServerSecurityAlertPoliciesClient            *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *servervulnerabilityassessments.ServerVulnerabilityAssessmentsClient
+	SqlVulnerabilityAssessmentSettingsClient           *sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentsSettingsClient
 	ServersClient                                      *servers.ServersClient
 	TransparentDataEncryptionsClient                   *transparentdataencryptions.TransparentDataEncryptionsClient
 	VirtualMachinesAvailabilityGroupListenersClient    *availabilitygrouplisteners.AvailabilityGroupListenersClient
@@ -251,6 +253,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(serverVulnerabilityAssessmentsClient.Client, o.Authorizers.ResourceManager)
 
+	sqlVulnerabilityAssessmentsSettingsClient, err := sqlvulnerabilityassessmentssettings.NewSqlVulnerabilityAssessmentsSettingsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building SQL Vulnerability Assessments Settings Client: %+v", err)
+	}
+	o.Configure(sqlVulnerabilityAssessmentsSettingsClient.Client, o.Authorizers.ResourceManager)
+
 	serversClient, err := servers.NewServersClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Server Client: %+v", err)
@@ -311,22 +319,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		LegacyReplicationLinksClient:            &legacyReplicationLinksClient,
 
 		// 2023-08-01-preview Clients
-		BackupShortTermRetentionPoliciesClient: backupShortTermRetentionPoliciesClient,
-		DatabasesClient:                        databasesClient,
-		DatabaseSecurityAlertPoliciesClient:    databaseSecurityAlertPoliciesClient,
-		ElasticPoolsClient:                     elasticPoolsClient,
-		GeoBackupPoliciesClient:                geoBackupPoliciesClient,
-		JobsClient:                             jobsClient,
-		JobStepsClient:                         jobStepsClient,
-		JobTargetGroupsClient:                  jobTargetGroupsClient,
-		LongTermRetentionPoliciesClient:        longTermRetentionPoliciesClient,
-		ReplicationLinksClient:                 replicationLinksClient,
-		RestorableDroppedDatabasesClient:       restorableDroppedDatabasesClient,
-		ServerAzureADAdministratorsClient:      serverAzureADAdministratorsClient,
-		ServerAzureADOnlyAuthenticationsClient: serverAzureADOnlyAuthenticationsClient,
-		ServerConnectionPoliciesClient:         serverConnectionPoliciesClient,
-		ServerSecurityAlertPoliciesClient:      serverSecurityAlertPoliciesClient,
-		TransparentDataEncryptionsClient:       transparentDataEncryptionsClient,
-		ServersClient:                          serversClient,
+		BackupShortTermRetentionPoliciesClient:   backupShortTermRetentionPoliciesClient,
+		DatabasesClient:                          databasesClient,
+		DatabaseSecurityAlertPoliciesClient:      databaseSecurityAlertPoliciesClient,
+		ElasticPoolsClient:                       elasticPoolsClient,
+		GeoBackupPoliciesClient:                  geoBackupPoliciesClient,
+		JobsClient:                               jobsClient,
+		JobStepsClient:                           jobStepsClient,
+		JobTargetGroupsClient:                    jobTargetGroupsClient,
+		LongTermRetentionPoliciesClient:          longTermRetentionPoliciesClient,
+		ReplicationLinksClient:                   replicationLinksClient,
+		RestorableDroppedDatabasesClient:         restorableDroppedDatabasesClient,
+		ServerAzureADAdministratorsClient:        serverAzureADAdministratorsClient,
+		ServerAzureADOnlyAuthenticationsClient:   serverAzureADOnlyAuthenticationsClient,
+		ServerConnectionPoliciesClient:           serverConnectionPoliciesClient,
+		ServerSecurityAlertPoliciesClient:        serverSecurityAlertPoliciesClient,
+		SqlVulnerabilityAssessmentSettingsClient: sqlVulnerabilityAssessmentsSettingsClient,
+		TransparentDataEncryptionsClient:         transparentDataEncryptionsClient,
+		ServersClient:                            serversClient,
 	}, nil
 }
