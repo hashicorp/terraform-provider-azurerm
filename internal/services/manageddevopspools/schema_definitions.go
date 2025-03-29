@@ -32,17 +32,34 @@ func AgentProfileSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"resource_predictions": {
-					Type:     pluginsdk.TypeList,
-                    Optional: true,
-                    Elem: &pluginsdk.Schema{
-                        Type: pluginsdk.TypeMap,
-                        Elem: &pluginsdk.Schema{
-                            Type: pluginsdk.TypeInt,
-                        },
-                    },
-				},
+				"resource_predictions": ResourcePredictionsSchema(),
 				"resource_predictions_profile": ResourcePredictionsProfileSchema(),
+			},
+		},
+	}
+}
+
+func ResourcePredictionsSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type: pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"time_zone": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+				"days_data":{
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeMap,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeInt,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -90,7 +107,7 @@ func FabricProfileSchema() *pluginsdk.Schema {
 						Schema: map[string]*pluginsdk.Schema{
 							"subnet_id": {
 								Type:     pluginsdk.TypeString,
-								Optional: true,
+								Required: true,
 							},
 						},
 					},

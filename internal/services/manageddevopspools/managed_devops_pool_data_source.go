@@ -42,7 +42,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-		"agent_profile": AgentProfileSchema(),
+		// "agent_profile": AgentProfileSchema(),
 	}
 }
 
