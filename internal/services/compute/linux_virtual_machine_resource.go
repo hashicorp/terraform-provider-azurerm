@@ -4,7 +4,6 @@
 package compute
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -26,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
@@ -37,7 +37,7 @@ import (
 )
 
 func resourceLinuxVirtualMachine() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLinuxVirtualMachineCreate,
 		Read:   resourceLinuxVirtualMachineRead,
 		Update: resourceLinuxVirtualMachineUpdate,
@@ -356,13 +356,6 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
-			// TODO: In 5.0 make this a computed field only
-			"vm_agent_platform_updates_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
 			"vtpm_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -419,16 +412,22 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
-		},
-
-		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
-			if _, ok := d.GetOk("vm_agent_platform_updates_enabled"); ok {
-				return fmt.Errorf("the 'vm_agent_platform_updates_enabled' field is read-only and managed by the Azure Virtual Machine service. Its value cannot be set, modified, or updated")
-			}
-
-			return nil
+			"vm_agent_platform_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["vm_agent_platform_updates_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {

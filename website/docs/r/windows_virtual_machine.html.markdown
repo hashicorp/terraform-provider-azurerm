@@ -22,7 +22,7 @@ Manages a Windows Virtual Machine.
 
 -> **Note:** In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
 
-!> **Note:** Due to a breaking change in the Azure API the `vm_agent_platform_updates_enabled` field is a `Read-Only` field and is now controlled by the platform.
+!> **Note:** Due to a breaking change in the Azure API the `vm_agent_platform_updates_enabled` field is now a `Read-Only` field that is controlled by the platform. Its value cannot be set, modified, or updated.
 
 ## Example Usage
 

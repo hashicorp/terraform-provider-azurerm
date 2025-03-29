@@ -966,18 +966,6 @@ func TestAccLinuxVirtualMachine_otherRebootSetting(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachine_otherVmAgentPlatformUpdatesEnabledReadOnlyError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
-	r := LinuxVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.otherVmAgentPlatformUpdatesEnabledReadOnlyError(data),
-			ExpectError: regexp.MustCompile("the 'vm_agent_platform_updates_enabled' field is read-only and managed by the Azure Virtual Machine service. Its value cannot be set, modified, or updated"),
-		},
-	})
-}
-
 func (r LinuxVirtualMachineResource) otherPatchMode(data acceptance.TestData, patchMode string) string {
 	return fmt.Sprintf(`
 %s
@@ -3060,40 +3048,6 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   patch_mode = "ImageDefault"
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LinuxVirtualMachineResource) otherVmAgentPlatformUpdatesEnabledReadOnlyError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_D2s_v3"
-  admin_username                  = "adminUser"
-  admin_password                  = "FooBarPassword!#!~"
-  disable_password_authentication = false
-
-  vm_agent_platform_updates_enabled = true
-
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
