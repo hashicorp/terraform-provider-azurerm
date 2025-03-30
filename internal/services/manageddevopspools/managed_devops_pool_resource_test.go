@@ -13,11 +13,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ManagedDevOpsPoolTestResource struct{}
+type ManagedDevOpsPoolResource struct{}
 
 func TestAccManagedDevOpsPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-	r := ManagedDevOpsPoolTestResource{}
+	r := ManagedDevOpsPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,7 +32,7 @@ func TestAccManagedDevOpsPool_basic(t *testing.T) {
 
 func TestAccManagedDevOpsPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-	r := ManagedDevOpsPoolTestResource{}
+	r := ManagedDevOpsPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,7 +47,7 @@ func TestAccManagedDevOpsPool_requiresImport(t *testing.T) {
 
 func TestAccManagedDevOpsPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-	r := ManagedDevOpsPoolTestResource{}
+	r := ManagedDevOpsPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,7 +62,7 @@ func TestAccManagedDevOpsPool_complete(t *testing.T) {
 
 func TestAccManagedDevOpsPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
-	r := ManagedDevOpsPoolTestResource{}
+	r := ManagedDevOpsPoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccManagedDevOpsPool_update(t *testing.T) {
 	})
 }
 
-func (ManagedDevOpsPoolTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ManagedDevOpsPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pools.ParsePoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (ManagedDevOpsPoolTestResource) Exists(ctx context.Context, client *clients
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (ManagedDevOpsPoolTestResource) basic(data acceptance.TestData) string {
+func (r ManagedDevOpsPoolResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -138,7 +138,7 @@ resource "azurerm_managed_devops_pool" "test" {
 `, r.template(data))
 }
 
-func (r ManagedDevOpsPoolTestResource) requiresImport(data acceptance.TestData) string {
+func (r ManagedDevOpsPoolResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -176,7 +176,7 @@ resource "azurerm_managed_devops_pool" "import" {
 `, r.basic(data))
 }
 
-func (r ManagedDevOpsPoolTestResource) complete(data acceptance.TestData) string {
+func (r ManagedDevOpsPoolResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -227,7 +227,7 @@ esource "azurerm_managed_devops_pool" "test" {
 `, r.template(data))
 }
 
-func (r ManagedDevOpsPoolTestResource) template(data acceptance.TestData) string {
+func (ManagedDevOpsPoolResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
   default = %q

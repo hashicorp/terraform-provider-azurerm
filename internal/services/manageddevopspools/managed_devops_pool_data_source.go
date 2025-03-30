@@ -35,24 +35,28 @@ func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"location": commonschema.LocationComputed(),
+		"agent_profile": AgentProfileComputedSchema(),
 		"dev_center_project_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"fabric_profile": FabricProfileComputedSchema(),
+		"identity":       commonschema.SystemAssignedUserAssignedIdentityComputed(),
+		"location":       commonschema.LocationComputed(),
 		"maximum_concurrency": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-		"agent_profile": AgentProfileComputedSchema(),
-		"fabric_profile": FabricProfileComputedSchema(),
-		"identity":       commonschema.SystemAssignedUserAssignedIdentityComputed(),
 		"organization_profile": OrganizationProfileComputedSchema(),
+		"provisioning_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 		"tags": commonschema.TagsDataSource(),
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -107,6 +111,7 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
 					state.MaximumConcurrency = props.MaximumConcurrency
+					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
 						state.AgentProfile = flattenAgentProfileToModel(agentProfile)

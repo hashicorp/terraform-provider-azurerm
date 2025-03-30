@@ -18,6 +18,7 @@ type ManagedDevOpsPoolModel struct {
 	MaximumConcurrency         int64                                      `tfschema:"maximum_concurrency"`
 	Name                       string                                     `tfschema:"name"`
 	OrganizationProfile        []OrganizationProfileModel                 `tfschema:"organization_profile"`
+	ProvisioningState          string                                     `tfschema:"provisioning_state"`
 	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
 	Tags                       map[string]string                          `tfschema:"tags"`
 	Type                       string                                     `tfschema:"type"`

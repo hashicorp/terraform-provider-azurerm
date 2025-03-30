@@ -53,6 +53,10 @@ func (ManagedDevOpsPoolResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+		"provisioning_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -190,6 +194,7 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
 					state.MaximumConcurrency = props.MaximumConcurrency
+					state.ProvisioningState = string(pointer.From(props.ProvisioningState))
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
 						state.AgentProfile = flattenAgentProfileToModel(agentProfile)

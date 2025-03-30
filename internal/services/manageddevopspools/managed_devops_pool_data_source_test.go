@@ -26,17 +26,11 @@ func TestAccManagedDevOpsPoolDataSource_basic(t *testing.T) {
 
 func (ManagedDevOpsPoolDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_managed_devops_pool" "test" {
-  name     = "acctest-pool-%d"
-  location = "%s"
-}
+%s
 
 data "azurerm_managed_devops_pool" "test" {
   name = azurerm_managed_devops_pool.test.name
+  resource_group_name = azurerm_managed_devops_pool.test.resource_group_name
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, ManagedDevOpsPoolResource{}.basic(data))
 }
