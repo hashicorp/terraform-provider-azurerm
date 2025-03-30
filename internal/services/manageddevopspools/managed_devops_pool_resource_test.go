@@ -135,7 +135,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagedDevOpsPoolResource) requiresImport(data acceptance.TestData) string {
@@ -224,7 +224,7 @@ esource "azurerm_managed_devops_pool" "test" {
     Project     = "Terraform"
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (ManagedDevOpsPoolResource) template(data acceptance.TestData) string {

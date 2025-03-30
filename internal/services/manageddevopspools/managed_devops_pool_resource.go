@@ -177,7 +177,6 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-
 				state.Type = *model.Type
 				state.Location = model.Location
 				state.Tags = *model.Tags

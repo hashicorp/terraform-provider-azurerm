@@ -50,7 +50,8 @@ func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProper
 
 	agentProfile := input[0]
 	resource_predictions := expandResourcePredictionsModel(agentProfile.ResourcePredictions)
-	if agentProfile.Kind == AgentProfileKindStateful {
+	switch agentProfile.Kind {
+	case AgentProfileKindStateful:
 		stateful := &pools.Stateful{
 			GracePeriodTimeSpan: agentProfile.GracePeriodTimeSpan,
 			MaxAgentLifetime:    agentProfile.MaxAgentLifetime,
@@ -79,7 +80,8 @@ func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProper
 		}
 
 		output.AgentProfile = stateful.AgentProfile()
-	} else if agentProfile.Kind == AgentProfileKindStateless {
+
+	case AgentProfileKindStateless:
 		stateless := &pools.StatelessAgentProfile{
 			Kind:                agentProfile.Kind,
 			ResourcePredictions: pointer.To(interface{}(expandResourcePredictionsModel(agentProfile.ResourcePredictions))),
@@ -108,7 +110,8 @@ func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProper
 		}
 
 		output.AgentProfile = stateless.AgentProfile()
-	} else {
+
+	default:
 		return fmt.Errorf("invalid agent_profile kind provided: %s", agentProfile.Kind)
 	}
 
