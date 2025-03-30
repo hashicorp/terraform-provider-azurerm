@@ -1644,7 +1644,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       password = "AccTestvdSC4daf986!"
     }
   }
-  
+
   depends_on = [azurerm_role_assignment.test]
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
