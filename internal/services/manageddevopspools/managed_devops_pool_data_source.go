@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2024-10-19/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,8 +35,12 @@ func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 		"location": commonschema.LocationComputed(),
-		"dev_center_project_id": {
+		"dev_center_project_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -42,7 +48,11 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-		// "agent_profile": AgentProfileSchema(),
+		"agent_profile": AgentProfileComputedSchema(),
+		"fabric_profile": FabricProfileComputedSchema(),
+		"identity":       commonschema.SystemAssignedUserAssignedIdentityComputed(),
+		"organization_profile": OrganizationProfileComputedSchema(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
@@ -80,16 +90,35 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			state = ManagedDevOpsPoolModel{
-				Name: id.PoolName,
-			}
-
 			if model := resp.Model; model != nil {
+				state.Type = pointer.From(model.Type)
+				state.Location = model.Location
+				state.Tags = pointer.From(model.Tags)
+
+				if modelIdentity := model.Identity; modelIdentity != nil {
+					identity, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(*model.Identity)))
+					if err != nil {
+						return err
+					}
+
+					state.Identity = pointer.From(identity)
+				}
+
 				if props := model.Properties; props != nil {
-					// if there are properties to set into state do that here
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
 					state.MaximumConcurrency = props.MaximumConcurrency
-					// Add other props
+
+					if agentProfile := props.AgentProfile; agentProfile != nil {
+						state.AgentProfile = flattenAgentProfileToModel(agentProfile)
+					}
+
+					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
+						state.OrganizationProfile = flattenOrganizationProfileToModel(organizationProfile)
+					}
+
+					if fabricProfile := props.FabricProfile; fabricProfile != nil {
+						state.FabricProfile = flattenFabricProfileToModel(fabricProfile)
+					}
 				}
 			}
 
