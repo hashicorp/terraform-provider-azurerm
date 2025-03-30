@@ -105,11 +105,11 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_devops_pool" "test" {
-  name     = "acctest-pool-%d"
+  name                = "acctest-pool-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  maximum_concurrency = 1
+  maximum_concurrency            = 1
   dev_center_project_resource_id = azurerm_dev_center_project.test.id
 
   organization_profile {
@@ -128,7 +128,7 @@ resource "azurerm_managed_devops_pool" "test" {
     kind = "Vmss"
     images {
       resource_id = "/Subscriptions/e21f7bce-1728-44ad-a62d-344064a0d69a/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
-      buffer = "*"
+      buffer      = "*"
     }
     sku {
       name = "Standard_D2ads_v5"
@@ -143,11 +143,11 @@ func (r ManagedDevOpsPoolResource) requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_managed_devops_pool" "import" {
-  name     			  = azurerm_managed_devops_pool.test.name
+  name                = azurerm_managed_devops_pool.test.name
   location            = azurerm_managed_devops_pool.test.location
   resource_group_name = azurerm_managed_devops_pool.test.resource_group_name
 
-  maximum_concurrency = 1
+  maximum_concurrency            = 1
   dev_center_project_resource_id = azurerm_dev_center_project.test.id
 
   organization_profile {
@@ -166,7 +166,7 @@ resource "azurerm_managed_devops_pool" "import" {
     kind = "Vmss"
     images {
       resource_id = "/Subscriptions/e21f7bce-1728-44ad-a62d-344064a0d69a/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
-      buffer = "*"
+      buffer      = "*"
     }
     sku {
       name = "Standard_D2ads_v5"
@@ -254,11 +254,6 @@ resource "azurerm_dev_center" "test" {
   name                = "acctestdc-${var.random_string}"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
 }
 
 resource "azurerm_dev_center_project" "test" {

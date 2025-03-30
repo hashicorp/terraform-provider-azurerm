@@ -30,7 +30,7 @@ func (ManagedDevOpsPoolDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_managed_devops_pool" "test" {
-  name = azurerm_managed_devops_pool.test.name
+  name                = azurerm_managed_devops_pool.test.name
   resource_group_name = azurerm_managed_devops_pool.test.resource_group_name
 }
 `, ManagedDevOpsPoolResource{}.basic(data))
