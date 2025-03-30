@@ -1546,7 +1546,7 @@ func (r HDInsightHBaseClusterResource) diskEncryption(data acceptance.TestData) 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                       = "test-keyvault"
+  name                       = "acctestkv-%s"
   resource_group_name        = azurerm_resource_group.test.name
   location                   = azurerm_resource_group.test.location
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -1557,6 +1557,12 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
   enable_rbac_authorization       = true
+}
+
+resource "azurerm_role_assignment" "service-principal" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -1573,6 +1579,8 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
+
+  depends_on = ["azurerm_role_assignment.service-principal"]
 }
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -1636,8 +1644,10 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       password = "AccTestvdSC4daf986!"
     }
   }
+  
+  depends_on = [azurerm_role_assignment.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r HDInsightHBaseClusterResource) allMetastores(data acceptance.TestData) string {
