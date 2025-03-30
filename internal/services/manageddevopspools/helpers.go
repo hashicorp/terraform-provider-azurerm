@@ -1,6 +1,7 @@
 package manageddevopspools
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -8,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2024-10-19/pools"
 )
-
 
 func expandResourceModel(input ManagedDevOpsPoolModel, output *pools.Pool) error {
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
@@ -49,11 +49,15 @@ func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProper
 	}
 
 	agentProfile := input[0]
+	resource_predictions := expandResourcePredictionsModel(agentProfile.ResourcePredictions)
 	if agentProfile.Kind == AgentProfileKindStateful {
 		stateful := &pools.Stateful{
 			GracePeriodTimeSpan: agentProfile.GracePeriodTimeSpan,
 			MaxAgentLifetime:    agentProfile.MaxAgentLifetime,
-			ResourcePredictions: pointer.To(interface{}(agentProfile.ResourcePredictions)),
+		}
+
+		if resource_predictions != nil {
+			stateful.ResourcePredictions = pointer.To(interface{}(pointer.From(resource_predictions)))
 		}
 
 		if len(agentProfile.ResourcePredictionsProfile) > 0 {
@@ -78,7 +82,11 @@ func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProper
 	} else if agentProfile.Kind == AgentProfileKindStateless {
 		stateless := &pools.StatelessAgentProfile{
 			Kind:                agentProfile.Kind,
-			ResourcePredictions: pointer.To(interface{}(agentProfile.ResourcePredictions)),
+			ResourcePredictions: pointer.To(interface{}(expandResourcePredictionsModel(agentProfile.ResourcePredictions))),
+		}
+
+		if resource_predictions != nil {
+			stateless.ResourcePredictions = pointer.To(interface{}(pointer.From(resource_predictions)))
 		}
 
 		if len(agentProfile.ResourcePredictionsProfile) > 0 {
@@ -107,6 +115,25 @@ func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProper
 	return nil
 }
 
+func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourcePredictionsSdkModel {
+	if len(input) == 0 {
+		return nil
+	}
+
+	resourcePredictions := input[0]
+	var parsedDaysData []map[string]interface{}
+	if err := json.Unmarshal([]byte(resourcePredictions.DaysData), &parsedDaysData); err != nil {
+		return nil
+	}
+
+	output := ResourcePredictionsSdkModel{
+		DaysData: parsedDaysData,
+		TimeZone: resourcePredictions.TimeZone,
+	}
+
+	return pointer.To(output)
+}
+
 func expandOrganizationProfileModel(input []OrganizationProfileModel, output *pools.PoolProperties) error {
 	organizationProfile := input[0]
 	if organizationProfile.Kind == "AzureDevOps" {
@@ -121,8 +148,8 @@ func expandOrganizationProfileModel(input []OrganizationProfileModel, output *po
 		}
 
 		azureDevOpsOrganizationProfile := pools.AzureDevOpsOrganizationProfile{
-			Kind:              organizationProfile.Kind,
-			Organizations:     poolOrganizations,
+			Kind:          organizationProfile.Kind,
+			Organizations: poolOrganizations,
 		}
 
 		poolPermissionProfile := &pools.AzureDevOpsPermissionProfile{}
@@ -264,7 +291,6 @@ func expandSecretsManagementSettingsModel(input []SecretsManagementSettingsModel
 	return output
 }
 
-
 func flattenAgentProfileToModel(input pools.AgentProfile) []AgentProfileModel {
 	if stateful, ok := input.(pools.Stateful); ok {
 		return flattenStatefulAgentProfileToModel(stateful)
@@ -286,10 +312,10 @@ func flattenStatefulAgentProfileToModel(input pools.Stateful) []AgentProfileMode
 	}
 
 	if input.ResourcePredictions != nil {
-        if predictions, ok := (pointer.From(input.ResourcePredictions)).(ResourcePredictionsModel); ok {
-            agentProfileModel.ResourcePredictions = []ResourcePredictionsModel{predictions}
-        }
-    } 
+		if predictions, ok := (pointer.From(input.ResourcePredictions)).(ResourcePredictionsModel); ok {
+			agentProfileModel.ResourcePredictions = []ResourcePredictionsModel{predictions}
+		}
+	}
 
 	output := []AgentProfileModel{agentProfileModel}
 	return output
@@ -302,10 +328,10 @@ func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []Ag
 	}
 
 	if input.ResourcePredictions != nil {
-        if predictions, ok := (pointer.From(input.ResourcePredictions)).(ResourcePredictionsModel); ok {
-            agentProfileModel.ResourcePredictions = []ResourcePredictionsModel{predictions}
-        }
-    } 
+		if predictions, ok := (pointer.From(input.ResourcePredictions)).(ResourcePredictionsModel); ok {
+			agentProfileModel.ResourcePredictions = []ResourcePredictionsModel{predictions}
+		}
+	}
 
 	output := []AgentProfileModel{agentProfileModel}
 	return output
@@ -352,8 +378,8 @@ func flattenOrganizationProfileToModel(input pools.OrganizationProfile) []Organi
 
 func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganizationProfile) []OrganizationProfileModel {
 	organizationProfileModel := OrganizationProfileModel{
-		Kind:             input.Kind,
-		Organizations:    flattenOrganizationsToModel(input.Organizations),
+		Kind:              input.Kind,
+		Organizations:     flattenOrganizationsToModel(input.Organizations),
 		PermissionProfile: flattenAzureDevOpsPermissionProfileToModel(input.PermissionProfile),
 	}
 
@@ -432,7 +458,7 @@ func flattenOsProfileToModel(input *pools.OsProfile) []OsProfileModel {
 	}
 
 	osProfileModel := OsProfileModel{
-		LogonType: string(pointer.From(input.LogonType)),
+		LogonType:                 string(pointer.From(input.LogonType)),
 		SecretsManagementSettings: flattenSecretsManagementSettingsToModel(input.SecretsManagementSettings),
 	}
 
@@ -499,7 +525,7 @@ func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileM
 				Caching:            string(pointer.From(disk.Caching)),
 				DiskSizeGiB:        disk.DiskSizeGiB,
 				DriveLetter:        disk.DriveLetter,
-				StorageAccountType:  string(pointer.From(disk.StorageAccountType)),
+				StorageAccountType: string(pointer.From(disk.StorageAccountType)),
 			}
 			dataDisksOut = append(dataDisksOut, diskOut)
 		}

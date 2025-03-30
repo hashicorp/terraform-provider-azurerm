@@ -32,7 +32,7 @@ func AgentProfileSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"resource_predictions": ResourcePredictionsSchema(),
+				"resource_predictions":         ResourcePredictionsSchema(),
 				"resource_predictions_profile": ResourcePredictionsProfileSchema(),
 			},
 		},
@@ -41,7 +41,7 @@ func AgentProfileSchema() *pluginsdk.Schema {
 
 func ResourcePredictionsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type: pluginsdk.TypeList,
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
@@ -50,15 +50,9 @@ func ResourcePredictionsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
-				"days_data":{
-					Type:     pluginsdk.TypeList,
+				"days_data": {
+					Type:     pluginsdk.TypeString,
 					Optional: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeMap,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeInt,
-						},
-					},
 				},
 			},
 		},
@@ -67,7 +61,7 @@ func ResourcePredictionsSchema() *pluginsdk.Schema {
 
 func ResourcePredictionsProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type: pluginsdk.TypeList,
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -134,7 +128,7 @@ func FabricProfileSchema() *pluginsdk.Schema {
 
 func ImagesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type: pluginsdk.TypeList,
+		Type:     pluginsdk.TypeList,
 		Required: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -164,7 +158,7 @@ func ImagesSchema() *pluginsdk.Schema {
 
 func OsProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type: pluginsdk.TypeList,
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
@@ -181,7 +175,7 @@ func OsProfileSchema() *pluginsdk.Schema {
 
 func SecretsManagementSettingsSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type: pluginsdk.TypeList,
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
@@ -208,7 +202,7 @@ func SecretsManagementSettingsSchema() *pluginsdk.Schema {
 
 func StorageProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type: pluginsdk.TypeList,
+		Type:     pluginsdk.TypeList,
 		MaxItems: 1,
 		Optional: true,
 		Elem: &pluginsdk.Resource{

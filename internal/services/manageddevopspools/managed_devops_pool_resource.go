@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -27,8 +26,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 		"fabric_profile": FabricProfileSchema(),
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-		"location": commonschema.Location(),
+		"identity":       commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"location":       commonschema.Location(),
 		"maximum_concurrency": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
@@ -143,11 +142,6 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			debugData := spew.Sdump(properties)
-            fmt.Println("DEBUG: Properties object with pointers:", debugData)
-
-			return fmt.Errorf("mapping schema model to sdk model: %s", debugData)
-			
 			return nil
 		},
 	}
@@ -174,7 +168,7 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 			}
 
 			state := ManagedDevOpsPoolModel{
-				Name: id.PoolName,
+				Name:              id.PoolName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
@@ -202,9 +196,9 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 					}
 
 					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
-						state.OrganizationProfile =flattenOrganizationProfileToModel(organizationProfile)
+						state.OrganizationProfile = flattenOrganizationProfileToModel(organizationProfile)
 					}
-					
+
 					if fabricProfile := props.FabricProfile; fabricProfile != nil {
 						state.FabricProfile = flattenFabricProfileToModel(fabricProfile)
 					}
@@ -239,4 +233,3 @@ func (ManagedDevOpsPoolResource) Delete() sdk.ResourceFunc {
 func (ManagedDevOpsPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return pools.ValidatePoolID
 }
-
