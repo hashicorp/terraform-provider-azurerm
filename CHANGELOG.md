@@ -8,7 +8,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `linux_virtual_machine_resource` - `license_type` can now be updated to None [GH-28786]
+* `azurerm_linux_virtual_machine` - `license_type` can now be updated to None [GH-28786]
+* `azurerm_mysql_flexible_server` - prevent a panic when `customer_managed_key` is nil [GH-29225]
 
 ## 4.25.0 (March 28, 2025)
 
