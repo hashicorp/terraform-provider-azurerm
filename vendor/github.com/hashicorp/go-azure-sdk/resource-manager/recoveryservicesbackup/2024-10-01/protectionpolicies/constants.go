@@ -81,6 +81,31 @@ func parseIAASVMPolicyType(input string) (*IAASVMPolicyType, error) {
 	return &out, nil
 }
 
+type IaasVMSnapshotConsistencyType string
+
+const (
+	IaasVMSnapshotConsistencyTypeOnlyCrashConsistent IaasVMSnapshotConsistencyType = "OnlyCrashConsistent"
+)
+
+func PossibleValuesForIaasVMSnapshotConsistencyType() []string {
+	return []string{
+		string(IaasVMSnapshotConsistencyTypeOnlyCrashConsistent),
+	}
+}
+
+func parseIaasVMSnapshotConsistencyType(input string) (*IaasVMSnapshotConsistencyType, error) {
+	vals := map[string]IaasVMSnapshotConsistencyType{
+		"onlycrashconsistent": IaasVMSnapshotConsistencyTypeOnlyCrashConsistent,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IaasVMSnapshotConsistencyType(input)
+	return &out, nil
+}
+
 type MonthOfYear string
 
 const (
