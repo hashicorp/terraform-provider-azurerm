@@ -1963,18 +1963,18 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
   roles {
     head_node {
-      vm_size  = "Standard_D4a_V4"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
     worker_node {
-      vm_size               = "Standard_D4a_V4"
+      vm_size               = "Standard_D4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 2
     }
     zookeeper_node {
-      vm_size  = "Standard_DS2_V2"
+      vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
