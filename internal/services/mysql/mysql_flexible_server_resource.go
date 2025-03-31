@@ -1032,7 +1032,7 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 }
 
 func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		det := servers.DataEncryptionTypeSystemManaged
 		return &servers.DataEncryption{
 			Type: &det,

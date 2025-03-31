@@ -1,8 +1,8 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package devcenter_test
 
-// NOTE: this file is generated - manual changes will be overwritten.
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
 	"fmt"

@@ -11,13 +11,14 @@ import (
 var _ ProtectionPolicy = AzureIaaSVMProtectionPolicy{}
 
 type AzureIaaSVMProtectionPolicy struct {
-	InstantRPDetails              *InstantRPAdditionalDetails `json:"instantRPDetails,omitempty"`
-	InstantRpRetentionRangeInDays *int64                      `json:"instantRpRetentionRangeInDays,omitempty"`
-	PolicyType                    *IAASVMPolicyType           `json:"policyType,omitempty"`
-	RetentionPolicy               RetentionPolicy             `json:"retentionPolicy"`
-	SchedulePolicy                SchedulePolicy              `json:"schedulePolicy"`
-	TieringPolicy                 *map[string]TieringPolicy   `json:"tieringPolicy,omitempty"`
-	TimeZone                      *string                     `json:"timeZone,omitempty"`
+	InstantRPDetails              *InstantRPAdditionalDetails    `json:"instantRPDetails,omitempty"`
+	InstantRpRetentionRangeInDays *int64                         `json:"instantRpRetentionRangeInDays,omitempty"`
+	PolicyType                    *IAASVMPolicyType              `json:"policyType,omitempty"`
+	RetentionPolicy               RetentionPolicy                `json:"retentionPolicy"`
+	SchedulePolicy                SchedulePolicy                 `json:"schedulePolicy"`
+	SnapshotConsistencyType       *IaasVMSnapshotConsistencyType `json:"snapshotConsistencyType,omitempty"`
+	TieringPolicy                 *map[string]TieringPolicy      `json:"tieringPolicy,omitempty"`
+	TimeZone                      *string                        `json:"timeZone,omitempty"`
 
 	// Fields inherited from ProtectionPolicy
 
@@ -63,14 +64,15 @@ var _ json.Unmarshaler = &AzureIaaSVMProtectionPolicy{}
 
 func (s *AzureIaaSVMProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		InstantRPDetails               *InstantRPAdditionalDetails `json:"instantRPDetails,omitempty"`
-		InstantRpRetentionRangeInDays  *int64                      `json:"instantRpRetentionRangeInDays,omitempty"`
-		PolicyType                     *IAASVMPolicyType           `json:"policyType,omitempty"`
-		TieringPolicy                  *map[string]TieringPolicy   `json:"tieringPolicy,omitempty"`
-		TimeZone                       *string                     `json:"timeZone,omitempty"`
-		BackupManagementType           string                      `json:"backupManagementType"`
-		ProtectedItemsCount            *int64                      `json:"protectedItemsCount,omitempty"`
-		ResourceGuardOperationRequests *[]string                   `json:"resourceGuardOperationRequests,omitempty"`
+		InstantRPDetails               *InstantRPAdditionalDetails    `json:"instantRPDetails,omitempty"`
+		InstantRpRetentionRangeInDays  *int64                         `json:"instantRpRetentionRangeInDays,omitempty"`
+		PolicyType                     *IAASVMPolicyType              `json:"policyType,omitempty"`
+		SnapshotConsistencyType        *IaasVMSnapshotConsistencyType `json:"snapshotConsistencyType,omitempty"`
+		TieringPolicy                  *map[string]TieringPolicy      `json:"tieringPolicy,omitempty"`
+		TimeZone                       *string                        `json:"timeZone,omitempty"`
+		BackupManagementType           string                         `json:"backupManagementType"`
+		ProtectedItemsCount            *int64                         `json:"protectedItemsCount,omitempty"`
+		ResourceGuardOperationRequests *[]string                      `json:"resourceGuardOperationRequests,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
@@ -79,6 +81,7 @@ func (s *AzureIaaSVMProtectionPolicy) UnmarshalJSON(bytes []byte) error {
 	s.InstantRPDetails = decoded.InstantRPDetails
 	s.InstantRpRetentionRangeInDays = decoded.InstantRpRetentionRangeInDays
 	s.PolicyType = decoded.PolicyType
+	s.SnapshotConsistencyType = decoded.SnapshotConsistencyType
 	s.TieringPolicy = decoded.TieringPolicy
 	s.TimeZone = decoded.TimeZone
 	s.BackupManagementType = decoded.BackupManagementType
