@@ -1640,7 +1640,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D4a_V4"
+      vm_size  = "Standard_DS2_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
