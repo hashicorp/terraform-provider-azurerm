@@ -165,6 +165,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 provider "azurerm" {
@@ -192,10 +193,10 @@ resource "azurerm_oracle_autonomous_database" "test" {
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
   long_term_backup_schedule {
-    repeat_cadence   = "Monthly"
-    time_of_backup   = "2025-04-03T09:00:00Z"
+    repeat_cadence           = "Monthly"
+    time_of_backup           = "2025-04-03T09:00:00Z"
     retention_period_in_days = 323
-    is_disabled      = false
+    is_disabled              = false
   }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
