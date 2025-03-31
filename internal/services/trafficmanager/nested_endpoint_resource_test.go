@@ -369,7 +369,7 @@ resource "azurerm_traffic_manager_profile" "child2" {
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctesttmpchild%[2]d"
+    relative_name = "acctesttmpchild%[2]d-2"
     ttl           = 30
   }
 
