@@ -15,7 +15,7 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34 # v5.3.0
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
           # we cannot use go-version-file here because no repositories are checked out so there is no file to reference
           go-version: '1.24.1'
