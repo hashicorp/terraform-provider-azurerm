@@ -121,10 +121,10 @@ func resourceIothubEndpointEventHubSchema() map[string]*pluginsdk.Schema {
 			ExactlyOneOf:  []string{"endpoint_uri", "connection_string"},
 		},
 
-		// NOTE: O+C : required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause a diff and break existing users
 		"subscription_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C : required since this property would always be set even if it isn't specified in the tf config, otherwise it would cause a diff and break existing users
 			Computed:     true,
 			ValidateFunc: validation.IsUUID,
 		},
