@@ -3,12 +3,12 @@ subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_partner_configuration"
 description: |-
-  Manages an Event Grid Partner Configuration
+  Manages an Event Grid Partner Configuration.
 ---
 
 # azurerm_eventgrid_partner_configuration
 
-Manages an Event Grid Partner Configuration
+Manages an Event Grid Partner Configuration.
 
 ## Example Usage
 
