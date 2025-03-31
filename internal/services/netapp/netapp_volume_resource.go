@@ -4,6 +4,7 @@
 package netapp
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -391,6 +392,23 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
 			},
 		},
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if d.HasChanges("service_level", "pool_name") {
+				serviceLevelChange := d.HasChange("service_level")
+				poolNameChange := d.HasChange("pool_name")
+
+				// `service_level` and `pool_name` must be updated together or we ForceNew the resource
+				// https://learn.microsoft.com/en-us/azure/azure-netapp-files/dynamic-change-volume-service-level
+				if serviceLevelChange && !poolNameChange {
+					return d.ForceNew("service_level")
+				}
+				if !serviceLevelChange && poolNameChange {
+					return d.ForceNew("pool_name")
+				}
+			}
+
+			return nil
+		},
 	}
 
 	return resource
@@ -750,12 +768,9 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	if d.HasChange("service_level") || d.HasChange("pool_name") {
-		if !d.HasChange("service_level") || !d.HasChange("pool_name") {
-			return fmt.Errorf("both `service_level` and `pool_name` must be changed when modifying `service_level`")
-		}
-
-		poolId := volumes.NewCapacityPoolID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, d.Get("pool_name").(string))
+	if d.HasChanges("service_level", "pool_name") {
+		poolName := d.Get("pool_name").(string)
+		poolId := volumes.NewCapacityPoolID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, poolName)
 		volumeId, err := poolchange.ParseVolumeID(id.ID())
 		if err != nil {
 			return err
@@ -763,9 +778,18 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		poolChangeInput := poolchange.PoolChangeRequest{
 			NewPoolResourceId: poolId.ID(),
 		}
-		if err = poolChangeClient.VolumesPoolChangeThenPoll(ctx, *volumeId, poolChangeInput); err != nil {
+		if _, err = poolChangeClient.VolumesPoolChange(ctx, *volumeId, poolChangeInput); err != nil {
 			return fmt.Errorf("updating `service_level` for %s: %+v", id, err)
 		}
+
+		// the id needs to be updated as the pool is different
+		newId := volumes.NewVolumeID(id.SubscriptionId, id.ResourceGroupName, id.NetAppAccountName, poolName, id.VolumeName)
+
+		if err = waitForVolumeCreateOrUpdate(ctx, client, newId); err != nil {
+			return err
+		}
+
+		d.SetId(newId.ID())
 	}
 
 	return resourceNetAppVolumeRead(d, meta)

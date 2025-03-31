@@ -152,6 +152,10 @@ The following arguments are supported:
 
 * `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
+~> **Note:** When updating `service_level` by migrating it to another Capacity Pool, both `service_level` and `pool_name` must be changed, otherwise the volume will be recreated with the specified `service_level`.
+
+~> **Note:** After updating `service_level` the `id` for the volume will change to include the new Capacity Pool so any resources referencing the Volume will be silently removed from state. They will still exist in Azure but need to reimported into Terraform.
+
 * `azure_vmware_data_store_enabled` - (Optional) Is the NetApp Volume enabled for Azure VMware Solution (AVS) datastore purpose. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `protocols` - (Optional) The target volume protocol expressed as a list. Supported single value include `CIFS`, `NFSv3`, or `NFSv4.1`. If argument is not defined it will default to `NFSv3`. Changing this forces a new resource to be created and data will be lost. Dual protocol scenario is supported for CIFS and NFSv3, for more information, please refer to [Create a dual-protocol volume for Azure NetApp Files](https://docs.microsoft.com/azure/azure-netapp-files/create-volumes-dual-protocol) document.

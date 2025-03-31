@@ -1511,7 +1511,7 @@ func (r NetAppVolumeResource) serviceLevelUpdate(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_netapp_pool" "test" {
+resource "azurerm_netapp_pool" "test2" {
   name                = "acctest-NetAppPool2-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1531,7 +1531,7 @@ resource "azurerm_netapp_volume" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
+  pool_name           = azurerm_netapp_pool.test2.name
   volume_path         = "my-unique-file-path-%[2]d"
   service_level       = "Premium"
   subnet_id           = azurerm_subnet.test.id
