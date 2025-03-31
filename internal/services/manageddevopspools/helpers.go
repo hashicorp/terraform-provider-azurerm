@@ -287,6 +287,7 @@ func expandSecretsManagementSettingsModel(input []SecretsManagementSettingsModel
 	secretsManagementSettings := input[0]
 	output := &pools.SecretsManagementSettings{
 		CertificateStoreLocation: secretsManagementSettings.CertificateStoreLocation,
+		CertificateStoreName:     secretsManagementSettings.CertificateStoreName,
 		KeyExportable:            secretsManagementSettings.KeyExportable,
 		ObservedCertificates:     secretsManagementSettings.ObservedCertificates,
 	}
@@ -476,6 +477,7 @@ func flattenSecretsManagementSettingsToModel(input *pools.SecretsManagementSetti
 
 	secretsManagementSettingsModel := SecretsManagementSettingsModel{
 		CertificateStoreLocation: input.CertificateStoreLocation,
+		CertificateStoreName:     input.CertificateStoreName,
 		KeyExportable:            input.KeyExportable,
 		ObservedCertificates:     input.ObservedCertificates,
 	}

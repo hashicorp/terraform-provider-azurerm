@@ -70,6 +70,7 @@ type OsProfileModel struct {
 
 type SecretsManagementSettingsModel struct {
 	CertificateStoreLocation *string  `tfschema:"certificate_store_location"`
+	CertificateStoreName     *string  `tfschema:"certificate_store_name"`
 	KeyExportable            bool     `tfschema:"key_exportable"`
 	ObservedCertificates     []string `tfschema:"observed_certificates"`
 }

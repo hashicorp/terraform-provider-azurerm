@@ -184,6 +184,10 @@ func SecretsManagementSettingsSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 				},
+				"certificate_store_name": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
 				"key_exportable": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
