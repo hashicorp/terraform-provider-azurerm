@@ -138,6 +138,47 @@ func parseCachingType(input string) (*CachingType, error) {
 	return &out, nil
 }
 
+type CertificateStoreNameOption string
+
+const (
+	CertificateStoreNameOptionMy   CertificateStoreNameOption = "My"
+	CertificateStoreNameOptionRoot CertificateStoreNameOption = "Root"
+)
+
+func PossibleValuesForCertificateStoreNameOption() []string {
+	return []string{
+		string(CertificateStoreNameOptionMy),
+		string(CertificateStoreNameOptionRoot),
+	}
+}
+
+func (s *CertificateStoreNameOption) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCertificateStoreNameOption(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseCertificateStoreNameOption(input string) (*CertificateStoreNameOption, error) {
+	vals := map[string]CertificateStoreNameOption{
+		"my":   CertificateStoreNameOptionMy,
+		"root": CertificateStoreNameOptionRoot,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CertificateStoreNameOption(input)
+	return &out, nil
+}
+
 type CheckNameAvailabilityReason string
 
 const (
@@ -214,6 +255,50 @@ func parseDevOpsInfrastructureResourceType(input string) (*DevOpsInfrastructureR
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := DevOpsInfrastructureResourceType(input)
+	return &out, nil
+}
+
+type EphemeralType string
+
+const (
+	EphemeralTypeAutomatic    EphemeralType = "Automatic"
+	EphemeralTypeCacheDisk    EphemeralType = "CacheDisk"
+	EphemeralTypeResourceDisk EphemeralType = "ResourceDisk"
+)
+
+func PossibleValuesForEphemeralType() []string {
+	return []string{
+		string(EphemeralTypeAutomatic),
+		string(EphemeralTypeCacheDisk),
+		string(EphemeralTypeResourceDisk),
+	}
+}
+
+func (s *EphemeralType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseEphemeralType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseEphemeralType(input string) (*EphemeralType, error) {
+	vals := map[string]EphemeralType{
+		"automatic":    EphemeralTypeAutomatic,
+		"cachedisk":    EphemeralTypeCacheDisk,
+		"resourcedisk": EphemeralTypeResourceDisk,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := EphemeralType(input)
 	return &out, nil
 }
 

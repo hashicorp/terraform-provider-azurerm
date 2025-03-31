@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2024-10-19/pools` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools` Documentation
 
-The `pools` SDK allows for interaction with Azure Resource Manager `devopsinfrastructure` (API Version `2024-10-19`).
+The `pools` SDK allows for interaction with Azure Resource Manager `devopsinfrastructure` (API Version `2025-01-21`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2024-10-19/pools"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 ```
 
 
