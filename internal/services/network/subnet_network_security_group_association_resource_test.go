@@ -52,7 +52,7 @@ func TestAccSubnetNetworkSecurityGroupAssociation_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: regexp.MustCompile(fmt.Sprintf("has already attached Network Security Group")),
+			ExpectError: regexp.MustCompile("has already attached Network Security Group"),
 		},
 	})
 }
