@@ -122,7 +122,6 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 				Optional: true,
 				// NOTE: O+C the API dynamically increments the default value for priority depending on the number of endpoints
 				Computed:     true,
-				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
