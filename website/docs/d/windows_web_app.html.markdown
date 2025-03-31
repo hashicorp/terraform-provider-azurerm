@@ -327,7 +327,7 @@ A `facebook_v2` block supports the following:
 
 A `github_v2` block supports the following:
 
-* `client_id` - The ID of the GitHub app used for login..
+* `client_id` - The ID of the GitHub app used for login.
 
 * `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
 
@@ -650,10 +650,6 @@ A `slow_request` block exports the following:
 * `count` - The number of requests within the interval at which to trigger.
 
 * `interval` - The time interval.
-
-* `path` - The App Path for which this rule applies.
-
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
 
 * `time_taken` - The amount of time that qualifies as slow for this rule.
 

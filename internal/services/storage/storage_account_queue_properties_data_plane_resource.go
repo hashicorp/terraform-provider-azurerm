@@ -297,9 +297,12 @@ func (s AccountQueuePropertiesResource) Create() sdk.ResourceFunc {
 			}
 			accountReplicationType := accountReplicationTypeParts[1]
 
-			accountDetails, err := storageClient.FindAccount(ctx, accountID.SubscriptionId, accountID.StorageAccountName)
+			accountDetails, err := storageClient.GetAccount(ctx, *accountID)
 			if err != nil {
 				return err
+			}
+			if accountDetails == nil {
+				return fmt.Errorf("unable to locate %s", *accountID)
 			}
 
 			supportLevel := availableFunctionalityForAccount(accountDetails.Kind, accountTier, accountReplicationType)
@@ -398,7 +401,7 @@ func (s AccountQueuePropertiesResource) Read() sdk.ResourceFunc {
 
 			state.StorageAccountId = id.ID()
 
-			account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
 				return metadata.MarkAsGone(id)
 			}
@@ -481,7 +484,7 @@ func (s AccountQueuePropertiesResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -514,7 +517,7 @@ func (s AccountQueuePropertiesResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			account, err := storageClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -348,40 +347,6 @@ type CustomDomain struct {
 	CertBinding   string `tfschema:"certificate_binding_type"`
 	CertificateId string `tfschema:"certificate_id"`
 	Name          string `tfschema:"name"`
-}
-
-func ContainerAppIngressCustomDomainSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		MaxItems:   1,
-		Deprecated: "This property is deprecated in favour of the new `azurerm_container_app_custom_domain` resource and will become computed only in a future release.",
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"certificate_binding_type": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Default:      containerapps.BindingTypeDisabled,
-					ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForBindingType(), false),
-					Description:  "The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`",
-				},
-
-				"certificate_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: managedenvironments.ValidateCertificateID,
-				},
-
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The hostname of the Certificate. Must be the CN or a named SAN in the certificate.",
-				},
-			},
-		},
-	}
 }
 
 func ContainerAppIngressCustomDomainSchemaComputed() *pluginsdk.Schema {
@@ -1448,9 +1413,10 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 }
 
 type ContainerVolume struct {
-	Name        string `tfschema:"name"`
-	StorageName string `tfschema:"storage_name"`
-	StorageType string `tfschema:"storage_type"`
+	Name         string `tfschema:"name"`
+	StorageName  string `tfschema:"storage_name"`
+	StorageType  string `tfschema:"storage_type"`
+	MountOptions string `tfschema:"mount_options"`
 }
 
 func ContainerVolumeSchema() *pluginsdk.Schema {
@@ -1483,6 +1449,13 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					ValidateFunc: validate.ManagedEnvironmentStorageName,
 					Description:  "The name of the `AzureFile` storage. Required when `storage_type` is `AzureFile`",
 				},
+
+				"mount_options": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Mount options used while mounting the AzureFile. Must be a comma-separated string.",
+				},
 			},
 		},
 	}
@@ -1505,6 +1478,11 @@ func ContainerVolumeSchemaComputed() *pluginsdk.Schema {
 				},
 
 				"storage_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"mount_options": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
@@ -1531,6 +1509,9 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 			storageType := containerapps.StorageType(v.StorageType)
 			volume.StorageType = &storageType
 		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
+		}
 		volumes = append(volumes, volume)
 	}
 
@@ -1550,6 +1531,9 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 		}
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
+		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
 
 		result = append(result, containerVolume)
@@ -2764,25 +2748,6 @@ func ExpandContainerSecrets(input []Secret) (*[]containerapps.Secret, error) {
 	return &result, nil
 }
 
-func ExpandFormerContainerSecrets(metadata sdk.ResourceMetaData) *[]containerapps.Secret {
-	secretsRaw, _ := metadata.ResourceData.GetChange("secret")
-	result := make([]containerapps.Secret, 0)
-	if secrets, ok := secretsRaw.([]interface{}); ok {
-		for _, secret := range secrets {
-			if v, ok := secret.(map[string]interface{}); ok {
-				result = append(result, containerapps.Secret{
-					Identity:    pointer.To(v["Identity"].(string)),
-					KeyVaultURL: pointer.To(v["KeyVaultURL"].(string)),
-					Name:        pointer.To(v["name"].(string)),
-					Value:       pointer.To(v["value"].(string)),
-				})
-			}
-		}
-	}
-
-	return &result
-}
-
 func UnpackContainerSecretsCollection(input *containerapps.SecretsCollection) *[]containerapps.Secret {
 	if input == nil || len(input.Value) == 0 {
 		return nil
@@ -2815,55 +2780,6 @@ func UnpackContainerDaprSecretsCollection(input *daprcomponents.DaprSecretsColle
 type DaprSecret struct {
 	Name  string `tfschema:"name"`
 	Value string `tfschema:"value"`
-}
-
-func DaprSecretsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:      pluginsdk.TypeSet,
-		Optional:  true,
-		Sensitive: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validate.SecretName,
-					Description:  "The secret name.",
-				},
-
-				"value": {
-					Type:        pluginsdk.TypeString,
-					Required:    true,
-					Sensitive:   true,
-					Description: "The value for this secret.",
-				},
-			},
-		},
-	}
-}
-
-func DaprSecretsDataSourceSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:      pluginsdk.TypeList,
-		Computed:  true,
-		Sensitive: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"name": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Description: "The secret name.",
-				},
-
-				"value": {
-					Type:        pluginsdk.TypeString,
-					Computed:    true,
-					Sensitive:   true,
-					Description: "The value for this secret.",
-				},
-			},
-		},
-	}
 }
 
 func ExpandDaprSecrets(input []DaprSecret) *[]daprcomponents.Secret {

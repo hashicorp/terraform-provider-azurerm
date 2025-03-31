@@ -5,9 +5,9 @@ package pipelines
 
 type HDInsightPigActivityTypeProperties struct {
 	Arguments             *[]string                         `json:"arguments,omitempty"`
-	Defines               *map[string]string                `json:"defines,omitempty"`
+	Defines               *map[string]interface{}           `json:"defines,omitempty"`
 	GetDebugInfo          *HDInsightActivityDebugInfoOption `json:"getDebugInfo,omitempty"`
 	ScriptLinkedService   *LinkedServiceReference           `json:"scriptLinkedService,omitempty"`
-	ScriptPath            *string                           `json:"scriptPath,omitempty"`
+	ScriptPath            *interface{}                      `json:"scriptPath,omitempty"`
 	StorageLinkedServices *[]LinkedServiceReference         `json:"storageLinkedServices,omitempty"`
 }

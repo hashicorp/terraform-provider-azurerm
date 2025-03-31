@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions"
@@ -21,24 +22,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+// The resource name should be `azurerm_extended_location_custom_location` as in the resource doc,
+// but in source code it was named `azurerm_extended_custom_location`.
+// This resource is superseded by a new resource with the correct name, and will be removed in 5.0
+func (r CustomLocationResource) DeprecatedInFavourOfResource() string {
+	return "azurerm_extended_location_custom_location"
+}
+
+var (
+	_ sdk.ResourceWithUpdate                = CustomLocationResource{}
+	_ sdk.ResourceWithDeprecationReplacedBy = CustomLocationResource{}
+)
+
 type CustomLocationResource struct{}
-
-type CustomLocationResourceModel struct {
-	Name                string      `tfschema:"name"`
-	ResourceGroupName   string      `tfschema:"resource_group_name"`
-	Location            string      `tfschema:"location"`
-	Authentication      []AuthModel `tfschema:"authentication"`
-	ClusterExtensionIds []string    `tfschema:"cluster_extension_ids"`
-	DisplayName         string      `tfschema:"display_name"`
-	HostResourceId      string      `tfschema:"host_resource_id"`
-	HostType            string      `tfschema:"host_type"`
-	Namespace           string      `tfschema:"namespace"`
-}
-
-type AuthModel struct {
-	Type  string `tfschema:"type"`
-	Value string `tfschema:"value"`
-}
 
 func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*schema.Schema{
@@ -91,7 +87,6 @@ func (r CustomLocationResource) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -123,7 +118,7 @@ func (r CustomLocationResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (r CustomLocationResource) ModelObject() interface{} {
-	return &CustomLocationResourceModel{}
+	return &ExtendedLocationCustomLocationResourceModel{}
 }
 
 func (r CustomLocationResource) ResourceType() string {
@@ -134,7 +129,7 @@ func (r CustomLocationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model CustomLocationResourceModel
+			var model ExtendedLocationCustomLocationResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
@@ -170,7 +165,7 @@ func (r CustomLocationResource) Create() sdk.ResourceFunc {
 
 			props := customlocations.CustomLocation{
 				Id:         pointer.To(id.ID()),
-				Location:   model.Location,
+				Location:   location.Normalize(model.Location),
 				Name:       pointer.To(model.Name),
 				Properties: pointer.To(customLocationProps),
 			}
@@ -200,16 +195,16 @@ func (r CustomLocationResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			if model := resp.Model; model != nil {
 				props := model.Properties
 
-				state := CustomLocationResourceModel{
+				state := ExtendedLocationCustomLocationResourceModel{
 					Name:                id.CustomLocationName,
 					ResourceGroupName:   id.ResourceGroupName,
-					Location:            model.Location,
+					Location:            location.Normalize(model.Location),
 					ClusterExtensionIds: pointer.From(props.ClusterExtensionIds),
 					DisplayName:         pointer.From(props.DisplayName),
 					HostResourceId:      pointer.From(props.HostResourceId),
@@ -265,7 +260,7 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state CustomLocationResourceModel
+			var state ExtendedLocationCustomLocationResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
@@ -294,11 +289,15 @@ func (r CustomLocationResource) Update() sdk.ResourceFunc {
 				model.Properties.Authentication = nil
 			}
 
+			if d.HasChange("display_name") {
+				model.Properties.DisplayName = pointer.To(state.DisplayName)
+			}
+
 			if d.HasChange("cluster_extension_ids") {
 				model.Properties.ClusterExtensionIds = pointer.To(state.ClusterExtensionIds)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil

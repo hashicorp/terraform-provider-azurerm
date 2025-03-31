@@ -19,9 +19,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -635,7 +635,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Properties: &profile,
 	}
 
-	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters)
+	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -729,6 +729,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	if d.HasChange("kubelet_config") {
 		kubeletConfigRaw := d.Get("kubelet_config").([]interface{})
 		props.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfigRaw)
+	}
+
+	if d.HasChange("kubelet_disk_type") {
+		props.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string)))
 	}
 
 	if d.HasChange("linux_os_config") {
@@ -900,6 +904,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		"fips_enabled",
 		"host_encryption_enabled",
 		"kubelet_config",
+		"kubelet_disk_type",
 		"linux_os_config",
 		"max_pods",
 		"node_public_ip_enabled",
@@ -958,7 +963,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 		// delete the old node pool if it exists
 		if existing.Model != nil {
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting old %s: %+v", *id, err)
 			}
 		}
@@ -969,14 +974,14 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("creating default %s: %+v", *id, err)
 		}
 
-		if err := client.DeleteThenPoll(ctx, tempNodePoolId); err != nil {
+		if err := client.DeleteThenPoll(ctx, tempNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 			return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
 		}
 
 		log.Printf("[DEBUG] Cycled Node Pool..")
 	} else {
 		log.Printf("[DEBUG] Updating existing %s..", *id)
-		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Node Pool %s: %+v", *id, err)
 		}
@@ -988,7 +993,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -998,18 +1002,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	// if the parent cluster doesn't exist then the node pool won't
 	clusterId := commonids.NewKubernetesClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
-	cluster, err := clustersClient.Get(ctx, clusterId)
-	if err != nil {
-		if response.WasNotFound(cluster.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", clusterId)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", clusterId, err)
-	}
 
 	resp, err := poolsClient.Get(ctx, *id)
 	if err != nil {
@@ -1188,7 +1181,7 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id, agentpools.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

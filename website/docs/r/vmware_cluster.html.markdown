@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `cluster_node_count` - (Required) The count of the Azure VMware Solution Cluster nodes.
 
-* `sku_name` - (Required) The Cluster SKU to use. Possible values are `av20`, `av36`, `av36t`, `av36p`, `av36pt`, `av52`, `av52t`, and `av64`. Changing this forces a new Azure VMware Solution Cluster to be created.
+* `sku_name` - (Required) The Cluster SKU to use. Possible values are `av20`, `av36`, `av36t`, `av36p`, `av48`, `av48t`, `av36pt`, `av52`, `av52t`, and `av64`. Changing this forces a new Azure VMware Solution Cluster to be created.
 
 ## Attributes Reference
 

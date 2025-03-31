@@ -975,7 +975,13 @@ func (m schemaMap) internalValidate(topSchemaMap schemaMap, attrsOnly bool) erro
 			case *Resource:
 				attrsOnly := attrsOnly || v.ConfigMode == SchemaConfigModeAttr
 
-				if v.Computed && schemaMap(t.SchemaMap()).hasWriteOnly() {
+				blockHasWriteOnly := schemaMap(t.SchemaMap()).hasWriteOnly()
+
+				if v.Type == TypeSet && blockHasWriteOnly {
+					return fmt.Errorf("%s: Set Block type cannot contain WriteOnly attributes", k)
+				}
+
+				if v.Computed && blockHasWriteOnly {
 					return fmt.Errorf("%s: Block types with Computed set to true cannot contain WriteOnly attributes", k)
 				}
 
