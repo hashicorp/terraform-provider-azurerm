@@ -21,7 +21,7 @@ func TestAccDataSourceMySqlFlexibleServer_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("B_Standard_B1s"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("B_Standard_B1ms"),
 				check.That(data.ResourceName).Key("administrator_login").HasValue("_admin_Terraform_892123456789312"),
 			),
 		},
