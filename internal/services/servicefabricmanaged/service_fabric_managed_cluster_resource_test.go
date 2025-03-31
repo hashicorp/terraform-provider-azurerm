@@ -190,6 +190,10 @@ provider "azurerm" {
   features {}
 }
 
+data "azuread_service_principal" "test" {
+  display_name = "Azure Service Fabric Resource Provider"
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-sfmc-%[1]d"
   location = "%[2]s"
@@ -209,6 +213,12 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_subnet.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
 resource "azurerm_service_fabric_managed_cluster" "test" {
   name                = "testacc-sfmc-%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -218,7 +228,6 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   password            = "NotV3ryS3cur3P@$$w0rd"
   dns_service_enabled = true
   subnet_id           = azurerm_subnet.test.id
-  use_custom_vnet     = true
 
   client_connection_port = 12345
   http_gateway_port      = 23456
@@ -242,6 +251,8 @@ resource "azurerm_service_fabric_managed_cluster" "test" {
   tags = {
     Test = "value"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, nodeTypeData)
 }
