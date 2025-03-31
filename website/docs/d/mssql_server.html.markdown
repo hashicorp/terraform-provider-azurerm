@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `administrator_login` - The administrator login name of the Microsoft SQL Server.
 
-* `express_vulnerability_assessment_enabled` - (Optional) Whether the Express Vulnerability Assessment Configuration is enabled.
+* `express_vulnerability_assessment_enabled` - Whether the Express Vulnerability Assessment Configuration is enabled.
 
 * `fully_qualified_domain_name` - The fully qualified domain name of the Microsoft SQL Server.
 

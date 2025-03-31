@@ -368,7 +368,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if _, err := vaClient.CreateOrUpdate(ctx, id, va); err != nil {
-		return fmt.Errorf("creating Express Vulnerability Assessment settings for %s: %+v", id, err)
+		return fmt.Errorf("creating Express Vulnerability Assessment Settings for %s: %+v", id, err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -554,7 +554,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if _, err := vaClient.CreateOrUpdate(ctx, *id, va); err != nil {
-			return fmt.Errorf("updating Express Vulnerability Assessment settings for %s: %+v", *id, err)
+			return fmt.Errorf("updating Express Vulnerability Assessment Settings for %s: %+v", *id, err)
 		}
 	}
 
