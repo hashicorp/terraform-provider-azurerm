@@ -152,10 +152,10 @@ resource "azurerm_qumulo_file_system" "import" {
   resource_group_name = azurerm_qumulo_file_system.test.resource_group_name
   location            = azurerm_qumulo_file_system.test.location
   admin_password      = azurerm_qumulo_file_system.test.admin_password
-  plan_id             = azurerm_qumulo_file_system.test.marketplace_plan_id
+  plan_id             = azurerm_qumulo_file_system.test.plan_id
   storage_sku         = azurerm_qumulo_file_system.test.storage_sku
   subnet_id           = azurerm_qumulo_file_system.test.subnet_id
-  email               = azurerm_qumulo_file_system.test.user_email_address
+  email               = azurerm_qumulo_file_system.test.email
   zone                = azurerm_qumulo_file_system.test.zone
 }
 `, r.basic(data))
