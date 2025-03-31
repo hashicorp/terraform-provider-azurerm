@@ -1,8 +1,5 @@
 package devcenter_test
 
-// NOTE: this file is generated - manual changes will be overwritten.
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
 	"fmt"
@@ -69,7 +66,7 @@ func TestAccDevCenterProject_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -83,7 +80,7 @@ func TestAccDevCenterProject_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -155,6 +152,24 @@ resource "azurerm_dev_center_project" "test" {
     environment = "terraform-acctests"
     some_key    = "some-value"
   }
+}
+`, r.template(data))
+}
+
+func (r DevCenterProjectTestResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_dev_center_project" "test" {
+  dev_center_id       = azurerm_dev_center.test.id
+  location            = azurerm_resource_group.test.location
+  name                = "acctestdcp-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  description         = "Description for the Dev Center Project"
 }
 `, r.template(data))
 }
