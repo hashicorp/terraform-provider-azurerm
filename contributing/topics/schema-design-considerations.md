@@ -24,9 +24,9 @@ type ManagedClusterWorkloadAutoScalerProfileVerticalPodAutoscaler struct {
 }
 ```
 
-Although there are still resources within the provider where this property is exposed in the Terraform schema, the provider is moving away from this and instead translates this behaviour in one of two ways.
+This is handled in the provider one of two ways depending on if the `Enabled` field is by its self or with other fields in the object.
 
-In cases where `Enabled` is the only field required to turn a feature on and off we opt to flatten the block into a single top level property (or higher level property if already nested inside a block). So in the case of Example A, this would become:
+In the cases where `Enabled` is the only field within the object we opt to flatten the block into a single top level property (or higher level property if already nested inside a block). So in the case of Example A, this would become:
 
 ```go
 "storage_blob_driver_enabled": {
@@ -36,7 +36,7 @@ In cases where `Enabled` is the only field required to turn a feature on and off
 },
 ```
 
-For features that can accept or require configuration, i.e. the object contains additional properties other than `Enabled` like in Example B, the behaviour should be such that when the block is present the feature is enabled, and when it is absent it is disabled. The corresponding Terraform schema would be as follows:
+However when there are multiple fields in addition to the `Enabled` field and they are all required for the object/feature like in Example B, a terraform block is created with all the fields including `Enabled`. The corresponding Terraform schema would be as follows:
 
 ```go
 "vertical_pod_autoscaler": {
@@ -45,6 +45,11 @@ For features that can accept or require configuration, i.e. the object contains 
     MaxItems: 1,
     Elem: &pluginsdk.Resource{
         Schema: map[string]*pluginsdk.Schema{
+            "enabled": {
+                Type:     pluginsdk.TypeBool,
+                Optional: true,
+                Default:  false,
+            },
             "update_mode": {
                 Type:     pluginsdk.TypeString,
                 Required: true,
@@ -67,7 +72,7 @@ For features that can accept or require configuration, i.e. the object contains 
 },
 ```
 
-There are instances where configuration properties for a feature is optional, as shown below.
+Finally there are instances where the addtional fields/properties for a object/feature are optional or few in number, as shown below.
 
 Example C.
 ```go
@@ -77,7 +82,7 @@ type ManagedClusterStorageProfileDiskCSIDriver struct {
 }
 ```
 
-In cases like these one option is to flatten the block into two top level properties.
+In cases like these one option is to flatten the block into two top level properties:
 
 ```go
 "storage_disk_driver_enabled": {
@@ -97,27 +102,7 @@ In cases like these one option is to flatten the block into two top level proper
 },
 ```
 
-Depending on the behaviour of the Azure API and the default set by it, a worthwhile alternative is to set the property as required in the Terraform schema, to avoid having to set empty blocks to enable features.
-
-```go
-"storage_disk_driver": {
-    Type:     pluginsdk.TypeList,
-    Optional: true,
-    MaxItems: 1,
-    Elem: &pluginsdk.Resource{
-        Schema: map[string]*pluginsdk.Schema{
-            "version": {
-                Type:     pluginsdk.TypeString,
-                Required: true,
-                ValidateFunc: validation.StringInSlice([]string{
-                    "V1",
-                    "V2",
-                }, false),
-            },
-        },
-    },
-},
-```
+A judgement call should be made based off the behaviour of the API and expectations of a user.
 
 ## The `None` value or similar
 
@@ -189,6 +174,56 @@ func (r resource) Read() sdk.ResourceFunc {
 }
 ```
 
+## SKU fields
+
+Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:
+
+1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument. 
+2. When the SKU requires multiple arguments (e.g. `name` and `capacity`), use a `sku` block.
+
+Example of a `sku` argument:
+```go
+"sku": {
+	Type:     pluginsdk.TypeString,
+	Optional: true,
+	Default:  string(firewallpolicies.FirewallPolicySkuTierStandard),
+	ForceNew: true,
+	ValidateFunc: validation.StringInSlice([]string{
+		string(firewallpolicies.FirewallPolicySkuTierPremium),
+		string(firewallpolicies.FirewallPolicySkuTierStandard),
+		string(firewallpolicies.FirewallPolicySkuTierBasic),
+	}, false),
+}
+```
+
+Example of a `sku` block:
+```go
+	"sku": {
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(helpers.PossibleValuesForSkuName(), false),
+				},
+				"capacity": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default:  1,
+					ValidateFunc: validation.IntInSlice([]int{
+						1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
+					}),
+				},
+			},
+		},
+	},
+```
+
+While you may encounter arguments like `sku_name`, `sku_family`, and `capacity` in existing resources, new arguments should avoid this format and use one of the two options above.
+
 ## The `type` field
 
 The Azure API makes use of classes and inheritance through discriminator types defined in the REST API specifications. A strong indicator that a resource is actually a discriminated type is through the definition of a `type` or `kind` property.
@@ -215,10 +250,10 @@ Taking the Data Factory Linked Service resources as an example which could have 
 ```
 
 Would be better exposed as the following resources:
+
 - `azurerm_data_factory_linked_service_azure_blob_storage`
 - `azurerm_data_factory_linked_service_azure_databricks`
 - `azurerm_data_factory_linked_service_azure_file_storage`
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
-   ...

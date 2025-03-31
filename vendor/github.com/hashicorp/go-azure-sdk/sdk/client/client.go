@@ -471,8 +471,13 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 		// Check for failed connections etc and decide if retries are appropriate
 		if r == nil {
 			if req.IsIdempotent() {
-				return extendedRetryPolicy(r, err)
+				if !isResourceManagerHost(req) {
+					return extendedRetryPolicy(r, err)
+				}
+
+				return retryablehttp.DefaultRetryPolicy(ctx, r, err)
 			}
+
 			return false, fmt.Errorf("HTTP response was nil; connection may have been reset")
 		}
 
@@ -617,7 +622,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 			return resp, err
 		}
 	}
-	if nextLink == nil {
+	if nextLink == nil || string(*nextLink) == "" {
 		// This is the last page
 		return resp, nil
 	}
@@ -754,6 +759,7 @@ func containsStatusCode(expected []int, actual int) bool {
 
 // extendedRetryPolicy extends the defaultRetryPolicy implementation in go-retryablehhtp with
 // additional error conditions that should not be retried indefinitely
+// TODO - This should be removed as part of 5.0 release of AzureRM, and the base layer returned to the `retryablehttp.DefaultRetryPolicy` for all requests.
 func extendedRetryPolicy(resp *http.Response, err error) (bool, error) {
 	// A regular expression to match the error returned by net/http when the
 	// configured number of redirects is exhausted. This error isn't typed
@@ -777,10 +783,10 @@ func extendedRetryPolicy(resp *http.Response, err error) (bool, error) {
 
 	// A regular expression to catch dial timeouts in the underlying TCP session
 	// connection
-	tcpDialTimeoutRe := regexp.MustCompile(`dial tcp .*: i/o timeout`)
+	tcpDialTCPRe := regexp.MustCompile(`dial tcp`)
 
-	// A regular expression to match complete packet loss - see comment below on packet-loss scenarios
-	// completePacketLossRe := regexp.MustCompile(`EOF$`)
+	// A regular expression to match complete packet loss
+	completePacketLossRe := regexp.MustCompile(`EOF`)
 
 	if err != nil {
 		var v *url.Error
@@ -805,15 +811,13 @@ func extendedRetryPolicy(resp *http.Response, err error) (bool, error) {
 				return false, v
 			}
 
-			if tcpDialTimeoutRe.MatchString(v.Error()) {
+			if tcpDialTCPRe.MatchString(v.Error()) {
 				return false, v
 			}
 
-			// TODO - Need to investigate how to deal with total packet-loss situations that doesn't break LRO retries.
-			// Such as Temporary Proxy outage, or recoverable disruption to network traffic (e.g. bgp events etc)
-			// if completePacketLossRe.MatchString(v.Error()) {
-			//	return false, v
-			// }
+			if completePacketLossRe.MatchString(v.Error()) {
+				return false, v
+			}
 
 			var certificateVerificationError *tls.CertificateVerificationError
 			if ok := errors.As(v.Err, &certificateVerificationError); ok {
@@ -841,4 +845,23 @@ func extendedRetryPolicy(resp *http.Response, err error) (bool, error) {
 	}
 
 	return false, nil
+}
+
+// exclude Resource Manager calls from the network failure retry avoidance to help users on unreliable networks
+// This code path should be removed when the Data Plane separation work is completed and 5.0 ships.
+func isResourceManagerHost(req *Request) bool {
+	knownResourceManagerHosts := []string{
+		"management.azure.com",
+		"management.chinacloudapi.cn",
+		"management.usgovcloudapi.net",
+	}
+	if url := req.Request.URL; url != nil {
+		for _, host := range knownResourceManagerHosts {
+			if strings.Contains(url.Host, host) {
+				return true
+			}
+		}
+	}
+
+	return false
 }

@@ -22,9 +22,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverconnectionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
@@ -33,11 +34,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlServer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMsSqlServerCreate,
 		Read:   resourceMsSqlServerRead,
 		Update: resourceMsSqlServerUpdate,
@@ -83,15 +83,31 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				Computed:     true,
 				ForceNew:     true,
 				AtLeastOneOf: []string{"administrator_login", "azuread_administrator.0.azuread_authentication_only"},
-				RequiredWith: []string{"administrator_login", "administrator_login_password"},
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"administrator_login_password": {
-				Type:         pluginsdk.TypeString,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				AtLeastOneOf:  []string{"administrator_login_password", "administrator_login_password_wo", "azuread_administrator.0.azuread_authentication_only"},
+				ConflictsWith: []string{"administrator_login_password_wo"},
+			},
+
+			"administrator_login_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				WriteOnly:     true,
+				AtLeastOneOf:  []string{"administrator_login_password_wo", "administrator_login_password", "azuread_administrator.0.azuread_authentication_only"},
+				ConflictsWith: []string{"administrator_login_password"},
+				RequiredWith:  []string{"administrator_login_password_wo_version"},
+			},
+
+			"administrator_login_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Sensitive:    true,
-				AtLeastOneOf: []string{"administrator_login_password", "azuread_administrator.0.azuread_authentication_only"},
-				RequiredWith: []string{"administrator_login", "administrator_login_password"},
+				RequiredWith: []string{"administrator_login_password_wo"},
 			},
 
 			"azuread_administrator": {
@@ -155,16 +171,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 				},
 			},
 
-			// TODO 4.0: Switch this field to use None pattern...
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  "1.2",
 				ValidateFunc: validation.StringInSlice([]string{
-					"1.0",
-					"1.1",
 					"1.2",
-					"Disabled",
 				}, false),
 			},
 
@@ -202,6 +214,22 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(msSqlPasswordChangeWhenAADAuthOnly),
 		),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "1.2",
+			ValidateFunc: validation.StringInSlice([]string{
+				"1.0",
+				"1.1",
+				"1.2",
+				"Disabled",
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -212,9 +240,6 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	defer cancel()
 
 	id := commonids.NewSqlServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	version := d.Get("version").(string)
 
 	existing, err := client.Get(ctx, id, servers.DefaultGetOperationOptions())
 	if err != nil {
@@ -228,21 +253,37 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	props := servers.Server{
-		Location: location,
+		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &servers.ServerProperties{
-			Version:                       pointer.To(version),
+			Version:                       pointer.To(d.Get("version").(string)),
 			PublicNetworkAccess:           pointer.To(servers.ServerPublicNetworkAccessFlagEnabled),
 			RestrictOutboundNetworkAccess: pointer.To(servers.ServerNetworkAccessFlagDisabled),
 		},
 	}
 
-	if v := d.Get("administrator_login"); v.(string) != "" {
-		props.Properties.AdministratorLogin = utils.String(v.(string))
+	woAdminLoginPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
+	if err != nil {
+		return err
 	}
 
-	if v := d.Get("administrator_login_password"); v.(string) != "" {
-		props.Properties.AdministratorLoginPassword = utils.String(v.(string))
+	adminLogin := d.Get("administrator_login").(string)
+	adminLoginPassword := d.Get("administrator_login_password").(string)
+
+	if adminLogin != "" {
+		if adminLoginPassword == "" && woAdminLoginPassword.IsNull() {
+			return fmt.Errorf("expected `administrator_login_password` or `administrator_login_password_wo` to be set when `administrator_login` is specified")
+		}
+
+		props.Properties.AdministratorLogin = pointer.To(adminLogin)
+	}
+
+	if adminLoginPassword != "" {
+		props.Properties.AdministratorLoginPassword = pointer.To(adminLoginPassword)
+	}
+
+	if !woAdminLoginPassword.IsNull() {
+		props.Properties.AdministratorLoginPassword = pointer.To(woAdminLoginPassword.AsString())
 	}
 
 	// NOTE: You must set the admin before setting the values of the admin...
@@ -286,7 +327,6 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		props.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
 	}
 
-	// TODO 4.0: Switch this field to use None pattern...
 	if v := d.Get("minimum_tls_version"); v.(string) != "Disabled" {
 		props.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(v.(string)))
 	}
@@ -373,8 +413,17 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if d.HasChange("administrator_login_password") {
-			adminPassword := d.Get("administrator_login_password").(string)
-			payload.Properties.AdministratorLoginPassword = pointer.To(adminPassword)
+			payload.Properties.AdministratorLoginPassword = pointer.To(d.Get("administrator_login_password").(string))
+		}
+
+		if d.HasChange("administrator_login_password_wo_version") {
+			woAdminLoginPassword, err := pluginsdk.GetWriteOnly(d, "administrator_login_password_wo", cty.String)
+			if err != nil {
+				return err
+			}
+			if !woAdminLoginPassword.IsNull() {
+				payload.Properties.AdministratorLoginPassword = pointer.To(woAdminLoginPassword.AsString())
+			}
 		}
 
 		if d.HasChange("minimum_tls_version") {
@@ -445,14 +494,14 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if aadOnlyAuthentictionsEnabled := expandMsSqlServerAADOnlyAuthentictions(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthentictionsEnabled {
-		aadOnlyAuthentictionsProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
+	if aadOnlyAuthenticationEnabled := expandMsSqlServerAADOnlyAuthentication(d.Get("azuread_administrator").([]interface{})); d.HasChange("azuread_administrator") && aadOnlyAuthenticationEnabled {
+		aadOnlyAuthenticationProps := serverazureadonlyauthentications.ServerAzureADOnlyAuthentication{
 			Properties: &serverazureadonlyauthentications.AzureADOnlyAuthProperties{
-				AzureADOnlyAuthentication: aadOnlyAuthentictionsEnabled,
+				AzureADOnlyAuthentication: aadOnlyAuthenticationEnabled,
 			},
 		}
 
-		err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthentictionsProps)
+		err := aadOnlyAuthenticationsClient.CreateOrUpdateThenPoll(ctx, *id, aadOnlyAuthenticationProps)
 		if err != nil {
 			return fmt.Errorf("updating Azure Active Directory Only Authentication for %s: %+v", id, err)
 		}
@@ -465,7 +514,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if err = connectionClient.CreateOrUpdateThenPoll(ctx, *id, connection); err != nil {
-		return fmt.Errorf("updating request for Connection Policy %s: %+v", id, err)
+		return fmt.Errorf("updating Connection Policy for %s: %+v", id, err)
 	}
 
 	return resourceMsSqlServerRead(d, meta)
@@ -512,6 +561,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if props := model.Properties; props != nil {
 			d.Set("version", props.Version)
 			d.Set("administrator_login", props.AdministratorLogin)
+			d.Set("administrator_login_password_wo_version", d.Get("administrator_login_password_wo_version").(int))
 			d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 
 			// todo remove `|| *v == "None"` when https://github.com/Azure/azure-rest-api-specs/issues/24348 is addressed
@@ -537,7 +587,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("transparent_data_encryption_key_vault_key_id", props.KeyId)
 
 			if props.Administrators != nil {
-				d.Set("azuread_administrator", flatternMsSqlServerAdministrators(*props.Administrators))
+				d.Set("azuread_administrator", flattenMsSqlServerAdministrators(*props.Administrators))
 			}
 		}
 
@@ -548,7 +598,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	connection, err := connectionClient.Get(ctx, pointer.From(id))
 	if err != nil {
-		return fmt.Errorf("reading SQL Server Blob Connection Policy %s: %v ", id, err)
+		return fmt.Errorf("retrieving SQL Server Blob Connection Policy %s: %v ", id, err)
 	}
 
 	if model := connection.Model; model != nil && model.Properties != nil {
@@ -585,7 +635,7 @@ func resourceMsSqlServerDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandMsSqlServerAADOnlyAuthentictions(input []interface{}) bool {
+func expandMsSqlServerAADOnlyAuthentication(input []interface{}) bool {
 	if len(input) == 0 || input[0] == nil {
 		return false
 	}
@@ -647,7 +697,7 @@ func expandMsSqlServerAdministrators(input []interface{}) *servers.ServerExterna
 	return &adminParams
 }
 
-func flatternMsSqlServerAdministrators(admin servers.ServerExternalAdministrator) []interface{} {
+func flattenMsSqlServerAdministrators(admin servers.ServerExternalAdministrator) []interface{} {
 	var login, sid, tid string
 	if admin.Login != nil {
 		login = *admin.Login
@@ -661,9 +711,9 @@ func flatternMsSqlServerAdministrators(admin servers.ServerExternalAdministrator
 		tid = pointer.From(admin.TenantId)
 	}
 
-	var aadOnlyAuthentictionsEnabled bool
+	var aadOnlyAuthenticationEnabled bool
 	if admin.AzureADOnlyAuthentication != nil {
-		aadOnlyAuthentictionsEnabled = pointer.From(admin.AzureADOnlyAuthentication)
+		aadOnlyAuthenticationEnabled = pointer.From(admin.AzureADOnlyAuthentication)
 	}
 
 	return []interface{}{
@@ -671,7 +721,7 @@ func flatternMsSqlServerAdministrators(admin servers.ServerExternalAdministrator
 			"login_username":              login,
 			"object_id":                   sid,
 			"tenant_id":                   tid,
-			"azuread_authentication_only": aadOnlyAuthentictionsEnabled,
+			"azuread_authentication_only": aadOnlyAuthenticationEnabled,
 		},
 	}
 }

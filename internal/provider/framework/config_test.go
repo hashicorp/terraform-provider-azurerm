@@ -15,9 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-var (
-	testConfig = ProviderConfig{}
-)
+var testConfig = ProviderConfig{}
 
 func TestProviderConfig_LoadDefault(t *testing.T) {
 	if os.Getenv("ARM_CLIENT_ID") == "" {
@@ -29,7 +27,7 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	// Skip enhanced validation
-	_ = os.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
+	t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false")
 
 	testData := &ProviderModel{
 		ResourceProviderRegistrations: types.StringValue("none"),
@@ -194,11 +192,27 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 	}
 
 	if features.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy {
-		t.Errorf("expected recver_services.vm_backup_stop_protection_and_retain_data_on_destroy to be false")
+		t.Errorf("expected recovery_service.vm_backup_stop_protection_and_retain_data_on_destroy to be false")
+	}
+
+	if features.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy {
+		t.Errorf("expected recovery_service.vm_backup_suspend_protection_and_retain_data_on_destroy to be false")
 	}
 
 	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
+	}
+
+	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
+		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
+	}
+
+	if features.NetApp.DeleteBackupsOnBackupVaultDestroy {
+		t.Errorf("expected netapp.DeleteBackupsOnBackupVaultDestroy to be false")
+	}
+
+	if !features.NetApp.PreventVolumeDestruction {
+		t.Errorf("expected netapp.PreventVolumeDestruction to be true")
 	}
 }
 
@@ -275,6 +289,11 @@ func defaultFeaturesList() types.List {
 	})
 	managedDiskList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(ManagedDiskAttributes), []attr.Value{managedDisk})
 
+	storage, _ := basetypes.NewObjectValueFrom(context.Background(), StorageAttributes, map[string]attr.Value{
+		"data_plane_available": basetypes.NewBoolNull(),
+	})
+	storageList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(StorageAttributes), []attr.Value{storage})
+
 	subscription, _ := basetypes.NewObjectValueFrom(context.Background(), SubscriptionAttributes, map[string]attr.Value{
 		"prevent_cancellation_on_destroy": basetypes.NewBoolNull(),
 	})
@@ -291,16 +310,24 @@ func defaultFeaturesList() types.List {
 	machineLearningList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(MachineLearningAttributes), []attr.Value{machineLearning})
 
 	recoveryServices, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceAttributes, map[string]attr.Value{
-		"vm_backup_stop_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
-		"purge_protected_items_from_vault_on_destroy":          basetypes.NewBoolNull(),
+		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
+		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
 	})
 	recoveryServicesList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes), []attr.Value{recoveryServices})
 
 	recoveryServicesVaults, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceVaultsAttributes, map[string]attr.Value{
-		"vm_backup_stop_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
-		"purge_protected_items_from_vault_on_destroy":          basetypes.NewBoolNull(),
+		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
+		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
 	})
 	recoveryServicesVaultsList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes), []attr.Value{recoveryServicesVaults})
+
+	netapp, _ := basetypes.NewObjectValueFrom(context.Background(), NetAppAttributes, map[string]attr.Value{
+		"delete_backups_on_backup_vault_destroy": basetypes.NewBoolNull(),
+		"prevent_volume_destruction":             basetypes.NewBoolNull(),
+	})
+	netappList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(NetAppAttributes), []attr.Value{netapp})
 
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
 		"api_management":             apiManagementList,
@@ -314,11 +341,13 @@ func defaultFeaturesList() types.List {
 		"virtual_machine_scale_set":  virtualMachineScaleSetList,
 		"resource_group":             resourceGroupList,
 		"managed_disk":               managedDiskList,
+		"storage":                    storageList,
 		"subscription":               subscriptionList,
 		"postgresql_flexible_server": postgresqlFlexibleServerList,
 		"machine_learning":           machineLearningList,
 		"recovery_service":           recoveryServicesList,
 		"recovery_services_vaults":   recoveryServicesVaultsList,
+		"netapp":                     netappList,
 	})
 
 	fmt.Printf("%+v", d)

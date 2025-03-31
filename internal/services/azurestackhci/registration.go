@@ -46,15 +46,17 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		StackHCIClusterDataSource{},
+		StackHCIStoragePathDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		StackHCIExtensionResource{},
 		StackHCIDeploymentSettingResource{},
+		StackHCIExtensionResource{},
 		StackHCILogicalNetworkResource{},
 		StackHCIMarketplaceGalleryImageResource{},
+		StackHCINetworkInterfaceResource{},
 		StackHCIStoragePathResource{},
 		StackHCIVirtualHardDiskResource{},
 	}

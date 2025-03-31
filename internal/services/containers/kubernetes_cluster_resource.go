@@ -20,12 +20,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -1450,6 +1450,26 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
+			"upgrade_override": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"force_upgrade_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+
+						"effective_until": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsRFC3339Time,
+						},
+					},
+				},
+			},
+
 			"windows_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1641,6 +1661,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
 
+	upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
+	upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
+
 	// assemble securityProfile (Defender, WorkloadIdentity, ImageCleaner, AzureKeyVaultKms)
 	securityProfile := &managedclusters.ManagedClusterSecurityProfile{}
 
@@ -1723,6 +1746,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			OidcIssuerProfile:         oidcIssuerProfile,
 			SecurityProfile:           securityProfile,
 			StorageProfile:            storageProfile,
+			UpgradeSettings:           upgradeOverrideSetting,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
@@ -1789,7 +1813,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -2281,6 +2305,18 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("upgrade_override") {
+		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
+
+		if len(upgradeOverrideSettingRaw) == 0 {
+			return fmt.Errorf("`upgrade_override` cannot be unset")
+		}
+
+		updateCluster = true
+		upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
+		existing.Model.Properties.UpgradeSettings = upgradeOverrideSetting
+	}
+
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
@@ -2302,7 +2338,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		log.Printf("[DEBUG] Updating %s..", *id)
-		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
@@ -2324,7 +2360,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
 		existing.Model.Properties.KubernetesVersion = utils.String(kubernetesVersion)
 
-		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Kubernetes Version for %s: %+v", *id, err)
 		}
@@ -2366,6 +2402,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			nodePublicIpEnabled,
 			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
+			"default_node_pool.0.kubelet_disk_type",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
 			"default_node_pool.0.only_critical_addons_enabled",
@@ -2420,27 +2457,27 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			tempAgentProfile.Name = &temporaryNodePoolName
 			// if the temp node pool already exists due to a previous failure, don't bother spinning it up
 			if tempExisting.Model == nil {
-				if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
+				if err := retryNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
 					return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
 				}
 			}
 
 			// delete the old default node pool if it exists
 			if defaultExisting.Model != nil {
-				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
+				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 					return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 				}
 			}
 
 			// create the default node pool with the new vm size
-			if err := retrySystemNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+			if err := retryNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
 				// if creation of the default node pool fails we automatically fall back to the temporary node pool
 				// in func findDefaultNodePool
 				log.Printf("[DEBUG] Creation of resized default node pool failed")
 				return fmt.Errorf("creating default %s: %+v", defaultNodePoolId, err)
 			}
 
-			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId); err != nil {
+			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
 			}
 
@@ -2448,7 +2485,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		} else {
 			log.Printf("[DEBUG] Updating of Default Node Pool..")
 
-			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile); err != nil {
+			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 			}
 
@@ -2726,6 +2763,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `windows_profile`: %+v", err)
 			}
 
+			upgradeOverrideSetting := flattenKubernetesClusterUpgradeOverrideSetting(props.UpgradeSettings)
+			if err := d.Set("upgrade_override", upgradeOverrideSetting); err != nil {
+				return fmt.Errorf("setting `upgrade_override`: %+v", err)
+			}
+
 			workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
 			if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
 				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
@@ -2864,7 +2906,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id, managedclusters.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -4355,7 +4397,6 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		istioIngressGatewaysList := make([]managedclusters.IstioIngressGateway, 0)
 
 		if raw["internal_ingress_gateway_enabled"] != nil {
-
 			ingressGatewayElementInternal := managedclusters.IstioIngressGateway{
 				Enabled: raw["internal_ingress_gateway_enabled"].(bool),
 				Mode:    managedclusters.IstioIngressGatewayModeInternal,
@@ -4365,7 +4406,6 @@ func expandKubernetesClusterServiceMeshProfile(input []interface{}, existing *ma
 		}
 
 		if raw["external_ingress_gateway_enabled"] != nil {
-
 			ingressGatewayElementExternal := managedclusters.IstioIngressGateway{
 				Enabled: raw["external_ingress_gateway_enabled"].(bool),
 				Mode:    managedclusters.IstioIngressGatewayModeExternal,
@@ -4490,9 +4530,7 @@ func flattenKubernetesClusterAzureServiceMeshProfile(input *managedclusters.Serv
 	}
 
 	if (input.Istio.Components.IngressGateways != nil) && len(*input.Istio.Components.IngressGateways) > 0 {
-
 		for _, value := range *input.Istio.Components.IngressGateways {
-
 			mode := value.Mode
 			enabled := value.Enabled
 
@@ -4533,7 +4571,6 @@ func flattenKubernetesClusterServiceMeshProfileCertificateAuthority(certificateA
 			"key_object_name":        pointer.From(certificateAuthority.Plugin.KeyObjectName),
 		},
 	}
-
 }
 
 func flattenKubernetesClusterAzureMonitorProfile(input *managedclusters.ManagedClusterAzureMonitorProfile) []interface{} {
@@ -4579,14 +4616,42 @@ func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedCluste
 	return pointer.From(input.CostAnalysis.Enabled)
 }
 
-func retrySystemNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
-	// retries the creation of a system node pool 3 times
+func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
+	// retries the creation of a node pool 3 times
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
-		if err = client.CreateOrUpdateThenPoll(ctx, id, profile); err == nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
 			return nil
 		}
 	}
 
 	return err
+}
+
+func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managedclusters.ClusterUpgradeSettings {
+	if len(input) == 0 || input[0] == nil {
+		// Return nil only when upgrade_override block is not set
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &managedclusters.ClusterUpgradeSettings{
+		OverrideSettings: &managedclusters.UpgradeOverrideSettings{
+			ForceUpgrade: pointer.To(raw["force_upgrade_enabled"].(bool)),
+			Until:        pointer.To(raw["effective_until"].(string)),
+		},
+	}
+}
+
+func flattenKubernetesClusterUpgradeOverrideSetting(input *managedclusters.ClusterUpgradeSettings) []interface{} {
+	if input == nil || input.OverrideSettings == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"effective_until":       pointer.From(input.OverrideSettings.Until),
+			"force_upgrade_enabled": pointer.From(input.OverrideSettings.ForceUpgrade),
+		},
+	}
 }

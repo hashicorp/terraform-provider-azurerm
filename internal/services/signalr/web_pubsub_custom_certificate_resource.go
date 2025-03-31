@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -121,7 +122,6 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 			}
 			if keyVaultCertificateId.Version != "" {
 				customCertObj.Properties.KeyVaultSecretVersion = utils.String(keyVaultCertificateId.Version)
-
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCertObj); err != nil {
@@ -185,7 +185,7 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 				Name:               id.CustomCertificateName,
 				CustomCertId:       certId,
 				WebPubsubId:        webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID(),
-				CertificateVersion: utils.NormalizeNilableString(resp.Model.Properties.KeyVaultSecretVersion),
+				CertificateVersion: pointer.From(resp.Model.Properties.KeyVaultSecretVersion),
 			}
 
 			return metadata.Encode(&state)

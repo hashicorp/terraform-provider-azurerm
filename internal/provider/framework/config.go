@@ -78,14 +78,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	enableOIDC := getEnvBoolIfValueAbsent(data.UseOIDC, "ARM_USE_OIDC") || getEnvBoolIfValueAbsent(data.UseAKSWorkloadIdentity, "ARM_USE_AKS_WORKLOAD_IDENTITY")
 	auxTenants := getEnvListOfStringsIfAbsent(data.AuxiliaryTenantIds, "ARM_AUXILIARY_TENANT_IDS", ";")
 
-	oidcReqURL := getEnvStringOrDefault(data.OIDCRequestURL, "ARM_OIDC_REQUEST_URL", "")
-	if oidcReqURL == "" {
-		oidcReqURL = getEnvStringOrDefault(data.OIDCRequestURL, "ACTIONS_ID_TOKEN_REQUEST_URL", "")
-	}
-	oidcReqToken := getEnvStringOrDefault(data.OIDCRequestToken, "ARM_OIDC_REQUEST_TOKEN", "")
-	if oidcReqToken == "" {
-		oidcReqToken = getEnvStringOrDefault(data.OIDCRequestToken, "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
-	}
+	oidcReqURL := getEnvStringsOrDefault(data.OIDCRequestURL, []string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL", "SYSTEM_OIDCREQUESTURI"}, "")
+	oidcReqToken := getEnvStringsOrDefault(data.OIDCRequestToken, []string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "SYSTEM_ACCESSTOKEN"}, "")
+
+	// ARM_OIDC_AZURE_SERVICE_CONNECTION_ID is to be compatible with `azapi` provider.
+	adoPipelineServiceConnectionID := getEnvStringsOrDefault(data.ADOPipelineServiceConnectionID, []string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, "")
 
 	authConfig := &auth.Credentials{
 		Environment:        *env,
@@ -98,9 +95,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		ClientCertificatePassword: getEnvStringOrDefault(data.ClientCertificatePassword, "ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
 		ClientSecret:              *clientSecret,
 
-		OIDCAssertionToken:          *oidcToken,
-		GitHubOIDCTokenRequestURL:   oidcReqURL,
-		GitHubOIDCTokenRequestToken: oidcReqToken,
+		OIDCAssertionToken:    *oidcToken,
+		OIDCTokenRequestURL:   oidcReqURL,
+		OIDCTokenRequestToken: oidcReqToken,
+
+		ADOPipelineServiceConnectionID: adoPipelineServiceConnectionID,
 
 		CustomManagedIdentityEndpoint: getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
 
@@ -110,6 +109,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		EnableAuthenticatingUsingClientSecret:      true,
 		EnableAuthenticationUsingOIDC:              enableOIDC,
 		EnableAuthenticationUsingGitHubOIDC:        enableOIDC,
+		EnableAuthenticationUsingADOPipelineOIDC:   enableOIDC,
 		EnableAuthenticatingUsingAzureCLI:          getEnvBoolOrDefault(data.UseCLI, "ARM_USE_CLI", true),
 		EnableAuthenticatingUsingManagedIdentity:   getEnvBoolOrDefault(data.UseMSI, "ARM_USE_MSI", false),
 	}
@@ -297,12 +297,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				return
 			}
 
-			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = !providerfeatures.FourPointOhBeta()
+			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = false
 			if !feature[0].PermanentlyDeleteOnDestroy.IsNull() && !feature[0].PermanentlyDeleteOnDestroy.IsUnknown() {
 				f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = feature[0].PermanentlyDeleteOnDestroy.ValueBool()
 			}
 		} else {
-			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = !providerfeatures.FourPointOhBeta()
+			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = false
 		}
 
 		if !features.TemplateDeployment.IsNull() && !features.TemplateDeployment.IsUnknown() {
@@ -415,6 +415,19 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.ManagedDisk.ExpandWithoutDowntime = true
 		}
 
+		if !features.Storage.IsNull() && !features.Storage.IsUnknown() {
+			var feature []Storage
+			d := features.Storage.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+			f.Storage.DataPlaneAvailable = true
+			if !feature[0].DataPlaneAvailable.IsNull() && !feature[0].DataPlaneAvailable.IsUnknown() {
+				f.Storage.DataPlaneAvailable = feature[0].DataPlaneAvailable.ValueBool()
+			}
+		}
+
 		if !features.Subscription.IsNull() && !features.Subscription.IsUnknown() {
 			var feature []Subscription
 			d := features.Subscription.ElementsAs(ctx, &feature, true)
@@ -460,6 +473,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = feature[0].VMBackupStopProtectionAndRetainDataOnDestroy.ValueBool()
 			}
 
+			f.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = false
+			if !feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.IsNull() && !feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.IsUnknown() {
+				f.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.ValueBool()
+			}
+
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
 			if !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsNull() && !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsUnknown() {
 				f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = feature[0].PurgeProtectedItemsFromVaultOnDestroy.ValueBool()
@@ -467,6 +485,28 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		} else {
 			f.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = false
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
+		}
+
+		if !features.NetApp.IsNull() && !features.NetApp.IsUnknown() {
+			var feature []NetApp
+			d := features.NetApp.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
+			if !feature[0].DeleteBackupsOnBackupVaultDestroy.IsNull() && !feature[0].DeleteBackupsOnBackupVaultDestroy.IsUnknown() {
+				f.NetApp.DeleteBackupsOnBackupVaultDestroy = feature[0].DeleteBackupsOnBackupVaultDestroy.ValueBool()
+			}
+
+			f.NetApp.PreventVolumeDestruction = true
+			if !feature[0].PreventVolumeDestruction.IsNull() && !feature[0].PreventVolumeDestruction.IsUnknown() {
+				f.NetApp.PreventVolumeDestruction = feature[0].PreventVolumeDestruction.ValueBool()
+			}
+		} else {
+			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
+			f.NetApp.PreventVolumeDestruction = true
 		}
 	}
 
@@ -488,7 +528,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	client.StopContext = ctx
 
 	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsCore)
-	if !providerfeatures.FivePointOhBeta() {
+	if !providerfeatures.FivePointOh() {
 		resourceProviderRegistrationSet = getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
 	}
 

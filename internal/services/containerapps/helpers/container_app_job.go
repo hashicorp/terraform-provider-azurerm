@@ -439,7 +439,7 @@ func flattenInitContainerAppJobContainers(input *[]jobs.BaseContainer) []BaseCon
 
 func expandContainerJobEnvVar(input Container) *[]jobs.EnvironmentVar {
 	envs := make([]jobs.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -461,7 +461,7 @@ func expandContainerJobEnvVar(input Container) *[]jobs.EnvironmentVar {
 
 func expandInitContainerJobEnvVar(input BaseContainer) *[]jobs.EnvironmentVar {
 	envs := make([]jobs.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -498,6 +498,9 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 		if v.StorageType != "" {
 			storageType := jobs.StorageType(v.StorageType)
 			volume.StorageType = &storageType
+		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
 		}
 		volumes = append(volumes, volume)
 	}
@@ -838,6 +841,9 @@ func flattenContainerAppJobVolumes(input *[]jobs.Volume) []ContainerVolume {
 		}
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
+		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
 
 		result = append(result, containerVolume)

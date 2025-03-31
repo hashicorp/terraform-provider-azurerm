@@ -332,6 +332,5 @@ func TestRoleAssignmentID(t *testing.T) {
 		if actual.SubscriptionAlias != v.Expected.SubscriptionAlias {
 			t.Fatalf("Expected %q but got %q for Role Assignment SubscriptionAlias", v.Expected.SubscriptionAlias, actual.SubscriptionAlias)
 		}
-
 	}
 }

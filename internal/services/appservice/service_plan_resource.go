@@ -32,6 +32,8 @@ var _ sdk.ResourceWithUpdate = ServicePlanResource{}
 
 var _ sdk.ResourceWithStateMigration = ServicePlanResource{}
 
+var _ sdk.ResourceWithCustomizeDiff = ServicePlanResource{}
+
 type OSType string
 
 const (
@@ -41,19 +43,20 @@ const (
 )
 
 type ServicePlanModel struct {
-	Name                      string            `tfschema:"name"`
-	ResourceGroup             string            `tfschema:"resource_group_name"`
-	Location                  string            `tfschema:"location"`
-	Kind                      string            `tfschema:"kind"`
-	OSType                    OSType            `tfschema:"os_type"`
-	Sku                       string            `tfschema:"sku_name"`
-	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
-	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
-	Reserved                  bool              `tfschema:"reserved"`
-	WorkerCount               int64             `tfschema:"worker_count"`
-	MaximumElasticWorkerCount int64             `tfschema:"maximum_elastic_worker_count"`
-	ZoneBalancing             bool              `tfschema:"zone_balancing_enabled"`
-	Tags                      map[string]string `tfschema:"tags"`
+	Name                        string            `tfschema:"name"`
+	ResourceGroup               string            `tfschema:"resource_group_name"`
+	Location                    string            `tfschema:"location"`
+	Kind                        string            `tfschema:"kind"`
+	OSType                      OSType            `tfschema:"os_type"`
+	Sku                         string            `tfschema:"sku_name"`
+	AppServiceEnvironmentId     string            `tfschema:"app_service_environment_id"`
+	PerSiteScaling              bool              `tfschema:"per_site_scaling_enabled"`
+	Reserved                    bool              `tfschema:"reserved"`
+	WorkerCount                 int64             `tfschema:"worker_count"`
+	PremiumPlanAutoScaleEnabled bool              `tfschema:"premium_plan_auto_scale_enabled"`
+	MaximumElasticWorkerCount   int64             `tfschema:"maximum_elastic_worker_count"`
+	ZoneBalancing               bool              `tfschema:"zone_balancing_enabled"`
+	Tags                        map[string]string `tfschema:"tags"`
 }
 
 func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
@@ -105,6 +108,12 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.IntAtLeast(1),
+		},
+
+		"premium_plan_auto_scale_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"maximum_elastic_worker_count": {
@@ -170,10 +179,11 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			appServicePlan := appserviceplans.AppServicePlan{
 				Properties: &appserviceplans.AppServicePlanProperties{
-					PerSiteScaling: pointer.To(servicePlan.PerSiteScaling),
-					Reserved:       pointer.To(servicePlan.OSType == OSTypeLinux),
-					HyperV:         pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
-					ZoneRedundant:  pointer.To(servicePlan.ZoneBalancing),
+					PerSiteScaling:      pointer.To(servicePlan.PerSiteScaling),
+					Reserved:            pointer.To(servicePlan.OSType == OSTypeLinux),
+					HyperV:              pointer.To(servicePlan.OSType == OSTypeWindowsContainer),
+					ElasticScaleEnabled: pointer.To(servicePlan.PremiumPlanAutoScaleEnabled),
+					ZoneRedundant:       pointer.To(servicePlan.ZoneBalancing),
 				},
 				Sku: &appserviceplans.SkuDescription{
 					Name: pointer.To(servicePlan.Sku),
@@ -193,7 +203,9 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			if servicePlan.MaximumElasticWorkerCount > 0 {
 				if !isServicePlanSupportScaleOut(servicePlan.Sku) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
+					if helpers.PlanIsPremium(servicePlan.Sku) && !servicePlan.PremiumPlanAutoScaleEnabled {
+						return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or Premium Skus that has `premium_plan_auto_scale_enabled` set to `true`")
+					}
 				}
 				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(servicePlan.MaximumElasticWorkerCount)
 			}
@@ -264,12 +276,13 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 						state.AppServiceEnvironmentId = *ase.Id
 					}
 
-					state.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
+					if props.ElasticScaleEnabled != nil && *props.ElasticScaleEnabled && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
+						state.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
+					}
 
-					state.Reserved = utils.NormaliseNilableBool(props.Reserved)
-
-					state.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
-
+					state.PerSiteScaling = pointer.From(props.PerSiteScaling)
+					state.Reserved = pointer.From(props.Reserved)
+					state.ZoneBalancing = pointer.From(props.ZoneRedundant)
 					state.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
 				}
 				state.Tags = pointer.From(model.Tags)
@@ -344,10 +357,11 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 				model.Sku.Capacity = pointer.To(state.WorkerCount)
 			}
 
+			if metadata.ResourceData.HasChange("premium_plan_auto_scale_enabled") {
+				model.Properties.ElasticScaleEnabled = pointer.To(state.PremiumPlanAutoScaleEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
-				if metadata.ResourceData.HasChange("maximum_elastic_worker_count") && !isServicePlanSupportScaleOut(state.Sku) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus")
-				}
 				model.Properties.MaximumElasticWorkerCount = pointer.To(state.MaximumElasticWorkerCount)
 			}
 
@@ -373,6 +387,30 @@ func (r ServicePlanResource) StateUpgraders() sdk.StateUpgradeData {
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.ServicePlanV0toV1{},
+		},
+	}
+}
+
+func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+			servicePlanSku := rd.Get("sku_name").(string)
+			_, newAutoScaleEnabled := rd.GetChange("premium_plan_auto_scale_enabled")
+			_, newEcValue := rd.GetChange("maximum_elastic_worker_count")
+			if rd.HasChange("premium_plan_auto_scale_enabled") {
+				if !helpers.PlanIsPremium(servicePlanSku) && newAutoScaleEnabled.(bool) {
+					return fmt.Errorf("`premium_plan_auto_scale_enabled` can only be set for premium app service plan")
+				}
+			}
+
+			if rd.HasChange("maximum_elastic_worker_count") && newEcValue.(int) > 1 {
+				if !isServicePlanSupportScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
+					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or with Premium Skus that has `premium_plan_auto_scale_enabled` set to `true`")
+				}
+			}
+			return nil
 		},
 	}
 }

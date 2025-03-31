@@ -16,10 +16,12 @@ type UserFeatures struct {
 	ResourceGroup            ResourceGroupFeatures
 	RecoveryServicesVault    RecoveryServicesVault
 	ManagedDisk              ManagedDiskFeatures
+	Storage                  StorageFeatures
 	Subscription             SubscriptionFeatures
 	PostgresqlFlexibleServer PostgresqlFlexibleServerFeatures
 	MachineLearning          MachineLearningFeatures
 	RecoveryService          RecoveryServiceFeatures
+	NetApp                   NetAppFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -84,6 +86,10 @@ type AppConfigurationFeatures struct {
 	RecoverSoftDeleted       bool
 }
 
+type StorageFeatures struct {
+	DataPlaneAvailable bool
+}
+
 type SubscriptionFeatures struct {
 	PreventCancellationOnDestroy bool
 }
@@ -101,6 +107,12 @@ type MachineLearningFeatures struct {
 }
 
 type RecoveryServiceFeatures struct {
-	VMBackupStopProtectionAndRetainDataOnDestroy bool
-	PurgeProtectedItemsFromVaultOnDestroy        bool
+	VMBackupStopProtectionAndRetainDataOnDestroy    bool
+	VMBackupSuspendProtectionAndRetainDataOnDestroy bool
+	PurgeProtectedItemsFromVaultOnDestroy           bool
+}
+
+type NetAppFeatures struct {
+	DeleteBackupsOnBackupVaultDestroy bool
+	PreventVolumeDestruction          bool
 }

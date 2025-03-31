@@ -59,6 +59,7 @@ type CloudVmClusterResourceModel struct {
 	Ocid                     string                       `tfschema:"ocid"`
 	ScanListenerPortTcp      int64                        `tfschema:"scan_listener_port_tcp"`
 	ScanListenerPortTcpSsl   int64                        `tfschema:"scan_listener_port_tcp_ssl"`
+	SystemVersion            string                       `tfschema:"system_version"`
 	TimeZone                 string                       `tfschema:"time_zone"`
 	ZoneId                   string                       `tfschema:"zone_id"`
 }
@@ -264,6 +265,13 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
 
+		"system_version": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.SystemVersion,
+		},
+
 		"time_zone": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -352,7 +360,7 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 			if model.ClusterName != "" {
 				param.Properties.ClusterName = pointer.To(model.ClusterName)
 			}
-			if model.DataCollectionOptions != nil && len(model.DataCollectionOptions) > 0 {
+			if len(model.DataCollectionOptions) > 0 {
 				param.Properties.DataCollectionOptions = &cloudvmclusters.DataCollectionOptions{
 					IsDiagnosticsEventsEnabled: pointer.To(model.DataCollectionOptions[0].IsDiagnosticsEventsEnabled),
 					IsHealthMonitoringEnabled:  pointer.To(model.DataCollectionOptions[0].IsHealthMonitoringEnabled),
@@ -367,6 +375,9 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 			}
 			if model.ScanListenerPortTcpSsl >= 1024 && model.ScanListenerPortTcpSsl <= 8999 {
 				param.Properties.ScanListenerPortTcpSsl = pointer.To(model.ScanListenerPortTcpSsl)
+			}
+			if model.SystemVersion != "" {
+				param.Properties.SystemVersion = pointer.To(model.SystemVersion)
 			}
 			if model.TimeZone != "" {
 				param.Properties.TimeZone = pointer.To(model.TimeZone)
@@ -403,7 +414,6 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
 			id, err := cloudvmclusters.ParseCloudVMClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -495,6 +505,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.IsSparseDiskgroupEnabled = pointer.From(props.IsSparseDiskgroupEnabled)
 					state.ScanListenerPortTcp = pointer.From(props.ScanListenerPortTcp)
 					state.ScanListenerPortTcpSsl = pointer.From(props.ScanListenerPortTcpSsl)
+					state.SystemVersion = pointer.From(props.SystemVersion)
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.ZoneId = pointer.From(props.ZoneId)
 				}

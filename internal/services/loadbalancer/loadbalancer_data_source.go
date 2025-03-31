@@ -163,7 +163,6 @@ func dataSourceArmLoadBalancerRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	return nil
-
 }
 
 func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]loadbalancers.FrontendIPConfiguration) []interface{} {

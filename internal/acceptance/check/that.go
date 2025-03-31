@@ -139,7 +139,7 @@ func (t thatWithKeyType) IsSet() pluginsdk.TestCheckFunc {
 // IsUUID returns a TestCheckFunc which validates that the value for the specified key
 // is a UUID.
 func (t thatWithKeyType) IsUUID() pluginsdk.TestCheckFunc {
-	var uuidRegex = regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+	uuidRegex := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
 	return resource.TestMatchResourceAttr(t.resourceName, t.key, uuidRegex)
 }
 

@@ -12,7 +12,7 @@ tools:
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
 	go install github.com/client9/misspell/cmd/misspell@latest
 	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
-	go install github.com/bflad/tfproviderdocs@latest
+	go install github.com/YakDriver/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
@@ -79,6 +79,10 @@ tflint:
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
 	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
+
+golangci-fix:
+	@echo "==> Fixing source code with all golangci linters..."
+	golangci-lint run ./... --fix
 
 test: fmtcheck
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh

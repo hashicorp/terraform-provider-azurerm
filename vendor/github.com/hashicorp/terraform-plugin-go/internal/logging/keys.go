@@ -57,6 +57,9 @@ const (
 	// The type of data source being operated on, such as "archive_file"
 	KeyDataSourceType = "tf_data_source_type"
 
+	// The type of ephemeral resource being operated on, such as "random_password"
+	KeyEphemeralResourceType = "tf_ephemeral_resource_type"
+
 	// Path to protocol data file, such as "/tmp/example.json"
 	KeyProtocolDataFile = "tf_proto_data_file"
 
@@ -69,9 +72,15 @@ const (
 	// Whether the GetProviderSchemaOptional server capability is enabled
 	KeyServerCapabilityGetProviderSchemaOptional = "tf_server_capability_get_provider_schema_optional"
 
+	// Whether the MoveResourceState server capability is enabled
+	KeyServerCapabilityMoveResourceState = "tf_server_capability_move_resource_state"
+
 	// Whether the PlanDestroy server capability is enabled
 	KeyServerCapabilityPlanDestroy = "tf_server_capability_plan_destroy"
 
 	// Whether the DeferralAllowed client capability is enabled
 	KeyClientCapabilityDeferralAllowed = "tf_client_capability_deferral_allowed"
+
+	// Whether the WriteOnlyAttributesAllowed client capability is enabled
+	KeyClientCapabilityWriteOnlyAttributesAllowed = "tf_client_capability_write_only_attributes_allowed"
 )

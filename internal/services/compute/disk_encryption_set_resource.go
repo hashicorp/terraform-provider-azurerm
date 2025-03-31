@@ -32,7 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceDiskEncryptionSet() *pluginsdk.Resource {
@@ -337,7 +337,6 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 					}
 				}
 			}
-
 		}
 
 		encryptionType := string(diskencryptionsets.DiskEncryptionSetTypeEncryptionAtRestWithCustomerKey)
@@ -407,16 +406,6 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 
-		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, id.SubscriptionId, *keyVaultKey)
-		if err != nil {
-			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKey.ID(), err)
-		}
-
-		err = validateKeyVaultDetails(keyVaultDetails)
-		if err != nil {
-			return err
-		}
-
 		if update.Properties == nil {
 			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{
 				ActiveKey: &diskencryptionsets.KeyForDiskEncryptionSet{},
@@ -441,7 +430,17 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			update.Properties.ActiveKey.KeyURL = keyVaultKey.ID()
 		}
 
+		keyVaultDetails, err := diskEncryptionSetRetrieveKeyVault(ctx, keyVaultsClient, id.SubscriptionId, *keyVaultKey)
+		if err != nil {
+			return fmt.Errorf("validating Key Vault Key %q for Disk Encryption Set: %+v", keyVaultKey.ID(), err)
+		}
+
 		if keyVaultDetails != nil {
+			err = validateKeyVaultDetails(keyVaultDetails)
+			if err != nil {
+				return err
+			}
+
 			update.Properties.ActiveKey.SourceVault = &diskencryptionsets.SourceVault{
 				Id: utils.String(keyVaultDetails.keyVaultId),
 			}

@@ -27,7 +27,6 @@ func TestReplicationFabricID(t *testing.T) {
 		Error    bool
 		Expected *ReplicationFabricId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `password` - (Optional) The password to access the certificate's private key. Changing this forces a new resource to be created.
 
-* `app_service_plan_id` - (Optional) The ID of the associated App Service plan. Must be specified when the certificate is used inside an App Service Environment hosted App Service or with Premium App Service plans. Changing this forces a new resource to be created.
+* `app_service_plan_id` - (Optional) The ID of the associated App Service plan. Must be specified when the certificate is used inside an App Service Environment hosted App Service or with Basic and Premium App Service plans. Changing this forces a new resource to be created.
 
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault secret. Changing this forces a new resource to be created.
 

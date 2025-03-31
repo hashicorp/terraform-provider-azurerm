@@ -15,11 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/firewalls"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type NextGenerationFirewallVHubLocalRuleStackResource struct{}
@@ -29,10 +31,12 @@ type NextGenerationFirewallVHubLocalRuleStackModel struct {
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	RuleStackId       string `tfschema:"rulestack_id"`
 
-	NetworkProfile []schema.NetworkProfileVHub `tfschema:"network_profile"`
-	DNSSettings    []schema.DNSSettings        `tfschema:"dns_settings"`
-	FrontEnd       []schema.DestinationNAT     `tfschema:"destination_nat"`
-	Tags           map[string]interface{}      `tfschema:"tags"`
+	NetworkProfile     []schema.NetworkProfileVHub `tfschema:"network_profile"`
+	DNSSettings        []schema.DNSSettings        `tfschema:"dns_settings"`
+	FrontEnd           []schema.DestinationNAT     `tfschema:"destination_nat"`
+	MarketplaceOfferId string                      `tfschema:"marketplace_offer_id"`
+	PlanId             string                      `tfschema:"plan_id"`
+	Tags               map[string]interface{}      `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubLocalRuleStackResource{}
@@ -50,7 +54,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) ResourceType() string 
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -73,8 +77,29 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Arguments() map[string
 
 		"destination_nat": schema.DestinationNATSchema(),
 
+		"marketplace_offer_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "pan_swfw_cloud_ngfw",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"plan_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      "panw-cngfw-payg",
+			ValidateFunc: validation.StringLenBetween(1, 50),
+		},
+
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["plan_id"].Default = "panw-cloud-ngfw-payg"
+	}
+
+	return args
 }
 
 func (r NextGenerationFirewallVHubLocalRuleStackResource) Attributes() map[string]*pluginsdk.Schema {
@@ -87,7 +112,6 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PaloAltoClient_v2023_09_01.Firewalls
 			localRuleStackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
-			loc := ""
 			var model NextGenerationFirewallVHubLocalRuleStackModel
 
 			if err := metadata.Decode(&model); err != nil {
@@ -116,7 +140,7 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 				return fmt.Errorf("reading %s for %s: %+v", ruleStackID, id, err)
 			}
 
-			loc = location.Normalize(ruleStack.Model.Location)
+			loc := location.Normalize(ruleStack.Model.Location)
 
 			firewall := firewalls.FirewallResource{
 				Location: loc,
@@ -127,13 +151,13 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Create() sdk.ResourceF
 					},
 					DnsSettings: schema.ExpandDNSSettings(model.DNSSettings),
 					MarketplaceDetails: firewalls.MarketplaceDetails{
-						OfferId:     "pan_swfw_cloud_ngfw",
+						OfferId:     model.MarketplaceOfferId,
 						PublisherId: "paloaltonetworks",
 					},
 					NetworkProfile: schema.ExpandNetworkProfileVHub(model.NetworkProfile),
 					PlanData: firewalls.PlanData{
 						BillingCycle: firewalls.BillingCycleMONTHLY,
-						PlanId:       "panw-cloud-ngfw-payg",
+						PlanId:       model.PlanId,
 					},
 					FrontEndSettings: schema.ExpandDestinationNAT(model.FrontEnd),
 				},
@@ -194,6 +218,10 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Read() sdk.ResourceFun
 				state.FrontEnd = schema.FlattenDestinationNAT(props.FrontEndSettings)
 
 				state.RuleStackId = pointer.From(props.AssociatedRulestack.ResourceId)
+
+				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
+
+				state.PlanId = props.PlanData.PlanId
 
 				state.Tags = tags.Flatten(model.Tags)
 			}
@@ -277,6 +305,10 @@ func (r NextGenerationFirewallVHubLocalRuleStackResource) Update() sdk.ResourceF
 
 			if metadata.ResourceData.HasChange("destination_nat") {
 				props.FrontEndSettings = schema.ExpandDestinationNAT(model.FrontEnd)
+			}
+
+			if metadata.ResourceData.HasChange("plan_id") {
+				props.PlanData.PlanId = model.PlanId
 			}
 
 			firewall.Properties = props

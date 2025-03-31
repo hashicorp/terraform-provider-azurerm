@@ -4,7 +4,6 @@
 package servicebus
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -58,9 +57,17 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_servicebus_topic":                              resourceServiceBusTopic(),
 	}
 
-	if !features.FourPointOhBeta() {
-		resources["azurerm_servicebus_namespace_network_rule_set"] = resourceServiceBusNamespaceNetworkRuleSet()
-	}
-
 	return resources
+}
+
+// DataSources returns the typed DataSources supported by this service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+// Resources returns the typed Resources supported by this service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		ServiceBusNamespaceCustomerManagedKeyResource{},
+	}
 }

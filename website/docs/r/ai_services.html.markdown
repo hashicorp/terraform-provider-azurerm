@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_ai_services
 
-Manages an AI Services account.
+Manages an AI Services Account.
 
 ## Example Usage
 
@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. This property is required when `network_acls` is specified. Changing this forces a new resource to be created.
 
+-> **Note:** If you do not specify a `custom_subdomain_name` then you will not be able to attach a Private Endpoint to the resource.
+
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the AI Services Account.
@@ -68,6 +70,8 @@ The following arguments are supported:
 
 A `network_acls` block supports the following:
 
+* `bypass` - (Optional) Whether to allow trusted Azure Services to access the service. Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
+* 
 * `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the AI Services Account.
@@ -123,6 +127,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `primary_access_key` - A primary access key which can be used to connect to the AI Services Account.
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the AI Services Account.
+
+-> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_authentication_enabled` is set to `true`.
 
 ---
 

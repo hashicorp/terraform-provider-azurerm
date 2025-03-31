@@ -61,8 +61,10 @@ type SkuProperties struct {
 
 type ManagedLustreFileSystemResource struct{}
 
-var _ sdk.ResourceWithUpdate = ManagedLustreFileSystemResource{}
-var _ sdk.ResourceWithCustomizeDiff = ManagedLustreFileSystemResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ManagedLustreFileSystemResource{}
+	_ sdk.ResourceWithCustomizeDiff = ManagedLustreFileSystemResource{}
+)
 
 func GetSkuPropertiesByName(skuName string) *SkuProperties {
 	for _, sku := range PossibleSkuProperties() {
