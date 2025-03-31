@@ -153,18 +153,6 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
-resource "azurerm_user_assigned_identity" "test2" {
-  location            = azurerm_resource_group.test.location
-  name                = "acctestuai2-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_role_assignment" "test2" {
-  scope                = azurerm_resource_group.test.id
-  role_definition_name = "Reader"
-  principal_id         = azurerm_user_assigned_identity.test2.principal_id
-}
-
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_user_assigned_identity.test.tenant_id
@@ -175,18 +163,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Get",
   ]
 }
-
-resource "azurerm_key_vault_access_policy" "test3" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_user_assigned_identity.test2.tenant_id
-  object_id    = azurerm_user_assigned_identity.test2.client_id
-
-  key_permissions = [
-    "Create",
-    "Get",
-  ]
-}
-  `, AIFoundry{}.basic(data), data.RandomInteger)
+`, AIFoundry{}.basic(data), data.RandomInteger)
 }
 
 func (r AIFoundryProject) userIdentity(data acceptance.TestData) string {
@@ -212,6 +189,29 @@ resource "azurerm_ai_foundry_project" "test" {
 func (r AIFoundryProject) userIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_user_assigned_identity" "test2" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestuai2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_role_assignment" "test2" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_user_assigned_identity.test2.principal_id
+}
+
+resource "azurerm_key_vault_access_policy" "test3" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_user_assigned_identity.test2.tenant_id
+  object_id    = azurerm_user_assigned_identity.test2.client_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+  ]
+}
 
 resource "azurerm_ai_foundry_project" "test" {
   name                           = "acctestaip-%[2]d"
