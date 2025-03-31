@@ -142,6 +142,7 @@ resource "azurerm_kubernetes_fleet_manager" "test" {
   }
   tags = {
     environment = "terraform-acctests"
+    some_key    = "some-value"
   }
 }
 `, r.template(data), data.RandomString)
