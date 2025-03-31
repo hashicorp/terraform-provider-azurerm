@@ -1,8 +1,5 @@
 package devcenter
 
-// NOTE: this file is generated - manual changes will be overwritten.
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
 	"fmt"
@@ -214,9 +211,6 @@ func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenter
 	if output.Properties == nil {
 		output.Properties = &devcenters.DevCenterProperties{}
 	}
-	if err := r.mapDevCenterResourceSchemaToDevCenterProperties(input, output.Properties); err != nil {
-		return fmt.Errorf("mapping Schema to SDK Field %q / Model %q: %+v", "DevCenterProperties", "Properties", err)
-	}
 
 	return nil
 }
@@ -234,18 +228,8 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 	if input.Properties == nil {
 		input.Properties = &devcenters.DevCenterProperties{}
 	}
-	if err := r.mapDevCenterPropertiesToDevCenterResourceSchema(*input.Properties, output); err != nil {
-		return fmt.Errorf("mapping SDK Field %q / Model %q to Schema: %+v", "DevCenterProperties", "Properties", err)
-	}
 
-	return nil
-}
+	output.DevCenterUri = pointer.From(input.Properties.DevCenterUri)
 
-func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenterProperties(input DevCenterResourceSchema, output *devcenters.DevCenterProperties) error {
-	return nil
-}
-
-func (r DevCenterResource) mapDevCenterPropertiesToDevCenterResourceSchema(input devcenters.DevCenterProperties, output *DevCenterResourceSchema) error {
-	output.DevCenterUri = pointer.From(input.DevCenterUri)
 	return nil
 }
