@@ -159,15 +159,14 @@ func (r EventGridPartnerConfigurationResource) Update() sdk.ResourceFunc {
 
 			payload := existing.Model
 
-			if payload.Properties.PartnerAuthorization == nil {
-				payload.Properties.PartnerAuthorization = &partnerconfigurations.PartnerAuthorization{}
-			}
-
 			if metadata.ResourceData.HasChange("default_maximum_expiration_time_in_days") {
 				payload.Properties.PartnerAuthorization.DefaultMaximumExpirationTimeInDays = pointer.To(config.DefaultMaximumExpirationTimeInDays)
 			}
 
 			if metadata.ResourceData.HasChange("partner_authorization") {
+				if payload.Properties.PartnerAuthorization == nil {
+					payload.Properties.PartnerAuthorization = &partnerconfigurations.PartnerAuthorization{}
+				}
 				payload.Properties.PartnerAuthorization.AuthorizedPartnersList = expandAuthorizedPartnersList(config.PartnerAuthorizations)
 			}
 
