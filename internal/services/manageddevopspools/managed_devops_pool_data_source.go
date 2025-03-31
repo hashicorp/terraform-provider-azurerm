@@ -100,7 +100,7 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if modelIdentity := model.Identity; modelIdentity != nil {
-					identity, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(*model.Identity)))
+					identity, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(pointer.From(model.Identity))))
 					if err != nil {
 						return err
 					}

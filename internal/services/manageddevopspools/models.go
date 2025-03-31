@@ -89,10 +89,10 @@ type StorageProfileModel struct {
 }
 
 type DataDiskModel struct {
-	Caching            string  `tfschema:"caching"`
-	DiskSizeGiB        *int64  `tfschema:"disk_size"`
+	Caching            *string `tfschema:"caching"`
+	DiskSizeGiB        *int64  `tfschema:"disk_size_gib"`
 	DriveLetter        *string `tfschema:"drive_letter"`
-	StorageAccountType string  `tfschema:"storage_account_type"`
+	StorageAccountType *string `tfschema:"storage_account_type"`
 }
 
 type OrganizationProfileModel struct {

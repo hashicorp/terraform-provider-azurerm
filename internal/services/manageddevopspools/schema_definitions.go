@@ -216,16 +216,20 @@ func StorageProfileSchema() *pluginsdk.Schema {
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
-							"disk_size_gb": {
-								Type:     pluginsdk.TypeInt,
-								Optional: true,
-							},
-							"disk_type": {
+							"caching": {
 								Type:     pluginsdk.TypeString,
 								Optional: true,
 							},
-							"lun": {
+							"disk_size_gib": {
 								Type:     pluginsdk.TypeInt,
+								Optional: true,
+							},
+							"drive_letter": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+							},
+							"storage_account_type": {
+								Type:     pluginsdk.TypeString,
 								Optional: true,
 							},
 						},

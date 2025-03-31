@@ -263,16 +263,18 @@ func expandStorageProfileModel(input []StorageProfileModel) *pools.StorageProfil
 	if len(storageProfile.DataDisks) > 0 {
 		dataDisksOut := []pools.DataDisk{}
 		for _, disk := range storageProfile.DataDisks {
-			cachingType := pools.CachingType(disk.Caching)
-			storageAccountType := pools.StorageAccountType(disk.StorageAccountType)
+			cachingType := pools.CachingType(pointer.From(disk.Caching))
+			storageAccountType := pools.StorageAccountType(pointer.From(disk.StorageAccountType))
 			diskOut := pools.DataDisk{
-				Caching:            &cachingType,
+				Caching:            pointer.To(cachingType),
 				DiskSizeGiB:        disk.DiskSizeGiB,
 				DriveLetter:        disk.DriveLetter,
-				StorageAccountType: &storageAccountType,
+				StorageAccountType: pointer.To(storageAccountType),
 			}
+
 			dataDisksOut = append(dataDisksOut, diskOut)
 		}
+
 		output.DataDisks = &dataDisksOut
 	}
 
@@ -287,9 +289,12 @@ func expandSecretsManagementSettingsModel(input []SecretsManagementSettingsModel
 	secretsManagementSettings := input[0]
 	output := &pools.SecretsManagementSettings{
 		CertificateStoreLocation: secretsManagementSettings.CertificateStoreLocation,
-		CertificateStoreName:     secretsManagementSettings.CertificateStoreName,
 		KeyExportable:            secretsManagementSettings.KeyExportable,
 		ObservedCertificates:     secretsManagementSettings.ObservedCertificates,
+	}
+
+	if secretsManagementSettings.CertificateStoreName != nil {
+		output.CertificateStoreName = pointer.To(pools.CertificateStoreNameOption(pointer.From(secretsManagementSettings.CertificateStoreName)))
 	}
 
 	return output
@@ -477,9 +482,12 @@ func flattenSecretsManagementSettingsToModel(input *pools.SecretsManagementSetti
 
 	secretsManagementSettingsModel := SecretsManagementSettingsModel{
 		CertificateStoreLocation: input.CertificateStoreLocation,
-		CertificateStoreName:     input.CertificateStoreName,
 		KeyExportable:            input.KeyExportable,
 		ObservedCertificates:     input.ObservedCertificates,
+	}
+
+	if input.CertificateStoreName != nil {
+		secretsManagementSettingsModel.CertificateStoreName = pointer.To(string(pointer.From(input.CertificateStoreName)))
 	}
 
 	output := []SecretsManagementSettingsModel{secretsManagementSettingsModel}
@@ -527,11 +535,12 @@ func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileM
 		dataDisksOut := []DataDiskModel{}
 		for _, disk := range pointer.From(input.DataDisks) {
 			diskOut := DataDiskModel{
-				Caching:            string(pointer.From(disk.Caching)),
+				Caching:            pointer.To(string(pointer.From(disk.Caching))),
 				DiskSizeGiB:        disk.DiskSizeGiB,
 				DriveLetter:        disk.DriveLetter,
-				StorageAccountType: string(pointer.From(disk.StorageAccountType)),
+				StorageAccountType: pointer.To(string(pointer.From(disk.StorageAccountType))),
 			}
+
 			dataDisksOut = append(dataDisksOut, diskOut)
 		}
 

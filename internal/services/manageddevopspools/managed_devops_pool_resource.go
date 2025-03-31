@@ -177,12 +177,12 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Type = *model.Type
+				state.Type = pointer.From(model.Type)
 				state.Location = model.Location
-				state.Tags = *model.Tags
+				state.Tags = pointer.From(model.Tags)
 
 				if modelIdentity := model.Identity; modelIdentity != nil {
-					identity, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(*model.Identity)))
+					identity, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(pointer.From(model.Identity))))
 					if err != nil {
 						return err
 					}
