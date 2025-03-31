@@ -556,7 +556,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("public_network_access", string(pointer.From(network.PublicNetworkAccess)))
 
 				if !features.FivePointOh() {
-					d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
+					d.Set("public_network_access_enabled", pointer.From(network.PublicNetworkAccess) == servers.EnableStatusEnumEnabled)
 				}
 			}
 
