@@ -246,6 +246,10 @@ func (EventGridPartnerConfigurationResource) IDValidationFunc() pluginsdk.Schema
 }
 
 func expandAuthorizedPartnersList(partnerAuthorization []PartnerAuthorization) *[]partnerconfigurations.Partner {
+	if len(partnerAuthorization) == 0 {
+		return nil
+	}
+
 	partners := []partnerconfigurations.Partner{}
 
 	for _, partnerAuth := range partnerAuthorization {
