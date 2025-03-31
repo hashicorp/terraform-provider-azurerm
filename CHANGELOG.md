@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * `azurerm_dashboard_grafana` - `grafana_major_version` is no longer ForceNew [GH-29212]
+* `azurerm_databricks_workspace` - resources using managed resource groups that contain UC can now be deleted with the `force_delete` Provider Feature flag [GH-29095]
 
 
 BUG FIXES:
