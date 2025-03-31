@@ -267,7 +267,7 @@ func expandStorageProfileModel(input []StorageProfileModel) *pools.StorageProfil
 			storageAccountType := pools.StorageAccountType(pointer.From(disk.StorageAccountType))
 			diskOut := pools.DataDisk{
 				Caching:            pointer.To(cachingType),
-				DiskSizeGiB:        disk.DiskSizeGiB,
+				DiskSizeGiB:        disk.DiskSizeGB,
 				DriveLetter:        disk.DriveLetter,
 				StorageAccountType: pointer.To(storageAccountType),
 			}
@@ -536,7 +536,7 @@ func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileM
 		for _, disk := range pointer.From(input.DataDisks) {
 			diskOut := DataDiskModel{
 				Caching:            pointer.To(string(pointer.From(disk.Caching))),
-				DiskSizeGiB:        disk.DiskSizeGiB,
+				DiskSizeGB:         disk.DiskSizeGiB,
 				DriveLetter:        disk.DriveLetter,
 				StorageAccountType: pointer.To(string(pointer.From(disk.StorageAccountType))),
 			}

@@ -28,7 +28,6 @@ type AgentProfileModel struct {
 	GracePeriodTimeSpan        *string                           `tfschema:"grace_period_time_span"`
 	Kind                       string                            `tfschema:"kind"`
 	MaxAgentLifetime           *string                           `tfschema:"max_agent_lifetime"`
-	PredictionPreference       *string                           `tfschema:"prediction_preference"`
 	ResourcePredictions        []ResourcePredictionsModel        `tfschema:"resource_predictions"`
 	ResourcePredictionsProfile []ResourcePredictionsProfileModel `tfschema:"resource_predictions_profile"`
 }
@@ -90,7 +89,7 @@ type StorageProfileModel struct {
 
 type DataDiskModel struct {
 	Caching            *string `tfschema:"caching"`
-	DiskSizeGiB        *int64  `tfschema:"disk_size_gib"`
+	DiskSizeGB         *int64  `tfschema:"disk_size_gb"`
 	DriveLetter        *string `tfschema:"drive_letter"`
 	StorageAccountType *string `tfschema:"storage_account_type"`
 }

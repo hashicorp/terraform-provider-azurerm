@@ -1,5 +1,5 @@
 ---
-subcategory: "Managed DevOps Pool"
+subcategory: "Managed DevOps Pools"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_devops_pool"
 description: |-
@@ -38,47 +38,47 @@ resource "azurerm_dev_center_project" "example" {
 }
 
 resource "azurerm_managed_devops_pool" "example" {
-  name = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
+  name                           = "example"
+  resource_group_name            = azurerm_resource_group.example.name
+  location                       = azurerm_resource_group.example.location
   dev_center_project_resource_id = azurerm_dev_center_project.example.id
-  maximum_concurrency = 1
+  maximum_concurrency            = 1
 
   organization_profile {
     kind = "AzureDevOps"
 
     organizations {
       parallelism = 1
-      url = "https://dev.azure.com/example""      
-    }    
+      url         = "https://dev.azure.com/example"
+    }
   }
 
   agent_profile {
     kind = "Stateless"
 
     resource_predictions_profile {
-      kind = "Automatic"
+      kind                  = "Automatic"
       prediction_preference = "Balanced"
     }
   }
 
   fabric_profile {
-    kind = "Vmss" 
+    kind = "Vmss"
 
     sku {
-      name = "Standard_D2ads_v5"     
+      name = "Standard_D2ads_v5"
     }
 
     images {
       resource_id = "/Subscriptions/00000000-0000-0000-0000-000000000000/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
-      buffer = "*"
+      buffer      = "*"
     }
 
     storage_profile {
       os_disk_storage_account_type = "Standard"
 
       data_disks {
-        disk_size_gib = 1
+        disk_size_gb = 1
         drive_letter = "B"
       }
     }
@@ -112,7 +112,7 @@ The following arguments are supported:
 
 ---
 
-* `identity` - (Optional) A `identity` block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Managed DevOps Pool.
 
@@ -120,11 +120,11 @@ The following arguments are supported:
 
 A `agent_profile` block supports the following:
 
-* `kind` - (Required) Defines the type of agent profile. This can be `Stateful` or `Stateless`.
+* `kind` - (Required) Defines the type of agent profile. Accepted values are: `Stateful` and `Stateless`.
 
-* `grace_period_time_span` - (Optional) How long should the machine be kept around after it ran a workload when there are no stand-by agents. The maximum is one week. This is needed when kind is Stateful.
+* `grace_period_time_span` - (Optional) How long should the machine be kept around after it ran a workload when there are no stand-by agents. The maximum is one week. This is needed when kind is `Stateful`.
 
-* `max_agent_lifetime` - (Optional) How long should stateful machines be kept around. The maximum is one week. This is needed when kind is Stateful.
+* `max_agent_lifetime` - (Optional) How long should stateful machines be kept around. The maximum is one week. This is needed when kind is `Stateful`.
 
 * `resource_predictions` - (Optional) A `resource_predictions` block as defined below.
 
@@ -200,7 +200,7 @@ A `organizations` block supports the following:
 
 * `url` - (Required) The Azure DevOps organization URL in which the pool should be created.
 
-* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the maximum_Concurrency of the pool.
+* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool.
 
 * `projects` - (Optional) List of projects in which the pool should be created.
 
@@ -234,7 +234,7 @@ A `resource_predictions` block supports the following:
 
 A `resource_predictions_profile` block supports the following:
 
-* `kind` - (Required) Determines how the stand-by scheme should be provided.
+* `kind` - (Required) Determines how the stand-by scheme should be provided. Accepted values are: `Manual` and `Automatic`.
 
 * `prediction_preference` - (Optional) Specifies the desired balance between cost and performance. Accepted values are: `MostCostEffective`, `MoreCostEffective`, `Balanced`, `MorePerformance`, and `BestPerformance`.
 
@@ -244,7 +244,7 @@ A `secrets_management_settings` block supports the following:
 
 * `certificate_store_location` - (Optional) Specified where to store certificates on the machine.
 
-* `certificate_store_name` - (Optional) Name of the certificate store to use on the machine, Accepted values are: 'My' and 'Root'.
+* `certificate_store_name` - (Optional) Name of the certificate store to use on the machine. Accepted values are: 'My' and 'Root'.
 
 * `key_exportable` - (Optional) Defines if the key of the certificates should be exportable.
 
@@ -266,11 +266,11 @@ A `storage_profile` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Managed DevOps Pool.
 
-* `provisioning_state` - The status of the pool.
+* `provisioning_state` - The status of the pool operation.
 
 * `type` - This is the resource type `Microsoft.DevOpsInfrastructure/pools`.
 

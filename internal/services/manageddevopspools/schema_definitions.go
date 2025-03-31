@@ -1,6 +1,7 @@
 package manageddevopspools
 
 import (
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -13,9 +14,12 @@ func AgentProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"kind": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string("Stateless"),
+						string("Stateful"),
+					}, false),
 				},
 				"grace_period_time_span": {
 					Type:         pluginsdk.TypeString,
@@ -23,11 +27,6 @@ func AgentProfileSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"max_agent_lifetime": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"prediction_preference": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -63,15 +62,21 @@ func ResourcePredictionsProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"kind": {
 					Type:     pluginsdk.TypeString,
 					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"Manual",
+						"Automatic",
+					}, false),
 				},
 				"prediction_preference": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(pools.PossibleValuesForPredictionPreference(), false),
 				},
 			},
 		},
@@ -164,8 +169,9 @@ func OsProfileSchema() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"logon_type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(pools.PossibleValuesForLogonType(), false),
 				},
 				"secrets_management_settings": SecretsManagementSettingsSchema(),
 			},
@@ -185,8 +191,9 @@ func SecretsManagementSettingsSchema() *pluginsdk.Schema {
 					Optional: true,
 				},
 				"certificate_store_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCertificateStoreNameOption(), false),
 				},
 				"key_exportable": {
 					Type:     pluginsdk.TypeBool,
@@ -214,13 +221,15 @@ func StorageProfileSchema() *pluginsdk.Schema {
 				"data_disks": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
+					MaxItems: 1,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"caching": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
 							},
-							"disk_size_gib": {
+							"disk_size_gb": {
 								Type:     pluginsdk.TypeInt,
 								Optional: true,
 							},
@@ -229,15 +238,17 @@ func StorageProfileSchema() *pluginsdk.Schema {
 								Optional: true,
 							},
 							"storage_account_type": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringInSlice(pools.PossibleValuesForStorageAccountType(), false),
 							},
 						},
 					},
 				},
 				"os_disk_storage_account_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(pools.PossibleValuesForOsDiskStorageAccountType(), false),
 				},
 			},
 		},
@@ -295,8 +306,9 @@ func OrganizationProfileSchema() *pluginsdk.Schema {
 								},
 							},
 							"kind": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 							},
 							"users": {
 								Type:     pluginsdk.TypeSet,
@@ -330,11 +342,6 @@ func AgentProfileComputedSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"max_agent_lifetime": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"prediction_preference": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
