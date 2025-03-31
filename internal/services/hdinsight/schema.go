@@ -1071,7 +1071,7 @@ func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionPro
 
 	keyVaultManagedIdentityId := pointer.From(input.MsiResourceId)
 	if input.MsiResourceId != nil {
-		keyVaultManagedIdentityIdRaw, err := commonids.ParseUserAssignedIdentityID(*input.MsiResourceId)
+		keyVaultManagedIdentityIdRaw, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.MsiResourceId)
 		if err != nil {
 			return nil, err
 		}

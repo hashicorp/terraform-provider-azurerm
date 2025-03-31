@@ -1620,6 +1620,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   disk_encryption {
     encryption_at_host_enabled    = true
+    encryption_algorithm          = "RSA-OAEP"
     key_vault_key_id              = azurerm_key_vault_key.test.id
     key_vault_managed_identity_id = azurerm_user_assigned_identity.test.id
   }
@@ -1643,6 +1644,10 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
+  }
+
+  lifecycle {
+    ignore_changes = [disk_encryption[0].key_vault_managed_identity_id]
   }
 
   depends_on = [azurerm_role_assignment.test]
