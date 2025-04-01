@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * `azurerm_databricks_workspace` - resources using managed resource groups that contain UC can now be deleted with the `force_delete` Provider Feature flag [GH-29095]
 * `azurerm_mssql_server` - add support for the `express_vulnerability_assessment_enabled` property [GH-29168]
 * `azurerm_mysql_flexible_server` - deprecate `public_network_access_enabled` in favor of `public_network_access` [GH-28890]
+* `azurerm_static_webapp` - mark `app_settings` sensitive in schema [GH-28689]
 
 BUG FIXES:
 
