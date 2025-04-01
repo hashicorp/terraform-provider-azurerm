@@ -174,6 +174,56 @@ func (r resource) Read() sdk.ResourceFunc {
 }
 ```
 
+## SKU fields
+
+Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:
+
+1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument. 
+2. When the SKU requires multiple arguments (e.g. `name` and `capacity`), use a `sku` block.
+
+Example of a `sku` argument:
+```go
+"sku": {
+	Type:     pluginsdk.TypeString,
+	Optional: true,
+	Default:  string(firewallpolicies.FirewallPolicySkuTierStandard),
+	ForceNew: true,
+	ValidateFunc: validation.StringInSlice([]string{
+		string(firewallpolicies.FirewallPolicySkuTierPremium),
+		string(firewallpolicies.FirewallPolicySkuTierStandard),
+		string(firewallpolicies.FirewallPolicySkuTierBasic),
+	}, false),
+}
+```
+
+Example of a `sku` block:
+```go
+	"sku": {
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(helpers.PossibleValuesForSkuName(), false),
+				},
+				"capacity": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Default:  1,
+					ValidateFunc: validation.IntInSlice([]int{
+						1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200,
+					}),
+				},
+			},
+		},
+	},
+```
+
+While you may encounter arguments like `sku_name`, `sku_family`, and `capacity` in existing resources, new arguments should avoid this format and use one of the two options above.
+
 ## The `type` field
 
 The Azure API makes use of classes and inheritance through discriminator types defined in the REST API specifications. A strong indicator that a resource is actually a discriminated type is through the definition of a `type` or `kind` property.
