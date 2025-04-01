@@ -29,13 +29,8 @@ const (
 )
 
 func resourceSpringCloudAppMysqlAssociation() *pluginsdk.Resource {
-	deprecationMessage := "Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_mysql_association` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."
-	if !features.FivePointOh() {
-		deprecationMessage = ""
-	}
-
 	return &pluginsdk.Resource{
-		DeprecationMessage: deprecationMessage,
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_mysql_association` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
 
 		Create: resourceSpringCloudAppMysqlAssociationCreateUpdate,
 		Read:   resourceSpringCloudAppMysqlAssociationRead,
