@@ -189,6 +189,21 @@ func TestAccWindowsVirtualMachine_diskOSEphemeralResourceDisk(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_diskOSEphemeralNvmeDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+	r := WindowsVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSEphemeralNvmeDisk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachine_diskOSStorageTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
@@ -840,6 +855,41 @@ resource "azurerm_windows_virtual_machine" "test" {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
     sku       = "2022-datacenter-smalldisk"
+    version   = "latest"
+  }
+}
+`, r.template(data))
+}
+
+func (r WindowsVirtualMachineResource) diskOSEphemeralNvmeDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size           = "Standard_D2ds_v6"
+  admin_username = "adminuser"
+  admin_password = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadOnly"
+    storage_account_type = "Standard_LRS"
+
+    diff_disk_settings {
+      option    = "Local"
+      placement = "NvmeDisk"
+    }
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-datacenter-smalldisk-g2"
     version   = "latest"
   }
 }
