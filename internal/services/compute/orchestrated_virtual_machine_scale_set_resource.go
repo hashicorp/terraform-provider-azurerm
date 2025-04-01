@@ -358,13 +358,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				upgradeMode := virtualmachinescalesets.UpgradeMode(diff.Get("upgrade_mode").(string))
 				rollingUpgradePolicyRaw := diff.Get("rolling_upgrade_policy").([]interface{})
 
-				shouldHaveRollingUpgradePolicy := upgradeMode == virtualmachinescalesets.UpgradeModeAutomatic || upgradeMode == virtualmachinescalesets.UpgradeModeRolling
-				if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
-					return fmt.Errorf("a `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
+				if upgradeMode == virtualmachinescalesets.UpgradeModeManual && len(rollingUpgradePolicyRaw) > 0 {
+					return fmt.Errorf("a `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to `%s`", string(upgradeMode))
 				}
-				shouldHaveRollingUpgradePolicy = upgradeMode == virtualmachinescalesets.UpgradeModeRolling
-				if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
-					return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
+
+				if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && len(rollingUpgradePolicyRaw) == 0 {
+					return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to `%s`", string(upgradeMode))
 				}
 
 				return nil
