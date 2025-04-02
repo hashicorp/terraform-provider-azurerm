@@ -655,7 +655,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 				TfoStaticIPAddress:              &testStaticIpSecondary,
 				TfoPublicIPAddressId:            &testPublicIpAddressIDSecondary,
 				TfoSubnetName:                   &testSubNetNameSecondary,
-				IsPrimary:                       utils.Bool(true),
+				IsPrimary:                       utils.Bool(false),
 			},
 		}
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
