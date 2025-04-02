@@ -10,9 +10,9 @@ description: |-
 
 Manages a Custom Domain for a CDN Endpoint.
 
-!> **Note:** The CDN services from Edgio(formerly Verizon) will be shut down on or before 15 January 2025. All Azure CDN from Edgio customers must migrate their workloads out of Azure CDN from Edgio before 15 January 2025.
+!> **Note:** The CDN services from Edgio(formerly Verizon) was shut down on 15 January 2025 and is no longer available .
 
-!> **Note:** The CDN services from Akamai support will be removed on 31 October 2023. All Azure CDN from Akamai customers must migrate their workloads out of Azure CDN from Akamai before 31 October 2023.
+!> **Note:** Support for CDN services from Akamai was removed on 31 October 2023. 
 
 ## Example Usage
 
