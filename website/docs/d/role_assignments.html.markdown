@@ -33,7 +33,6 @@ The following arguments are supported:
 
 * `scope` - (Required) The scope at which to list Role Assignments.
 
-
 ---
 
 * `limit_at_scope` - (Optional) Whether to limit the result exactly at the specified scope and not above or below it. Defaults to `false`.
