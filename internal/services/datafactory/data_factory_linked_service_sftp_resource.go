@@ -4,6 +4,7 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -220,6 +221,24 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Optional: true,
 			},
 		},
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+				for authType, reqs := range map[string][]string{
+					string(datafactory.SftpAuthenticationTypeSSHPublicKey): {"private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
+					string(datafactory.SftpAuthenticationTypeBasic):        {"password", "key_vault_password"},
+				} {
+					for _, x := range reqs {
+						if _, ok := d.GetOk(x); ok {
+							if d.Get("authentication_type").(string) != authType {
+								return fmt.Errorf("`authentication_type` must be `%s` when `%s` is defined", authType, x)
+							}
+						}
+					}
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
