@@ -122,12 +122,25 @@ func resourceBackupProtectionPolicyFileShareCreateUpdate(d *pluginsdk.ResourceDa
 		TimeZone:       pointer.To(d.Get("timezone").(string)),
 		WorkLoadType:   pointer.To(protectionpolicies.WorkloadTypeAzureFileShare),
 		SchedulePolicy: expandBackupProtectionPolicyFileShareSchedule(d, times),
-		RetentionPolicy: &protectionpolicies.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
+	}
+
+	if d.Get("backup_tier").(string) == "vault-standard" {
+		AzureFileShareProtectionPolicyProperties.VaultRetentionPolicy = &protectionpolicies.VaultRetentionPolicy{
+			SnapshotRetentionInDays: int64(d.Get("snapshot_retention_in_days").(int)),
+			VaultRetention: &protectionpolicies.LongTermRetentionPolicy{
+				DailySchedule:   expandBackupProtectionPolicyFileShareRetentionDaily(d, times),
+				WeeklySchedule:  expandBackupProtectionPolicyFileShareRetentionWeekly(d, times),
+				MonthlySchedule: expandBackupProtectionPolicyFileShareRetentionMonthly(d, times),
+				YearlySchedule:  expandBackupProtectionPolicyFileShareRetentionYearly(d, times),
+			},
+		}
+	} else {
+		AzureFileShareProtectionPolicyProperties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{
 			DailySchedule:   expandBackupProtectionPolicyFileShareRetentionDaily(d, times),
 			WeeklySchedule:  expandBackupProtectionPolicyFileShareRetentionWeekly(d, times),
 			MonthlySchedule: expandBackupProtectionPolicyFileShareRetentionMonthly(d, times),
 			YearlySchedule:  expandBackupProtectionPolicyFileShareRetentionYearly(d, times),
-		},
+		}
 	}
 
 	policy := protectionpolicies.ProtectionPolicyResource{
@@ -236,6 +249,52 @@ func resourceBackupProtectionPolicyFileShareRead(d *pluginsdk.ResourceData, meta
 				} else {
 					d.Set("retention_yearly", nil)
 				}
+			}
+
+			if properties.VaultRetentionPolicy != nil {
+				d.Set("backup_tier", "vault-standard")
+				if s := properties.VaultRetentionPolicy.SnapshotRetentionInDays; s != 0 {
+					d.Set("snapshot_retention_in_days", int(s))
+				} else {
+					d.Set("snapshot_retention_in_days", 0)
+				}
+
+				if retention, ok := properties.VaultRetentionPolicy.VaultRetention.(protectionpolicies.LongTermRetentionPolicy); ok {
+					if s := retention.DailySchedule; s != nil {
+						if err := d.Set("retention_daily", flattenBackupProtectionPolicyFileShareRetentionDaily(s)); err != nil {
+							return fmt.Errorf("setting `retention_daily`: %+v", err)
+						}
+					} else {
+						d.Set("retention_daily", nil)
+					}
+
+					if s := retention.WeeklySchedule; s != nil {
+						if err := d.Set("retention_weekly", flattenBackupProtectionPolicyFileShareRetentionWeekly(s)); err != nil {
+							return fmt.Errorf("setting `retention_weekly`: %+v", err)
+						}
+					} else {
+						d.Set("retention_weekly", nil)
+					}
+
+					if s := retention.MonthlySchedule; s != nil {
+						if err := d.Set("retention_monthly", flattenBackupProtectionPolicyFileShareRetentionMonthly(s)); err != nil {
+							return fmt.Errorf("setting `retention_monthly`: %+v", err)
+						}
+					} else {
+						d.Set("retention_monthly", nil)
+					}
+
+					if s := retention.YearlySchedule; s != nil {
+						if err := d.Set("retention_yearly", flattenBackupProtectionPolicyFileShareRetentionYearly(s)); err != nil {
+							return fmt.Errorf("setting `retention_yearly`: %+v", err)
+						}
+					} else {
+						d.Set("retention_yearly", nil)
+					}
+				}
+			} else {
+				d.Set("backup_tier", "snapshot")
+				d.Set("snapshot_retention_in_days", 0)
 			}
 		}
 	}
@@ -991,6 +1050,22 @@ func resourceBackupProtectionPolicyFileShareSchema() map[string]*pluginsdk.Schem
 					},
 				},
 			},
+		},
+
+		"backup_tier": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "snapshot",
+			ValidateFunc: validation.StringInSlice([]string{
+				"snapshot",
+				"vault-standard",
+			}, false),
+		},
+
+		"snapshot_retention_in_days": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			Default:  0,
 		},
 	}
 }
