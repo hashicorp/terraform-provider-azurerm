@@ -15,7 +15,7 @@ type AzureBlobStorageWriteSettings struct {
 
 	// Fields inherited from StoreWriteSettings
 
-	CopyBehavior             *string         `json:"copyBehavior,omitempty"`
+	CopyBehavior             *interface{}    `json:"copyBehavior,omitempty"`
 	DisableMetricsCollection *bool           `json:"disableMetricsCollection,omitempty"`
 	MaxConcurrentConnections *int64          `json:"maxConcurrentConnections,omitempty"`
 	Metadata                 *[]MetadataItem `json:"metadata,omitempty"`

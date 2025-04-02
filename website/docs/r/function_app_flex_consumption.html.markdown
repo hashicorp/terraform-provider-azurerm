@@ -48,6 +48,7 @@ resource "azurerm_function_app_flex_consumption" "example" {
   name                = "example-linux-function-app"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+  service_plan_id     = azurerm_service_plan.example.id
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = azurerm_storage_container.example.id
@@ -116,27 +117,27 @@ The following arguments are supported:
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
-* `storage_container_type` - (Optional) The storage container type used for the Function App. The current supported type is `blobContainer`.
+* `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
 
-* `storage_container_endpoint` - (Optional) The backend storage container endpoint which will be used by this Function App.
+* `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
 
-* `storage_authentication_type` - (Optional) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `storageaccountconnectionstring`, `systemassignedidentity`, and `userassignedidentity`.
+* `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
 
 * `storage_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
 
-~> **Note:** The`storage_access_key` must be specified when `storage_authentication_type` sets to `storageaccountconnectionstring`.
+~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
 
 * `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **Note:** The`storage_user_assigned_identity_id` must be specified when `storage_authentication_type` sets to `userassignedidentity`.
+~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
-* `runtime_name` - (Optional) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
+* `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
 
-* `runtime_version` - (Optional) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
+* `runtime_version` - (Required) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
-* `instance_memory_in_mb` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 

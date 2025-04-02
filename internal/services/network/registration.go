@@ -52,6 +52,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerManagementGroupConnectionResource{},
 		ManagerNetworkGroupResource{},
 		ManagerResource{},
+		ManagerIpamPoolResource{},
 		ManagerScopeConnectionResource{},
 		ManagerSecurityAdminConfigurationResource{},
 		ManagerStaticMemberResource{},

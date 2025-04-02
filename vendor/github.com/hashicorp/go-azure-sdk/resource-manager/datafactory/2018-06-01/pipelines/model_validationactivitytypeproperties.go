@@ -8,5 +8,5 @@ type ValidationActivityTypeProperties struct {
 	Dataset     DatasetReference `json:"dataset"`
 	MinimumSize *int64           `json:"minimumSize,omitempty"`
 	Sleep       *int64           `json:"sleep,omitempty"`
-	Timeout     *string          `json:"timeout,omitempty"`
+	Timeout     *interface{}     `json:"timeout,omitempty"`
 }
