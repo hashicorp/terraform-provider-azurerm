@@ -35,7 +35,7 @@ func FlexibleServerDatabaseName(i interface{}, k string) (warnings []string, err
 		return
 	}
 
-	if !regexp.MustCompile(`^[a-zA-Z0-9-_]+$`).MatchString(v) {
+	if !regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%q must only contains numbers, characters and `-`, `_`, got %v", k, v))
 		return
 	}
