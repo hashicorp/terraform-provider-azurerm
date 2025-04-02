@@ -12,12 +12,14 @@ import (
 type ActionType string
 
 const (
+	ActionTypeAddIncidentTask  ActionType = "AddIncidentTask"
 	ActionTypeModifyProperties ActionType = "ModifyProperties"
 	ActionTypeRunPlaybook      ActionType = "RunPlaybook"
 )
 
 func PossibleValuesForActionType() []string {
 	return []string{
+		string(ActionTypeAddIncidentTask),
 		string(ActionTypeModifyProperties),
 		string(ActionTypeRunPlaybook),
 	}
@@ -38,6 +40,7 @@ func (s *ActionType) UnmarshalJSON(bytes []byte) error {
 
 func parseActionType(input string) (*ActionType, error) {
 	vals := map[string]ActionType{
+		"addincidenttask":  ActionTypeAddIncidentTask,
 		"modifyproperties": ActionTypeModifyProperties,
 		"runplaybook":      ActionTypeRunPlaybook,
 	}
