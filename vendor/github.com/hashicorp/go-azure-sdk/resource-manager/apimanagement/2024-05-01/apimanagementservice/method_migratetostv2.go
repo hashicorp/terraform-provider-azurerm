@@ -22,7 +22,7 @@ type MigrateToStv2OperationResponse struct {
 }
 
 // MigrateToStv2 ...
-func (c ApiManagementServiceClient) MigrateToStv2(ctx context.Context, id ServiceId) (result MigrateToStv2OperationResponse, err error) {
+func (c ApiManagementServiceClient) MigrateToStv2(ctx context.Context, id ServiceId, input MigrateToStv2Contract) (result MigrateToStv2OperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -35,6 +35,10 @@ func (c ApiManagementServiceClient) MigrateToStv2(ctx context.Context, id Servic
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -57,8 +61,8 @@ func (c ApiManagementServiceClient) MigrateToStv2(ctx context.Context, id Servic
 }
 
 // MigrateToStv2ThenPoll performs MigrateToStv2 then polls until it's completed
-func (c ApiManagementServiceClient) MigrateToStv2ThenPoll(ctx context.Context, id ServiceId) error {
-	result, err := c.MigrateToStv2(ctx, id)
+func (c ApiManagementServiceClient) MigrateToStv2ThenPoll(ctx context.Context, id ServiceId, input MigrateToStv2Contract) error {
+	result, err := c.MigrateToStv2(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing MigrateToStv2: %+v", err)
 	}
