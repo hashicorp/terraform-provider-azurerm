@@ -70,12 +70,6 @@ func TestAccCdnProfile_withTags(t *testing.T) {
 	})
 }
 
-// Removed 'TestAccCdnProfile_basicToStandardAkamai' and 'TestAccCdnProfile_standardAkamai' test cases
-// due to Akamai support being retired.
-
-// Removed 'TestAccCdnProfile_standardMicrosoft' due to Edgio being shut down on or before 15 January 2025
-// the 'TestAccCdnProfile_standardMicrosoft' is now the 'TestAccCdnProfile_basic' test case...
-
 func (r CdnProfileResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ProfileID(state.ID)
 	if err != nil {

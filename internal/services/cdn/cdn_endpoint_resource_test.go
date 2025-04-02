@@ -134,9 +134,6 @@ func TestAccCdnEndpoint_optimized(t *testing.T) {
 	})
 }
 
-// Removed 'TestAccCdnEndpoint_withGeoFilters' due to Edgio being shut down on or before 15 January 2025
-// Removed 'TestAccCdnEndpoint_fullFields' due to Edgio being shut down on or before 15 January 2025
-
 func TestAccCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
@@ -238,8 +235,6 @@ func TestAccCdnEndpoint_dnsAlias(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
-// Removed 'TestAccCdnEndpoint_PremiumVerizon' due to Edgio being shut down on or before 15 January 2025
 
 func TestAccCdnEndpoint_deliveryRuleOptionalMatchValue(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
