@@ -54,6 +54,14 @@ func UnmarshalAutomationRuleActionImplementation(input []byte) (AutomationRuleAc
 		value = fmt.Sprintf("%v", v)
 	}
 
+	if strings.EqualFold(value, "AddIncidentTask") {
+		var out AutomationRuleAddIncidentTaskAction
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AutomationRuleAddIncidentTaskAction: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "ModifyProperties") {
 		var out AutomationRuleModifyPropertiesAction
 		if err := json.Unmarshal(input, &out); err != nil {
