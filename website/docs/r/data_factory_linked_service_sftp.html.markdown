@@ -67,13 +67,13 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `password` - (Optional) Password to log on to the SFTP Server for Basic Authentication.
 
-* `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Password to log on to the SFTP Server for Basic Authentication.
+* `key_vault_password` - (Optional) A `key_vault_password` block as defined below.
 
-~> **Note:** `password` is required when `authentication_type` is set to `Basic`.
+~> **Note:** Either `password` or `key_vault_password` is required when `authentication_type` is set to `Basic`.
 
-* `private_key_content_base64` - (Optional) The base 64 encoded private key content in OpenSSH format used to log on to the SFTP server.
+* `private_key_content_base64` - (Optional) The Base64 encoded private key content in OpenSSH format used to log on to the SFTP server.
 
-* `key_vault_private_key_content_base64` - (Optional) A `key_vault_private_key_content_base64` block as defined below. The base 64 encoded private key content in OpenSSH format used to log on to the SFTP server.
+* `key_vault_private_key_content_base64` - (Optional) A `key_vault_private_key_content_base64` block as defined below.
 
 * `private_key_path` - (Optional) The absolute path to the private key file that the self-hosted integration runtime can access.
 
@@ -81,7 +81,7 @@ The following supported arguments are specific to SFTP Linked Service:
 
 * `private_key_passphrase` - (Optional) The passphrase for the private key if the key is encrypted.
 
-* `key_vault_private_key_passphrase` - (Optional) A `key_vault_private_key_passphrase` block as defined below. The passphrase for the private key if the key is encrypted.
+* `key_vault_private_key_passphrase` - (Optional) A `key_vault_private_key_passphrase` block as defined below.
 
 ~> **Note:** One of `private_key_content_base64` or `private_key_path` (or their Key Vault equivalent) is required when `authentication_type` is set to `SshPublicKey`.
 
@@ -95,7 +95,7 @@ A `key_vault_password` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
-* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores Basic auth password.
+* `secret_name` - (Required) Specifies the name of the secret containing the password.
 
 ---
 
@@ -103,7 +103,7 @@ A `key_vault_private_key_content_base64` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
-* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the base 64 encoded SSH private key.
+* `secret_name` - (Required) Specifies the name of the secret containing the Base64 encoded SSH private key.
 
 ---
 
@@ -111,7 +111,7 @@ A `key_vault_private_key_passphrase` block supports the following:
 
 * `linked_service_name` - (Required) Specifies the name of an existing Key Vault Data Factory Linked Service.
 
-* `secret_name` - (Required) Specifies the secret name in Azure Key Vault that stores the SSH private key passphrase.
+* `secret_name` - (Required) Specifies the name of the secret containing the SSH private key passphrase.
 
 ---
 
