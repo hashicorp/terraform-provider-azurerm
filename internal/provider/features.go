@@ -573,7 +573,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
 			}
-
 			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {
 				featuresMap.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
 			}
