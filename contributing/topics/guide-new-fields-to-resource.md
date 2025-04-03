@@ -108,18 +108,20 @@ This is a breaking change and can be done by deprecating the old property, repla
 
 A feature flag is essentially a function that returns a boolean and allows the provider to accommodate alternate behaviours that are meant for major releases. A release feature flag will always return `false` until it has been hooked up to an environment variable that allows users to toggle the behaviour and can be found in the `./internal/features` directory.
 
-As an example, let's deprecate and replace the property `enable_compression` with `compression_enabled`.
+As an example, let's deprecate and replace the property `enable_compression` with `compression_enabled`. Here is an example for an untyped resource (for more information about typed and untyped resource, [see the Best Practices guide](./best-practices.md#typed-vs-untyped-resources)):
 
 ```go
-### Untyped ###
 Schema: map[string]*pluginsdk.Schema{
 	...
 	"enable_compression": {
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
 },
+```
 
-### Typed ###
+Here is an example for a typed resource:
+
+```go
 func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"enable_compression": {
@@ -129,10 +131,9 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 }
 ```
 
-After deprecation the schema might look like the example below.
+After deprecation the schema might look like the code below. Here is an example for an untyped resource:
 
 ```go
-### Untyped ###
 func resource() *pluginsdk.Resource {
     resource := &pluginsdk.Resource{
         Schema: map[string]*pluginsdk.Schema{
@@ -163,8 +164,11 @@ func resource() *pluginsdk.Resource {
 
     return resource
 }
+```
 
-### Typed ###
+Here is an example for a typed resource:
+
+```go
 func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 	schema := map[string]*pluginsdk.Schema{
 			// The deprecated property is moved out of the schema and conditionally added back via the feature flag
@@ -196,10 +200,9 @@ func (r ExampleResource) Arguments() map[string]*pluginsdk.Schema {
 }
 ```
 
-Also make sure to feature flag the behaviour in the `Create()`, `Update()` and `Read()` methods.
+Also make sure to feature flag the behaviour in the `Create()`, `Update()` and `Read()` methods. Here is an example for an untyped resource:
 
 ```go
-### Untyped ###
 func myResourceCreate() {
     ...
     enableCompression := false
@@ -223,8 +226,10 @@ func myResourceRead() {
     }
     ...
 }
+```
 
-### Typed ###
+Here is an example for a typed resource:
+```go
 func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
 	compressionEnabled := false
