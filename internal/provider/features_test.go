@@ -95,6 +95,9 @@ func TestExpandFeatures(t *testing.T) {
 					DeleteBackupsOnBackupVaultDestroy: false,
 					PreventVolumeDestruction:          true,
 				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
+				},
 			},
 		},
 		{
@@ -211,6 +214,11 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_volume_destruction":             true,
 						},
 					},
+					"databricks_workspace": []interface{}{
+						map[string]interface{}{
+							"force_delete": true,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -287,6 +295,9 @@ func TestExpandFeatures(t *testing.T) {
 				NetApp: features.NetAppFeatures{
 					DeleteBackupsOnBackupVaultDestroy: true,
 					PreventVolumeDestruction:          true,
+				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: true,
 				},
 			},
 		},
@@ -404,6 +415,11 @@ func TestExpandFeatures(t *testing.T) {
 							"prevent_volume_destruction":             false,
 						},
 					},
+					"databricks_workspace": []interface{}{
+						map[string]interface{}{
+							"force_delete": false,
+						},
+					},
 				},
 			},
 			Expected: features.UserFeatures{
@@ -480,6 +496,9 @@ func TestExpandFeatures(t *testing.T) {
 				NetApp: features.NetAppFeatures{
 					DeleteBackupsOnBackupVaultDestroy: false,
 					PreventVolumeDestruction:          false,
+				},
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
 				},
 			},
 		},
@@ -1849,6 +1868,71 @@ func TestExpandFeaturesNetApp(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.Subscription, testCase.Expected.Subscription) {
 			t.Fatalf("Expected %+v but got %+v", result.Subscription, testCase.Expected.Subscription)
+		}
+	}
+}
+
+func TestExpandFeaturesDatabricksWorkspace(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"databricks_workspace": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
+				},
+			},
+		},
+		{
+			Name: "Databricks Workspace Features Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"databricks_workspace": []interface{}{
+						map[string]interface{}{
+							"force_delete": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: true,
+				},
+			},
+		},
+		{
+			Name: "Databricks Workspace Features Disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"databricks_workspace": []interface{}{
+						map[string]interface{}{
+							"force_delete": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				DatabricksWorkspace: features.DatabricksWorkspaceFeatures{
+					ForceDelete: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace) {
+			t.Fatalf("Expected %+v but got %+v", result.DatabricksWorkspace, testCase.Expected.DatabricksWorkspace)
 		}
 	}
 }

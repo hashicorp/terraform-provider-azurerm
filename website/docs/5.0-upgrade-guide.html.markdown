@@ -180,6 +180,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `enabled_log.retention_policy` block has been removed.
 
+### `azurerm_monitor_diagnostic_setting`
+
+* The deprecated `metric.retention_policy` block has been removed.
+
 ### `azurerm_mssql_database`
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
@@ -196,7 +200,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
 
-## `azurerm_network_watcher_flow_log`
+### `azurerm_mysql_flexible_server`
+
+* The deprecated `public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+### `azurerm_network_watcher_flow_log`
 
 * The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
 

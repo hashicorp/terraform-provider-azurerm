@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
@@ -36,7 +37,7 @@ import (
 )
 
 func resourceLinuxVirtualMachine() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLinuxVirtualMachineCreate,
 		Read:   resourceLinuxVirtualMachineRead,
 		Update: resourceLinuxVirtualMachineUpdate,
@@ -355,12 +356,6 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
-			"vm_agent_platform_updates_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"vtpm_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -417,8 +412,23 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"vm_agent_platform_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["vm_agent_platform_updates_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "this property has been deprecated due to a breaking change introduced by the Service team, which redefined it as a read-only field within the API",
+		}
+	}
+
+	return resource
 }
 
 func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -463,7 +473,6 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		computerName = id.VirtualMachineName
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
-	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
 	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
@@ -514,7 +523,6 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 				AllowExtensionOperations: pointer.To(allowExtensionOperations),
 				LinuxConfiguration: &virtualmachines.LinuxConfiguration{
 					DisablePasswordAuthentication: pointer.To(disablePasswordAuthentication),
-					EnableVMAgentPlatformUpdates:  pointer.To(vmAgentPlatformUpdatesEnabled),
 					ProvisionVMAgent:              pointer.To(provisionVMAgent),
 					Ssh: &virtualmachines.SshConfiguration{
 						PublicKeys: &sshKeys,
@@ -853,8 +861,8 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			licenseType := ""
-			if props.LicenseType != nil {
-				licenseType = *props.LicenseType
+			if v := props.LicenseType; v != nil && *v != "None" {
+				licenseType = *v
 			}
 			d.Set("license_type", licenseType)
 
@@ -1111,21 +1119,34 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("identity") {
-		shouldUpdate = true
-
 		identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		update.Identity = identityExpanded
+
+		if existing.Model == nil {
+			return fmt.Errorf("updating identity for Linux %s: `model` was nil", id)
+		}
+
+		existing.Model.Identity = identityExpanded
+		// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
+		// 1. The go-azure-sdk for resource manager doesn't support at the moment
+		// 2. The expand identity function doesn't behave this way
+		// For the moment updating the identity with the PUT circumvents this API behaviour
+		// See https://github.com/hashicorp/terraform-provider-azurerm/issues/25058 for more details
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating identity for Linux %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("license_type") {
 		shouldUpdate = true
 
+		licenseType := "None"
 		if v, ok := d.GetOk("license_type"); ok {
-			update.Properties.LicenseType = pointer.To(v.(string))
+			licenseType = v.(string)
 		}
+		update.Properties.LicenseType = pointer.To(licenseType)
 	}
 
 	if d.HasChange("capacity_reservation_group_id") {
@@ -1322,19 +1343,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		update.Properties.HardwareProfile = &virtualmachines.HardwareProfile{
 			VMSize: pointer.To(virtualmachines.VirtualMachineSizeTypes(vmSize)),
 		}
-	}
-
-	if d.HasChange("vm_agent_platform_updates_enabled") {
-		shouldUpdate = true
-		if update.Properties.OsProfile == nil {
-			update.Properties.OsProfile = &virtualmachines.OSProfile{}
-		}
-
-		if update.Properties.OsProfile.LinuxConfiguration == nil {
-			update.Properties.OsProfile.LinuxConfiguration = &virtualmachines.LinuxConfiguration{}
-		}
-
-		update.Properties.OsProfile.LinuxConfiguration.EnableVMAgentPlatformUpdates = pointer.To(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {
