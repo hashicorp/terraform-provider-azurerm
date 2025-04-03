@@ -60,7 +60,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
@@ -266,7 +265,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: true,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 true,
 					SkipShutdownAndForceDelete:       true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
@@ -460,7 +458,6 @@ func TestExpandFeatures(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false,
 					SkipShutdownAndForceDelete:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
