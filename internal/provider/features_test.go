@@ -183,7 +183,6 @@ func TestExpandFeatures(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": true,
 							"delete_os_disk_on_deletion":            true,
-							"graceful_shutdown":                     true, // TODO: Remove in 5.0
 							"skip_shutdown_and_force_delete":        true,
 						},
 					},
@@ -378,7 +377,6 @@ func TestExpandFeatures(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false, // TODO: Remove in 5.0
 							"skip_shutdown_and_force_delete":        false,
 						},
 					},
@@ -967,7 +965,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false, // TODO: Remove in 5.0
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -980,7 +977,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": true,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false, // TODO: Remove in 5.0
 							"force_delete":                          false,
 							"shutdown_before_deletion":              false,
 						},
@@ -991,7 +987,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: true,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false, // TODO: Remove in 5.0
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -1004,7 +999,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            true,
-							"graceful_shutdown":                     false, // TODO: Remove in 5.0
 							"force_delete":                          false,
 							"shutdown_before_deletion":              false,
 						},
@@ -1015,7 +1009,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           true,
-					GracefulShutdown:                 false, // TODO: Remove in 5.0
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -1028,7 +1021,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     true, // TODO: Remove in 5.0
 							"force_delete":                          false,
 						},
 					},
@@ -1038,7 +1030,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 true, // TODO: Remove in 5.0
 					SkipShutdownAndForceDelete:       false,
 				},
 			},
@@ -1051,7 +1042,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false, // TODO: Remove in 5.0
 							"skip_shutdown_and_force_delete":        true,
 						},
 					},
@@ -1061,7 +1051,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false, // TODO: Remove in 5.0
 					SkipShutdownAndForceDelete:       true,
 				},
 			},
@@ -1074,7 +1063,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 						map[string]interface{}{
 							"detach_implicit_data_disk_on_deletion": false,
 							"delete_os_disk_on_deletion":            false,
-							"graceful_shutdown":                     false, // TODO: Remove in 5.0
 							"skip_shutdown_and_force_delete":        false,
 						},
 					},
@@ -1084,7 +1072,6 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				VirtualMachine: features.VirtualMachineFeatures{
 					DetachImplicitDataDiskOnDeletion: false,
 					DeleteOSDiskOnDeletion:           false,
-					GracefulShutdown:                 false, // TODO: Remove in 5.0
 					SkipShutdownAndForceDelete:       false,
 				},
 			},

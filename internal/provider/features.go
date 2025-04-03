@@ -220,15 +220,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
-
-					// TODO: Remove in 5.0
-					"graceful_shutdown": {
-						Type:       pluginsdk.TypeBool,
-						Optional:   true,
-						Default:    false,
-						Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
-					},
-
 					"skip_shutdown_and_force_delete": {
 						Type:     schema.TypeBool,
 						Optional: true,
@@ -422,6 +413,15 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		},
 	}
 
+	if !features.FivePointOh() {
+		featuresMap["virtual_machine"].Elem.(*pluginsdk.Resource).Schema["graceful_shutdown"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
+	}
+
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
 	// rather than doing it as a big-bang and breaking all open PR's
 	if supportLegacyTestSuite {
@@ -572,11 +572,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
-			}
-
-			// TODO: Remove in 5.0
-			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
-				featuresMap.VirtualMachine.GracefulShutdown = v.(bool)
 			}
 
 			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {

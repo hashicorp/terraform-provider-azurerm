@@ -1674,8 +1674,6 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
 
-	// Due to a breaking change in the API the power down (e.g., 'graceful_shutdown') feature flag is no longer supported...
-
 	log.Printf("[DEBUG] Deleting Linux %s", id)
 
 	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
