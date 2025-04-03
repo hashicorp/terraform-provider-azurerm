@@ -299,9 +299,12 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 					MonitoringStatus:              monitoringStatus,
 					MarketplaceSubscriptionStatus: string(*props.MarketplaceSubscriptionStatus),
 					Identity:                      identityProps,
-					EnvironmentProperties:         FlattenDynatraceEnvironmentProperties(props.DynatraceEnvironmentProperties),
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),
 					UserInfo:                      FlattenDynatraceUserInfo(props.UserInfo),
+				}
+
+				if environmentProps := metadata.ResourceData.Get("environment_properties"); environmentProps != nil && len(environmentProps.([]interface{})) > 0 {
+					state.EnvironmentProperties = FlattenDynatraceEnvironmentProperties(props.DynatraceEnvironmentProperties)
 				}
 
 				if model.Tags != nil {
