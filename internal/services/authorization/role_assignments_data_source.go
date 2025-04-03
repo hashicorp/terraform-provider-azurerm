@@ -160,7 +160,7 @@ func (r RoleAssignmentsDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-				state.RoleAssignments = flattenRoleAssignmentsToModel(pointer.From(model), state.Scope, state.LimitAtScope)
+				state.RoleAssignments = flattenRoleAssignmentsToModel(model, state.Scope, state.LimitAtScope)
 			}
 
 			return metadata.Encode(&state)
@@ -168,10 +168,14 @@ func (r RoleAssignmentsDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenRoleAssignmentsToModel(input []roleassignments.RoleAssignment, scope string, limitAtScope bool) []RoleAssignmentsModel {
+func flattenRoleAssignmentsToModel(input *[]roleassignments.RoleAssignment, scope string, limitAtScope bool) []RoleAssignmentsModel {
 	result := make([]RoleAssignmentsModel, 0)
 
-	for _, v := range input {
+	if len(*input) == 0 {
+		return result
+	}
+
+	for _, v := range *input {
 		assignment := RoleAssignmentsModel{
 			RoleAssignmentID:   pointer.From(v.Id),
 			RoleAssignmentName: pointer.From(v.Name),
