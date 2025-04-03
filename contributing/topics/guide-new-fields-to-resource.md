@@ -234,10 +234,10 @@ func (r ExampleResource) Create() sdk.ResourceFunc {
 	...
 	compressionEnabled := false
 	if !features.FivePointOh() {
-		compressionEnabled = model.CompressionEnabled
+		compressionEnabled = model.EnableCompression
 	}
 	
-	compressionEnabled = model.EnableCompression
+	compressionEnabled = model.CompressionEnabled
 	...
 }
 
