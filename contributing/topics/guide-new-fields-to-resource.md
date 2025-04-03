@@ -14,7 +14,7 @@ Building on the example found in [adding a new resource](guide-new-resource.md) 
 
 Our hypothetical property `logging_enabled` will be user configurable and thus will need to be added to the `Arguments` list.
 
-The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource) and will end up looking like the code block below. For the complete example, including untyped resources, see below, [Renaming and Deprecating a Property](#Renaming-and-Deprecating-a-Property).
+The position of the new property is determined based on the order found in [adding a new resource](guide-new-resource.md#step-3-scaffold-an-emptynew-resource) and will end up looking like the code block below. Here is an example for a typed resource:
 
 ```go
 func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
