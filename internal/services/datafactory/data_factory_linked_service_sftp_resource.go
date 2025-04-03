@@ -125,13 +125,13 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Sensitive:     true,
-				ConflictsWith: []string{"password", "key_vault_private_key_passphrase"},
+				ConflictsWith: []string{"password", "key_vault_password", "key_vault_private_key_passphrase"},
 			},
 
 			"key_vault_private_key_passphrase": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
-				ConflictsWith: []string{"password", "private_key_passphrase"},
+				ConflictsWith: []string{"password", "key_vault_password", "private_key_passphrase"},
 				MaxItems:      1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -151,18 +151,16 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			},
 
 			"password": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path", "key_vault_password"},
-				AtLeastOneOf:  []string{"password", "key_vault_password", "private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"password", "key_vault_password", "private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
 			},
 
 			"key_vault_password": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"private_key_content_base64", "private_key_path", "private_key_passphrase"},
+				Type:     pluginsdk.TypeList,
+				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"linked_service_name": {
@@ -181,18 +179,16 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			},
 
 			"private_key_content_base64": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validation.StringIsBase64,
-				ConflictsWith: []string{"private_key_path", "password", "key_vault_password", "key_vault_private_key_content_base64"},
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"key_vault_private_key_content_base64": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"private_key_path", "password", "key_vault_password", "private_key_content_base64"},
-				MaxItems:      1,
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"linked_service_name": {
@@ -211,9 +207,8 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			},
 
 			"private_key_path": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"private_key_content_base64", "key_vault_private_key_content_base64", "key_vault_password", "password"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"skip_host_key_validation": {
