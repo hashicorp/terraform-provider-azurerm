@@ -1,5 +1,10 @@
 ## 4.26.0 (Unreleased)
 
+BREAKING CHANGES:
+
+* `azurerm_linux_virtual_machine` - the `vm_agent_platform_updates_enabled` property is now read-only due to a recent API breaking change [GH-29211]
+* `azurerm_windows_virtual_machine` - the `vm_agent_platform_updates_enabled` property is now read-only due to a recent API breaking change [GH-29211]
+
 ENHANCEMENTS:
 
 * dependences: `azurerm_sentinel_automation_rule` - update to API version `2024-09-01` [GH-29240]
