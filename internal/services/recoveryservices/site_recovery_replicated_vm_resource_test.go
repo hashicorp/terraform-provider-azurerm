@@ -252,13 +252,13 @@ func TestAccSiteRecoveryReplicatedVm_targetVirtualMachineSize(t *testing.T) {
 	})
 }
 
-func TestAccSiteRecoveryReplicatedVm_withSecondaryIpConfiguration(t *testing.T) {
+func TestAccSiteRecoveryReplicatedVm_withIPConfigList(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.secondaryIpConfiguration(data),
+			Config: r.ipConfigList(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2540,7 +2540,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, r.vmSizeTemplate(data, "Standard_B2s"), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicatedVmResource) secondaryIpConfiguration(data acceptance.TestData) string {
+func (r SiteRecoveryReplicatedVmResource) ipConfigList(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2604,15 +2604,23 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   }
 
   network_interface {
-    source_network_interface_id             = azurerm_network_interface.test.id
-    target_subnet_name                      = azurerm_subnet.test2.name
-    recovery_public_ip_address_id           = azurerm_public_ip.test-recovery.id
-    failover_test_subnet_name               = azurerm_subnet.tfo.name
-    failover_test_public_ip_address_id      = azurerm_public_ip.tfo.id
-    target_subnet_name_secondary            = azurerm_subnet.secondary.name
-    recovery_public_ip_address_id_secondary = azurerm_public_ip.secondary.id
-  }
+    source_network_interface_id = azurerm_network_interface.test.id
+    ip_config {
+      name                          = "primary"
+      recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
+      target_subnet_name            = azurerm_subnet.test2.name
+      failover_test_subnet_name     = azurerm_subnet.tfo.name
+      is_primary                    = true
+    }
 
+    ip_config {
+      name                          = "secondary"
+      target_subnet_name            = azurerm_subnet.secondary.name
+      recovery_public_ip_address_id = azurerm_public_ip.secondary.id
+      is_primary                    = false
+    }
+
+  }
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
     azurerm_site_recovery_network_mapping.test,
