@@ -45,7 +45,7 @@ func NewDynatraceMonitorResource() MonitorsResource {
 func TestAccDynatraceMonitor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := MonitorsResource{}
-	//r.preCheck(t)
+	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -92,7 +92,7 @@ func TestAccDynatraceMonitor_update(t *testing.T) {
 func TestAccDynatraceMonitor_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := MonitorsResource{}
-	//r.preCheck(t)
+	r.preCheck(t)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -171,11 +171,11 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 
   user {
-    first_name   = "Alice"
-    last_name    = "Bob"
-    email        = "agarwald@microsoft.com"
-    phone_number = "12345678"
-    country      = "westus2"
+    first_name   = "%s"
+    last_name    = "%s"
+    email        = "%s"
+    phone_number = "%s"
+    country      = "%s"
   }
 
   plan {
@@ -187,14 +187,8 @@ resource "azurerm_dynatrace_monitor" "test" {
   tags = {
     environment = "Dev"
   }
-  lifecycle {
-	ignore_changes = [
-		environment_properties,
-	]
-  }
-
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
 func (r MonitorsResource) complete(data acceptance.TestData) string {
@@ -213,11 +207,11 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 
   user {
-    first_name   = "Alice"
-    last_name    = "Bob"
-    email        = "agarwald@microsoft.com"
-    phone_number = "12345678"
-    country      = "westus2"
+    first_name   = "%[4]s"
+    last_name    = "%[5]s"
+    email        = "%[6]s"
+    phone_number = "%[7]s"
+    country      = "%[8]s"
   }
 
   plan {
@@ -230,9 +224,9 @@ resource "azurerm_dynatrace_monitor" "test" {
     environment = "Dev"
   }
   lifecycle {
-	ignore_changes = [
-		environment_properties,
-	]
+    ignore_changes = [
+      environment_properties,
+    ]
   }
 }
 
@@ -251,11 +245,11 @@ resource "azurerm_dynatrace_monitor" "test2" {
     type = "SystemAssigned"
   }
   user {
-    first_name   = "Alice"
-    last_name    = "Bob"
-    email        = "agarwald@microsoft.com"
-    phone_number = "12345678"
-    country      = "westus2"
+    first_name   = "%[4]s"
+    last_name    = "%[5]s"
+    email        = "%[6]s"
+    phone_number = "%[7]s"
+    country      = "%[8]s"
   }
 
   environment_properties {
@@ -272,11 +266,6 @@ resource "azurerm_dynatrace_monitor" "test2" {
 
   tags = {
     environment = "Dev"
-  }
-  lifecycle {
-	ignore_changes = [
-		environment_properties,
-	]
   }
 }
 `, template, data.RandomInteger, data.RandomInteger, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
