@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/catalogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/catalogs"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,7 +42,7 @@ func (r DevCenterCatalogsResource) ModelObject() interface{} {
 }
 
 func (r DevCenterCatalogsResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return catalogs.ValidateCatalogID
+	return catalogs.ValidateDevCenterCatalogID
 }
 
 func (r DevCenterCatalogsResource) ResourceType() string {
@@ -86,14 +86,14 @@ func (r DevCenterCatalogsResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.DevCenter.V20230401.Catalogs
+			client := metadata.Client.DevCenter.V20250201.Catalogs
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			devCenterId, err := catalogs.ParseDevCenterID(model.DevCenterID)
 			if err != nil {
 				return fmt.Errorf("parsing dev center id: %+v", err)
 			}
 			devCenterName := devCenterId.DevCenterName
-			id := catalogs.NewCatalogID(subscriptionId, model.ResourceGroupName, devCenterName, model.Name)
+			id := catalogs.NewDevCenterCatalogID(subscriptionId, model.ResourceGroupName, devCenterName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -131,8 +131,8 @@ func (r DevCenterCatalogsResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			client := metadata.Client.DevCenter.V20230401.Catalogs
-			id, err := catalogs.ParseCatalogID(metadata.ResourceData.Id())
+			client := metadata.Client.DevCenter.V20250201.Catalogs
+			id, err := catalogs.ParseDevCenterCatalogID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing catalog id: %+v", err)
 			}
@@ -168,9 +168,9 @@ func (r DevCenterCatalogsResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Catalogs
+			client := metadata.Client.DevCenter.V20250201.Catalogs
 
-			id, err := catalogs.ParseCatalogID(metadata.ResourceData.Id())
+			id, err := catalogs.ParseDevCenterCatalogID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing catalog id: %+v", err)
 			}
@@ -228,9 +228,9 @@ func (r DevCenterCatalogsResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Catalogs
+			client := metadata.Client.DevCenter.V20250201.Catalogs
 
-			id, err := catalogs.ParseCatalogID(metadata.ResourceData.Id())
+			id, err := catalogs.ParseDevCenterCatalogID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("parsing catalog id: %+v", err)
 			}

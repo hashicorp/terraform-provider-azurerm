@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/projects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -88,7 +88,7 @@ func (r DevCenterProjectResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Projects
+			client := metadata.Client.DevCenter.V20250201.Projects
 
 			var config DevCenterProjectResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -119,7 +119,7 @@ func (r DevCenterProjectResource) Create() sdk.ResourceFunc {
 			}
 
 			payload.Properties.Description = &config.Description
-			payload.Properties.DevCenterId = config.DevCenterId
+			payload.Properties.DevCenterId = &config.DevCenterId
 			payload.Properties.MaxDevBoxesPerUser = &config.MaximumDevBoxesPerUser
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -136,7 +136,7 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Projects
+			client := metadata.Client.DevCenter.V20250201.Projects
 			schema := DevCenterProjectResourceSchema{}
 
 			id, err := projects.ParseProjectID(metadata.ResourceData.Id())
@@ -160,7 +160,7 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					schema.Description = pointer.From(props.Description)
-					schema.DevCenterId = props.DevCenterId
+					schema.DevCenterId = pointer.From(props.DevCenterId)
 					schema.DevCenterUri = pointer.From(props.DevCenterUri)
 					schema.MaximumDevBoxesPerUser = pointer.From(props.MaxDevBoxesPerUser)
 				}
@@ -175,7 +175,7 @@ func (r DevCenterProjectResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Projects
+			client := metadata.Client.DevCenter.V20250201.Projects
 
 			id, err := projects.ParseProjectID(metadata.ResourceData.Id())
 			if err != nil {
@@ -195,7 +195,7 @@ func (r DevCenterProjectResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Projects
+			client := metadata.Client.DevCenter.V20250201.Projects
 
 			id, err := projects.ParseProjectID(metadata.ResourceData.Id())
 			if err != nil {
