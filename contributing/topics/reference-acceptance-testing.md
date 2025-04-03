@@ -49,22 +49,22 @@ func TestAccExampleResource_category_test2(t *testing.T) { ... }
 
 ## Acceptance Tests
 
-The Acceptance Tests for both Data Sources and Resources within this Provider use a Go struct for each test, in the form `{Name}{DataSource|Resource}`, for example:
+The Acceptance Tests for both Data Sources and Resources within this Provider use a Go struct for each test, in the form `{Name}{DataSource|Resource}Test`, for example:
 
 ```go
 // for a data source named Example:
-type ExampleDataSource struct {}
+type ExampleDataSourceTest struct {}
 
 // for a resource named Example:
-type ExampleResource struct {}
+type ExampleResourceTest struct {}
 ```
 
 This allows the test configurations to be scoped (and not used unintentionally across different resources), for example a Resource may use:
 
 ```go
-type ExampleResource struct {}
+type ExampleResourceTest struct {}
 
-func (ExampleResource) basic(data acceptance.TestData) string {
+func (ExampleResourceTest) basic(data acceptance.TestData) string {
 return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -85,7 +85,7 @@ This allows the Acceptance Test for each Data Source/Resource to reference that 
 ```go
 func TestAccExampleResource_basic(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
-        r := ExampleResource{}
+        r := ExampleResourceTest{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
                 {
