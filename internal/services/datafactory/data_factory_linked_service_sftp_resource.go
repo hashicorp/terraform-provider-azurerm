@@ -223,15 +223,18 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 		},
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				for authType, reqs := range map[string][]string{
-					string(datafactory.SftpAuthenticationTypeSSHPublicKey): {"private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
-					string(datafactory.SftpAuthenticationTypeBasic):        {"password", "key_vault_password"},
-				} {
-					for _, x := range reqs {
-						if _, ok := d.GetOk(x); ok {
-							if d.Get("authentication_type").(string) != authType {
-								return fmt.Errorf("`authentication_type` must be `%s` when `%s` is defined", authType, x)
-							}
+				authCombinations := map[string]string{
+					"private_key_content_base64":           string(datafactory.SftpAuthenticationTypeSSHPublicKey),
+					"key_vault_private_key_content_base64": string(datafactory.SftpAuthenticationTypeSSHPublicKey),
+					"private_key_path":                     string(datafactory.SftpAuthenticationTypeSSHPublicKey),
+					"password":                             string(datafactory.SftpAuthenticationTypeBasic),
+					"key_vault_password":                   string(datafactory.SftpAuthenticationTypeBasic),
+				}
+
+				for keyType, authType := range authCombinations {
+					if _, ok := d.GetOk(keyType); ok {
+						if d.Get("authentication_type").(string) != authType {
+							return fmt.Errorf("`authentication_type` must be `%s` when `%s` is defined", authType, keyType)
 						}
 					}
 				}
