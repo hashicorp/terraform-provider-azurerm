@@ -183,30 +183,32 @@ func TestAccPostgresqlFlexibleServer_updateVersion(t *testing.T) {
 	r := PostgresqlFlexibleServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withVersion(data, 12, "", false),
+			Config: r.withVersion(data, 12, ""),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config:      r.withVersion(data, 13, "", false),
-			ExpectError: regexp.MustCompile("major version update is not allowed, set `create_mode` to `Update` or set `allow_major_version_upgrade_enabled` to true"),
+			Config: r.withVersion(data, 13, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		{
-			Config: r.withVersion(data, 13, "Update", false),
+			Config: r.withVersion(data, 13, "Update"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
 		{
-			Config: r.withVersion(data, 14, "", true),
+			Config: r.withVersion(data, 14, "Default"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "allow_major_version_upgrade_enabled"),
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 
@@ -789,14 +791,10 @@ resource "azurerm_postgresql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PostgresqlFlexibleServerResource) withVersion(data acceptance.TestData, versionNum int, creatMode string, allowMajorVersionUpdate bool) string {
-	createModeProp, allowMajorVersionUpdateProp := "", ""
+func (r PostgresqlFlexibleServerResource) withVersion(data acceptance.TestData, versionNum int, creatMode string) string {
+	createModeProp := ""
 	if creatMode != "" {
 		createModeProp = fmt.Sprintf("create_mode = \"%s\"", creatMode)
-	}
-
-	if allowMajorVersionUpdate {
-		allowMajorVersionUpdateProp = fmt.Sprintf("allow_major_version_upgrade_enabled = %t", allowMajorVersionUpdate)
 	}
 
 	return fmt.Sprintf(`
@@ -810,11 +808,10 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "%d"
   %s
-  %s
   sku_name = "GP_Standard_D2s_v3"
   zone     = "2"
 }
-`, r.template(data), data.RandomInteger, versionNum, createModeProp, allowMajorVersionUpdateProp)
+`, r.template(data), data.RandomInteger, versionNum, createModeProp)
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
