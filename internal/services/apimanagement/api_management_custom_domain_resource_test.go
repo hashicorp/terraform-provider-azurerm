@@ -390,6 +390,7 @@ func (r ApiManagementCustomDomainResource) certificateManaged(data acceptance.Te
 	txtRecordValue := os.Getenv("ARM_TEST_DNS_ZONE_TXT_RECORD")
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 data "azurerm_dns_zone" "test" {
@@ -417,10 +418,10 @@ resource "azurerm_dns_txt_record" "test" {
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
-  
+
   gateway {
-    host_name           = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
-    certificate_source  = "Managed"
+    host_name          = "${azurerm_dns_cname_record.test.name}.${data.azurerm_dns_zone.test.name}"
+    certificate_source = "Managed"
   }
 
   developer_portal {
@@ -437,6 +438,7 @@ func (r ApiManagementCustomDomainResource) certificateManagedUpdate(data accepta
 	txtRecordValue := os.Getenv("ARM_TEST_DNS_ZONE_TXT_RECORD")
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 data "azurerm_dns_zone" "test" {
@@ -464,11 +466,11 @@ resource "azurerm_dns_txt_record" "test" {
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
-  
+
   gateway {
-    host_name            = "api.terraform.io"
-    certificate          = filebase64("testdata/api_management_api_test.pfx")
-    certificate_password = "terraform"
+    host_name                    = "api.terraform.io"
+    certificate                  = filebase64("testdata/api_management_api_test.pfx")
+    certificate_password         = "terraform"
     negotiate_client_certificate = false
   }
 
