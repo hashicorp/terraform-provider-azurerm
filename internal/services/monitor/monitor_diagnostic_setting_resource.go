@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
@@ -161,7 +162,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						"category": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"Capacity", "Transaction"}, false),
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"enabled": {
@@ -264,23 +265,23 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
-		parameters.Properties.EventHubAuthorizationRuleId = pointer.To(eventHubAuthorizationRuleId)
-		parameters.Properties.EventHubName = pointer.To(eventHubName)
+		parameters.Properties.EventHubAuthorizationRuleId = utils.String(eventHubAuthorizationRuleId)
+		parameters.Properties.EventHubName = utils.String(eventHubName)
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
-		parameters.Properties.WorkspaceId = pointer.To(workspaceId)
+		parameters.Properties.WorkspaceId = utils.String(workspaceId)
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
-		parameters.Properties.StorageAccountId = pointer.To(storageAccountId)
+		parameters.Properties.StorageAccountId = utils.String(storageAccountId)
 	}
 
 	partnerSolutionId := d.Get("partner_solution_id").(string)
 	if partnerSolutionId != "" {
-		parameters.Properties.MarketplacePartnerId = pointer.To(partnerSolutionId)
+		parameters.Properties.MarketplacePartnerId = utils.String(partnerSolutionId)
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
@@ -393,23 +394,23 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	eventHubAuthorizationRuleId := d.Get("eventhub_authorization_rule_id").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	if eventHubAuthorizationRuleId != "" {
-		parameters.Properties.EventHubAuthorizationRuleId = pointer.To(eventHubAuthorizationRuleId)
-		parameters.Properties.EventHubName = pointer.To(eventHubName)
+		parameters.Properties.EventHubAuthorizationRuleId = utils.String(eventHubAuthorizationRuleId)
+		parameters.Properties.EventHubName = utils.String(eventHubName)
 	}
 
 	workspaceId := d.Get("log_analytics_workspace_id").(string)
 	if workspaceId != "" {
-		parameters.Properties.WorkspaceId = pointer.To(workspaceId)
+		parameters.Properties.WorkspaceId = utils.String(workspaceId)
 	}
 
 	storageAccountId := d.Get("storage_account_id").(string)
 	if storageAccountId != "" {
-		parameters.Properties.StorageAccountId = pointer.To(storageAccountId)
+		parameters.Properties.StorageAccountId = utils.String(storageAccountId)
 	}
 
 	partnerSolutionId := d.Get("partner_solution_id").(string)
 	if partnerSolutionId != "" {
-		parameters.Properties.MarketplacePartnerId = pointer.To(partnerSolutionId)
+		parameters.Properties.MarketplacePartnerId = utils.String(partnerSolutionId)
 	}
 
 	if v := d.Get("log_analytics_destination_type").(string); v != "" {
@@ -589,9 +590,9 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 
 		switch {
 		case category != "":
-			output.Category = pointer.To(category)
+			output.Category = utils.String(category)
 		case categoryGroup != "":
-			output.CategoryGroup = pointer.To(categoryGroup)
+			output.CategoryGroup = utils.String(categoryGroup)
 		default:
 			return nil, fmt.Errorf("exactly one of `category` or `category_group` must be specified")
 		}

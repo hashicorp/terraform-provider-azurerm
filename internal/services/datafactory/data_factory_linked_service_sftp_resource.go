@@ -4,13 +4,11 @@
 package datafactory
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
@@ -59,7 +57,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			"authentication_type": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice(linkedservices.PossibleValuesForSftpAuthenticationType(), false),
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"host": {
@@ -79,29 +77,14 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"additional_properties": {
-				Type:     pluginsdk.TypeMap,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"annotations": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-				},
-			},
-
-			"description": {
+			"password": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"host_key_fingerprint": {
+			"description": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -121,124 +104,33 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				},
 			},
 
-			"private_key_passphrase": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ConflictsWith: []string{"password", "key_vault_private_key_passphrase"},
-			},
-
-			"key_vault_private_key_passphrase": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"password", "private_key_passphrase"},
-				MaxItems:      1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
-			"password": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validation.StringIsNotEmpty,
-				ConflictsWith: []string{"private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path", "key_vault_password"},
-				AtLeastOneOf:  []string{"password", "key_vault_password", "private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
-			},
-
-			"key_vault_password": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"private_key_content_base64", "private_key_path", "private_key_passphrase"},
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
-			"private_key_content_base64": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validation.StringIsBase64,
-				ConflictsWith: []string{"private_key_path", "password", "key_vault_password", "key_vault_private_key_content_base64"},
-			},
-
-			"key_vault_private_key_content_base64": {
-				Type:          pluginsdk.TypeList,
-				Optional:      true,
-				ConflictsWith: []string{"private_key_path", "password", "key_vault_password", "private_key_content_base64"},
-				MaxItems:      1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"linked_service_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"secret_name": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
-			"private_key_path": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"private_key_content_base64", "key_vault_private_key_content_base64", "key_vault_password", "password"},
-			},
-
 			"skip_host_key_validation": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
-		},
-		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-				for authType, reqs := range map[string][]string{
-					string(datafactory.SftpAuthenticationTypeSSHPublicKey): {"private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
-					string(datafactory.SftpAuthenticationTypeBasic):        {"password", "key_vault_password"},
-				} {
-					for _, x := range reqs {
-						if _, ok := d.GetOk(x); ok {
-							if d.Get("authentication_type").(string) != authType {
-								return fmt.Errorf("`authentication_type` must be `%s` when `%s` is defined", authType, x)
-							}
-						}
-					}
-				}
 
-				return nil
-			}),
-		),
+			"host_key_fingerprint": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"annotations": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"additional_properties": {
+				Type:     pluginsdk.TypeMap,
+				Optional: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+		},
 	}
 }
 
@@ -271,43 +163,10 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 		Port:               d.Get("port").(int),
 		AuthenticationType: datafactory.SftpAuthenticationType(d.Get("authentication_type").(string)),
 		UserName:           d.Get("username").(string),
-	}
-
-	if v, ok := d.GetOk("password"); ok {
-		sftpProperties.Password = &datafactory.SecureString{
-			Value: pointer.To(v.(string)),
+		Password: pointer.To(datafactory.SecureString{
+			Value: pointer.To(d.Get("password").(string)),
 			Type:  datafactory.TypeSecureString,
-		}
-	}
-
-	if v, ok := d.GetOk("key_vault_password"); ok {
-		sftpProperties.Password = expandAzureKeyVaultSecretReference(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("private_key_content_base64"); ok {
-		sftpProperties.PrivateKeyContent = &datafactory.SecureString{
-			Value: pointer.To(v.(string)),
-			Type:  datafactory.TypeSecureString,
-		}
-	}
-
-	if v, ok := d.GetOk("key_vault_private_key_content_base64"); ok {
-		sftpProperties.PrivateKeyContent = expandAzureKeyVaultSecretReference(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("private_key_passphrase"); ok {
-		sftpProperties.PassPhrase = &datafactory.SecureString{
-			Value: pointer.To(v.(string)),
-			Type:  datafactory.TypeSecureString,
-		}
-	}
-
-	if v, ok := d.GetOk("key_vault_private_key_passphrase"); ok {
-		sftpProperties.PassPhrase = expandAzureKeyVaultSecretReference(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("private_key_path"); ok {
-		sftpProperties.PrivateKeyPath = pointer.To(v.(string))
+		}),
 	}
 
 	if v, ok := d.GetOk("skip_host_key_validation"); ok {
@@ -340,7 +199,8 @@ func resourceDataFactoryLinkedServiceSFTPCreate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
-		sftpLinkedService.Annotations = pointer.To(v.([]interface{}))
+		annotations := v.([]interface{})
+		sftpLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
@@ -395,29 +255,13 @@ func resourceDataFactoryLinkedServiceSFTPRead(d *pluginsdk.ResourceData, meta in
 		d.Set("additional_properties", sftp.AdditionalProperties)
 		d.Set("description", sftp.Description)
 
-		if sftp.Password != nil {
-			if v, ok := sftp.Password.AsAzureKeyVaultSecretReference(); ok {
-				d.Set("key_vault_password", flattenAzureKeyVaultSecretReference(v))
-			}
-		}
-
-		if sftp.PrivateKeyContent != nil {
-			if v, ok := sftp.PrivateKeyContent.AsAzureKeyVaultSecretReference(); ok {
-				d.Set("key_vault_private_key_content_base64", flattenAzureKeyVaultSecretReference(v))
-			}
-		}
-
-		if sftp.PassPhrase != nil {
-			if v, ok := sftp.PassPhrase.AsAzureKeyVaultSecretReference(); ok {
-				d.Set("key_vault_private_key_passphrase", flattenAzureKeyVaultSecretReference(v))
-			}
-		}
-
-		if err := d.Set("annotations", flattenDataFactoryAnnotations(sftp.Annotations)); err != nil {
+		annotations := flattenDataFactoryAnnotations(sftp.Annotations)
+		if err := d.Set("annotations", annotations); err != nil {
 			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
 
-		if err := d.Set("parameters", flattenLinkedServiceParameters(sftp.Parameters)); err != nil {
+		parameters := flattenLinkedServiceParameters(sftp.Parameters)
+		if err := d.Set("parameters", parameters); err != nil {
 			return fmt.Errorf("setting `parameters`: %+v", err)
 		}
 
@@ -486,18 +330,6 @@ func resourceDataFactoryLinkedServiceSFTPUpdate(d *pluginsdk.ResourceData, meta 
 			Value: pointer.To(d.Get("password").(string)),
 			Type:  datafactory.TypeSecureString,
 		}
-	}
-
-	if d.HasChange("key_vault_password") {
-		sftp.Password = expandAzureKeyVaultSecretReference(d.Get("key_vault_password").([]interface{}))
-	}
-
-	if d.HasChange("key_vault_private_key_content_base64") {
-		sftp.PrivateKeyContent = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_content_base64").([]interface{}))
-	}
-
-	if d.HasChange("key_vault_private_key_passphrase") {
-		sftp.PassPhrase = expandAzureKeyVaultSecretReference(d.Get("key_vault_private_key_passphrase").([]interface{}))
 	}
 
 	if d.HasChange("skip_host_key_validation") {

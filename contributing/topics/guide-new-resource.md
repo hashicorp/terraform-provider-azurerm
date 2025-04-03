@@ -290,7 +290,6 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
             }
 
             return nil
-			// The Update function in **untyped** resources should return `Read()`
         },
     }
 }
