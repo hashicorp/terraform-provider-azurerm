@@ -8,7 +8,7 @@ Due to their fundamental importance in the provider, resource IDs should be hand
 
 The SDK `hashicorp/go-azure-sdk` used in the provider contains the necessary parsing and validation functions required for a resource ID and will exist in the resource's package.
 
-As an example the function to parse a Machine Learning Workspace Resource ID will be accessible by importing the workspace resource package into the provider
+As an example the function to parse a Machine Learning Workspace Resource ID will be accessible by importing the workspace resource package into the provider:
 
 ```go
 import "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
