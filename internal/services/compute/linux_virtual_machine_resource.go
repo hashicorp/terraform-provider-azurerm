@@ -421,9 +421,10 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["vm_agent_platform_updates_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "this property has been deprecated due to a breaking change introduced by the Service team, which redefined it as a read-only field within the API",
 		}
 	}
 
