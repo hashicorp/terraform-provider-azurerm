@@ -228,7 +228,7 @@ Whilst this works, a side effect is that it's hard for users to reset a field to
 
 In order to solve this, (new) fields should no longer be marked as `Optional` and `Computed` - instead where a split Create and Update method is used (see above) users can lean on `ignore_changes` to ignore values from a field with a default value, should they wish to continue using the default value.
 
-This approach means that we can support users who want to use the default value (by specifying `ignore_changes = ["some_field"]`), users who want to explicitly define this value (e.g. some_field = "bar") and users who need to remove this value (by either omitting the field or defining it as null, so that gets removed).
+This approach means that we can support users who want to use the default value by specifying `ignore_changes = ["some_field"]`, users who want to explicitly define this value e.g. some_field = "bar" and users who need to remove this value by either omitting the field or defining it as null, so that it gets removed.
 
 Over time, the existing resources will be migrated from `Optional` and `Computed` to just `Optional` (allowing users to rely on `ignore_changes`) so that this becomes more behaviourally consistent - however new fields should be defined as `Optional` alone, rather than `Optional` and `Computed`.
 
