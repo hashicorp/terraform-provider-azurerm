@@ -351,6 +351,28 @@ func TestAccNetAppVolume_volEncryptionCmkSystemAssigned(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolume_serviceLevelUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceLevelUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := volumes.ParseVolumeID(state.ID)
 	if err != nil {
@@ -1483,4 +1505,43 @@ provider "azurerm" {
   }
 }
 `
+}
+
+func (r NetAppVolumeResource) serviceLevelUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_pool" "test2" {
+  name                = "acctest-NetAppPool2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Premium"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test2.name
+  volume_path         = "my-unique-file-path-%[2]d"
+  service_level       = "Premium"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

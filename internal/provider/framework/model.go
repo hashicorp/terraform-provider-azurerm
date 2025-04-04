@@ -169,7 +169,7 @@ var TemplateDeploymentAttributes = map[string]attr.Type{
 
 type VirtualMachine struct {
 	DeleteOsDiskOnDeletion           types.Bool `tfsdk:"delete_os_disk_on_deletion"`
-	GracefulShutdown                 types.Bool `tfsdk:"graceful_shutdown"`
+	GracefulShutdown                 types.Bool `tfsdk:"graceful_shutdown"` // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	SkipShutdownAndForceDelete       types.Bool `tfsdk:"skip_shutdown_and_force_delete"`
 	DetachImplicitDataDiskOnDeletion types.Bool `tfsdk:"detach_implicit_data_disk_on_deletion"`
 }
@@ -177,7 +177,7 @@ type VirtualMachine struct {
 var VirtualMachineAttributes = map[string]attr.Type{
 	"delete_os_disk_on_deletion":            types.BoolType,
 	"detach_implicit_data_disk_on_deletion": types.BoolType,
-	"graceful_shutdown":                     types.BoolType,
+	"graceful_shutdown":                     types.BoolType, // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	"skip_shutdown_and_force_delete":        types.BoolType,
 }
 

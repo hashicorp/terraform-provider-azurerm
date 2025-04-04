@@ -1,3 +1,37 @@
+## 4.26.0 (April 04, 2025)
+
+BREAKING CHANGES:
+
+* feature: The Provider `feature` configuration item `virtual_machines.graceful_shutdown` is now not used due to a breaking change in the `compute` API. This feature block setting is now deprecated and ignored if set and will be removed in v5.0 of the provider. ([#29185](https://github.com/hashicorp/terraform-provider-azurerm/issues/29185))
+* `azurerm_linux_virtual_machine` - the `vm_agent_platform_updates_enabled` property is now read-only due to a recent API breaking change ([#29211](https://github.com/hashicorp/terraform-provider-azurerm/issues/29211))
+* `azurerm_windows_virtual_machine` - the `vm_agent_platform_updates_enabled` property is now read-only due to a recent API breaking change ([#29211](https://github.com/hashicorp/terraform-provider-azurerm/issues/29211))
+
+FEATURES:
+
+* **New Data Source**: `azurerm_role_assignments` ([#29214](https://github.com/hashicorp/terraform-provider-azurerm/issues/29214))
+
+ENHANCEMENTS:
+
+* dependencies: `azurerm_sentinel_automation_rule` - update to API version `2024-09-01` ([#29240](https://github.com/hashicorp/terraform-provider-azurerm/issues/29240))
+* dependencies: `devcenter` - update to API version `2025-02-01` ([#29240](https://github.com/hashicorp/terraform-provider-azurerm/issues/29240))
+* dependencies: `recoveryservices` - partial update to API version `2024-10-01` ([#29240](https://github.com/hashicorp/terraform-provider-azurerm/issues/29240))
+* Data Source: `azurerm_mssql_server` - export the `express_vulnerability_assessment_enabled` property ([#29168](https://github.com/hashicorp/terraform-provider-azurerm/issues/29168))
+* `azurerm_dashboard_grafana` - `grafana_major_version` is no longer ForceNew ([#29212](https://github.com/hashicorp/terraform-provider-azurerm/issues/29212))
+* `azurerm_data_factory_linked_service_sftp` - add support for SSH authentication and Key Vault secret references ([#28690](https://github.com/hashicorp/terraform-provider-azurerm/issues/28690))
+* `azurerm_databricks_workspace` - resources using managed resource groups that contain UC can now be deleted with the `force_delete` Provider Feature flag ([#29095](https://github.com/hashicorp/terraform-provider-azurerm/issues/29095))
+* `azurerm_mssql_server` - add support for the `express_vulnerability_assessment_enabled` property ([#29168](https://github.com/hashicorp/terraform-provider-azurerm/issues/29168))
+* `azurerm_mysql_flexible_server` - deprecate `public_network_access_enabled` in favor of `public_network_access` ([#28890](https://github.com/hashicorp/terraform-provider-azurerm/issues/28890))
+* `azurerm_netapp_volume` - `service_level` can now be updated ([#29209](https://github.com/hashicorp/terraform-provider-azurerm/issues/29209))
+* `azurerm_nginx_deployment` - `frontend_public`, `frontend_private`, and `network_interface` are no longer `ForceNew` ([#28577](https://github.com/hashicorp/terraform-provider-azurerm/issues/28577))
+* `azurerm_orchestrated_virtual_machine_scale_set` - add support for the `upgrade_mode` and `rolling_upgrade_policy` properties ([#28354](https://github.com/hashicorp/terraform-provider-azurerm/issues/28354))
+* `azurerm_static_webapp` - mark `app_settings` sensitive in schema ([#28689](https://github.com/hashicorp/terraform-provider-azurerm/issues/28689))
+
+BUG FIXES:
+
+* `azurerm_linux_virtual_machine` - `license_type` can now be updated to None ([#28786](https://github.com/hashicorp/terraform-provider-azurerm/issues/28786))
+* `azurerm_mysql_flexible_server` - prevent a panic when `customer_managed_key` is nil ([#29225](https://github.com/hashicorp/terraform-provider-azurerm/issues/29225))
+* `azurerm_traffic_manager_nested_endpoint` - remove `Computed` from `priority` property as these are assigned dynamically by the API ([#29217](https://github.com/hashicorp/terraform-provider-azurerm/issues/29217))
+
 ## 4.25.0 (March 28, 2025)
 
 ENHANCEMENTS:
