@@ -524,6 +524,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   runtime_version             = "20"
   maximum_instance_count      = 50
   instance_memory_in_mb       = 2048
+  https_only                  = true
 
   app_settings = {
     foo    = "bar"
