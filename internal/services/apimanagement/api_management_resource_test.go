@@ -2243,7 +2243,7 @@ resource "azurerm_api_management" "test" {
 
     proxy {
       host_name                    = "api.pluginsdk.io"
-      key_vault_id                 = azurerm_key_vault_certificate.test.versionless_secret_id
+      key_vault_key_id             = azurerm_key_vault_certificate.test.versionless_secret_id
       default_ssl_binding          = true
       negotiate_client_certificate = false
     }
@@ -2277,7 +2277,7 @@ resource "azurerm_api_management" "test" {
 
     proxy {
       host_name                    = "api.pluginsdk.io"
-      key_vault_id                 = azurerm_key_vault_certificate.test.secret_id
+      key_vault_key_id             = azurerm_key_vault_certificate.test.secret_id
       default_ssl_binding          = true
       negotiate_client_certificate = false
     }
