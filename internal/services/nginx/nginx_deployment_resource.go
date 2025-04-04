@@ -67,9 +67,7 @@ type DeploymentModel struct {
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
-func expandNetworkProfile(
-	public []FrontendPublic, private []FrontendPrivate, networkInterface []NetworkInterface,
-) *nginxdeployment.NginxNetworkProfile {
+func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, networkInterface []NetworkInterface,) *nginxdeployment.NginxNetworkProfile {
 	out := nginxdeployment.NginxNetworkProfile{
 		FrontEndIPConfiguration:       &nginxdeployment.NginxFrontendIPConfiguration{},
 		NetworkInterfaceConfiguration: &nginxdeployment.NginxNetworkInterfaceConfiguration{},
