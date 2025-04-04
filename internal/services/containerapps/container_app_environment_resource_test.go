@@ -142,6 +142,28 @@ func TestAccContainerAppEnvironment_updateLogsDestination(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_updateWorkloadProfileWithoutLogAnalyticsWorkspaceId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdateWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppEnvironment_updateWorkloadProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
@@ -319,6 +341,56 @@ resource "azurerm_container_app_environment" "test" {
 
   workload_profile {
     maximum_count         = 3
+    minimum_count         = 0
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "diagnostics"
+  target_resource_id         = azurerm_container_app_environment.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) completeUpdateWorkloadProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
+
+  internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
+  mutual_tls_enabled             = true
+
+  workload_profile {
+    maximum_count         = 5
     minimum_count         = 0
     name                  = "D4-01"
     workload_profile_type = "D4"
