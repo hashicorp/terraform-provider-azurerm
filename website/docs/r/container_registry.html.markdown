@@ -158,9 +158,13 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
 
+* `azuread_authentication_as_arm_policy_enabled` - (Optional) Boolean value that indicates whether using ARM audience token for a container registry.
+
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
 * `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged. Defaults to `7`.
+
+* `soft_delete_policy_retention_in_days` - (Optional) The number of days after which a soft-deleted item is permanently deleted.
 
 * `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
 
@@ -168,7 +172,7 @@ The following arguments are supported:
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
-  ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
+  ~> **NOTE:** `azuread_authentication_as_arm_policy_enabled`, `quarantine_policy_enabled`, `retention_policy_in_days`, `soft_delete_policy_retention_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -177,6 +181,8 @@ The following arguments are supported:
 * `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? This is only supported on resources with the `Standard` or `Premium` SKU.
 
 * `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? This is only supported on resources with the `Premium` SKU.
+
+* `metadata_search_enabled` - (Optional) Whether to enable registry artifacts index for metadata search?
 
 * `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
