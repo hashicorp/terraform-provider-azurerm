@@ -77,11 +77,13 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		r.Schema["namespace_name"] = &pluginsdk.Schema{Type: pluginsdk.TypeString,
+		r.Schema["namespace_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validate.NamespaceName,
 			AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-			Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in v5.0 of the AzureRM Provider."}
+			Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in v5.0 of the AzureRM Provider.",
+		}
 
 		r.Schema["resource_group_name"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
@@ -115,7 +117,7 @@ func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceDat
 			return err
 		}
 
-		//id := namespacesauthorizationrule.NewAuthorizationRuleID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
+		// id := namespacesauthorizationrule.NewAuthorizationRuleID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 		id = namespacesauthorizationrule.NewAuthorizationRuleID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 	} else {
 		var resourceGroup string
