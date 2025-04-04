@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/datasets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedvirtualnetworks"
@@ -18,6 +19,7 @@ import (
 type Client struct {
 	Factories               *factories.FactoriesClient
 	Credentials             *credentials.CredentialsClient
+	DatasetClientGoAzureSDK *datasets.DatasetsClient
 	ManagedPrivateEndpoints *managedprivateendpoints.ManagedPrivateEndpointsClient
 	ManagedVirtualNetworks  *managedvirtualnetworks.ManagedVirtualNetworksClient
 	PipelinesClient         *pipelines.PipelinesClient
@@ -42,6 +44,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Factories client: %+v", err)
 	}
 	o.Configure(credentialsClient.Client, o.Authorizers.ResourceManager)
+
+	datasetClientGoAzureSDK, err := datasets.NewDatasetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Datasets client: %+v", err)
+	}
+	o.Configure(datasetClientGoAzureSDK.Client, o.Authorizers.ResourceManager)
 
 	managedPrivateEndpointsClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -80,6 +88,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		Factories:               factoriesClient,
 		Credentials:             credentialsClient,
+		DatasetClientGoAzureSDK: datasetClientGoAzureSDK,
 		ManagedPrivateEndpoints: managedPrivateEndpointsClient,
 		ManagedVirtualNetworks:  managedVirtualNetworksClient,
 		PipelinesClient:         PipelinesClient,
