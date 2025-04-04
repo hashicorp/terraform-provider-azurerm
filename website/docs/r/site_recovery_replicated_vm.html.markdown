@@ -308,17 +308,31 @@ A `network_interface` block supports the following:
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
+* `target_static_ip_secondary` - (Optional) Static IP to assign in secondary ip configuration when a failover is done.
+
 * `target_subnet_name` - (Optional) Name of the subnet to use when a failover is done.
+
+* `target_subnet_name_secondary` - (Optional) Name of the subnet to use in secondary ip configuration when a failover is done.
 
 * `recovery_load_balancer_backend_address_pool_ids` - (Optional) A list of IDs of Load Balancer Backend Address Pools to use when a failover is done.
 
+* `recovery_load_balancer_backend_address_pool_ids_secondary` - (Optional) A list of IDs of Load Balancer Backend Address Pools to use in the secondary ip configuration when a failover is done.
+
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
+
+* `recovery_public_ip_address_id_secondary` - (Optional) Id of the public IP object to use in secondary ip configuration when a failover is done.
 
 * `failover_test_static_ip` - (Optional) Static IP to assign when a test failover is done.
 
+* `failover_test_static_ip_secondary` - (Optional) Static IP to assign in secondary ip configuration when a test failover is done.
+
 * `failover_test_subnet_name` - (Optional) Name of the subnet to use when a test failover is done.
 
+* `failover_test_subnet_name_secondary` - (Optional) Name of the subnet to use in secondary ip configuration when a test failover is done.
+
 * `failover_test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
+
+* `failover_test_public_ip_address_id_secondary` - (Optional) Id of the public IP object to use in secondary ip configuration when a test failover is done.
 
 ---
 
