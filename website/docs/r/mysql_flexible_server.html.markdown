@@ -205,6 +205,8 @@ A `storage` block supports the following:
 
 * `iops` - (Optional) The storage IOPS for the MySQL Flexible Server. Possible values are between `360` and `20000`.
 
+* `log_on_disk_enabled` - (Optional) Should Storage Log On Disk be enabled? Defaults to `false`.
+
 * `size_gb` - (Optional) The max storage allowed for the MySQL Flexible Server. Possible values are between `20` and `16384`.
 
 -> **Note:** Decreasing `size_gb` forces a new resource to be created.
