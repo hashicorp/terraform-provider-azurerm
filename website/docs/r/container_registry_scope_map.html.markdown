@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_container_registry_scope_map
 
-Manages an Azure Container Registry scope map.  Scope Maps are a preview feature only available in Premium SKU Container registries.
+Manages an Azure Container Registry scope map.  For more information on scope maps see the [product documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-repository-scoped-permissions).
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -21,7 +21,7 @@ resource "azurerm_container_registry" "example" {
   name                = "exampleregistry"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  sku                 = "Premium"
+  sku                 = "Basic"
   admin_enabled       = false
 
   georeplications {

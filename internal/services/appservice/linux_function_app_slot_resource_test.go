@@ -899,6 +899,15 @@ func TestAccLinuxFunctionAppSlot_appStackPythonUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackPython(data, SkuStandardPlan, "3.13"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.13"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1877,6 +1886,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
+// nolint: unparam // Can be removed when we test different `planSku`s
 func (r LinuxFunctionAppSlotResource) appStackPython(data acceptance.TestData, planSku string, pythonVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

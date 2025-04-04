@@ -913,7 +913,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
 
       support_credentials = true
     }
-
   }
 }
 `, r.template(data), data.RandomInteger)

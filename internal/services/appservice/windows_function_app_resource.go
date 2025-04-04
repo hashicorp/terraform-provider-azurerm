@@ -69,7 +69,7 @@ type WindowsFunctionAppModel struct {
 	ZipDeployFile                      string                                 `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled   bool                                   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	PublishingFTPBasicAuthEnabled      bool                                   `tfschema:"ftp_publish_basic_authentication_enabled"`
-	VnetImagePullEnabled               bool                                   `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
+	VnetImagePullEnabled               bool                                   `tfschema:"vnet_image_pull_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -171,8 +171,9 @@ func (r WindowsFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"app_settings": {
-			Type:     pluginsdk.TypeMap,
-			Optional: true,
+			Type:      pluginsdk.TypeMap,
+			Optional:  true,
+			Sensitive: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
