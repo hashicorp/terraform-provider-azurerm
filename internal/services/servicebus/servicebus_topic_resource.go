@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusTopic() *pluginsdk.Resource {
@@ -45,7 +45,7 @@ func resourceServiceBusTopic() *pluginsdk.Resource {
 }
 
 func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -135,8 +135,6 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 	}
-
-	return schema
 }
 
 func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -173,28 +171,28 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	status := topics.EntityStatus(d.Get("status").(string))
 	parameters := topics.SBTopic{
-		Name: utils.String(id.TopicName),
+		Name: pointer.To(id.TopicName),
 		Properties: &topics.SBTopicProperties{
 			Status:                     &status,
-			EnableBatchedOperations:    utils.Bool(enableBatchedOperations),
-			EnableExpress:              utils.Bool(enableExpress),
-			EnablePartitioning:         utils.Bool(enablePartitioning),
-			MaxSizeInMegabytes:         utils.Int64(int64(d.Get("max_size_in_megabytes").(int))),
-			RequiresDuplicateDetection: utils.Bool(d.Get("requires_duplicate_detection").(bool)),
-			SupportOrdering:            utils.Bool(d.Get("support_ordering").(bool)),
+			EnableBatchedOperations:    pointer.To(enableBatchedOperations),
+			EnableExpress:              pointer.To(enableExpress),
+			EnablePartitioning:         pointer.To(enablePartitioning),
+			MaxSizeInMegabytes:         pointer.To(int64(d.Get("max_size_in_megabytes").(int))),
+			RequiresDuplicateDetection: pointer.To(d.Get("requires_duplicate_detection").(bool)),
+			SupportOrdering:            pointer.To(d.Get("support_ordering").(bool)),
 		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.Properties.AutoDeleteOnIdle = utils.String(autoDeleteOnIdle)
+		parameters.Properties.AutoDeleteOnIdle = pointer.To(autoDeleteOnIdle)
 	}
 
 	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.Properties.DefaultMessageTimeToLive = utils.String(defaultTTL)
+		parameters.Properties.DefaultMessageTimeToLive = pointer.To(defaultTTL)
 	}
 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.Properties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
+		parameters.Properties.DuplicateDetectionHistoryTimeWindow = pointer.To(duplicateWindow)
 	}
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard
@@ -228,7 +226,7 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 			if model.Sku.Name != namespaces.SkuNamePremium {
 				return fmt.Errorf("%s does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", id, model.Sku.Name)
 			}
-			parameters.Properties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
+			parameters.Properties.MaxMessageSizeInKilobytes = pointer.To(int64(v.(int)))
 		}
 	}
 
