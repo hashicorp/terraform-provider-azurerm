@@ -67,6 +67,42 @@ type DeploymentModel struct {
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
 
+func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, networkInterface []NetworkInterface) *nginxdeployment.NginxNetworkProfile {
+	out := nginxdeployment.NginxNetworkProfile{
+		FrontEndIPConfiguration:       &nginxdeployment.NginxFrontendIPConfiguration{},
+		NetworkInterfaceConfiguration: &nginxdeployment.NginxNetworkInterfaceConfiguration{},
+	}
+
+	if len(public) > 0 && len(public[0].IpAddress) > 0 {
+		var publicIPs []nginxdeployment.NginxPublicIPAddress
+		for _, ip := range public[0].IpAddress {
+			publicIPs = append(publicIPs, nginxdeployment.NginxPublicIPAddress{
+				Id: pointer.To(ip),
+			})
+		}
+		out.FrontEndIPConfiguration.PublicIPAddresses = &publicIPs
+	}
+
+	if len(private) > 0 {
+		var privateIPs []nginxdeployment.NginxPrivateIPAddress
+		for _, ip := range private {
+			alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
+			privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
+				PrivateIPAddress:          pointer.To(ip.IpAddress),
+				PrivateIPAllocationMethod: &alloc,
+				SubnetId:                  pointer.To(ip.SubnetId),
+			})
+		}
+		out.FrontEndIPConfiguration.PrivateIPAddresses = &privateIPs
+	}
+
+	if len(networkInterface) > 0 {
+		out.NetworkInterfaceConfiguration.SubnetId = pointer.To(networkInterface[0].SubnetId)
+	}
+
+	return &out
+}
+
 type DeploymentResource struct{}
 
 var _ sdk.ResourceWithUpdate = (*DeploymentResource)(nil)
@@ -144,7 +180,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"frontend_public": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
-			ForceNew:      true,
 			MaxItems:      1,
 			ConflictsWith: []string{"frontend_private"},
 			Elem: &pluginsdk.Resource{
@@ -152,7 +187,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_address": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -165,27 +199,23 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"frontend_private": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
-			ForceNew:      true,
 			ConflictsWith: []string{"frontend_public"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 
 					"allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(nginxdeployment.PossibleValuesForNginxPrivateIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 				},
 			},
@@ -194,13 +224,11 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"network_interface": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 				},
 			},
@@ -323,37 +351,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			}
 
 			prop.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
-			prop.NetworkProfile = &nginxdeployment.NginxNetworkProfile{
-				FrontEndIPConfiguration:       &nginxdeployment.NginxFrontendIPConfiguration{},
-				NetworkInterfaceConfiguration: &nginxdeployment.NginxNetworkInterfaceConfiguration{},
-			}
-
-			if public := model.FrontendPublic; len(public) > 0 && len(public[0].IpAddress) > 0 {
-				var publicIPs []nginxdeployment.NginxPublicIPAddress
-				for _, ip := range public[0].IpAddress {
-					publicIPs = append(publicIPs, nginxdeployment.NginxPublicIPAddress{
-						Id: pointer.To(ip),
-					})
-				}
-				prop.NetworkProfile.FrontEndIPConfiguration.PublicIPAddresses = &publicIPs
-			}
-
-			if private := model.FrontendPrivate; len(private) > 0 {
-				var privateIPs []nginxdeployment.NginxPrivateIPAddress
-				for _, ip := range private {
-					alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
-					privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
-						PrivateIPAddress:          pointer.To(ip.IpAddress),
-						PrivateIPAllocationMethod: &alloc,
-						SubnetId:                  pointer.To(ip.SubnetId),
-					})
-				}
-				prop.NetworkProfile.FrontEndIPConfiguration.PrivateIPAddresses = &privateIPs
-			}
-
-			if len(model.NetworkInterface) > 0 {
-				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.To(model.NetworkInterface[0].SubnetId)
-			}
+			prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
 
 			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
 			hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
@@ -614,6 +612,10 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				req.Properties.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
 					UpgradeChannel: model.UpgradeChannel,
 				}
+			}
+
+			if meta.ResourceData.HasChanges("frontend_public", "frontend_private", "network_interface") {
+				req.Properties.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
 			}
 
 			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
