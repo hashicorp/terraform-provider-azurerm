@@ -641,6 +641,8 @@ A `microsoft_defender` block supports the following:
 
 A `network_profile` block supports the following:
 
+* `advanced_networking` - (Optional) A `advanced_networking` block as defined below.
+
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure`, `kubenet` and `none`. Changing this forces a new resource to be created.
 
 -> **Note:** When `network_plugin` is set to `azure` - the `pod_cidr` field must not be set, unless specifying `network_plugin_mode` to `overlay`.
@@ -694,6 +696,20 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard`. Changing this forces a new resource to be created.
 
 * `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`. Changing this forces a new resource to be created.
+
+---
+
+A `advanced_networking` block exports the following:
+
+* `enabled` - Enable or disable [Advanced Container Networking Services](https://learn.microsoft.com/en-us/azure/aks/advanced-container-networking-services-overview)
+
+~> **Note:** Enabling this option requires at least one of the two options below to be enabled.
+
+* `observability_enabled` - (Optional) Enable or disable [Container Network Observability](https://learn.microsoft.com/en-us/azure/aks/container-network-observability-concepts?tabs=cilium). Defaults to `false`.
+
+* `fqdn_policy_enabled` - (Optional) Enable or disable [Container Network Security](https://learn.microsoft.com/en-us/azure/aks/container-network-security-concepts). Defaults to `false`.
+
+~> **Note:** This option can only be used on [clusters with Cilium as the data plane](https://learn.microsoft.com/en-us/azure/aks/advanced-container-networking-services-overview#enable-advanced-container-networking-services-on-an-existing-cluster).
 
 ---
 

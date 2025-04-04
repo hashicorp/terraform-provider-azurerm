@@ -1677,6 +1677,68 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkMode, networkPlugin, networkPolicy)
 }
 
+func (KubernetesClusterResource) advancedContainerNetworkingServicesConfig(data acceptance.TestData, enabled bool, observabilityEnabled bool, fqdnPolicyEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin      = "azure"
+    network_policy      = "cilium"
+    network_data_plane  = "cilium"
+    network_plugin_mode = "overlay"
+
+    advanced_networking {
+      enabled               = %[3]t
+      observability_enabled = %[4]t
+      fqdn_policy_enabled   = %[5]t
+    }
+
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, enabled, observabilityEnabled, fqdnPolicyEnabled)
+}
+
 func (KubernetesClusterResource) enableNodePublicIPConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
