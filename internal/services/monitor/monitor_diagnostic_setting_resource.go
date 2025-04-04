@@ -154,7 +154,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			"metric": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				// Note: O+C API sets and returns a default value if omitted
+				// NOTE: O+C API sets and returns a default value if omitted
 				Computed:     true,
 				AtLeastOneOf: []string{"enabled_log", "metric"},
 				Elem: &pluginsdk.Resource{
