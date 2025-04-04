@@ -292,11 +292,9 @@ The `virtual_machine` block supports the following:
 
 * `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is destroyed? Defaults to `false`.
 
-~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
+!> **Note:** Due to a breaking API change `graceful_shutdown` is no longer effective and has been deprecated. This feature will be removed from v5.0 of the AzureRM provider.
 
 * `skip_shutdown_and_force_delete` - Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` skip the shutdown command and `Force Delete`, this provides the ability to forcefully and immediately delete the VM and detach all sub-resources associated with the virtual machine. This allows those freed resources to be reattached to another VM instance or deleted. Defaults to `false`.
-
-~> **Note:** Support for Force Delete is in an opt-in Preview.
 
 ---
 
