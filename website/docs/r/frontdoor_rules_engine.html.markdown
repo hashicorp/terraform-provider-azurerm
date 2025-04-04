@@ -10,7 +10,7 @@ description: |-
 
 !> **Note:** This deploys an Azure Front Door (classic) resource which has been deprecated and will receive security updates only. Please migrate your existing Azure Front Door (classic) deployments to the new [Azure Front Door (standard/premium) resources](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cdn_frontdoor_custom_domain). For your convenience, the service team has exposed a `Front Door Classic` to `Front Door Standard/Premium` [migration tool](https://learn.microsoft.com/azure/frontdoor/tier-migration) to allow you to migrate your existing `Front Door Classic` instances to the new `Front Door Standard/Premium` product tiers.
 
-!> **Note:** The creation of new Frontdoor resources is no longer permitted following its deprecation on `April 1, 2025`. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on `March 31, 2027`.
+!> **Note:** The creation of new Azure Front Door (classic) resources is no longer permitted following its deprecation on `April 1, 2025`. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on `March 31, 2027`.
 
 Manages an Azure Front Door (classic) Rules Engine configuration and rules.
 
