@@ -20,7 +20,7 @@ Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Fronten
 
 !> **Note:** Azure rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - unfortunately this may necessitate a breaking change to the CDN and Front Door resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
-!> **Note:** The creation of new Azure Front Door (classic) resources is no longer permitted following its deprecation on `April 1, 2025`. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on `March 31, 2027`.
+!> **Note:** The creation of new Azure Front Door (classic) resources is no longer supported following its deprecation on `April 1, 2025`. However, modifications to existing Azure Front Door (classic) resources will continue to be supported until the API reaches full retirement on `March 31, 2027`.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
