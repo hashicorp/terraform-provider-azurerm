@@ -13,6 +13,7 @@ ENHANCEMENTS:
 
 * dependences: `azurerm_sentinel_automation_rule` - update to API version `2024-09-01` [GH-29240]
 * Data Source: `azurerm_mssql_server` - export the `express_vulnerability_assessment_enabled` property [GH-29168]
+* `azurerm_nginx_deployment` - `frontend_public`, `frontend_private`, and `network_interface` are no longer `ForceNew` [GH-28577]
 * `azurerm_dashboard_grafana` - `grafana_major_version` is no longer ForceNew [GH-29212]
 * `azurerm_data_factory_linked_service_sftp` - add support for SSH authentication and Key Vault secret references [GH-28690]
 * `azurerm_databricks_workspace` - resources using managed resource groups that contain UC can now be deleted with the `force_delete` Provider Feature flag [GH-29095]
