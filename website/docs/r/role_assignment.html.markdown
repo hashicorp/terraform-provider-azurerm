@@ -189,7 +189,7 @@ The following arguments are supported:
 
 -> **Note:** The Principal ID is also known as the Object ID (i.e. not the "Application ID" for applications).
 
-* `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
+* `principal_type` - (Optional) The type of the `principal_id`. Possible values are `User`, `Group`, `ServicePrincipal`, `Device` and `ForeignGroup`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
 
 * `condition` - (Optional) The condition that limits the resources that the role can be assigned to. Changing this forces a new resource to be created.
 
