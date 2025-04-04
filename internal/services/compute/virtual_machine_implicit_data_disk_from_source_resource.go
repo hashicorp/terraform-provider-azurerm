@@ -6,11 +6,14 @@ package compute
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -86,7 +89,6 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Arguments() map[string
 		"disk_size_gb": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1, 1023),
 		},
 
@@ -382,6 +384,7 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Update() sdk.ResourceF
 								return fmt.Errorf("unable to retrieve the data disk %s ", *id)
 							}
 
+							needToUpdate := false
 							expandedDisk := &disks[existingIndex]
 							if metadata.ResourceData.HasChange("caching") {
 								caching := string(virtualmachines.CachingTypesNone)
@@ -390,27 +393,35 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Update() sdk.ResourceF
 								}
 
 								expandedDisk.Caching = pointer.To(virtualmachines.CachingTypes(caching))
-							}
-
-							if metadata.ResourceData.HasChange("disk_size_gb") {
-								expandedDisk.DiskSizeGB = pointer.To(config.DiskSizeGb)
+								needToUpdate = true
 							}
 
 							if metadata.ResourceData.HasChange("write_accelerator_enabled") {
 								expandedDisk.WriteAcceleratorEnabled = pointer.To(config.WriteAcceleratorEnabled)
+								needToUpdate = true
 							}
 
-							profile.DataDisks = &disks
-							// fixes #24145
-							model.Properties.ApplicationProfile = nil
-							// fixes #2485
-							model.Identity = nil
-							// fixes #1600
-							model.Resources = nil
+							if needToUpdate {
+								profile.DataDisks = &disks
+								// fixes #24145
+								model.Properties.ApplicationProfile = nil
+								// fixes #2485
+								model.Identity = nil
+								// fixes #1600
+								model.Resources = nil
 
-							err = client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions())
-							if err != nil {
-								return fmt.Errorf("updating %s: %+v", id, err)
+								err = client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *model, virtualmachines.DefaultCreateOrUpdateOperationOptions())
+								if err != nil {
+									return fmt.Errorf("updating %s: %+v", id, err)
+								}
+							}
+
+							// VirtualMachineClient does not support expanding implicit data disk size, need to use DisksClient
+							if metadata.ResourceData.HasChange("disk_size_gb") {
+								err = resizeImplicitDataDisk(ctx, metadata, id)
+								if err != nil {
+									return err
+								}
 							}
 						}
 					}
@@ -463,4 +474,68 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) CustomImporter() sdk.R
 
 		return nil
 	}
+}
+
+func resizeImplicitDataDisk(ctx context.Context, metadata sdk.ResourceMetaData, id *parse.DataDiskId) error {
+	diskClient := metadata.Client.Compute.DisksClient
+	skusClient := metadata.Client.Compute.SkusClient
+	virtualMachinesClient := metadata.Client.Compute.VirtualMachinesClient
+	shouldShutDown := false
+	shouldDetach := false
+
+	managedDiskId := commonids.NewManagedDiskID(id.SubscriptionId, id.ResourceGroup, id.Name)
+
+	disk, err := diskClient.Get(ctx, managedDiskId)
+	if err != nil {
+		if response.WasNotFound(disk.HttpResponse) {
+			return fmt.Errorf("%s was not found", managedDiskId)
+		}
+
+		return fmt.Errorf("checking for presence of existing %s: %+v", managedDiskId, err)
+	}
+
+	diskUpdate := disks.DiskUpdate{
+		Properties: &disks.DiskUpdateProperties{},
+	}
+
+	if oldSize, newSize := metadata.ResourceData.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
+		canBeResizedWithoutDowntime := false
+		if metadata.Client.Features.ManagedDisk.ExpandWithoutDowntime {
+			shouldDetach = determineIfDataDiskRequiresDetaching(disk.Model, oldSize.(int), newSize.(int))
+			diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, shouldDetach)
+
+			vmSupportsNoDowntimeResize, err := determineIfVirtualMachineSupportsNoDowntimeResize(ctx, disk.Model, virtualMachinesClient, skusClient)
+			if err != nil {
+				return fmt.Errorf("determining if the Virtual Machine supports no-downtime-resizing: %+v", err)
+			}
+
+			canBeResizedWithoutDowntime = *vmSupportsNoDowntimeResize && diskSupportsNoDowntimeResize
+		}
+		if !canBeResizedWithoutDowntime {
+			log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
+			shouldShutDown = true
+		}
+		diskUpdate.Properties.DiskSizeGB = pointer.To(int64(newSize.(int)))
+	} else {
+		return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
+	}
+
+	if shouldShutDown {
+		virtualMachineId, err := virtualmachines.ParseVirtualMachineID(*disk.Model.ManagedBy)
+		if err != nil {
+			return err
+		}
+
+		err = resourceManagedDiskUpdateWithVmShutDown(ctx, metadata.Client, pointer.To(commonids.NewManagedDiskID(id.SubscriptionId, id.ResourceGroup, id.Name)), virtualMachineId, diskUpdate, shouldDetach)
+		if err != nil {
+			return err
+		}
+	} else { // otherwise, just update it
+		err := diskClient.UpdateThenPoll(ctx, managedDiskId, diskUpdate)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", managedDiskId, err)
+		}
+	}
+
+	return nil
 }
