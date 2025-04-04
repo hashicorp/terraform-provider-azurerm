@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -51,7 +52,7 @@ func TestAccSubnetNetworkSecurityGroupAssociation_requiresImport(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_subnet_network_security_group_association"),
+			ExpectError: regexp.MustCompile("has already attached Network Security Group"),
 		},
 	})
 }
