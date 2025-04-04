@@ -11,7 +11,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* dependences: `azurerm_sentinel_automation_rule` - update to API version `2024-09-01` [GH-29240]
+* dependencies: `azurerm_sentinel_automation_rule` - update to API version `2024-09-01` [GH-29240]
+* dependencies: `devcenter` - update to API version `2025-02-01` [GH-29240]
+* dependencies: `recoveryservices` - partial update to API version `2024-10-01` [GH-29240]
 * Data Source: `azurerm_mssql_server` - export the `express_vulnerability_assessment_enabled` property [GH-29168]
 * `azurerm_nginx_deployment` - `frontend_public`, `frontend_private`, and `network_interface` are no longer `ForceNew` [GH-28577]
 * `azurerm_dashboard_grafana` - `grafana_major_version` is no longer ForceNew [GH-29212]
@@ -27,6 +29,7 @@ BUG FIXES:
 
 * `azurerm_linux_virtual_machine` - `license_type` can now be updated to None [GH-28786]
 * `azurerm_mysql_flexible_server` - prevent a panic when `customer_managed_key` is nil [GH-29225]
+* `azurerm_traffic_manager_nested_endpoint` - remove `Computed` from `priority` property as these are assigned dynamically by the API [GH-29217]
 
 ## 4.25.0 (March 28, 2025)
 
