@@ -27,6 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+var deprecationMessage string = "the creation of new Frontdoor resources is no longer permitted following its deprecation on April 1, 2025. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on March 31, 2027"
+
 func resourceFrontDoor() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceFrontDoorCreate,

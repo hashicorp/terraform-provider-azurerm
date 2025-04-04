@@ -18,7 +18,7 @@ func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.
 	// New resources are not supported, and since this is a ForceNew field, we also need to block changing the field as
 	// the re-create would fail with the create error from the service API...
 	if old, new := d.GetChange("frontend_endpoint_id"); old.(string) != new.(string) {
-		return fmt.Errorf(`the creation of new Frontdoor resources is no longer permitted following its deprecation on April 1, 2025. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on March 31, 2027`)
+		return fmt.Errorf("%s", deprecationMessage)
 	}
 
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
@@ -117,10 +117,10 @@ func frontDoorCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v in
 	// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
 	// the re-create would fail with the create error from the service API...
 	if old, new := d.GetChange("name"); old.(string) != new.(string) {
-		return fmt.Errorf(`the creation of new Frontdoor resources is no longer permitted following its deprecation on April 1, 2025. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on March 31, 2027`)
+		return fmt.Errorf("%s", deprecationMessage)
 	}
 	if old, new := d.GetChange("resource_group_name"); old.(string) != new.(string) {
-		return fmt.Errorf(`the creation of new Frontdoor resources is no longer permitted following its deprecation on April 1, 2025. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on March 31, 2027`)
+		return fmt.Errorf("%s", deprecationMessage)
 	}
 
 	if err := frontDoorSettings(d); err != nil {
