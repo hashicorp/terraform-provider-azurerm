@@ -1412,11 +1412,60 @@ func flattenContainerAppContainers(input *[]containerapps.Container) []Container
 	return result
 }
 
+type SecretVolumeItem struct {
+	Path            string `tfschema:"path"`
+	SecretReference string `tfschema:"name"`
+}
+
+func ContainerSecretVolumeSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MinItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"path": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Path to project secret to.",
+				},
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "Name of the Container App secret from which to pull the secret value.",
+				},
+			},
+		},
+	}
+}
+
+func ContainerSecretVolumeSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"path": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 type ContainerVolume struct {
-	Name         string `tfschema:"name"`
-	StorageName  string `tfschema:"storage_name"`
-	StorageType  string `tfschema:"storage_type"`
-	MountOptions string `tfschema:"mount_options"`
+	Name         string             `tfschema:"name"`
+	StorageName  string             `tfschema:"storage_name"`
+	StorageType  string             `tfschema:"storage_type"`
+	MountOptions string             `tfschema:"mount_options"`
+	Secrets      []SecretVolumeItem `tfschema:"secrets"`
 }
 
 func ContainerVolumeSchema() *pluginsdk.Schema {
@@ -1456,6 +1505,7 @@ func ContainerVolumeSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "Mount options used while mounting the AzureFile. Must be a comma-separated string.",
 				},
+				"secret": ContainerSecretVolumeSchema(),
 			},
 		},
 	}
@@ -1486,9 +1536,25 @@ func ContainerVolumeSchemaComputed() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+				"secret": ContainerSecretVolumeSchemaComputed(),
 			},
 		},
 	}
+}
+
+func expandContainerAppVolumeSecrets(input []SecretVolumeItem) *[]containerapps.SecretVolumeItem {
+	if input == nil || len(input) == 0 {
+		return nil
+	}
+	items := make([]containerapps.SecretVolumeItem, 0)
+	for _, v := range input {
+		secret := containerapps.SecretVolumeItem{
+			Path:      pointer.To(v.Path),
+			SecretRef: pointer.To(v.SecretReference),
+		}
+		items = append(items, secret)
+	}
+	return &items
 }
 
 func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume {
@@ -1512,10 +1578,26 @@ func expandContainerAppVolumes(input []ContainerVolume) *[]containerapps.Volume 
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
 		}
+		volume.Secrets = expandContainerAppVolumeSecrets(v.Secrets)
 		volumes = append(volumes, volume)
 	}
 
 	return &volumes
+}
+
+func flattenContainerAppVolumeSecrets(input *[]containerapps.SecretVolumeItem) []SecretVolumeItem {
+	if input == nil || len(*input) == 0 {
+		return []SecretVolumeItem{}
+	}
+	result := make([]SecretVolumeItem, 0)
+	for _, v := range *input {
+		secret := SecretVolumeItem{
+			Path:            pointer.From(v.Path),
+			SecretReference: pointer.From(v.SecretRef),
+		}
+		result = append(result, secret)
+	}
+	return result
 }
 
 func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume {
@@ -1534,6 +1616,9 @@ func flattenContainerAppVolumes(input *[]containerapps.Volume) []ContainerVolume
 		}
 		if v.MountOptions != nil {
 			containerVolume.MountOptions = pointer.From(v.MountOptions)
+		}
+		if v.Secrets != nil {
+			containerVolume.Secrets = flattenContainerAppVolumeSecrets(v.Secrets)
 		}
 
 		result = append(result, containerVolume)
