@@ -39,7 +39,9 @@ the following Attributes are exported:
 
 * `location` - The Azure location where the Synapse Workspace exists.
 
-* `connectivity_endpoints` - A list of Connectivity endpoints for this Synapse Workspace.
+* `connectivity_endpoints` - A map of Connectivity endpoints for this Synapse Workspace.
+
+-> **Note:** The standard keys for connectivity_endpoints include dev, sql, sqlOnDemand, and web
 
 * `tags` - A mapping of tags assigned to the resource.
 
