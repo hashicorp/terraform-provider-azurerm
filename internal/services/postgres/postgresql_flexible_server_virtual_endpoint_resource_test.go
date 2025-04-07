@@ -542,8 +542,10 @@ resource "azurerm_postgresql_flexible_server" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica" {
+  provider = azurerm-alt
+
   name                          = "acctest-ve-replica-0"
-  resource_group_name           = azurerm_resource_group.alt.resource_group_name
+  resource_group_name           = azurerm_resource_group.alt.name
   location                      = azurerm_resource_group.alt.location
   create_mode                   = "Replica"
   source_server_id              = azurerm_postgresql_flexible_server.test.id
