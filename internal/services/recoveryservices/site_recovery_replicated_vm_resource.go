@@ -43,7 +43,7 @@ import (
 )
 
 func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSiteRecoveryReplicatedItemCreate,
 		Read:   resourceSiteRecoveryReplicatedItemRead,
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
@@ -307,9 +307,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
-// To avoid breaking change and fix #28773, we added `secondary` suffix.
 func networkInterfaceResource() *pluginsdk.Resource {
 	nicSchema := &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
@@ -320,7 +321,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"ip_config": {
+			"ip_configuration": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -388,7 +389,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		nicSchema.Schema["failover_test_static_ip"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_config`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
@@ -397,15 +398,19 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		}
 
 		nicSchema.Schema["target_static_ip"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_config`",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     false,
+			Deprecated: "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			ForceNew:   false,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				// To ignore diff if user has specified `ip_configuration`
+				return oldValue == "" && newValue != ""
+			},
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 
 		nicSchema.Schema["failover_test_subnet_name"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_config`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
@@ -414,7 +419,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		}
 
 		nicSchema.Schema["failover_test_subnet_name"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_config`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
@@ -423,24 +428,36 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		}
 
 		nicSchema.Schema["target_subnet_name"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_config`",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     false,
+			Deprecated: "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			ForceNew:   false,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				// To ignore diff if user has specified `ip_configuration`
+				return oldValue == "" && newValue != ""
+			},
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 
 		nicSchema.Schema["failover_test_public_ip_address_id"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_config`",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Deprecated: "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				// To ignore diff if user has specified `ip_configuration`
+				return oldValue == "" && newValue != ""
+			},
 			ValidateFunc: azure.ValidateResourceID,
 		}
 
 		nicSchema.Schema["recovery_load_balancer_backend_address_pool_ids"] = &pluginsdk.Schema{
-			Deprecated: "this property has been deprecated in favour of `network_interface.ip_config`",
+			Deprecated: "this property has been deprecated in favour of `network_interface.ip_configuration`",
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				// To ignore diff if user has specified `ip_configuration`
+				return oldValue == "" && newValue != ""
+			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
@@ -448,12 +465,17 @@ func networkInterfaceResource() *pluginsdk.Resource {
 		}
 
 		nicSchema.Schema["recovery_public_ip_address_id"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_config`",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     false,
+			Deprecated: "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			ForceNew:   false,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				// To ignore diff if user has specified `ip_configuration`
+				return oldValue == "" && newValue != ""
+			},
 			ValidateFunc: azure.ValidateResourceID,
 		}
+
 	}
 
 	return nicSchema
@@ -976,7 +998,7 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 						nicOutput["source_network_interface_id"] = *nic.SourceNicArmId
 					}
 					if nic.IPConfigs != nil && len(*(nic.IPConfigs)) > 0 {
-						nicOutput["ip_config"] = flattenSiteRecoveryReplicatedVMIPConfig(nic.IPConfigs)
+						nicOutput["ip_configuration"] = flattenSiteRecoveryReplicatedVMIPConfig(nic.IPConfigs)
 						ipConfig := (*(nic.IPConfigs))[0]
 						if ipConfig.RecoveryStaticIPAddress != nil {
 							nicOutput["target_static_ip"] = *ipConfig.RecoveryStaticIPAddress
@@ -1002,7 +1024,8 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 					}
 					nicsOutput = append(nicsOutput, nicOutput)
 				}
-				d.Set("network_interface", pluginsdk.NewSet(pluginsdk.HashResource(networkInterfaceResource()), nicsOutput))
+
+				d.Set("network_interface", nicsOutput)
 			}
 		}
 	}
@@ -1127,7 +1150,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 
 func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []replicationprotecteditems.IPConfigInputDetails {
 	output := []replicationprotecteditems.IPConfigInputDetails{}
-	ipConfigs := nicInput["ip_config"].([]interface{})
+	ipConfigs := nicInput["ip_configuration"].([]interface{})
 	if len(ipConfigs) > 0 {
 		for _, ipConfig := range ipConfigs {
 			ipConfig := ipConfig.(map[string]interface{})
@@ -1148,6 +1171,7 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 			})
 
 		}
+		return output
 	}
 
 	if !features.FivePointOh() {
@@ -1163,41 +1187,48 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 			recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
 		}
 
-		return append(output, replicationprotecteditems.IPConfigInputDetails{
-			RecoverySubnetName:              &targetSubnetName,
-			RecoveryStaticIPAddress:         &targetStaticIp,
-			RecoveryLBBackendAddressPoolIds: recoveryLoadBalancerBackendPoolIds,
-			RecoveryPublicIPAddressId:       &recoveryPublicIPAddressID,
-			TfoStaticIPAddress:              &testStaticIp,
-			TfoPublicIPAddressId:            &testPublicIpAddressID,
-			TfoSubnetName:                   &testSubNetName,
-			IsPrimary:                       utils.Bool(true),
-		})
+		if targetStaticIp != "" || targetSubnetName != "" || recoveryPublicIPAddressID != "" || testSubNetName != "" || testStaticIp != "" || testPublicIpAddressID != "" {
+			return append(output, replicationprotecteditems.IPConfigInputDetails{
+				RecoverySubnetName:              &targetSubnetName,
+				RecoveryStaticIPAddress:         &targetStaticIp,
+				RecoveryLBBackendAddressPoolIds: recoveryLoadBalancerBackendPoolIds,
+				RecoveryPublicIPAddressId:       &recoveryPublicIPAddressID,
+				TfoStaticIPAddress:              &testStaticIp,
+				TfoPublicIPAddressId:            &testPublicIpAddressID,
+				TfoSubnetName:                   &testSubNetName,
+				IsPrimary:                       utils.Bool(true),
+			})
+		}
+
 	}
 
 	return output
 }
 
 func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotecteditems.IPConfigDetails) []interface{} {
-	output := make([]interface{}, 0)
+	outputs := make([]interface{}, 0)
 
 	if ipConfigs != nil {
 		for _, ipConfig := range *ipConfigs {
-			output = append(output, map[string]interface{}{
-				"name":                               pointer.To(ipConfig.Name),
-				"is_primary":                         pointer.To(ipConfig.IsPrimary),
-				"target_static_ip":                   pointer.To(ipConfig.RecoveryStaticIPAddress),
-				"target_subnet_name":                 pointer.To(ipConfig.RecoverySubnetName),
-				"recovery_public_ip_address_id":      pointer.To(ipConfig.RecoveryPublicIPAddressId),
-				"failover_test_static_ip":            pointer.To(ipConfig.TfoStaticIPAddress),
-				"failover_test_subnet_name":          pointer.To(ipConfig.TfoSubnetName),
-				"failover_test_public_ip_address_id": pointer.To(ipConfig.TfoPublicIPAddressId),
-				"recovery_load_balancer_backend_address_pool_ids": schema.NewSet(schema.HashString, utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)),
-			})
+			output := map[string]interface{}{
+				"name":                               pointer.From(ipConfig.Name),
+				"is_primary":                         pointer.From(ipConfig.IsPrimary),
+				"target_static_ip":                   pointer.From(ipConfig.RecoveryStaticIPAddress),
+				"target_subnet_name":                 pointer.From(ipConfig.RecoverySubnetName),
+				"recovery_public_ip_address_id":      pointer.From(ipConfig.RecoveryPublicIPAddressId),
+				"failover_test_static_ip":            pointer.From(ipConfig.TfoStaticIPAddress),
+				"failover_test_subnet_name":          pointer.From(ipConfig.TfoSubnetName),
+				"failover_test_public_ip_address_id": pointer.From(ipConfig.TfoPublicIPAddressId),
+			}
+			if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
+				output["recovery_load_balancer_backend_address_pool_ids"] = utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
+
+			}
+			outputs = append(outputs, output)
 
 		}
 	}
-	return output
+	return outputs
 }
 func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprotecteditems.DiskEncryptionInfo {
 	if len(diskEncryptionInfoList) == 0 {

@@ -195,20 +195,7 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
 
   target_resource_group_id                = azurerm_resource_group.secondary.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.secondary.id
-  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.secondary.id
-
-  managed_disk {
-    disk_id                    = azurerm_virtual_machine.vm.storage_os_disk[0].managed_disk_id
-    staging_storage_account_id = azurerm_storage_account.primary.id
-    target_resource_group_id   = azurerm_resource_group.secondary.id
-    target_disk_type           = "Premium_LRS"
-    target_replica_disk_type   = "Premium_LRS"
-  }
-
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.vm.id
-    target_subnet_name            = azurerm_subnet.secondary.name
-    recovery_public_ip_address_id = azurerm_public_ip.secondary.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.secondary.id managed_disk { disk_id                    = azurerm_virtual_machine.vm.storage_os_disk[0].managed_disk_id staging_storage_account_id = azurerm_storage_account.primary.id target_resource_group_id   = azurerm_resource_group.secondary.id target_disk_type           = "Premium_LRS" target_replica_disk_type   = "Premium_LRS" } network_interface { source_network_interface_id   = azurerm_network_interface.vm.id target_subnet_name            = azurerm_subnet.secondary.name recovery_public_ip_address_id = azurerm_public_ip.secondary.id
   }
 
   depends_on = [
@@ -306,33 +293,29 @@ A `network_interface` block supports the following:
 
 * `source_network_interface_id` - (Optional) (Required if the network_interface block is specified) Id source network interface.
 
-* `target_static_ip` - (Optional) Static IP to assign when a failover is done.
+* `ip_configuration` - (Optional) IP configuration to assign when a failover is done. One or more `ip_configuration` block as defined below.
 
-* `target_static_ip_secondary` - (Optional) Static IP to assign in secondary ip configuration when a failover is done.
+---
+
+The `ip_configuration` block supports the following:
+
+* `name` - (Required) Name of the IP configuration, must be consistent with the name of IP configuration of source VM.
+
+* `is_primary` - (Optional) Whether this IP configuration is primary, must be specified if there is more than 1 `ip_configuration`.
+
+* `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
 * `target_subnet_name` - (Optional) Name of the subnet to use when a failover is done.
 
-* `target_subnet_name_secondary` - (Optional) Name of the subnet to use in secondary ip configuration when a failover is done.
-
 * `recovery_load_balancer_backend_address_pool_ids` - (Optional) A list of IDs of Load Balancer Backend Address Pools to use when a failover is done.
-
-* `recovery_load_balancer_backend_address_pool_ids_secondary` - (Optional) A list of IDs of Load Balancer Backend Address Pools to use in the secondary ip configuration when a failover is done.
 
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
 
-* `recovery_public_ip_address_id_secondary` - (Optional) Id of the public IP object to use in secondary ip configuration when a failover is done.
-
 * `failover_test_static_ip` - (Optional) Static IP to assign when a test failover is done.
-
-* `failover_test_static_ip_secondary` - (Optional) Static IP to assign in secondary ip configuration when a test failover is done.
 
 * `failover_test_subnet_name` - (Optional) Name of the subnet to use when a test failover is done.
 
-* `failover_test_subnet_name_secondary` - (Optional) Name of the subnet to use in secondary ip configuration when a test failover is done.
-
 * `failover_test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
-
-* `failover_test_public_ip_address_id_secondary` - (Optional) Id of the public IP object to use in secondary ip configuration when a test failover is done.
 
 ---
 
