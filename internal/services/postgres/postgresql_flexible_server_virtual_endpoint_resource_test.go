@@ -538,7 +538,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                          = "1"
   storage_mb                    = 32768
   storage_tier                  = "P30"
-  sku_name                      = "GP_Standard_D2ads_v5"
+  sku_name                      = "GP_Standard_D2s_v3"
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica" {
@@ -562,7 +562,7 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   replica_server_id = azurerm_postgresql_flexible_server.test_replica.id
   type              = "ReadWrite"
 }
-`, data.RandomInteger, data.Locations.Primary, altSub.tenant_id, altSub.subscription_id)
+`, data.RandomInteger, "westus", altSub.tenant_id, altSub.subscription_id)
 }
 
 func (PostgresqlFlexibleServerVirtualEndpointResource) identicalSourceAndReplica(data acceptance.TestData) string {
