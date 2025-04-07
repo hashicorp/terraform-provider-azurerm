@@ -358,8 +358,8 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						if appLogsConfig.LogAnalyticsConfiguration != nil && appLogsConfig.LogAnalyticsConfiguration.CustomerId != nil {
 							workspaceId, err := findWorkspaceResourceIDFromCustomerID(ctx, metadata, *appLogsConfig.LogAnalyticsConfiguration.CustomerId)
 							if err != nil {
-								if v := metadata.ResourceData.Get("log_analytics_workspace_id").(string); v != "" {
-									state.LogAnalyticsWorkspaceId = v
+								if v := metadata.ResourceData.GetRawConfig().AsValueMap()["log_analytics_workspace_id"]; !v.IsNull() && v.AsString() != "" {
+									state.LogAnalyticsWorkspaceId = v.AsString()
 								} else {
 									return fmt.Errorf("retrieving Log Analytics Workspace ID for %s: %+v", *appLogsConfig.LogAnalyticsConfiguration.CustomerId, err)
 								}
