@@ -518,6 +518,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "centralus"
+}
 
 resource "azurerm_resource_group" "alt" {
   provider = azurerm-alt
