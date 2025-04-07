@@ -509,22 +509,21 @@ provider "azurerm" {
 provider "azurerm-alt" {
   features {}
 
-  tenant_id       = "%[3]s"
-  subscription_id = "%[4]s"
+  tenant_id       = "%[2]s"
+  subscription_id = "%[3]s"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
+  location = "centralus"
 
 resource "azurerm_resource_group" "alt" {
   provider = azurerm-alt
 
   name     = "acctestRG-alt-%[1]d"
-  location = "%[2]s"
+  location = "westus3"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -562,7 +561,7 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   replica_server_id = azurerm_postgresql_flexible_server.test_replica.id
   type              = "ReadWrite"
 }
-`, data.RandomInteger, "eastus", altSub.tenant_id, altSub.subscription_id)
+`, data.RandomInteger, altSub.tenant_id, altSub.subscription_id)
 }
 
 func (PostgresqlFlexibleServerVirtualEndpointResource) identicalSourceAndReplica(data acceptance.TestData) string {
