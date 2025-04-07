@@ -54,6 +54,34 @@ func TestAccDataProtectionBackupVault_crossRegionRestore(t *testing.T) {
 	})
 }
 
+func TestAccDataProtectionBackupVault_crossSubscriptionRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
+	r := DataProtectionBackupVaultResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossSubscriptionRestore(data, "Disabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.crossSubscriptionRestore(data, "Enabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.crossSubscriptionRestore(data, "PermanentlyDisabled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataProtectionBackupVault_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_vault", "test")
 	r := DataProtectionBackupVaultResource{}
@@ -213,6 +241,22 @@ resource "azurerm_data_protection_backup_vault" "test" {
   cross_region_restore_enabled = %t
 }
 `, template, data.RandomInteger, enabled)
+}
+
+func (r DataProtectionBackupVaultResource) crossSubscriptionRestore(data acceptance.TestData, restore string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                       = "acctest-bv-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  datastore_type             = "VaultStore"
+  redundancy                 = "GeoRedundant"
+  cross_subscription_restore = "%s"
+}
+`, template, data.RandomInteger, restore)
 }
 
 func (r DataProtectionBackupVaultResource) requiresImport(data acceptance.TestData) string {
