@@ -32,8 +32,9 @@ func (c *Client) RestartServer(ctx context.Context, id serverrestart.FlexibleSer
 		switch state {
 		case servers.ServerStateDisabled, servers.ServerStateStopped, servers.ServerStateDropping:
 			return fmt.Errorf("cannot restart server: %s is disabled or stopped", id)
-		case servers.ServerStateStarting, servers.ServerStateStopping, servers.ServerStateUpdating:
+		case servers.ServerStateStarting, servers.ServerStateStopping, servers.ServerStateUpdating, "Restarting":
 			// Server is already in a restarting state, wait for it to complete
+			// Restarting is a valid state but not defined in the enum: https://github.com/Azure/azure-rest-api-specs/issues/33753
 			log.Printf("[DEBUG] Server %s is in state %s, waiting for it to complete", id, state)
 			time.Sleep(10 * time.Second)
 			continue
