@@ -535,10 +535,13 @@ resource "azurerm_postgresql_flexible_server" "test" {
   public_network_access_enabled = false
   administrator_login           = "psqladmin"
   administrator_password        = "H@Sh1CoR3!"
-  zone                          = "1"
   storage_mb                    = 32768
   storage_tier                  = "P30"
   sku_name                      = "GP_Standard_D2s_v3"
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica" {
@@ -551,9 +554,12 @@ resource "azurerm_postgresql_flexible_server" "test_replica" {
   source_server_id              = azurerm_postgresql_flexible_server.test.id
   version                       = azurerm_postgresql_flexible_server.test.version
   public_network_access_enabled = azurerm_postgresql_flexible_server.test.public_network_access_enabled
-  zone                          = azurerm_postgresql_flexible_server.test.zone
   storage_mb                    = azurerm_postgresql_flexible_server.test.storage_mb
   storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
+
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
