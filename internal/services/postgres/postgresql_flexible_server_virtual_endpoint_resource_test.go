@@ -535,13 +535,10 @@ resource "azurerm_postgresql_flexible_server" "test" {
   public_network_access_enabled = false
   administrator_login           = "psqladmin"
   administrator_password        = "H@Sh1CoR3!"
+  zone                          = "1"
   storage_mb                    = 32768
   storage_tier                  = "P30"
   sku_name                      = "GP_Standard_D2s_v3"
-
-  lifecycle {
-    ignore_changes = [zone]
-  }
 }
 
 resource "azurerm_postgresql_flexible_server" "test_replica" {
@@ -556,10 +553,7 @@ resource "azurerm_postgresql_flexible_server" "test_replica" {
   public_network_access_enabled = azurerm_postgresql_flexible_server.test.public_network_access_enabled
   storage_mb                    = azurerm_postgresql_flexible_server.test.storage_mb
   storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
-
-  lifecycle {
-    ignore_changes = [zone]
-  }
+  zone                          = "1"
 }
 
 resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
@@ -568,7 +562,7 @@ resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
   replica_server_id = azurerm_postgresql_flexible_server.test_replica.id
   type              = "ReadWrite"
 }
-`, data.RandomInteger, "westus", altSub.tenant_id, altSub.subscription_id)
+`, data.RandomInteger, "eastus", altSub.tenant_id, altSub.subscription_id)
 }
 
 func (PostgresqlFlexibleServerVirtualEndpointResource) identicalSourceAndReplica(data acceptance.TestData) string {
