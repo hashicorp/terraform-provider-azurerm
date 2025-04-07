@@ -195,7 +195,21 @@ resource "azurerm_site_recovery_replicated_vm" "vm-replication" {
 
   target_resource_group_id                = azurerm_resource_group.secondary.id
   target_recovery_fabric_id               = azurerm_site_recovery_fabric.secondary.id
-  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.secondary.id managed_disk { disk_id                    = azurerm_virtual_machine.vm.storage_os_disk[0].managed_disk_id staging_storage_account_id = azurerm_storage_account.primary.id target_resource_group_id   = azurerm_resource_group.secondary.id target_disk_type           = "Premium_LRS" target_replica_disk_type   = "Premium_LRS" } network_interface { source_network_interface_id   = azurerm_network_interface.vm.id target_subnet_name            = azurerm_subnet.secondary.name recovery_public_ip_address_id = azurerm_public_ip.secondary.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.secondary.id
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.vm.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.primary.id
+    target_resource_group_id   = azurerm_resource_group.secondary.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+  network_interface {
+    source_network_interface_id = azurerm_network_interface.vm.id
+    ip_configuration {
+      name                          = "vm"
+      target_subnet_name            = azurerm_subnet.secondary.name
+      recovery_public_ip_address_id = azurerm_public_ip.secondary.id
+    }
   }
 
   depends_on = [

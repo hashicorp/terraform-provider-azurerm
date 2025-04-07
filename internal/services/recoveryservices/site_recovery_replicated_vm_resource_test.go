@@ -872,6 +872,7 @@ resource "azurerm_storage_account" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
+
 func (r SiteRecoveryReplicatedVmResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

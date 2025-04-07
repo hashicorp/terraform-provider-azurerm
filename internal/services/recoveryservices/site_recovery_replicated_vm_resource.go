@@ -1222,7 +1222,6 @@ func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotectedit
 			}
 			if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
 				output["recovery_load_balancer_backend_address_pool_ids"] = utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
-
 			}
 			outputs = append(outputs, output)
 
@@ -1230,6 +1229,7 @@ func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotectedit
 	}
 	return outputs
 }
+
 func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprotecteditems.DiskEncryptionInfo {
 	if len(diskEncryptionInfoList) == 0 {
 		return &replicationprotecteditems.DiskEncryptionInfo{}
