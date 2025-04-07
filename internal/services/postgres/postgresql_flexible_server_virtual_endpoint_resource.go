@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -106,11 +106,6 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-			if replicaServerId.FlexibleServerName != id.FlexibleServerName {
-				locks.ByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-			}
-
 			// This API can be a bit flaky if the same named resource is created/destroyed quickly
 			// usually waiting a minute or two before redeploying is enough to resolve the conflict
 			if err = client.CreateThenPoll(ctx, id, virtualendpoints.VirtualEndpointResource{
@@ -184,6 +179,9 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 							}
 
 							replicaServerId = replicaId.ID()
+						} else {
+							// if the replica server is not found, it may exists in different subscription, read from the metadata
+							replicaServerId = metadata.ResourceData.Get("replica_server_id").(string)
 						}
 					}
 
@@ -243,11 +241,6 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-			if replicaServerId.FlexibleServerName != id.FlexibleServerName {
-				locks.ByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-			}
-
 			if err := client.UpdateThenPoll(ctx, *id, virtualendpoints.VirtualEndpointResourceForPatch{
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
 					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
@@ -279,5 +272,5 @@ func lookupFlexibleServerByName(ctx context.Context, flexibleServerClient *serve
 		}
 	}
 
-	return nil, fmt.Errorf("could not locate postgres replica server with name %s", replicaServerName)
+	return nil, nil
 }

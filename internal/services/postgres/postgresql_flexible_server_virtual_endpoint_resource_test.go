@@ -81,6 +81,7 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossRegion(t *testing.T) {
 }
 
 func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossSubscription(t *testing.T) {
+	t.Skip("Skipping: cross subscription replication is non-standard operation and need to add the subscriptions to a service whitelist")
 	altSubscription := getAltSubscription()
 
 	if altSubscription == nil {
