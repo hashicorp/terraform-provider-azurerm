@@ -160,6 +160,27 @@ func TestAccSubnet_delegation(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.delegationUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.delegation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -532,9 +553,9 @@ resource "azurerm_subnet" "test" {
     name = "first"
 
     service_delegation {
-      name = "Microsoft.PowerAutomate/hostedRpa"
+      name = "Microsoft.ContainerInstance/containerGroups"
       actions = [
-        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/action",
       ]
     }
   }
