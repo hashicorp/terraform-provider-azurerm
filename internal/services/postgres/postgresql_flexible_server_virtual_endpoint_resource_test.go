@@ -89,7 +89,6 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossSubscription(t *testing
 
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
 	r := PostgresqlFlexibleServerVirtualEndpointResource{}
-	t.Skip(r.crossSubscription(data, altSubscription))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
