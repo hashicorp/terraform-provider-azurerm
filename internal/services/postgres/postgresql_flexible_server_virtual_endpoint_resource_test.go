@@ -487,7 +487,7 @@ type alternateSubscription struct {
 
 func getAltSubscription() *alternateSubscription {
 	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
-	altTenantID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT_TENANT")
+	altTenantID := os.Getenv("ARM_TENANT_ID")
 
 	if altSubscriptonID == "" || altTenantID == "" {
 		return nil
