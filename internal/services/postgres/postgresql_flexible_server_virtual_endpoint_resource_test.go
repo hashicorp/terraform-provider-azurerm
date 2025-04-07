@@ -524,7 +524,7 @@ resource "azurerm_resource_group" "alt" {
   provider = azurerm-alt
 
   name     = "acctestRG-alt-%[1]d"
-  location = "westus3"
+  location = "eastus2"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -544,7 +544,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
 resource "azurerm_postgresql_flexible_server" "test_replica" {
   provider = azurerm-alt
 
-  name                          = "acctest-ve-replica-0"
+  name                          = "acctest-ve-replica-%[1]d"
   resource_group_name           = azurerm_resource_group.alt.name
   location                      = azurerm_resource_group.alt.location
   create_mode                   = "Replica"
