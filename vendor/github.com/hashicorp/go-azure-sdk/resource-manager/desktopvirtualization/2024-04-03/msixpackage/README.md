@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/msixpackage` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/msixpackage` Documentation
 
-The `msixpackage` SDK allows for interaction with Azure Resource Manager `desktopvirtualization` (API Version `2022-02-10-preview`).
+The `msixpackage` SDK allows for interaction with Azure Resource Manager `desktopvirtualization` (API Version `2024-04-03`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/msixpackage"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/msixpackage"
 ```
 
 
@@ -79,8 +79,8 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := msixpackage.NewHostPoolID("12345678-1234-9876-4563-123456789012", "example-resource-group", "hostPoolName")
 
-// alternatively `client.List(ctx, id)` can be used to do batched pagination
-items, err := client.ListComplete(ctx, id)
+// alternatively `client.List(ctx, id, msixpackage.DefaultListOperationOptions())` can be used to do batched pagination
+items, err := client.ListComplete(ctx, id, msixpackage.DefaultListOperationOptions())
 if err != nil {
 	// handle the error
 }

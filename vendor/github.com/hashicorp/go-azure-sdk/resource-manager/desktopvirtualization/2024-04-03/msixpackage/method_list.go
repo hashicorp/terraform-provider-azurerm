@@ -23,6 +23,42 @@ type ListCompleteResult struct {
 	Items              []MSIXPackage
 }
 
+type ListOperationOptions struct {
+	InitialSkip  *int64
+	IsDescending *bool
+	PageSize     *int64
+}
+
+func DefaultListOperationOptions() ListOperationOptions {
+	return ListOperationOptions{}
+}
+
+func (o ListOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+
+	return &out
+}
+
+func (o ListOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+
+	return &out
+}
+
+func (o ListOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+	if o.InitialSkip != nil {
+		out.Append("initialSkip", fmt.Sprintf("%v", *o.InitialSkip))
+	}
+	if o.IsDescending != nil {
+		out.Append("isDescending", fmt.Sprintf("%v", *o.IsDescending))
+	}
+	if o.PageSize != nil {
+		out.Append("pageSize", fmt.Sprintf("%v", *o.PageSize))
+	}
+	return &out
+}
+
 type ListCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
@@ -36,15 +72,16 @@ func (p *ListCustomPager) NextPageLink() *odata.Link {
 }
 
 // List ...
-func (c MSIXPackageClient) List(ctx context.Context, id HostPoolId) (result ListOperationResponse, err error) {
+func (c MSIXPackageClient) List(ctx context.Context, id HostPoolId, options ListOperationOptions) (result ListOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
-		Pager:      &ListCustomPager{},
-		Path:       fmt.Sprintf("%s/msixPackages", id.ID()),
+		HttpMethod:    http.MethodGet,
+		OptionsObject: options,
+		Pager:         &ListCustomPager{},
+		Path:          fmt.Sprintf("%s/msixPackages", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -75,15 +112,15 @@ func (c MSIXPackageClient) List(ctx context.Context, id HostPoolId) (result List
 }
 
 // ListComplete retrieves all the results into a single object
-func (c MSIXPackageClient) ListComplete(ctx context.Context, id HostPoolId) (ListCompleteResult, error) {
-	return c.ListCompleteMatchingPredicate(ctx, id, MSIXPackageOperationPredicate{})
+func (c MSIXPackageClient) ListComplete(ctx context.Context, id HostPoolId, options ListOperationOptions) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, options, MSIXPackageOperationPredicate{})
 }
 
 // ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c MSIXPackageClient) ListCompleteMatchingPredicate(ctx context.Context, id HostPoolId, predicate MSIXPackageOperationPredicate) (result ListCompleteResult, err error) {
+func (c MSIXPackageClient) ListCompleteMatchingPredicate(ctx context.Context, id HostPoolId, options ListOperationOptions, predicate MSIXPackageOperationPredicate) (result ListCompleteResult, err error) {
 	items := make([]MSIXPackage, 0)
 
-	resp, err := c.List(ctx, id)
+	resp, err := c.List(ctx, id, options)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
