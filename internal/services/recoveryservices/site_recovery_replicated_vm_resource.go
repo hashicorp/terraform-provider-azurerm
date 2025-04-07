@@ -475,9 +475,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			},
 			ValidateFunc: azure.ValidateResourceID,
 		}
-
 	}
-
 	return nicSchema
 }
 
@@ -1169,7 +1167,6 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 				TfoPublicIPAddressId:            pointer.To(ipConfig["failover_test_public_ip_address_id"].(string)),
 				IsPrimary:                       pointer.To(ipConfig["is_primary"].(bool)),
 			})
-
 		}
 		return output
 	}
@@ -1199,9 +1196,7 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 				IsPrimary:                       utils.Bool(true),
 			})
 		}
-
 	}
-
 	return output
 }
 
