@@ -6,6 +6,6 @@ package pipelines
 type LogStorageSettings struct {
 	EnableReliableLogging *bool                  `json:"enableReliableLogging,omitempty"`
 	LinkedServiceName     LinkedServiceReference `json:"linkedServiceName"`
-	LogLevel              *string                `json:"logLevel,omitempty"`
-	Path                  *string                `json:"path,omitempty"`
+	LogLevel              *interface{}           `json:"logLevel,omitempty"`
+	Path                  *interface{}           `json:"path,omitempty"`
 }

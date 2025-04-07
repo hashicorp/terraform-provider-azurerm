@@ -4,12 +4,12 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HDInsightSparkActivityTypeProperties struct {
-	Arguments             *[]string                         `json:"arguments,omitempty"`
+	Arguments             *[]interface{}                    `json:"arguments,omitempty"`
 	ClassName             *string                           `json:"className,omitempty"`
-	EntryFilePath         string                            `json:"entryFilePath"`
+	EntryFilePath         interface{}                       `json:"entryFilePath"`
 	GetDebugInfo          *HDInsightActivityDebugInfoOption `json:"getDebugInfo,omitempty"`
-	ProxyUser             *string                           `json:"proxyUser,omitempty"`
-	RootPath              string                            `json:"rootPath"`
-	SparkConfig           *map[string]string                `json:"sparkConfig,omitempty"`
+	ProxyUser             *interface{}                      `json:"proxyUser,omitempty"`
+	RootPath              interface{}                       `json:"rootPath"`
+	SparkConfig           *map[string]interface{}           `json:"sparkConfig,omitempty"`
 	SparkJobLinkedService *LinkedServiceReference           `json:"sparkJobLinkedService,omitempty"`
 }

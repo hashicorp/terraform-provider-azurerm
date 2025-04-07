@@ -128,6 +128,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `logs_destination` property is no longer Computed and now must be set to `log-analytics` to be able to specify a value for `log_analytics_workspace_id`. It will now default to empty, meaning Streaming Only in the Azure Portal.
 
+### `azurerm_datadog_monitor_sso_configuration`
+
+* The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
+
 ### `azurerm_eventhub`
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
@@ -140,6 +144,15 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_express_route_connection`
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
+
+### `azurerm_kusto_eventgrid_data_connection`
+
+* The deprecated `eventgrid_resource_id` property has been removed in favour of the `eventgrid_event_subscription_id` property.
+* The deprecated `managed_identity_resource_id` property has been removed in favour of the `managed_identity_id` property.
+
+### `azurerm_kusto_attached_database_configuration`
+
+* The deprecated `cluster_resource_id` property has been removed in favour of the `cluster_id` property.
 
 ### `azurerm_linux_function_app`
 
@@ -167,6 +180,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `enabled_log.retention_policy` block has been removed.
 
+### `azurerm_monitor_diagnostic_setting`
+
+* The deprecated `metric.retention_policy` block has been removed.
+
 ### `azurerm_mssql_database`
 
 * The properties `weekly_retention`, `monthly_retention` and `yearly_retention` now default to `PT0S`.
@@ -183,7 +200,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
 
-## `azurerm_network_watcher_flow_log`
+### `azurerm_mysql_flexible_server`
+
+* The deprecated `public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+### `azurerm_network_watcher_flow_log`
 
 * The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
 

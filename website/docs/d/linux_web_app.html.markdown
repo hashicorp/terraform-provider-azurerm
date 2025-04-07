@@ -99,6 +99,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_account` - A `storage_account` block as defined below.
 
+* `virtual_network_backup_restore_enabled` - Whether backup and restore operations over the linked virtual network are enabled.
+
 * `virtual_network_subnet_id` - The subnet id which the Linux Web App is vNet Integrated with.
 
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
@@ -642,10 +644,6 @@ A `slow_request` block exports the following:
 * `count` - The number of requests within the interval at which to trigger.
 
 * `interval` - The time interval.
-
-* `path` - The App Path for which this rule applies.
-
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
 
 * `time_taken` - The amount of time that qualifies as slow for this rule.
 

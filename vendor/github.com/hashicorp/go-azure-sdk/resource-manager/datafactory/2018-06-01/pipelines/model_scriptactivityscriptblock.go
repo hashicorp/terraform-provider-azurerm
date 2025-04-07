@@ -5,6 +5,6 @@ package pipelines
 
 type ScriptActivityScriptBlock struct {
 	Parameters *[]ScriptActivityParameter `json:"parameters,omitempty"`
-	Text       string                     `json:"text"`
-	Type       string                     `json:"type"`
+	Text       interface{}                `json:"text"`
+	Type       interface{}                `json:"type"`
 }
