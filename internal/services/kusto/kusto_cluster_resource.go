@@ -141,9 +141,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 			},
 
 			"virtual_network_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				Deprecated: "This block is deprecated since February 1, 2025, please refer to the official documentation https://techcommunity.microsoft.com/blog/azuredataexplorer/deprecation-of-virtual-network-injection-for-azure-data-explorer/4198192",
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"subnet_id": {
