@@ -542,7 +542,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   administrator_login          = "missadministrator"
   administrator_login_password = "NCC-1701-D"
 
-  is_general_purpose_v2 = "%[3]s"
+  is_general_purpose_v2 = "%[3]t"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
