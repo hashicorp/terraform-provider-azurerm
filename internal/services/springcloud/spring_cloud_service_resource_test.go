@@ -360,19 +360,28 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-spring-%d"
-  location = "%s"
+  name     = "acctestRG-spring-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestai-%d"
+  name                = "acctestai-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_spring_cloud_service" "test" {
-  name                = "acctest-sc-%d"
+  name                = "acctest-sc-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -406,7 +415,7 @@ resource "azurerm_spring_cloud_service" "test" {
     version = "1"
   }
 }
-	  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	  `, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SpringCloudServiceResource) complete(data acceptance.TestData) string {
@@ -416,19 +425,28 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-spring-%d"
-  location = "%s"
+  name     = "acctestRG-spring-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestai-%d"
+  name                = "acctestai-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_spring_cloud_service" "test" {
-  name                = "acctest-sc-%d"
+  name                = "acctest-sc-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -473,7 +491,7 @@ resource "azurerm_spring_cloud_service" "test" {
     version = "1"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SpringCloudServiceResource) virtualNetwork(data acceptance.TestData) string {
@@ -489,19 +507,28 @@ provider "azurerm" {
 provider "azuread" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-spring-%d"
-  location = "%s"
+  name     = "acctestRG-spring-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestai-%d"
+  name                = "acctestai-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestvirtnet%[1]d"
   address_space       = ["10.1.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -532,7 +559,7 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_spring_cloud_service" "test" {
-  name                               = "acctest-sc-%d"
+  name                               = "acctest-sc-%[1]d"
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
   log_stream_public_endpoint_enabled = true
@@ -568,7 +595,7 @@ resource "azurerm_spring_cloud_service" "test" {
 
   depends_on = [azurerm_role_assignment.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SpringCloudServiceResource) containerRegistry(data acceptance.TestData, containerRegistryName string) string {

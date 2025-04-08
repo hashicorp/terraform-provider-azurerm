@@ -24,11 +24,20 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-law"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "example" {
   name                = "example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_spring_cloud_service" "example" {
@@ -67,14 +76,14 @@ The following arguments are supported:
 * `role_name` - (Optional) Specifies the cloud role name used to label the component on the application map.
 
 * `role_instance` - (Optional) Specifies the cloud role instance.
- 
+
 * `sampling_percentage` - (Optional) Specifies the percentage for fixed-percentage sampling.
 
-* `sampling_requests_per_second` - (Optional) Specifies the number of requests per second for the rate-limited sampling. 
+* `sampling_requests_per_second` - (Optional) Specifies the number of requests per second for the rate-limited sampling.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Spring Cloud Application Performance Monitoring resource for Application Insights.
 

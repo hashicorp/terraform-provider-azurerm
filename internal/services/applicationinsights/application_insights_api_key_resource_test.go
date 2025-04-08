@@ -160,20 +160,29 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_api_key" "test" {
-  name                    = "acctestappinsightsapikey-%d"
+  name                    = "acctestappinsightsapikey-%[1]d"
   application_insights_id = azurerm_application_insights.test.id
-  read_permissions        = %s
-  write_permissions       = %s
+  read_permissions        = %[3]s
+  write_permissions       = %[4]s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, readPerms, writePerms)
+`, data.RandomInteger, data.Locations.Primary, readPerms, writePerms)
 }
 
 func (AppInsightsAPIKey) multipleKeys(data acceptance.TestData) string {
@@ -187,25 +196,34 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_api_key" "read_key" {
-  name                    = "acctestappinsightsapikeyread-%d"
+  name                    = "acctestappinsightsapikeyread-%[1]d"
   application_insights_id = azurerm_application_insights.test.id
   read_permissions        = ["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_application_insights_api_key" "write_key" {
-  name                    = "acctestappinsightsapikeywrite-%d"
+  name                    = "acctestappinsightsapikeywrite-%[1]d"
   application_insights_id = azurerm_application_insights.test.id
   write_permissions       = ["annotations"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppInsightsAPIKey) requiresImport(data acceptance.TestData, readPerms, writePerms string) string {

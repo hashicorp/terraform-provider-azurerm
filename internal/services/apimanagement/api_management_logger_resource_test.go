@@ -463,19 +463,28 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "other"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -485,7 +494,7 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_logger" "test" {
-  name                = "acctestapimnglogger-%d"
+  name                = "acctestapimnglogger-%[1]d"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
 
@@ -493,7 +502,7 @@ resource "azurerm_api_management_logger" "test" {
     instrumentation_key = azurerm_application_insights.test.instrumentation_key
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ApiManagementLoggerResource) applicationInsightsConnectionString(data acceptance.TestData) string {
@@ -503,19 +512,28 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "other"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -525,7 +543,7 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_logger" "test" {
-  name                = "acctestapimnglogger-%d"
+  name                = "acctestapimnglogger-%[1]d"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
 
@@ -533,7 +551,7 @@ resource "azurerm_api_management_logger" "test" {
     connection_string = azurerm_application_insights.test.connection_string
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ApiManagementLoggerResource) complete(data acceptance.TestData, description, buffered string) string {
@@ -543,19 +561,28 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "other"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -565,16 +592,16 @@ resource "azurerm_api_management" "test" {
 }
 
 resource "azurerm_api_management_logger" "test" {
-  name                = "acctestapimnglogger-%d"
+  name                = "acctestapimnglogger-%[1]d"
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
-  description         = "%s"
-  buffered            = %s
+  description         = "%[3]s"
+  buffered            = %[4]s
   resource_id         = azurerm_application_insights.test.id
 
   application_insights {
     instrumentation_key = azurerm_application_insights.test.instrumentation_key
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, description, buffered)
+`, data.RandomInteger, data.Locations.Primary, description, buffered)
 }

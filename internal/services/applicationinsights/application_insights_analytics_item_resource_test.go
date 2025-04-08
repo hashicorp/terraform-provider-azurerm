@@ -146,11 +146,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_analytics_item" "test" {
@@ -160,7 +169,7 @@ resource "azurerm_application_insights_analytics_item" "test" {
   scope                   = "shared"
   type                    = "query"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppInsightsAnalyticsItemResource) basic2(data acceptance.TestData) string {
@@ -174,11 +183,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_analytics_item" "test" {
@@ -188,7 +206,7 @@ resource "azurerm_application_insights_analytics_item" "test" {
   scope                   = "shared"
   type                    = "query"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppInsightsAnalyticsItemResource) multiple(data acceptance.TestData) string {
@@ -202,11 +220,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_analytics_item" "test1" {
@@ -233,7 +260,7 @@ resource "azurerm_application_insights_analytics_item" "test3" {
   type                    = "function"
   function_alias          = "myfunction"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppInsightsAnalyticsItemResource) requiresImport(data acceptance.TestData) string {

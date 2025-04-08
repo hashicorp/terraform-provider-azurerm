@@ -284,6 +284,9 @@ resource "azurerm_application_insights" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "%s"
+  lifecycle {
+    ignore_changes = [workspace_id]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
 }
@@ -364,6 +367,9 @@ resource "azurerm_application_insights" "import" {
   location            = azurerm_application_insights.test.location
   resource_group_name = azurerm_application_insights.test.resource_group_name
   application_type    = azurerm_application_insights.test.application_type
+  lifecycle {
+    ignore_changes = [workspace_id]
+  }
 }
 `, template)
 }
@@ -379,11 +385,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                                  = "acctestappinsights-%d"
+  name                                  = "acctestappinsights-%[1]d"
   location                              = azurerm_resource_group.test.location
   resource_group_name                   = azurerm_resource_group.test.name
-  application_type                      = "%s"
+  application_type                      = "%[3]s"
+  workspace_id                          = azurerm_log_analytics_workspace.test.id
   retention_in_days                     = 120
   sampling_percentage                   = 50
   daily_data_cap_in_gb                  = 50
@@ -396,7 +411,7 @@ resource "azurerm_application_insights" "test" {
     Hello = "World"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
+`, data.RandomInteger, data.Locations.Primary, applicationType)
 }
 
 func (AppInsightsResource) withInternetQueryEnabled(data acceptance.TestData) string {
@@ -410,14 +425,23 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                   = "acctestappinsights-%d"
+  name                   = "acctestappinsights-%[1]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   application_type       = "web"
   internet_query_enabled = true
+  workspace_id           = azurerm_log_analytics_workspace.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppInsightsResource) withInternetQueryEnabledUpdate(data acceptance.TestData) string {
@@ -431,14 +455,23 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                   = "acctestappinsights-%d"
+  name                   = "acctestappinsights-%[1]d"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   application_type       = "web"
   internet_query_enabled = false
+  workspace_id           = azurerm_log_analytics_workspace.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppInsightsResource) withInternetIngestionEnabled(data acceptance.TestData) string {
@@ -452,14 +485,23 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                       = "acctestappinsights-%d"
+  name                       = "acctestappinsights-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   application_type           = "web"
   internet_ingestion_enabled = true
+  workspace_id               = azurerm_log_analytics_workspace.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppInsightsResource) withInternetIngestionEnabledUpdate(data acceptance.TestData) string {
@@ -473,14 +515,23 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                       = "acctestappinsights-%d"
+  name                       = "acctestappinsights-%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   application_type           = "web"
   internet_ingestion_enabled = false
+  workspace_id               = azurerm_log_analytics_workspace.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (AppInsightsResource) disableGeneratedRule(data acceptance.TestData, applicationType string) string {
@@ -498,11 +549,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "%s"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
 }

@@ -230,12 +230,20 @@ resource "azurerm_spring_cloud_app" "test" {
   service_name        = azurerm_spring_cloud_service.test.name
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
 
 resource "azurerm_application_insights" "test" {
   name                = "acctest-ai-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_spring_cloud_application_insights_application_performance_monitoring" "test" {

@@ -93,24 +93,33 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_monitor_private_link_scope" "test" {
-  name                = "acctest-pls-%d"
+  name                = "acctest-pls-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctest-appinsights-%d"
+  name                = "acctest-appinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_monitor_private_link_scoped_service" "test" {
-  name                = "acctest-plss-%d"
+  name                = "acctest-plss-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   scope_name          = azurerm_monitor_private_link_scope.test.name
   linked_resource_id  = azurerm_application_insights.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r MonitorPrivateLinkScopedServiceResource) requiresImport(data acceptance.TestData) string {

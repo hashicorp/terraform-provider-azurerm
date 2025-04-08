@@ -18,11 +18,20 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-law"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "example" {
   name                = "example"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_application_insights_standard_web_test" "example" {
@@ -55,7 +64,6 @@ The following arguments are supported:
 ~> **Note:** [Valid options for geo locations are described here](https://docs.microsoft.com/azure/azure-monitor/app/monitor-web-app-availability#location-population-tags)
 
 * `request` - (Required) A `request` block as defined below.
-
 
 ---
 
@@ -121,7 +129,7 @@ A `validation_rules` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Application Insights Standard WebTest.
 

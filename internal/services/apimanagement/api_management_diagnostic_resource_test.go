@@ -132,11 +132,20 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_api_management" "test" {
@@ -177,11 +186,20 @@ func (r ApiManagementDiagnosticResource) update(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %[1]s
 
+resource "azurerm_log_analytics_workspace" "test2" {
+  name                = "acctestlawUpdate-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test2" {
   name                = "acctestappinsightsUpdate-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test2.id
 }
 
 resource "azurerm_api_management_logger" "test2" {
