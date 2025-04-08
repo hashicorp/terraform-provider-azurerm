@@ -111,6 +111,8 @@ The following arguments are supported:
 
 * `automatic_upgrade_channel` - (Optional) Specify the automatic upgrade channel for the NGINX deployment. Defaults to `stable`. The possible values are `stable` and `preview`.
 
+* `web_application_firewall` - (Optional) A `web_application_firewall` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the NGINX Deployment.
 
 ---
@@ -157,6 +159,12 @@ An `auto_scale_profile` block supports the following:
 
 -> **NOTE:** If you're using autoscaling with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
+---
+
+A `web_application_firewall` - block supports the following:
+
+* `activation_state_enabled` - (Required) Whether WAF is enabled/disabled for this NGINX Deployment.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -168,6 +176,20 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `nginx_version` - The version of the NGINX Deployment.
 
 * `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
+
+* `web_application_firewall.status` - A `web_application_firewall.status` block as defined below:
+
+---
+
+A `web_application_firewall.status` - block supports the following:
+
+* `attack_signatures_package` - Indicates the version of the attack signatures package used by NGINX App Protect.
+
+* `bot_signatures_package` - Indicates the version of the bot signatures package used by NGINX App Protect.
+
+* `threat_campaigns_package` - Indicates the version of the threat campaigns package used by NGINX App Protect.
+
+* `component_versions` - Indicates the version of the WAF Engine and Nginx WAF Module used by NGINX App Protect.
 
 ## Timeouts
 
