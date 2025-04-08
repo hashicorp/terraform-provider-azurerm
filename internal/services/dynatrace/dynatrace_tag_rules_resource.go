@@ -19,6 +19,8 @@ import (
 
 type TagRulesResource struct{}
 
+var _ sdk.ResourceWithUpdate = TagRulesResource{}
+
 type TagRulesResourceModel struct {
 	Name        string       `tfschema:"name"`
 	Monitor     string       `tfschema:"monitor_id"`
@@ -280,6 +282,43 @@ func (r TagRulesResource) Delete() sdk.ResourceFunc {
 			if _, err := client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
+			return nil
+		},
+	}
+}
+
+func (r TagRulesResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Dynatrace.TagRulesClient
+			id, err := tagrules.ParseTagRuleID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model TagRulesResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return err
+			}
+
+			if metadata.ResourceData.HasChange("monitor_id") {
+
+			}
+
+			tagRulesProps := tagrules.MonitoringTagRulesProperties{
+				LogRules:    ExpandLogRule(model.LogRules),
+				MetricRules: ExpandMetricRules(model.MetricRules),
+			}
+			tagRules := tagrules.TagRule{
+				Name:       &model.Name,
+				Properties: tagRulesProps,
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, tagRules); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
 			return nil
 		},
 	}
