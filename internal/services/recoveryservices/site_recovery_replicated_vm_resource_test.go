@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -34,6 +35,9 @@ func TestAccSiteRecoveryReplicatedVm_basic(t *testing.T) {
 }
 
 func TestAccSiteRecoveryReplicatedVm_withTFOSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("The `network_interface.target_*` properties have been deprecated in favor of `network_interface.ip_configuration.*`, this test case require an update.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
 
@@ -185,6 +189,10 @@ func TestAccSiteRecoveryReplicatedVm_zone2zone(t *testing.T) {
 }
 
 func TestAccSiteRecoveryReplicatedVm_zone2zoneWithLoadBalancerBackendPool(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("The `network_interface.target_*` properties have been deprecated in favor of `network_interface.ip_configuration.*`, this test case require an update.")
+
+	}
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
 
@@ -1538,11 +1546,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_replica_disk_type   = "Premium_LRS"
   }
 
-  network_interface {
-    source_network_interface_id = azurerm_network_interface.test.id
-    target_subnet_name          = "snet-%[1]d"
-  }
-
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
   ]
@@ -2050,10 +2053,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
       }
     }
   }
-  network_interface {
-    source_network_interface_id = azurerm_network_interface.test.id
-    target_subnet_name          = "snet-%[1]d"
-  }
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
   ]
@@ -2091,12 +2090,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_resource_group_id   = azurerm_resource_group.test2.id
     target_disk_type           = "Premium_LRS"
     target_replica_disk_type   = "Premium_LRS"
-  }
-
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = azurerm_subnet.test2.name
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
   }
 
   depends_on = [
@@ -2143,11 +2136,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_replica_disk_type   = "Premium_LRS"
   }
 
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = azurerm_subnet.test2.name
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-  }
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
@@ -2436,12 +2424,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_replica_disk_type   = "Premium_LRS"
   }
 
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = azurerm_subnet.test2.name
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-  }
-
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
     azurerm_site_recovery_network_mapping.test,
@@ -2528,11 +2510,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_replica_disk_type   = "Premium_LRS"
   }
 
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = azurerm_subnet.test2.name
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-  }
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
@@ -2570,11 +2547,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_replica_disk_type   = "Premium_LRS"
   }
 
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = azurerm_subnet.test2.name
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-  }
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
@@ -2617,11 +2589,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_replica_disk_type   = "Premium_LRS"
   }
 
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = azurerm_subnet.test2.name
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-  }
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,
@@ -2664,11 +2631,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_replica_disk_type   = "Premium_LRS"
   }
 
-  network_interface {
-    source_network_interface_id   = azurerm_network_interface.test.id
-    target_subnet_name            = azurerm_subnet.test2.name
-    recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
-  }
 
   depends_on = [
     azurerm_site_recovery_protection_container_mapping.test,

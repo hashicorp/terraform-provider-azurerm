@@ -315,7 +315,7 @@ The `ip_configuration` block supports the following:
 
 * `name` - (Required) Name of the IP configuration, must be consistent with the name of IP configuration of source VM.
 
-* `is_primary` - (Optional) Whether this IP configuration is primary, must be specified if there is more than 1 `ip_configuration`.
+* `is_primary` - (Optional) Whether this IP configuration is primary? Must be specified if there is more than 1 `ip_configuration`.
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
