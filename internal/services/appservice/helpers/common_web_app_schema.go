@@ -941,7 +941,7 @@ func ExpandBackupConfig(backupConfigs []Backup) (*webapps.BackupRequest, error) 
 		if err != nil {
 			return nil, fmt.Errorf("parsing back up start_time: %+v", err)
 		}
-		result.Properties.BackupSchedule.StartTime = pointer.To(dateTimeToStart.String())
+		result.Properties.BackupSchedule.StartTime = pointer.To(dateTimeToStart.Format("2006-01-02T15:04:05.999999"))
 	}
 
 	return result, nil
@@ -1124,7 +1124,7 @@ func FlattenBackupConfig(backupRequest *webapps.BackupRequest) []Backup {
 			RetentionPeriodDays:  schedule.RetentionPeriodInDays,
 		}
 
-		startTimeAsTime, err := time.Parse(time.RFC3339, *schedule.StartTime)
+		startTimeAsTime, err := time.Parse("2006-01-02T15:04:05.999999", *schedule.StartTime)
 		if err == nil {
 			if schedule.StartTime != nil && !startTimeAsTime.IsZero() {
 				backupSchedule.StartTime = startTimeAsTime.Format(time.RFC3339)
@@ -1132,7 +1132,7 @@ func FlattenBackupConfig(backupRequest *webapps.BackupRequest) []Backup {
 		}
 
 		if schedule.LastExecutionTime != nil {
-			lastExecutionTimeAsTime, err := time.Parse(time.RFC3339, *schedule.LastExecutionTime)
+			lastExecutionTimeAsTime, err := time.Parse("2006-01-02T15:04:05.999999", *schedule.LastExecutionTime)
 			if err == nil {
 				if schedule.LastExecutionTime != nil && !lastExecutionTimeAsTime.IsZero() {
 					backupSchedule.LastExecutionTime = lastExecutionTimeAsTime.Format(time.RFC3339)
