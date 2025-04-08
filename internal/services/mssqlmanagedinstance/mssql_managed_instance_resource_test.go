@@ -92,14 +92,14 @@ func TestAccMsSqlManagedInstance_isGeneralPurposeV2(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.isGeneralPurposeV2(data, false),
+			Config: r.isGeneralPurposeV2(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.isGeneralPurposeV2(data, true),
+			Config: r.isGeneralPurposeV2(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
