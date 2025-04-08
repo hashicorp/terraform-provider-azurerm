@@ -649,7 +649,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetAvailabilitySetID = nil
 	}
 
-	nicList := d.Get("network_interface").(*pluginsdk.Set).List()
+	nicList := d.Get("network_interface").([]interface{})
 	vmNics := make([]replicationprotecteditems.VMNicInputDetails, 0, len(nicList))
 	for _, raw := range nicList {
 		vmNicInput := raw.(map[string]interface{})
