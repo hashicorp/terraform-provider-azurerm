@@ -191,7 +191,6 @@ func TestAccSiteRecoveryReplicatedVm_zone2zone(t *testing.T) {
 func TestAccSiteRecoveryReplicatedVm_zone2zoneWithLoadBalancerBackendPool(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skipf("The `network_interface.target_*` properties have been deprecated in favor of `network_interface.ip_configuration.*`, this test case require an update.")
-
 	}
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
