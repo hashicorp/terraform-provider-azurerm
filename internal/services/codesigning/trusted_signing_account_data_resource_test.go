@@ -33,7 +33,7 @@ func TestAccTrustedSigningAccountDataSource_basic(t *testing.T) {
 	})
 }
 
-func (a TrustedSigningAccountDataSource) basic(data acceptance.TestData) string {
+func (TrustedSigningAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
