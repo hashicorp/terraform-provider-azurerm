@@ -299,7 +299,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"network_interface": {
-				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -403,8 +403,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:   true,
 			ForceNew:   false,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-				// To ignore diff if user has specified `ip_configuration`
-				return oldValue == "" && newValue != ""
+				_, ipConfigSpecified := d.GetOk("network_interface.0")
+				return oldValue != "" && newValue == "" && ipConfigSpecified
 			},
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
@@ -433,8 +433,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:   true,
 			ForceNew:   false,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-				// To ignore diff if user has specified `ip_configuration`
-				return oldValue == "" && newValue != ""
+				_, ipConfigSpecified := d.GetOk("network_interface.0")
+				return oldValue != "" && newValue == "" && ipConfigSpecified
 			},
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
@@ -444,8 +444,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeString,
 			Optional:   true,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-				// To ignore diff if user has specified `ip_configuration`
-				return oldValue == "" && newValue != ""
+				_, ipConfigSpecified := d.GetOk("network_interface.0")
+				return oldValue != "" && newValue == "" && ipConfigSpecified
 			},
 			ValidateFunc: azure.ValidateResourceID,
 		}
@@ -455,8 +455,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-				// To ignore diff if user has specified `ip_configuration`
-				return oldValue == "" && newValue != ""
+				_, ipConfigSpecified := d.GetOk("network_interface.0")
+				return oldValue != "" && newValue == "" && ipConfigSpecified
 			},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
@@ -470,8 +470,8 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:   true,
 			ForceNew:   false,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-				// To ignore diff if user has specified `ip_configuration`
-				return oldValue == "" && newValue != ""
+				_, ipConfigSpecified := d.GetOk("network_interface.0")
+				return oldValue != "" && newValue == "" && ipConfigSpecified
 			},
 			ValidateFunc: azure.ValidateResourceID,
 		}
@@ -1219,7 +1219,6 @@ func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotectedit
 				output["recovery_load_balancer_backend_address_pool_ids"] = utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
 			}
 			outputs = append(outputs, output)
-
 		}
 	}
 	return outputs
