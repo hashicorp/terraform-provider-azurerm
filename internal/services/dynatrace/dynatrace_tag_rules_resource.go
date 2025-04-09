@@ -64,42 +64,36 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 		"log_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"send_azure_active_directory_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 						Default:  false,
 					},
 
 					"send_activity_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 						Default:  false,
 					},
 
 					"send_subscription_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 						Default:  false,
 					},
 
 					"filtering_tag": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						ForceNew: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"action": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
-									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"Include",
 										"Exclude",
@@ -109,14 +103,12 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ForceNew:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"value": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ForceNew:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
@@ -129,21 +121,18 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 		"metric_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"filtering_tag": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
-						ForceNew: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"action": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
-									ForceNew: true,
 									ValidateFunc: validation.StringInSlice([]string{
 										"Include",
 										"Exclude",
@@ -153,14 +142,12 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ForceNew:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 
 								"value": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ForceNew:     true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
@@ -196,8 +183,8 @@ func (r TagRulesResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			monitorsId, err := monitors.ParseMonitorID(model.Monitor)
-			id := tagrules.NewTagRuleID(subscriptionId, monitorsId.ResourceGroupName, monitorsId.MonitorName, model.Name)
+			monitorId, err := monitors.ParseMonitorID(model.Monitor)
+			id := tagrules.NewTagRuleID(subscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, model.Name)
 			if err != nil {
 				return err
 			}
@@ -297,25 +284,27 @@ func (r TagRulesResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model TagRulesResourceModel
-			if err := metadata.Decode(&model); err != nil {
+			var state TagRulesResourceModel
+			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
 
-			if metadata.ResourceData.HasChange("monitor_id") {
-
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
 
-			tagRulesProps := tagrules.MonitoringTagRulesProperties{
-				LogRules:    ExpandLogRule(model.LogRules),
-				MetricRules: ExpandMetricRules(model.MetricRules),
-			}
-			tagRules := tagrules.TagRule{
-				Name:       &model.Name,
-				Properties: tagRulesProps,
+			model := existing.Model
+
+			if metadata.ResourceData.HasChange("metric_rule") {
+				model.Properties.MetricRules = ExpandMetricRules(state.MetricRules)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, tagRules); err != nil {
+			if metadata.ResourceData.HasChange("log_rule") {
+				model.Properties.LogRules = ExpandLogRule(state.LogRules)
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
