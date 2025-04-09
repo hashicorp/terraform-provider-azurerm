@@ -7,7 +7,9 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,6 +21,10 @@ import (
 type CdnProfileResource struct{}
 
 func TestAccCdnProfile_basic(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 
@@ -34,6 +40,10 @@ func TestAccCdnProfile_basic(t *testing.T) {
 }
 
 func TestAccCdnProfile_requiresImport(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 
@@ -49,6 +59,10 @@ func TestAccCdnProfile_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnProfile_withTags(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 	r := CdnProfileResource{}
 

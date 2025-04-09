@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var deprecationMessage string = "the creation of new CDN (classic) resources is no longer permitted following its deprecation on %s. However, modifications to existing CDN (classic) resources remain supported until the API reaches full retirement on September 30, 2027"
 
 func resourceCdnProfile() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -75,6 +78,58 @@ func resourceCdnProfile() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			sku := d.Get("sku").(string)
+
+			// The Akamai sku was retired on 31 October 2023...
+			if sku == string(cdn.SkuNameStandardAkamai) {
+				return fmt.Errorf("the creation of new CDN (classic) resources with the 'Standard_Akamai' sku is no longer permitted following its deprecation on October 31, 2023")
+			}
+
+			// The Verizon skus were retired on 15 January 2025...
+			if sku == string(cdn.SkuNameStandardVerizon) || sku == string(cdn.SkuNamePremiumVerizon) {
+				return fmt.Errorf("the creation of new CDN (classic) resources with the 'Standard_Verizon' and 'Premium_Verizon' sku is no longer permitted following its deprecation on January 15, 2025")
+			}
+
+			// The only currently supported sku's for CDN are 'Standard_Microsoft' and 'Standard_ChinaCdn'
+			// which will also be deprecated as of 1 October 2025, but can still be updated until 30 September 2027...
+			retired, err := azure.IsRetired(2025, time.October, 1)
+			if err != nil {
+				return err
+			}
+
+			// Check to see if any of the force new fields have changed after the 1 October 2025 deprecation date, if they have
+			// the deployments will fail...
+			if retired {
+				var nameChanged bool
+				var locationChanged bool
+				var resourceGroupChanged bool
+				var skuChanged bool
+
+				if old, new := d.GetChange("name"); old != new {
+					nameChanged = true
+				}
+
+				if old, new := d.GetChange("location"); old != new {
+					locationChanged = true
+				}
+
+				if old, new := d.GetChange("resource_group_name"); old != new {
+					resourceGroupChanged = true
+				}
+
+				if old, new := d.GetChange("sku"); old != new {
+					skuChanged = true
+				}
+
+				if nameChanged || locationChanged || resourceGroupChanged || skuChanged {
+					return fmt.Errorf("the creation of new CDN (classic) resources is no longer permitted following its deprecation on October 1, 2025. However, modifications to existing CDN (classic) resources remain supported until the API reaches full retirement on September 30, 2027")
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
