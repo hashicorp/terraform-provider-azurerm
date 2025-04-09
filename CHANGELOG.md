@@ -1,3 +1,11 @@
+## 4.27.0 (Unreleased)
+
+BUG FIXES:
+
+`azurerm_app_configuration_feature` - suppress casing differences for `configuration_store_id` to prevent resource recreation [GH-29285]
+`azurerm_app_configuration_key` - suppress casing differences for `configuration_store_id` to prevent resource recreation [GH-29285]
+`azurerm_search_shared_private_link_service` - add locks to prevent conflicts when creating multiple instances [GH-29294]
+
 ## 4.26.0 (April 04, 2025)
 
 BREAKING CHANGES:
