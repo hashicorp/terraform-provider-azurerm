@@ -614,7 +614,6 @@ func expandAutomationRuleActionIncidentTask(input []interface{}) []automationrul
 				Description: pointer.To(task["description"].(string)),
 			},
 		})
-
 	}
 
 	return output
@@ -629,8 +628,8 @@ func flattenAutomationRuleACtionIncidentTask(input automationrules.AutomationRul
 	if cfg := input.ActionConfiguration; cfg != nil {
 		title = cfg.Title
 		description = pointer.From(cfg.Description)
-
 	}
+
 	return map[string]interface{}{
 		"order":       input.Order,
 		"title":       title,
