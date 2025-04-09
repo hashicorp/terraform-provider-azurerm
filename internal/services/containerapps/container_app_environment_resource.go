@@ -425,31 +425,49 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			payload := managedenvironments.ManagedEnvironment{
+				Name:       pointer.To(state.Name),
+				Location:   state.Location,
+				Properties: &managedenvironments.ManagedEnvironmentProperties{},
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = tags.Expand(state.Tags)
+				payload.Tags = tags.Expand(state.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile") {
-				existing.Model.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
+				payload.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
 			}
 
 			if metadata.ResourceData.HasChange("mutual_tls_enabled") {
-				existing.Model.Properties.PeerAuthentication.Mtls.Enabled = pointer.To(state.Mtls)
-				existing.Model.Properties.PeerTrafficConfiguration.Encryption.Enabled = pointer.To(state.Mtls)
+				payload.Properties.PeerAuthentication = &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
+					Mtls: &managedenvironments.Mtls{
+						Enabled: pointer.To(state.Mtls),
+					},
+				}
+				payload.Properties.PeerTrafficConfiguration = &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfiguration{
+					Encryption: &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfigurationEncryption{
+						Enabled: pointer.To(state.Mtls),
+					},
+				}
 			}
 
 			if metadata.ResourceData.HasChanges("logs_destination", "log_analytics_workspace_id") {
-				// For 4.x we need to be compensate for the legacy behaviour of setting log destination based on the presence of log_analytics_workspace_id
+				// For 4.x we need to compensate for the legacy behaviour of setting log destination based on the presence of log_analytics_workspace_id
 				if !features.FivePointOh() && metadata.ResourceData.GetRawConfig().AsValueMap()["logs_destination"].IsNull() && state.LogAnalyticsWorkspaceId == "" {
 					state.LogsDestination = LogsDestinationNone
 				}
 
 				switch state.LogsDestination {
 				case LogsDestinationAzureMonitor:
-					existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					payload.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
 						Destination:               pointer.To(LogsDestinationAzureMonitor),
 						LogAnalyticsConfiguration: nil,
 					}
@@ -460,7 +478,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 							return fmt.Errorf("retrieving access keys to Log Analytics Workspace for %s: %+v", id, err)
 						}
 
-						existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+						payload.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
 							Destination: pointer.To(LogsDestinationLogAnalytics),
 							LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
 								CustomerId: customerId,
@@ -468,13 +486,12 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 							},
 						}
 					}
-
 				default:
-					existing.Model.Properties.AppLogsConfiguration = nil
+					payload.Properties.AppLogsConfiguration = nil
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
