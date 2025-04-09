@@ -9,44 +9,6 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ExtendedLocationTypes string
-
-const (
-	ExtendedLocationTypesCustomLocation ExtendedLocationTypes = "CustomLocation"
-)
-
-func PossibleValuesForExtendedLocationTypes() []string {
-	return []string{
-		string(ExtendedLocationTypesCustomLocation),
-	}
-}
-
-func (s *ExtendedLocationTypes) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseExtendedLocationTypes(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseExtendedLocationTypes(input string) (*ExtendedLocationTypes, error) {
-	vals := map[string]ExtendedLocationTypes{
-		"customlocation": ExtendedLocationTypesCustomLocation,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := ExtendedLocationTypes(input)
-	return &out, nil
-}
-
 type IdentitySettingsLifeCycle string
 
 const (
@@ -91,47 +53,6 @@ func parseIdentitySettingsLifeCycle(input string) (*IdentitySettingsLifeCycle, e
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := IdentitySettingsLifeCycle(input)
-	return &out, nil
-}
-
-type ImageType string
-
-const (
-	ImageTypeCloudBuild     ImageType = "CloudBuild"
-	ImageTypeContainerImage ImageType = "ContainerImage"
-)
-
-func PossibleValuesForImageType() []string {
-	return []string{
-		string(ImageTypeCloudBuild),
-		string(ImageTypeContainerImage),
-	}
-}
-
-func (s *ImageType) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseImageType(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseImageType(input string) (*ImageType, error) {
-	vals := map[string]ImageType{
-		"cloudbuild":     ImageTypeCloudBuild,
-		"containerimage": ImageTypeContainerImage,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := ImageType(input)
 	return &out, nil
 }
 
@@ -289,7 +210,6 @@ const (
 	StorageTypeEmptyDir     StorageType = "EmptyDir"
 	StorageTypeNfsAzureFile StorageType = "NfsAzureFile"
 	StorageTypeSecret       StorageType = "Secret"
-	StorageTypeSmb          StorageType = "Smb"
 )
 
 func PossibleValuesForStorageType() []string {
@@ -298,7 +218,6 @@ func PossibleValuesForStorageType() []string {
 		string(StorageTypeEmptyDir),
 		string(StorageTypeNfsAzureFile),
 		string(StorageTypeSecret),
-		string(StorageTypeSmb),
 	}
 }
 
@@ -321,7 +240,6 @@ func parseStorageType(input string) (*StorageType, error) {
 		"emptydir":     StorageTypeEmptyDir,
 		"nfsazurefile": StorageTypeNfsAzureFile,
 		"secret":       StorageTypeSecret,
-		"smb":          StorageTypeSmb,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
