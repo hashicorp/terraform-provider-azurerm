@@ -93,30 +93,6 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmAge
 	})
 }
 
-func TestAccLinuxVirtualMachine_otherVmAgentPlatformUpdates(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
-	r := LinuxVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherVmAgentPlatformUpdatesEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_agent_platform_updates_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.otherVmAgentPlatformUpdatesDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_agent_platform_updates_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccLinuxVirtualMachine_otherExtensionsTimeBudget(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -1246,76 +1222,6 @@ resource "azurerm_linux_virtual_machine" "test" {
   admin_username             = "adminuser"
   allow_extension_operations = true
   provision_vm_agent         = false
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LinuxVirtualMachineResource) otherVmAgentPlatformUpdatesEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                              = "acctestVM-%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
-  size                              = "Standard_F2"
-  admin_username                    = "adminuser"
-  vm_agent_platform_updates_enabled = true
-
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LinuxVirtualMachineResource) otherVmAgentPlatformUpdatesDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]

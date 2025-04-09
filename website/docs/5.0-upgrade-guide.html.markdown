@@ -200,7 +200,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
 
-## `azurerm_network_watcher_flow_log`
+### `azurerm_mysql_flexible_server`
+
+* The deprecated `public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+### `azurerm_network_watcher_flow_log`
 
 * The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
 
