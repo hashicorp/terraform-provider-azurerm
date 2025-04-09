@@ -19,6 +19,8 @@ type SnowflakeLinkedV2ServiceTypeProperties struct {
 	Password             SecretBase                   `json:"password"`
 	PrivateKey           SecretBase                   `json:"privateKey"`
 	PrivateKeyPassphrase SecretBase                   `json:"privateKeyPassphrase"`
+	Role                 *interface{}                 `json:"role,omitempty"`
+	Schema               *interface{}                 `json:"schema,omitempty"`
 	Scope                *interface{}                 `json:"scope,omitempty"`
 	TenantId             *interface{}                 `json:"tenantId,omitempty"`
 	User                 *interface{}                 `json:"user,omitempty"`
@@ -35,6 +37,8 @@ func (s *SnowflakeLinkedV2ServiceTypeProperties) UnmarshalJSON(bytes []byte) err
 		Database            interface{}                  `json:"database"`
 		EncryptedCredential *string                      `json:"encryptedCredential,omitempty"`
 		Host                *interface{}                 `json:"host,omitempty"`
+		Role                *interface{}                 `json:"role,omitempty"`
+		Schema              *interface{}                 `json:"schema,omitempty"`
 		Scope               *interface{}                 `json:"scope,omitempty"`
 		TenantId            *interface{}                 `json:"tenantId,omitempty"`
 		User                *interface{}                 `json:"user,omitempty"`
@@ -50,6 +54,8 @@ func (s *SnowflakeLinkedV2ServiceTypeProperties) UnmarshalJSON(bytes []byte) err
 	s.Database = decoded.Database
 	s.EncryptedCredential = decoded.EncryptedCredential
 	s.Host = decoded.Host
+	s.Role = decoded.Role
+	s.Schema = decoded.Schema
 	s.Scope = decoded.Scope
 	s.TenantId = decoded.TenantId
 	s.User = decoded.User

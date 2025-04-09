@@ -200,15 +200,17 @@ func parseScheme(input string) (*Scheme, error) {
 type StorageType string
 
 const (
-	StorageTypeAzureFile StorageType = "AzureFile"
-	StorageTypeEmptyDir  StorageType = "EmptyDir"
-	StorageTypeSecret    StorageType = "Secret"
+	StorageTypeAzureFile    StorageType = "AzureFile"
+	StorageTypeEmptyDir     StorageType = "EmptyDir"
+	StorageTypeNfsAzureFile StorageType = "NfsAzureFile"
+	StorageTypeSecret       StorageType = "Secret"
 )
 
 func PossibleValuesForStorageType() []string {
 	return []string{
 		string(StorageTypeAzureFile),
 		string(StorageTypeEmptyDir),
+		string(StorageTypeNfsAzureFile),
 		string(StorageTypeSecret),
 	}
 }
@@ -228,9 +230,10 @@ func (s *StorageType) UnmarshalJSON(bytes []byte) error {
 
 func parseStorageType(input string) (*StorageType, error) {
 	vals := map[string]StorageType{
-		"azurefile": StorageTypeAzureFile,
-		"emptydir":  StorageTypeEmptyDir,
-		"secret":    StorageTypeSecret,
+		"azurefile":    StorageTypeAzureFile,
+		"emptydir":     StorageTypeEmptyDir,
+		"nfsazurefile": StorageTypeNfsAzureFile,
+		"secret":       StorageTypeSecret,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
