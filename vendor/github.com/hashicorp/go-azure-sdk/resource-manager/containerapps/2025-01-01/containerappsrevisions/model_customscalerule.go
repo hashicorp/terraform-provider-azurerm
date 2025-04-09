@@ -5,6 +5,7 @@ package containerappsrevisions
 
 type CustomScaleRule struct {
 	Auth     *[]ScaleRuleAuth   `json:"auth,omitempty"`
+	Identity *string            `json:"identity,omitempty"`
 	Metadata *map[string]string `json:"metadata,omitempty"`
 	Type     *string            `json:"type,omitempty"`
 }
