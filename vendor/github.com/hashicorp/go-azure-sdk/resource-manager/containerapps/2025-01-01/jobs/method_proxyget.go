@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -19,14 +18,14 @@ type ProxyGetOperationResponse struct {
 }
 
 // ProxyGet ...
-func (c JobsClient) ProxyGet(ctx context.Context, id JobId) (result ProxyGetOperationResponse, err error) {
+func (c JobsClient) ProxyGet(ctx context.Context, id DetectorPropertyId) (result ProxyGetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/detectorProperties/rootApi", id.ID()),
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

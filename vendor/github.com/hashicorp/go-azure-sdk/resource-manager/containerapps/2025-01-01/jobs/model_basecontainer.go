@@ -8,7 +8,6 @@ type BaseContainer struct {
 	Command      *[]string           `json:"command,omitempty"`
 	Env          *[]EnvironmentVar   `json:"env,omitempty"`
 	Image        *string             `json:"image,omitempty"`
-	ImageType    *ImageType          `json:"imageType,omitempty"`
 	Name         *string             `json:"name,omitempty"`
 	Resources    *ContainerResources `json:"resources,omitempty"`
 	VolumeMounts *[]VolumeMount      `json:"volumeMounts,omitempty"`

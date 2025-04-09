@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/jobs` Documentation
 
-The `jobs` SDK allows for interaction with Azure Resource Manager `containerapps` (API Version `2024-02-02-preview`).
+The `jobs` SDK allows for interaction with Azure Resource Manager `containerapps` (API Version `2025-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/jobs"
 ```
 
 
@@ -186,7 +186,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := jobs.NewJobID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName")
+id := jobs.NewDetectorPropertyID("12345678-1234-9876-4563-123456789012", "example-resource-group", "jobName", "detectorPropertyName")
 
 read, err := client.ProxyGet(ctx, id)
 if err != nil {
