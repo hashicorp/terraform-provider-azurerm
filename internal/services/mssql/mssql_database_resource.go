@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/replicationlinks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
@@ -119,7 +119,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-	legacyreplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
@@ -135,7 +135,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	}
 	d.Set("enclave_type", enclaveType)
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyreplicationLinksClient, resourcesClient, *id, enclaveType, []sql.ReplicationRole{sql.ReplicationRolePrimary})
+	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -213,21 +213,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	location := server.Model.Location
 	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
-	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
-	// partner databases. To work around this, we'll try to identify any partner databases that are secondary to this
-	// database, and where the new SKU tier for this database is going to be higher, first upgrade those databases to
-	// the same sku_name as we'll be changing this database to. If that sku is different to the one configured for any
-	// of the partner databases, that discrepancy will have to be corrected by the resource for that database. That
-	// might happen as part of the same apply, if a change was already planned for it, else it will only be picked up
-	// in a second plan/apply.
-	//
-	// TLDR: for the best experience, configs should use the same SKU for primary and partner databases and when
-	// upgrading those SKUs, we'll try to upgrade the partner databases first.
-
-	// Place a lock for the current database so any partner resources can't bump its SKU out of band
-	locks.ByID(id.ID())
-	defer locks.UnlockByID(id.ID())
-
 	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
 	var enclaveType databases.AlwaysEncryptedEnclaveType
 	if v, ok := d.GetOk("enclave_type"); ok && v.(string) != "" {
@@ -235,43 +220,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	skuName := d.Get("sku_name").(string)
-	if skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
-		if err != nil {
-			return err
-		}
-
-		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
-		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
-			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
-			}
-
-			locks.ByID(partnerDatabaseId.ID())
-			defer locks.UnlockByID(partnerDatabaseId.ID())
-		}
-
-		// Update the SKUs of any partner databases where deemed necessary
-		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
-			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
-			}
-
-			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
-				err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
-					Sku: &databases.Sku{
-						Name: skuName,
-					},
-				})
-				if err != nil {
-					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
-				}
-			}
-		}
-	}
 
 	// Determine whether the SKU is for SQL Data Warehouse
 	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
@@ -564,6 +512,62 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	// NOTE: The old API returned an empty list if the server was not found, the new API returns a 404 which is why this has
+	// been moved to after the create is successful...
+	//
+	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
+	// partner databases. To work around this, we'll try to identify any partner databases that are secondary to this
+	// database, and where the new SKU tier for this database is going to be higher, first upgrade those databases to
+	// the same sku_name as we'll be changing this database to. If that sku is different to the one configured for any
+	// of the partner databases, that discrepancy will have to be corrected by the resource for that database. That
+	// might happen as part of the same apply, if a change was already planned for it, else it will only be picked up
+	// in a second plan/apply.
+	//
+	// TLDR: for the best experience, configs should use the same SKU for primary and partner databases and when
+	// upgrading those SKUs, we'll try to upgrade the partner databases first.
+
+	if skuName != "" {
+		// Place a lock for the current database so any partner resources can't bump its SKU out of band
+		locks.ByID(id.ID())
+		defer locks.UnlockByID(id.ID())
+
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
+		if err != nil {
+			return err
+		}
+
+		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
+		for _, partnerDatabase := range partnerDatabases {
+			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
+			if err != nil {
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+			}
+
+			locks.ByID(partnerDatabaseId.ID())
+			defer locks.UnlockByID(partnerDatabaseId.ID())
+		}
+
+		// Update the SKUs of any partner databases where deemed necessary
+		for _, partnerDatabase := range partnerDatabases {
+			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
+			if err != nil {
+				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+			}
+
+			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+				err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
+					Sku: &databases.Sku{
+						Name: skuName,
+					},
+				})
+				if err != nil {
+					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+				}
+			}
+		}
+	}
+
 	d.SetId(id.ID())
 
 	// For Data Warehouse SKUs only
@@ -644,7 +648,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -829,7 +833,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				existingEnclaveType = *model.Properties.PreferredEnclaveType
 			}
 
-			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, existingEnclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, existingEnclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 			if err != nil {
 				return err
 			}
