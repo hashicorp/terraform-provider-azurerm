@@ -112,6 +112,8 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 					"User",
 					"Group",
 					"ServicePrincipal",
+					"Device",
+					"ForeignGroup",
 				}, false),
 			},
 
