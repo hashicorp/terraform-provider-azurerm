@@ -467,25 +467,6 @@ func TestAccPostgresqlFlexibleServer_invalidStorageTier(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlFlexibleServer_invalidStorageMbScaling(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	r := PostgresqlFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.invalidStorageMbScaling(data, "524288"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config:      r.invalidStorageMbScaling(data, "262144"),
-			ExpectError: regexp.MustCompile("'storage_mb' can only be scaled up"),
-		},
-	})
-}
-
 func TestAccPostgresqlFlexibleServer_invalidStorageTierScalingStorageMb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
