@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -242,6 +242,9 @@ resource "azurerm_eventgrid_domain" "test" {
   local_auth_enabled                        = false
   auto_create_topic_with_first_subscription = false
   auto_delete_topic_with_last_subscription  = false
+
+  min_tls_version         = "1.2"
+  data_residency_boundary = "WithinGeopair"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -465,6 +468,10 @@ resource "azurerm_eventgrid_domain" "test" {
   tags = {
     "foo" = "bar"
   }
+
+  min_tls_version         = "1.2"
+  data_residency_boundary = "WithinGeopair"
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
