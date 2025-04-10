@@ -169,25 +169,34 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_api_key" "test" {
-  name                    = "acctestappinsightsapikey-%d"
+  name                    = "acctestappinsightsapikey-%[1]d"
   application_insights_id = azurerm_application_insights.test.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azuread_application_registration" "test" {
-  display_name = "acctestReg-%d"
+  display_name = "acctestReg-%[1]d"
 }
 
 resource "azurerm_bot_web_app" "test" {
-  name                = "acctestdf%d"
+  name                = "acctestdf%[1]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   microsoft_app_id    = azuread_application_registration.test.client_id
@@ -202,5 +211,5 @@ resource "azurerm_bot_web_app" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

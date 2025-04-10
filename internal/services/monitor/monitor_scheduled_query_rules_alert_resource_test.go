@@ -141,27 +141,40 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
-  location = "%s"
+  name     = "acctestRG-monitor-%[1]d"
+  location = "%[2]s"
 }
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestAppInsights-%d"
+  name                = "acctestAppInsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
+
 resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
+  name                = "acctestActionGroup-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
+
 resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
-  name                    = "acctestsqr-%d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
+  name                = "acctestsqr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
   data_source_id          = azurerm_application_insights.test.id
   query                   = <<-QUERY
-	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ];
+	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%[3]s', 25.4, '%[4]s', 75.4 ];
 	d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)
 QUERY
   frequency               = 60
@@ -175,7 +188,7 @@ QUERY
     threshold = 5000
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts, strconv.FormatBool(autoMitigate))
+`, data.RandomInteger, data.Locations.Primary, ts, ts, strconv.FormatBool(autoMitigate))
 }
 
 func (MonitorScheduledQueryRulesResource) AlertingActionQueryTypeNumber(data acceptance.TestData) string {
@@ -232,31 +245,40 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
-  location = "%s"
+  name     = "acctestRG-monitor-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestAppInsights-%d"
+  name                = "acctestAppInsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
+  name                = "acctestActionGroup-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
-  name                = "acctestsqr-%d"
+  name                = "acctestsqr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
   data_source_id = azurerm_application_insights.test.id
   query          = <<-QUERY
-	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ];
+	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%[3]s', 25.4, '%[4]s', 75.4 ];
 	d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)
 QUERY
 
@@ -273,7 +295,7 @@ QUERY
     threshold = 5000
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts)
+`, data.RandomInteger, data.Locations.Primary, ts, ts)
 }
 
 func (MonitorScheduledQueryRulesResource) AlertingActionConfigUpdate(data acceptance.TestData, ts string) string {
@@ -283,31 +305,40 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
-  location = "%s"
+  name     = "acctestRG-monitor-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestAppInsights-%d"
+  name                = "acctestAppInsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
+  name                = "acctestActionGroup-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
-  name                = "acctestsqr-%d"
+  name                = "acctestsqr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
   data_source_id = azurerm_application_insights.test.id
   query          = <<-QUERY
-	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ];
+	let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%[3]s', 25.4, '%[4]s', 75.4 ];
 	d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)
 QUERY
 
@@ -327,7 +358,7 @@ QUERY
     threshold = 1000
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts)
+`, data.RandomInteger, data.Locations.Primary, ts, ts)
 }
 
 func (MonitorScheduledQueryRulesResource) AlertingActionConfigComplete(data acceptance.TestData) string {
@@ -339,32 +370,41 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
-  location = "%s"
+  name     = "acctestRG-monitor-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestAppInsights-%d"
+  name                = "acctestAppInsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
+  name                = "acctestActionGroup-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   short_name          = "acctestag"
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
-  name                = "acctestsqr-%d"
+  name                = "acctestsqr-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   description         = "test alerting action"
   enabled             = true
 
   data_source_id = azurerm_application_insights.test.id
-  query          = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)"
+  query          = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%[3]s', 25.4, '%[4]s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)"
 
   frequency   = 60
   time_window = 60
@@ -393,7 +433,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
     Env = "test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts)
+`, data.RandomInteger, data.Locations.Primary, ts, ts)
 }
 
 func (MonitorScheduledQueryRulesResource) AlertingActionCrossResourceConfig(data acceptance.TestData) string {
@@ -403,19 +443,28 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
-  location = "%s"
-}
-
-resource "azurerm_application_insights" "test" {
-  name                = "acctestAppInsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type    = "web"
+  name     = "acctestRG-monitor-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestWorkspace-%d"
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestAppInsights-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestWorkspace-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "PerGB2018"
@@ -423,13 +472,13 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
+  name                = "acctestActionGroup-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   short_name          = "acctestag"
 }
 
 resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
-  name                = "acctestsqr-%d"
+  name                = "acctestsqr-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   description         = "test alerting action cross-resource"
@@ -465,7 +514,7 @@ QUERY
     threshold = 5000
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (t MonitorScheduledQueryRulesResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

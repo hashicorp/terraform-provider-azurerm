@@ -18,11 +18,20 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "${var.prefix}-law"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "example" {
   name                = "${var.prefix}-appinsights"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.example.id
 }
 
 resource "azurerm_service_plan" "example" {

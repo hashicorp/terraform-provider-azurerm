@@ -187,34 +187,52 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_api_key" "test" {
-  name                    = "acctestappinsightsapikey-%d"
+  name                    = "acctestappinsightsapikey-%[1]d"
   application_insights_id = azurerm_application_insights.test.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
+resource "azurerm_log_analytics_workspace" "test2" {
+  name                = "acctestlaw2-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test2" {
-  name                = "acctestappinsights2-%d"
+  name                = "acctestappinsights2-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test2.id
 }
 
 resource "azurerm_application_insights_api_key" "test2" {
-  name                    = "acctestappinsightsapikey2-%d"
+  name                    = "acctestappinsightsapikey2-%[1]d"
   application_insights_id = azurerm_application_insights.test2.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv-%s"
+  name                     = "acctestkv-%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -241,7 +259,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey-%s"
+  name         = "acctestkvkey-%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -254,7 +272,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_key" "test2" {
-  name         = "acctestkvkey2-%s"
+  name         = "acctestkvkey2-%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -267,11 +285,11 @@ resource "azurerm_key_vault_key" "test2" {
 }
 
 resource "azuread_application_registration" "test" {
-  display_name = "acctestReg-%d"
+  display_name = "acctestReg-%[1]d"
 }
 
 resource "azurerm_bot_channels_registration" "test" {
-  name                = "acctestdf%d"
+  name                = "acctestdf%[1]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   microsoft_app_id    = azuread_application_registration.test.client_id
@@ -291,7 +309,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (BotChannelsRegistrationResource) completeConfig(data acceptance.TestData) string {
@@ -317,21 +335,30 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_api_key" "test" {
-  name                    = "acctestappinsightsapikey-%d"
+  name                    = "acctestappinsightsapikey-%[1]d"
   application_insights_id = azurerm_application_insights.test.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv-%s"
+  name                     = "acctestkv-%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -358,7 +385,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey-%s"
+  name         = "acctestkvkey-%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -371,11 +398,11 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azuread_application_registration" "test" {
-  display_name = "acctestReg-%d"
+  display_name = "acctestReg-%[1]d"
 }
 
 resource "azurerm_bot_channels_registration" "test" {
-  name                = "acctestdf%d"
+  name                = "acctestdf%[1]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   microsoft_app_id    = azuread_application_registration.test.client_id
@@ -395,7 +422,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (BotChannelsRegistrationResource) withoutCMKKeyVaultURL(data acceptance.TestData) string {
@@ -421,34 +448,52 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
+  name                = "acctestappinsights-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_application_insights_api_key" "test" {
-  name                    = "acctestappinsightsapikey-%d"
+  name                    = "acctestappinsightsapikey-%[1]d"
   application_insights_id = azurerm_application_insights.test.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
+resource "azurerm_log_analytics_workspace" "test2" {
+  name                = "acctestlaw2-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test2" {
-  name                = "acctestappinsights2-%d"
+  name                = "acctestappinsights2-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test2.id
 }
 
 resource "azurerm_application_insights_api_key" "test2" {
-  name                    = "acctestappinsightsapikey2-%d"
+  name                    = "acctestappinsightsapikey2-%[1]d"
   application_insights_id = azurerm_application_insights.test2.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv-%s"
+  name                     = "acctestkv-%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -475,7 +520,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey-%s"
+  name         = "acctestkvkey-%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -488,7 +533,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_key" "test2" {
-  name         = "acctestkvkey2-%s"
+  name         = "acctestkvkey2-%[3]s"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -501,11 +546,11 @@ resource "azurerm_key_vault_key" "test2" {
 }
 
 resource "azuread_application_registration" "test" {
-  display_name = "acctestReg-%d"
+  display_name = "acctestReg-%[1]d"
 }
 
 resource "azurerm_bot_channels_registration" "test" {
-  name                = "acctestdf%d"
+  name                = "acctestdf%[1]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   microsoft_app_id    = azuread_application_registration.test.client_id
@@ -524,7 +569,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "production2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (BotChannelsRegistrationResource) streamingEndpointEnabled(data acceptance.TestData, streamingEndpointEnabled bool) string {
