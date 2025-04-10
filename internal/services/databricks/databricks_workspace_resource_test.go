@@ -149,7 +149,7 @@ func TestAccDatabricksWorkspace_loadBalancerSecureClusterConnectivity(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
+		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id", "load_balancer_backend_address_pool_id"),
 	})
 }
 
