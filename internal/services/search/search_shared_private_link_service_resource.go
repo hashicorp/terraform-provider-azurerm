@@ -135,6 +135,9 @@ func (r SharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 				parameters.Properties.RequestMessage = pointer.To(model.RequestMessage)
 			}
 
+			locks.ByName(id.SearchServiceName, searchServiceResourceType)
+			defer locks.UnlockByName(id.SearchServiceName, searchServiceResourceType)
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -221,6 +224,8 @@ func (r SharedPrivateLinkServiceResource) Update() sdk.ResourceFunc {
 						RequestMessage: pointer.To(state.RequestMessage),
 					},
 				}
+				locks.ByName(id.SearchServiceName, searchServiceResourceType)
+				defer locks.UnlockByName(id.SearchServiceName, searchServiceResourceType)
 				if err := client.CreateOrUpdateThenPoll(ctx, *id, props, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
