@@ -57,17 +57,6 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			// ## Customer wants to **disable** a few things upon the creation
-			// cloud_connectors.aws_external_id: string                    <-- they want to disable
-			// looks like `aws_external_id` is the only option in this property
-			//
-			// managed_resources.event_hub_namespace_id -- already present <-- they want to disable
-			// properties.managedEventHubState = Disabled, Enabled, NotSpecified
-			// If `enabled` `managed eventhub will be created, if `disabled` the managed eventhub will be removed.
-			//
-			// kafka_configuration.event_streaming_state: "Disabled"
-			// kafka_configuration.event_streaming_type: "None"
-
 			"public_network_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
