@@ -9,4 +9,5 @@ type WorkspaceFeatures struct {
 	EnableDataExport                            *bool   `json:"enableDataExport,omitempty"`
 	EnableLogAccessUsingOnlyResourcePermissions *bool   `json:"enableLogAccessUsingOnlyResourcePermissions,omitempty"`
 	ImmediatePurgeDataOn30Days                  *bool   `json:"immediatePurgeDataOn30Days,omitempty"`
+	UnifiedSentinelBillingOnly                  *bool   `json:"unifiedSentinelBillingOnly,omitempty"`
 }
