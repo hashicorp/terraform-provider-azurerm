@@ -126,7 +126,11 @@ The following arguments are supported:
 
 * `create_option` - (Required) Specifies the Create Option of the Data Disk. The only possible value is `Copy`. Changing this forces a new resource to be created.
 
-* `disk_size_gb` - (Required) Specifies the size of the Data Disk in gigabytes. Changing this forces a new resource to be created.
+* `disk_size_gb` - (Required) Specifies the size of the Data Disk in gigabytes.
+
+-> **NOTE:** In certain conditions the Data Disk size can be updated without shutting down the Virtual Machine, however only a subset of Virtual Machine SKUs/Disk combinations support this. More information can be found [for Linux Virtual Machines](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/expand-disks?tabs=azure-cli%2Cubuntu#expand-without-downtime) and [Windows Virtual Machines](https://learn.microsoft.com/azure/virtual-machines/windows/expand-os-disk#expand-without-downtime) respectively.
+
+-> **NOTE:** If No Downtime Resizing is not available, be aware that changing this value is disruptive. The VM will be shut down and de-allocated as required by Azure to action the change. Terraform will attempt to start the machine again after the update if it was in a `running` state when the apply was started.
 
 * `source_resource_id` - (Required) The ID of the source resource which this Data Disk was created from. Changing this forces a new resource to be created.
 
