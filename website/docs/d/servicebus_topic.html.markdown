@@ -43,11 +43,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `duplicate_detection_history_time_window` - The ISO 8601 timespan duration during which duplicates can be detected.
 
-* `enable_batched_operations` - Boolean flag which controls if server-side batched operations are enabled.
+* `batched_operations_enabled` - Boolean flag which controls if server-side batched operations are enabled.
 
-* `enable_express` - Boolean flag which controls whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.
+* `express_enabled` - Boolean flag which controls whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.
 
-* `enable_partitioning` - Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers.
+* `partitioning_enabled` - Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers.
 
 * `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the topic. For supported values see the "Queue/topic size" section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
