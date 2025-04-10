@@ -23,6 +23,8 @@ import (
 func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *replicationlinks.ReplicationLinksClient, resourcesClient *resources.ResourcesClient, id commonids.SqlDatabaseId, primaryEnclaveType databases.AlwaysEncryptedEnclaveType, rolesToFind []replicationlinks.ReplicationRole) ([]databases.Database, error) {
 	var partnerDatabases []databases.Database
 
+	log.Printf("[INFO] Looking For Replication Link Partners For: %s", id)
+
 	matchesRole := func(role replicationlinks.ReplicationRole) bool {
 		for _, r := range rolesToFind {
 			if r == role {
@@ -42,6 +44,8 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		return nil, fmt.Errorf("reading Replication Links for %s: response was empty", id)
 	}
 
+	log.Printf("[INFO] Found %d Replication Link Partners", len(listByDatabaseResult.Items))
+
 	for _, replicationLink := range listByDatabaseResult.Items {
 		linkProps := replicationLink.Properties
 		if linkProps == nil {
@@ -58,9 +62,15 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		// Look for candidate partner SQL servers
 		filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", *linkProps.PartnerServer)
 
-		subscription, err := commonids.ParseSubscriptionIDInsensitively(*linkProps.PartnerDatabaseId)
+		partner, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
 		if err != nil {
-			return nil, fmt.Errorf("parsing Partner SQL Server Subscription %q: %+v", *linkProps.PartnerDatabaseId, err)
+			return nil, fmt.Errorf("parsing Partner SQL Database ID %q: %+v", *linkProps.PartnerDatabaseId, err)
+		}
+
+		fmtString := fmt.Sprintf("/subscriptions/%s", partner.SubscriptionId)
+		subscription, err := commonids.ParseSubscriptionID(fmtString)
+		if err != nil {
+			return nil, fmt.Errorf("parsing Partner SQL Server Subscription %q: %+v", fmtString, err)
 		}
 
 		listOptions := resources.ListOperationOptions{
@@ -80,13 +90,13 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 				continue
 			}
 
-			partnerServerId, err := commonids.ParseSqlDatabaseIDInsensitively(*server.Id)
+			partnerServerId, err := commonids.ParseSqlServerIDInsensitively(*server.Id)
 			if err != nil {
-				return nil, fmt.Errorf("parsing Partner SQL Server ID %q: %+v", *server.Id, err)
+				return nil, fmt.Errorf("parsing Partner SQL Server ID %q: %+v", *server.Id, err) // error
 			}
 
 			// Check if like-named server has a database named like the partner database, also with a replication link
-			linksPossiblePartnerIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, *partnerServerId)
+			linksPossiblePartnerIterator, err := replicationLinksClient.ListByServerComplete(ctx, *partnerServerId)
 			if err != nil {
 				if response.WasNotFound(linksPossiblePartnerIterator.LatestHttpResponse) {
 					log.Printf("[INFO] no replication link found for Database %q (%s)", *linkProps.PartnerDatabase, partnerServerId)
@@ -97,6 +107,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 			for _, v := range linksPossiblePartnerIterator.Items {
 				linkPossiblePartner := v
+
 				if linkPossiblePartner.Properties == nil {
 					log.Printf("[INFO] Replication Link Properties was nil for Database %s (%s)", *linkProps.PartnerDatabase, partnerServerId)
 					continue
@@ -106,7 +117,12 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 				// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
 				if matchesRole(*linkPropsPossiblePartner.PartnerRole) {
-					partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroupName, partnerServerId.DatabaseName, *linkProps.PartnerDatabase)
+					partnerServerDatabase, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
+					if err != nil {
+						return nil, fmt.Errorf("parsing Partner SQL Database ID %q: %+v", *linkProps.PartnerDatabaseId, err)
+					}
+
+					partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroupName, partnerServerId.ServerName, partnerServerDatabase.DatabaseName)
 					partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId, databases.DefaultGetOperationOptions())
 					if err != nil {
 						return nil, fmt.Errorf("retrieving Partner %s: %+v", partnerDatabaseId, err)
@@ -126,6 +142,8 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 								log.Printf("[INFO] Mismatch of possible Partner Database based on enclave type (%q vs %q) for %s", primaryEnclaveType, string(*partnerDatabase.Properties.PreferredEnclaveType), id)
 							}
 						}
+					} else {
+						log.Printf("[INFO] PartnerDatabase.Model was 'nil'")
 					}
 				}
 			}

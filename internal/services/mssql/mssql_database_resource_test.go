@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -79,8 +78,10 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	data = setTestDataLocationBySubscription(data)
 
 	switch data.Locations.Primary {
-	case "eastus": // Added due to local quota policies...
+	case "eastus": // Added due to subscription quota policies...
 		maintenance_configuration_name = "SQL_EastUS_DB_2"
+	case "swedencentral": // Added due to subscription quota policies...
+		maintenance_configuration_name = "SQL_SwedenCentral_DB_1"
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
 	case "francecentral":
@@ -1060,7 +1061,7 @@ func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
-// Sets the tests 'Primary' and 'Secondary' locations based on the 'ARM_SUBSCRIPTION_ID' environment variable due to subscription quota policies
+// Sets the tests 'Primary' and 'Secondary' locations based on the 'ARM_MICROSOFT_TEST' environment variable due to subscription quota policies
 func setTestDataLocationBySubscription(data acceptance.TestData) acceptance.TestData {
 	// NOTE: It looks like the data.Locations values are being overridden by the 'settings.kt' file in '.teamcity\components' (line: 134):
 	// 'locationOverride' changes the local environment variables when the tests are being run on the team city servers:
@@ -1073,9 +1074,9 @@ func setTestDataLocationBySubscription(data acceptance.TestData) acceptance.Test
 	//
 	// To be consistent with the 'settings.kt' file I will override the local environment variables (dependant on the subscription that is running the test), as lower case...
 
-	if strings.HasPrefix(os.Getenv("ARM_SUBSCRIPTION_ID"), "0b1") {
+	if isMicrosoftTest := os.Getenv("ARM_MICROSOFT_TEST"); isMicrosoftTest != "" {
 		data.Locations.Primary = "eastus"
-		data.Locations.Secondary = "eastus2"
+		data.Locations.Secondary = "swedencentral"
 	}
 
 	return data
@@ -1143,8 +1144,10 @@ func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
 	configName := "SQL_Default"
 
 	switch data.Locations.Primary {
-	case "eastus": // Added due to local quota policies...
+	case "eastus": // Added due to subscription quota policies...
 		configName = "SQL_EastUS_DB_2"
+	case "swedencentral": // Added due to subscription quota policies...
+		configName = "SQL_SwedenCentral_DB_1"
 	case "westeurope":
 		configName = "SQL_WestEurope_DB_2"
 	case "francecentral":
