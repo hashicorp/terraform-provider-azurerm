@@ -1,5 +1,9 @@
 ## 4.27.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: update `go-azure-sdk` to `v0.20250409.1192141` [GH-29307]
+
 BUG FIXES:
 
 `azurerm_app_configuration_feature` - suppress casing differences for `configuration_store_id` to prevent resource recreation [GH-29285]
