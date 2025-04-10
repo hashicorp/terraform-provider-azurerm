@@ -330,8 +330,10 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	info := parseFieldsFromNetworkInterface(*existing.Model.Properties)
 
 	payload := existing.Model
+	propsOtherThanTagsUpdated := false
 
 	if d.HasChange("auxiliary_mode") {
+		propsOtherThanTagsUpdated = true
 		if auxiliaryMode := d.Get("auxiliary_mode").(string); auxiliaryMode != "" {
 			payload.Properties.AuxiliaryMode = pointer.To(networkinterfaces.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
 		} else {
@@ -340,6 +342,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("auxiliary_sku") {
+		propsOtherThanTagsUpdated = true
 		if auxiliarySku := d.Get("auxiliary_sku").(string); auxiliarySku != "" {
 			payload.Properties.AuxiliarySku = pointer.To(networkinterfaces.NetworkInterfaceAuxiliarySku(auxiliarySku))
 		} else {
@@ -348,6 +351,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("dns_servers") {
+		propsOtherThanTagsUpdated = true
 		dnsServersRaw := d.Get("dns_servers").([]interface{})
 		dnsServers := expandNetworkInterfaceDnsServers(dnsServersRaw)
 
@@ -355,18 +359,22 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("accelerated_networking_enabled") {
+		propsOtherThanTagsUpdated = true
 		payload.Properties.EnableAcceleratedNetworking = pointer.To(d.Get("accelerated_networking_enabled").(bool))
 	}
 
 	if d.HasChange("ip_forwarding_enabled") {
+		propsOtherThanTagsUpdated = true
 		payload.Properties.EnableIPForwarding = pointer.To(d.Get("ip_forwarding_enabled").(bool))
 	}
 
 	if d.HasChange("internal_dns_name_label") {
+		propsOtherThanTagsUpdated = true
 		payload.Properties.DnsSettings.InternalDnsNameLabel = pointer.To(d.Get("internal_dns_name_label").(string))
 	}
 
 	if d.HasChange("ip_configuration") {
+		propsOtherThanTagsUpdated = true
 		ipConfigsRaw := d.Get("ip_configuration").([]interface{})
 		ipConfigs, err := expandNetworkInterfaceIPConfigurations(ipConfigsRaw)
 		if err != nil {
@@ -386,14 +394,24 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		payload.Properties.IPConfigurations = ipConfigs
 	}
 
-	if d.HasChange("tags") {
-		tagsRaw := d.Get("tags").(map[string]interface{})
-		payload.Tags = tags.Expand(tagsRaw)
+	if propsOtherThanTagsUpdated {
+		err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
+		if err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-	if err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
+	// Tags have to be updated separately with a PATCH because if the NIC is attached to other resources
+	// the PUT request will fail with a 400
+	if d.HasChange("tags") {
+		tagsRaw := d.Get("tags").(map[string]interface{})
+		tags := networkinterfaces.TagsObject{
+			Tags: tags.Expand(tagsRaw),
+		}
+		_, err = client.UpdateTags(ctx, *id, tags)
+		if err != nil {
+			return fmt.Errorf("updating tags for %s: %+v", *id, err)
+		}
 	}
 
 	return nil
