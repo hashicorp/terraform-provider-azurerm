@@ -462,6 +462,29 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 		return fmt.Errorf("context was missing a deadline")
 	}
 
+	// we should wait for the operation to complete, or it will fail when creating a new backup vm with the same vm in different vault immediately.
+	// in additional, we should get operation result first to prevent endless waiting until timeout when deletion fails.
+	opState := &pluginsdk.StateChangeConf{
+		MinTimeout: 30 * time.Second,
+		Delay:      10 * time.Second,
+		Pending:    []string{"202"},
+		Target:     []string{"200", "204"},
+		Refresh: func() (interface{}, string, error) {
+			resp, err := opResultClient.Get(ctx, id.VaultName, id.ResourceGroupName, operationId)
+			if err != nil {
+				return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protected Item operation %q for %s: %+v", operationId, id, err)
+			}
+			return resp, strconv.Itoa(resp.StatusCode), err
+		},
+
+		Timeout: time.Until(deadline),
+	}
+
+	_, err := opState.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for the Recovery Service Protected Item operation to be deleted for %s: %+v", id, err)
+	}
+
 	state := &pluginsdk.StateChangeConf{
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
@@ -492,31 +515,9 @@ func resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx context.Contex
 		Timeout: time.Until(deadline),
 	}
 
-	_, err := state.WaitForStateContext(ctx)
+	_, err = state.WaitForStateContext(ctx)
 	if err != nil {
 		return fmt.Errorf("waiting for %s: %+v", id, err)
-	}
-
-	// we should also wait for the operation to complete, or it will fail when creating a new backup vm with the same vm in different vault immediately.
-	opState := &pluginsdk.StateChangeConf{
-		MinTimeout: 30 * time.Second,
-		Delay:      10 * time.Second,
-		Pending:    []string{"202"},
-		Target:     []string{"200", "204"},
-		Refresh: func() (interface{}, string, error) {
-			resp, err := opResultClient.Get(ctx, id.VaultName, id.ResourceGroupName, operationId)
-			if err != nil {
-				return nil, "Error", fmt.Errorf("making Read request on Recovery Service Protected Item operation %q for %s: %+v", operationId, id, err)
-			}
-			return resp, strconv.Itoa(resp.StatusCode), err
-		},
-
-		Timeout: time.Until(deadline),
-	}
-
-	_, err = opState.WaitForStateContext(ctx)
-	if err != nil {
-		return fmt.Errorf("waiting for the Recovery Service Protected Item operation to be deleted for %s: %+v", id, err)
 	}
 
 	return nil
