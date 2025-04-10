@@ -148,3 +148,13 @@ func (td TestData) RequiresImportErrorStep(configBuilder func(data TestData) str
 		ExpectError: RequiresImportError(td.ResourceType),
 	}
 }
+
+// RequiresImportAssociationErrorStep returns a Test Step which expects a Requires Import
+// error for an association resource to be returned when running this step
+func (td TestData) RequiresImportAssociationErrorStep(configBuilder func(data TestData) string) resource.TestStep {
+	config := configBuilder(td)
+	return resource.TestStep{
+		Config:      config,
+		ExpectError: RequiresImportAssociationError(td.ResourceType),
+	}
+}
