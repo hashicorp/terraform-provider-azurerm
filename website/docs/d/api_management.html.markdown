@@ -123,7 +123,7 @@ A `management` block exports the following:
 
 * `host_name` - The Hostname used for the Management API.
 
-* `key_vault_key_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
+* `key_vault_certificate_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
 
@@ -133,7 +133,7 @@ A `portal` block exports the following:
 
 * `host_name` - The Hostname used for the Portal.
 
-* `key_vault_key_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
+* `key_vault_certificate_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
 
@@ -143,7 +143,7 @@ A `developer_portal` block exports the following:
 
 * `host_name` - The Hostname used for the Portal.
 
-* `key_vault_key_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
+* `key_vault_certificate_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
 
@@ -155,7 +155,7 @@ A `proxy` block exports the following:
 
 * `host_name` - The Hostname used for the Proxy.
 
-* `key_vault_key_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
+* `key_vault_certificate_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
 
@@ -165,7 +165,7 @@ A `scm` block exports the following:
 
 * `host_name` - The Hostname used for the SCM URL.
 
-* `key_vault_key_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
+* `key_vault_certificate_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
 
 * `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
 

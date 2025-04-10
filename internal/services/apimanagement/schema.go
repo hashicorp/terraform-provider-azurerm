@@ -20,7 +20,7 @@ func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc:     validation.StringIsNotEmpty,
 		},
 
-		"key_vault_key_id": {
+		"key_vault_certificate_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
@@ -84,9 +84,9 @@ func apiManagementResourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-			Deprecated:   "`key_vault_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
+			Deprecated:   "`key_vault_id` has been deprecated in favour of `key_vault_certificate_id` and will be removed in v5.0 of the AzureRM provider",
 		}
-		s["key_vault_key_id"].Computed = true
+		s["key_vault_certificate_id"].Computed = true
 	}
 
 	return s

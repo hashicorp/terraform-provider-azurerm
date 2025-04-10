@@ -333,7 +333,7 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 
-		output["key_vault_key_id"] = pointer.From(config.KeyVaultId)
+		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
 		if !features.FivePointOh() {
 			output["key_vault_id"] = pointer.From(config.KeyVaultId)
 		}
@@ -399,7 +399,7 @@ func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"key_vault_key_id": {
+		"key_vault_certificate_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

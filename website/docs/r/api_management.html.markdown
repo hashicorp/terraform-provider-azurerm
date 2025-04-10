@@ -177,7 +177,7 @@ A `management`, `portal`, `developer_portal` and `scm` block supports the follow
 
 * `host_name` - (Required) The Hostname to use for the Management API.
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
+* `key_vault_certificate_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.
 
 -> **Note:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Possible values are versioned or versionless secret ID. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
@@ -185,7 +185,7 @@ A `management`, `portal`, `developer_portal` and `scm` block supports the follow
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
--> **Note:** Either `key_vault_key_id` or `certificate` and `certificate_password` must be specified.
+-> **Note:** Either `key_vault_certificate_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
@@ -201,7 +201,7 @@ A `proxy` block supports the following:
 
 * `host_name` - (Required) The Hostname to use for the Management API.
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
+* `key_vault_certificate_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.
 
 -> **Note:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
@@ -209,7 +209,7 @@ A `proxy` block supports the following:
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
--> **Note:** Either `key_vault_key_id` or `certificate` and `certificate_password` must be specified.
+-> **Note:** Either `key_vault_certificate_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
