@@ -257,9 +257,10 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 				Schema: map[string]*pluginsdk.Schema{
 					"computer_name": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: validate.SystemCenterVirtualMachineManagerVirtualMachineInstanceComputerName,
+						AtLeastOneOf: []string{"operating_system.0.computer_name", "operating_system.0.admin_password"},
 					},
 
 					"admin_password": {
@@ -268,6 +269,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceResource) Argumen
 						ForceNew:     true,
 						Sensitive:    true,
 						ValidateFunc: validation.StringIsNotEmpty,
+						AtLeastOneOf: []string{"operating_system.0.computer_name", "operating_system.0.admin_password"},
 					},
 				},
 			},
@@ -670,8 +672,10 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceOSProfile(inpu
 
 	osProfile := input[0]
 
-	result := virtualmachineinstances.OsProfileForVMInstance{
-		ComputerName: pointer.To(osProfile.ComputerName),
+	result := virtualmachineinstances.OsProfileForVMInstance{}
+
+	if v := osProfile.ComputerName; v != "" {
+		result.ComputerName = pointer.To(v)
 	}
 
 	if v := osProfile.AdminPassword; v != "" {
