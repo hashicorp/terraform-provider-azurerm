@@ -336,8 +336,6 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 
 			var state ContainerAppEnvironmentModel
 
-			consumptionDefined := consumptionIsExplicitlyDefined(metadata)
-
 			if model := existing.Model; model != nil {
 				state.Name = id.ManagedEnvironmentName
 				state.ResourceGroup = id.ResourceGroupName
@@ -369,7 +367,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
-					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, consumptionDefined)
+					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
 				}
@@ -481,20 +479,6 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func consumptionIsExplicitlyDefined(metadata sdk.ResourceMetaData) bool {
-	config := ContainerAppEnvironmentModel{}
-	if err := metadata.Decode(&config); err != nil {
-		return false
-	}
-	for _, v := range config.WorkloadProfiles {
-		if v.Name == string(helpers.WorkloadProfileSkuConsumption) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
