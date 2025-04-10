@@ -117,7 +117,6 @@ func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceDat
 			return err
 		}
 
-		// id := namespacesauthorizationrule.NewAuthorizationRuleID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 		id = namespacesauthorizationrule.NewAuthorizationRuleID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 	} else {
 		var resourceGroup string

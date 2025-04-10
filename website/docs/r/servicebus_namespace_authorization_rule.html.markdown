@@ -49,11 +49,11 @@ The following arguments are supported:
 
 ~> **Note:** At least one of the 3 permissions below needs to be set.
 
-* `listen` - (Optional) Grants listen access to this this Authorization Rule. Defaults to `false`.
+* `listen` - (Optional) Grants listen access to this Authorization Rule. Defaults to `false`.
 
-* `send` - (Optional) Grants send access to this this Authorization Rule. Defaults to `false`.
+* `send` - (Optional) Grants send access to this Authorization Rule. Defaults to `false`.
 
-* `manage` - (Optional) Grants manage access to this this Authorization Rule. When this property is `true` - both `listen` and `send` must be too. Defaults to `false`.
+* `manage` - (Optional) Grants manage access to this Authorization Rule. When this property is `true` - both `listen` and `send` must be too. Defaults to `false`.
 
 ## Attributes Reference
 

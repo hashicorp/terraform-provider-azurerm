@@ -147,7 +147,6 @@ func dataSourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return err
 		}
 
-		// id := topics.NewTopicID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 		id = topics.NewTopicID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
 	} else {
 		var resourceGroup string
