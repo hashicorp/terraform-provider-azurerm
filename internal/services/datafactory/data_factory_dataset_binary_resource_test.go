@@ -274,7 +274,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
   }
 
   compression {
-    type  = "GZip"
+    type  = "gzip"
     level = "Optimal"
   }
 }
@@ -361,7 +361,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
   }
 
   compression {
-    type  = "GZip"
+    type  = "gzip"
     level = "Fastest"
   }
 
