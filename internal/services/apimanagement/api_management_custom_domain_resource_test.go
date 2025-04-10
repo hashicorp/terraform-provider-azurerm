@@ -135,12 +135,12 @@ resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
   gateway {
-    host_name        = "api.example.com"
+    host_name                = "api.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 
   developer_portal {
-    host_name        = "portal.example.com"
+    host_name                = "portal.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
@@ -155,7 +155,7 @@ resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
   gateway {
-    host_name        = "api.example.com"
+    host_name                = "api.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
@@ -170,7 +170,7 @@ resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
   developer_portal {
-    host_name        = "portal.example.com"
+    host_name                = "portal.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
@@ -185,12 +185,12 @@ resource "azurerm_api_management_custom_domain" "import" {
   api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
   gateway {
-    host_name        = "api.example.com"
+    host_name                = "api.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 
   developer_portal {
-    host_name        = "portal.example.com"
+    host_name                = "portal.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
@@ -351,12 +351,12 @@ resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
   gateway {
-    host_name        = "api.example.com"
+    host_name                = "api.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 
   developer_portal {
-    host_name        = "portal.example.com"
+    host_name                = "portal.example.com"
     key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
