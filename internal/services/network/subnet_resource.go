@@ -74,6 +74,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.Network/networkWatchers.",
 	"Microsoft.Network/virtualNetworkGateways",
 	"Microsoft.Orbital/orbitalGateways",
+	"Microsoft.PowerAutomate/hostedRpa",
 	"Microsoft.PowerPlatform/enterprisePolicies",
 	"Microsoft.PowerPlatform/vnetaccesslinks",
 	"Microsoft.ServiceFabricMesh/networks",
