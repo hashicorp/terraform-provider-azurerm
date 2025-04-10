@@ -145,6 +145,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   subnet_id                   = azurerm_subnet.virtual_network_subnet.id
   scan_listener_port_tcp      = 1521
   scan_listener_port_tcp_ssl  = 2484
+  system_version              = "23.1.23.0.0.250207"
   tags = {
     test = "testTag1"
   }

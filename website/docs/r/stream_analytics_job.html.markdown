@@ -84,9 +84,13 @@ The following arguments are supported:
 
 * `content_storage_policy` - (Optional) The policy for storing stream analytics content. Possible values are `JobStorageAccount`, `SystemAccount`. Defaults to `SystemAccount`.
 
-* `job_storage_account` - (Optional) The details of the job storage account. A `job_storage_account` block as defined below. 
+* `job_storage_account` - (Optional) The details of the job storage account. A `job_storage_account` block as defined below.
+
+-> **Note:** `content_storage_policy` must be set to `JobStorageAccount` when specifying `job_storage_account`.
 
 ---
+
+~> **Note**: This block should be added to `ignore_changes` if the Stream Analytics' Job Storage Account is being managed by the `azurerm_stream_analytics_job_storage_account` resource.
 
 A `job_storage_account` block supports the following:
 

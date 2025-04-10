@@ -26,40 +26,41 @@ import (
 type WindowsWebAppDataSource struct{}
 
 type WindowsWebAppDataSourceModel struct {
-	Name                             string                                     `tfschema:"name"`
-	ResourceGroup                    string                                     `tfschema:"resource_group_name"`
-	Location                         string                                     `tfschema:"location"`
-	ServicePlanId                    string                                     `tfschema:"service_plan_id"`
-	AppSettings                      map[string]string                          `tfschema:"app_settings"`
-	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                           `tfschema:"backup"`
-	ClientAffinityEnabled            bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
-	Enabled                          bool                                       `tfschema:"enabled"`
-	HttpsOnly                        bool                                       `tfschema:"https_only"`
-	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	LogsConfig                       []helpers.LogsConfig                       `tfschema:"logs"`
-	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
-	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	SiteConfig                       []helpers.SiteConfigWindows                `tfschema:"site_config"`
-	StickySettings                   []helpers.StickySettings                   `tfschema:"sticky_settings"`
-	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
-	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
-	CustomDomainVerificationId       string                                     `tfschema:"custom_domain_verification_id"`
-	HostingEnvId                     string                                     `tfschema:"hosting_environment_id"`
-	DefaultHostname                  string                                     `tfschema:"default_hostname"`
-	Kind                             string                                     `tfschema:"kind"`
-	OutboundIPAddresses              string                                     `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList            []string                                   `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses      string                                     `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList    []string                                   `tfschema:"possible_outbound_ip_address_list"`
-	SiteCredentials                  []helpers.SiteCredential                   `tfschema:"site_credential"`
-	Tags                             map[string]string                          `tfschema:"tags"`
-	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
+	Name                               string                                     `tfschema:"name"`
+	ResourceGroup                      string                                     `tfschema:"resource_group_name"`
+	Location                           string                                     `tfschema:"location"`
+	ServicePlanId                      string                                     `tfschema:"service_plan_id"`
+	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                             []helpers.Backup                           `tfschema:"backup"`
+	ClientAffinityEnabled              bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
+	Enabled                            bool                                       `tfschema:"enabled"`
+	HttpsOnly                          bool                                       `tfschema:"https_only"`
+	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	LogsConfig                         []helpers.LogsConfig                       `tfschema:"logs"`
+	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
+	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	SiteConfig                         []helpers.SiteConfigWindows                `tfschema:"site_config"`
+	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
+	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
+	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
+	CustomDomainVerificationId         string                                     `tfschema:"custom_domain_verification_id"`
+	HostingEnvId                       string                                     `tfschema:"hosting_environment_id"`
+	DefaultHostname                    string                                     `tfschema:"default_hostname"`
+	Kind                               string                                     `tfschema:"kind"`
+	OutboundIPAddresses                string                                     `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList              []string                                   `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses        string                                     `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList      []string                                   `tfschema:"possible_outbound_ip_address_list"`
+	SiteCredentials                    []helpers.SiteCredential                   `tfschema:"site_credential"`
+	Tags                               map[string]string                          `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
 var _ sdk.DataSource = WindowsWebAppDataSource{}
@@ -214,6 +215,11 @@ func (d WindowsWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchemaComputed(),
 
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"virtual_network_subnet_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -343,6 +349,9 @@ func (d WindowsWebAppDataSource) Read() sdk.ResourceFunc {
 					webApp.OutboundIPAddressList = strings.Split(webApp.OutboundIPAddresses, ",")
 					webApp.PossibleOutboundIPAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					webApp.PossibleOutboundIPAddressList = strings.Split(webApp.PossibleOutboundIPAddresses, ",")
+
+					webApp.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+
 					if subnetId := pointer.From(props.VirtualNetworkSubnetId); subnetId != "" {
 						webApp.VirtualNetworkSubnetID = subnetId
 					}

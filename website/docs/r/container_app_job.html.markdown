@@ -306,6 +306,8 @@ A `volume` block supports the following:
 
 * `storage_name` - (Optional) The name of the storage to use for the volume.
 
+* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
+
 ---
 
 A `secret` block supports the following:
@@ -413,6 +415,16 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `outbound_ip_addresses` - A list of the Public IP Addresses which the Container App uses for outbound network access.
 
 * `event_stream_endpoint` - The endpoint for the Container App Job event stream.
+
+* `identity` - An `identity` block as defined below.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID associated with this Managed Service Identity.
+
+* `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
 ## Timeouts
 

@@ -38,9 +38,7 @@ type ContainerAppJobModel struct {
 	ReplicaRetryLimit         int64                                      `tfschema:"replica_retry_limit"`
 	ReplicaTimeoutInSeconds   int64                                      `tfschema:"replica_timeout_in_seconds"`
 	Secrets                   []helpers.Secret                           `tfschema:"secret"`
-	SecretsDeprecated         []helpers.Secret                           `tfschema:"secrets,removedInNextMajorVersion"`
 	Registries                []helpers.Registry                         `tfschema:"registry"`
-	RegistriesDeprecated      []helpers.Registry                         `tfschema:"registries,removedInNextMajorVersion"`
 	EventTriggerConfig        []helpers.EventTriggerConfiguration        `tfschema:"event_trigger_config"`
 	ManualTriggerConfig       []helpers.ManualTriggerConfiguration       `tfschema:"manual_trigger_config"`
 	ScheduleTriggerConfig     []helpers.ScheduleTriggerConfiguration     `tfschema:"schedule_trigger_config"`
@@ -66,7 +64,7 @@ func (r ContainerAppJobResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -203,8 +201,6 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return schema
 }
 
 func (r ContainerAppJobResource) Attributes() map[string]*schema.Schema {

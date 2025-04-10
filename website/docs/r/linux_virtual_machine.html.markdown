@@ -12,19 +12,21 @@ Manages a Linux Virtual Machine.
 
 ## Disclaimers
 
--> **Note** Terraform will automatically remove the OS Disk by default - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block).
+-> **Note:** Terraform will automatically remove the OS Disk by default - this behaviour can be configured using the [features](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) setting within the Provider block.
 
-~> **Note** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+-> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. Read more about [sensitive data](/docs/state/sensitive-data.html) in state.
 
--> **Note** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine` resource](virtual_machine.html) instead.
+-> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use the [azurerm_virtual_machine](virtual_machine.html) resource instead.
 
-~> **Note** This resource does not support attaching existing OS Disks. You can instead [capture an image of the OS Disk](image.html) or continue to use [the `azurerm_virtual_machine` resource](virtual_machine.html) instead.
+-> **Note:** This resource does not support attaching existing OS Disks. You can instead capture an [image](image.html) of the OS Disk or continue to use the [azurerm_virtual_machine](virtual_machine.html) resource instead.
 
-~> In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
+-> **Note:**  In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
+
+!> **Note:** Due to a breaking change in the Azure API the `vm_agent_platform_updates_enabled` field is now a `Read-Only` field that is controlled by the platform. Its value cannot be set, modified, or updated.
 
 ## Example Usage
 
-This example provisions a basic Linux Virtual Machine on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine` resource can be found [in the ./examples/virtual-machines/linux directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/linux).
+This example provisions a basic Linux Virtual Machine on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine` resource can be found in the [./examples/virtual-machines/linux](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/linux) directory within the GitHub Repository.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -214,8 +216,6 @@ The following arguments are supported:
 
 * `user_data` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine.
 
-* `vm_agent_platform_updates_enabled` - (Optional) Specifies whether VMAgent Platform Updates is enabled. Defaults to `false`.
-
 * `vtpm_enabled` - (Optional) Specifies whether vTPM should be enabled on the virtual machine. Changing this forces a new resource to be created.
 
 * `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within.
@@ -397,6 +397,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `public_ip_addresses` - A list of the Public IP Addresses assigned to this Virtual Machine.
 
 * `virtual_machine_id` - A 128-bit identifier which uniquely identifies this Virtual Machine.
+
+* `vm_agent_platform_updates_enabled` - Are Virtual Machine Agent Platform Updates `enabled` on this Virtual Machine?
 
 ---
 

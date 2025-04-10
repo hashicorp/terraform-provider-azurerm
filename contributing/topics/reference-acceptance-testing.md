@@ -10,7 +10,9 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 > **Note:** Acceptance Tests provision real resources within Azure - which may have an associated charge for each resource.
 
-> When selecting SKUs for testing, pick the lowest/cheapest SKU which covers the test - unless there's good reason to otherwise (e.g. some configurations can provision more quickly using one SKU over another).
+* When selecting SKUs for testing, **pick the lowest or cheapest SKU** which covers the test - unless there's good reason to otherwise (e.g. some configurations can provision more quickly using one SKU over another).
+
+* Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/virtual_machine_resource_test.go)
 
 ### Running the Tests
 
@@ -101,15 +103,15 @@ func TestAccExampleResource_basic(t *testing.T) {
 
 At a minimum, a Data Source requires:
 
-* A `basic` test ([Example](#Example---DataSource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
+* A `basic` test ([Example](#Example---Data-Source---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
 
-However more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
+However, more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
 
 ---
 
 At a minimum, a Resource requires:
 
-* A `basic` test ([Example](#Example---Basic---Resource)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
+* A `basic` test ([Example](#Example---Resource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
 
 * A `requiresImport` test ([Example](#Example---Resource---Requires-Import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
 
@@ -117,7 +119,7 @@ At a minimum, a Resource requires:
 
 * A `update` test ([Example](#Example---Resource---Update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
 
-However more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
+However, more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
 
 ### Example - Data Source - Basic
 
@@ -306,7 +308,7 @@ func TestAccExampleResource_update(t *testing.T) {
 }
 ```
 
-However this doesn't necessarily cover all of the use-cases for this resource - or may be too broad depending on the resource, as such it's also common to have tests covering a subset of the fields, for example:
+However, this doesn't necessarily cover all use-cases for this resource - or may be too broad depending on the resource, as such it's also common to have tests covering a subset of the fields, for example:
 
 > **Note:** This is a simplified example for testing purposes, we'd generally recommend a test covering a related subset of the resource (e.g. enabling/disabling a block within the resource), rather than a single field - but it depends on the resource.
 

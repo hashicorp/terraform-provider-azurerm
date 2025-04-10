@@ -47,13 +47,25 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Elastic Job Agent. Changing this forces a new Elastic Job Agent to be created.
 
-* `location` - (Required) The Azure Region where the Elastic Job Agent should exist. Changing this forces a new Elastic Job Agent to be created.
+* `location` - (Required) The Azure Region where this Elastic Job Agent should exist. Changing this forces a new Elastic Job Agent to be created.
 
-* `database_id` - (Required) The ID of the database to store metadata for the Elastic Job Agent. Changing this forces a new Elastic Job Agent to be created.
+* `database_id` - (Required) The ID of the database to store metadata for this Elastic Job Agent. Changing this forces a new Elastic Job Agent to be created.
 
 ---
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Database.
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `sku` - (Optional) The name of the SKU to use for this Elastic Job Agent. Possible values are `JA100`, `JA200`, `JA400`, and `JA800`. Defaults to `JA100`.
+
+* `tags` - (Optional) A mapping of tags which should be assigned to this Elastic Job Agent.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Elastic Job Agent. Currently only `UserAssigned` is supported.
+
+* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to assign to this Elastic Job Agent.
 
 ## Attributes Reference
 

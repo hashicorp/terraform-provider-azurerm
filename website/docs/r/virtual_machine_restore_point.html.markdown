@@ -84,8 +84,8 @@ resource "azurerm_virtual_machine_restore_point_collection" "example" {
 }
 
 resource "azurerm_virtual_machine_restore_point" "example" {
-  name                        = "example-restore-point"
-  restore_point_collection_id = azurerm_restore_point_collection.test.id
+  name                                        = "example-restore-point"
+  virtual_machine_restore_point_collection_id = azurerm_virtual_machine_restore_point_collection.example.id
 }
 ```
 
@@ -95,9 +95,9 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Virtual Machine Restore Point. Changing this forces a new resource to be created.
 
-* `restore_point_collection_id` - (Required) Specifies the name of the Virtual Machine Restore Point Collection the Virtual Machine Restore Point will be associated with. Changing this forces a new resource to be created.
+* `virtual_machine_restore_point_collection_id` - (Required) Specifies the ID of the Virtual Machine Restore Point Collection the Virtual Machine Restore Point will be associated with. Changing this forces a new resource to be created.
 
-* `crash_consistency_mode_enabled` - (Optional) Is Crash Consistent the Consistency Mode of the Virtual Machine Restore Point. Defaults to `false`. Changing this forces a new resource to be created.
+* `crash_consistency_mode_enabled` - (Optional) Whether the Consistency Mode of the Virtual Machine Restore Point is set to `CrashConsistent`. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `excluded_disks` - (Optional) A list of disks that will be excluded from the Virtual Machine Restore Point. Changing this forces a new resource to be created.
 
