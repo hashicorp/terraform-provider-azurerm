@@ -174,6 +174,10 @@ The following arguments are supported:
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rule` block as defined below, used to define which subnets are allowed to access this CosmosDB account.
 
+* `virtual_network_subnet_ids` - (Optional) The IDs of the subnets allowed to access this CosmosDB account.
+
+* `virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint` - (Optional) The IDs of the subnets allowed to access this CosmosDB account.The subnets in this list will be added as virtual network rules even if its CosmosDB service endpoint is not active.
+
 * `multiple_write_locations_enabled` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
