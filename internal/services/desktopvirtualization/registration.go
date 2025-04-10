@@ -38,7 +38,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{}
+	return []sdk.Resource{
+		VirtualDesktopMSIXPackageResource{},
+	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
