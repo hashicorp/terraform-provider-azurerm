@@ -112,7 +112,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_routing_configuration" "test" {
-  name               = "acctest-ipampool-%[2]d"
+  name               = "acctest-nmrc-%[2]d"
   network_manager_id = azurerm_network_manager.test.id
 }
 `, r.template(data), data.RandomInteger)
@@ -138,7 +138,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_routing_configuration" "test" {
-  name               = "acctest-ipampool-%[2]d"
+  name               = "acctest-nmrc-%[2]d"
   network_manager_id = azurerm_network_manager.test.id
   description        = "This is a test Routing Configuration"
 }
