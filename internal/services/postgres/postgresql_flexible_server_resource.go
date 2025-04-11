@@ -807,6 +807,13 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
+	oldIdentityType, newIdentityType := d.GetChange("identity.0.type")
+	if oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned) {
+		return fmt.Errorf("updating identity type from `UserAssigned` to `SystemAssigned` is not supported by service API")
+	} else if oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned) {
+		return fmt.Errorf("updating identity type from `SystemAssigned, UserAssigned` to `SystemAssigned` is not supported by service API")
+	}
+
 	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
 		parameters.Properties.Network = expandArmServerNetwork(d)
 	}
