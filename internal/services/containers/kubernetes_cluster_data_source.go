@@ -600,13 +600,29 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeBool,
 										Computed: true,
 									},
-									"observability_enabled": {
-										Type:     pluginsdk.TypeBool,
+									"observability": {
+										Type:     pluginsdk.TypeList,
 										Computed: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"enabled": {
+													Type:     pluginsdk.TypeBool,
+													Computed: true,
+												},
+											},
+										},
 									},
-									"fqdn_policy_enabled": {
-										Type:     pluginsdk.TypeBool,
+									"security": {
+										Type:     pluginsdk.TypeList,
 										Computed: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"enabled": {
+													Type:     pluginsdk.TypeBool,
+													Computed: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -1414,15 +1430,23 @@ func flattenKubernetesClusterDataSourceAdvancedNetworking(profile *managedcluste
 		observabilityEnabled = *o.Enabled
 	}
 
-	fqdnPolicyEnabled := false
+	securityEnabled := false
 	if s := profile.Security; s != nil && s.Enabled != nil {
-		fqdnPolicyEnabled = *s.Enabled
+		securityEnabled = *s.Enabled
 	}
 
 	advancedNetworking = append(advancedNetworking, map[string]interface{}{
-		"enabled":               acnsEnabled,
-		"observability_enabled": observabilityEnabled,
-		"fqdn_policy_enabled":   fqdnPolicyEnabled,
+		"enabled": acnsEnabled,
+		"observability": []interface{}{
+			map[string]interface{}{
+				"enabled": observabilityEnabled,
+			},
+		},
+		"security": []interface{}{
+			map[string]interface{}{
+				"enabled": securityEnabled,
+			},
+		},
 	})
 
 	return advancedNetworking
