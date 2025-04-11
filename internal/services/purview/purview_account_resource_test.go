@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PurviewAccountResourceTest struct{}
@@ -62,7 +62,7 @@ func TestAccPurviewAccount_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -163,6 +163,41 @@ resource "azurerm_purview_account" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r PurviewAccountResourceTest) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuai-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_purview_account" "test" {
+  name                   = "acctestsw%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  public_network_enabled = false
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+    purpose     = "AcceptanceTests"
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r PurviewAccountResourceTest) requiresImport(data acceptance.TestData) string {

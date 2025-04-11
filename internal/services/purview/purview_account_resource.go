@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -147,7 +146,7 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	purviewAccount := account.Account{
 		Properties: &account.AccountProperties{},
-		Location:   pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
+		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
 	}
 
 	if v, ok := d.GetOk("tags"); ok {
