@@ -129,7 +129,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_purview_account" "test" {
-  name                = "acctestsw%d"
+  name                = "acctestpurview%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -149,7 +149,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_purview_account" "test" {
-  name                   = "acctestsw%d"
+  name                   = "acctestpurview%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   public_network_enabled = false
@@ -180,13 +180,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_purview_account" "test" {
-  name                   = "acctestsw%d"
+  name                   = "acctestpurview%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
   public_network_enabled = false
 
   identity {
-    type = "SystemAssigned, UserAssigned"
+    type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
@@ -225,7 +225,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_purview_account" "test" {
-  name                        = "acctestsw%d"
+  name                        = "acctestpurview%d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   managed_resource_group_name = %q
