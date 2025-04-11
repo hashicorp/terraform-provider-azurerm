@@ -49,18 +49,18 @@ type ReplicationRegion struct {
 }
 
 type MachineLearningRegistryModel struct {
-	Name                          string                                     `tfschema:"name"`
-	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
-	PublicNetworkAccessEnabled    bool                                       `tfschema:"public_network_access_enabled"`
-	MainRegion                    []ReplicationRegion                        `tfschema:"main_region"`
-	ReplicationRegions            []ReplicationRegion                        `tfschema:"replication_regions"`
-	Location                      string                                     `tfschema:"location"`
-	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	DiscoveryUrl                  string                                     `tfschema:"discovery_url"`
-	IntellectualPropertyPublisher string                                     `tfschema:"intellectual_property_publisher"`
-	MlFlowRegistryUri             string                                     `tfschema:"ml_flow_registry_uri"`
-	ManagedResourceGroup          string                                     `tfschema:"managed_resource_group"`
-	Tags                          map[string]string                          `tfschema:"tags"`
+	Name                       string                                     `tfschema:"name"`
+	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
+	PublicNetworkAccessEnabled bool                                       `tfschema:"public_network_access_enabled"`
+	MainRegion                 []ReplicationRegion                        `tfschema:"main_region"`
+	ReplicationRegions         []ReplicationRegion                        `tfschema:"replication_regions"`
+	Location                   string                                     `tfschema:"location"`
+	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	// DiscoveryUrl                  string                                     `tfschema:"discovery_url"`
+	IntellectualPropertyPublisher string            `tfschema:"intellectual_property_publisher"`
+	MlFlowRegistryUri             string            `tfschema:"ml_flow_registry_uri"`
+	ManagedResourceGroup          string            `tfschema:"managed_resource_group"`
+	Tags                          map[string]string `tfschema:"tags"`
 }
 
 func (r MachineLearningRegistry) ModelObject() interface{} {
@@ -257,10 +257,10 @@ func (r MachineLearningRegistry) Arguments() map[string]*pluginsdk.Schema {
 
 func (r MachineLearningRegistry) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"discovery_url": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
+		// "discovery_url": {
+		// 	Type:     pluginsdk.TypeString,
+		// 	Computed: true,
+		// },
 
 		"intellectual_property_publisher": {
 			Type:     pluginsdk.TypeString,
@@ -456,14 +456,14 @@ func (r MachineLearningRegistry) Read() sdk.ResourceFunc {
 			}
 			prop := resp.Model.Properties
 			model := MachineLearningRegistryModel{
-				Name:                          id.RegistryName,
-				ResourceGroupName:             id.ResourceGroupName,
-				Identity:                      identityIns,
-				Location:                      resp.Model.Location,
-				PublicNetworkAccessEnabled:    pointer.From(prop.PublicNetworkAccess) == "Enable",
-				Tags:                          pointer.From(resp.Model.Tags),
-				MlFlowRegistryUri:             pointer.From(prop.MlFlowRegistryUri),
-				DiscoveryUrl:                  pointer.From(prop.DiscoveryUrl),
+				Name:                       id.RegistryName,
+				ResourceGroupName:          id.ResourceGroupName,
+				Identity:                   identityIns,
+				Location:                   resp.Model.Location,
+				PublicNetworkAccessEnabled: pointer.From(prop.PublicNetworkAccess) == "Enable",
+				Tags:                       pointer.From(resp.Model.Tags),
+				MlFlowRegistryUri:          pointer.From(prop.MlFlowRegistryUri),
+				// DiscoveryUrl:                  pointer.From(prop.DiscoveryUrl),
 				IntellectualPropertyPublisher: pointer.From(prop.IntellectualPropertyPublisher),
 				ManagedResourceGroup:          pointer.From(pointer.From(prop.ManagedResourceGroup).ResourceId),
 			}
@@ -507,11 +507,11 @@ func expandRegistryRegionDetail(input ReplicationRegion) registry.RegistryRegion
 	result.Location = pointer.To(input.Location)
 	var sa registry.StorageAccountDetails
 	if input.CustomStorageAccountId != "" {
-		sa.UserCreatedStorageAccount = &registry.UserCreatedStorageAccount{
-			ArmResourceId: &registry.ArmResourceId{
-				ResourceId: pointer.To(input.CustomAcrAccountId),
-			},
-		}
+		// sa.UserCreatedStorageAccount = &registry.UserCreatedStorageAccount{
+		// 	ArmResourceId: &registry.ArmResourceId{
+		// 		ResourceId: pointer.To(input.CustomAcrAccountId),
+		// 	},
+		// }
 	} else {
 		sa.SystemCreatedStorageAccount = &registry.SystemCreatedStorageAccount{
 			AllowBlobPublicAccess:    pointer.To(input.PublicAccessEnabled),
@@ -523,11 +523,11 @@ func expandRegistryRegionDetail(input ReplicationRegion) registry.RegistryRegion
 
 	var acr registry.AcrDetails
 	if input.CustomAcrAccountId != "" {
-		acr.UserCreatedAcrAccount = &registry.UserCreatedAcrAccount{
-			ArmResourceId: &registry.ArmResourceId{
-				ResourceId: pointer.To(input.CustomAcrAccountId),
-			},
-		}
+		// acr.UserCreatedAcrAccount = &registry.UserCreatedAcrAccount{
+		// 	ArmResourceId: &registry.ArmResourceId{
+		// 		ResourceId: pointer.To(input.CustomAcrAccountId),
+		// 	},
+		// }
 	} else {
 		acr.SystemCreatedAcrAccount = &registry.SystemCreatedAcrAccount{
 			AcrAccountSku: pointer.To(input.AcrSku),
@@ -548,9 +548,10 @@ func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails) []
 		var region ReplicationRegion
 		region.Location = pointer.From(item.Location)
 		if sa := pointer.From(item.StorageAccountDetails); len(sa) > 0 {
-			if customAccount := sa[0].UserCreatedStorageAccount; customAccount != nil {
-				region.CustomStorageAccountId = pointer.From(pointer.From(customAccount.ArmResourceId).ResourceId)
-			} else if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
+			// if customAccount := sa[0].UserCreatedStorageAccount; customAccount != nil {
+			// 	region.CustomStorageAccountId = pointer.From(pointer.From(customAccount.ArmResourceId).ResourceId)
+			// } else if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
+			if systemAccount := sa[0].SystemCreatedStorageAccount; systemAccount != nil {
 				region.StorageAccountType = pointer.From(systemAccount.StorageAccountType)
 				region.PublicAccessEnabled = pointer.From(systemAccount.AllowBlobPublicAccess)
 				region.HsnEnabled = pointer.From(systemAccount.StorageAccountHnsEnabled)
@@ -559,9 +560,9 @@ func flattenRegistryRegionDetails(input *[]registry.RegistryRegionArmDetails) []
 		}
 
 		if acr := pointer.From(item.AcrDetails); len(acr) > 0 {
-			if customAcr := acr[0].UserCreatedAcrAccount; customAcr != nil {
-				region.CustomAcrAccountId = pointer.From(pointer.From(customAcr.ArmResourceId).ResourceId)
-			} else if systemAcr := acr[0].SystemCreatedAcrAccount; systemAcr != nil {
+			// if customAcr := acr[0].UserCreatedAcrAccount; customAcr != nil {
+			// 	region.CustomAcrAccountId = pointer.From(pointer.From(customAcr.ArmResourceId).ResourceId)
+			if systemAcr := acr[0].SystemCreatedAcrAccount; systemAcr != nil {
 				region.AcrSku = pointer.From(systemAcr.AcrAccountSku)
 				region.SystemCreatedAcrId = pointer.From(pointer.From(systemAcr.ArmResourceId).ResourceId)
 			}
