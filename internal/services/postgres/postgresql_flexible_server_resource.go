@@ -306,7 +306,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
@@ -805,6 +805,13 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("when `administrator_login` is first set, `authentication.password_auth_enabled` must be set to `true`")
 			}
 		}
+	}
+
+	oldIdentityType, newIdentityType := d.GetChange("identity.0.type")
+	if oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned) {
+		return fmt.Errorf("updating identity type from `UserAssigned` to `SystemAssigned` is not supported by service API")
+	} else if oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned) {
+		return fmt.Errorf("updating identity type from `SystemAssigned, UserAssigned` to `SystemAssigned` is not supported by service API")
 	}
 
 	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
