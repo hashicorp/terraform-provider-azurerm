@@ -1680,7 +1680,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (r HDInsightHBaseClusterResource) allMetastores(data acceptance.TestData) string {

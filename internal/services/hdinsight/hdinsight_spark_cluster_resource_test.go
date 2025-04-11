@@ -1945,7 +1945,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (r HDInsightSparkClusterResource) allMetastores(data acceptance.TestData) string {
