@@ -1677,7 +1677,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkMode, networkPlugin, networkPolicy)
 }
 
-func (KubernetesClusterResource) advancedContainerNetworkingServicesConfig(data acceptance.TestData, enabled bool, observabilityEnabled bool, fqdnPolicyEnabled bool) string {
+func (KubernetesClusterResource) advancedContainerNetworkingServicesConfig(data acceptance.TestData, enabled bool, observabilityEnabled bool, securityEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1729,14 +1729,18 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin_mode = "overlay"
 
     advanced_networking {
-      enabled               = %[3]t
-      observability_enabled = %[4]t
-      fqdn_policy_enabled   = %[5]t
+      enabled = %[3]t
+      observability {
+        enabled = %[4]t
+      }
+      security {
+        enabled = %[5]t
+      }
     }
 
   }
 }
-`, data.Locations.Primary, data.RandomInteger, enabled, observabilityEnabled, fqdnPolicyEnabled)
+`, data.Locations.Primary, data.RandomInteger, enabled, observabilityEnabled, securityEnabled)
 }
 
 func (KubernetesClusterResource) enableNodePublicIPConfig(data acceptance.TestData) string {

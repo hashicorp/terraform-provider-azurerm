@@ -323,8 +323,8 @@ func TestAccDataSourceKubernetesCluster_advancedContainerNetworkingServicesDisab
 			Config: r.advancedContainerNetworkingServicesDisabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.fqdn_policy_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.security.0.enabled").HasValue("false"),
 			),
 		},
 	})
@@ -339,8 +339,8 @@ func TestAccDataSourceKubernetesCluster_advancedContainerNetworkingServicesObser
 			Config: r.advancedContainerNetworkingServicesObservabilityEnabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.fqdn_policy_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.security.0.enabled").HasValue("false"),
 			),
 		},
 	})
@@ -355,8 +355,8 @@ func TestAccDataSourceKubernetesCluster_advancedContainerNetworkingServicesFqdnP
 			Config: r.advancedContainerNetworkingServicesFqdnPolicyEnabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.fqdn_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability.0.enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.security.0.enabled").HasValue("true"),
 			),
 		},
 	})
@@ -371,8 +371,8 @@ func TestAccDataSourceKubernetesCluster_advancedContainerNetworkingServicesAllEn
 			Config: r.advancedContainerNetworkingServicesAllEnabledConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.fqdn_policy_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.observability.0.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_profile.0.advanced_networking.0.security.0.enabled").HasValue("true"),
 			),
 		},
 	})
