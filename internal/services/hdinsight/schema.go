@@ -1023,8 +1023,9 @@ func SchemaHDInsightPrivateLinkConfigurationIpConfiguration() *pluginsdk.Schema 
 	}
 }
 
-func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.DiskEncryptionProperties, error) {
+func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.DiskEncryptionProperties, *identity.SystemAndUserAssignedMap, error) {
 	v := input[0].(map[string]interface{})
+	var clusterIdentity *identity.SystemAndUserAssignedMap
 
 	encryptionAlgorithm := v["encryption_algorithm"].(string)
 	encryptionAtHost := v["encryption_at_host_enabled"].(bool)
@@ -1039,14 +1040,25 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
 		keyVaultKeyId, err := parse.ParseNestedItemID(id.(string))
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		diskEncryptionProps.KeyName = &keyVaultKeyId.Name
 		diskEncryptionProps.KeyVersion = &keyVaultKeyId.Version
 		diskEncryptionProps.VaultUri = &keyVaultKeyId.KeyVaultBaseUrl
 	}
 
-	return diskEncryptionProps, nil
+	if keyVaultManagedIdentityId != "" {
+		clusterIdentity = &identity.SystemAndUserAssignedMap{
+			Type:        identity.TypeUserAssigned,
+			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+		}
+
+		clusterIdentity.IdentityIds[keyVaultManagedIdentityId] = identity.UserAssignedIdentityDetails{
+			// intentionally empty
+		}
+	}
+
+	return diskEncryptionProps, clusterIdentity, nil
 }
 
 func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionProperties) (*[]interface{}, error) {
