@@ -116,8 +116,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				if _, ok := d.GetOk("network_profile.0.advanced_networking"); ok {
 
 					advancedNetworkingEnabled := d.Get("network_profile.0.advanced_networking.0.enabled").(bool)
-					observabilityEnabled := d.Get("network_profile.0.advanced_networking.0.observability_enabled").(bool)
-					securityEnabled := d.Get("network_profile.0.advanced_networking.0.fqdn_policy_enabled").(bool)
+					observabilityEnabled := d.Get("network_profile.0.advanced_networking.0.observability.0.enabled").(bool)
+					securityEnabled := d.Get("network_profile.0.advanced_networking.0.security.0.enabled").(bool)
 
 					if advancedNetworkingEnabled && !(observabilityEnabled || securityEnabled) {
 						return fmt.Errorf("for Advanced Container Networking Services to be enabled, at least one of the options should be enabled")
@@ -1249,15 +1249,31 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeBool,
 										Required: true,
 									},
-									"observability_enabled": {
-										Type:     pluginsdk.TypeBool,
+									"observability": {
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Default:  false,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"enabled": {
+													Type:     pluginsdk.TypeBool,
+													Required: true,
+												},
+											},
+										},
 									},
-									"fqdn_policy_enabled": {
-										Type:     pluginsdk.TypeBool,
+									"security": {
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Default:  false,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"enabled": {
+													Type:     pluginsdk.TypeBool,
+													Required: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -3356,8 +3372,22 @@ func expandAdvancedNetworking(input []interface{}) *managedclusters.AdvancedNetw
 	config := input[0].(map[string]interface{})
 
 	enabled := config["enabled"].(bool)
-	observabilityEnabled := config["observability_enabled"].(bool)
-	fqdnPolicyEnabled := config["fqdn_policy_enabled"].(bool)
+
+	observabilityEnabled := false
+	if v, ok := config["observability"]; ok {
+		if l, ok := v.([]interface{}); ok && len(l) > 0 {
+			observabilityRaw := l[0].(map[string]interface{})
+			observabilityEnabled = observabilityRaw["enabled"].(bool)
+		}
+	}
+
+	securityEnabled := false
+	if v, ok := config["security"]; ok {
+		if l, ok := v.([]interface{}); ok && len(l) > 0 {
+			securityRaw := l[0].(map[string]interface{})
+			securityEnabled = securityRaw["enabled"].(bool)
+		}
+	}
 
 	advancedNetworking := managedclusters.AdvancedNetworking{
 		Enabled: pointer.To(enabled),
@@ -3365,7 +3395,7 @@ func expandAdvancedNetworking(input []interface{}) *managedclusters.AdvancedNetw
 			Enabled: pointer.To(observabilityEnabled),
 		},
 		Security: &managedclusters.AdvancedNetworkingSecurity{
-			Enabled: pointer.To(fqdnPolicyEnabled),
+			Enabled: pointer.To(securityEnabled),
 		},
 	}
 
@@ -3671,15 +3701,23 @@ func flattenAdvancedNetworking(advancedNetworking *managedclusters.AdvancedNetwo
 		observabilityEnabled = true
 	}
 
-	fqdnPolicyEnabled := false
+	securityEnabled := false
 	if v := advancedNetworking.Security; v != nil && v.Enabled != nil && *v.Enabled {
-		fqdnPolicyEnabled = true
+		securityEnabled = true
 	}
 
 	result := map[string]interface{}{
-		"enabled":               advancedNetworkingEnabled,
-		"observability_enabled": observabilityEnabled,
-		"fqdn_policy_enabled":   fqdnPolicyEnabled,
+		"enabled": advancedNetworkingEnabled,
+		"observability": []interface{}{
+			map[string]interface{}{
+				"enabled": observabilityEnabled,
+			},
+		},
+		"security": []interface{}{
+			map[string]interface{}{
+				"enabled": securityEnabled,
+			},
+		},
 	}
 
 	return []interface{}{result}
