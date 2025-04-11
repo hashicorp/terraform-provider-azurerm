@@ -273,9 +273,21 @@ A `advanced_networking` block exports the following:
 
 * `enabled` - Is Advanced Container Networking Services enabled?
 
-* `observability_enabled` - Is the Container Network Observability enabled?
+* `observability` - A `observability` block as defined below.
 
-* `fqdn_policy_enabled` - Is the Container Network Security enabled?
+* `security` - A `security` block as defined below.
+
+---
+
+A `observability` block exports the following:
+
+* `enabled` - Is the Container Network Observability enabled?
+
+---
+
+A `security` block exports the following:
+
+* `enabled` - Is the Container Network Security enabled?
 
 ---
 

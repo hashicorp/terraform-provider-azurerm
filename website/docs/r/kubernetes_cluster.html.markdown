@@ -703,11 +703,23 @@ A `advanced_networking` block exports the following:
 
 * `enabled` - Enable or disable [Advanced Container Networking Services](https://learn.microsoft.com/en-us/azure/aks/advanced-container-networking-services-overview)
 
-~> **Note:** Enabling this option requires at least one of the two options below to be enabled.
+~> **Note:** Enabling this option requires at least one of the two features below to be enabled.
 
-* `observability_enabled` - (Optional) Enable or disable [Container Network Observability](https://learn.microsoft.com/en-us/azure/aks/container-network-observability-concepts?tabs=cilium). Defaults to `false`.
+* `observability` - (Optional) A `observability` block as defined below.
 
-* `fqdn_policy_enabled` - (Optional) Enable or disable [Container Network Security](https://learn.microsoft.com/en-us/azure/aks/container-network-security-concepts). Defaults to `false`.
+* `security` - (Optional) A `security` block as defined below.
+
+---
+
+A `observability` block exports the following:
+
+* `enabled` - Enable or disable [Container Network Observability](https://learn.microsoft.com/en-us/azure/aks/container-network-observability-concepts?tabs=cilium). Defaults to `false`.
+
+---
+
+A `security` block exports the following:
+
+* `enabled` - Enable or disable [Container Network Security](https://learn.microsoft.com/en-us/azure/aks/container-network-security-concepts). Defaults to `false`.
 
 ~> **Note:** This option can only be used on [clusters with Cilium as the data plane](https://learn.microsoft.com/en-us/azure/aks/advanced-container-networking-services-overview#enable-advanced-container-networking-services-on-an-existing-cluster).
 
