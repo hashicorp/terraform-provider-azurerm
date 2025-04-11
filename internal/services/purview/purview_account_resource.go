@@ -148,21 +148,23 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	purviewAccount := account.Account{
 		Properties: &account.AccountProperties{},
 		Location:   pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
-		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("tags"); ok {
+		purviewAccount.Tags = tags.Expand(v.(map[string]interface{}))
 	}
 
 	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-
 	purviewAccount.Identity = expandedIdentity
 
-	publicNetworkAccessEnabled := account.PublicNetworkAccessDisabled
 	if d.Get("public_network_enabled").(bool) {
-		publicNetworkAccessEnabled = account.PublicNetworkAccessEnabled
+		purviewAccount.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessEnabled)
+	} else {
+		purviewAccount.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessDisabled)
 	}
-	purviewAccount.Properties.PublicNetworkAccess = &publicNetworkAccessEnabled
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
 		purviewAccount.Properties.ManagedResourceGroupName = pointer.To(v.(string))
@@ -215,17 +217,9 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("flattening `managed_resources`: %+v", err)
 			}
 
-			publicNetworkAccessEnabled := false
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccessEnabled = *props.PublicNetworkAccess == account.PublicNetworkAccessEnabled
-			}
-			d.Set("public_network_enabled", publicNetworkAccessEnabled)
+			d.Set("public_network_enabled", pointer.From(props.PublicNetworkAccess) == account.PublicNetworkAccessEnabled)
 
-			managedResourceGroupName := ""
-			if props.ManagedResourceGroupName != nil {
-				managedResourceGroupName = *props.ManagedResourceGroupName
-			}
-			d.Set("managed_resource_group_name", managedResourceGroupName)
+			d.Set("managed_resource_group_name", pointer.From(props.ManagedResourceGroupName))
 
 			if endpoints := props.Endpoints; endpoints != nil {
 				d.Set("catalog_endpoint", endpoints.Catalog)
@@ -267,47 +261,32 @@ func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	parameters := account.AccountUpdateParameters{
+		Properties: &account.AccountProperties{},
 	}
 
-	if model := resp.Model; model != nil {
-
-		if d.HasChange("location") {
-			model.Location = pointer.To(azure.NormalizeLocation(d.Get("location").(string)))
+	if d.HasChange("public_network_enabled") {
+		if d.Get("public_network_enabled").(bool) {
+			parameters.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessEnabled)
+		} else {
+			parameters.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessDisabled)
 		}
+	}
 
-		if d.HasChange("tags") {
-			model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	if d.HasChange("tags") {
+		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("identity") {
+		expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
+		parameters.Identity = expandedIdentity
+	}
 
-		if d.HasChange("identity") {
-			expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-			model.Identity = expandedIdentity
-		}
-
-		if d.HasChange("public_network_enabled") {
-			publicNetworkAccessEnabled := account.PublicNetworkAccessDisabled
-			if d.Get("public_network_enabled").(bool) {
-				publicNetworkAccessEnabled = account.PublicNetworkAccessEnabled
-			}
-			model.Properties.PublicNetworkAccess = &publicNetworkAccessEnabled
-		}
-
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-
-		d.SetId(id.ID())
+	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourcePurviewAccountRead(d, meta)
@@ -336,23 +315,11 @@ func flattenPurviewAccountManagedResources(managedResources *account.ManagedReso
 		return make([]interface{}, 0)
 	}
 
-	resourceGroup := ""
-	if managedResources.ResourceGroup != nil {
-		resourceGroup = *managedResources.ResourceGroup
-	}
-	storageAccount := ""
-	if managedResources.StorageAccount != nil {
-		storageAccount = *managedResources.StorageAccount
-	}
-	eventHubNamespace := ""
-	if managedResources.EventHubNamespace != nil {
-		eventHubNamespace = *managedResources.EventHubNamespace
-	}
 	return []interface{}{
 		map[string]interface{}{
-			"resource_group_id":      resourceGroup,
-			"storage_account_id":     storageAccount,
-			"event_hub_namespace_id": eventHubNamespace,
+			"resource_group_id":      pointer.From(managedResources.ResourceGroup),
+			"storage_account_id":     pointer.From(managedResources.StorageAccount),
+			"event_hub_namespace_id": pointer.From(managedResources.EventHubNamespace),
 		},
 	}
 }

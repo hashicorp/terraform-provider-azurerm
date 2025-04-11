@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PurviewAccountResource struct{}
+type PurviewAccountResourceTest struct{}
 
 func TestAccPurviewAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
-	r := PurviewAccountResource{}
+	r := PurviewAccountResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccPurviewAccount_basic(t *testing.T) {
 
 func TestAccPurviewAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
-	r := PurviewAccountResource{}
+	r := PurviewAccountResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,9 +49,31 @@ func TestAccPurviewAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccPurviewAccount_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
+	r := PurviewAccountResourceTest{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPurviewAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
-	r := PurviewAccountResource{}
+	r := PurviewAccountResourceTest{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,7 +88,7 @@ func TestAccPurviewAccount_requiresImport(t *testing.T) {
 
 func TestAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
-	r := PurviewAccountResource{}
+	r := PurviewAccountResourceTest{}
 	managedResourceGroupName := fmt.Sprintf("acctestRG-purview-managed-%d", data.RandomInteger)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -81,7 +103,7 @@ func TestAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
 	})
 }
 
-func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PurviewAccountResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := account.ParseAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -90,16 +112,15 @@ func (r PurviewAccountResource) Exists(ctx context.Context, client *clients.Clie
 	resp, err := client.Purview.AccountsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
-func (r PurviewAccountResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+func (r PurviewAccountResourceTest) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -116,11 +137,10 @@ resource "azurerm_purview_account" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r PurviewAccountResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
+func (r PurviewAccountResourceTest) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -142,11 +162,10 @@ resource "azurerm_purview_account" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r PurviewAccountResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
+func (r PurviewAccountResourceTest) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -159,11 +178,10 @@ resource "azurerm_purview_account" "import" {
     type = "SystemAssigned"
   }
 }
-`, template)
+`, r.basic(data))
 }
 
-func (r PurviewAccountResource) withManagedResourceGroupName(data acceptance.TestData, managedResourceGroupName string) string {
-	template := r.template(data)
+func (r PurviewAccountResourceTest) withManagedResourceGroupName(data acceptance.TestData, managedResourceGroupName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -181,14 +199,14 @@ resource "azurerm_purview_account" "test" {
     type = "SystemAssigned"
   }
 }
-`, template, data.RandomInteger, managedResourceGroupName)
+`, r.template(data), data.RandomInteger, managedResourceGroupName)
 }
 
-func (r PurviewAccountResource) template(data acceptance.TestData) string {
+func (r PurviewAccountResourceTest) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-purview-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Ternary)
 }
