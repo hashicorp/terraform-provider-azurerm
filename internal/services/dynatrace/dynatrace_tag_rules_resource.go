@@ -51,7 +51,7 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringInSlice([]string{"default"}, false),
 		},
 
 		"monitor_id": {
@@ -233,7 +233,7 @@ func (r TagRulesResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 			if model := resp.Model; model != nil {
 				props := model.Properties
@@ -290,8 +290,8 @@ func (r TagRulesResource) Update() sdk.ResourceFunc {
 			}
 
 			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
+			if err != nil || existing.Model == nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			model := existing.Model

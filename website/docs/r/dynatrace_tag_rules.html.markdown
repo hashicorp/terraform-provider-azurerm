@@ -47,7 +47,7 @@ resource "azurerm_dynatrace_monitor" "example" {
 }
 
 resource "azurerm_dynatrace_tag_rules" "example" {
-  name       = "examplestreamanalyticscluster"
+  name       = "default"
   monitor_id = azurerm_dynatrace_monitors.test.id
 
   log_rule {

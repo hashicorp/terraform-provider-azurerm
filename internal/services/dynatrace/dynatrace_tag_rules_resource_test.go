@@ -143,10 +143,10 @@ func (r TagRulesResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_dynatrace_tag_rules" "test" {
-  name       = "acctesttagrules%d"
+  name       = "default"
   monitor_id = azurerm_dynatrace_monitor.test.id
 }
-`, MonitorsResource{}.basic(data), data.RandomInteger)
+`, MonitorsResource{}.basic(data))
 }
 
 func (r TagRulesResource) complete(data acceptance.TestData) string {
