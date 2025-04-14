@@ -218,25 +218,25 @@ func (r DevCenterProjectTestResource) identity(data acceptance.TestData, identit
 	var identityBlock string
 	switch identityType {
 	case identity.TypeSystemAssigned:
-		identityBlock = fmt.Sprintf(`
+		identityBlock = `
   identity {
     type = "SystemAssigned"
   }
-`)
+`
 	case identity.TypeUserAssigned:
-		identityBlock = fmt.Sprintf(`
+		identityBlock = `
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-`)
+`
 	case identity.TypeSystemAssignedUserAssigned:
-		identityBlock = fmt.Sprintf(`
+		identityBlock = `
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-`)
+`
 	}
 	return fmt.Sprintf(`
 %s
