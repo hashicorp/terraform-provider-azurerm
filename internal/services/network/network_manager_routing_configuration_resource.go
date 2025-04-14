@@ -125,7 +125,7 @@ func (r ManagerRoutingConfigurationResource) Read() sdk.ResourceFunc {
 					return metadata.MarkAsGone(id)
 				}
 
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			networkManagerId := networkmanagerroutingconfigurations.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID()
@@ -159,16 +159,26 @@ func (r ManagerRoutingConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := networkmanagerroutingconfigurations.NetworkManagerRoutingConfiguration{
-				Properties: &networkmanagerroutingconfigurations.NetworkManagerRoutingConfigurationPropertiesFormat{},
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
+
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if resp.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+			}
+
+			parameters := resp.Model
 
 			if metadata.ResourceData.HasChange("description") {
 				parameters.Properties.Description = pointer.To(model.Description)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if _, err := client.CreateOrUpdate(ctx, *id, *parameters); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
 		},
@@ -189,7 +199,7 @@ func (r ManagerRoutingConfigurationResource) Delete() sdk.ResourceFunc {
 			if err := client.DeleteThenPoll(ctx, *id, networkmanagerroutingconfigurations.DeleteOperationOptions{
 				Force: pointer.To(true),
 			}); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
