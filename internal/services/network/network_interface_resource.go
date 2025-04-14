@@ -330,7 +330,11 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	info := parseFieldsFromNetworkInterface(*existing.Model.Properties)
 
 	payload := existing.Model
+
+	// For NIC attached to private endpoint, tags cannot be updated using PUT.
+	// It has to use the specific update tag PATCH API
 	propsOtherThanTagsUpdated := false
+	attachedToPrivateEndpoint := payload.Properties.PrivateEndpoint != nil && pointer.From(payload.Properties.PrivateEndpoint.Id) != ""
 
 	if d.HasChange("auxiliary_mode") {
 		propsOtherThanTagsUpdated = true
@@ -394,16 +398,19 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		payload.Properties.IPConfigurations = ipConfigs
 	}
 
-	if propsOtherThanTagsUpdated {
+	if d.HasChange("tags") && !attachedToPrivateEndpoint {
+		tagsRaw := d.Get("tags").(map[string]interface{})
+		payload.Tags = tags.Expand(tagsRaw)
+	}
+
+	if propsOtherThanTagsUpdated || !attachedToPrivateEndpoint {
 		err = client.CreateOrUpdateThenPoll(ctx, *id, *payload)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
 	}
 
-	// Tags have to be updated separately with a PATCH because if the NIC is attached to other resources
-	// the PUT request will fail with a 400
-	if d.HasChange("tags") {
+	if d.HasChange("tags") && attachedToPrivateEndpoint {
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		tags := networkinterfaces.TagsObject{
 			Tags: tags.Expand(tagsRaw),
