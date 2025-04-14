@@ -101,7 +101,7 @@ func TestAccExampleResource_basic(t *testing.T) {
 }
 ```
 
--> **Note:** Originally, the acceptance tests were in the same package as the resource or data source. In order to avoid a name collision, test structs were suffixed with `Test`. However, moving tests to their own package made the struct suffix superfluous.
+> Originally, the acceptance tests were in the same package as the resource or data source. In order to avoid a name collision, test structs were suffixed with `Test`. However, moving tests to their own package made the struct suffix superfluous.
 
 ### Which Tests are Required?
 
