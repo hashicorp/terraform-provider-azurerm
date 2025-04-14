@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -249,8 +250,18 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("managed_image_id"); ok {
-		version.Properties.StorageProfile.Source = &galleryimageversions.GalleryArtifactVersionFullSource{
-			Id: utils.String(v.(string)),
+		sourceID := v.(string)
+
+		// Check if this is a VM ID rather than an image ID
+		if strings.Contains(sourceID, "Microsoft.Compute/virtualMachines") {
+			version.Properties.StorageProfile.Source = &galleryimageversions.GalleryArtifactVersionFullSource{
+				VirtualMachineId: utils.String(sourceID),
+			}
+		} else {
+			// For regular managed images, use the Id field
+			version.Properties.StorageProfile.Source = &galleryimageversions.GalleryArtifactVersionFullSource{
+				Id: utils.String(sourceID),
+			}
 		}
 	}
 
@@ -391,7 +402,12 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 
 			if source := props.StorageProfile.Source; source != nil {
-				d.Set("managed_image_id", source.Id)
+				// Check for both source Id and VirtualMachineId
+				if source.Id != nil {
+					d.Set("managed_image_id", source.Id)
+				} else if source.VirtualMachineId != nil {
+					d.Set("managed_image_id", source.VirtualMachineId)
+				}
 			}
 
 			blobURI := ""
