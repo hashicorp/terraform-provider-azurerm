@@ -71,6 +71,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dev_center_uri` - The URI of the Dev Center resource this project is associated with.
 
+* `identity` - An `identity` block as defined below.
+
 ---
 
 An `identity` block exports the following:

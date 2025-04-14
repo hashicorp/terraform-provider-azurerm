@@ -6,6 +6,7 @@ package devcenter_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
@@ -92,6 +93,42 @@ func TestAccDevCenterProject_update(t *testing.T) {
 	})
 }
 
+func TestAccDevCenterProject_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
+	r := DevCenterProjectTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identity(data, identity.TypeNone),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identity(data, identity.TypeSystemAssigned),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identity(data, identity.TypeUserAssigned),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identity(data, identity.TypeSystemAssignedUserAssigned),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DevCenterProjectTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := projects.ParseProjectID(state.ID)
 	if err != nil {
@@ -144,12 +181,6 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestmi-${var.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
 resource "azurerm_dev_center_project" "test" {
   dev_center_id              = azurerm_dev_center.test.id
   location                   = azurerm_resource_group.test.location
@@ -157,10 +188,6 @@ resource "azurerm_dev_center_project" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   description                = "Description for the Dev Center Project"
   maximum_dev_boxes_per_user = 21
-  identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id]
-  }
   tags = {
     environment = "terraform-acctests"
     some_key    = "some-value"
@@ -185,6 +212,54 @@ resource "azurerm_dev_center_project" "test" {
   description         = "Description for the Dev Center Project"
 }
 `, r.template(data))
+}
+
+func (r DevCenterProjectTestResource) identity(data acceptance.TestData, identityType identity.Type) string {
+	var identityBlock string
+	switch identityType {
+	case identity.TypeSystemAssigned:
+		identityBlock = fmt.Sprintf(`
+  identity {
+    type = "SystemAssigned"
+  }
+`)
+	case identity.TypeUserAssigned:
+		identityBlock = fmt.Sprintf(`
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+`)
+	case identity.TypeSystemAssignedUserAssigned:
+		identityBlock = fmt.Sprintf(`
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+`)
+	}
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi-${var.random_integer}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_dev_center_project" "test" {
+  dev_center_id       = azurerm_dev_center.test.id
+  location            = azurerm_resource_group.test.location
+  name                = "acctestdcp-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+
+  %s
+}
+`, r.template(data), identityBlock)
 }
 
 func (r DevCenterProjectTestResource) template(data acceptance.TestData) string {
