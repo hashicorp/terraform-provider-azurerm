@@ -51,7 +51,7 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice([]string{"default"}, false),
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"monitor_id": {
