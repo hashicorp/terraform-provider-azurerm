@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type RoleAssignmentsDataSourceTest struct{}
+type RoleAssignmentsDataSource struct{}
 
 func TestAccRoleAssignmentsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_assignments", "test")
-	d := RoleAssignmentsDataSourceTest{}
+	d := RoleAssignmentsDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -28,7 +28,7 @@ func TestAccRoleAssignmentsDataSource_basic(t *testing.T) {
 	})
 }
 
-func (d RoleAssignmentsDataSourceTest) basic(data acceptance.TestData) string {
+func (d RoleAssignmentsDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -44,7 +44,7 @@ data "azurerm_role_assignments" "test" {
 `, d.template(data))
 }
 
-func (RoleAssignmentsDataSourceTest) template(data acceptance.TestData) string {
+func (RoleAssignmentsDataSource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
