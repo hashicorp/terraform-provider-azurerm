@@ -1069,7 +1069,7 @@ resource "azurerm_network_interface" "test" {
 
   lifecycle {
     # The real ip_configuration.name is difficult to get, opt-out instead since we only care about tags update
-    ignore_changes = [ ip_configuration ]
+    ignore_changes = [ip_configuration]
   }
 
 %[4]s
