@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -595,6 +596,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
+		// The source server will be Updating status when creating a replica
+		sourceServerId, _ := servers.ParseFlexibleServerID(v.(string))
+		locks.ByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+		defer locks.UnlockByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+
 		parameters.Properties.SourceServerResourceId = pointer.To(v.(string))
 	}
 

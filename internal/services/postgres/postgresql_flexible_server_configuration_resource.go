@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/configurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/serverrestart"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -128,6 +129,14 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
+	// if the server has already been deleted, we don't need to do anything
+	serverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	if exists, _ := meta.(*clients.Client).Postgres.FlexibleServersClient.Get(ctx, serverID); response.WasNotFound(exists.HttpResponse) {
+		log.Printf("[WARN] server %s was not found, removing from state", serverID)
+		d.SetId("")
+		return nil
+	}
+
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -157,6 +166,12 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 	id, err := configurations.ParseConfigurationID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	// if the server has already been deleted, we don't need to do anything
+	serverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
+	if exists, _ := meta.(*clients.Client).Postgres.FlexibleServersClient.Get(ctx, serverID); response.WasNotFound(exists.HttpResponse) {
+		return nil
 	}
 
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
