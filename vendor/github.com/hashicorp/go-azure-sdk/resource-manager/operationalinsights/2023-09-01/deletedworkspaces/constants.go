@@ -12,24 +12,30 @@ import (
 type CapacityReservationLevel int64
 
 const (
-	CapacityReservationLevelFiveHundred  CapacityReservationLevel = 500
-	CapacityReservationLevelFiveThousand CapacityReservationLevel = 5000
-	CapacityReservationLevelFourHundred  CapacityReservationLevel = 400
-	CapacityReservationLevelOneHundred   CapacityReservationLevel = 100
-	CapacityReservationLevelOneThousand  CapacityReservationLevel = 1000
-	CapacityReservationLevelThreeHundred CapacityReservationLevel = 300
-	CapacityReservationLevelTwoHundred   CapacityReservationLevel = 200
-	CapacityReservationLevelTwoThousand  CapacityReservationLevel = 2000
+	CapacityReservationLevelFiveHundred      CapacityReservationLevel = 500
+	CapacityReservationLevelFiveThousand     CapacityReservationLevel = 5000
+	CapacityReservationLevelFiveZeroThousand CapacityReservationLevel = 50000
+	CapacityReservationLevelFourHundred      CapacityReservationLevel = 400
+	CapacityReservationLevelOneHundred       CapacityReservationLevel = 100
+	CapacityReservationLevelOneThousand      CapacityReservationLevel = 1000
+	CapacityReservationLevelOneZeroThousand  CapacityReservationLevel = 10000
+	CapacityReservationLevelThreeHundred     CapacityReservationLevel = 300
+	CapacityReservationLevelTwoFiveThousand  CapacityReservationLevel = 25000
+	CapacityReservationLevelTwoHundred       CapacityReservationLevel = 200
+	CapacityReservationLevelTwoThousand      CapacityReservationLevel = 2000
 )
 
 func PossibleValuesForCapacityReservationLevel() []int64 {
 	return []int64{
 		int64(CapacityReservationLevelFiveHundred),
 		int64(CapacityReservationLevelFiveThousand),
+		int64(CapacityReservationLevelFiveZeroThousand),
 		int64(CapacityReservationLevelFourHundred),
 		int64(CapacityReservationLevelOneHundred),
 		int64(CapacityReservationLevelOneThousand),
+		int64(CapacityReservationLevelOneZeroThousand),
 		int64(CapacityReservationLevelThreeHundred),
+		int64(CapacityReservationLevelTwoFiveThousand),
 		int64(CapacityReservationLevelTwoHundred),
 		int64(CapacityReservationLevelTwoThousand),
 	}
