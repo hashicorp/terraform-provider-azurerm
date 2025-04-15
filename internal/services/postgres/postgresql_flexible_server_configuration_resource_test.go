@@ -304,12 +304,12 @@ resource "azurerm_postgresql_flexible_server_configuration" "test" {
 }
 
 resource "azurerm_postgresql_flexible_server" "replica" {
-  name                   = "acctest-replica-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  zone                   = azurerm_postgresql_flexible_server.test.zone
-  create_mode            = "Replica"
-  source_server_id       = azurerm_postgresql_flexible_server.test.id
+  name                = "acctest-replica-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  zone                = azurerm_postgresql_flexible_server.test.zone
+  create_mode         = "Replica"
+  source_server_id    = azurerm_postgresql_flexible_server.test.id
 }
 `, r.template(data), name, value, data.RandomInteger)
 }

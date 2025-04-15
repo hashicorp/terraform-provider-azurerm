@@ -129,7 +129,7 @@ func resourceFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	// if the server has already been deleted, we don't need to do anything
+	// if the server has already been deleted, we need also mark it as gone
 	serverID := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 	if exists, _ := meta.(*clients.Client).Postgres.FlexibleServersClient.Get(ctx, serverID); response.WasNotFound(exists.HttpResponse) {
 		log.Printf("[WARN] server %s was not found, removing from state", serverID)
