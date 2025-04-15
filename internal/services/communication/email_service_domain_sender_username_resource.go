@@ -46,7 +46,7 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Arguments() map[str
 		"username": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(1, 253),
 		},
 
 		"display_name": {

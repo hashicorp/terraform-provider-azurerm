@@ -49,6 +49,21 @@ func TestAccEmailServiceDomainSenderUsername_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccEmailServiceDomainSenderUsername_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
+	r := EmailServiceDomainSenderUsernameTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEmailServiceDomainSenderUsername_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
 	r := EmailServiceDomainSenderUsernameTestResource{}
@@ -115,9 +130,9 @@ provider "azurerm" {
 resource "azurerm_email_communication_service_domain_sender_username" "test" {
   name                    = "acctest-su-%d"
   email_service_domain_id = azurerm_email_communication_service_domain.test.id
-  username                = "TFTester"
+  username                = "acctest-su-%d"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r EmailServiceDomainSenderUsernameTestResource) requiresImport(data acceptance.TestData) string {
@@ -143,10 +158,10 @@ provider "azurerm" {
 resource "azurerm_email_communication_service_domain_sender_username" "test" {
   name                    = "acctest-su-%d"
   email_service_domain_id = azurerm_email_communication_service_domain.test.id
-  username                = "TFTester"
+  username                = "acctest-su-%d"
   display_name            = "TF Tester"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r EmailServiceDomainSenderUsernameTestResource) update(data acceptance.TestData) string {
@@ -160,21 +175,21 @@ provider "azurerm" {
 resource "azurerm_email_communication_service_domain_sender_username" "test" {
   name                    = "acctest-su-%d"
   email_service_domain_id = azurerm_email_communication_service_domain.test.id
-  username                = "TFTester2"
+  username                = "acctest-su-%d"
   display_name            = "TF Tester2"
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
 func (r EmailServiceDomainSenderUsernameTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-communicationservice-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-communicationservice-%d"
+  location = "%s"
 }
 
 resource "azurerm_email_communication_service" "test" {
-  name                = "acctest-CommunicationService-%[1]d"
+  name                = "acctest-CommunicationService-%d"
   resource_group_name = azurerm_resource_group.test.name
   data_location       = "United States"
 }
@@ -184,5 +199,5 @@ resource "azurerm_email_communication_service_domain" "test" {
   email_service_id  = azurerm_email_communication_service.test.id
   domain_management = "AzureManaged"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
