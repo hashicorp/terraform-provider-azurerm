@@ -165,10 +165,10 @@ func (r ManagerRoutingConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 			if resp.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: model properties was nil", *id)
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
 			parameters := resp.Model
