@@ -33,7 +33,7 @@ resource "azurerm_email_communication_service_domain" "example" {
 resource "azurerm_email_communication_service_domain_sender_username" "example" {
   name                    = "example-su"
   email_service_domain_id = azurerm_email_communication_service_domain.example.id
-  username                = "TFTester"
+  username                = "example-su"
 }
 ```
 
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `email_service_domain_id` - (Required) The ID of the Email Communication Service Domain resource. Changing this forces a new resource to be created.
 
-* `username` - (Required) The sender username to be used when sending emails.
+* `username` - (Required) The sender username to be used when sending emails. Changing this forces a new resource to be created.
 
 * `display_name` - (Optional) The display name for the Email Communication Service Domain Sender Username resource.
 
