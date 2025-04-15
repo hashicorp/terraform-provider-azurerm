@@ -25,14 +25,18 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 	log.Printf("[INFO] Looking For Replication Link Partners For: %q", id)
 
 	matchesRole := func(role replicationlinks.ReplicationRole) bool {
+		log.Printf("[INFO] Looking For Database Role(s):")
+
 		for _, r := range rolesToFind {
-			log.Printf("[INFO]    Looking for Partner Replication Role: %q", r)
+			log.Printf("[INFO]    Looking for Database Role: %q", r)
 
 			if r == role {
-				log.Printf("[INFO]    Found Role %q in Possible Partner Replication Roles", role)
+				log.Printf("[INFO]    Found Database Role: %q", role)
 				return true
 			}
 		}
+
+		log.Printf("[INFO] Expected Database Role(s) not found, invalid partner database")
 		return false
 	}
 
@@ -55,7 +59,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 		linkProps := item.Properties
 
 		if linkProps.PartnerLocation == nil || linkProps.PartnerServer == nil || linkProps.PartnerDatabase == nil {
-			log.Printf("[INFO] Replication Link Properties was invalid for %q", id)
+			log.Printf("[INFO] Replication Link Properties were invalid for %q", id)
 			continue
 		}
 

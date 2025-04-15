@@ -268,7 +268,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 						},
 					})
 					if err != nil {
-						return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
 				}
 			}
@@ -859,17 +859,23 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
-					log.Printf("[INFO] Updating SKU of Replication Partner from %q to %q", partnerDatabase.Sku.Name, skuName)
+					log.Printf("[INFO] Updating SKU of Replication Partner Database from %q to %q", partnerDatabase.Sku.Name, skuName)
 					err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
 							Name: skuName,
 						},
 					})
 					if err != nil {
-						return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
 
-					log.Printf("[INFO] SKU of Replication Partner updated successfully to %q", skuName)
+					log.Printf("[INFO] SKU of Replication Partner Database updated successfully to %q", skuName)
+				} else {
+					if partnerDatabase.Sku == nil || partnerDatabase.Sku.Name == "" {
+						log.Printf("[INFO] SKU of Replication Partner Database was 'nil' or empty")
+					} else {
+						log.Printf("[INFO] SKU of Replication Partner Database does not need to be updated")
+					}
 				}
 			}
 		}
