@@ -29,7 +29,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 			log.Printf("[INFO]    Looking for Partner Replication Role: %q", r)
 
 			if r == role {
-				log.Printf("[INFO]    Found Role %q in Possibile Partner Replication Roles", role)
+				log.Printf("[INFO]    Found Role %q in Possible Partner Replication Roles", role)
 				return true
 			}
 		}
@@ -47,7 +47,6 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 	}
 
 	for _, item := range linksIterator.Items {
-
 		if item.Properties == nil {
 			log.Printf("[INFO] Replication Link Properties was nil for %q", id)
 			continue
@@ -105,6 +104,10 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 
 			// Check if like-named server has a database named like the partner database, also with a replication link
 			partnerDatabase, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
+			if err != nil {
+				return nil, fmt.Errorf("parsing Partner SQL Database ID %q: %+v", *server.Id, err)
+			}
+
 			linksPossiblePartnerIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, *partnerDatabase)
 			if err != nil {
 				if response.WasNotFound(linksPossiblePartnerIterator.LatestHttpResponse) {
