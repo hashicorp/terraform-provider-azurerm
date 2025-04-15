@@ -159,7 +159,7 @@ resource "azurerm_email_communication_service_domain_sender_username" "test" {
   name                    = "acctest-su-%d"
   email_service_domain_id = azurerm_email_communication_service_domain.test.id
   username                = "acctest-su-%d"
-  display_name            = "TF Tester"
+  display_name            = "TFTester"
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
@@ -176,7 +176,7 @@ resource "azurerm_email_communication_service_domain_sender_username" "test" {
   name                    = "acctest-su-%d"
   email_service_domain_id = azurerm_email_communication_service_domain.test.id
   username                = "acctest-su-%d"
-  display_name            = "TF Tester2"
+  display_name            = "TFTester2"
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
