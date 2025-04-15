@@ -221,6 +221,60 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	skuName := d.Get("sku_name").(string)
 
+	if skuName != "" {
+		// This does not make sense here, it will always be 404 since the database does not exist?
+		//
+		// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
+		// partner databases. To work around this, we'll try to identify any partner databases that are secondary to this
+		// database, and where the new SKU tier for this database is going to be higher, first upgrade those databases to
+		// the same sku_name as we'll be changing this database to. If that sku is different to the one configured for any
+		// of the partner databases, that discrepancy will have to be corrected by the resource for that database. That
+		// might happen as part of the same apply, if a change was already planned for it, else it will only be picked up
+		// in a second plan/apply.
+		//
+		// TLDR: for the best experience, configs should use the same SKU for primary and partner databases and when
+		// upgrading those SKUs, we'll try to upgrade the partner databases first.
+
+		if skuName != "" {
+			// Place a lock for the current database so any partner resources can't bump its SKU out of band
+			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
+			if err != nil {
+				return err
+			}
+
+			// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
+			for _, partnerDatabase := range partnerDatabases {
+				partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
+				if err != nil {
+					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+				}
+
+				locks.ByID(partnerDatabaseId.ID())
+				defer locks.UnlockByID(partnerDatabaseId.ID())
+			}
+
+			// Update the SKUs of any partner databases where deemed necessary
+			for _, partnerDatabase := range partnerDatabases {
+				partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
+				if err != nil {
+					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
+				}
+
+				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
+				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+					err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
+						Sku: &databases.Sku{
+							Name: skuName,
+						},
+					})
+					if err != nil {
+						return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+					}
+				}
+			}
+		}
+	}
+
 	// Determine whether the SKU is for SQL Data Warehouse
 	isDwSku := strings.HasPrefix(strings.ToLower(skuName), "dw")
 
@@ -512,62 +566,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	// NOTE: The old API returned an empty list if the server was not found, the new API returns a 404 which is why this has
-	// been moved to after the create is successful...
-	//
-	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
-	// partner databases. To work around this, we'll try to identify any partner databases that are secondary to this
-	// database, and where the new SKU tier for this database is going to be higher, first upgrade those databases to
-	// the same sku_name as we'll be changing this database to. If that sku is different to the one configured for any
-	// of the partner databases, that discrepancy will have to be corrected by the resource for that database. That
-	// might happen as part of the same apply, if a change was already planned for it, else it will only be picked up
-	// in a second plan/apply.
-	//
-	// TLDR: for the best experience, configs should use the same SKU for primary and partner databases and when
-	// upgrading those SKUs, we'll try to upgrade the partner databases first.
-
-	if skuName != "" {
-		// Place a lock for the current database so any partner resources can't bump its SKU out of band
-		locks.ByID(id.ID())
-		defer locks.UnlockByID(id.ID())
-
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
-		if err != nil {
-			return err
-		}
-
-		// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
-		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
-			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
-			}
-
-			locks.ByID(partnerDatabaseId.ID())
-			defer locks.UnlockByID(partnerDatabaseId.ID())
-		}
-
-		// Update the SKUs of any partner databases where deemed necessary
-		for _, partnerDatabase := range partnerDatabases {
-			partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
-			if err != nil {
-				return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
-			}
-
-			// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
-			if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
-				err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
-					Sku: &databases.Sku{
-						Name: skuName,
-					},
-				})
-				if err != nil {
-					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
-				}
-			}
-		}
-	}
-
 	d.SetId(id.ID())
 
 	// For Data Warehouse SKUs only
@@ -838,6 +836,8 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return err
 			}
 
+			log.Printf("[INFO] Found %d Partner Databases", len(partnerDatabases))
+
 			// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 			for _, v := range partnerDatabases {
 				id, err := commonids.ParseSqlDatabaseIDInsensitively(pointer.From(v.Id))
@@ -851,6 +851,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			// Update the SKUs of any partner databases where deemed necessary
 			for _, partnerDatabase := range partnerDatabases {
+				log.Printf("[INFO] Parsing Replication Partner Database ID: %s", *partnerDatabase.Id)
 				partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 				if err != nil {
 					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
@@ -858,6 +859,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+					log.Printf("[INFO] Updating SKU of Replication Partner from %q to %q", partnerDatabase.Sku.Name, skuName)
 					err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
 							Name: skuName,
@@ -866,6 +868,8 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					if err != nil {
 						return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
 					}
+
+					log.Printf("[INFO] SKU of Replication Partner updated successfully to %q", skuName)
 				}
 			}
 		}

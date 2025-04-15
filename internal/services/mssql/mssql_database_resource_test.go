@@ -80,8 +80,6 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	switch data.Locations.Primary {
 	case "eastus": // Added due to subscription quota policies...
 		maintenance_configuration_name = "SQL_EastUS_DB_2"
-	case "swedencentral": // Added due to subscription quota policies...
-		maintenance_configuration_name = "SQL_SwedenCentral_DB_1"
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
 	case "francecentral":
@@ -545,7 +543,7 @@ func TestAccMsSqlDatabase_scaleReplicaSetWithFailovergroup(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep(), // need to ignore create mode here
 	})
 }
 
@@ -1146,8 +1144,6 @@ func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
 	switch data.Locations.Primary {
 	case "eastus": // Added due to subscription quota policies...
 		configName = "SQL_EastUS_DB_2"
-	case "swedencentral": // Added due to subscription quota policies...
-		configName = "SQL_SwedenCentral_DB_1"
 	case "westeurope":
 		configName = "SQL_WestEurope_DB_2"
 	case "francecentral":

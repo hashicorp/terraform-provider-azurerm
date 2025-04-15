@@ -22,128 +22,152 @@ import (
 // the other end of the link.
 func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *databases.DatabasesClient, replicationLinksClient *replicationlinks.ReplicationLinksClient, resourcesClient *resources.ResourcesClient, id commonids.SqlDatabaseId, primaryEnclaveType databases.AlwaysEncryptedEnclaveType, rolesToFind []replicationlinks.ReplicationRole) ([]databases.Database, error) {
 	var partnerDatabases []databases.Database
-
-	log.Printf("[INFO] Looking For Replication Link Partners For: %s", id)
+	log.Printf("[INFO] Looking For Replication Link Partners For: %q", id)
 
 	matchesRole := func(role replicationlinks.ReplicationRole) bool {
 		for _, r := range rolesToFind {
+			log.Printf("[INFO]    Looking for Partner Replication Role: %q", r)
+
 			if r == role {
+				log.Printf("[INFO]    Found Role %q in Possibile Partner Replication Roles", role)
 				return true
 			}
 		}
 		return false
 	}
 
-	listByDatabaseResult, err := replicationLinksClient.ListByDatabaseComplete(ctx, id)
+	// This will return a list of databases that have replication links for this database...
+	linksIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Replication Links for %s: %+v", id, err)
+		if response.WasNotFound(linksIterator.LatestHttpResponse) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("reading Replication Links for %q: %+v", id, err)
 	}
 
-	// Not 200?
-	if !response.WasStatusCode(listByDatabaseResult.LatestHttpResponse, 200) {
-		return nil, fmt.Errorf("reading Replication Links for %s: response was empty", id)
-	}
+	for _, item := range linksIterator.Items {
 
-	log.Printf("[INFO] Found %d Replication Link Partners", len(listByDatabaseResult.Items))
-
-	for _, replicationLink := range listByDatabaseResult.Items {
-		linkProps := replicationLink.Properties
-		if linkProps == nil {
-			log.Printf("[INFO] Replication Link Properties were nil for %s", id)
+		if item.Properties == nil {
+			log.Printf("[INFO] Replication Link Properties was nil for %q", id)
 			continue
 		}
+
+		linkProps := item.Properties
 
 		if linkProps.PartnerLocation == nil || linkProps.PartnerServer == nil || linkProps.PartnerDatabase == nil {
-			log.Printf("[INFO] Replication Link Properties were invalid for %s", id)
+			log.Printf("[INFO] Replication Link Properties was invalid for %q", id)
 			continue
 		}
 
-		log.Printf("[INFO] Replication Link found for %s", id)
+		log.Printf("[INFO] Replication Link found for %q", id)
+
 		// Look for candidate partner SQL servers
-		filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", *linkProps.PartnerServer)
-
-		partner, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
+		linkDatabase, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
 		if err != nil {
-			return nil, fmt.Errorf("parsing Partner SQL Database ID %q: %+v", *linkProps.PartnerDatabaseId, err)
+			return nil, fmt.Errorf("parsing Replication Link SQL Database ID %q: %+v", *linkProps.PartnerDatabaseId, err)
 		}
 
-		fmtString := fmt.Sprintf("/subscriptions/%s", partner.SubscriptionId)
-		subscription, err := commonids.ParseSubscriptionID(fmtString)
+		fmtString := fmt.Sprintf("/subscriptions/%s", linkDatabase.SubscriptionId)
+		linkSubscription, err := commonids.ParseSubscriptionID(fmtString)
 		if err != nil {
-			return nil, fmt.Errorf("parsing Partner SQL Server Subscription %q: %+v", fmtString, err)
+			return nil, fmt.Errorf("parsing Replication Link SQL Database Subscription %q: %+v", fmtString, err)
 		}
 
+		log.Printf("[INFO] Replication Link SQL Databases Subscription: %q", *linkSubscription)
+
+		filter := fmt.Sprintf("(resourceType eq 'Microsoft.Sql/servers') and ((name eq '%s'))", linkDatabase.ServerName)
 		listOptions := resources.ListOperationOptions{
 			Expand: nil,
 			Filter: pointer.To(filter),
 			Top:    pointer.FromInt64(100),
 		}
 
-		resourceListResult, err := resourcesClient.ListComplete(ctx, *subscription, listOptions)
+		resourcesIterator, err := resourcesClient.ListComplete(ctx, *linkSubscription, listOptions)
 		if err != nil {
-			return nil, fmt.Errorf("retrieving Partner SQL Servers with filter %q for %s: %+v", filter, *linkProps.PartnerDatabaseId, err)
+			return nil, fmt.Errorf("retrieving Partner SQL Servers with filter %q for %q: %+v", filter, linkDatabase, err)
 		}
 
-		for _, server := range resourceListResult.Items {
+		log.Printf("[INFO] Found %d Partner SQL Servers with filter: %q", len(resourcesIterator.Items), filter)
+
+		for _, server := range resourcesIterator.Items {
 			if server.Id == nil {
-				log.Printf("[INFO] Partner SQL Server ID was nil for %s", *server.Id)
+				log.Printf("[INFO] Partner SQL Server ID was nil for %q", id)
 				continue
 			}
 
 			partnerServerId, err := commonids.ParseSqlServerIDInsensitively(*server.Id)
 			if err != nil {
-				return nil, fmt.Errorf("parsing Partner SQL Server ID %q: %+v", *server.Id, err) // error
+				return nil, fmt.Errorf("parsing Partner SQL Server ID %q: %+v", *server.Id, err)
 			}
+
+			log.Printf("[INFO] Parsed Partner SQL Server ID: %q", partnerServerId)
 
 			// Check if like-named server has a database named like the partner database, also with a replication link
-			linksPossiblePartnerIterator, err := replicationLinksClient.ListByServerComplete(ctx, *partnerServerId)
+			partnerDatabase, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
+			linksPossiblePartnerIterator, err := replicationLinksClient.ListByDatabaseComplete(ctx, *partnerDatabase)
 			if err != nil {
 				if response.WasNotFound(linksPossiblePartnerIterator.LatestHttpResponse) {
-					log.Printf("[INFO] no replication link found for Database %q (%s)", *linkProps.PartnerDatabase, partnerServerId)
+					log.Printf("[INFO] no replication link found for SQL Database %q (%q)", *linkProps.PartnerDatabase, partnerServerId)
 					continue
 				}
-				return nil, fmt.Errorf("reading Replication Links for Database %s (%s): %+v", *linkProps.PartnerDatabase, partnerServerId, err)
+				return nil, fmt.Errorf("reading Replication Links for SQL Database %s (%q): %+v", partnerDatabase, partnerServerId, err)
 			}
 
-			for _, v := range linksPossiblePartnerIterator.Items {
-				linkPossiblePartner := v
-
-				if linkPossiblePartner.Properties == nil {
-					log.Printf("[INFO] Replication Link Properties was nil for Database %s (%s)", *linkProps.PartnerDatabase, partnerServerId)
+			for _, linkPossiblePartnerItem := range linksPossiblePartnerIterator.Items {
+				if linkPossiblePartnerItem.Properties == nil {
+					log.Printf("[INFO] Replication Link Properties was nil for SQL Database %q (%q)", partnerDatabase, partnerServerId)
 					continue
 				}
 
-				linkPropsPossiblePartner := *linkPossiblePartner.Properties
+				if linkPossiblePartnerItem.Properties == nil {
+					log.Printf("[INFO] Replication Link Properties was nil for SQL Database %q (%q)", partnerDatabase, partnerServerId)
+					continue
+				}
+
+				linkPropsPossiblePartner := *linkPossiblePartnerItem.Properties
 
 				// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
-				if matchesRole(*linkPropsPossiblePartner.PartnerRole) {
-					partnerServerDatabase, err := commonids.ParseSqlDatabaseIDInsensitively(*linkProps.PartnerDatabaseId)
-					if err != nil {
-						return nil, fmt.Errorf("parsing Partner SQL Database ID %q: %+v", *linkProps.PartnerDatabaseId, err)
-					}
-
-					partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroupName, partnerServerId.ServerName, partnerServerDatabase.DatabaseName)
+				if matchesRole(*linkPropsPossiblePartner.Role) {
+					partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroupName, partnerServerId.ServerName, *linkProps.PartnerDatabase)
 					partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId, databases.DefaultGetOperationOptions())
 					if err != nil {
-						return nil, fmt.Errorf("retrieving Partner %s: %+v", partnerDatabaseId, err)
+						return nil, fmt.Errorf("retrieving SQL Partner Database %q: %+v", partnerDatabaseId, err)
 					}
 
+					log.Printf("[INFO] Replication Link Partner SQL Database ID: %q", partnerDatabaseId)
+
 					if partnerDatabase := partnerDatabase.Model; partnerDatabase != nil {
+						partnerDatabaseProps := partnerDatabase.Properties
+						if partnerDatabaseProps == nil {
+							return nil, fmt.Errorf("Partner SQL Database Properties were nil")
+						}
+
+						log.Printf("[INFO] Partner SQL Database Location: %q :: Replication Link Partner SQL Database Location: %q", location.Normalize(partnerDatabase.Location), location.Normalize(*linkProps.PartnerLocation))
+
 						if location.Normalize(partnerDatabase.Location) != location.Normalize(*linkProps.PartnerLocation) {
-							log.Printf("[INFO] Mismatch of possible Partner Database based on location (%s vs %s) for %s", location.Normalize(partnerDatabase.Location), location.Normalize(*linkProps.PartnerLocation), id)
+							log.Printf("[INFO] Mismatch of possible Partner SQL Database on location (%q vs %q) for %q", location.Normalize(partnerDatabase.Location), location.Normalize(*linkProps.PartnerLocation), id)
 							continue
 						}
 
-						if partnerDatabase.Id != nil && partnerDatabase.Properties != nil && partnerDatabase.Properties.PreferredEnclaveType != nil {
-							if primaryEnclaveType != "" && primaryEnclaveType == *partnerDatabase.Properties.PreferredEnclaveType {
-								log.Printf("[INFO] Found Partner %s", partnerDatabaseId)
-								partnerDatabases = append(partnerDatabases, *partnerDatabase)
-							} else {
-								log.Printf("[INFO] Mismatch of possible Partner Database based on enclave type (%q vs %q) for %s", primaryEnclaveType, string(*partnerDatabase.Properties.PreferredEnclaveType), id)
-							}
+						// NOTE: nil or an empty string means that the PreferredEnclaveType is 'disabled', the
+						// partner database must have the same 'PreferredEnclaveType' as the database we are
+						// looking for else it is not a Partner Database...
+						partnerDatabasePropsPreferredEnclaveType := ""
+						if partnerDatabaseProps.PreferredEnclaveType != nil {
+							partnerDatabasePropsPreferredEnclaveType = string(*partnerDatabaseProps.PreferredEnclaveType)
+						}
+
+						log.Printf("[INFO] SQL Database Preferred Enclave Type: %q :: Partner SQL Database Preferred Enclave Type: %q", primaryEnclaveType, partnerDatabasePropsPreferredEnclaveType)
+
+						if partnerDatabase.Id != nil && partnerDatabaseProps != nil && partnerDatabasePropsPreferredEnclaveType == string(primaryEnclaveType) {
+							log.Printf("[INFO] Found Partner SQL Database ID: %s", partnerDatabaseId)
+							partnerDatabases = append(partnerDatabases, *partnerDatabase)
+						} else {
+							log.Printf("[INFO] Mismatch of possible Partner SQL Database on preferred enclave type (%q vs %q) for %q", primaryEnclaveType, partnerDatabasePropsPreferredEnclaveType, id)
 						}
 					} else {
-						log.Printf("[INFO] PartnerDatabase.Model was 'nil'")
+						log.Printf("[INFO] partnerDatabase.Model %q was nil", partnerDatabaseId)
 					}
 				}
 			}
