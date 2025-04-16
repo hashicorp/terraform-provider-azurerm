@@ -10,7 +10,7 @@ description: |-
 
 Manages a ServiceBus Topic.
 
-**Note** Topics can only be created in Namespaces with an SKU of `standard` or higher.
+~> **Note:** Topics can only be created in Namespaces with an SKU of `Standard` or higher.
 
 ## Example Usage
 
@@ -82,8 +82,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Topic.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Topic.
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Topic.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Topic.
 * `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Topic.
 
 ## Import
