@@ -173,12 +173,6 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestuai-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_purview_account" "test" {
   name                   = "acctestpurview%d"
   resource_group_name    = azurerm_resource_group.test.name
@@ -186,10 +180,7 @@ resource "azurerm_purview_account" "test" {
   public_network_enabled = false
 
   identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
+    type = "SystemAssigned"
   }
 
   tags = {
@@ -197,7 +188,7 @@ resource "azurerm_purview_account" "test" {
     purpose     = "AcceptanceTests"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PurviewAccountResourceTest) requiresImport(data acceptance.TestData) string {
