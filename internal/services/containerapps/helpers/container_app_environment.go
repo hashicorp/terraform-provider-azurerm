@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"strings"
 )
 
 type WorkloadProfileSku string
@@ -104,13 +105,16 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 	return &result
 }
 
-func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []WorkloadProfileModel {
+func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile, consumptionDefined bool, nonConsumptionDefined bool) []WorkloadProfileModel {
 	if input == nil || len(*input) == 0 {
 		return []WorkloadProfileModel{}
 	}
 	result := make([]WorkloadProfileModel, 0)
 
 	for _, v := range *input {
+		if strings.EqualFold(v.WorkloadProfileType, string(WorkloadProfileSkuConsumption)) && nonConsumptionDefined && !consumptionDefined {
+			continue
+		}
 		result = append(result, WorkloadProfileModel{
 			Name:                v.Name,
 			MaximumCount:        pointer.From(v.MaximumCount),
