@@ -170,6 +170,8 @@ The following example follows a fictional resource that will have the following 
          },
       }
    
+      // Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.
+	  // This is to make cleanup easy so we can delete this block when the next major version releases.
       if !features.FivePointOh() {
          args["enable_scaling"] = &pluginsdk.Schema{
             Type:          pluginsdk.TypeBool,
