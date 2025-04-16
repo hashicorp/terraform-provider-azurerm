@@ -23,7 +23,7 @@ func TestAccPurviewAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -38,7 +38,7 @@ func TestAccPurviewAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -53,7 +53,7 @@ func TestAccPurviewAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -75,7 +75,7 @@ func TestAccPurviewAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -91,7 +91,7 @@ func TestAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
 	r := PurviewAccountResource{}
 	managedResourceGroupName := fmt.Sprintf("acctestRG-purview-managed-%d", data.RandomInteger)
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withManagedResourceGroupName(data, managedResourceGroupName),
 			Check: acceptance.ComposeTestCheckFunc(
