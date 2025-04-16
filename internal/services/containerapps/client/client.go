@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/certificates"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerappsrevisions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
