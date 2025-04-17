@@ -303,7 +303,7 @@ func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("reading diagnostic setting (%s): %+v", id, err)
 	}
 
-	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
+	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (MonitorDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
