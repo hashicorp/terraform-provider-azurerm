@@ -47,7 +47,9 @@ resource "azurerm_qumulo_file_system" "example" {
   admin_password      = ")^X#ZX#JRyIY}t9"
   availability_zone   = "1"
   delegated_subnet_id = azurerm_subnet.example.id
+  offer_id            = "qumulo-saas-mpp"
   plan_id             = "azure-native-qumulo-v3"
+  publisher_id        = "qumulo1584033880660"
   storage_sku         = "Standard"
   email               = "test@test.com"
   tags = {
