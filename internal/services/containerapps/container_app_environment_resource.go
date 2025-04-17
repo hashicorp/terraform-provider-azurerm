@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -413,6 +414,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
+			workaroundClient := azuresdkhacks.NewManagedEnvironmentWorkaroundClient(client)
 			id, err := managedenvironments.ParseManagedEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -432,10 +434,10 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
-			payload := managedenvironments.ManagedEnvironment{
+			payload := azuresdkhacks.ManagedEnvironment{
 				Name:       pointer.To(state.Name),
 				Location:   state.Location,
-				Properties: &managedenvironments.ManagedEnvironmentProperties{},
+				Properties: &azuresdkhacks.ManagedEnvironmentProperties{},
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -467,7 +469,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 				switch state.LogsDestination {
 				case LogsDestinationAzureMonitor:
-					payload.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
 						Destination:               pointer.To(LogsDestinationAzureMonitor),
 						LogAnalyticsConfiguration: nil,
 					}
@@ -478,7 +480,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 							return fmt.Errorf("retrieving access keys to Log Analytics Workspace for %s: %+v", id, err)
 						}
 
-						payload.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+						payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
 							Destination: pointer.To(LogsDestinationLogAnalytics),
 							LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
 								CustomerId: customerId,
@@ -487,11 +489,14 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 						}
 					}
 				default:
-					payload.Properties.AppLogsConfiguration = nil
+					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
+						Destination:               pointer.To(LogsDestinationNone),
+						LogAnalyticsConfiguration: nil,
+					}
 				}
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, payload); err != nil {
+			if err := workaroundClient.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
