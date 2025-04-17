@@ -127,7 +127,7 @@ resource "azurerm_managed_devops_pool" "test" {
   fabric_profile {
     kind = "Vmss"
     images {
-      resource_id = "/Subscriptions/e21f7bce-1728-44ad-a62d-344064a0d69a/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
+      resource_id = "/Subscriptions/%s/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
       buffer      = "*"
     }
     sku {
@@ -135,7 +135,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.Client().SubscriptionID)
 }
 
 func (r ManagedDevOpsPoolResource) requiresImport(data acceptance.TestData) string {
@@ -165,7 +165,7 @@ resource "azurerm_managed_devops_pool" "import" {
   fabric_profile {
     kind = "Vmss"
     images {
-      resource_id = "/Subscriptions/e21f7bce-1728-44ad-a62d-344064a0d69a/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
+      resource_id = "/Subscriptions/%s/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
       buffer      = "*"
     }
     sku {
@@ -173,7 +173,7 @@ resource "azurerm_managed_devops_pool" "import" {
     }
   }
 }
-`, r.basic(data))
+`, r.basic(data), data.Client().SubscriptionID)
 }
 
 func (r ManagedDevOpsPoolResource) complete(data acceptance.TestData) string {
@@ -202,7 +202,7 @@ esource "azurerm_managed_devops_pool" "test" {
 
   agent_profile {
     kind = "Stateless"
-	resource_predictions {
+	  resource_predictions {
       time_zone = "UTC"
       days_data = "[{},{\"09:00:00\":1,\"17:00:00\": 0},{},{},{},{},{}]"
     }
@@ -211,7 +211,7 @@ esource "azurerm_managed_devops_pool" "test" {
   fabric_profile {
     kind = "Vmss"
     images {
-      resource_id = "/Subscriptions/e21f7bce-1728-44ad-a62d-344064a0d69a/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
+      resource_id = "/Subscriptions/%s/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
       buffer = "*"
     }
     sku {
@@ -224,7 +224,7 @@ esource "azurerm_managed_devops_pool" "test" {
     Project     = "Terraform"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.Client().SubscriptionID)
 }
 
 func (ManagedDevOpsPoolResource) template(data acceptance.TestData) string {

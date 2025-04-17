@@ -49,10 +49,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 func (ManagedDevOpsPoolResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,

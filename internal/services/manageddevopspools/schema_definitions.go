@@ -51,7 +51,8 @@ func ResourcePredictionsSchema() *pluginsdk.Schema {
 				},
 				"days_data": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Required: true,
+					ValidateFunc: validation.StringIsJSON,
 				},
 			},
 		},
@@ -107,6 +108,10 @@ func FabricProfileSchema() *pluginsdk.Schema {
 							"subnet_id": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
+								ValidateFunc: validation.StringMatch(
+									regexp.MustCompile(`^/subscriptions/[0-9a-fA-F-]{36}/resourceGroups/[-\w._()]+/providers/Microsoft\.Network/virtualNetworks/[-\w._()]+/subnets/[-\w._()]+$`),
+    								"Subnet ID must match the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}'.",
+								),
 							},
 						},
 					},
@@ -121,6 +126,7 @@ func FabricProfileSchema() *pluginsdk.Schema {
 							"name": {
 								Type:     pluginsdk.TypeString,
 								Required: true,
+								validateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -147,6 +153,10 @@ func ImagesSchema() *pluginsdk.Schema {
 				"buffer": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(?:\*|[1-9][0-9]?|100)$`),
+						`Buffer must be "*" or value between 1 and 100.`,
+					),
 				},
 				"resource_id": {
 					Type:     pluginsdk.TypeString,

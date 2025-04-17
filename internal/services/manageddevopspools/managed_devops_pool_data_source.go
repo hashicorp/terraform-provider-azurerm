@@ -53,10 +53,6 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 		"tags": commonschema.TagsDataSource(),
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 	}
 }
 
