@@ -66,17 +66,21 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Azure Native Qumulo Scalable File System should exist. Changing this forces a new resource to be created.
 
-* `admin_password` - (Required) Initial administrator password of the Azure Native Qumulo Scalable File System. Changing this forces a new resource to be created.
+* `admin_password` - (Required) The initial administrator password of the Azure Native Qumulo Scalable File System. Changing this forces a new resource to be created.
+
+* `email` - (Required) The email address used for the Azure Native Qumulo Scalable File System. Changing this forces a new resource to be created.
+
+* `offer_id` - (Required) Specifies the marketplace offer ID. Changing this forces a new resource to be created.
 
 * `plan_id` - (Required) Specifies the marketplace plan ID. Changing this forces a new resource to be created.
 
+* `publisher_id` - (Required) Specifies the marketplace publisher ID. Changing this forces a new resource to be created.
+
 * `storage_sku` - (Required) The storage Sku. Possible values are `Cold_LRS`, `Hot_LRS` and `Hot_ZRS`. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) Delegated subnet ID for Vnet injection. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The delegated subnet ID for Vnet injection. Changing this forces a new resource to be created.
 
-* `email` - (Required) The email address. Changing this forces a new resource to be created.
-
-* `zone` - (Optional) Availability zone. Changing this forces a new resource to be created.
+* `zone` - (Optional) The Availability Zone in which the Azure Native Qumulo Scalable File system is located. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the File System.
 

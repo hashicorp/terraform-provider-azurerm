@@ -21,11 +21,6 @@ import (
 
 var _ sdk.ResourceWithUpdate = FileSystemResource{}
 
-const (
-	offerId     = "qumulo-saas-mpp"
-	publisherId = "qumulo1584033880660"
-)
-
 type FileSystemResource struct{}
 
 func (r FileSystemResource) ModelObject() interface{} {
@@ -35,8 +30,10 @@ func (r FileSystemResource) ModelObject() interface{} {
 type FileSystemResourceSchema struct {
 	AdminPassword     string            `tfschema:"admin_password"`
 	Location          string            `tfschema:"location"`
-	PlanId            string            `tfschema:"plan_id"`
 	Name              string            `tfschema:"name"`
+	OfferId           string            `tfschema:"offer_id"`
+	PlanId            string            `tfschema:"plan_id"`
+	PublisherId       string            `tfschema:"publisher_id"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	StorageSku        string            `tfschema:"storage_sku"`
 	SubnetId          string            `tfschema:"subnet_id"`
@@ -64,12 +61,29 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
+		"location": commonschema.Location(),
+
 		"admin_password": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
 			Sensitive:    true,
 			ValidateFunc: validate.ValidatePasswordComplexity,
+		},
+
+		"email": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"offer_id": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// the value can be "qumulo-saas-mpp"
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"plan_id": {
@@ -80,10 +94,19 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"publisher_id": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// the value can be "qumulo1584033880660"
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"storage_sku": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			// Use enum in SDK if swagger issue is resolved https://github.com/Azure/azure-rest-api-specs/issues/34017
 			ValidateFunc: validation.StringInSlice([]string{
 				"Cold_LRS",
 				"Hot_LRS",
@@ -98,16 +121,7 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 
-		"email": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"zone": commonschema.ZoneSingleRequiredForceNew(),
-
-		"location": commonschema.Location(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -156,9 +170,9 @@ func (r FileSystemResource) Create() sdk.ResourceFunc {
 						Email: config.Email,
 					},
 					MarketplaceDetails: filesystems.LiftrBaseMarketplaceDetails{
-						OfferId:     offerId,
+						OfferId:     config.OfferId,
 						PlanId:      config.PlanId,
-						PublisherId: pointer.To(publisherId),
+						PublisherId: pointer.To(config.PublisherId),
 					},
 				},
 			}
@@ -197,25 +211,33 @@ func (r FileSystemResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			config.Name = id.FileSystemName
-			config.ResourceGroupName = id.ResourceGroupName
+			state := FileSystemResourceSchema{
+				Name:              id.FileSystemName,
+				ResourceGroupName: id.ResourceGroupName,
+
+				AdminPassword: config.AdminPassword,
+				Email:         config.Email,
+			}
 
 			if model := resp.Model; model != nil {
-				// model.Properties and model.Properties.MarketplaceDetails is not pointer, so we don't need to check nil
-				config.Zone = pointer.From(model.Properties.AvailabilityZone)
-				config.PlanId = model.Properties.MarketplaceDetails.PlanId
-				config.StorageSku = model.Properties.StorageSku
-				config.Location = location.Normalize(model.Location)
-				config.Tags = pointer.From(model.Tags)
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
 
-				subnetId, err := commonids.ParseSubnetIDInsensitively(model.Properties.DelegatedSubnetId)
+				props := model.Properties
+				state.OfferId = props.MarketplaceDetails.OfferId
+				state.PlanId = props.MarketplaceDetails.PlanId
+				state.PublisherId = pointer.From(props.MarketplaceDetails.PublisherId)
+				state.StorageSku = props.StorageSku
+				state.Zone = pointer.From(props.AvailabilityZone)
+
+				subnetId, err := commonids.ParseSubnetIDInsensitively(props.DelegatedSubnetId)
 				if err != nil {
 					return err
 				}
-				config.SubnetId = subnetId.ID()
+				state.SubnetId = subnetId.ID()
 			}
 
-			return metadata.Encode(&config)
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -272,10 +294,8 @@ func (r FileSystemResource) Update() sdk.ResourceFunc {
 }
 
 func checkSubnet(ctx context.Context, rawSubnetId string, metadata sdk.ResourceMetaData) error {
-	const (
-		delegationAction = "Microsoft.Network/virtualNetworks/subnets/join/action"
-		delegationName   = "Qumulo.Storage/fileSystems"
-	)
+	delegationAction := "Microsoft.Network/virtualNetworks/subnets/join/action"
+	delegationName := "Qumulo.Storage/fileSystems"
 
 	subnetId, err := commonids.ParseSubnetID(rawSubnetId)
 	if err != nil {
@@ -284,7 +304,7 @@ func checkSubnet(ctx context.Context, rawSubnetId string, metadata sdk.ResourceM
 
 	subnet, err := metadata.Client.Network.Subnets.Get(ctx, *subnetId, subnets.GetOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("checking the subnet: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", subnetId, err)
 	}
 
 	if subnet.Model != nil && subnet.Model.Properties != nil && subnet.Model.Properties.Delegations != nil {
@@ -300,5 +320,5 @@ func checkSubnet(ctx context.Context, rawSubnetId string, metadata sdk.ResourceM
 		}
 	}
 
-	return fmt.Errorf("subnet %q is not delegated %q to %q", rawSubnetId, delegationAction, delegationName)
+	return fmt.Errorf("subnet %q is missing action %q on delegation %q", rawSubnetId, delegationAction, delegationName)
 }
