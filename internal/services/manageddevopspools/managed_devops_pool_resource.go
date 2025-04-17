@@ -20,30 +20,30 @@ type ManagedDevOpsPoolResource struct{}
 
 func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"resource_group_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"location":      commonschema.Location(),
 		"agent_profile": AgentProfileSchema(),
 		"dev_center_project_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
 		"fabric_profile": FabricProfileSchema(),
-		"identity":       commonschema.SystemAssignedUserAssignedIdentityOptional(),
-		"location":       commonschema.Location(),
 		"maximum_concurrency": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 		},
-		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
 		"organization_profile": OrganizationProfileSchema(),
-		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"tags": commonschema.Tags(),
+		"identity":             commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"tags":                 commonschema.Tags(),
 	}
 }
 

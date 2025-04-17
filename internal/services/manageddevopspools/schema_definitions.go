@@ -1,6 +1,8 @@
 package manageddevopspools
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -50,8 +52,8 @@ func ResourcePredictionsSchema() *pluginsdk.Schema {
 					Optional: true,
 				},
 				"days_data": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
+					Type:         pluginsdk.TypeString,
+					Required:     true,
 					ValidateFunc: validation.StringIsJSON,
 				},
 			},
@@ -110,7 +112,7 @@ func FabricProfileSchema() *pluginsdk.Schema {
 								Required: true,
 								ValidateFunc: validation.StringMatch(
 									regexp.MustCompile(`^/subscriptions/[0-9a-fA-F-]{36}/resourceGroups/[-\w._()]+/providers/Microsoft\.Network/virtualNetworks/[-\w._()]+/subnets/[-\w._()]+$`),
-    								"Subnet ID must match the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}'.",
+									"Subnet ID must match the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}'.",
 								),
 							},
 						},
@@ -124,9 +126,9 @@ func FabricProfileSchema() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"name": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								validateFunc: validation.StringIsNotEmpty,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
