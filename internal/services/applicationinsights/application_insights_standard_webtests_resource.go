@@ -220,8 +220,8 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 
 					"ignore_status_code": {
 						Type:     pluginsdk.TypeBool,
-					 	Optional: true,
-					 	Default:  false,
+						Optional: true,
+						Default:  false,
 					},
 
 					"ssl_cert_remaining_lifetime": {
