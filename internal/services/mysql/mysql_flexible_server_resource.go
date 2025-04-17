@@ -23,12 +23,12 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -39,16 +39,16 @@ const (
 var mysqlFlexibleServerResourceName = "azurerm_mysql_flexible_server"
 
 func resourceMysqlFlexibleServer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMysqlFlexibleServerCreate,
 		Read:   resourceMysqlFlexibleServerRead,
 		Update: resourceMysqlFlexibleServerUpdate,
 		Delete: resourceMysqlFlexibleServerDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Create: pluginsdk.DefaultTimeout(2 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(1 * time.Hour),
+			Update: pluginsdk.DefaultTimeout(2 * time.Hour),
 			Delete: pluginsdk.DefaultTimeout(1 * time.Hour),
 		},
 
@@ -186,7 +186,7 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"standby_availability_zone": commonschema.ZoneSingleOptional(),
+						"standby_availability_zone": commonschema.ZoneSingleOptionalComputed(),
 					},
 				},
 			},
@@ -235,6 +235,14 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: privatezones.ValidatePrivateDnsZoneID,
+			},
+
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C: Azure normally defaults this to `Enabled` unless values are provided for `delegated_subnet_id` and `private_dns_zone_id`
+				Computed:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForEnableStatusEnum(), false),
 			},
 
 			"replication_role": {
@@ -305,15 +313,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"zone": commonschema.ZoneSingleOptional(),
+			"zone": commonschema.ZoneSingleOptionalComputed(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"public_network_access_enabled": {
-				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
@@ -331,6 +334,15 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -420,11 +432,11 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
-		parameters.Properties.AdministratorLogin = utils.String(v.(string))
+		parameters.Properties.AdministratorLogin = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("administrator_password"); ok && v.(string) != "" {
-		parameters.Properties.AdministratorLoginPassword = utils.String(v.(string))
+		parameters.Properties.AdministratorLoginPassword = pointer.To(v.(string))
 	}
 
 	if !woPassword.IsNull() {
@@ -432,11 +444,11 @@ func resourceMysqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
-		parameters.Properties.AvailabilityZone = utils.String(v.(string))
+		parameters.Properties.AvailabilityZone = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
-		parameters.Properties.SourceServerResourceId = utils.String(v.(string))
+		parameters.Properties.SourceServerResourceId = pointer.To(v.(string))
 	}
 
 	pointInTimeUTC := d.Get("point_in_time_restore_time_in_utc").(string)
@@ -538,9 +550,13 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("source_server_id", props.SourceServerResourceId)
 
 			if network := props.Network; network != nil {
-				d.Set("public_network_access_enabled", *network.PublicNetworkAccess == servers.EnableStatusEnumEnabled)
 				d.Set("delegated_subnet_id", network.DelegatedSubnetResourceId)
 				d.Set("private_dns_zone_id", network.PrivateDnsZoneResourceId)
+				d.Set("public_network_access", string(pointer.From(network.PublicNetworkAccess)))
+
+				if !features.FivePointOh() {
+					d.Set("public_network_access_enabled", pointer.From(network.PublicNetworkAccess) == servers.EnableStatusEnumEnabled)
+				}
 			}
 
 			cmk, err := flattenFlexibleServerDataEncryption(props.DataEncryption)
@@ -700,7 +716,7 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("administrator_password") {
-		parameters.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
+		parameters.Properties.AdministratorLoginPassword = pointer.To(d.Get("administrator_password").(string))
 	}
 
 	if d.HasChange("administrator_password_wo_version") {
@@ -743,6 +759,13 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("public_network_access") {
+		if parameters.Properties.Network == nil {
+			parameters.Properties.Network = &servers.Network{}
+		}
+		parameters.Properties.Network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(d.Get("public_network_access").(string)))
 	}
 
 	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -797,11 +820,15 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	network := servers.Network{}
 
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
-		network.DelegatedSubnetResourceId = utils.String(v.(string))
+		network.DelegatedSubnetResourceId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		network.PrivateDnsZoneResourceId = utils.String(v.(string))
+		network.PrivateDnsZoneResourceId = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("public_network_access"); ok {
+		network.PublicNetworkAccess = pointer.To(servers.EnableStatusEnum(v.(string)))
 	}
 
 	return &network
@@ -810,16 +837,16 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceWindow {
 	if len(input) == 0 {
 		return &servers.MaintenanceWindow{
-			CustomWindow: utils.String(ServerMaintenanceWindowDisabled),
+			CustomWindow: pointer.To(ServerMaintenanceWindowDisabled),
 		}
 	}
 	v := input[0].(map[string]interface{})
 
 	maintenanceWindow := servers.MaintenanceWindow{
-		CustomWindow: utils.String(ServerMaintenanceWindowEnabled),
-		StartHour:    utils.Int64(int64(v["start_hour"].(int))),
-		StartMinute:  utils.Int64(int64(v["start_minute"].(int))),
-		DayOfWeek:    utils.Int64(int64(v["day_of_week"].(int))),
+		CustomWindow: pointer.To(ServerMaintenanceWindowEnabled),
+		StartHour:    pointer.To(int64(v["start_hour"].(int))),
+		StartMinute:  pointer.To(int64(v["start_minute"].(int))),
+		DayOfWeek:    pointer.To(int64(v["day_of_week"].(int))),
 	}
 
 	return &maintenanceWindow
@@ -847,11 +874,11 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
-		storage.StorageSizeGB = utils.Int64(int64(v))
+		storage.StorageSizeGB = pointer.To(int64(v))
 	}
 
 	if v := input["iops"].(int); v != 0 {
-		storage.Iops = utils.Int64(int64(v))
+		storage.Iops = pointer.To(int64(v))
 	}
 
 	return &storage
@@ -892,7 +919,7 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
 	}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
-		backup.BackupRetentionDays = utils.Int64(int64(v.(int)))
+		backup.BackupRetentionDays = pointer.To(int64(v.(int)))
 	}
 
 	return &backup
@@ -991,7 +1018,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}) *servers.HighAva
 	}
 
 	if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
-		result.StandbyAvailabilityZone = utils.String(v.(string))
+		result.StandbyAvailabilityZone = pointer.To(v.(string))
 	}
 
 	return &result
@@ -1016,7 +1043,7 @@ func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []inter
 }
 
 func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryption {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		det := servers.DataEncryptionTypeSystemManaged
 		return &servers.DataEncryption{
 			Type: &det,
@@ -1030,19 +1057,19 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 	}
 
 	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {
-		dataEncryption.PrimaryKeyURI = utils.String(keyVaultKeyId)
+		dataEncryption.PrimaryKeyURI = pointer.To(keyVaultKeyId)
 	}
 
 	if primaryUserAssignedIdentityId := v["primary_user_assigned_identity_id"].(string); primaryUserAssignedIdentityId != "" {
-		dataEncryption.PrimaryUserAssignedIdentityId = utils.String(primaryUserAssignedIdentityId)
+		dataEncryption.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityId)
 	}
 
 	if geoBackupKeyVaultKeyId := v["geo_backup_key_vault_key_id"].(string); geoBackupKeyVaultKeyId != "" {
-		dataEncryption.GeoBackupKeyURI = utils.String(geoBackupKeyVaultKeyId)
+		dataEncryption.GeoBackupKeyURI = pointer.To(geoBackupKeyVaultKeyId)
 	}
 
 	if geoBackupUserAssignedIdentityId := v["geo_backup_user_assigned_identity_id"].(string); geoBackupUserAssignedIdentityId != "" {
-		dataEncryption.GeoBackupUserAssignedIdentityId = utils.String(geoBackupUserAssignedIdentityId)
+		dataEncryption.GeoBackupUserAssignedIdentityId = pointer.To(geoBackupUserAssignedIdentityId)
 	}
 
 	return &dataEncryption
