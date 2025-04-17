@@ -62,6 +62,7 @@ type ValidationRuleModel struct {
 	CertificateRemainingLifetime int64          `tfschema:"ssl_cert_remaining_lifetime"`
 	SSLCheck                     bool           `tfschema:"ssl_check_enabled"`
 	Content                      []ContentModel `tfschema:"content"`
+	IgnoreStatusCode             bool           `tfschema:"ignore_status_code"`
 }
 
 type HeaderModel struct {
