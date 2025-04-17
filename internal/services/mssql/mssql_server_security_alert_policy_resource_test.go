@@ -6,20 +6,25 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlServerSecurityAlertPolicyResource struct{}
 
 func TestAccMsSqlServerSecurityAlertPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
+	data = setTestDataLocationBySubscription(data)
+
 	r := MsSqlServerSecurityAlertPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -35,6 +40,8 @@ func TestAccMsSqlServerSecurityAlertPolicy_basic(t *testing.T) {
 
 func TestAccMsSqlServerSecurityAlertPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
+	data = setTestDataLocationBySubscription(data)
+
 	r := MsSqlServerSecurityAlertPolicyResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,15 +68,32 @@ func (MsSqlServerSecurityAlertPolicyResource) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.LegacyServerSecurityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	result, err := client.MSSQL.ServerSecurityAlertPoliciesClient.Get(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(result.HttpResponse) {
 			return nil, fmt.Errorf("SQL Security Alert Policy for server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroup)
 		}
 		return nil, fmt.Errorf("reading SQL Security Alert Policy for server %q (Resource Group %q): %v", id.ServerName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	model := result.Model
+	if model == nil {
+		return nil, fmt.Errorf("reading SQL Security Alert Policy for server %q (Resource Group %q): Model was nil", id.ServerName, id.ResourceGroup)
+	}
+
+	return pointer.To(model.Id != nil), nil
+}
+
+// Sets the tests 'Primary' and 'Secondary' locations based on the 'ARM_MICROSOFT_TEST' environment variable due to subscription quota policies
+func setTestDataLocationBySubscription(data acceptance.TestData) acceptance.TestData {
+	if isMicrosoftTest := os.Getenv("ARM_MICROSOFT_TEST"); isMicrosoftTest != "" {
+		data.Locations.Primary = "eastus"
+		data.Locations.Secondary = "swedencentral"
+	}
+
+	return data
 }
 
 func (r MsSqlServerSecurityAlertPolicyResource) basic(data acceptance.TestData) string {
