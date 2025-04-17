@@ -9,6 +9,9 @@ ENHANCEMENTS:
 * `azurerm_dynatrace_tag_rules` - the `log_rule` and `metric_rule` blocks and their properties are no longer `ForceNew` [GH-29298]
 * `azurerm_monitor_data_collection_endpoint` - add support for the `metrics_ingestion_endpoint` attribute [GH-29292]
 * `azurerm_subnet` - add support for the `Microsoft.PowerAutomate/hostedRpa` value in the `delegation.service_delegation.name` property [GH-29271]
+* `azurerm_subnet` - add support for the `Microsoft.Network/applicationGateways` value in the `delegation.service_delegation.name` property [GH-29361]
+* `azurerm_virtual_network` - add support for the `Microsoft.PowerAutomate/hostedRpa` value in the `subnet.delegation.service_delegation.name` property [GH-29271]
+* `azurerm_virtual_network` - add support for the `Microsoft.Network/applicationGateways` value in the `subnet.delegation.service_delegation.name` property [GH-29361]
 
 BUG FIXES:
 
@@ -16,7 +19,6 @@ BUG FIXES:
 `azurerm_app_configuration_key` - suppress casing differences for `configuration_store_id` to prevent resource recreation [GH-29285]
 `azurerm_netapp_volume` - update validation for `storage_quota_in_gb` to allow values from `50` to `102400` [GH-29341]
 `azurerm_search_shared_private_link_service` - add locks to prevent conflicts when creating multiple instances [GH-29294]
-
 
 ## 4.26.0 (April 04, 2025)
 
