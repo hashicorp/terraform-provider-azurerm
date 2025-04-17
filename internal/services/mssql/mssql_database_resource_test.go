@@ -1061,17 +1061,6 @@ func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client,
 
 // Sets the tests 'Primary' and 'Secondary' locations based on the 'ARM_MICROSOFT_TEST' environment variable due to subscription quota policies
 func setTestDataLocationBySubscription(data acceptance.TestData) acceptance.TestData {
-	// NOTE: It looks like the data.Locations values are being overridden by the 'settings.kt' file in '.teamcity\components' (line: 134):
-	// 'locationOverride' changes the local environment variables when the tests are being run on the team city servers:
-	//
-	// MSSQL uses app service which is only available in certain locations
-	// "mssql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
-	//
-	// MSSQL Managed Instance creation can impact the service so limit the frequency and number of tests
-	// "mssqlmanagedinstance" to testConfiguration(parallelism = 4, daysOfWeek = "7", locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false), timeout = 18),
-	//
-	// To be consistent with the 'settings.kt' file I will override the local environment variables (dependant on the subscription that is running the test), as lower case...
-
 	if isMicrosoftTest := os.Getenv("ARM_MICROSOFT_TEST"); isMicrosoftTest != "" {
 		data.Locations.Primary = "eastus"
 		data.Locations.Secondary = "swedencentral"
