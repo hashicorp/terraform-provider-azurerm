@@ -147,10 +147,7 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	purviewAccount := account.Account{
 		Properties: &account.AccountProperties{},
 		Location:   pointer.To(location.Normalize(d.Get("location").(string))),
-	}
-
-	if v, ok := d.GetOk("tags"); ok {
-		purviewAccount.Tags = tags.Expand(v.(map[string]interface{}))
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	expandedIdentity, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
@@ -159,11 +156,11 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	purviewAccount.Identity = expandedIdentity
 
+	publicNetworkAccessEnabled := account.PublicNetworkAccessDisabled
 	if d.Get("public_network_enabled").(bool) {
-		purviewAccount.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessEnabled)
-	} else {
-		purviewAccount.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessDisabled)
+		publicNetworkAccessEnabled = account.PublicNetworkAccessEnabled
 	}
+	purviewAccount.Properties.PublicNetworkAccess = &publicNetworkAccessEnabled
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
 		purviewAccount.Properties.ManagedResourceGroupName = pointer.To(v.(string))

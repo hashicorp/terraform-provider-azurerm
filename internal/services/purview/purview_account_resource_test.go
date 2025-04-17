@@ -19,6 +19,18 @@ import (
 
 type PurviewAccountResource struct{}
 
+func TestAccPurviewAccountSequential(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"purviewAccount": {
+			"basic":                        TestAccPurviewAccount_basic,
+			"requiresImport":               TestAccPurviewAccount_requiresImport,
+			"complete":                     TestAccPurviewAccount_complete,
+			"update":                       TestAccPurviewAccount_update,
+			"withManagedResourceGroupName": TestAccPurviewAccount_withManagedResourceGroupName,
+		},
+	})
+}
+
 func TestAccPurviewAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}

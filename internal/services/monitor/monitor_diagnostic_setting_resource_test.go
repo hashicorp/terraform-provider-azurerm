@@ -138,6 +138,22 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 	})
 }
 
+// WF: Trying to make an acc test that reproduces the customer's drifting `metric` blocks
+func TestAccMonitorDiagnosticSetting_storageAccountFileService(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccountFileService(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMonitorDiagnosticSetting_activityLog(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}
@@ -763,6 +779,48 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) storageAccountFileService(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest%[3]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = "${azurerm_key_vault.test.id}/fileServices/default/"
+  storage_account_id = azurerm_storage_account.test.id
+
+  enabled_log {
+    category_group = "allLogs"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
