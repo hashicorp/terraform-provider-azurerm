@@ -758,7 +758,6 @@ resource "azurerm_private_link_service" "test" {
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
   fqdns                          = ["foo.com", "bar.com"]
-  destination_ip_address         = "10.0.0.1"
 
   nat_ip_configuration {
     name                       = "primaryIpConfiguration-%d"
@@ -820,48 +819,6 @@ resource "azurerm_private_link_service" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (PrivateLinkServiceResource) template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_subscription" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privatelinkservice-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  address_space       = ["10.5.0.0/16"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip-%d"
-  sku                 = "Standard"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-}
-
-resource "azurerm_lb" "test" {
-  name                = "acctestlb-%d"
-  sku                 = "Standard"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  frontend_ip_configuration {
-    name                 = azurerm_public_ip.test.name
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func (r PrivateLinkServiceResource) destinationIPAddress(data acceptance.TestData, destinationIPAddress string) string {
 	return fmt.Sprintf(`
 %s
@@ -913,4 +870,46 @@ resource "azurerm_private_link_service" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (PrivateLinkServiceResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatelinkservice-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = azurerm_public_ip.test.name
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
