@@ -21,7 +21,6 @@ type ManagedDevOpsPoolModel struct {
 	ProvisioningState          string                                     `tfschema:"provisioning_state"`
 	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
 	Tags                       map[string]string                          `tfschema:"tags"`
-	Type                       string                                     `tfschema:"type"`
 }
 
 type AgentProfileModel struct {

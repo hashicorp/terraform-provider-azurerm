@@ -91,7 +91,6 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-				state.Type = pointer.From(model.Type)
 				state.Location = model.Location
 				state.Tags = pointer.From(model.Tags)
 
