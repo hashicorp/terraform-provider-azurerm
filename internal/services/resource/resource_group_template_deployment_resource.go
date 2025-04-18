@@ -176,6 +176,12 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 		}
 	}
 
+	if templateUri, ok := d.GetOk("template_uri"); ok {
+		deployment.Properties.TemplateUri = &resources.TemplateLink{
+			Uri : utils.String(templateUri.(string)),
+		}
+	}
+
 	if v, ok := d.GetOk("parameters_content"); ok && v != "" {
 		parameters, err := expandTemplateDeploymentBody(v.(string))
 		if err != nil {
