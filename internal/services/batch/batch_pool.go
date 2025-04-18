@@ -515,25 +515,22 @@ func ExpandBatchPoolImageReference(list []interface{}) (*pool.ImageReference, er
 }
 
 // ExpandBatchPoolContainerConfiguration expands the Batch pool container configuration
-func ExpandBatchPoolContainerConfiguration(list []interface{}, isCreate bool) (*pool.ContainerConfiguration, error) {
+func ExpandBatchPoolContainerConfiguration(list []interface{}) (*pool.ContainerConfiguration, error) {
 	if len(list) == 0 || list[0] == nil {
 		return nil, nil
 	}
 
 	block := list[0].(map[string]interface{})
 
-	obj := &pool.ContainerConfiguration{
-		Type: pool.ContainerType(block["type"].(string)),
+	containerRegistries, err := expandBatchPoolContainerRegistries(block["container_registries"].([]interface{}))
+	if err != nil {
+		return nil, err
 	}
 
-	if isCreate {
-		containerRegistries, err := expandBatchPoolContainerRegistries(block["container_registries"].([]interface{}))
-		if err != nil {
-			return nil, err
-		}
-		obj.ContainerRegistries = containerRegistries
-
-		obj.ContainerImageNames = utils.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List())
+	obj := &pool.ContainerConfiguration{
+		Type:                pool.ContainerType(block["type"].(string)),
+		ContainerRegistries: containerRegistries,
+		ContainerImageNames: utils.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List()),
 	}
 
 	return obj, nil
@@ -758,66 +755,66 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData, isCreate boo
 	var result pool.VirtualMachineConfiguration
 
 	if isCreate {
-		result.NodeAgentSkuId = d.Get("node_agent_sku_id").(string)
-
-		storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-		if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
-			if imageReference != nil {
-				// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
-				if imageReference.Id != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
-					return nil, fmt.Errorf("properties version, offer, publish cannot be defined when using a custom image id")
-				} else if imageReference.Id == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
-					return nil, fmt.Errorf("properties version, offer, publish and sku are mandatory when not using a custom image")
-				}
-				result.ImageReference = *imageReference
+		if v, ok := d.GetOk("container_configuration"); ok {
+			if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]interface{})); err == nil {
+				result.ContainerConfiguration = containerConfiguration
+			} else {
+				return nil, fmt.Errorf("container_configuration either is empty or contains parsing errors")
 			}
+		}
+
+		if diskEncryptionConfig, diskEncryptionErr := expandBatchPoolDiskEncryptionConfiguration(d.Get("disk_encryption").([]interface{})); diskEncryptionErr == nil {
+			result.DiskEncryptionConfiguration = diskEncryptionConfig
 		} else {
-			return nil, fmt.Errorf("storage_image_reference either is empty or contains parsing errors")
+			return nil, diskEncryptionErr
+		}
+
+		if extensions, extErr := expandBatchPoolExtensions(d.Get("extensions").([]interface{})); extErr == nil {
+			result.Extensions = extensions
+		} else {
+			return nil, extErr
+		}
+
+		if licenseType, ok := d.GetOk("license_type"); ok {
+			result.LicenseType = utils.String(licenseType.(string))
+		}
+
+		if v, ok := d.GetOk("node_placement"); ok {
+			result.NodePlacementConfiguration = expandBatchPoolNodeReplacementConfig(v.([]interface{}))
 		}
 
 		if v, ok := d.GetOk("security_profile"); ok {
 			result.SecurityProfile = expandBatchPoolSecurityProfile(v.([]interface{}))
 		}
+
+		if v, ok := d.GetOk("windows"); ok {
+			result.WindowsConfiguration = expandBatchPoolWindowsConfiguration(v.([]interface{}))
+		}
 	}
 
-	if v, ok := d.GetOk("container_configuration"); ok {
-		if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]interface{}), isCreate); err == nil {
-			result.ContainerConfiguration = containerConfiguration
-		} else {
-			return nil, fmt.Errorf("container_configuration either is empty or contains parsing errors")
+	result.NodeAgentSkuId = d.Get("node_agent_sku_id").(string)
+
+	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+	if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
+		if imageReference != nil {
+			// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
+			if imageReference.Id != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
+				return nil, fmt.Errorf("properties version, offer, publish cannot be defined when using a custom image id")
+			} else if imageReference.Id == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
+				return nil, fmt.Errorf("properties version, offer, publish and sku are mandatory when not using a custom image")
+			}
+			result.ImageReference = *imageReference
 		}
+	} else {
+		return nil, fmt.Errorf("storage_image_reference either is empty or contains parsing errors")
 	}
 
 	if v, ok := d.GetOk("data_disks"); ok {
 		result.DataDisks = expandBatchPoolDataDisks(v.([]interface{}))
 	}
 
-	if diskEncryptionConfig, diskEncryptionErr := expandBatchPoolDiskEncryptionConfiguration(d.Get("disk_encryption").([]interface{})); diskEncryptionErr == nil {
-		result.DiskEncryptionConfiguration = diskEncryptionConfig
-	} else {
-		return nil, diskEncryptionErr
-	}
-
-	if extensions, extErr := expandBatchPoolExtensions(d.Get("extensions").([]interface{})); extErr == nil {
-		result.Extensions = extensions
-	} else {
-		return nil, extErr
-	}
-
-	if licenseType, ok := d.GetOk("license_type"); ok {
-		result.LicenseType = utils.String(licenseType.(string))
-	}
-
-	if v, ok := d.GetOk("node_placement"); ok {
-		result.NodePlacementConfiguration = expandBatchPoolNodeReplacementConfig(v.([]interface{}))
-	}
-
 	if v, ok := d.GetOk("os_disk_placement"); ok {
 		result.OsDisk = expandBatchPoolOSDisk(v)
-	}
-
-	if v, ok := d.GetOk("windows"); ok {
-		result.WindowsConfiguration = expandBatchPoolWindowsConfiguration(v.([]interface{}))
 	}
 
 	return &result, nil
