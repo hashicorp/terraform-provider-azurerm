@@ -937,7 +937,7 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.StartTask = startTask
 	}
 
-	if vmDeploymentConfiguration, deploymentErr := expandBatchPoolVirtualMachineConfig(d); deploymentErr == nil {
+	if vmDeploymentConfiguration, deploymentErr := expandBatchPoolVirtualMachineConfig(d, true); deploymentErr == nil {
 		parameters.Properties.DeploymentConfiguration = &pool.DeploymentConfiguration{
 			VirtualMachineConfiguration: vmDeploymentConfiguration,
 		}
@@ -1078,6 +1078,13 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		parameters.Properties.StartTask = startTask
+	}
+	if vmDeploymentConfiguration, deploymentErr := expandBatchPoolVirtualMachineConfig(d, false); deploymentErr == nil {
+		parameters.Properties.DeploymentConfiguration = &pool.DeploymentConfiguration{
+			VirtualMachineConfiguration: vmDeploymentConfiguration,
+		}
+	} else {
+		return deploymentErr
 	}
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)

@@ -515,22 +515,25 @@ func ExpandBatchPoolImageReference(list []interface{}) (*pool.ImageReference, er
 }
 
 // ExpandBatchPoolContainerConfiguration expands the Batch pool container configuration
-func ExpandBatchPoolContainerConfiguration(list []interface{}) (*pool.ContainerConfiguration, error) {
+func ExpandBatchPoolContainerConfiguration(list []interface{}, isCreate bool) (*pool.ContainerConfiguration, error) {
 	if len(list) == 0 || list[0] == nil {
 		return nil, nil
 	}
 
 	block := list[0].(map[string]interface{})
 
-	containerRegistries, err := expandBatchPoolContainerRegistries(block["container_registries"].([]interface{}))
-	if err != nil {
-		return nil, err
+	obj := &pool.ContainerConfiguration{
+		Type: pool.ContainerType(block["type"].(string)),
 	}
 
-	obj := &pool.ContainerConfiguration{
-		Type:                pool.ContainerType(block["type"].(string)),
-		ContainerRegistries: containerRegistries,
-		ContainerImageNames: utils.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List()),
+	if isCreate {
+		containerRegistries, err := expandBatchPoolContainerRegistries(block["container_registries"].([]interface{}))
+		if err != nil {
+			return nil, err
+		}
+		obj.ContainerRegistries = containerRegistries
+
+		obj.ContainerImageNames = utils.ExpandStringSlice(block["container_image_names"].(*pluginsdk.Set).List())
 	}
 
 	return obj, nil
@@ -751,28 +754,34 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 	return startTask, nil
 }
 
-func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.VirtualMachineConfiguration, error) {
+func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData, isCreate bool) (*pool.VirtualMachineConfiguration, error) {
 	var result pool.VirtualMachineConfiguration
 
-	result.NodeAgentSkuId = d.Get("node_agent_sku_id").(string)
+	if isCreate {
+		result.NodeAgentSkuId = d.Get("node_agent_sku_id").(string)
 
-	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-	if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
-		if imageReference != nil {
-			// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
-			if imageReference.Id != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
-				return nil, fmt.Errorf("properties version, offer, publish cannot be defined when using a custom image id")
-			} else if imageReference.Id == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
-				return nil, fmt.Errorf("properties version, offer, publish and sku are mandatory when not using a custom image")
+		storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
+		if imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet); err == nil {
+			if imageReference != nil {
+				// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
+				if imageReference.Id != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
+					return nil, fmt.Errorf("properties version, offer, publish cannot be defined when using a custom image id")
+				} else if imageReference.Id == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
+					return nil, fmt.Errorf("properties version, offer, publish and sku are mandatory when not using a custom image")
+				}
+				result.ImageReference = *imageReference
 			}
-			result.ImageReference = *imageReference
+		} else {
+			return nil, fmt.Errorf("storage_image_reference either is empty or contains parsing errors")
 		}
-	} else {
-		return nil, fmt.Errorf("storage_image_reference either is empty or contains parsing errors")
+
+		if v, ok := d.GetOk("security_profile"); ok {
+			result.SecurityProfile = expandBatchPoolSecurityProfile(v.([]interface{}))
+		}
 	}
 
 	if v, ok := d.GetOk("container_configuration"); ok {
-		if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]interface{})); err == nil {
+		if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]interface{}), isCreate); err == nil {
 			result.ContainerConfiguration = containerConfiguration
 		} else {
 			return nil, fmt.Errorf("container_configuration either is empty or contains parsing errors")
@@ -805,10 +814,6 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 
 	if v, ok := d.GetOk("os_disk_placement"); ok {
 		result.OsDisk = expandBatchPoolOSDisk(v)
-	}
-
-	if v, ok := d.GetOk("security_profile"); ok {
-		result.SecurityProfile = expandBatchPoolSecurityProfile(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("windows"); ok {
