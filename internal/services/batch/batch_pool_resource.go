@@ -937,7 +937,7 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.StartTask = startTask
 	}
 
-	if vmDeploymentConfiguration, deploymentErr := expandBatchPoolVirtualMachineConfig(d, true); deploymentErr == nil {
+	if vmDeploymentConfiguration, deploymentErr := expandBatchPoolVirtualMachineConfig(d); deploymentErr == nil {
 		parameters.Properties.DeploymentConfiguration = &pool.DeploymentConfiguration{
 			VirtualMachineConfiguration: vmDeploymentConfiguration,
 		}
@@ -1079,12 +1079,14 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		parameters.Properties.StartTask = startTask
 	}
-	if vmDeploymentConfiguration, deploymentErr := expandBatchPoolVirtualMachineConfig(d, false); deploymentErr == nil {
-		parameters.Properties.DeploymentConfiguration = &pool.DeploymentConfiguration{
-			VirtualMachineConfiguration: vmDeploymentConfiguration,
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
+			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
+			if d.HasChange("data_disks") {
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
+			}
 		}
-	} else {
-		return deploymentErr
 	}
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
