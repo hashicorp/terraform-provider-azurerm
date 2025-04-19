@@ -114,7 +114,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if _, ok := d.GetOk("network_profile.0.advanced_networking"); ok {
-
 					advancedNetworkingEnabled := d.Get("network_profile.0.advanced_networking.0.enabled").(bool)
 					observabilityEnabled := d.Get("network_profile.0.advanced_networking.0.observability.0.enabled").(bool)
 					securityEnabled := d.Get("network_profile.0.advanced_networking.0.security.0.enabled").(bool)
