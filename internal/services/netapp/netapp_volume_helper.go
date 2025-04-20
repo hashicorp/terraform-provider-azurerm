@@ -940,29 +940,54 @@ func netappVolumeGroupStateRefreshFunc(ctx context.Context, client *volumegroups
 func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId, desiredState string) pluginsdk.StateRefreshFunc {
 	validStates := []string{"mirrored", "broken", "uninitialized"}
 
+	// Validation for the desiredState being valid
+	validState := false
+	for _, state := range validStates {
+		if strings.EqualFold(desiredState, state) {
+			validState = true
+			break
+		}
+	}
+	if !validState {
+		return func() (interface{}, string, error) {
+			return nil, "", fmt.Errorf("invalid desired mirror state: %s", desiredState)
+		}
+	}
+
 	return func() (interface{}, string, error) {
 		// Possible Mirror States to be used as desiredStates:
 		// mirrored, broken or uninitialized
+
 		if !utils.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
 			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
 		}
 
+		code := "200"
 		res, err := client.VolumesReplicationStatus(ctx, id)
 		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving replication status information from %s: %s", id, err)
+			// Special handling for 409 Conflict errors with the specific "VolumeReplicationMissingFor" message
+			if res.HttpResponse != nil && res.HttpResponse.StatusCode == 409 &&
+				strings.Contains(err.Error(), "VolumeReplicationMissingFor") {
+				// If replication no longer exists and we want the "broken" state
+				// then we've reached our goal - replication is broken/removed
+				if strings.EqualFold(desiredState, "broken") {
+					return res, "204", nil
+				}
+				return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
+			}
+			return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
+		}
+
+		mirrorState := ""
+		if res.Model != nil && res.Model.MirrorState != nil {
+			mirrorState = string(*res.Model.MirrorState)
+			// Check if the current state is the desired state
+			if strings.EqualFold(strings.ToLower(mirrorState), strings.ToLower(desiredState)) {
+				code = "204"
 			}
 		}
 
-		// TODO: fix this refresh function to use strings instead of fake status codes
-		// Setting 200 as default response
-		response := 200
-		if res.Model != nil && res.Model.MirrorState != nil && strings.EqualFold(string(*res.Model.MirrorState), desiredState) {
-			// return 204 if state matches desired state
-			response = 204
-		}
-
-		return res, strconv.Itoa(response), nil
+		return res, code, nil
 	}
 }
 
@@ -989,6 +1014,13 @@ func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volume
 	return func() (interface{}, string, error) {
 		res, err := client.VolumesReplicationStatus(ctx, id)
 		if err != nil {
+			// Special handling for 409 Conflict errors with "VolumeReplicationMissingFor" message
+			if res.HttpResponse != nil && res.HttpResponse.StatusCode == 409 &&
+				strings.Contains(err.Error(), "VolumeReplicationMissingFor") {
+				// If replication no longer exists, consider it deleted and return 404
+				return res, "404", nil
+			}
+
 			if response.WasBadRequest(res.HttpResponse) && (strings.Contains(strings.ToLower(err.Error()), "deleting") || strings.Contains(strings.ToLower(err.Error()), "volume replication missing or deleted")) {
 				// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
 				// TODO: remove this workaround when above bug is fixed
