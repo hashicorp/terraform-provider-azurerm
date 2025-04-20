@@ -13,10 +13,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,17 +75,17 @@ func expandNetAppVolumeGroupDataProtectionReplication(input []netAppModels.DataP
 	replicationObject := volumegroups.ReplicationObject{}
 
 	endpointType := volumegroups.EndpointType(input[0].EndpointType)
-	replicationObject.EndpointType = &endpointType
+	replicationObject.EndpointType = pointer.To(endpointType)
 
-	replicationObject.RemoteVolumeRegion = &input[0].RemoteVolumeLocation
-	replicationObject.RemoteVolumeResourceId = input[0].RemoteVolumeResourceId
+	replicationObject.RemoteVolumeRegion = pointer.To(input[0].RemoteVolumeLocation)
+	replicationObject.RemoteVolumeResourceId = pointer.To(input[0].RemoteVolumeResourceId)
 
 	replicationSchedule := volumegroups.ReplicationSchedule(translateTFSchedule(input[0].ReplicationFrequency))
-	replicationObject.ReplicationSchedule = &replicationSchedule
+	replicationObject.ReplicationSchedule = pointer.To(replicationSchedule)
 
-	return &volumegroups.VolumePropertiesDataProtection{
-		Replication: &replicationObject,
-	}
+	return pointer.To(volumegroups.VolumePropertiesDataProtection{
+		Replication: pointer.To(replicationObject),
+	})
 }
 
 func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []netAppModels.DataProtectionSnapshotPolicy) *volumegroups.VolumePropertiesDataProtection {
@@ -274,22 +274,22 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.V
 
 	if v, ok := replicationRaw["endpoint_type"]; ok {
 		endpointType := volumes.EndpointType(v.(string))
-		replicationObject.EndpointType = &endpointType
+		replicationObject.EndpointType = pointer.To(endpointType)
 	}
 	if v, ok := replicationRaw["remote_volume_location"]; ok {
 		replicationObject.RemoteVolumeRegion = utils.String(v.(string))
 	}
 	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
-		replicationObject.RemoteVolumeResourceId = v.(string)
+		replicationObject.RemoteVolumeResourceId = pointer.To(v.(string))
 	}
 	if v, ok := replicationRaw["replication_frequency"]; ok {
 		replicationSchedule := volumes.ReplicationSchedule(translateTFSchedule(v.(string)))
-		replicationObject.ReplicationSchedule = &replicationSchedule
+		replicationObject.ReplicationSchedule = pointer.To(replicationSchedule)
 	}
 
-	return &volumes.VolumePropertiesDataProtection{
-		Replication: &replicationObject,
-	}
+	return pointer.To(volumes.VolumePropertiesDataProtection{
+		Replication: pointer.To(replicationObject),
+	})
 }
 
 func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
@@ -590,7 +590,7 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 		{
 			EndpointType:           strings.ToLower(string(pointer.From(input.EndpointType))),
 			RemoteVolumeLocation:   pointer.From(input.RemoteVolumeRegion),
-			RemoteVolumeResourceId: input.RemoteVolumeResourceId,
+			RemoteVolumeResourceId: pointer.From(input.RemoteVolumeResourceId),
 			ReplicationFrequency:   replicationFrequency,
 		},
 	}
@@ -645,7 +645,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		}
 		if dataProtectionReplication.Replication.EndpointType != nil && !strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumes.EndpointTypeDst)) {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
-			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
+			replicaVolumeId, err = volumesreplication.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
 			if err != nil {
 				return err
 			}
