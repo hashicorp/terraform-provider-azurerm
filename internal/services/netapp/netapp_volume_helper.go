@@ -978,9 +978,8 @@ func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *
 			return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
 		}
 
-		mirrorState := ""
 		if res.Model != nil && res.Model.MirrorState != nil {
-			mirrorState = string(*res.Model.MirrorState)
+			mirrorState := string(*res.Model.MirrorState)
 			// Check if the current state is the desired state
 			if strings.EqualFold(strings.ToLower(mirrorState), strings.ToLower(desiredState)) {
 				code = "204"
