@@ -603,9 +603,57 @@ func TestAccContainerAppResource_ingressStickySessionsValidation(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.ingressStickySessionsValidation(data, "sticky"),
+			Config:      r.ingressStickySessionsValidation(data, "Multiple", "sticky"),
 			ExpectError: regexp.MustCompile("`sticky` session affinity can only be used in conjunction with `Single` `revision_mode`"),
 		},
+	})
+}
+
+func TestAccContainerAppResource_ingressStickySessionsDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress.0.sticky_sessions.0").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_ingressStickySessionsSticky(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ingressStickySessionsValidation(data, "Single", "sticky"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress.0.sticky_sessions.0.affinity").HasValue("sticky"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppResource_ingressStickySessionsNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ingressStickySessionsValidation(data, "Multiple", "none"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress.0.sticky_sessions.0.affinity").HasValue("none"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1412,9 +1460,9 @@ resource "azurerm_container_app" "test" {
     sticky_sessions {
       affinity = "sticky"
     }
-    target_port                = 5000
-    transport                  = "http"
-    client_certificate_mode    = "accept"
+    target_port             = 5000
+    transport               = "http"
+    client_certificate_mode = "accept"
     traffic_weight {
       latest_revision = true
       percentage      = 100
@@ -2833,7 +2881,7 @@ resource "azurerm_container_app" "test" {
 `, r.template(data), data.RandomInteger, trafficBlock)
 }
 
-func (r ContainerAppResource) ingressStickySessionsValidation(data acceptance.TestData, affinity string) string {
+func (r ContainerAppResource) ingressStickySessionsValidation(data acceptance.TestData, revision string, affinity string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -2841,7 +2889,7 @@ resource "azurerm_container_app" "test" {
   name                         = "acctest-capp-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
-  revision_mode                = "Multiple"
+  revision_mode                = "%[3]s"
 
   template {
     container {
@@ -2856,17 +2904,17 @@ resource "azurerm_container_app" "test" {
     allow_insecure_connections = true
     external_enabled           = true
     sticky_sessions {
-      affinity = "%s"
+      affinity = "%[4]s"
     }
-    target_port                = 5000
-    transport                  = "http"
+    target_port = 5000
+    transport   = "http"
     traffic_weight {
       latest_revision = true
       percentage      = 100
     }
   }
 }
-`, r.template(data), data.RandomInteger, affinity)
+`, r.template(data), data.RandomInteger, revision, affinity)
 }
 
 func (r ContainerAppResource) secretBasic(data acceptance.TestData) string {

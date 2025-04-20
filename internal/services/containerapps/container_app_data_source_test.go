@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
 type ContainerAppDataSource struct{}
@@ -20,9 +19,7 @@ func TestAccContainerAppDataSource_basic(t *testing.T) {
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("ingress.0.sticky_sessions.0").DoesNotExist(),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
 }
@@ -34,9 +31,7 @@ func TestAccContainerAppDataSource_complete(t *testing.T) {
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.complete(data, "rev1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("ingress.0.sticky_sessions.0.affinity").HasValue("sticky"),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(),
 		},
 	})
 }
