@@ -23,15 +23,15 @@ func TestAccPurviewAccountSequential(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"purviewAccount": {
 			"basic":                        testAccPurviewAccount_basic,
-			"requiresImport":               TestAccPurviewAccount_requiresImport,
-			"complete":                     TestAccPurviewAccount_complete,
-			"update":                       TestAccPurviewAccount_update,
-			"withManagedResourceGroupName": TestAccPurviewAccount_withManagedResourceGroupName,
+			"requiresImport":               testAccPurviewAccount_requiresImport,
+			"complete":                     testAccPurviewAccount_complete,
+			"update":                       testAccPurviewAccount_update,
+			"withManagedResourceGroupName": testAccPurviewAccount_withManagedResourceGroupName,
 		},
 	})
 }
 
-func TestAccPurviewAccount_basic(t *testing.T) {
+func testAccPurviewAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
@@ -46,7 +46,7 @@ func TestAccPurviewAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccPurviewAccount_complete(t *testing.T) {
+func testAccPurviewAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
@@ -61,7 +61,7 @@ func TestAccPurviewAccount_complete(t *testing.T) {
 	})
 }
 
-func TestAccPurviewAccount_update(t *testing.T) {
+func testAccPurviewAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
@@ -83,7 +83,7 @@ func TestAccPurviewAccount_update(t *testing.T) {
 	})
 }
 
-func TestAccPurviewAccount_requiresImport(t *testing.T) {
+func testAccPurviewAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
@@ -98,7 +98,7 @@ func TestAccPurviewAccount_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
+func testAccPurviewAccount_withManagedResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 	managedResourceGroupName := fmt.Sprintf("acctestRG-purview-managed-%d", data.RandomInteger)
