@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/poolchange"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/poolchange"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -638,7 +638,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	// If this is a data replication secondary volume, authorize replication on primary volume
 	if authorizeReplication {
 		replicationClient := meta.(*clients.Client).NetApp.VolumeReplicationClient
-		replVolID, err := volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
+		replVolID, err := volumesreplication.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
 		if err != nil {
 			return err
 		}
@@ -917,7 +917,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 			if dataProtectionReplication.Replication != nil && dataProtectionReplication.Replication.EndpointType != nil && !(strings.EqualFold(string(*dataProtectionReplication.Replication.EndpointType), "dst")) {
 				// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
-				replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
+				replicaVolumeId, err = volumesreplication.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
 				if err != nil {
 					return err
 				}
