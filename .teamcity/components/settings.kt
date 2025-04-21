@@ -168,7 +168,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
 
         // Purview Accounts are only available in certain locations
-        "purview" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "southcentralus", "westcentralus", "westus", "westus2", "westus3", true)),
+        "purview" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus", true)),
 
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
