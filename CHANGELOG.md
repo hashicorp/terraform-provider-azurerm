@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * `azurerm_dev_center_project` - add support for the `identity` property [GH-29278]
 * `azurerm_dynatrace_tag_rules` - the `log_rule` and `metric_rule` blocks and their properties are no longer `ForceNew` [GH-29298]
 * `azurerm_monitor_data_collection_endpoint` - add support for the `metrics_ingestion_endpoint` attribute [GH-29292]
+* `azurerm_mysql_flexible_server` - support for the `log_on_disk_enabled` property [GH-28929]
 * `azurerm_subnet` - add support for the `Microsoft.PowerAutomate/hostedRpa` value in the `delegation.service_delegation.name` property [GH-29271]
 * `azurerm_subnet` - add support for the `Microsoft.Network/applicationGateways` value in the `delegation.service_delegation.name` property [GH-29361]
 * `azurerm_virtual_network` - add support for the `Microsoft.PowerAutomate/hostedRpa` value in the `subnet.delegation.service_delegation.name` property [GH-29271]
