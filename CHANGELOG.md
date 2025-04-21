@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * dependencies: update `go-azure-sdk` to `v0.20250409.1192141` [GH-29307]
 * dependencies: `containerapps` - update to API version  `2025-01-01` [GH-29296]
+* dependencies: `netapp` - update to API version `2025-01-01` [GH-29382]
 * dependencies: `operationalinsights` - partial update to API version `2023-09-01` [GH-29283]
 * `azurerm_cdn_frontdoor_origin` - support `managedEnvironments` value for target_type [GH-28239]
 * `azurerm_dev_center_project` - add support for the `identity` property [GH-29278]
