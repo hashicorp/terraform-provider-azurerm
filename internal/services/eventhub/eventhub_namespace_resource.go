@@ -138,13 +138,11 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						// Returned value of the `virtual_network_rule` array does not honor the input order,
 						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
 							Type:       pluginsdk.TypeSet,
 							Optional:   true,
-							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Set:        resourceVnetRuleHash,
 							Elem: &pluginsdk.Resource{
@@ -166,11 +164,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							},
 						},
 
-						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						"ip_rule": {
 							Type:       pluginsdk.TypeList,
 							Optional:   true,
-							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
