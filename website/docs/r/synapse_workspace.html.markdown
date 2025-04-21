@@ -267,7 +267,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the synapse Workspace.
 
-* `connectivity_endpoints` - A map of Connectivity endpoints for this Synapse Workspace.
+* `connectivity_endpoints` - A map of Connectivity endpoints for this Synapse Workspace. Possible key values are `dev`, `sql`, `sqlOnDemand`, and `web`.
 
 -> **Note:** The standard keys for connectivity_endpoints include dev, sql, sqlOnDemand, and web
 
