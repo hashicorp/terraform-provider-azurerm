@@ -20,6 +20,7 @@ BUG FIXES:
 * `azurerm_app_configuration_feature` - suppress casing differences for `configuration_store_id` to prevent resource recreation [GH-29285]
 * `azurerm_app_configuration_key` - suppress casing differences for `configuration_store_id` to prevent resource recreation [GH-29285]
 * `azurerm_eventhub_namespace` - remove max items from network/ip rules as they can be increased above upon request [GH-29333]
+* `azurerm_kusto_iothub_data_connection` - update `event_system_properties` validation and documentation to be more flexible [GH-29314]
 * `azurerm_linux_web_app` - correctly read `backup.schedule.start_time` into state [GH-29254]
 * `azurerm_netapp_volume` - update validation for `storage_quota_in_gb` to allow values from `50` to `102400` [GH-29341]
 * `azurerm_search_shared_private_link_service` - add locks to prevent conflicts when creating multiple instances [GH-29294]
