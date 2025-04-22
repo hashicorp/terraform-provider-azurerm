@@ -166,7 +166,7 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 
 	err := client.CreateOrUpdateThenPoll(ctx, serverId, alertPolicy)
 	if err != nil {
-		return fmt.Errorf("creating mssql server security alert policy: %v", err)
+		return fmt.Errorf("creating mssql server security alert policy: %+v", err)
 	}
 
 	policy, err := client.Get(ctx, serverId)
@@ -207,7 +207,7 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	policy, err := client.Get(ctx, serverId)
 	if err != nil {
 		if response.WasNotFound(policy.HttpResponse) {
-			log.Printf("[WARN] mssql server security alert policy %v not found", id)
+			log.Printf("[WARN] mssql server security alert policy %s: not found", id)
 			d.SetId("")
 			return nil
 		}
@@ -355,7 +355,7 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 
 	err = client.CreateOrUpdateThenPoll(ctx, serverId, alertPolicy)
 	if err != nil {
-		return fmt.Errorf("updating mssql server security alert policy: %v", err)
+		return fmt.Errorf("updating mssql server security alert policy: %+v", err)
 	}
 
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
@@ -383,11 +383,11 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 
 	err = client.CreateOrUpdateThenPoll(ctx, serverId, disabledPolicy)
 	if err != nil {
-		return fmt.Errorf("updating mssql server security alert policy: %v", err)
+		return fmt.Errorf("updating mssql server security alert policy: %+v", err)
 	}
 
 	if _, err = client.Get(ctx, serverId); err != nil {
-		return fmt.Errorf("deleting mssql server security alert policy: %v", err)
+		return fmt.Errorf("deleting mssql server security alert policy: %+v", err)
 	}
 
 	return nil
