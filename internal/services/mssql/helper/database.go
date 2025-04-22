@@ -135,7 +135,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 				linkPropsPossiblePartner := *linkPossiblePartnerItem.Properties
 
 				// If the database has a replication link for the specified role, we'll consider it a partner of this database if the location is the same as expected partner
-				if matchesRole(*linkPropsPossiblePartner.Role) {
+				if matchesRole(pointer.From(linkPropsPossiblePartner.Role)) {
 					partnerDatabaseId := commonids.NewSqlDatabaseID(partnerServerId.SubscriptionId, partnerServerId.ResourceGroupName, partnerServerId.ServerName, *linkProps.PartnerDatabase)
 					partnerDatabase, err := databasesClient.Get(ctx, partnerDatabaseId, databases.DefaultGetOperationOptions())
 					if err != nil {

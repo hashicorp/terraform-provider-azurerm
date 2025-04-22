@@ -6,7 +6,6 @@ package mssql_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 	"time"
@@ -75,11 +74,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 
 	maintenance_configuration_name := "SQL_Default"
 
-	data = setTestDataLocationBySubscription(data)
-
 	switch data.Locations.Primary {
-	case "eastus": // Added due to subscription quota policies...
-		maintenance_configuration_name = "SQL_EastUS_DB_2"
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
 	case "francecentral":
@@ -417,7 +412,6 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 
 func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
-	data = setTestDataLocationBySubscription(data)
 
 	r := MsSqlDatabaseResource{}
 
@@ -543,7 +537,7 @@ func TestAccMsSqlDatabase_scaleReplicaSetWithFailovergroup(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_Gen5_2"),
 			),
 		},
-		data.ImportStep(), // need to ignore create mode here
+		data.ImportStep(),
 	})
 }
 
@@ -1059,19 +1053,7 @@ func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client,
 	return pointer.To(resp.Model != nil), nil
 }
 
-// Sets the tests 'Primary' and 'Secondary' locations based on the 'ARM_MICROSOFT_TEST' environment variable due to subscription quota policies
-func setTestDataLocationBySubscription(data acceptance.TestData) acceptance.TestData {
-	if isMicrosoftTest := os.Getenv("ARM_MICROSOFT_TEST"); isMicrosoftTest != "" {
-		data.Locations.Primary = "eastus"
-		data.Locations.Secondary = "swedencentral"
-	}
-
-	return data
-}
-
 func (MsSqlDatabaseResource) template(data acceptance.TestData) string {
-	data = setTestDataLocationBySubscription(data)
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1689,8 +1671,6 @@ resource "azurerm_mssql_failover_group" "failover_group" {
 }
 
 func (MsSqlDatabaseResource) createRestoreMode(data acceptance.TestData) string {
-	data = setTestDataLocationBySubscription(data)
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1726,8 +1706,6 @@ resource "azurerm_mssql_database" "copy" {
 }
 
 func (MsSqlDatabaseResource) createRestoreModeDBDeleted(data acceptance.TestData) string {
-	data = setTestDataLocationBySubscription(data)
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1756,8 +1734,6 @@ resource "azurerm_mssql_database" "test" {
 }
 
 func (MsSqlDatabaseResource) createRestoreModeDBRestored(data acceptance.TestData) string {
-	data = setTestDataLocationBySubscription(data)
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

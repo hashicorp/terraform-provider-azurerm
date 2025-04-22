@@ -213,8 +213,6 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	location := server.Model.Location
 	ledgerEnabled := d.Get("ledger_enabled").(bool)
 
-	// This does not make sense here, it will always be 404 since the database does not exist?
-	//
 	// When databases are replicating, the primary cannot have a SKU belonging to a higher service tier than any of its
 	// partner databases. To work around this, we'll try to identify any partner databases that are secondary to this
 	// database, and where the new SKU tier for this database is going to be higher, first upgrade those databases to
@@ -871,12 +869,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 					}
 
 					log.Printf("[INFO] SKU of Replication Partner Database updated successfully to %q", skuName)
-				} else {
-					if partnerDatabase.Sku == nil || partnerDatabase.Sku.Name == "" {
-						log.Printf("[INFO] SKU of Replication Partner Database was 'nil' or empty")
-					} else {
-						log.Printf("[INFO] SKU of Replication Partner Database does not need to be updated")
-					}
 				}
 			}
 		}
