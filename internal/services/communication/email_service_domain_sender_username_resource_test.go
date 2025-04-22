@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -101,19 +100,14 @@ func TestAccEmailServiceDomainSenderUsername_update(t *testing.T) {
 }
 
 func (r EmailServiceDomainSenderUsernameTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	senderUsernameClient := client.Communication.SenderUsernamesClient
 	id, err := senderusernames.ParseSenderUsernameID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := senderUsernameClient.Get(ctx, *id)
+	resp, err := client.Communication.SenderUsernamesClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
-		}
-
-		return nil, fmt.Errorf("retrieving Email Domain Sender Username Communication Service %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
@@ -130,9 +124,8 @@ provider "azurerm" {
 resource "azurerm_email_communication_service_domain_sender_username" "test" {
   name                    = "acctest-su-%d"
   email_service_domain_id = azurerm_email_communication_service_domain.test.id
-  username                = "acctest-su-%d"
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r EmailServiceDomainSenderUsernameTestResource) requiresImport(data acceptance.TestData) string {
@@ -142,7 +135,6 @@ func (r EmailServiceDomainSenderUsernameTestResource) requiresImport(data accept
 resource "azurerm_email_communication_service_domain_sender_username" "import" {
   name                    = azurerm_email_communication_service_domain_sender_username.test.name
   email_service_domain_id = azurerm_email_communication_service_domain_sender_username.test.email_service_domain_id
-  username                = azurerm_email_communication_service_domain_sender_username.test.username
 }
 `, r.basic(data))
 }
@@ -158,10 +150,9 @@ provider "azurerm" {
 resource "azurerm_email_communication_service_domain_sender_username" "test" {
   name                    = "acctest-su-%d"
   email_service_domain_id = azurerm_email_communication_service_domain.test.id
-  username                = "acctest-su-%d"
   display_name            = "TFTester"
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r EmailServiceDomainSenderUsernameTestResource) update(data acceptance.TestData) string {
@@ -175,10 +166,9 @@ provider "azurerm" {
 resource "azurerm_email_communication_service_domain_sender_username" "test" {
   name                    = "acctest-su-%d"
   email_service_domain_id = azurerm_email_communication_service_domain.test.id
-  username                = "acctest-su-%d"
   display_name            = "TFTester2"
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r EmailServiceDomainSenderUsernameTestResource) template(data acceptance.TestData) string {

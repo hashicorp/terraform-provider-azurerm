@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -24,7 +25,6 @@ type EmailCommunicationServiceDomainSenderUsernameModel struct {
 	Name                 string `tfschema:"name"`
 	EMailServiceDomainID string `tfschema:"email_service_domain_id"`
 	DisplayName          string `tfschema:"display_name"`
-	Username             string `tfschema:"username"`
 }
 
 func (EmailCommunicationServiceDomainSenderUsernameResource) Arguments() map[string]*pluginsdk.Schema {
@@ -36,19 +36,7 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Arguments() map[str
 			ValidateFunc: validation.StringLenBetween(1, 253),
 		},
 
-		"email_service_domain_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: senderusernames.ValidateDomainID,
-		},
-
-		"username": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(1, 253),
-		},
+		"email_service_domain_id": commonschema.ResourceIDReferenceRequiredForceNew(&senderusernames.DomainId{}),
 
 		"display_name": {
 			Type:         pluginsdk.TypeString,
@@ -56,6 +44,10 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Arguments() map[str
 			ValidateFunc: validation.StringLenBetween(1, 253),
 		},
 	}
+}
+
+func (EmailCommunicationServiceDomainSenderUsernameResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return senderusernames.ValidateSenderUsernameID
 }
 
 func (EmailCommunicationServiceDomainSenderUsernameResource) Attributes() map[string]*pluginsdk.Schema {
@@ -79,12 +71,12 @@ func (r EmailCommunicationServiceDomainSenderUsernameResource) Create() sdk.Reso
 
 			var model EmailCommunicationServiceDomainSenderUsernameModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			eMailServiceDomainID, err := senderusernames.ParseDomainID(model.EMailServiceDomainID)
 			if err != nil {
-				return fmt.Errorf("parsing parent email_service_domain_id: %+v", err)
+				return err
 			}
 
 			id := senderusernames.NewSenderUsernameID(subscriptionId, eMailServiceDomainID.ResourceGroupName, eMailServiceDomainID.EmailServiceName, eMailServiceDomainID.DomainName, model.Name)
@@ -99,7 +91,8 @@ func (r EmailCommunicationServiceDomainSenderUsernameResource) Create() sdk.Reso
 
 			parameters := senderusernames.SenderUsernameResource{
 				Properties: &senderusernames.SenderUsernameProperties{
-					Username: model.Username,
+					// service API response indicates that the username must be same with the resource name
+					Username: model.Name,
 				},
 			}
 
@@ -127,7 +120,7 @@ func (r EmailCommunicationServiceDomainSenderUsernameResource) Update() sdk.Reso
 			var model EmailCommunicationServiceDomainSenderUsernameModel
 
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id, err := senderusernames.ParseSenderUsernameID(metadata.ResourceData.Id())
@@ -136,17 +129,19 @@ func (r EmailCommunicationServiceDomainSenderUsernameResource) Update() sdk.Reso
 			}
 
 			existing, err := client.Get(ctx, *id)
-			if err != nil || existing.Model == nil {
+			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
 			senderUsername := *existing.Model
 
 			props := pointer.From(senderUsername.Properties)
-
-			if metadata.ResourceData.HasChange("username") {
-				props.Username = model.Username
-			}
 
 			if metadata.ResourceData.HasChange("display_name") {
 				props.DisplayName = pointer.To(model.DisplayName)
@@ -169,8 +164,6 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Read() sdk.Resource
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Communication.SenderUsernamesClient
 
-			state := EmailCommunicationServiceDomainSenderUsernameModel{}
-
 			id, err := senderusernames.ParseSenderUsernameID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -185,12 +178,13 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Read() sdk.Resource
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state.Name = id.SenderUsernameName
-			state.EMailServiceDomainID = senderusernames.NewDomainID(id.SubscriptionId, id.ResourceGroupName, id.EmailServiceName, id.DomainName).ID()
+			state := EmailCommunicationServiceDomainSenderUsernameModel{
+				Name:                 id.SenderUsernameName,
+				EMailServiceDomainID: senderusernames.NewDomainID(id.SubscriptionId, id.ResourceGroupName, id.EmailServiceName, id.DomainName).ID(),
+			}
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Username = props.Username
 					state.DisplayName = pointer.From(props.DisplayName)
 				}
 			}
@@ -218,8 +212,4 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Delete() sdk.Resour
 			return nil
 		},
 	}
-}
-
-func (EmailCommunicationServiceDomainSenderUsernameResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return senderusernames.ValidateSenderUsernameID
 }

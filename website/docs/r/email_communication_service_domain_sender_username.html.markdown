@@ -33,7 +33,6 @@ resource "azurerm_email_communication_service_domain" "example" {
 resource "azurerm_email_communication_service_domain_sender_username" "example" {
   name                    = "example-su"
   email_service_domain_id = azurerm_email_communication_service_domain.example.id
-  username                = "example-su"
 }
 ```
 
@@ -44,8 +43,6 @@ The following arguments are supported:
 * `name` - (Required) The name of the Email Communication Service Domain Sender Username resource. Changing this forces a new resource to be created.
 
 * `email_service_domain_id` - (Required) The ID of the Email Communication Service Domain resource. Changing this forces a new resource to be created.
-
-* `username` - (Required) The sender username to be used when sending emails. Changing this forces a new resource to be created.
 
 * `display_name` - (Optional) The display name for the Email Communication Service Domain Sender Username resource.
 
@@ -69,5 +66,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Communication Service Domain Sender Usernames can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_email_communication_service_domain_sender_username.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Communication/emailServices/emailCommunicationService1/domains/domain1/senderUsernames/su1
+terraform import azurerm_email_communication_service_domain_sender_username.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Communication/emailServices/service1/domains/domain1/senderUsernames/username1
 ```
