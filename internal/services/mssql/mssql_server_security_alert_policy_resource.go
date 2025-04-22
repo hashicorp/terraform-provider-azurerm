@@ -93,7 +93,6 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 			"state": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				// NOTE: 'SecurityAlertsPolicyStateNew' no longer exists in the new API...
 				ValidateFunc: validation.StringInSlice(serversecurityalertpolicies.PossibleValuesForSecurityAlertsPolicyState(),
 					false),
 			},
@@ -124,12 +123,50 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-
-	alertPolicy := expandSecurityAlertPolicy(d)
-
 	serverId := commonids.NewSqlServerID(subscriptionId, resourceGroupName, serverName)
+	state := serversecurityalertpolicies.SecurityAlertsPolicyState(d.Get("state").(string))
 
-	err := client.CreateOrUpdateThenPoll(ctx, serverId, *alertPolicy)
+	alertPolicy := serversecurityalertpolicies.ServerSecurityAlertPolicy{
+		Properties: &serversecurityalertpolicies.SecurityAlertsPolicyProperties{
+			State: state,
+		},
+	}
+
+	props := alertPolicy.Properties
+
+	if v, ok := d.GetOk("disabled_alerts"); ok {
+		disabledAlerts := make([]string, 0)
+		for _, v := range v.(*pluginsdk.Set).List() {
+			disabledAlerts = append(disabledAlerts, v.(string))
+		}
+		props.DisabledAlerts = &disabledAlerts
+	}
+
+	if v, ok := d.GetOk("email_addresses"); ok {
+		emailAddresses := make([]string, 0)
+		for _, v := range v.(*pluginsdk.Set).List() {
+			emailAddresses = append(emailAddresses, v.(string))
+		}
+		props.EmailAddresses = &emailAddresses
+	}
+
+	if v, ok := d.GetOk("email_account_admins"); ok {
+		props.EmailAccountAdmins = pointer.To(v.(bool))
+	}
+
+	if v, ok := d.GetOk("retention_days"); ok {
+		props.RetentionDays = pointer.To(int64(v.(int)))
+	}
+
+	if v, ok := d.GetOk("storage_account_access_key"); ok {
+		props.StorageAccountAccessKey = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("storage_endpoint"); ok {
+		props.StorageEndpoint = pointer.To(v.(string))
+	}
+
+	err := client.CreateOrUpdateThenPoll(ctx, serverId, alertPolicy)
 	if err != nil {
 		return fmt.Errorf("creating mssql server security alert policy: %v", err)
 	}
@@ -157,27 +194,21 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 
 func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for mssql server security alert policy update.")
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	serverName := d.Get("server_name").(string)
-
-	alertPolicy := expandSecurityAlertPolicy(d)
-
-	serverId := commonids.NewSqlServerID(subscriptionId, resourceGroupName, serverName)
-
-	err := client.CreateOrUpdateThenPoll(ctx, serverId, *alertPolicy)
+	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
 	if err != nil {
-		return fmt.Errorf("updating mssql server security alert policy: %v", err)
+		return err
 	}
+
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
 	result, err := client.Get(ctx, serverId)
 	if err != nil {
-		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
+		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
 	model := result.Model
@@ -186,7 +217,72 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if model.Name == nil {
-		return fmt.Errorf("reading mssql server security alert policy name (server %q, resource group %q)", serverName, resourceGroupName)
+		return fmt.Errorf("reading mssql server security alert policy name (server %q, resource group %q)", id.ServerName, id.ResourceGroup)
+	}
+
+	if model.Properties == nil {
+		return fmt.Errorf("reading mssql server security alert policy properties (server %q, resource group %q)", id.ServerName, id.ResourceGroup)
+	}
+
+	alertPolicy := serversecurityalertpolicies.ServerSecurityAlertPolicy{
+		Properties: &serversecurityalertpolicies.SecurityAlertsPolicyProperties{},
+	}
+
+	props := model.Properties
+
+	if d.HasChange("state") {
+		props.State = serversecurityalertpolicies.SecurityAlertsPolicyState(d.Get("state").(string))
+	}
+
+	if d.HasChange("disabled_alerts") {
+		if v, ok := d.GetOk("disabled_alerts"); ok {
+			disabledAlerts := make([]string, 0)
+			for _, v := range v.(*pluginsdk.Set).List() {
+				disabledAlerts = append(disabledAlerts, v.(string))
+			}
+			props.DisabledAlerts = &disabledAlerts
+		}
+	}
+
+	if d.HasChange("email_addresses") {
+		if v, ok := d.GetOk("email_addresses"); ok {
+			emailAddresses := make([]string, 0)
+			for _, v := range v.(*pluginsdk.Set).List() {
+				emailAddresses = append(emailAddresses, v.(string))
+			}
+			props.EmailAddresses = &emailAddresses
+		}
+	}
+
+	if d.HasChange("email_account_admins") {
+		if v, ok := d.GetOk("email_account_admins"); ok {
+			props.EmailAccountAdmins = pointer.To(v.(bool))
+		}
+	}
+
+	if d.HasChange("retention_days") {
+		if v, ok := d.GetOk("retention_days"); ok {
+			props.RetentionDays = pointer.To(int64(v.(int)))
+		}
+	}
+
+	if d.HasChange("storage_account_access_key") {
+		if v, ok := d.GetOk("storage_account_access_key"); ok {
+			props.StorageAccountAccessKey = pointer.To(v.(string))
+		}
+	}
+
+	if d.HasChange("storage_endpoint") {
+		if v, ok := d.GetOk("storage_endpoint"); ok {
+			props.StorageEndpoint = pointer.To(v.(string))
+		}
+	}
+
+	alertPolicy.Properties = props
+
+	err = client.CreateOrUpdateThenPoll(ctx, serverId, alertPolicy)
+	if err != nil {
+		return fmt.Errorf("updating mssql server security alert policy: %v", err)
 	}
 
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
@@ -300,50 +396,4 @@ func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, met
 	}
 
 	return nil
-}
-
-func expandSecurityAlertPolicy(d *pluginsdk.ResourceData) *serversecurityalertpolicies.ServerSecurityAlertPolicy {
-	state := serversecurityalertpolicies.SecurityAlertsPolicyState(d.Get("state").(string))
-
-	policy := serversecurityalertpolicies.ServerSecurityAlertPolicy{
-		Properties: &serversecurityalertpolicies.SecurityAlertsPolicyProperties{
-			State: state,
-		},
-	}
-
-	props := policy.Properties
-
-	if v, ok := d.GetOk("disabled_alerts"); ok {
-		disabledAlerts := make([]string, 0)
-		for _, v := range v.(*pluginsdk.Set).List() {
-			disabledAlerts = append(disabledAlerts, v.(string))
-		}
-		props.DisabledAlerts = &disabledAlerts
-	}
-
-	if v, ok := d.GetOk("email_addresses"); ok {
-		emailAddresses := make([]string, 0)
-		for _, v := range v.(*pluginsdk.Set).List() {
-			emailAddresses = append(emailAddresses, v.(string))
-		}
-		props.EmailAddresses = &emailAddresses
-	}
-
-	if v, ok := d.GetOk("email_account_admins"); ok {
-		props.EmailAccountAdmins = pointer.To(v.(bool))
-	}
-
-	if v, ok := d.GetOk("retention_days"); ok {
-		props.RetentionDays = pointer.To(int64(v.(int)))
-	}
-
-	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		props.StorageAccountAccessKey = pointer.To(v.(string))
-	}
-
-	if v, ok := d.GetOk("storage_endpoint"); ok {
-		props.StorageEndpoint = pointer.To(v.(string))
-	}
-
-	return &policy
 }

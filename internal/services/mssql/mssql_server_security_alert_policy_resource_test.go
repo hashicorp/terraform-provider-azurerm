@@ -6,7 +6,6 @@ package mssql_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -23,7 +22,6 @@ type MsSqlServerSecurityAlertPolicyResource struct{}
 
 func TestAccMsSqlServerSecurityAlertPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
-	data = setTestDataLocationBySubscription(data)
 
 	r := MsSqlServerSecurityAlertPolicyResource{}
 
@@ -40,7 +38,6 @@ func TestAccMsSqlServerSecurityAlertPolicy_basic(t *testing.T) {
 
 func TestAccMsSqlServerSecurityAlertPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
-	data = setTestDataLocationBySubscription(data)
 
 	r := MsSqlServerSecurityAlertPolicyResource{}
 
@@ -84,16 +81,6 @@ func (MsSqlServerSecurityAlertPolicyResource) Exists(ctx context.Context, client
 	}
 
 	return pointer.To(model.Id != nil), nil
-}
-
-// Sets the tests 'Primary' and 'Secondary' locations based on the 'ARM_MICROSOFT_TEST' environment variable due to subscription quota policies
-func setTestDataLocationBySubscription(data acceptance.TestData) acceptance.TestData {
-	if isMicrosoftTest := os.Getenv("ARM_MICROSOFT_TEST"); isMicrosoftTest != "" {
-		data.Locations.Primary = "eastus"
-		data.Locations.Secondary = "swedencentral"
-	}
-
-	return data
 }
 
 func (r MsSqlServerSecurityAlertPolicyResource) basic(data acceptance.TestData) string {
