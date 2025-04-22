@@ -30,6 +30,7 @@ BUG FIXES:
 * `azurerm_kusto_iothub_data_connection` - update `event_system_properties` validation and documentation to be more flexible [GH-29314]
 * `azurerm_linux_web_app` - correctly read `backup.schedule.start_time` into state [GH-29254]
 * `azurerm_netapp_volume` - update validation for `storage_quota_in_gb` to allow values from `50` to `102400` [GH-29341]
+* `azurerm_postgresql_flexible_server`: downgrading `version` forces a new resource to be created [GH-28559]
 * `azurerm_search_shared_private_link_service` - add locks to prevent conflicts when creating multiple instances [GH-29294]
 
 ## 4.26.0 (April 04, 2025)
