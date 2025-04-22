@@ -121,18 +121,13 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 
 	log.Printf("[INFO] preparing arguments for mssql server security alert policy creation.")
 
+	alertPolicy := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-	serverId := commonids.NewSqlServerID(subscriptionId, resourceGroupName, serverName)
-	state := serversecurityalertpolicies.SecurityAlertsPolicyState(d.Get("state").(string))
 
-	alertPolicy := serversecurityalertpolicies.ServerSecurityAlertPolicy{
-		Properties: &serversecurityalertpolicies.SecurityAlertsPolicyProperties{
-			State: state,
-		},
+	props := &serversecurityalertpolicies.SecurityAlertsPolicyProperties{
+		State: serversecurityalertpolicies.SecurityAlertsPolicyState(d.Get("state").(string)),
 	}
-
-	props := alertPolicy.Properties
 
 	if v, ok := d.GetOk("disabled_alerts"); ok {
 		disabledAlerts := make([]string, 0)
@@ -166,17 +161,20 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 		props.StorageEndpoint = pointer.To(v.(string))
 	}
 
+	alertPolicy.Properties = props
+	serverId := commonids.NewSqlServerID(subscriptionId, resourceGroupName, serverName)
+
 	err := client.CreateOrUpdateThenPoll(ctx, serverId, alertPolicy)
 	if err != nil {
 		return fmt.Errorf("creating mssql server security alert policy: %v", err)
 	}
 
-	result, err := client.Get(ctx, serverId)
+	policy, err := client.Get(ctx, serverId)
 	if err != nil {
 		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
 	}
 
-	model := result.Model
+	model := policy.Model
 	if model == nil {
 		return fmt.Errorf("retrieving %s: model was nil", serverId)
 	}
@@ -190,6 +188,84 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	d.SetId(id.ID())
 
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
+}
+
+func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] reading mssql server security alert policy")
+
+	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	policy, err := client.Get(ctx, serverId)
+	if err != nil {
+		if response.WasNotFound(policy.HttpResponse) {
+			log.Printf("[WARN] mssql server security alert policy %v not found", id)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("making read request to mssql server security alert policy: %+v", err)
+	}
+
+	model := policy.Model
+	if model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", id)
+	}
+
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("server_name", id.ServerName)
+
+	if props := model.Properties; props != nil {
+		d.Set("state", string(props.State))
+
+		if props.DisabledAlerts != nil {
+			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+			for _, v := range *props.DisabledAlerts {
+				if v != "" {
+					disabledAlerts.Add(v)
+				}
+			}
+
+			d.Set("disabled_alerts", disabledAlerts)
+		}
+
+		if props.EmailAccountAdmins != nil {
+			d.Set("email_account_admins", props.EmailAccountAdmins)
+		}
+
+		if props.EmailAddresses != nil {
+			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
+			for _, v := range *props.EmailAddresses {
+				if v != "" {
+					emailAddresses.Add(v)
+				}
+			}
+
+			d.Set("email_addresses", emailAddresses)
+		}
+
+		if props.RetentionDays != nil {
+			d.Set("retention_days", int(*props.RetentionDays))
+		}
+
+		if v, ok := d.GetOk("storage_account_access_key"); ok {
+			d.Set("storage_account_access_key", v)
+		}
+
+		if props.StorageEndpoint != nil {
+			d.Set("storage_endpoint", props.StorageEndpoint)
+		}
+	}
+
+	return nil
 }
 
 func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -206,12 +282,12 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 
 	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
-	result, err := client.Get(ctx, serverId)
+	policy, err := client.Get(ctx, serverId)
 	if err != nil {
 		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
-	model := result.Model
+	model := policy.Model
 	if model == nil {
 		return fmt.Errorf("retrieving %s: model was nil", serverId)
 	}
@@ -224,10 +300,7 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("reading mssql server security alert policy properties (server %q, resource group %q)", id.ServerName, id.ResourceGroup)
 	}
 
-	alertPolicy := serversecurityalertpolicies.ServerSecurityAlertPolicy{
-		Properties: &serversecurityalertpolicies.SecurityAlertsPolicyProperties{},
-	}
-
+	alertPolicy := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	props := model.Properties
 
 	if d.HasChange("state") {
@@ -286,84 +359,6 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	return resourceMsSqlServerSecurityAlertPolicyRead(d, meta)
-}
-
-func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ServerSecurityAlertPoliciesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	log.Printf("[INFO] reading mssql server security alert policy")
-
-	id, err := parse.ServerSecurityAlertPolicyID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
-
-	result, err := client.Get(ctx, serverId)
-	if err != nil {
-		if response.WasNotFound(result.HttpResponse) {
-			log.Printf("[WARN] mssql server security alert policy %v not found", id)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("making read request to mssql server security alert policy: %+v", err)
-	}
-
-	model := result.Model
-	if model == nil {
-		return fmt.Errorf("retrieving %s: model was nil", id)
-	}
-
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("server_name", id.ServerName)
-
-	if props := model.Properties; props != nil {
-		d.Set("state", string(props.State))
-
-		if props.DisabledAlerts != nil {
-			disabledAlerts := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
-			for _, v := range *props.DisabledAlerts {
-				if v != "" {
-					disabledAlerts.Add(v)
-				}
-			}
-
-			d.Set("disabled_alerts", disabledAlerts)
-		}
-
-		if props.EmailAccountAdmins != nil {
-			d.Set("email_account_admins", props.EmailAccountAdmins)
-		}
-
-		if props.EmailAddresses != nil {
-			emailAddresses := pluginsdk.NewSet(pluginsdk.HashString, []interface{}{})
-			for _, v := range *props.EmailAddresses {
-				if v != "" {
-					emailAddresses.Add(v)
-				}
-			}
-
-			d.Set("email_addresses", emailAddresses)
-		}
-
-		if props.RetentionDays != nil {
-			d.Set("retention_days", int(*props.RetentionDays))
-		}
-
-		if v, ok := d.GetOk("storage_account_access_key"); ok {
-			d.Set("storage_account_access_key", v)
-		}
-
-		if props.StorageEndpoint != nil {
-			d.Set("storage_endpoint", props.StorageEndpoint)
-		}
-	}
-
-	return nil
 }
 
 func resourceMsSqlServerSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
