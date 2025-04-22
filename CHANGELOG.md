@@ -1,5 +1,9 @@
 ## 4.27.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_eventgrid_partner_configuration` [GH-28676]
+
 ENHANCEMENTS:
 
 * dependencies: update `go-azure-sdk` to `v0.20250409.1192141` [GH-29307]
