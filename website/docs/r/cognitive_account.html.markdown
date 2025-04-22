@@ -158,7 +158,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the Cognitive Service Account.
 
--> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `location_auth_enabled` is set to `true`.
+-> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_auth_enabled` is set to `true`.
 
 ---
 
