@@ -31,7 +31,7 @@ func resourceStreamAnalyticsOutputServiceBusTopic() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := outputs.ParseOutputID(id)
 			return err
-		}, importStreamAnalyticsOutput(outputs.ServiceBusTopicOutputDataSource{})),
+		}, importStreamAnalyticsOutput([]outputs.OutputDataSource{outputs.ServiceBusTopicOutputDataSource{}})),
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
