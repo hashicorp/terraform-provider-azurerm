@@ -647,6 +647,7 @@ func flattenApplicationInsightsStandardWebTestValidations(input *webtests.WebTes
 		CertificateRemainingLifetime: pointer.From(rules.SSLCertRemainingLifetimeCheck),
 		SSLCheck:                     pointer.From(rules.SSLCheck),
 		Content:                      flattenApplicationInsightsStandardWebTestContentValidations(rules.ContentValidation),
+		IgnoreStatusCode:             pointer.From(rules.IgnoreHTTPStatusCode),
 	}
 
 	return []ValidationRuleModel{result}
@@ -677,6 +678,7 @@ func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleM
 
 	validationsInput := input[0]
 	rules.ExpectedHTTPStatusCode = pointer.To(validationsInput.ExpectedStatusCode)
+	rules.IgnoreHTTPStatusCode = pointer.To(validationsInput.IgnoreStatusCode)
 
 	// if URL http, sslCheck cannot be enabled - Catch in CustomiseDiff
 	rules.SSLCheck = pointer.To(validationsInput.SSLCheck)
