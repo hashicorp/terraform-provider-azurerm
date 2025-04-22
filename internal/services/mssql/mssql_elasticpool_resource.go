@@ -197,8 +197,8 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(databases.DatabaseLicenseTypeBasePrice),
-					string(databases.DatabaseLicenseTypeLicenseIncluded),
+					string(elasticpools.ElasticPoolLicenseTypeBasePrice),
+					string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded),
 				}, false),
 			},
 
