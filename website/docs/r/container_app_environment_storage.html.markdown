@@ -73,9 +73,7 @@ The following arguments are supported:
 
 * `access_mode` - (Required) The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`. Changing this forces a new resource to be created.
 
-* `azure_file_protocol` - (Optional) The protocol to use for the Azure File Share. Possible values include `SMB` and `NFS`. Defaults to `SMB`. Changing this forces a new resource to be created.
-
-* `nfs_server` - (Optional) The NFS server to use for the Azure File Share. This is only applicable if `azure_file_protocol` is set to `NFS`. Changing this forces a new resource to be created.
+* `nfs_server` - (Optional) The NFS server to use for the Azure File Share. Changing this forces a new resource to be created.
 * 
 ## Attributes Reference
 

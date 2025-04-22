@@ -138,7 +138,6 @@ resource "azurerm_container_app_environment_storage" "test" {
   container_app_environment_id = azurerm_container_app_environment.test.id
   share_name                   = "/${azurerm_storage_account.test.name}/${azurerm_storage_share.test.name}"
   access_mode                  = "ReadWrite"
-  azure_file_protocol          = "NFS"
   nfs_server                   = "${azurerm_storage_account.test.name}.file.core.windows.net"
 }
 `, r.template(data), data.RandomInteger)

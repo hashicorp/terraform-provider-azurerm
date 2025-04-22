@@ -27,7 +27,6 @@ type ContainerAppEnvironmentStorageModel struct {
 	AccessKey                 string `tfschema:"access_key"`
 	ShareName                 string `tfschema:"share_name"`
 	AccessMode                string `tfschema:"access_mode"`
-	AzureFileProtocol         string `tfschema:"azure_file_protocol"`
 	NfsServer                 string `tfschema:"nfs_server"`
 }
 
@@ -64,12 +63,13 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 		},
 
 		"account_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageAccountName,
-			RequiredWith: []string{"access_key"},
-			Description:  "The Azure Storage Account in which the Share to be used is located.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  storageValidate.StorageAccountName,
+			RequiredWith:  []string{"access_key"},
+			ConflictsWith: []string{"nfs_server"},
+			Description:   "The Azure Storage Account in which the Share to be used is located.",
 		},
 
 		"access_key": {
@@ -99,23 +99,12 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Description: "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
 		},
 
-		"azure_file_protocol": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "SMB",
-			ValidateFunc: validation.StringInSlice([]string{
-				"NFS",
-				"SMB",
-			}, false),
-		},
-
 		"nfs_server": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			RequiredWith: []string{"azure_file_protocol"},
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"account_name"},
 		},
 	}
 }
@@ -156,22 +145,22 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 			accessMode := managedenvironmentsstorages.AccessMode(storage.AccessMode)
 			managedEnvironmentStorage := managedenvironmentsstorages.ManagedEnvironmentStorage{}
 
-			if storage.AzureFileProtocol == "SMB" {
+			if storage.NfsServer != "" {
+				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
+					NfsAzureFile: &managedenvironmentsstorages.NfsAzureFileProperties{
+						AccessMode: &accessMode,
+						Server:     pointer.To(storage.NfsServer),
+						ShareName:  pointer.To(storage.ShareName),
+					},
+				}
+				managedEnvironmentStorage.Properties = props
+			} else {
 				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
 						AccountKey:  pointer.To(storage.AccessKey),
 						AccountName: pointer.To(storage.AccountName),
 						ShareName:   pointer.To(storage.ShareName),
-					},
-				}
-				managedEnvironmentStorage.Properties = props
-			} else {
-				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
-					NfsAzureFile: &managedenvironmentsstorages.NfsAzureFileProperties{
-						AccessMode: &accessMode,
-						Server:     pointer.To(storage.NfsServer),
-						ShareName:  pointer.To(storage.ShareName),
 					},
 				}
 				managedEnvironmentStorage.Properties = props
@@ -215,14 +204,12 @@ func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
 			if model := existing.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if azureFile := props.AzureFile; azureFile != nil {
-						state.AzureFileProtocol = "SMB"
 						state.AccountName = pointer.From(azureFile.AccountName)
 						if azureFile.AccessMode != nil {
 							state.AccessMode = string(*azureFile.AccessMode)
 						}
 						state.ShareName = pointer.From(azureFile.ShareName)
 					} else if nfsAzureFile := props.NfsAzureFile; nfsAzureFile != nil {
-						state.AzureFileProtocol = "NFS"
 						state.NfsServer = pointer.From(nfsAzureFile.Server)
 						if nfsAzureFile.AccessMode != nil {
 							state.AccessMode = string(*nfsAzureFile.AccessMode)
