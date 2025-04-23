@@ -848,7 +848,6 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "MO_Standard_E2ds_v4"
-  zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -954,6 +953,10 @@ resource "azurerm_mysql_flexible_server" "pitr" {
   source_server_id                  = azurerm_mysql_flexible_server.test.id
   point_in_time_restore_time_in_utc = "%s"
   zone                              = "2"
+
+  lifecycle {
+    ignore_changes = [source_server_id]
+  }
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
@@ -1004,6 +1007,10 @@ resource "azurerm_mysql_flexible_server" "replica" {
   replication_role    = "None"
   version             = "8.0.21"
   zone                = "2"
+
+  lifecycle {
+    ignore_changes = [source_server_id]
+  }
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -1370,7 +1377,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
   public_network_access  = "%s"
 }
 `, r.template(data), data.RandomInteger, pna)
