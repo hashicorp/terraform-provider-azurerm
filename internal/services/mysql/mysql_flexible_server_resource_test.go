@@ -606,11 +606,6 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "B_Standard_B1ms"
-
-  # ignore_changes zone because API returns a value for it when it is not specified
-  lifecycle {
-    ignore_changes = [zone]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -817,11 +812,6 @@ resource "azurerm_mysql_flexible_server" "test" {
     start_hour   = 8
     start_minute = 0
   }
-
-  # ignore_changes zone because API returns a value for it when it is not specified
-  lifecycle {
-    ignore_changes = [zone]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -842,11 +832,6 @@ resource "azurerm_mysql_flexible_server" "test" {
     day_of_week  = 3
     start_hour   = 7
     start_minute = 15
-  }
-
-  # ignore_changes zone because API returns a value for it when it is not specified
-  lifecycle {
-    ignore_changes = [zone]
   }
 }
 `, r.template(data), data.RandomInteger)
