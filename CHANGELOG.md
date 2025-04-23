@@ -30,6 +30,7 @@ BUG FIXES:
 
 * `azurerm_linux_virtual_machine` - `license_type` can now be updated to None ([#28786](https://github.com/hashicorp/terraform-provider-azurerm/issues/28786))
 * `azurerm_mysql_flexible_server` - prevent a panic when `customer_managed_key` is nil ([#29225](https://github.com/hashicorp/terraform-provider-azurerm/issues/29225))
+* `azurerm_postgresql_flexible_server_virtual_endpoint` - fix issue where Terraform attempts to recreate the virtual endpoint after a manual failover has occurred in the Azure portal ([#XXXXX](https://github.com/hashicorp/terraform-provider-azurerm/issues/XXXXX))
 * `azurerm_traffic_manager_nested_endpoint` - remove `Computed` from `priority` property as these are assigned dynamically by the API ([#29217](https://github.com/hashicorp/terraform-provider-azurerm/issues/29217))
 
 ## 4.25.0 (March 28, 2025)
