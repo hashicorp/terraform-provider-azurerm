@@ -577,7 +577,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			// Since the API doesn't return the value of create_mode, when importing `azurerm_mongo_cluster`, it will cause replacement.
-			if oldVal, _ := metadata.ResourceDiff.GetChange("create_mode"); oldVal.(string) != "" {
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("create_mode"); oldVal.(string) != "" && oldVal.(string) != newVal.(string) {
 				if err := metadata.ResourceDiff.ForceNew("create_mode"); err != nil {
 					return err
 				}
