@@ -62,7 +62,6 @@ func dataSourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
