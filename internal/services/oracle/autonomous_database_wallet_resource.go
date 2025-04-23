@@ -1,5 +1,3 @@
-// Copyright © 2025, Your Organization. All rights reserved.
-
 package oracle
 
 import (
@@ -23,9 +21,11 @@ type AutonomousDatabaseWalletResourceModel struct {
 	Password             string `tfschema:"password"`
 
 	// Optional
-	GenerateType *string `tfschema:"generate_type"`
-	Base64Encode *bool   `tfschema:"base64_encode"`
+	GenerateType string `tfschema:"generate_type"`
+	Base64Encode bool   `tfschema:"base64_encode"`
+}
 
+type AutonomousDatabaseWalletResourceResponseModel struct {
 	// Computed
 	Content        string `tfschema:"content"`
 	WalletFileName string `tfschema:"wallet_file_name"`
@@ -83,8 +83,11 @@ func (AutonomousDatabaseWalletResource) Arguments() map[string]*pluginsdk.Schema
 			Default:  false,
 			ForceNew: true,
 		},
+	}
+}
 
-		// Computed
+func (AutonomousDatabaseWalletResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
 		"content": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
@@ -96,10 +99,6 @@ func (AutonomousDatabaseWalletResource) Arguments() map[string]*pluginsdk.Schema
 			Computed: true,
 		},
 	}
-}
-
-func (AutonomousDatabaseWalletResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
 }
 
 func (AutonomousDatabaseWalletResource) ModelObject() interface{} {
@@ -126,11 +125,14 @@ func (r AutonomousDatabaseWalletResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing autonomous database ID: %+v", err)
 			}
 
-			input := autonomousdatabases.GenerateAutonomousDatabaseWalletDetails{
-				Password: model.Password,
+			generateType := autonomousdatabases.GenerateTypeSingle
+			if model.GenerateType == "REGIONAL" {
+				generateType = autonomousdatabases.GenerateTypeAll
 			}
-			if model.GenerateType != nil {
-				input.GenerateType = (*autonomousdatabases.GenerateType)(model.GenerateType)
+
+			input := autonomousdatabases.GenerateAutonomousDatabaseWalletDetails{
+				Password:     model.Password,
+				GenerateType: &generateType,
 			}
 
 			walletResult, err := client.GenerateWallet(ctx, *autonomousDatabaseId, input)
@@ -145,18 +147,18 @@ func (r AutonomousDatabaseWalletResource) Create() sdk.ResourceFunc {
 			walletBytes := []byte(walletResult.Model.WalletFiles)
 			content := string(walletBytes)
 
-			if model.Base64Encode != nil && *model.Base64Encode {
+			if model.Base64Encode {
 				content = base64.StdEncoding.EncodeToString(walletBytes)
 			}
 
-			if err := metadata.Encode(&AutonomousDatabaseWalletResourceModel{
-				AutonomousDatabaseId: model.AutonomousDatabaseId,
-				Password:             model.Password,
-				GenerateType:         model.GenerateType,
-				Content:              content,
-			}); err != nil {
-				return fmt.Errorf("encoding Autonomous Database Wallet resource model: %+v", err)
+			responseModel := AutonomousDatabaseWalletResourceResponseModel{
+				Content:        content,
+				WalletFileName: walletResult.Model.WalletFiles,
 			}
+
+			// Set the response values
+			metadata.ResourceData.Set("content", responseModel.Content)
+			metadata.ResourceData.Set("wallet_file_name", responseModel.WalletFileName)
 
 			// Construct the resource ID correctly
 			metadata.SetID(autonomousDatabaseId)
@@ -170,6 +172,19 @@ func (AutonomousDatabaseWalletResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// Since wallet is generated on-demand, just verify autonomous database exists
+			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			_, err = client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			// Keep existing computed values in state
 			return nil
 		},
 	}
@@ -179,25 +194,18 @@ func (AutonomousDatabaseWalletResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// Wallets don't need to be deleted as they're generated on-demand
 			return nil
 		},
 	}
 }
 
 func (r AutonomousDatabaseWalletResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-
 	return func(i interface{}, k string) (warnings []string, errors []error) {
-
 		v := i.(string)
-
 		if _, err := autonomousdatabases.ParseAutonomousDatabaseID(v); err != nil {
-
 			errors = append(errors, fmt.Errorf("invalid %q: %s. The ID should be the Autonomous Database ID followed by '/wallet'", k, err))
-
 		}
-
 		return
-
 	}
-
 }
