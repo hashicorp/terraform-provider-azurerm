@@ -81,6 +81,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: workspaces.ValidateWorkspaceID,
 			},
 
