@@ -1284,11 +1284,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlaw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1366,5 +1375,5 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-`, data.RandomInteger, "eastus2", data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+`, data.RandomInteger, "eastus2", data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 }
