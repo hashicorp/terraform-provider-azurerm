@@ -155,9 +155,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.test.id
-  virtual_network_id               = azurerm_virtual_network.test.id
   customer_contacts                = ["test@test.com"]
+  white_listed_ips                 = ["10.0.2.1","10.0.2.2","10.0.2.0/24"]
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
