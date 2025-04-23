@@ -12,7 +12,7 @@ Manages a Spring Cloud Build Pack Binding.
 
 -> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
 
-!> Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_build_pack_binding` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
+!> Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_build_pack_binding` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
 
 ## Example Usage
 

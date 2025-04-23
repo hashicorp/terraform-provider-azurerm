@@ -36,7 +36,7 @@ type SpringCloudApplicationInsightsApplicationPerformanceMonitoringModel struct 
 type SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource struct{}
 
 func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) DeprecationMessage() string {
-	return features.DeprecatedInFivePointOh("Azure Spring Apps is now Deprecated and will be Retired on 2028-05-31 - as such the `azurerm_spring_cloud_application_insights_application_performance_monitoring` resource is deprecated and will be removed in v6.0 of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_application_insights_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
 }
 
 var (
