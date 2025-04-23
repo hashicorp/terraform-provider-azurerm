@@ -10,7 +10,7 @@ description: |-
 
 Manages a System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
 
-~> **Note:** By request of the service team the provider no longer automatically registering the `Microsoft.ScVmm` Resource Provider for this resource. To register it you can run `az provider register --namespace Microsoft.ScVmm`.
+~> **Note:** By request of the service team the provider is no longer automatically registering the `Microsoft.ScVmm` Resource Provider for this resource. To register it you can run `az provider register --namespace Microsoft.ScVmm`.
 
 ## Example Usage
 
