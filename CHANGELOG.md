@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * dependencies: `netapp` - update to API version `2025-01-01` [GH-29382]
 * dependencies: `operationalinsights` - partial update to API version `2023-09-01` [GH-29283]
 * `azurerm_cdn_frontdoor_origin` - support `managedEnvironments` value for target_type [GH-28239]
+* `azurerm_cognitive_deployment` - add support for the `Cohere` value for `model.format` [GH-29143]
 * `azurerm_container_app_environment`: add support for cross subscription `log_analytics_workspace_id` [GH-28740]
 * `azurerm_dev_center_project` - add support for the `identity` property [GH-29278]
 * `azurerm_dynatrace_tag_rules` - the `log_rule` and `metric_rule` blocks and their properties are no longer `ForceNew` [GH-29298]
