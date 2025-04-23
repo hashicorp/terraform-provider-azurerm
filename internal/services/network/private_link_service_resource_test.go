@@ -821,7 +821,23 @@ resource "azurerm_private_link_service" "test" {
 
 func (r PrivateLinkServiceResource) destinationIPAddress(data acceptance.TestData, destinationIPAddress string) string {
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatelinkservice-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsnet-complete-%d"
@@ -869,7 +885,7 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, "UK South", data.RandomInteger, data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateLinkServiceResource) template(data acceptance.TestData) string {
