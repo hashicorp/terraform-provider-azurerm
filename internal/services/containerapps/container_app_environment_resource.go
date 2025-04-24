@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -35,19 +36,20 @@ const (
 type ContainerAppEnvironmentResource struct{}
 
 type ContainerAppEnvironmentModel struct {
-	Name                                    string                         `tfschema:"name"`
-	ResourceGroup                           string                         `tfschema:"resource_group_name"`
-	Location                                string                         `tfschema:"location"`
-	DaprApplicationInsightsConnectionString string                         `tfschema:"dapr_application_insights_connection_string"`
-	LogAnalyticsWorkspaceId                 string                         `tfschema:"log_analytics_workspace_id"`
-	LogsDestination                         string                         `tfschema:"logs_destination"`
-	InfrastructureSubnetId                  string                         `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled             bool                           `tfschema:"internal_load_balancer_enabled"`
-	ZoneRedundant                           bool                           `tfschema:"zone_redundancy_enabled"`
-	Tags                                    map[string]interface{}         `tfschema:"tags"`
-	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
-	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
-	Mtls                                    bool                           `tfschema:"mutual_tls_enabled"`
+	Name                                    string                                     `tfschema:"name"`
+	ResourceGroup                           string                                     `tfschema:"resource_group_name"`
+	Location                                string                                     `tfschema:"location"`
+	DaprApplicationInsightsConnectionString string                                     `tfschema:"dapr_application_insights_connection_string"`
+	LogAnalyticsWorkspaceId                 string                                     `tfschema:"log_analytics_workspace_id"`
+	LogsDestination                         string                                     `tfschema:"logs_destination"`
+	InfrastructureSubnetId                  string                                     `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled             bool                                       `tfschema:"internal_load_balancer_enabled"`
+	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	ZoneRedundant                           bool                                       `tfschema:"zone_redundancy_enabled"`
+	Tags                                    map[string]interface{}                     `tfschema:"tags"`
+	WorkloadProfiles                        []helpers.WorkloadProfileModel             `tfschema:"workload_profile"`
+	InfrastructureResourceGroup             string                                     `tfschema:"infrastructure_resource_group_name"`
+	Mtls                                    bool                                       `tfschema:"mutual_tls_enabled"`
 
 	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
@@ -168,6 +170,8 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:    true,
 			Default:     false,
 		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -304,6 +308,12 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 			}
 
+			ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(containerAppEnvironment.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding identity: %+v", err)
+			}
+			managedEnvironment.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
+
 			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
@@ -343,6 +353,13 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 				state.ResourceGroup = id.ResourceGroupName
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
+				if model.Identity != nil {
+					ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
+					if err != nil {
+						return err
+					}
+					state.Identity = pointer.From(ident)
+				}
 
 				if props := model.Properties; props != nil {
 					if vnet := props.VnetConfiguration; vnet != nil {
@@ -434,6 +451,14 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				existing.Model.Tags = tags.Expand(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return err
+				}
+				existing.Model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile") {
