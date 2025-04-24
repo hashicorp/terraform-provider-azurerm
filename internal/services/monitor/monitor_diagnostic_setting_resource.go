@@ -554,7 +554,6 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 			}
 
 			if c := d.GetRawConfig(); !c.IsNull() {
-
 				if c.AsValueMap()["enabled_metric"].AsValueSlice() != nil {
 					enabledMetrics := flattenMonitorDiagnosticEnabledMetrics(resp.Model.Properties.Metrics)
 					if err = d.Set("enabled_metric", enabledMetrics); err != nil {
@@ -569,7 +568,6 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 						}
 					}
 				}
-
 			}
 		}
 	}

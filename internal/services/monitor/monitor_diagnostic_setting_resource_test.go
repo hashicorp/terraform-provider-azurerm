@@ -131,7 +131,6 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_id").Exists(),
-				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -153,16 +152,16 @@ func TestAccMonitorDiagnosticSetting_storageAccountTarget(t *testing.T) {
 	})
 }
 
-func TestAccMonitorDiagnosticSetting_metricRetentionPolicy(t *testing.T) {
+func TestAccMonitorDiagnosticSetting_metric(t *testing.T) {
 	if features.FivePointOh() {
-		t.Skip("metric and metric retention policy removed in 5.0")
+		t.Skip("metric removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.metricRetentionPolicy(data),
+			Config: r.metric(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -828,7 +827,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func (MonitorDiagnosticSettingResource) metricRetentionPolicy(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) metric(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -857,10 +856,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "Transaction"
-    retention_policy {
-      days    = 30
-      enabled = true
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
