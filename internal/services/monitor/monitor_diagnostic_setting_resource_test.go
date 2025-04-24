@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorDiagnosticSettingResource struct{}
@@ -132,6 +132,39 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_account_id").Exists(),
 				check.That(data.ResourceName).Key("metric.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorDiagnosticSetting_storageAccountTarget(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.storageAccountTarget(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorDiagnosticSetting_metricRetentionPolicy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("metric and metric retention policy removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.metricRetentionPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -303,7 +336,7 @@ func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("reading diagnostic setting (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (MonitorDiagnosticSettingResource) eventhub(data acceptance.TestData) string {
@@ -358,14 +391,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-      days    = 7
-    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -420,9 +447,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.test.id
   eventhub_name                  = azurerm_eventhub.test.name
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -488,7 +514,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -505,7 +531,7 @@ resource "azurerm_monitor_diagnostic_setting" "import" {
   eventhub_authorization_rule_id = azurerm_monitor_diagnostic_setting.test.eventhub_authorization_rule_id
   eventhub_name                  = azurerm_monitor_diagnostic_setting.test.eventhub_name
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -547,7 +573,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_key_vault.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -677,7 +703,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -719,7 +745,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id  = azurerm_key_vault.test.id
   partner_solution_id = azurerm_elastic_cloud_elasticsearch.test.id
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -761,8 +787,80 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id = azurerm_key_vault.test.id
   storage_account_id = azurerm_storage_account.test.id
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) storageAccountTarget(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = azurerm_storage_account.test.id
+  storage_account_id = azurerm_storage_account.test.id
+
+  enabled_metric {
+    category = "Transaction"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) metricRetentionPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = azurerm_storage_account.test.id
+  storage_account_id = azurerm_storage_account.test.id
+
+  metric {
+    category = "Transaction"
+    retention_policy {
+      days    = 30
+      enabled = true
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -905,9 +1003,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -973,9 +1070,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1050,9 +1146,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1118,9 +1213,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
@@ -1247,9 +1341,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -1378,9 +1471,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     }
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
-    enabled  = false
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
