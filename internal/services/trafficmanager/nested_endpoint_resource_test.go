@@ -49,6 +49,21 @@ func TestAccNestedEndpoint_priority(t *testing.T) {
 	})
 }
 
+func TestAccNestedEndpoint_multipleEndpointsWithDynamicPriority(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
+	r := NestedEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccNestedEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_nested_endpoint", "test")
 	r := NestedEndpointResource{}
@@ -338,4 +353,45 @@ resource "azurerm_traffic_manager_nested_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r NestedEndpointResource) multiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_traffic_manager_profile" "child2" {
+  name                   = "acctesttmpchild%[2]d-2"
+  resource_group_name    = azurerm_resource_group.test.name
+  traffic_routing_method = "Priority"
+
+  dns_config {
+    relative_name = "acctesttmpchild%[2]d-2"
+    ttl           = 30
+  }
+
+  monitor_config {
+    protocol = "HTTPS"
+    port     = 443
+    path     = "/"
+  }
+}
+
+resource "azurerm_traffic_manager_nested_endpoint" "test" {
+  name                    = "acctestend-parent%[2]d"
+  target_resource_id      = azurerm_traffic_manager_profile.child.id
+  profile_id              = azurerm_traffic_manager_profile.parent.id
+  minimum_child_endpoints = 5
+}
+
+resource "azurerm_traffic_manager_nested_endpoint" "test2" {
+  name                    = "acctestend-parent%[2]d-2"
+  target_resource_id      = azurerm_traffic_manager_profile.child2.id
+  profile_id              = azurerm_traffic_manager_profile.parent.id
+  minimum_child_endpoints = 5
+}
+`, r.template(data), data.RandomInteger)
 }

@@ -76,6 +76,8 @@ A `routing` block supports the following:
 
 * `static_vnet_local_route_override_criteria` - (Optional) The static VNet local route override criteria that is used to determine whether NVA in spoke VNet is bypassed for traffic with destination in spoke VNet. Possible values are `Contains` and `Equal`. Defaults to `Contains`. Changing this forces a new resource to be created.
 
+* `static_vnet_propagate_static_routes_enabled` - (Optional) Whether the static routes should be propagated to the Virtual Hub. Defaults to `true`.
+
 * `static_vnet_route` - (Optional) A `static_vnet_route` block as defined below.
 
 ---

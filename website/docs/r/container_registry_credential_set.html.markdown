@@ -29,7 +29,7 @@ resource "azurerm_container_registry" "example" {
 
 resource "azurerm_container_registry_credential_set" "example" {
   name                  = "exampleCredentialSet"
-  container_registry_id = "azurerm_container_registry.example.id"
+  container_registry_id = azurerm_container_registry.example.id
   login_server          = "docker.io"
   identity {
     type = "SystemAssigned"
@@ -90,7 +90,7 @@ resource "azurerm_container_registry" "example" {
 
 resource "azurerm_container_registry_credential_set" "example" {
   name                  = "exampleCredentialSet"
-  container_registry_id = "azurerm_container_registry.example.id"
+  container_registry_id = azurerm_container_registry.example.id
   login_server          = "docker.io"
   identity {
     type = "SystemAssigned"

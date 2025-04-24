@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ElasticsearchDataSourceTest struct{}
+type ElasticsearchDataSource struct{}
 
 func TestAccElasticsearchDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
-	r := ElasticsearchDataSourceTest{}
+	r := ElasticsearchDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -36,8 +36,8 @@ func TestAccElasticsearchDataSource_basic(t *testing.T) {
 	})
 }
 
-func (ElasticsearchDataSourceTest) basic(data acceptance.TestData) string {
-	template := ElasticsearchResourceTest{}.basic(data)
+func (ElasticsearchDataSource) basic(data acceptance.TestData) string {
+	template := ElasticsearchResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
