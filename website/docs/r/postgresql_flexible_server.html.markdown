@@ -207,7 +207,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this PostgreSQL Flexible Server. Possible values are `UserAssigned`, `SystemAssigned` and `SystemAssigned, UserAssigned`.
 
-~> **Note**: Once `UserAssigned` is enabled, it cannot be removed anymore.
+~> **Note**: Once `UserAssigned` has been added the only way to get rid of it is to recreate the resource.
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this PostgreSQL Flexible Server. Required if used together with `customer_managed_key` block.
 
