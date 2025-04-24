@@ -244,7 +244,7 @@ resource "azurerm_eventgrid_domain" "test" {
   auto_delete_topic_with_last_subscription  = false
 
   min_tls_version         = "1.2"
-  data_residency_boundary = "WithinGeopair"
+  data_residency_boundary = "WithinRegion"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
