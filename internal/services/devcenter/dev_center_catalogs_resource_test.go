@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/catalogs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/catalogs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,12 +19,12 @@ import (
 type DevCenterCatalogsResource struct{}
 
 func (r DevCenterCatalogsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := catalogs.ParseCatalogID(state.ID)
+	id, err := catalogs.ParseDevCenterCatalogID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.DevCenter.V20230401.Catalogs.Get(ctx, *id)
+	resp, err := client.DevCenter.V20250201.Catalogs.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}

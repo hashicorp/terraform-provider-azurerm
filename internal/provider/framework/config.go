@@ -334,18 +334,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.VirtualMachine.DeleteOSDiskOnDeletion = feature[0].DeleteOsDiskOnDeletion.ValueBool()
 			}
 
-			f.VirtualMachine.GracefulShutdown = false
-			if !feature[0].GracefulShutdown.IsNull() && !feature[0].GracefulShutdown.IsUnknown() {
-				f.VirtualMachine.GracefulShutdown = feature[0].GracefulShutdown.ValueBool()
-			}
-
 			f.VirtualMachine.SkipShutdownAndForceDelete = false
 			if !feature[0].SkipShutdownAndForceDelete.IsNull() && !feature[0].SkipShutdownAndForceDelete.IsUnknown() {
 				f.VirtualMachine.SkipShutdownAndForceDelete = feature[0].SkipShutdownAndForceDelete.ValueBool()
 			}
 		} else {
 			f.VirtualMachine.DeleteOSDiskOnDeletion = false
-			f.VirtualMachine.GracefulShutdown = false
 			f.VirtualMachine.SkipShutdownAndForceDelete = false
 		}
 
@@ -507,6 +501,22 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		} else {
 			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
 			f.NetApp.PreventVolumeDestruction = true
+		}
+
+		if !features.DatabricksWorkspace.IsNull() && !features.DatabricksWorkspace.IsUnknown() {
+			var feature []DatabricksWorkspace
+			d := features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			f.DatabricksWorkspace.ForceDelete = false
+			if !feature[0].ForceDelete.IsNull() && !feature[0].ForceDelete.IsUnknown() {
+				f.DatabricksWorkspace.ForceDelete = feature[0].ForceDelete.ValueBool()
+			}
+		} else {
+			f.DatabricksWorkspace.ForceDelete = false
 		}
 	}
 

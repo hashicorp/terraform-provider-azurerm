@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_fabric_capacity" "example" {
-  name                = "example-ffc"
+  name                = "exampleffc"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
 
