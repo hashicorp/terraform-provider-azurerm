@@ -211,6 +211,8 @@ An `identity` block supports the following:
 
 ~> **Note**: `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
+~> **Note**: Once `UserAssigned` is enabled, it cannot be removed anymore.
+
 ---
 
 A `maintenance_window` block supports the following:
