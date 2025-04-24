@@ -387,6 +387,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			newMb = newStorageMbRaw.(int)
 			newTier = newTierRaw.(string)
 
+			// if newMb is smaller than oldStorageMb, it's a downgrade need to trigger a force new
+			if newMb > 0 && oldStorageMbRaw.(int) > newMb {
+				diff.ForceNew("storage_mb")
+			}
+
 			// if newMb or newTier values are empty,
 			// assign the default values that will
 			// be assigned in the create func...
@@ -517,10 +522,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
-	storage, err := expandArmServerStorage(d)
-	if err != nil {
-		return err
-	}
+	storage := expandArmServerStorage(d)
 	var storageMb int
 
 	if storage.StorageSizeGB == nil || *storage.StorageSizeGB == 0 {
@@ -872,10 +874,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
-		storage, err := expandArmServerStorage(d)
-		if err != nil {
-			return err
-		}
+		storage := expandArmServerStorage(d)
 
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
@@ -1028,7 +1027,7 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 	return &maintenanceWindow
 }
 
-func expandArmServerStorage(d *pluginsdk.ResourceData) (*servers.Storage, error) {
+func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage := servers.Storage{}
 
 	autoGrow := servers.StorageAutoGrowDisabled
@@ -1036,12 +1035,6 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) (*servers.Storage, error)
 		autoGrow = servers.StorageAutoGrowEnabled
 	}
 	storage.AutoGrow = &autoGrow
-
-	// storage_mb can only be scaled up...
-	oldStorageMbRaw, newStorageMbRaw := d.GetChange("storage_mb")
-	if newStorageMbRaw.(int) < oldStorageMbRaw.(int) {
-		return nil, fmt.Errorf("'storage_mb' can only be scaled up, expected the new 'storage_mb' value (%d) to be larger than the previous 'storage_mb' value (%d)", newStorageMbRaw.(int), oldStorageMbRaw.(int))
-	}
 
 	if v, ok := d.GetOk("storage_mb"); ok {
 		storage.StorageSizeGB = pointer.FromInt64(int64(v.(int) / 1024))
@@ -1051,7 +1044,7 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) (*servers.Storage, error)
 		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
 	}
 
-	return &storage, nil
+	return &storage
 }
 
 func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
