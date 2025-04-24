@@ -28,6 +28,7 @@ BUG FIXES:
 * provider: ensure `x-ms-correlation-request-id` header is only set once during list operations [GH-28974]
 * `azurerm_app_configuration_feature` - suppress casing differences for `configuration_store_id` to prevent resource recreation [GH-29285]
 * `azurerm_app_configuration_key` - suppress casing differences for `configuration_store_id` to prevent resource recreation [GH-29285]
+* `azurerm_container_app_environment` - updates are now made using the `PATCH` method, preventing errors due to missing properties in the request [GH-29317]
 * `azurerm_eventhub_namespace` - remove max items from network/ip rules as they can be increased above upon request [GH-29333]
 * `azurerm_kusto_iothub_data_connection` - update `event_system_properties` validation and documentation to be more flexible [GH-29314]
 * `azurerm_linux_web_app` - correctly read `backup.schedule.start_time` into state [GH-29254]
