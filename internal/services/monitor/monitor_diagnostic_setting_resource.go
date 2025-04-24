@@ -190,11 +190,13 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 		}
 
 		resource.Schema["enabled_metric"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
+		resource.Schema["enabled_metric"].Computed = true
 		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
 
 		resource.Schema["metric"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
+			Computed:     true,
 			Deprecated:   "`metric` has been deprecated in favor of the `enabled_metric` property and will be removed in v5.0 of the AzureRM provider",
 			AtLeastOneOf: []string{"enabled_log", "enabled_metric", "metric"},
 			Set:          resourceMonitorDiagnosticMetricsSettingHash,
@@ -414,21 +416,41 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 	var metrics []diagnosticsettings.MetricSettings
 	hasEnabledMetrics := false
 
-	if !features.FivePointOh() {
-		metrics = expandMonitorDiagnosticsSettingsMetrics(d.Get("metric").(*pluginsdk.Set).List())
+	if d.HasChange("enabled_metric") {
+		enabledMetrics := d.Get("enabled_metric").(*pluginsdk.Set).List()
+		if len(enabledMetrics) > 0 {
+			expandEnabledMetrics := expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
+			if err != nil {
+				return fmt.Errorf("expanding enabled_metric: %+v", err)
+			}
+			metrics = *expandEnabledMetrics
+			hasEnabledMetrics = true
+		} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Metrics != nil {
+			// if the enabled_metric is updated to empty, we disable the metric explicitly
+			for _, v := range *existing.Model.Properties.Metrics {
+				disabledMetric := v
+				disabledMetric.Enabled = false
+				metrics = append(metrics, disabledMetric)
+			}
+		}
+	} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Metrics != nil {
+		metrics = *existing.Model.Properties.Metrics
 		for _, v := range metrics {
 			if v.Enabled {
 				hasEnabledMetrics = true
-				break
 			}
 		}
 	}
 
-	if enabledMetrics, ok := d.GetOk("enabled_metric"); ok {
-		enabledMetricsList := enabledMetrics.(*pluginsdk.Set).List()
-		if len(enabledMetricsList) > 0 {
-			metrics = *expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetricsList)
-			hasEnabledMetrics = true
+	if !features.FivePointOh() {
+		if d.HasChange("metric") {
+			metrics = expandMonitorDiagnosticsSettingsMetrics(d.Get("metric").(*pluginsdk.Set).List())
+			for _, v := range metrics {
+				if v.Enabled {
+					hasEnabledMetrics = true
+					break
+				}
+			}
 		}
 	}
 
@@ -553,20 +575,14 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
 
-			if c := d.GetRawConfig(); !c.IsNull() {
-				if c.AsValueMap()["enabled_metric"].AsValueSlice() != nil {
-					enabledMetrics := flattenMonitorDiagnosticEnabledMetrics(resp.Model.Properties.Metrics)
-					if err = d.Set("enabled_metric", enabledMetrics); err != nil {
-						return fmt.Errorf("setting `enabled_metric`: %+v", err)
-					}
-				}
+			enabledMetrics := flattenMonitorDiagnosticEnabledMetrics(resp.Model.Properties.Metrics)
+			if err = d.Set("enabled_metric", enabledMetrics); err != nil {
+				return fmt.Errorf("setting `enabled_metric`: %+v", err)
+			}
 
-				if !features.FivePointOh() {
-					if c.AsValueMap()["metric"].AsValueSlice() != nil {
-						if err := d.Set("metric", flattenMonitorDiagnosticMetrics(resp.Model.Properties.Metrics)); err != nil {
-							return fmt.Errorf("setting `metric`: %+v", err)
-						}
-					}
+			if !features.FivePointOh() {
+				if err := d.Set("metric", flattenMonitorDiagnosticMetrics(resp.Model.Properties.Metrics)); err != nil {
+					return fmt.Errorf("setting `metric`: %+v", err)
 				}
 			}
 		}

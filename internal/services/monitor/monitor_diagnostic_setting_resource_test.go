@@ -6,6 +6,7 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -141,6 +142,12 @@ func TestAccMonitorDiagnosticSetting_storageAccountTarget(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}
 
+	importLoggerStep := data.ImportStep()
+	importLoggerStep.SkipFunc = func() (bool, error) {
+		log.Default().Println("Importing resource...")
+		return false, nil
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageAccountTarget(data),
@@ -148,7 +155,7 @@ func TestAccMonitorDiagnosticSetting_storageAccountTarget(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		importLoggerStep,
 	})
 }
 
@@ -856,6 +863,9 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "Transaction"
+  }
+  metric {
+    category = "Capacity"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
