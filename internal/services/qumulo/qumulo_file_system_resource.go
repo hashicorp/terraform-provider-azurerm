@@ -90,15 +90,7 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			// the value includes but is not limitted to ["azure-native-qumulo-v3"]
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"publisher_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			// the value can be "qumulo1584033880660"
+			// the value includes but is not limited to ["azure-native-qumulo-v3"]
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -122,6 +114,14 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"zone": commonschema.ZoneSingleRequiredForceNew(),
+
+		"publisher_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "qumulo1584033880660",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
 		"tags": commonschema.Tags(),
 	}
