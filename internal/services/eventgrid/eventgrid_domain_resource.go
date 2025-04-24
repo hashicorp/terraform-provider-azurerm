@@ -155,8 +155,6 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(domains.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(domains.TlsVersionOnePointZero),
-					string(domains.TlsVersionOnePointOne),
 					string(domains.TlsVersionOnePointTwo),
 				}, false),
 			},
