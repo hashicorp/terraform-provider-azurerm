@@ -78,6 +78,7 @@ After pressing “Confirm squash and merge”, the automation will kick off.
 1. It will pull the merge commit message and append the PR number `[GH-{number}]` 
 
 2. It will check for the keywords `[BUG]`, `[ENHANCEMENT]`, `[FEATURE]`
+
 3. If a keyword is used, a changelog entry will be made
 
 4. It will check if there is an existing Changelog PR open for the release, by checking for an open PR with the label changelog
