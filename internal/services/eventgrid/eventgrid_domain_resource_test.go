@@ -64,6 +64,8 @@ func TestAccEventGridDomain_update(t *testing.T) {
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("auto_create_topic_with_first_subscription").HasValue("false"),
 				check.That(data.ResourceName).Key("auto_delete_topic_with_last_subscription").HasValue("false"),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinRegion"),
 			),
 		},
 		data.ImportStep(),
@@ -243,7 +245,7 @@ resource "azurerm_eventgrid_domain" "test" {
   auto_create_topic_with_first_subscription = false
   auto_delete_topic_with_last_subscription  = false
 
-  min_tls_version         = "1.2"
+  minimum_tls_version         = "1.2"
   data_residency_boundary = "WithinRegion"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -469,7 +471,7 @@ resource "azurerm_eventgrid_domain" "test" {
     "foo" = "bar"
   }
 
-  min_tls_version         = "1.2"
+  minimum_tls_version         = "1.2"
   data_residency_boundary = "WithinGeopair"
 
 }
