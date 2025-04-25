@@ -82,8 +82,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
         run: |
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
+          git config user.name "hc-github-team-tf-azure"
+          git config user.email "<>"
           
           #new pull request for new release needs the headers all added to the top
           FILE="CHANGELOG.md"
@@ -125,8 +125,8 @@ jobs:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
         run: |
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
+          git config user.name "hc-github-team-tf-azure"
+          git config user.email "<>"
           
           go run internal/tools/changelog-updater/update_changelog.go CHANGELOG.md '${{ needs.changelog-entry.outputs.entry }}'
           
