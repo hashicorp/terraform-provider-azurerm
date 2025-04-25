@@ -7,8 +7,8 @@ ENHANCEMENTS:
 dependencies: `eventhub` - update to API version `2024-01-01` [GH-29397]
 
 BUG FIXES:
+* `azurerm_nginx_deployment` - add support for the `web_application_firewall` property [GH-27454]
 * `azurerm_web_pubsub_custom_certificate` - no longer crashes when `custom_certificate_id` is in a different subscription [GH-29410]
-
 
 ## 4.27.0 (April 25, 2025)
 
