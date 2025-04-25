@@ -6,7 +6,6 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 	"time"
 
@@ -50,10 +49,7 @@ func TestAccSubnetNetworkSecurityGroupAssociation_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: regexp.MustCompile("has already attached Network Security Group"),
-		},
+		data.RequiresImportAssociationErrorStep(r.requiresImport),
 	})
 }
 

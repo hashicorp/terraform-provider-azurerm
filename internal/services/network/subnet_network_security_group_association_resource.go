@@ -5,6 +5,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"log"
 	"time"
 
@@ -93,7 +94,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 			if nsg := props.NetworkSecurityGroup; nsg != nil {
 				// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
 				if nsg.Id != nil && model.Id != nil {
-					return fmt.Errorf("subnet %s has already attached Network Security Group %s", *model.Id, *nsg.Id)
+					return tf.ImportAsExistsAssociationError("azurerm_subnet_network_security_group_association", subnetId.ID(), networkSecurityGroupId.ID())
 				}
 			}
 
