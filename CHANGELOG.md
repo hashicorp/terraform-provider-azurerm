@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 
 BUG FIXES:
+* `azurerm_web_pubsub_custom_certificate` - no longer crashes when `custom_certificate_id` is in a different subscription [GH-29410]
 
 
 ## 4.27.0 (April 25, 2025)
