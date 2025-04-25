@@ -4,7 +4,7 @@ FEATURES:
 
 
 ENHANCEMENTS:
-
+dependencies: `eventhub` - update to API version `2024-01-01` [GH-29397]
 
 BUG FIXES:
 * `azurerm_web_pubsub_custom_certificate` - no longer crashes when `custom_certificate_id` is in a different subscription [GH-29410]
