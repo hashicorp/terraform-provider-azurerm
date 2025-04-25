@@ -513,6 +513,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/snapsho
 github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/elasticsan/2023-01-01/volumes
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnerconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15
