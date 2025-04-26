@@ -810,6 +810,7 @@ type ContainerTemplate struct {
 	Suffix                 string                `tfschema:"revision_suffix"`
 	MinReplicas            int64                 `tfschema:"min_replicas"`
 	MaxReplicas            int64                 `tfschema:"max_replicas"`
+	CooldownPeriod         int64                 `tfschema:"cooldown_period"`
 	AzureQueueScaleRules   []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
 	CustomScaleRules       []CustomScaleRule     `tfschema:"custom_scale_rule"`
 	HTTPScaleRules         []HTTPScaleRule       `tfschema:"http_scale_rule"`
@@ -843,6 +844,14 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Default:      10,
 					ValidateFunc: validation.IntBetween(1, 300),
 					Description:  "The maximum number of replicas for this container.",
+				},
+
+				"cooldown_period": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      300,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The number of seconds to wait before scaling down the number of instances again.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchema(),
@@ -894,6 +903,14 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
 					Description: "The maximum number of replicas for this container.",
+				},
+
+				"cooldown_period": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      300,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The number of seconds load should be below the scale up threshold before scaling back again.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchemaComputed(),
@@ -950,6 +967,13 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		template.Scale.MinReplicas = pointer.To(config.MinReplicas)
 	}
 
+	if config.CooldownPeriod > 0 {
+		if template.Scale == nil {
+			template.Scale = &containerapps.Scale{}
+		}
+		template.Scale.CooldownPeriod = pointer.To(config.CooldownPeriod)
+	}
+
 	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
@@ -982,6 +1006,7 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 	if scale := input.Scale; scale != nil {
 		result.MaxReplicas = pointer.From(scale.MaxReplicas)
 		result.MinReplicas = pointer.From(scale.MinReplicas)
+		result.CooldownPeriod = pointer.From(scale.CooldownPeriod)
 		result.flattenContainerAppScaleRules(scale.Rules)
 	}
 

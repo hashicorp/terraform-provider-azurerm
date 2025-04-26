@@ -114,6 +114,8 @@ A `template` block supports the following:
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
 
+* `cooldown_period` - The number of seconds to wait before scaling down the number of instances again.
+
 * `azure_queue_scale_rule` - (Optional) One or more `azure_queue_scale_rule` blocks as defined below.
 
 * `custom_scale_rule` - (Optional) One or more `custom_scale_rule` blocks as defined below.

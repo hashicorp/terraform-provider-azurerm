@@ -77,6 +77,8 @@ A `template` block supports the following:
 
 * `min_replicas` - The minimum number of replicas for this container.
 
+* `cooldown_period` - The number of seconds to wait before scaling down the number of instances again.
+
 * `revision_suffix` - The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
 * `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
