@@ -167,6 +167,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Private DNS Resolver is only available in certain locations
         "privatednsresolver" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westus3", "westeurope", true)),
 
+        // Purview Accounts are only available in certain locations
+        "purview" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus", true)),
+
         // Qumulo asked to use canary env for testing, eastasia is a canary region for qumulo
         "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centralus2euap", "westeurope", true)),
 
