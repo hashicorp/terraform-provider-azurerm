@@ -95,11 +95,11 @@ func (r MsSqlServerSecurityAlertPolicyResource) basic(data acceptance.TestData) 
 %[1]s
 
 resource "azurerm_mssql_server_security_alert_policy" "test" {
-  resource_group_name        = azurerm_resource_group.test.name
-  server_name                = azurerm_mssql_server.test.name
-  state                      = "Enabled"
-  retention_days             = 20
-  email_account_admins       = true
+  resource_group_name  = azurerm_resource_group.test.name
+  server_name          = azurerm_mssql_server.test.name
+  state                = "Enabled"
+  retention_days       = 20
+  email_account_admins = true
 
   disabled_alerts = [
     "Sql_Injection",
