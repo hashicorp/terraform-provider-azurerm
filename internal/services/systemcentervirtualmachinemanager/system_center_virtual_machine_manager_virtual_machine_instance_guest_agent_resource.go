@@ -18,14 +18,10 @@ import (
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentModel struct {
-	ScopedResourceId   string       `tfschema:"scoped_resource_id"`
-	Credential         []Credential `tfschema:"credential"`
-	ProvisioningAction string       `tfschema:"provisioning_action"`
-}
-
-type Credential struct {
-	Username string `tfschema:"username"`
-	Password string `tfschema:"password"`
+	ScopedResourceId   string `tfschema:"scoped_resource_id"`
+	Username           string `tfschema:"username"`
+	Password           string `tfschema:"password"`
+	ProvisioningAction string `tfschema:"provisioning_action"`
 }
 
 var _ sdk.Resource = SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResource{}
@@ -53,29 +49,19 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 			ValidateFunc: machines.ValidateMachineID,
 		},
 
-		"credential": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"username": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
+		"username": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-					"password": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						Sensitive:    true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
+		"password": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			Sensitive:    true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"provisioning_action": {
@@ -117,7 +103,10 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 
 			parameters := guestagents.GuestAgent{
 				Properties: &guestagents.GuestAgentProperties{
-					Credentials:        expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(model.Credential),
+					Credentials: &guestagents.GuestCredential{
+						Username: model.Username,
+						Password: metadata.ResourceData.Get("password").(string),
+					},
 					ProvisioningAction: pointer.To(guestagents.ProvisioningAction(model.ProvisioningAction)),
 				},
 			}
@@ -157,7 +146,11 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.Credential = flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(props.Credentials, metadata.ResourceData.Get("credential.0.password").(string))
+					if v := props.Credentials; v != nil {
+						state.Username = v.Username
+						state.Password = v.Password
+					}
+
 					state.ProvisioningAction = string(pointer.From(props.ProvisioningAction))
 				}
 			}
@@ -185,29 +178,4 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 			return nil
 		},
 	}
-}
-
-func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input []Credential) *guestagents.GuestCredential {
-	if len(input) == 0 {
-		return nil
-	}
-
-	credential := input[0]
-
-	return &guestagents.GuestCredential{
-		Username: credential.Username,
-		Password: credential.Password,
-	}
-}
-
-func flattenSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentCredential(input *guestagents.GuestCredential, password string) []Credential {
-	result := make([]Credential, 0)
-	if input == nil {
-		return result
-	}
-
-	return append(result, Credential{
-		Username: input.Username,
-		Password: password,
-	})
 }

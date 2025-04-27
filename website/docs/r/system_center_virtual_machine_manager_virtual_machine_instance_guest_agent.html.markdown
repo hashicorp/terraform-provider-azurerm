@@ -90,11 +90,8 @@ resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "example" {
   scoped_resource_id = azurerm_arc_machine.example.id
-
-  credential {
-    username = "Administrator"
-    password = "AdminPassword123!"
-  }
+  username           = "Administrator"
+  password           = "AdminPassword123!"
 
   depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.example]
 }
@@ -106,17 +103,11 @@ The following arguments are supported:
 
 * `scoped_resource_id` - (Required) The ID of the Hybrid Compute Machine where this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent is stored. Changing this forces a new resource to be created.
 
-* `credential` - (Required) A `credential` block as defined below. Changing this forces a new resource to be created.
-
-* `provisioning_action` - (Optional) The provisioning action that is used to define the different types of operations for the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Possible values are `install`, `repair` and `uninstall`. Defaults to `install`. Changing this forces a new resource to be created.
-
----
-
-A `credential` block supports the following:
-
 * `username` - (Optional) The username that is used to connect to the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The password that is used to connect to the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Changing this forces a new resource to be created.
+
+* `provisioning_action` - (Optional) The provisioning action that is used to define the different types of operations for the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent. Possible values are `install`, `repair` and `uninstall`. Defaults to `install`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

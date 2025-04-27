@@ -44,7 +44,7 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_ba
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("credential.0.password"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -74,7 +74,7 @@ func testAccSystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgent_co
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("credential.0.password"),
+		data.ImportStep("password"),
 	})
 }
 
@@ -102,11 +102,8 @@ provider "azurerm" {
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
   scoped_resource_id = azurerm_arc_machine.test.id
-
-  credential {
-    username = "Administrator"
-    password = "AdminPassword123!"
-  }
+  username           = "Administrator"
+  password           = "AdminPassword123!"
 
   depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test]
 }
@@ -119,11 +116,8 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "import" {
   scoped_resource_id = azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.test.scoped_resource_id
-
-  credential {
-    username = "Administrator"
-    password = "AdminPassword123!"
-  }
+  username           = "Administrator"
+  password           = "AdminPassword123!"
 }
 `, r.basic(data))
 }
@@ -139,11 +133,8 @@ provider "azurerm" {
 resource "azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent" "test" {
   scoped_resource_id  = azurerm_arc_machine.test.id
   provisioning_action = "install"
-
-  credential {
-    username = "Administrator"
-    password = "AdminPassword123!"
-  }
+  username            = "Administrator"
+  password            = "AdminPassword123!"
 
   depends_on = [azurerm_system_center_virtual_machine_manager_virtual_machine_instance.test]
 }
