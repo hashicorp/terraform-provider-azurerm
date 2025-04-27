@@ -78,6 +78,7 @@ func resourceApplicationInsights() *pluginsdk.Resource {
 				}, false),
 			},
 
+			// NOTE: O+C A Log Analytics Workspace will be attached to the Application Insight by default, which should be computed=true
 			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
