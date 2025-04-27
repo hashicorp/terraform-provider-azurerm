@@ -56,6 +56,13 @@ func TestAccMsSqlServerSecurityAlertPolicy_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.basicWithUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
 	})
 }
 
@@ -91,15 +98,18 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   server_name                = azurerm_mssql_server.test.name
   state                      = "Enabled"
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
   retention_days             = 20
+  email_account_admins       = true
 
   disabled_alerts = [
     "Sql_Injection",
     "Data_Exfiltration"
   ]
 
+  email_addresses = [
+    "email@example1.com",
+    "email@example2.com"
+  ]
 }
 `, r.server(data))
 }
@@ -109,11 +119,40 @@ func (r MsSqlServerSecurityAlertPolicyResource) update(data acceptance.TestData)
 %[1]s
 
 resource "azurerm_mssql_server_security_alert_policy" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  server_name          = azurerm_mssql_server.test.name
-  state                = "Enabled"
-  email_account_admins = true
-  retention_days       = 30
+  resource_group_name        = azurerm_resource_group.test.name
+  server_name                = azurerm_mssql_server.test.name
+  state                      = "Disabled"
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+`, r.server(data))
+}
+
+// NOTE: You cannot go back to the 'basic' test configuration because the 'update' configuration
+// defined the 'storage_endpoint' and 'storage_account_access_key' fields which would
+// trigger a 'destroy' causing the test case to fail... Take these broken wings...
+func (r MsSqlServerSecurityAlertPolicyResource) basicWithUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_security_alert_policy" "test" {
+  resource_group_name        = azurerm_resource_group.test.name
+  server_name                = azurerm_mssql_server.test.name
+  state                      = "Enabled"
+  retention_days             = 20
+  email_account_admins       = true
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  disabled_alerts = [
+    "Sql_Injection",
+    "Data_Exfiltration"
+  ]
+
+  email_addresses = [
+    "email@example1.com",
+    "email@example2.com"
+  ]
 }
 `, r.server(data))
 }

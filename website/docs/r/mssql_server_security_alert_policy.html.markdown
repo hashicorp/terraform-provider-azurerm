@@ -44,11 +44,12 @@ resource "azurerm_mssql_server_security_alert_policy" "example" {
   state                      = "Enabled"
   storage_endpoint           = azurerm_storage_account.example.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.example.primary_access_key
+  retention_days             = 20
+
   disabled_alerts = [
     "Sql_Injection",
     "Data_Exfiltration"
   ]
-  retention_days = 20
 }
 ```
 
@@ -72,7 +73,11 @@ The following arguments are supported:
 
 * `storage_endpoint` - (Optional) Specifies the blob storage endpoint that will hold all Threat Detection audit logs (e.g., `https://example.blob.core.windows.net`).
 
-* `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. This is mandatory when you use the `storage_endpoint` field to specify a storage account blob endpoint.
+-> **Note:** The `storage_account_access_key` field is required when the `storage_endpoint` field has been set.
+
+* `storage_account_access_key` - (Optional) Specifies the primary access key of the Threat Detection audit logs blob storage endpoint. Changing this forces a new resource to be created.
+
+-> **Note:** The `storage_endpoint` field is required when the `storage_account_access_key` field has been set.
 
 -> **Note:**  Storage accounts configured with `shared_access_key_enabled = false` cannot be used for the `storage_endpoint` field.
 
