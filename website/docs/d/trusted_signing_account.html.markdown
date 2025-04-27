@@ -38,13 +38,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Trusted Signing Account.
 
-* `location` - (Required) The Azure Region where the Trusted Signing Account exists.
+* `location` - The Azure Region where the Trusted Signing Account exists.
 
 * `account_uri` - The URI of the Trusted Signing Account.
 
-* `sku_name` - (Required) The sku name of the Trusted Signing Account.
+* `sku_name` - The sku name of the Trusted Signing Account.
 
-* `tags` - (Optional) A mapping of tags assigned to the Trusted Signing Account.
+* `tags` - A mapping of tags assigned to the Trusted Signing Account.
 
 ## Timeouts
 
