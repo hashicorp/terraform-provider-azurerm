@@ -108,6 +108,9 @@ The following arguments are supported:
 
 -> **Note:** Self assigned certificate is not supported and the provisioning status will fail.
 
+* `use_specific_version` - (Optional) Indicates whether to use a specific (computed) version of the certificate. Defaults to `true`. Changing this forces a new resource to be created.
+
+-> **Note:** Setting `use_specific_version` to `true` will prevent automatic certificate rotation.
 
 ## Attributes Reference
 
