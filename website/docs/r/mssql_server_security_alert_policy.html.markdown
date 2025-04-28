@@ -75,11 +75,13 @@ The following arguments are supported:
 
 -> **Note:** The `storage_account_access_key` field is required when the `storage_endpoint` field has been set.
 
-* `storage_account_access_key` - (Optional) Specifies the primary access key of the Threat Detection audit logs blob storage endpoint. Changing this forces a new resource to be created.
-
--> **Note:** The `storage_endpoint` field is required when the `storage_account_access_key` field has been set.
-
 -> **Note:**  Storage accounts configured with `shared_access_key_enabled = false` cannot be used for the `storage_endpoint` field.
+
+* `storage_account_access_key` - (Optional) Specifies the primary access key of the Threat Detection audit logs blob storage endpoint.
+
+-> **Note:** The `storage_account_access_key` only applies if the storage account is not behind a virtual network or a firewall.
+
+---
 
 ## Attributes Reference
 

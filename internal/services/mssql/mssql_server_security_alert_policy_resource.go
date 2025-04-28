@@ -4,7 +4,6 @@
 package mssql
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -113,21 +112,6 @@ func resourceMsSqlServerSecurityAlertPolicy() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
-
-		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.ForceNewIfChange("storage_account_access_key", func(ctx context.Context, old, new, meta interface{}) bool {
-				// NOTE: Once the value has been set any change will trigger the force new behavior...
-				// We need this because it isn't returned by the API, so we always get it from the state
-				// file, even during read. Without a ForceNew there would be no way to remove/change this
-				// field...
-
-				if old.(string) != "" {
-					return old.(string) != new.(string)
-				}
-
-				return false
-			}),
-		),
 	}
 }
 
@@ -142,45 +126,58 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 	payload := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
+	state := d.Get("state").(string)
 
 	props := &serversecurityalertpolicies.SecurityAlertsPolicyProperties{
-		State: serversecurityalertpolicies.SecurityAlertsPolicyState(d.Get("state").(string)),
+		State: serversecurityalertpolicies.SecurityAlertsPolicyState(state),
 	}
 
-	disabledAlerts := make([]string, 0)
-	if v, ok := d.GetOk("disabled_alerts"); ok {
-		for _, v := range v.(*pluginsdk.Set).List() {
-			disabledAlerts = append(disabledAlerts, v.(string))
-		}
-	}
-	props.DisabledAlerts = &disabledAlerts
-
-	emailAddresses := make([]string, 0)
-	if v, ok := d.GetOk("email_addresses"); ok {
-		for _, v := range v.(*pluginsdk.Set).List() {
-			emailAddresses = append(emailAddresses, v.(string))
-		}
-	}
-	props.EmailAddresses = &emailAddresses
-
-	// NOTE: The API defaults to 'true' for the 'EmailAccountAdmins' property...
+	var disabledAlerts *[]string
+	var emailAddresses *[]string
 	var emailAdmins *bool
+	var retentionDays *int64
+	var storageAccountAccessKey *string
+	var storageEndpoint *string
+
+	if v, ok := d.GetOk("disabled_alerts"); ok {
+		disabled := make([]string, 0)
+		for _, v := range v.(*pluginsdk.Set).List() {
+			disabled = append(disabled, v.(string))
+		}
+		disabledAlerts = pointer.To(disabled)
+	}
+	props.DisabledAlerts = disabledAlerts
+
+	if v, ok := d.GetOk("email_addresses"); ok {
+		emails := make([]string, 0)
+		for _, v := range v.(*pluginsdk.Set).List() {
+			emails = append(emails, v.(string))
+		}
+		emailAddresses = pointer.To(emails)
+	}
+	props.EmailAddresses = emailAddresses
+
+	// NOTE: The API defaults to 'true' for the 'EmailAccountAdmins'
+	// property, the provider defaults to 'false'...
 	if v, ok := d.GetOk("email_account_admins"); ok {
 		emailAdmins = pointer.To(v.(bool))
 	}
 	props.EmailAccountAdmins = emailAdmins
 
 	if v, ok := d.GetOk("retention_days"); ok {
-		props.RetentionDays = pointer.To(int64(v.(int)))
+		retentionDays = pointer.To(int64(v.(int)))
 	}
+	props.RetentionDays = retentionDays
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		props.StorageAccountAccessKey = pointer.To(v.(string))
+		storageAccountAccessKey = pointer.To(v.(string))
 	}
+	props.StorageAccountAccessKey = storageAccountAccessKey
 
 	if v, ok := d.GetOk("storage_endpoint"); ok {
-		props.StorageEndpoint = pointer.To(v.(string))
+		storageEndpoint = pointer.To(v.(string))
 	}
+	props.StorageEndpoint = storageEndpoint
 
 	payload.Properties = props
 	serverId := commonids.NewSqlServerID(subscriptionId, resourceGroupName, serverName)
@@ -192,16 +189,16 @@ func resourceMsSqlServerSecurityAlertPolicyCreate(d *pluginsdk.ResourceData, met
 
 	result, err := client.Get(ctx, serverId)
 	if err != nil {
-		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
+		return fmt.Errorf("retrieving mssql server security alert policy %s: %+v", serverId, err)
 	}
 
 	model := result.Model
 	if model == nil {
-		return fmt.Errorf("retrieving %s: model was nil", serverId)
+		return fmt.Errorf("retrieving mssql server security alert policy %s: model was nil", serverId)
 	}
 
 	if model.Name == nil {
-		return fmt.Errorf("reading mssql server security alert policy name (server %q, resource group %q)", serverName, resourceGroupName)
+		return fmt.Errorf("retrieving mssql server security alert policy %s: name was nil", serverId)
 	}
 
 	id := parse.NewServerSecurityAlertPolicyID(subscriptionId, resourceGroupName, serverName, *model.Name)
@@ -288,9 +285,8 @@ func resourceMsSqlServerSecurityAlertPolicyRead(d *pluginsdk.ResourceData, meta 
 	}
 	d.Set("storage_endpoint", storageEndpoint)
 
-	// NOTE: 'storage_account_access_key' field is not returned by the API so we need to
-	// pull it from the state... Once the 'storage_account_access_key' has been set there
-	// is no way to remove it...
+	// NOTE: 'storage_account_access_key' field is not returned by the API
+	// so we need to pull it from the state...
 	var accessKey string
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
 		accessKey = v.(string)
@@ -316,20 +312,20 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 
 	policy, err := client.Get(ctx, serverId)
 	if err != nil {
-		return fmt.Errorf("retrieving mssql server security alert policy (server %q, resource group %q): %+v", id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving mssql server security alert policy %s: %+v", id, err)
 	}
 
 	model := policy.Model
 	if model == nil {
-		return fmt.Errorf("retrieving %s: model was nil", serverId)
+		return fmt.Errorf("retrieving mssql server security alert policy %s: model was nil", id)
 	}
 
 	if model.Name == nil {
-		return fmt.Errorf("reading mssql server security alert policy name (server %q, resource group %q)", id.ServerName, id.ResourceGroup)
+		return fmt.Errorf("reading mssql server security alert policy %s: name was nil", id)
 	}
 
 	if model.Properties == nil {
-		return fmt.Errorf("reading mssql server security alert policy properties (server %q, resource group %q)", id.ServerName, id.ResourceGroup)
+		return fmt.Errorf("reading mssql server security alert policy %s: properties was nil", id)
 	}
 
 	payload := serversecurityalertpolicies.ServerSecurityAlertPolicy{}
@@ -346,7 +342,7 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 				disabledAlerts = append(disabledAlerts, v.(string))
 			}
 		}
-		props.DisabledAlerts = &disabledAlerts
+		props.DisabledAlerts = pointer.To(disabledAlerts)
 	}
 
 	if d.HasChange("email_addresses") {
@@ -356,7 +352,7 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 				emailAddresses = append(emailAddresses, v.(string))
 			}
 		}
-		props.EmailAddresses = &emailAddresses
+		props.EmailAddresses = pointer.To(emailAddresses)
 	}
 
 	if d.HasChange("email_account_admins") {
@@ -382,8 +378,8 @@ func resourceMsSqlServerSecurityAlertPolicyUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	// NOTE: 'storage_account_access_key' cannot be wrapped in a
-	// d.HasChange because it is not returned by the API...
+	// NOTE: 'storage_account_access_key' it is not returned
+	// by the API, so we need to get it from state...
 	props.StorageAccountAccessKey = nil
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
 		props.StorageAccountAccessKey = pointer.To(v.(string))

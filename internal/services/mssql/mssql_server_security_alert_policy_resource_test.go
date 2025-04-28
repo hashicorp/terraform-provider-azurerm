@@ -6,6 +6,7 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -43,26 +44,81 @@ func TestAccMsSqlServerSecurityAlertPolicy_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data), // Minimal config with enabled state
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.update(data),
+			Config: r.updateStepOne(data), // Update minimal config with disabled alerts and email addresses
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.basicWithUpdate(data),
+			Config: r.updateStepTwo(data), // Update with storage account details, disabled alerts and email addresses
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.updateStepThree(data), // Update to remove storage account details with disabled alerts and email addresses
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.basic(data), // Update back to minimal config without storage account details, disabled alerts and email addresses
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.updateStepTwo(data), // Update with storage account details, disabled alerts and email addresses
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.updateStepFour(data), // Update with different storage account details with disabled alerts and email addresses
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.updateStepFive(data), // Update back to previous storage account details without disabled alerts and email addresses
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+		{
+			Config: r.updateStepSix(data), // Update back to minimal config with disabled state without storage account details, disabled alerts and email addresses
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_access_key"),
+	})
+}
+
+func TestAccMsSqlServerSecurityAlertPolicy_error(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
+
+	r := MsSqlServerSecurityAlertPolicyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.error(data),
+			ExpectError: regexp.MustCompile("Missing required argument"),
+		},
 	})
 }
 
@@ -95,11 +151,21 @@ func (r MsSqlServerSecurityAlertPolicyResource) basic(data acceptance.TestData) 
 %[1]s
 
 resource "azurerm_mssql_server_security_alert_policy" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  server_name          = azurerm_mssql_server.test.name
-  state                = "Enabled"
-  retention_days       = 20
-  email_account_admins = true
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mssql_server.test.name
+  state               = "Enabled"
+}
+`, r.server(data))
+}
+
+func (r MsSqlServerSecurityAlertPolicyResource) updateStepOne(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_security_alert_policy" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mssql_server.test.name
+  state               = "Enabled"
 
   disabled_alerts = [
     "Sql_Injection",
@@ -114,35 +180,16 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 `, r.server(data))
 }
 
-func (r MsSqlServerSecurityAlertPolicyResource) update(data acceptance.TestData) string {
+func (r MsSqlServerSecurityAlertPolicyResource) updateStepTwo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_mssql_server_security_alert_policy" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   server_name                = azurerm_mssql_server.test.name
-  state                      = "Disabled"
   storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
-}
-`, r.server(data))
-}
-
-// NOTE: You cannot go back to the 'basic' test configuration because the 'update' configuration
-// defined the 'storage_endpoint' and 'storage_account_access_key' fields which would
-// trigger a 'destroy' causing the test case to fail... Take these broken wings...
-func (r MsSqlServerSecurityAlertPolicyResource) basicWithUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_mssql_server_security_alert_policy" "test" {
-  resource_group_name        = azurerm_resource_group.test.name
-  server_name                = azurerm_mssql_server.test.name
   state                      = "Enabled"
-  retention_days             = 20
-  email_account_admins       = true
-  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   disabled_alerts = [
     "Sql_Injection",
@@ -153,6 +200,78 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
     "email@example1.com",
     "email@example2.com"
   ]
+}
+`, r.server(data))
+}
+
+func (r MsSqlServerSecurityAlertPolicyResource) updateStepThree(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_security_alert_policy" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mssql_server.test.name
+  state               = "Enabled"
+
+  disabled_alerts = [
+    "Sql_Injection",
+    "Data_Exfiltration"
+  ]
+
+  email_addresses = [
+    "email@example1.com",
+    "email@example2.com"
+  ]
+}
+`, r.server(data))
+}
+
+func (r MsSqlServerSecurityAlertPolicyResource) updateStepFour(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_security_alert_policy" "test" {
+  resource_group_name        = azurerm_resource_group.test.name
+  server_name                = azurerm_mssql_server.test.name
+  storage_endpoint           = azurerm_storage_account.test2.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test2.primary_access_key
+  state                      = "Enabled"
+
+  disabled_alerts = [
+    "Sql_Injection",
+    "Data_Exfiltration"
+  ]
+
+  email_addresses = [
+    "email@example1.com",
+    "email@example2.com"
+  ]
+}
+`, r.server(data))
+}
+
+func (r MsSqlServerSecurityAlertPolicyResource) updateStepFive(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_security_alert_policy" "test" {
+  resource_group_name        = azurerm_resource_group.test.name
+  server_name                = azurerm_mssql_server.test.name
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  state                      = "Enabled"
+}
+`, r.server(data))
+}
+
+func (r MsSqlServerSecurityAlertPolicyResource) updateStepSix(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_security_alert_policy" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mssql_server.test.name
+  state               = "Disabled"
 }
 `, r.server(data))
 }
@@ -184,5 +303,28 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "accsb%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+`, data.RandomInteger, "eastus",
+	// data.Locations.Primary
+	)
+}
+
+func (r MsSqlServerSecurityAlertPolicyResource) error(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_server_security_alert_policy" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mssql_server.test.name
+  storage_endpoint    = azurerm_storage_account.test.primary_blob_endpoint
+  state               = "Enabled"
+}
+`, r.server(data))
 }
