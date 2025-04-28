@@ -246,7 +246,7 @@ resource "azurerm_eventgrid_domain" "test" {
   auto_delete_topic_with_last_subscription  = false
 
   data_residency_boundary = "WithinRegion"
-  minimum_tls_version         = "1.2"
+  minimum_tls_version     = "1.2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -472,7 +472,7 @@ resource "azurerm_eventgrid_domain" "test" {
   }
 
   data_residency_boundary = "WithinGeopair"
-  minimum_tls_version         = "1.2"
+  minimum_tls_version     = "1.2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
