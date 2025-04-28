@@ -292,9 +292,9 @@ func (r VPNGatewayConnectionResource) complete(data acceptance.TestData) string 
 %s
 
 resource "azurerm_vpn_gateway_connection" "test" {
-  name                = "acctest-VpnGwConn-%[2]d"
-  vpn_gateway_id      = azurerm_vpn_gateway.test.id
-  remote_vpn_site_id  = azurerm_vpn_site.test.id
+  name               = "acctest-VpnGwConn-%[2]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
   vpn_link {
     name                = "link1"
     dpd_timeout_seconds = 30
