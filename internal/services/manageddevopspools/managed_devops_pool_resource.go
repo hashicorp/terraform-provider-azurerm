@@ -24,6 +24,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9-]$`),
+				"Name must consist of alphanumeric characters, '.' or '-'. Name must also start with alphanumeric characters and cannot end with '.'.",
+			),
 		},
 		"resource_group_name": {
 			Type:     pluginsdk.TypeString,
@@ -35,6 +39,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"dev_center_project_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^/subscriptions/[0-9a-fA-F-]{36}/resourceGroups/[-\w._()]+/providers/Microsoft.DevCenter/projects/[-\w._()]+$`),
+				"dev center project resource id ID must match the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevCenter/projects/{projectName}'.",
+			),
 		},
 		"fabric_profile": FabricProfileSchema(),
 		"maximum_concurrency": {

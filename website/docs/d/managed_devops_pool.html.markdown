@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Managed DevOps Pool.
 
-* `agent_profile` - A `agent_profile` block as defined below.
+* `agent_profile` - An `agent_profile` block as defined below.
 
 * `dev_center_project_resource_id` - The ID of the Dev Center project.
 
@@ -49,7 +49,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `maximum_concurrency` - Defines how many resources can there be created at any given time.
 
-* `organization_profile` - A `organization_profile` block as defined below.
+* `organization_profile` - An `organization_profile` block as defined below.
 
 * `provisioning_state` - The status of the pool operation.
 
@@ -59,7 +59,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `agent_profile` block supports the following:
+An `agent_profile` block supports the following:
 
 * `kind` - Defines the type of agent profile. Possible values are: `Stateful` and `Stateless`.
 
@@ -99,13 +99,13 @@ A `fabric_profile` block supports the following:
 
 * `network_profile` - A `network_profile` block as defined below.
 
-* `os_profile` - A `os_profile` block as defined below.
+* `os_profile` - An `os_profile` block as defined below.
 
 * `storage_profile` - A `storage_profile` block as defined below.
 
 ---
 
-A `images` block supports the following:
+An `images` block supports the following:
 
 * `aliases` - List of aliases to reference the image by.
 
@@ -129,7 +129,7 @@ A `network_profile` block supports the following:
 
 ---
 
-A `os_profile` block supports the following:
+An `os_profile` block supports the following:
 
 * `logon_type` - Determines how the service should be run. Accepted values are: `Interactive` and `Service`.
 
@@ -169,7 +169,7 @@ A `data_disks` block supports the following:
 
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
 * `identity_ids` - Specifies a list User assigned managed identity Id's.
 
@@ -181,7 +181,7 @@ A `identity` block exports the following:
 
 ---
 
-A `organization_profile` block supports the following:
+An `organization_profile` block supports the following:
 
 * `kind` - Discriminator property for OrganizationProfile. Possible value is`AzureDevOps` currently.
 
@@ -191,7 +191,7 @@ A `organization_profile` block supports the following:
 
 ---
 
-A `organizations` block supports the following:
+An `organizations` block supports the following:
 
 * `url` - (Required) The Azure DevOps organization URL in which the pool should be created.
 

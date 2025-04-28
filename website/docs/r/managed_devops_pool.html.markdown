@@ -94,7 +94,7 @@ resource "azurerm_managed_devops_pool" "example" {
 
 The following arguments are supported:
 
-* `agent_profile` - (Required) A `agent_profile` block as defined below.
+* `agent_profile` - (Required) An `agent_profile` block as defined below.
 
 * `dev_center_project_resource_id` - (Required) The ID of the Dev Center project.
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Managed DevOps Pool. Changing this forces a new Managed DevOps Pool to be created.
 
-* `organization_profile` - (Required) A `organization_profile` block as defined below.
+* `organization_profile` - (Required) An `organization_profile` block as defined below.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Managed DevOps Pool should exist. Changing this forces a new Managed DevOps Pool to be created.
 
@@ -118,7 +118,7 @@ The following arguments are supported:
 
 ---
 
-A `agent_profile` block supports the following:
+An `agent_profile` block supports the following:
 
 * `kind` - (Required) Defines the type of agent profile. Accepted values are: `Stateful` and `Stateless`.
 
@@ -154,13 +154,13 @@ A `fabric_profile` block supports the following:
 
 * `network_profile` - (Optional) A `network_profile` block as defined below.
 
-* `os_profile` - (Optional) A `os_profile` block as defined below.
+* `os_profile` - (Optional) An `os_profile` block as defined below.
 
 * `storage_profile` - (Optional) A `storage_profile` block as defined below.
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Type of managed service identity. Accepted value is `UserAssigned`.
 
@@ -168,7 +168,7 @@ A `identity` block supports the following:
 
 ---
 
-A `images` block supports the following:
+An `images` block supports the following:
 
 * `aliases` - (Optional) List of aliases to reference the image by.
 
@@ -186,7 +186,7 @@ A `network_profile` block supports the following:
 
 ---
 
-A `organization_profile` block supports the following:
+An `organization_profile` block supports the following:
 
 * `kind` - (Required) Discriminator property for OrganizationProfile. Accepted value is`AzureDevOps` currently.
 
@@ -196,7 +196,7 @@ A `organization_profile` block supports the following:
 
 ---
 
-A `organizations` block supports the following:
+An `organizations` block supports the following:
 
 * `url` - (Required) The Azure DevOps organization URL in which the pool should be created.
 
@@ -206,7 +206,7 @@ A `organizations` block supports the following:
 
 ---
 
-A `os_profile` block supports the following:
+An `os_profile` block supports the following:
 
 * `logon_type` - (Required) Determines how the service should be run. Accepted values are: `Interactive` and `Service`.
 

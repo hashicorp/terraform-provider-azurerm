@@ -184,7 +184,7 @@ provider "azurerm" {
   features {}
 }
 
-esource "azurerm_managed_devops_pool" "test" {
+resource "azurerm_managed_devops_pool" "test" {
   name     = "acctest-pool-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
