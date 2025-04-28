@@ -811,6 +811,7 @@ type ContainerTemplate struct {
 	MinReplicas            int64                 `tfschema:"min_replicas"`
 	MaxReplicas            int64                 `tfschema:"max_replicas"`
 	CooldownPeriod         int64                 `tfschema:"cooldown_period"`
+	PollingInterval        int64                 `tfschema:"polling_interval"`
 	AzureQueueScaleRules   []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
 	CustomScaleRules       []CustomScaleRule     `tfschema:"custom_scale_rule"`
 	HTTPScaleRules         []HTTPScaleRule       `tfschema:"http_scale_rule"`
@@ -852,6 +853,14 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Default:      300,
 					ValidateFunc: validation.IntAtLeast(1),
 					Description:  "The number of seconds to wait before scaling down the number of instances again.",
+				},
+
+				"polling_interval": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      30,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchema(),
@@ -911,6 +920,14 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Default:      300,
 					ValidateFunc: validation.IntAtLeast(1),
 					Description:  "The number of seconds load should be below the scale up threshold before scaling back again.",
+				},
+
+				"polling_interval": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      30,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchemaComputed(),
@@ -974,6 +991,13 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		template.Scale.CooldownPeriod = pointer.To(config.CooldownPeriod)
 	}
 
+	if config.PollingInterval > 0 {
+		if template.Scale == nil {
+			template.Scale = &containerapps.Scale{}
+		}
+		template.Scale.PollingInterval = pointer.To(config.PollingInterval)
+	}
+
 	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
@@ -1007,6 +1031,7 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 		result.MaxReplicas = pointer.From(scale.MaxReplicas)
 		result.MinReplicas = pointer.From(scale.MinReplicas)
 		result.CooldownPeriod = pointer.From(scale.CooldownPeriod)
+		result.PollingInterval = pointer.From(scale.PollingInterval)
 		result.flattenContainerAppScaleRules(scale.Rules)
 	}
 

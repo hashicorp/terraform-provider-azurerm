@@ -116,6 +116,8 @@ A `template` block supports the following:
 
 * `cooldown_period` - The number of seconds to wait before scaling down the number of instances again.
 
+* `polling_interval` - The interval in seconds used for polling KEDA.
+
 * `azure_queue_scale_rule` - (Optional) One or more `azure_queue_scale_rule` blocks as defined below.
 
 * `custom_scale_rule` - (Optional) One or more `custom_scale_rule` blocks as defined below.
