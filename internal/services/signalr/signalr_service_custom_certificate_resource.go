@@ -63,6 +63,7 @@ func (r CustomCertSignalrServiceResource) Arguments() map[string]*pluginsdk.Sche
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
+			Default:  true,
 		},
 	}
 }
