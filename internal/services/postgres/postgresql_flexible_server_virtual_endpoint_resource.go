@@ -147,10 +147,42 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
-					return metadata.MarkAsGone(id)
+					// Check if a failover occurred by looking for the endpoint with the current name
+					// but on what was previously the replica server
+					olderState := PostgresqlFlexibleServerVirtualEndpointModel{}
+					if err := metadata.Decode(&olderState); err == nil && olderState.ReplicaServerId != "" {
+						// Try to find endpoint on what used to be the replica
+						replicaServerId, parseErr := servers.ParseFlexibleServerID(olderState.ReplicaServerId)
+						if parseErr == nil {
+							// Create a new ID for the endpoint on the replica server
+							newEndpointId := virtualendpoints.NewVirtualEndpointID(
+								replicaServerId.SubscriptionId,
+								replicaServerId.ResourceGroupName,
+								replicaServerId.FlexibleServerName,
+								id.VirtualEndpointName,
+							)
+
+							newResp, newErr := client.Get(ctx, newEndpointId)
+							if newErr == nil && newResp.Model != nil && newResp.Model.Properties != nil {
+								// Endpoint found on the replica - a failover likely occurred
+								log.Printf("[INFO] Virtual endpoint %s found after failover on server %s", id.VirtualEndpointName, replicaServerId.FlexibleServerName)
+								// Update the ID to the new endpoint location
+								metadata.ResourceData.SetId(newEndpointId.ID())
+								id = &newEndpointId
+								resp = newResp
+								err = nil
+							}
+						}
+					}
+
+					// If we still haven't found the endpoint, mark it as gone
+					if err != nil {
+						log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
+						return metadata.MarkAsGone(id)
+					}
+				} else {
+					return fmt.Errorf("retrieving %s: %+v", id, err)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state.Name = id.VirtualEndpointName
@@ -165,24 +197,25 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 						return metadata.MarkAsGone(id)
 					}
 
-					state.SourceServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*props.Members)[0]).ID()
+					// After a failover, the "source" server is now what used to be the replica server
+					state.SourceServerId = servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID()
 
 					// Model.Properties.Members can contain 1 member which means source and replica are identical, or it can contain
 					// 2 members when source and replica are different => [source_server_id, replication_server_name]
-					replicaServerId := servers.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, (*props.Members)[0]).ID()
+					replicaServerId := state.SourceServerId
 
-					if len(*props.Members) == 2 {
-						replicaServer, err := lookupFlexibleServerByName(ctx, flexibleServerClient, id, (*props.Members)[1], state.SourceServerId)
+					if len(*props.Members) > 0 {
+						// Directly use the first member from the API response
+						memberName := (*props.Members)[0]
+						replicaServer, err := lookupFlexibleServerByName(ctx, flexibleServerClient, id, memberName, state.SourceServerId)
 						if err != nil {
-							return err
-						}
-
-						if replicaServer != nil {
+							// Failing to find the replica server doesn't need to be a hard error since we still have a functioning endpoint
+							log.Printf("[WARN] Could not locate replica server with name %s: %+v", memberName, err)
+						} else if replicaServer != nil {
 							replicaId, err := servers.ParseFlexibleServerID(*replicaServer.Id)
 							if err != nil {
 								return err
 							}
-
 							replicaServerId = replicaId.ID()
 						}
 					}
@@ -235,23 +268,79 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 				return err
 			}
 
+			// Get current state from API to handle failover scenarios
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					// The endpoint might have moved to the replica server after failover
+					// Check if the endpoint exists on replica instead
+					replicaServerId, parseErr := servers.ParseFlexibleServerID(virtualEndpoint.ReplicaServerId)
+					if parseErr == nil {
+						// Construct endpoint ID using the replica server
+						potentialEndpointId := virtualendpoints.NewVirtualEndpointID(
+							replicaServerId.SubscriptionId,
+							replicaServerId.ResourceGroupName,
+							replicaServerId.FlexibleServerName,
+							id.VirtualEndpointName,
+						)
+
+						// Check if endpoint exists on the replica server
+						replicaResp, replicaErr := client.Get(ctx, potentialEndpointId)
+						if replicaErr == nil && replicaResp.Model != nil {
+							// Found on replica - update the ID to point to the new location
+							log.Printf("[INFO] Found virtual endpoint %s on server %s after failover", id.VirtualEndpointName, replicaServerId.FlexibleServerName)
+							metadata.ResourceData.SetId(potentialEndpointId.ID())
+							id = &potentialEndpointId
+							resp = replicaResp
+							err = nil
+						} else {
+							return fmt.Errorf("getting %s: %+v", id, err)
+						}
+					} else {
+						return fmt.Errorf("getting %s: %+v", id, err)
+					}
+				} else {
+					return fmt.Errorf("getting %s: %+v", id, err)
+				}
+			}
+
+			// Parse the replica server ID from the config
 			replicaServerId, err := servers.ParseFlexibleServerID(virtualEndpoint.ReplicaServerId)
 			if err != nil {
 				return err
 			}
 
+			// Before updating, check if we're in a post-failover state
+			// where the source and replica have been swapped
+			sourceServerId, err := servers.ParseFlexibleServerID(virtualEndpoint.SourceServerId)
+			if err != nil {
+				return err
+			}
+
+			// If the resource ID's server doesn't match the source server, it likely means a failover occurred
+			// Detect the swap and adjust our update request to match the new reality
+			memberName := replicaServerId.FlexibleServerName
+			if id.FlexibleServerName != sourceServerId.FlexibleServerName {
+				log.Printf("[INFO] Detected server role swap in virtual endpoint - adapting update")
+
+				// After failover, the former replica is now the primary (where the endpoint exists)
+				// and we need to target the former primary as the replica
+				memberName = sourceServerId.FlexibleServerName
+			}
+
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-			if replicaServerId.FlexibleServerName != id.FlexibleServerName {
-				locks.ByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
-				defer locks.UnlockByName(replicaServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+			if memberName != id.FlexibleServerName {
+				locks.ByName(memberName, postgresqlFlexibleServerResourceName)
+				defer locks.UnlockByName(memberName, postgresqlFlexibleServerResourceName)
 			}
 
+			// Update with the correct member name based on current state
 			if err := client.UpdateThenPoll(ctx, *id, virtualendpoints.VirtualEndpointResourceForPatch{
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
 					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
-					Members:      pointer.To([]string{replicaServerId.FlexibleServerName}),
+					Members:      pointer.To([]string{memberName}),
 				},
 			}); err != nil {
 				return fmt.Errorf("updating %q: %+v", id, err)
