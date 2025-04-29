@@ -167,10 +167,9 @@ func (r LinuxWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"vnet_image_pull_enabled": {
-			Type:        pluginsdk.TypeBool,
-			Optional:    true,
-			Default:     false,
-			Description: "Is container image pull over virtual network enabled? Defaults to `false`.",
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
