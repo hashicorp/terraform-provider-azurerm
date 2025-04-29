@@ -785,7 +785,6 @@ resource "azurerm_netapp_volume" "test_original" {
   protocols           = ["NFSv3"]
   security_style      = "unix"
   storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
 }
 
 resource "azurerm_netapp_snapshot" "test_original" {
