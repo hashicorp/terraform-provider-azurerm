@@ -491,6 +491,10 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
+	if d.Get("virtual_network_subnet_id").(string) != "" {
+		siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(d.Get("virtual_network_subnet_id").(string))
+	}
+
 	if d.HasChange("public_network_access") {
 		publicNetworkAccess := d.Get("public_network_access").(string)
 		siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
