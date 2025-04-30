@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -77,21 +78,18 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ManagedDevOpsPools.PoolsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config ManagedDevOpsPoolModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-
 			id := pools.NewPoolID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.Get(ctx, id)
-			if err != nil {
-				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
-				}
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -181,7 +179,7 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
 				if modelIdentity := model.Identity; modelIdentity != nil {

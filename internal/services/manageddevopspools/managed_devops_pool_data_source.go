@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -91,7 +92,7 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
 				if modelIdentity := model.Identity; modelIdentity != nil {

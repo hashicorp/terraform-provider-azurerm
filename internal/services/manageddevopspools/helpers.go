@@ -13,7 +13,7 @@ import (
 func expandResourceModel(input ManagedDevOpsPoolModel, output *pools.Pool) error {
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
-		return fmt.Errorf("expanding SystemAndUserAssigned Identity: %+v", err)
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	output.Identity = identity
@@ -29,15 +29,15 @@ func expandResourceModel(input ManagedDevOpsPoolModel, output *pools.Pool) error
 	output.Properties.MaximumConcurrency = input.MaximumConcurrency
 
 	if err := expandAgentProfileModel(input.AgentProfile, output.Properties); err != nil {
-		return fmt.Errorf("expanding agent_profile model to sdk model: %+v", err)
+		return fmt.Errorf("expanding `agent_profile`: %+v", err)
 	}
 
 	if err := expandOrganizationProfileModel(input.OrganizationProfile, output.Properties); err != nil {
-		return fmt.Errorf("expanding organization_profile model to sdk model: %+v", err)
+		return fmt.Errorf("expanding `organization_profile`: %+v", err)
 	}
 
 	if err := expandFabricProfileModel(input.FabricProfile, output.Properties); err != nil {
-		return fmt.Errorf("expanding fabric_profile model to sdk model: %+v", err)
+		return fmt.Errorf("expanding `fabric_profile`: %+v", err)
 	}
 
 	return nil

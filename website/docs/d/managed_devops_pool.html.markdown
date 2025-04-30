@@ -139,7 +139,7 @@ An `os_profile` block supports the following:
 
 A `secrets_management_settings` block supports the following:
 
-* `certificate_store_location` - Specified where to store certificates on the machine.
+* `certificate_store_location` - Specifies where to store certificates on the machine.
 
 * `certificate_store_name` - Name of the certificate store to use on the machine. Possible values are: 'My' and 'Root'.
 
@@ -177,7 +177,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The tenant ID for the identity.
 
-* `type` - Type of managed service identity. Possible value is `UserAssigned`.
+* `type` - The type of managed service identity. The only possible value is `UserAssigned`.
 
 ---
 
