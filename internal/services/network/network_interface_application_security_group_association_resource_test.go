@@ -104,13 +104,13 @@ func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(t *tes
 	})
 }
 
-func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_differentAppSecurityGroupName(t *testing.T) {
+func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_caseSensitiveAppSecurityGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_security_group_association", "test")
 	r := NetworkInterfaceApplicationSecurityGroupAssociationResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.differentAppSecurityGroupName(data),
+			Config: r.caseSensitiveAppSecurityGroupName(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -291,7 +291,7 @@ resource "azurerm_network_interface_application_security_group_association" "tes
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NetworkInterfaceApplicationSecurityGroupAssociationResource) differentAppSecurityGroupName(data acceptance.TestData) string {
+func (r NetworkInterfaceApplicationSecurityGroupAssociationResource) caseSensitiveAppSecurityGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -305,13 +305,15 @@ resource "azurerm_network_interface" "test" {
     subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
   }
+
+  depends_on = [azurerm_application_security_group.test]
 }
 
 data "azurerm_application_security_group" "test" {
   name                = "accTEST-asg-%d"
   resource_group_name = azurerm_resource_group.test.name
 
-  depends_on = [azurerm_application_security_group.test]
+  depends_on = [azurerm_network_interface.test]
 }
 
 resource "azurerm_network_interface_application_security_group_association" "test" {
