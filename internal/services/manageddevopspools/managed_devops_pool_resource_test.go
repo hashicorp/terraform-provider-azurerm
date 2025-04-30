@@ -185,11 +185,11 @@ provider "azurerm" {
 }
 
 resource "azurerm_managed_devops_pool" "test" {
-  name     = "acctest-pool-%d"
+  name                = "acctest-pool-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  maximum_concurrency = 1
+  maximum_concurrency            = 1
   dev_center_project_resource_id = azurerm_dev_center_project.test.id
 
   organization_profile {
@@ -202,7 +202,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   agent_profile {
     kind = "Stateless"
-	  resource_predictions {
+    resource_predictions {
       time_zone = "UTC"
       days_data = "[{},{\"09:00:00\":1,\"17:00:00\": 0},{},{},{},{},{}]"
     }
@@ -212,7 +212,7 @@ resource "azurerm_managed_devops_pool" "test" {
     kind = "Vmss"
     images {
       resource_id = "/Subscriptions/%s/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
-      buffer = "*"
+      buffer      = "*"
     }
     sku {
       name = "Standard_D2ads_v5"
