@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `access_mode` - (Required) The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`. Changing this forces a new resource to be created.
 
-* `nfs_server` - (Optional) The NFS server to use for the Azure File Share. Changing this forces a new resource to be created.
+* `nfs_server_url` - (Optional) The NFS server to use for the Azure File Share, the format will be `yourstorageaccountname.file.core.windows.net`. Changing this forces a new resource to be created.
 * 
 ## Attributes Reference
 

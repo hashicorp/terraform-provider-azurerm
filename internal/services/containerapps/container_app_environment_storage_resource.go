@@ -27,7 +27,7 @@ type ContainerAppEnvironmentStorageModel struct {
 	AccessKey                 string `tfschema:"access_key"`
 	ShareName                 string `tfschema:"share_name"`
 	AccessMode                string `tfschema:"access_mode"`
-	NfsServer                 string `tfschema:"nfs_server"`
+	NfsServer                 string `tfschema:"nfs_server_url"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentStorageResource{}
@@ -68,7 +68,7 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			ForceNew:      true,
 			ValidateFunc:  storageValidate.StorageAccountName,
 			RequiredWith:  []string{"access_key"},
-			ConflictsWith: []string{"nfs_server"},
+			ConflictsWith: []string{"nfs_server_url"},
 			Description:   "The Azure Storage Account in which the Share to be used is located.",
 		},
 
@@ -99,7 +99,7 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 			Description: "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
 		},
 
-		"nfs_server": {
+		"nfs_server_url": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ForceNew:      true,
