@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -137,7 +138,7 @@ func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx 
 					if ipConfigProps := config.Properties; ipConfigProps != nil {
 						if ipConfigProps.ApplicationSecurityGroups != nil {
 							for _, group := range *ipConfigProps.ApplicationSecurityGroups {
-								if *group.Id == id.Second.ID() {
+								if strings.EqualFold(*group.Id, id.Second.ID()) {
 									found = true
 									break
 								}
