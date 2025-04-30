@@ -65,6 +65,12 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				ValidateFunc: validate.CIDR,
 			},
 
+			"allow_branch_to_branch_traffic": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -173,8 +179,9 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := virtualwans.VirtualHub{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.VirtualHubProperties{
-			RouteTable:           expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List()),
-			HubRoutingPreference: pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
+			AllowBranchToBranchTraffic: pointer.To(d.Get("allow_branch_to_branch_traffic").(bool)),
+			RouteTable:                 expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List()),
+			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -258,6 +265,10 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
+	if d.HasChange("allow_branch_to_branch_traffic") {
+		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("allow_branch_to_branch_traffic").(bool))
+	}
+
 	if d.HasChange("route") {
 		payload.Properties.RouteTable = expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List())
 	}
@@ -336,6 +347,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("address_prefix", props.AddressPrefix)
+			d.Set("allow_branch_to_branch_traffic", pointer.From(props.AllowBranchToBranchTraffic))
 			d.Set("sku", props.Sku)
 
 			if err := d.Set("route", flattenVirtualHubRoute(props.RouteTable)); err != nil {
