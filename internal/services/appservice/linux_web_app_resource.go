@@ -1092,7 +1092,6 @@ func (r LinuxWebAppResource) CustomizeDiff() sdk.ResourceFunc {
 						aspModel.Properties.HostingEnvironmentProfile.Id != nil && *(aspModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
 						return fmt.Errorf("`vnet_image_pull_enabled` cannot be disabled for app running in an app service environment")
 					}
-
 				}
 			}
 			return nil
