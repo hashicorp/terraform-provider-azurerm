@@ -103,6 +103,21 @@ func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_updateNIC(t *tes
 	})
 }
 
+func TestAccNetworkInterfaceApplicationSecurityGroupAssociation_differentAppSecurityGroupName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface_application_security_group_association", "test")
+	r := NetworkInterfaceApplicationSecurityGroupAssociationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.differentAppSecurityGroupName(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetworkInterfaceApplicationSecurityGroupAssociationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseCompositeResourceID(state.ID, &commonids.NetworkInterfaceId{}, &applicationsecuritygroups.ApplicationSecurityGroupId{})
 	if err != nil {
@@ -275,6 +290,34 @@ resource "azurerm_network_interface_application_security_group_association" "tes
 `, r.template(data), data.RandomInteger)
 }
 
+func (r NetworkInterfaceApplicationSecurityGroupAssociationResource) differentAppSecurityGroupName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+data "azurerm_application_security_group" "test" {
+  name                = "accTEST-asg-%d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_interface_application_security_group_association" "test" {
+  network_interface_id          = azurerm_network_interface.test.id
+  application_security_group_id = data.azurerm_application_security_group.test.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
 func (NetworkInterfaceApplicationSecurityGroupAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -301,7 +344,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_application_security_group" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-asg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
