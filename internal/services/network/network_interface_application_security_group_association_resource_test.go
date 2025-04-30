@@ -309,6 +309,8 @@ resource "azurerm_network_interface" "test" {
 data "azurerm_application_security_group" "test" {
   name                = "accTEST-asg-%d"
   resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [azurerm_application_security_group.test]
 }
 
 resource "azurerm_network_interface_application_security_group_association" "test" {
