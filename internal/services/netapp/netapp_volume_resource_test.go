@@ -10,13 +10,28 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+// getOverriddenTestLocations returns the overridden test locations for the NetApp Volume tests, specifically for CRR
+// that is not aligned with traditional region pairs.
+func getOverriddenTestLocations() struct {
+	Primary   string
+	Secondary string
+} {
+	return struct {
+		Primary   string
+		Secondary string
+	}{
+		Primary:   "westus2",
+		Secondary: "eastus2",
+	}
+}
 
 type NetAppVolumeResource struct{}
 
@@ -343,6 +358,28 @@ func TestAccNetAppVolume_volEncryptionCmkSystemAssigned(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.volEncryptionCmkSystemAssigned(data, tenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_serviceLevelUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceLevelUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -805,6 +842,7 @@ resource "azurerm_netapp_volume" "test" {
 }
 
 func (NetAppVolumeResource) crossRegionReplication(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
 	template := NetAppVolumeResource{}.templateForCrossRegionReplication(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -871,7 +909,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, template, data.RandomInteger, "eastus2")
+`, template, data.RandomInteger, overriddenlocations.Secondary)
 }
 
 func (NetAppVolumeResource) nfsv3FromSnapshot(data acceptance.TestData) string {
@@ -1211,6 +1249,7 @@ resource "azurerm_netapp_volume" "test" {
 }
 
 func (r NetAppVolumeResource) templateForCrossRegionReplication(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1267,10 +1306,11 @@ resource "azurerm_netapp_pool" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, r.template(data), data.RandomInteger, "eastus2")
+`, r.template(data), data.RandomInteger, overriddenlocations.Secondary)
 }
 
 func (r NetAppVolumeResource) template(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
 	return fmt.Sprintf(`
 %s
 
@@ -1338,10 +1378,11 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, r.templateProviderFeatureFlags(), data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) templatePoolQosManual(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
 	return fmt.Sprintf(`
 %s
 
@@ -1421,7 +1462,7 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, r.templateProviderFeatureFlags(), data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) networkTemplate(data acceptance.TestData) string {
@@ -1483,4 +1524,43 @@ provider "azurerm" {
   }
 }
 `
+}
+
+func (r NetAppVolumeResource) serviceLevelUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_pool" "test2" {
+  name                = "acctest-NetAppPool2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Premium"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test2.name
+  volume_path         = "my-unique-file-path-%[2]d"
+  service_level       = "Premium"
+  subnet_id           = azurerm_subnet.test.id
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `managed_resource_group_name` - (Optional) The name which should be used for the new Resource Group where Purview Account creates the managed resources. Changing this forces a new Purview Account to be created.
 
-~> **Note:** `managed_resource_group_name` must be a new Resource Group
+~> **Note:** `managed_resource_group_name` must be a new Resource Group.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Purview Account.
 
@@ -59,7 +59,7 @@ The `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Purview Account.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ## Attributes Reference
 

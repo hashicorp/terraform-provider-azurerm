@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
-  name                = "acctest-01"
+  name                = "example-workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
@@ -129,8 +129,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment.
 
 ## Import

@@ -358,7 +358,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "node"
@@ -386,7 +386,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "node"
@@ -420,7 +420,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "node"
@@ -477,7 +477,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "node"
@@ -517,7 +517,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "node"
@@ -610,7 +610,6 @@ resource "azurerm_function_app_flex_consumption" "test" {
 
       support_credentials = true
     }
-
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -631,7 +630,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "node"
@@ -663,7 +662,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "node"
@@ -697,7 +696,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "node"
@@ -756,7 +755,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "java"
@@ -784,7 +783,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "dotnet-isolated"
@@ -812,7 +811,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.test.primary_access_key
   runtime_name                = "powershell"
@@ -840,7 +839,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.test.id
+  storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "SystemAssignedIdentity"
   runtime_name                = "node"
   runtime_version             = "20"
@@ -872,7 +871,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type            = "blobContainer"
-  storage_container_endpoint        = azurerm_storage_container.test.id
+  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type       = "UserAssignedIdentity"
   storage_user_assigned_identity_id = azurerm_user_assigned_identity.test1.id
   runtime_name                      = "node"
@@ -906,7 +905,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type            = "blobContainer"
-  storage_container_endpoint        = azurerm_storage_container.test.id
+  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type       = "UserAssignedIdentity"
   storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   runtime_name                      = "node"
@@ -940,7 +939,7 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type            = "blobContainer"
-  storage_container_endpoint        = azurerm_storage_container.test.id
+  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type       = "UserAssignedIdentity"
   storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   runtime_name                      = "node"

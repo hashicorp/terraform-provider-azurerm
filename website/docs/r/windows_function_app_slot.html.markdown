@@ -125,6 +125,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Function App Slot.
 
+* `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
+
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App Slot for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
 ~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app slot configuration.
@@ -331,7 +333,7 @@ A `facebook_v2` block supports the following:
 
 A `github_v2` block supports the following:
 
-* `client_id` - (Required) The ID of the GitHub app used for login..
+* `client_id` - (Required) The ID of the GitHub app used for login.
 
 * `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for GitHub Login.
 
@@ -687,7 +689,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
-* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.ENDEXPERIMENT
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** Exactly one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
@@ -770,8 +772,8 @@ A `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Windows Function App Slot.
-* `update` - (Defaults to 30 minutes) Used when updating the Windows Function App Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Windows Function App Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the Windows Function App Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Windows Function App Slot.
 
 ## Import

@@ -8,15 +8,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/sharedprivatelinkresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SharedPrivateLinkServiceResource struct{}
@@ -110,6 +111,9 @@ func (r SharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			locks.ByID(searchServiceId.ID())
+			defer locks.UnlockByID(searchServiceId.ID())
+
 			id := sharedprivatelinkresources.NewSharedPrivateLinkResourceID(subscriptionId, searchServiceId.ResourceGroupName, searchServiceId.SearchServiceName, model.Name)
 
 			existing, err := client.Get(ctx, id, sharedprivatelinkresources.GetOperationOptions{})
@@ -122,17 +126,17 @@ func (r SharedPrivateLinkServiceResource) Create() sdk.ResourceFunc {
 
 			parameters := sharedprivatelinkresources.SharedPrivateLinkResource{
 				Properties: &sharedprivatelinkresources.SharedPrivateLinkResourceProperties{
-					GroupId:               utils.String(model.SubResourceName),
-					PrivateLinkResourceId: utils.String(model.TargetResourceId),
+					GroupId:               pointer.To(model.SubResourceName),
+					PrivateLinkResourceId: pointer.To(model.TargetResourceId),
 				},
 			}
 
 			if model.RequestMessage != "" {
-				parameters.Properties.RequestMessage = utils.String(model.RequestMessage)
+				parameters.Properties.RequestMessage = pointer.To(model.RequestMessage)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
-				return fmt.Errorf("creating/ updating %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -200,6 +204,10 @@ func (r SharedPrivateLinkServiceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
+			searchServiceId := sharedprivatelinkresources.NewSearchServiceID(id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName)
+			locks.ByID(searchServiceId.ID())
+			defer locks.UnlockByID(searchServiceId.ID())
+
 			var state SharedPrivateLinkServiceModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
@@ -210,7 +218,7 @@ func (r SharedPrivateLinkServiceResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("request_message") {
 				props := sharedprivatelinkresources.SharedPrivateLinkResource{
 					Properties: &sharedprivatelinkresources.SharedPrivateLinkResourceProperties{
-						RequestMessage: utils.String(state.RequestMessage),
+						RequestMessage: pointer.To(state.RequestMessage),
 					},
 				}
 				if err := client.CreateOrUpdateThenPoll(ctx, *id, props, sharedprivatelinkresources.CreateOrUpdateOperationOptions{}); err != nil {
@@ -231,6 +239,10 @@ func (r SharedPrivateLinkServiceResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+
+			searchServiceId := sharedprivatelinkresources.NewSearchServiceID(id.SubscriptionId, id.ResourceGroupName, id.SearchServiceName)
+			locks.ByID(searchServiceId.ID())
+			defer locks.UnlockByID(searchServiceId.ID())
 
 			if err := client.DeleteThenPoll(ctx, *id, sharedprivatelinkresources.DeleteOperationOptions{}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

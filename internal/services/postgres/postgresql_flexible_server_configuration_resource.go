@@ -8,18 +8,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/serverrestart"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-var postgresqlFlexibleServerConfigurationResourceName = "azurerm_postgresql_flexible_server_configuration"
 
 func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -81,13 +79,10 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-	locks.ByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
-	defer locks.UnlockByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
-
-	props := configurations.Configuration{
+	props := configurations.ConfigurationForUpdate{
 		Properties: &configurations.ConfigurationProperties{
-			Value:  utils.String(d.Get("value").(string)),
-			Source: utils.String("user-override"),
+			Value:  pointer.To(d.Get("value").(string)),
+			Source: pointer.To("user-override"),
 		},
 	}
 
@@ -167,9 +162,6 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-	locks.ByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
-	defer locks.UnlockByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
-
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -180,10 +172,10 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		defaultValue = *resp.Model.Properties.DefaultValue
 	}
 
-	props := configurations.Configuration{
+	props := configurations.ConfigurationForUpdate{
 		Properties: &configurations.ConfigurationProperties{
 			Value:  &defaultValue,
-			Source: utils.String("user-override"),
+			Source: pointer.To("user-override"),
 		},
 	}
 

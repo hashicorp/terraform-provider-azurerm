@@ -106,7 +106,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPreviewFeature(), false),
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
@@ -147,12 +147,15 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Free",
+				"M10",
+				"M20",
 				"M25",
 				"M30",
 				"M40",
 				"M50",
 				"M60",
 				"M80",
+				"M200",
 			}, false),
 		},
 

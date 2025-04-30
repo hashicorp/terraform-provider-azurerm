@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -45,9 +46,14 @@ type SpringCloudRepositoryModel struct {
 
 type SpringCloudConfigurationServiceResource struct{}
 
+func (s SpringCloudConfigurationServiceResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_configuration_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
 var (
-	_ sdk.ResourceWithUpdate         = SpringCloudConfigurationServiceResource{}
-	_ sdk.ResourceWithStateMigration = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithUpdate                      = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudConfigurationServiceResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudConfigurationServiceResource{}
 )
 
 func (s SpringCloudConfigurationServiceResource) ResourceType() string {
