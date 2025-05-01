@@ -1,18 +1,23 @@
 ## 4.28.0 (Unreleased)
 
 FEATURES:
+
 * **New Resource**: `azurerm_nginx_api_key` [GH-28919]
 * **New Data Source**: `azurerm_nginx_api_key` [GH-28919]
 
 ENHANCEMENTS:
+
 dependencies: `eventhub` - update to API version `2024-01-01` [GH-29397]
 
 BUG FIXES:
+
 * `azurerm_batch_pool` - prevent error when `certificate` is not used [GH-29443]
 * `azurerm_nginx_deployment` - add support for the `web_application_firewall` property [GH-27454]
 * `azurerm_postgresql_flexible_server_virtual_endpoint` - is no longer removed from state when a fail-over occurs [GH-29424]
 * `azurerm_virtual_network_gateway` - prevent a panic when `vpn_client_configuration` is removed from from the configuration [GH-29456]
 * `azurerm_web_pubsub_custom_certificate` - no longer crashes when `custom_certificate_id` is in a different subscription [GH-29410]
+* `azurerm_windows_web_app` - fix perpetual diff around incorrect default for `always_on` and ignore default values for `logs.0.application_logs` [GH-29150]
+* `azurerm_windows_web_app_slot` - fix perpetual diff around incorrect default for `always_on` and ignore default values for `logs.0.application_logs` [GH-29150]
 
 ## 4.27.0 (April 25, 2025)
 
