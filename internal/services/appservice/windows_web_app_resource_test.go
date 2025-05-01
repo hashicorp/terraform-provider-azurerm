@@ -4229,7 +4229,7 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {
-    always_on           = true
+    always_on           = false
     minimum_tls_version = "1.2"
     ftps_state          = "FtpsOnly"
     http2_enabled       = true
