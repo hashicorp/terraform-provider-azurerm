@@ -1,7 +1,8 @@
 ## 4.28.0 (Unreleased)
 
 FEATURES:
-
+* **New Resource**: `azurerm_nginx_api_key` [GH-28919]
+* **New Data Source**: `azurerm_nginx_api_key` [GH-28919]
 
 ENHANCEMENTS:
 dependencies: `eventhub` - update to API version `2024-01-01` [GH-29397]
