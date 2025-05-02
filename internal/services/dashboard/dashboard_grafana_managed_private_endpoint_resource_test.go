@@ -166,6 +166,8 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   }
 
   request_message = "please approve"
+
+  private_link_service_url = "example.com"
 }
 `, template, data.RandomIntOfLength(8))
 }
@@ -188,6 +190,8 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   }
 
   request_message = "please approve"
+
+  private_link_service_url = "example.com"
 }
 `, template, data.RandomIntOfLength(8))
 }

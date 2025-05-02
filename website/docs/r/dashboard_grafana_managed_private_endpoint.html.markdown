@@ -46,6 +46,7 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "example" {
   private_link_resource_id     = azurerm_monitor_workspace.example.id
   group_ids                    = ["prometheusMetrics"]
   private_link_resource_region = azurerm_dashboard_grafana.example.location
+  private_link_service_url     = "mydomain.com"
 }
 ```
 
@@ -68,6 +69,8 @@ The following arguments are supported:
 - `private_link_resource_region` - (Optional) The region in which to create the private link. Changing this forces a new Dashboard Grafana Managed Private Endpoint to be created.
 
 - `request_message` - (Optional) A message to provide in the request which will be seen by approvers.
+
+- `private_link_service_url` - (Optional) A domain name for this endpoint to be used within Grafana
 
 - `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana Managed Private Endpoint.
 
