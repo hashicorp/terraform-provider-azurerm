@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KubernetesClusterNodePoolResource struct{}
@@ -1000,7 +999,7 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 						Location: data.Locations.Primary,
 						Properties: &snapshots.SnapshotProperties{
 							CreationData: &snapshots.CreationData{
-								SourceResourceId: utils.String(poolId.ID()),
+								SourceResourceId: pointer.To(poolId.ID()),
 							},
 						},
 					}
@@ -1071,7 +1070,7 @@ func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *
 		return nil, fmt.Errorf("reading Kubernetes Cluster Node Pool (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance.ClientCheckFunc {
@@ -1106,7 +1105,7 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q): `properties` was nil", nodePoolName, clusterName, resourceGroup)
 		}
 
-		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
+		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
 		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
@@ -1338,9 +1337,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 
   linux_os_config {
-    transparent_huge_page = "always"
-    transparent_huge_page_defrag  = "always"
-    swap_file_size_mb             = 300
+    transparent_huge_page        = "always"
+    transparent_huge_page_defrag = "always"
+    swap_file_size_mb            = 300
 
     sysctl_config {
       fs_aio_max_nr                      = 65536

@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/snapshots"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
@@ -955,7 +955,7 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 						Location: data.Locations.Primary,
 						Properties: &snapshots.SnapshotProperties{
 							CreationData: &snapshots.CreationData{
-								SourceResourceId: utils.String(poolId.ID()),
+								SourceResourceId: pointer.To(poolId.ID()),
 							},
 						},
 					}
@@ -1424,9 +1424,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
 
     linux_os_config {
-      transparent_huge_page = "always"
-      transparent_huge_page_defrag  = "always"
-      swap_file_size_mb             = 300
+      transparent_huge_page        = "always"
+      transparent_huge_page_defrag = "always"
+      swap_file_size_mb            = 300
 
       sysctl_config {
         fs_aio_max_nr                      = 65536
