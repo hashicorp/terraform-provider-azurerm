@@ -146,7 +146,7 @@ func TestAccNetAppVolume_snapshot(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("create_from_snapshot_resource_id"),
 	})
 }
 
