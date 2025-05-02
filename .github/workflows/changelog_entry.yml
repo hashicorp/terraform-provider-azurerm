@@ -1,0 +1,34 @@
+name: GetChangelogEntry
+
+permissions:
+  pull-requests: write
+  contents: write
+
+on:
+  pull_request:
+    # Inputs the workflow accepts.
+    types: [closed]
+
+jobs:
+  pull-commit-message:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        continue-on-error: true
+      - name: get merge commit message 
+        id: pull
+        run: |
+         pull_number="$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")" 
+         commit_message="$(git log --pretty="format:%b")"
+         echo message="$commit_message [GH-$pull_number]"  >> $GITHUB_OUTPUT
+      - name: Save changelog entry
+        env:
+            CHANGELOG_ENTRY: ${{ steps.pull.outputs.message }}
+        run: |
+            echo "$CHANGELOG_ENTRY" > changelog_entry.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+            name: changelog_entry
+            path: changelog_entry.txt
+            overwrite: true
