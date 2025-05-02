@@ -5,7 +5,7 @@ Sometimes when implementing new functionality it can be a bit unclear whether it
 To get a bit of insight in how a decision can be made, these are some rules of thumb to decide. In case it is unclear, please contact one of the HashiCorp Maintainers.
 
 ## Inline
-Most additional functionality will end up inline an existing resource.
+Most additional functionality will end up inline in an existing resource.
 
 APIs to enable or disable functionality, define the resource functionality or configure details on a resource are most of the time inlined. Relations between resources with clearly separate concern (i.e. which VNet a K8s cluster will land in) are most of the time inlined.
 
@@ -40,23 +40,23 @@ resource "azurerm_example_resource" "example" {
 While inlining might make a lot of sense for many APIs, there are also good reasons to separate them out. These arguments may not be conclusive, but can help steer in the right direction.
 
 ### Category 1: the obvious new resource
-- It is a new resource with it's own lifecycle, own API endpoints (at least `Update` and `Delete`), it just feels natural to put it in a separate resource
+- It is a new resource with its own lifecycle, own API endpoints (at least `Update` and `Delete`), it just feels natural to put it in a separate resource
 
 ### Category 2: child resources
-- It does have it's own unique Resource ID or name (i.e. `<parentId>/subResource/MySubResourceName`)
-- It has it's own API endpoint for `Create`, `Update` and `Delete` actions
+- It does have its own unique Resource ID or name (i.e. `<parentId>/subResource/MySubResourceName`)
+- It has its own API endpoint for `Create`, `Update` and `Delete` actions
 - It needs more permissions on the already existing resource than the current parent resource requires (i.e. Key Vault Key Rotation Policies require more permissions than the Key Vault Key it really belongs to)
 - Control Plane vs Data plane: the functionality is acting on the Data Plane instead of Control Plane of the service or vice versa. (i.e. Azure Storage Account management vs the actual Blobs put in there, Azure Key Vault management vs the Keys/Certs/Secrets inside)
 - Its functionality and therefore the scope of the resource crosses team/security boundaries (i.e. Infra team vs Application team).
 
-### Category 3: relations between resources (_"It is complicated "_)
+### Category 3: relations between resources (_"It is complicated"_)
 - It is a mediator: there is a separate endpoint to create a relation between two existing resources
 - It requires more permissions on another resource to create the connection than to create the resource itself (i.e. connecting a NSG resource to a Subnet)
 
 ## Both inline and separate
 It might be that there are multiple use-cases and scenarios necessary. Sometimes it makes sense to create it inline, sometimes it makes more sense to separate them.
 
-This requires cautiousness from both the implementer and the user. In most cases it should be explained with some notes in the `docs`. Within the inline resource implementation it requires that it doesn't delete or update properties created externally when it is not explicitly configured in the resource. For the user this might have the drawback that the inlined resource is not strict in enforcing the existing inlined properties. Mixed use within the same context might end up in a mess and is advised not to do.
+This requires caution from both the implementer and the user. In most cases it should be explained with some notes in the `docs`. Within the inline resource implementation it requires that it doesn't delete or update properties created externally when it is not explicitly configured in the resource. For the user this might have the drawback that the inlined resource is not strict in enforcing the existing inlined properties. Mixed use within the same context might end up in a mess and is advised not to do.
 
 A few examples of resources which are both inlined and separate resources:
 - Subnets (part of VNet resource as well)

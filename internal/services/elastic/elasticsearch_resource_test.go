@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/elastic/2023-06-01/monitorsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ElasticsearchResourceTest struct{}
+type ElasticsearchResource struct{}
 
 func TestAccElasticsearch_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
-	r := ElasticsearchResourceTest{}
+	r := ElasticsearchResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -41,7 +41,7 @@ func TestAccElasticsearch_basic(t *testing.T) {
 
 func TestAccElasticsearch_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
-	r := ElasticsearchResourceTest{}
+	r := ElasticsearchResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -55,7 +55,7 @@ func TestAccElasticsearch_requiresImport(t *testing.T) {
 
 func TestAccElasticsearch_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
-	r := ElasticsearchResourceTest{}
+	r := ElasticsearchResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -69,7 +69,7 @@ func TestAccElasticsearch_complete(t *testing.T) {
 
 func TestAccElasticsearch_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
-	r := ElasticsearchResourceTest{}
+	r := ElasticsearchResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -97,7 +97,7 @@ func TestAccElasticsearch_update(t *testing.T) {
 
 func TestAccElasticsearch_logs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
-	r := ElasticsearchResourceTest{}
+	r := ElasticsearchResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// this proves that we don't need to destroy the `logs` block separately
@@ -112,7 +112,7 @@ func TestAccElasticsearch_logs(t *testing.T) {
 
 func TestAccElasticsearch_logsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_elastic_cloud_elasticsearch", "test")
-	r := ElasticsearchResourceTest{}
+	r := ElasticsearchResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// create with it
@@ -141,7 +141,7 @@ func TestAccElasticsearch_logsUpdate(t *testing.T) {
 	})
 }
 
-func (r ElasticsearchResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ElasticsearchResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitorsresource.ParseMonitorID(state.ID)
 	if err != nil {
 		return nil, err
@@ -150,14 +150,14 @@ func (r ElasticsearchResourceTest) Exists(ctx context.Context, client *clients.C
 	resp, err := client.Elastic.MonitorClient.MonitorsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ElasticsearchResourceTest) basic(data acceptance.TestData) string {
+func (r ElasticsearchResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -182,7 +182,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ElasticsearchResourceTest) requiresImport(data acceptance.TestData) string {
+func (r ElasticsearchResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,7 +196,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "import" {
 `, r.basic(data))
 }
 
-func (r ElasticsearchResourceTest) update(data acceptance.TestData) string {
+func (r ElasticsearchResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -221,7 +221,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ElasticsearchResourceTest) complete(data acceptance.TestData) string {
+func (r ElasticsearchResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -247,7 +247,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ElasticsearchResourceTest) logs(data acceptance.TestData) string {
+func (r ElasticsearchResource) logs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -281,7 +281,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r ElasticsearchResourceTest) logsUpdated(data acceptance.TestData) string {
+func (r ElasticsearchResource) logsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
