@@ -49,10 +49,7 @@ func TestAccSubnetNetworkSecurityGroupAssociation_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_subnet_network_security_group_association"),
-		},
+		data.RequiresImportAssociationErrorStep(r.requiresImport),
 	})
 }
 
