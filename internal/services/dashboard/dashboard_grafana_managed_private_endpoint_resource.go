@@ -32,6 +32,7 @@ type ManagedPrivateEndpointModel struct {
 	Tags                      map[string]string `tfschema:"tags"`
 	GroupIds                  []string          `tfschema:"group_ids"`
 	RequestMessage            string            `tfschema:"request_message"`
+	PrivateLinkServiceURL     string            `tfschema:"private_link_service_url"`
 }
 
 type ManagedPrivateEndpointId struct {
@@ -105,6 +106,12 @@ func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
+		"private_link_service_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 	}
 }
 
@@ -145,6 +152,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 					PrivateLinkResourceId:     &model.PrivateLinkResourceId,
 					PrivateLinkResourceRegion: &model.PrivateLinkResourceRegion,
 					RequestMessage:            &model.RequestMessage,
+					PrivateLinkServiceURL:     &model.PrivateLinkServiceURL,
 				},
 				Tags: &model.Tags,
 			}
@@ -193,6 +201,7 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 					state.PrivateLinkResourceId = pointer.From(props.PrivateLinkResourceId)
 					state.PrivateLinkResourceRegion = pointer.From(props.PrivateLinkResourceRegion)
 					state.RequestMessage = pointer.From(props.RequestMessage)
+					state.PrivateLinkServiceURL = pointer.From(props.PrivateLinkServiceURL)
 				}
 			}
 
