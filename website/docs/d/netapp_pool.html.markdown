@@ -46,6 +46,8 @@ The following attributes are exported:
 
 * `encryption_type` - The encryption type of the pool.
 
+* `cool_access_enabled` - Can the pool hold cool access enabled volumes?
+
 ---
 
 ## Timeouts

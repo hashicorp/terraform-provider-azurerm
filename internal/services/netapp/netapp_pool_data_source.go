@@ -57,6 +57,11 @@ func dataSourceNetAppPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"cool_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -84,9 +89,12 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(&model.Location))
-		d.Set("service_level", string(model.Properties.ServiceLevel))
-		d.Set("size_in_tb", model.Properties.Size/1099511627776)
-		d.Set("encryption_type", string(pointer.From(model.Properties.EncryptionType)))
+
+		props := model.Properties
+		d.Set("service_level", string(props.ServiceLevel))
+		d.Set("size_in_tb", props.Size/1099511627776)
+		d.Set("encryption_type", string(pointer.From(props.EncryptionType)))
+		d.Set("cool_access_enabled", pointer.From(props.CoolAccess))
 	}
 
 	return nil
