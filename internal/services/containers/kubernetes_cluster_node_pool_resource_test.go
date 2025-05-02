@@ -1338,7 +1338,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 
   linux_os_config {
-    transparent_huge_page_enabled = "always"
+    transparent_huge_page = "always"
     transparent_huge_page_defrag  = "always"
     swap_file_size_mb             = 300
 
@@ -1422,7 +1422,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 
   linux_os_config {
-    transparent_huge_page_enabled = "always"
+    transparent_huge_page = "always"
 
     sysctl_config {
       fs_aio_max_nr               = 65536

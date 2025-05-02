@@ -5,6 +5,7 @@ package containers
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"regexp"
 	"strconv"
 	"strings"
@@ -353,7 +354,7 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 }
 
 func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
@@ -361,7 +362,7 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"sysctl_config": schemaNodePoolSysctlConfig(),
 
-				"transparent_huge_page_enabled": {
+				"transparent_huge_page": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -390,6 +391,25 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		e := s.Elem.(*pluginsdk.Resource)
+
+		e.Schema["transparent_huge_page"].Computed = true
+
+		e.Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"always",
+				"madvise",
+				"never",
+			}, false),
+		}
+	}
+
+	return s
 }
 
 func schemaNodePoolSysctlConfig() *pluginsdk.Schema {
@@ -1021,8 +1041,10 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 	result := &managedclusters.LinuxOSConfig{
 		Sysctls: sysctlConfig,
 	}
-	if v := raw["transparent_huge_page_enabled"].(string); v != "" {
-		result.TransparentHugePageEnabled = utils.String(v)
+	if !features.FivePointOh() {
+		if v := raw["transparent_huge_page_enabled"].(string); v != "" {
+			result.TransparentHugePageEnabled = utils.String(v)
+		}
 	}
 	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
 		result.TransparentHugePageDefrag = utils.String(v)
@@ -1503,14 +1525,20 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 	if err != nil {
 		return nil, err
 	}
-	return []interface{}{
+
+	config := []interface{}{
 		map[string]interface{}{
-			"swap_file_size_mb":             swapFileSizeMB,
-			"sysctl_config":                 sysctlConfig,
-			"transparent_huge_page_defrag":  transparentHugePageDefrag,
-			"transparent_huge_page_enabled": transparentHugePageEnabled,
+			"swap_file_size_mb":            swapFileSizeMB,
+			"sysctl_config":                sysctlConfig,
+			"transparent_huge_page_defrag": transparentHugePageDefrag,
 		},
-	}, nil
+	}
+
+	if !features.FivePointOh() {
+		config[0].(map[string]interface{})["transparent_huge_page_enabled"] = transparentHugePageEnabled
+	}
+
+	return config, nil
 }
 
 func flattenClusterNodePoolSysctlConfig(input *managedclusters.SysctlConfig) ([]interface{}, error) {
