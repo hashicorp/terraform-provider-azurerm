@@ -5,6 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* TEST testing changelog automation - to be removed before release [GH-29458]
 
 ## 4.27.0 (April 25, 2025)
 
