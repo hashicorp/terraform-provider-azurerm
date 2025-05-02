@@ -280,6 +280,8 @@ An `ingress` block supports the following:
 
 * `ip_security_restriction` - One or more `ip_security_restriction` blocks for IP-filtering rules as defined below.
 
+* `sticky_sessions`- A `sticky_sessions` block as detailed below.
+
 * `target_port` - The target port on the container for the Ingress traffic.
 
 * `traffic_weight` - A `traffic_weight` block as detailed below.
@@ -307,6 +309,12 @@ A `ip_security_restriction` block exports the following:
 * `ip_address_range` - CIDR notation that matches the incoming IP address.
 
 * `name` - Name for the IP restriction rule.
+
+---
+
+A `sticky_sessions` block exports the following:
+
+* `affinity` - Sticky sessions affinity. Possible values are `none`, and `sticky`.
 
 ---
 
