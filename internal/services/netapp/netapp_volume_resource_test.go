@@ -785,6 +785,7 @@ resource "azurerm_netapp_volume" "test_original" {
   protocols           = ["NFSv3"]
   security_style      = "unix"
   storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
 }
 
 resource "azurerm_netapp_snapshot" "test_original" {
@@ -803,6 +804,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   account_name        = azurerm_netapp_account.test.name
   service_level       = "Standard"
   size_in_tb          = 4
+  qos_type            = "Manual"
 }
 
 resource "azurerm_netapp_volume" "test" {
@@ -811,7 +813,7 @@ resource "azurerm_netapp_volume" "test" {
   resource_group_name              = azurerm_resource_group.test.name
   account_name                     = azurerm_netapp_account.test.name
   pool_name                        = azurerm_netapp_pool.test_secondary.name
-  volume_path                      = "my-unique-file-path-%[2]d"
+  volume_path                      = "my-unique-file-path-%[2]d-test"
   service_level                    = "Standard"
   subnet_id                        = azurerm_subnet.test.id
   protocols                        = ["NFSv3"]

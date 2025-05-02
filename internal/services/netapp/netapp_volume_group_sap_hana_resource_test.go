@@ -950,7 +950,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
       remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[0].id
-      replication_frequency     = "Daily"
+      replication_frequency     = "daily"
     }
 
     tags = {
@@ -1017,7 +1017,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
       remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[2].id
-      replication_frequency     = "Daily"
+      replication_frequency     = "daily"
     }
 
     tags = {
