@@ -44,63 +44,63 @@ func TestAccMsSqlServerSecurityAlertPolicy_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data), // Minimal config with enabled state
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.updateStepOne(data), // Update minimal config with disabled alerts and email addresses
+			Config: r.disableAlertsEmail(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.updateStepTwo(data), // Update with storage account details, disabled alerts and email addresses
+			Config: r.storageAccountDisableAlertsEmail(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.updateStepThree(data), // Update to remove storage account details with disabled alerts and email addresses
+			Config: r.disableAlertsEmail(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.basic(data), // Update back to minimal config without storage account details, disabled alerts and email addresses
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.updateStepTwo(data), // Update with storage account details, disabled alerts and email addresses
+			Config: r.storageAccountDisableAlertsEmail(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.updateStepFour(data), // Update with different storage account details with disabled alerts and email addresses
+			Config: r.secondayStorageAccountDisableAlertsEmail(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.updateStepFive(data), // Update back to previous storage account details without disabled alerts and email addresses
+			Config: r.storageAccountOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("storage_account_access_key"),
 		{
-			Config: r.updateStepSix(data), // Update back to minimal config with disabled state without storage account details, disabled alerts and email addresses
+			Config: r.disabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -158,7 +158,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 `, r.server(data))
 }
 
-func (r MsSqlServerSecurityAlertPolicyResource) updateStepOne(data acceptance.TestData) string {
+func (r MsSqlServerSecurityAlertPolicyResource) disableAlertsEmail(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -180,7 +180,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 `, r.server(data))
 }
 
-func (r MsSqlServerSecurityAlertPolicyResource) updateStepTwo(data acceptance.TestData) string {
+func (r MsSqlServerSecurityAlertPolicyResource) storageAccountDisableAlertsEmail(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -204,29 +204,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 `, r.server(data))
 }
 
-func (r MsSqlServerSecurityAlertPolicyResource) updateStepThree(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_mssql_server_security_alert_policy" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_mssql_server.test.name
-  state               = "Enabled"
-
-  disabled_alerts = [
-    "Sql_Injection",
-    "Data_Exfiltration"
-  ]
-
-  email_addresses = [
-    "email@example1.com",
-    "email@example2.com"
-  ]
-}
-`, r.server(data))
-}
-
-func (r MsSqlServerSecurityAlertPolicyResource) updateStepFour(data acceptance.TestData) string {
+func (r MsSqlServerSecurityAlertPolicyResource) secondayStorageAccountDisableAlertsEmail(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -250,7 +228,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 `, r.server(data))
 }
 
-func (r MsSqlServerSecurityAlertPolicyResource) updateStepFive(data acceptance.TestData) string {
+func (r MsSqlServerSecurityAlertPolicyResource) storageAccountOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -264,7 +242,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 `, r.server(data))
 }
 
-func (r MsSqlServerSecurityAlertPolicyResource) updateStepSix(data acceptance.TestData) string {
+func (r MsSqlServerSecurityAlertPolicyResource) disabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
