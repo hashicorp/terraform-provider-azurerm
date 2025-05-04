@@ -1069,12 +1069,21 @@ func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionPro
 		keyVaultKeyId = keyVaultKeyIdRaw.ID()
 	}
 
+	keyVaultManagedIdentityId := pointer.From(input.MsiResourceId)
+	if input.MsiResourceId != nil {
+		keyVaultManagedIdentityIdRaw, err := commonids.ParseUserAssignedIdentityIDInsensitively(*input.MsiResourceId)
+		if err != nil {
+			return nil, err
+		}
+		keyVaultManagedIdentityId = keyVaultManagedIdentityIdRaw.ID()
+	}
+
 	return &[]interface{}{
 		map[string]interface{}{
 			"encryption_algorithm":          encryptionAlgorithm,
 			"encryption_at_host_enabled":    pointer.From(input.EncryptionAtHost),
 			"key_vault_key_id":              keyVaultKeyId,
-			"key_vault_managed_identity_id": pointer.From(input.MsiResourceId),
+			"key_vault_managed_identity_id": keyVaultManagedIdentityId,
 		},
 	}, nil
 }
