@@ -62,9 +62,10 @@ func resourceCdnFrontDoorRoute() *pluginsdk.Resource {
 
 			// NOTE: These are not sent to the API, they are only here so Terraform
 			// can provision/destroy the resources in the correct order.
+			// Made this field optional to address comments in Issue #29063
 			"cdn_frontdoor_origin_ids": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
