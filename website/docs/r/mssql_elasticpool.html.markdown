@@ -49,6 +49,45 @@ resource "azurerm_mssql_elasticpool" "example" {
 }
 ```
 
+## Example Usage for a HyperScale Elasticpool:
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "my-resource-group"
+  location = "West Europe"
+}
+
+resource "azurerm_mssql_server" "example" {
+  name                         = "my-sql-server"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "example" {
+  name                            = "test-hyperscale-epool"
+  resource_group_name             = azurerm_resource_group.example.name
+  location                        = azurerm_resource_group.example.location
+  server_name                     = azurerm_mssql_server.example.name
+  high_availability_replica_count = 1
+  license_type                    = "LicenseIncluded"
+
+  sku {
+    name     = "HS_PRMS"
+    tier     = "HyperScale"
+    family   = "PRMS"
+    capacity = 4
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -84,6 +123,8 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based or `BusinessCritical` for `vCore` based `sku`.
+
+* `high_availability_replica_count` - (Optional) Specifies the number of high availability replicas for the elastic pool. Only valid if sku tier is `HyperScale`. Valid range is 0-4. Default = 1.
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
