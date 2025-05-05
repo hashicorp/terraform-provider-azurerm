@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppVolumeGroupSAPHanaResource struct{}
@@ -134,12 +134,12 @@ func (t NetAppVolumeGroupSAPHanaResource) Exists(ctx context.Context, clients *c
 	resp, err := clients.NetApp.VolumeGroupClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
+			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 func (NetAppVolumeGroupSAPHanaResource) basic(data acceptance.TestData) string {
