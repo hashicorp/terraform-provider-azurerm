@@ -914,20 +914,9 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
   ]
 }
 
-locals {
-  pairs = tomap({
-    # This map must be manually kept up-to-date
-    # https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction
-    "westeurope" : "northeurope",
-    "eastus2" : "centralus",
-    "westus2" : "eastus",
-  })
-  location_pair = lookup(local.pairs, azurerm_resource_group.test.location, null)
-}
-
 resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
   name                   = "acctest-NetAppVolumeGroup-Secondary-%[2]d"
-  location               = local.location_pair
+  location               = "%[3]s"
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test_secondary.name
   group_description      = "Test volume group"
@@ -1044,9 +1033,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
 }
 
 
-
-
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r NetAppVolumeGroupSAPHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
