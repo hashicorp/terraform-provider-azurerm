@@ -111,6 +111,7 @@ func (r AIFoundryProject) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			RequiredWith: []string{"identity"},
 		},
 
 		"description": {

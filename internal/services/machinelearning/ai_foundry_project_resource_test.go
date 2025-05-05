@@ -137,7 +137,7 @@ resource "azurerm_ai_foundry_project" "test" {
 `, AIFoundry{}.basic(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) userIdentityTempalte(data acceptance.TestData) string {
+func (r AIFoundryProject) userIdentityTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -183,7 +183,7 @@ resource "azurerm_ai_foundry_project" "test" {
 
   depends_on = [azurerm_key_vault_access_policy.test2, azurerm_role_assignment.test]
 }
-`, r.userIdentityTempalte(data), data.RandomInteger)
+`, r.userIdentityTemplate(data), data.RandomInteger)
 }
 
 func (r AIFoundryProject) userIdentityUpdate(data acceptance.TestData) string {
@@ -226,7 +226,7 @@ resource "azurerm_ai_foundry_project" "test" {
 
   depends_on = [azurerm_key_vault_access_policy.test2, azurerm_role_assignment.test2]
 }
-`, r.userIdentityTempalte(data), data.RandomInteger)
+`, r.userIdentityTemplate(data), data.RandomInteger)
 }
 
 func (r AIFoundryProject) complete(data acceptance.TestData) string {
