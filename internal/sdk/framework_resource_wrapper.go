@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"context"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -47,7 +46,7 @@ func (r *FrameworkResourceWrapper) Schema(ctx context.Context, request resource.
 func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
 	ctx, cancel := context.WithTimeout(ctx, r.ResourceMetadata.TimeoutCreate)
 	defer cancel()
-	var model = r.FrameworkWrappedResource.ModelObject()
+	model := r.FrameworkWrappedResource.ModelObject()
 
 	if ok := r.ResourceMetadata.DecodeCreate(ctx, request, response, model); !ok {
 		return
@@ -65,7 +64,7 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 	ctx, cancel := context.WithTimeout(ctx, r.ResourceMetadata.TimeoutRead)
 	defer cancel()
 
-	var state = r.FrameworkWrappedResource.ModelObject()
+	state := r.FrameworkWrappedResource.ModelObject()
 
 	if ok := r.ResourceMetadata.DecodeRead(ctx, request, response, state); !ok {
 		return
@@ -77,11 +76,11 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 }
 
 func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
-	ctx, cancel := context.WithTimeout(ctx, *r.ResourceMetadata.TimeoutUpdate*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, *r.ResourceMetadata.TimeoutUpdate)
 	defer cancel()
 
-	var plan = r.FrameworkWrappedResource.ModelObject()
-	var state = r.FrameworkWrappedResource.ModelObject()
+	plan := r.FrameworkWrappedResource.ModelObject()
+	state := r.FrameworkWrappedResource.ModelObject()
 
 	if ok := r.ResourceMetadata.DecodeUpdate(ctx, request, response, &plan, &state); !ok {
 		return
@@ -96,7 +95,7 @@ func (r *FrameworkResourceWrapper) Delete(ctx context.Context, request resource.
 	ctx, cancel := context.WithTimeout(ctx, r.ResourceMetadata.TimeoutDelete)
 	defer cancel()
 
-	var state = r.FrameworkWrappedResource.ModelObject()
+	state := r.FrameworkWrappedResource.ModelObject()
 	r.ResourceMetadata.DecodeDelete(ctx, request, response, state)
 	if response.Diagnostics.HasError() {
 		return

@@ -47,7 +47,7 @@ func (d *FrameworkDataSourceWrapper) Read(ctx context.Context, request datasourc
 	ctx, cancel := context.WithTimeout(ctx, d.ResourceMetadata.TimeoutRead)
 	defer cancel()
 
-	var config = d.FrameworkWrappedDataSource.ModelObject()
+	config := d.FrameworkWrappedDataSource.ModelObject()
 
 	if ok := d.ResourceMetadata.DecodeDataSourceRead(ctx, request, response, config); !ok {
 		return
