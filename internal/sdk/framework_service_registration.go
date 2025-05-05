@@ -4,17 +4,13 @@
 package sdk
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-type FrameworkTypedServiceRegistration interface {
-	TypedServiceRegistration
+type FrameworkServiceRegistration interface {
+	FrameworkResources() []FrameworkWrappedResource
 
-	FrameworkResources() []func() resource.Resource
-
-	FrameworkDataSources() []func() datasource.DataSource
+	FrameworkDataSources() []FrameworkWrappedDataSource
 
 	EphemeralResources() []func() ephemeral.EphemeralResource
 }
