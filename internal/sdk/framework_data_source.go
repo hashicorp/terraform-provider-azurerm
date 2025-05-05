@@ -49,3 +49,20 @@ func (r *DataSourceMetadata) DecodeRead(ctx context.Context, req datasource.Read
 
 	return !resp.Diagnostics.HasError()
 }
+
+type FrameworkWrappedDataSource interface {
+	ModelObject() interface{}
+
+	ResourceType() string
+
+	Schema(_ context.Context, _ datasource.SchemaRequest, response *datasource.SchemaResponse)
+
+	Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse, metadata ResourceMetadata, state interface{})
+}
+
+// FrameworkWrappedDataSourceWithConfigure provides an interface for resources that need custom configuration beyond the standard wrapped Configure()
+type FrameworkWrappedDataSourceWithConfigure interface {
+	FrameworkWrappedDataSource
+
+	Configure(ctx context.Context, request datasource.ConfigureRequest, response *datasource.ConfigureResponse, metadata ResourceMetadata)
+}
