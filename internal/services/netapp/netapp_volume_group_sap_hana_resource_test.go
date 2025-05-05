@@ -918,7 +918,7 @@ locals {
   pairs = tomap({
     # This map must be manually kept up-to-date
     # https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction
-    "westeurope" : "northeurope",
+    "eastus" : "westus",
     "eastus2" : "centralus",
     "westus2" : "eastus",
   })
