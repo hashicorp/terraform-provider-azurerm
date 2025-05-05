@@ -168,6 +168,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
 		d.Set("app_service_plan_id", props.ServerFarmID)
+		d.Set("key_vault_id", props.KeyVaultID)
 
 		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
 			envId, err := parse.AppServiceEnvironmentID(*props.HostingEnvironmentProfile.ID)
@@ -244,9 +245,10 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_id": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ForceNew:         true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			// The service may cause case different, tracked by https://github.com/Azure/azure-rest-api-specs/issues/34436
 			DiffSuppressFunc: suppress.CaseDifference,
 			ValidateFunc:     commonids.ValidateKeyVaultID,
 			RequiredWith:     []string{"key_vault_secret_id"},
