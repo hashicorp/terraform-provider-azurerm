@@ -99,3 +99,19 @@ func DataStoragePercentage(i interface{}, k string) (warnings []string, errors [
 
 	return
 }
+
+func SystemVersion(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	pattern := "(?:19|22|23|24|25)\\.[0-9]+(\\.[0-9]+)*|[0-9]+(\\.[0-9]+)*"
+	re := regexp.MustCompile(pattern)
+	if !re.MatchString(v) {
+		errors = append(errors, fmt.Errorf("%s must match one of the following patterns: %v", k, pattern))
+	}
+
+	return
+}

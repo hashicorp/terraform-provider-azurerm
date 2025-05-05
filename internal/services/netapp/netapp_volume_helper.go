@@ -13,10 +13,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -75,17 +75,17 @@ func expandNetAppVolumeGroupDataProtectionReplication(input []netAppModels.DataP
 	replicationObject := volumegroups.ReplicationObject{}
 
 	endpointType := volumegroups.EndpointType(input[0].EndpointType)
-	replicationObject.EndpointType = &endpointType
+	replicationObject.EndpointType = pointer.To(endpointType)
 
-	replicationObject.RemoteVolumeRegion = &input[0].RemoteVolumeLocation
-	replicationObject.RemoteVolumeResourceId = input[0].RemoteVolumeResourceId
+	replicationObject.RemoteVolumeRegion = pointer.To(input[0].RemoteVolumeLocation)
+	replicationObject.RemoteVolumeResourceId = pointer.To(input[0].RemoteVolumeResourceId)
 
 	replicationSchedule := volumegroups.ReplicationSchedule(translateTFSchedule(input[0].ReplicationFrequency))
-	replicationObject.ReplicationSchedule = &replicationSchedule
+	replicationObject.ReplicationSchedule = pointer.To(replicationSchedule)
 
-	return &volumegroups.VolumePropertiesDataProtection{
-		Replication: &replicationObject,
-	}
+	return pointer.To(volumegroups.VolumePropertiesDataProtection{
+		Replication: pointer.To(replicationObject),
+	})
 }
 
 func expandNetAppVolumeGroupDataProtectionSnapshotPolicy(input []netAppModels.DataProtectionSnapshotPolicy) *volumegroups.VolumePropertiesDataProtection {
@@ -274,22 +274,22 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.V
 
 	if v, ok := replicationRaw["endpoint_type"]; ok {
 		endpointType := volumes.EndpointType(v.(string))
-		replicationObject.EndpointType = &endpointType
+		replicationObject.EndpointType = pointer.To(endpointType)
 	}
 	if v, ok := replicationRaw["remote_volume_location"]; ok {
 		replicationObject.RemoteVolumeRegion = utils.String(v.(string))
 	}
 	if v, ok := replicationRaw["remote_volume_resource_id"]; ok {
-		replicationObject.RemoteVolumeResourceId = v.(string)
+		replicationObject.RemoteVolumeResourceId = pointer.To(v.(string))
 	}
 	if v, ok := replicationRaw["replication_frequency"]; ok {
 		replicationSchedule := volumes.ReplicationSchedule(translateTFSchedule(v.(string)))
-		replicationObject.ReplicationSchedule = &replicationSchedule
+		replicationObject.ReplicationSchedule = pointer.To(replicationSchedule)
 	}
 
-	return &volumes.VolumePropertiesDataProtection{
-		Replication: &replicationObject,
-	}
+	return pointer.To(volumes.VolumePropertiesDataProtection{
+		Replication: pointer.To(replicationObject),
+	})
 }
 
 func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
@@ -590,7 +590,7 @@ func flattenNetAppVolumeGroupVolumesDPReplication(input *volumes.ReplicationObje
 		{
 			EndpointType:           strings.ToLower(string(pointer.From(input.EndpointType))),
 			RemoteVolumeLocation:   pointer.From(input.RemoteVolumeRegion),
-			RemoteVolumeResourceId: input.RemoteVolumeResourceId,
+			RemoteVolumeResourceId: pointer.From(input.RemoteVolumeResourceId),
 			ReplicationFrequency:   replicationFrequency,
 		},
 	}
@@ -645,7 +645,7 @@ func deleteVolume(ctx context.Context, metadata sdk.ResourceMetaData, volumeId s
 		}
 		if dataProtectionReplication.Replication.EndpointType != nil && !strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumes.EndpointTypeDst)) {
 			// This is the case where primary volume started the deletion, in this case, to be consistent we will remove replication from secondary
-			replicaVolumeId, err = volumesreplication.ParseVolumeID(dataProtectionReplication.Replication.RemoteVolumeResourceId)
+			replicaVolumeId, err = volumesreplication.ParseVolumeID(pointer.From(dataProtectionReplication.Replication.RemoteVolumeResourceId))
 			if err != nil {
 				return err
 			}
@@ -940,29 +940,53 @@ func netappVolumeGroupStateRefreshFunc(ctx context.Context, client *volumegroups
 func netappVolumeReplicationMirrorStateRefreshFunc(ctx context.Context, client *volumesreplication.VolumesReplicationClient, id volumesreplication.VolumeId, desiredState string) pluginsdk.StateRefreshFunc {
 	validStates := []string{"mirrored", "broken", "uninitialized"}
 
+	// Validation for the desiredState being valid
+	validState := false
+	for _, state := range validStates {
+		if strings.EqualFold(desiredState, state) {
+			validState = true
+			break
+		}
+	}
+	if !validState {
+		return func() (interface{}, string, error) {
+			return nil, "", fmt.Errorf("invalid desired mirror state: %s", desiredState)
+		}
+	}
+
 	return func() (interface{}, string, error) {
 		// Possible Mirror States to be used as desiredStates:
 		// mirrored, broken or uninitialized
+
 		if !utils.SliceContainsValue(validStates, strings.ToLower(desiredState)) {
 			return nil, "", fmt.Errorf("invalid desired mirror state was passed to check mirror replication state (%s), possible values: (%+v)", desiredState, volumesreplication.PossibleValuesForMirrorState())
 		}
 
+		code := "200"
 		res, err := client.VolumesReplicationStatus(ctx, id)
 		if err != nil {
-			if !response.WasNotFound(res.HttpResponse) {
-				return nil, "", fmt.Errorf("retrieving replication status information from %s: %s", id, err)
+			// Special handling for 409 Conflict errors with the specific "VolumeReplicationMissingFor" message
+			if res.HttpResponse != nil && res.HttpResponse.StatusCode == 409 &&
+				strings.Contains(err.Error(), "VolumeReplicationMissingFor") {
+				// If replication no longer exists and we want the "broken" state
+				// then we've reached our goal - replication is broken/removed
+				if strings.EqualFold(desiredState, "broken") {
+					return res, "204", nil
+				}
+				return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
+			}
+			return nil, "", fmt.Errorf("retrieving replication status from %s: %s", id, err)
+		}
+
+		if res.Model != nil && res.Model.MirrorState != nil {
+			mirrorState := string(*res.Model.MirrorState)
+			// Check if the current state is the desired state
+			if strings.EqualFold(strings.ToLower(mirrorState), strings.ToLower(desiredState)) {
+				code = "204"
 			}
 		}
 
-		// TODO: fix this refresh function to use strings instead of fake status codes
-		// Setting 200 as default response
-		response := 200
-		if res.Model != nil && res.Model.MirrorState != nil && strings.EqualFold(string(*res.Model.MirrorState), desiredState) {
-			// return 204 if state matches desired state
-			response = 204
-		}
-
-		return res, strconv.Itoa(response), nil
+		return res, code, nil
 	}
 }
 
@@ -989,6 +1013,13 @@ func netappVolumeReplicationStateRefreshFunc(ctx context.Context, client *volume
 	return func() (interface{}, string, error) {
 		res, err := client.VolumesReplicationStatus(ctx, id)
 		if err != nil {
+			// Special handling for 409 Conflict errors with "VolumeReplicationMissingFor" message
+			if res.HttpResponse != nil && res.HttpResponse.StatusCode == 409 &&
+				strings.Contains(err.Error(), "VolumeReplicationMissingFor") {
+				// If replication no longer exists, consider it deleted and return 404
+				return res, "404", nil
+			}
+
 			if response.WasBadRequest(res.HttpResponse) && (strings.Contains(strings.ToLower(err.Error()), "deleting") || strings.Contains(strings.ToLower(err.Error()), "volume replication missing or deleted")) {
 				// This error can be ignored until a bug is fixed on RP side that it is returning 400 while the replication is in "Deleting" process
 				// TODO: remove this workaround when above bug is fixed

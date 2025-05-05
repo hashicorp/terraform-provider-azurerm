@@ -182,7 +182,7 @@ An `application_stack` block supports the following:
 
 ~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
-* `python_version` - (Optional) The version of Python to run. Possible values include `3.7`, `3.8`, `3.9`, `3.10`, `3.11` and `3.12`.
+* `python_version` - (Optional) The version of Python to run. Possible values include `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `ruby_version` - (Optional) The version of Ruby to run. Possible values include `2.6` and `2.7`.
 
@@ -380,7 +380,7 @@ A `facebook_v2` block supports the following:
 
 A `github_v2` block supports the following:
 
-* `client_id` - (Required) The ID of the GitHub app used for login..
+* `client_id` - (Required) The ID of the GitHub app used for login.
 
 * `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for GitHub Login.
 
@@ -602,6 +602,8 @@ An `ip_restriction` block supports the following:
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
+* `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
+
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
 ~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
@@ -757,10 +759,6 @@ A `slow_request` block supports the following:
 * `interval` - (Required) The time interval in the form `hh:mm:ss`.
 
 * `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
-
-* `path` - (Optional) The path for which this slow request rule applies.
-
-~> **NOTE:** `path` in `slow_request` block will be deprecated in 4.0 provider. Please use `slow_request_with_path` to set a slow request trigger with path specified.
 
 ---
 

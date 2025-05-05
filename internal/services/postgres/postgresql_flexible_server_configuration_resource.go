@@ -19,8 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-var postgresqlFlexibleServerConfigurationResourceName = "azurerm_postgresql_flexible_server_configuration"
-
 func resourcePostgresqlFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceFlexibleServerConfigurationUpdate,
@@ -80,9 +78,6 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-
-	locks.ByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
-	defer locks.UnlockByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
 
 	props := configurations.ConfigurationForUpdate{
 		Properties: &configurations.ConfigurationProperties{
@@ -166,9 +161,6 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 
 	locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 	defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
-
-	locks.ByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
-	defer locks.UnlockByName(id.ConfigurationName, postgresqlFlexibleServerConfigurationResourceName)
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {

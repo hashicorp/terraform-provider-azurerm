@@ -12,13 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Read: dataSourceServiceBusNamespaceAuthorizationRuleRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -33,27 +34,8 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 
 			"namespace_id": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: namespaces.ValidateNamespaceID,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-			},
-
-			// TODO Remove in 4.0
-			"namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NamespaceName,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-				Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
-			},
-
-			// TODO Remove in 4.0
-			"resource_group_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: resourcegroups.ValidateName,
-				AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
-				Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in version 4.0 of the AzureRM Provider.",
 			},
 
 			"primary_key": {
@@ -93,6 +75,33 @@ func dataSourceServiceBusNamespaceAuthorizationRule() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["namespace_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.NamespaceName,
+			AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+			Deprecated:   "`namespace_name` will be removed in favour of the property `namespace_id` in v5.0 of the AzureRM Provider.",
+		}
+
+		r.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: resourcegroups.ValidateName,
+			AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+			Deprecated:   "`resource_group_name` will be removed in favour of the property `namespace_id` in v5.0 of the AzureRM Provider.",
+		}
+
+		r.Schema["namespace_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: namespaces.ValidateNamespaceID,
+			AtLeastOneOf: []string{"namespace_id", "resource_group_name", "namespace_name"},
+		}
+	}
+
+	return r
 }
 
 func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -101,21 +110,31 @@ func dataSourceServiceBusNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	var resourceGroup string
-	var namespaceName string
-	if v, ok := d.Get("namespace_id").(string); ok && v != "" {
-		namespaceId, err := namespacesauthorizationrule.ParseNamespaceID(v)
+	var id namespacesauthorizationrule.AuthorizationRuleId // remove during `features.FivePointOh()` clean up
+	if features.FivePointOh() {
+		namespaceId, err := namespacesauthorizationrule.ParseNamespaceID(d.Get("namespace_id").(string))
 		if err != nil {
 			return err
 		}
-		resourceGroup = namespaceId.ResourceGroupName
-		namespaceName = namespaceId.NamespaceName
-	} else {
-		resourceGroup = d.Get("resource_group_name").(string)
-		namespaceName = d.Get("namespace_name").(string)
-	}
 
-	id := namespacesauthorizationrule.NewAuthorizationRuleID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
+		id = namespacesauthorizationrule.NewAuthorizationRuleID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, d.Get("name").(string))
+	} else {
+		var resourceGroup string
+		var namespaceName string
+		if v, ok := d.Get("namespace_id").(string); ok && v != "" {
+			namespaceId, err := namespacesauthorizationrule.ParseNamespaceID(v)
+			if err != nil {
+				return err
+			}
+			resourceGroup = namespaceId.ResourceGroupName
+			namespaceName = namespaceId.NamespaceName
+		} else {
+			resourceGroup = d.Get("resource_group_name").(string)
+			namespaceName = d.Get("namespace_name").(string)
+		}
+
+		id = namespacesauthorizationrule.NewAuthorizationRuleID(subscriptionId, resourceGroup, namespaceName, d.Get("name").(string))
+	}
 
 	resp, err := client.NamespacesGetAuthorizationRule(ctx, id)
 	if err != nil {

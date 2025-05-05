@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -571,6 +572,9 @@ func (r StorageBlobResource) Destroy(ctx context.Context, client *clients.Client
 	account, err := client.Storage.FindAccount(ctx, client.Account.SubscriptionId, id.AccountId.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %+v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
+	}
+	if account == nil {
+		return pointer.To(true), nil
 	}
 	blobsClient, err := client.Storage.BlobsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
