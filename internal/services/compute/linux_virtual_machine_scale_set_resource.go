@@ -81,6 +81,10 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return false
 			}),
+			// `resiliency_policy` cannot be removed once configured
+			pluginsdk.ForceNewIfChange("resiliency_policy", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
 		),
 	}
 }
@@ -437,6 +441,10 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	if v, ok := d.GetOk("resiliency_policy"); ok {
+		props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliencyPolicy(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
 		if props.Zones == nil || len(*props.Zones) == 0 {
 			return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
@@ -684,6 +692,10 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		updateProps.Overprovision = pointer.To(v)
 	}
 
+	if d.HasChange("resiliency_policy") {
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliencyPolicy(d.Get("resiliency_policy").([]interface{}))
+	}
+
 	if d.HasChange("scale_in") {
 		if updateScaleInPolicy := ExpandVirtualMachineScaleSetScaleInPolicy(d.Get("scale_in").([]interface{})); updateScaleInPolicy != nil {
 			updateProps.ScaleInPolicy = updateScaleInPolicy
@@ -892,6 +904,10 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 			d.Set("unique_id", props.UniqueId)
 			d.Set("zone_balance", props.ZoneBalance)
 			d.Set("scale_in", FlattenVirtualMachineScaleSetScaleInPolicy(props.ScaleInPolicy))
+
+			if props.ResiliencyPolicy != nil {
+				d.Set("resiliency_policy", FlattenVirtualMachineScaleSetResiliencyPolicy(props.ResiliencyPolicy))
+			}
 
 			if props.SpotRestorePolicy != nil {
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
@@ -1321,6 +1337,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 				"capacity_reservation_group_id",
 			},
 		},
+
+		"resiliency_policy": VirtualMachineScaleSetResiliencyPolicySchema(),
 
 		"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
 

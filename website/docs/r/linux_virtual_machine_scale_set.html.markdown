@@ -196,6 +196,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group in which the Virtual Machine Scale Set should be assigned to. Changing this forces a new resource to be created.
 
+* `resiliency_policy` - (Optional) A `resiliency_policy` block as defined below.
+
+-> **Note:** Updating `resiliency_policy` to remove the existing `resiliency_policy` forces a new Virtual Machine Scale Set to be created.
+
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`. Changing this forces a new resource to be created.
 
 * `scale_in` - (Optional) A `scale_in` block as defined below.
@@ -529,6 +533,30 @@ A `public_ip_address` block supports the following:
 -> **Note:** This functionality is in Preview and must be opted into via `az feature register --namespace Microsoft.Network --name AllowBringYourOwnPublicIpAddress` and then `az provider register -n Microsoft.Network`.
 
 * `version` - (Optional) The Internet Protocol Version which should be used for this public IP address. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`. Changing this forces a new resource to be created.
+
+---
+
+A `resiliency_policy` block supports the following:
+
+* `resilient_virtual_machine_creation_policy` - (Required) A `resilient_virtual_machine_creation_policy` block as defined below.
+
+-> **NOTE:** `resilient_virtual_machine_creation_policy` requires that the `ResilientScaleSetVMCreation` feature is enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace Microsoft.Compute --name ResilientVMScaleSetVMCreation`.
+
+* `resilient_virtual_machine_deletion_policy` - (Required) A `resilient_virtual_machine_deletion_policy` block as defined below.
+
+-> **NOTE:** `resilient_virtual_machine_deletion_policy` requires that the `ReliableVMDeletion` feature is enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace Microsoft.Compute --name ReliableVMDeletion`.
+
+---
+
+A `resilient_virtual_machine_creation_policy` block supports the following:
+
+* `enabled` - (Required) Specifies whether resilient virtual machine creation is enabled.
+
+---
+
+A `resilient_virtual_machine_deletion_policy` block supports the following:
+
+* `enabled` - (Required) Specifies whether resilient virtual machine deletion is enabled.
 
 ---
 

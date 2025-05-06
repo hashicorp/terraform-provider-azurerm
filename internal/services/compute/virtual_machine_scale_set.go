@@ -1560,6 +1560,127 @@ func FlattenVirtualMachineScaleSetAutomaticOSUpgradePolicy(input *virtualmachine
 	}
 }
 
+func VirtualMachineScaleSetResiliencyPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"resilient_virtual_machine_creation_policy": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"enabled": {
+								Type:     pluginsdk.TypeBool,
+								Required: true,
+							},
+						},
+					},
+				},
+
+				"resilient_virtual_machine_deletion_policy": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"enabled": {
+								Type:     pluginsdk.TypeBool,
+								Required: true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func ExpandVirtualMachineScaleSetResiliencyPolicy(input []interface{}) *virtualmachinescalesets.ResiliencyPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &virtualmachinescalesets.ResiliencyPolicy{
+		ResilientVMCreationPolicy: ExpandResilientVMCreationPolicy(raw["resilient_virtual_machine_creation_policy"].([]interface{})),
+		ResilientVMDeletionPolicy: ExpandResilientVMDeletionPolicy(raw["resilient_virtual_machine_deletion_policy"].([]interface{})),
+	}
+}
+
+func ExpandResilientVMCreationPolicy(input []interface{}) *virtualmachinescalesets.ResilientVMCreationPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &virtualmachinescalesets.ResilientVMCreationPolicy{
+		Enabled: pointer.To(raw["enabled"].(bool)),
+	}
+
+}
+
+func ExpandResilientVMDeletionPolicy(input []interface{}) *virtualmachinescalesets.ResilientVMDeletionPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &virtualmachinescalesets.ResilientVMDeletionPolicy{
+		Enabled: pointer.To(raw["enabled"].(bool)),
+	}
+}
+
+func FlattenVirtualMachineScaleSetResiliencyPolicy(input *virtualmachinescalesets.ResiliencyPolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"resilient_virtual_machine_creation_policy": FlattenResilientVMCreationPolicy(input.ResilientVMCreationPolicy),
+			"resilient_virtual_machine_deletion_policy": FlattenResilientVMDeletionPolicy(input.ResilientVMDeletionPolicy),
+		},
+	}
+}
+
+func FlattenResilientVMCreationPolicy(input *virtualmachinescalesets.ResilientVMCreationPolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	var enabled bool
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+		},
+	}
+}
+
+func FlattenResilientVMDeletionPolicy(input *virtualmachinescalesets.ResilientVMDeletionPolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	var enabled bool
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+		},
+	}
+}
+
 func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
