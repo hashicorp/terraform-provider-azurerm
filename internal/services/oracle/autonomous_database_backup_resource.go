@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabasebackups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"time"
@@ -22,7 +23,7 @@ type AutonomousDatabaseBackupResource struct{}
 type AutonomousDatabaseBackupResourceModel struct {
 	Location          string `tfschema:"location"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
-	Name              string `tfschema:"name"`
+	Name              string `tfschema:"display_name"`
 
 	// Required
 	AutonomousDataBaseName       string `tfschema:"autonomous_database_name"`
@@ -48,12 +49,7 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 	return map[string]*pluginsdk.Schema{
 
 		// Required
-		"autonomous_database_id": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"autonomous_backup_database_id": {
+		"autonomous_database_name": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -64,22 +60,38 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 			ForceNew: true,
 		},
 		"retention_period_in_days": {
-			Type:     schema.TypeInt,
-			Required: true,
-			Computed: true,
+			Type:         schema.TypeInt,
+			Required:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 60),
 		},
 
 		// Optional
 
 		// Computed
+		"autonomous_database_backup_ocid": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
 		"autonomous_database_ocid": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
-		"database_backup_size_in_tbs": {
-			Type:     schema.TypeFloat,
+		"backup_type": {
+			Type:     schema.TypeString,
 			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeFull),
+				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeIncremental),
+				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
+			}, false),
+		},
+		"database_backup_size_in_tbs": {
+			Type:         schema.TypeFloat,
+			Computed:     true,
+			ValidateFunc: validation.IntBetween(1, 384),
 		},
 		"database_version": {
 			Type:     schema.TypeString,
@@ -118,10 +130,6 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 			Computed: true,
 		},
 		"time_started": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-		"type": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
