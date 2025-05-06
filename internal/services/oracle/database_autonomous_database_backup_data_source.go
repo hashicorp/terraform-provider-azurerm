@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasebackups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -22,8 +23,7 @@ type AutonomousDatabaseBackupDataModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 
-	AutonomousDataBaseBackupId   string `tfschema:"autonomous_backup_database_id"`
-	AutonomousDataBaseId         string `tfschema:"autonomous_database_id"`
+	AutonomousDataBaseName       string `tfschema:"autonomous_database_name"`
 	AutonomousDatabaseOcid       string `tfschema:"autonomous_database_ocid"`
 	AutonomousDataBaseBackupOcid string `tfschema:"autonomous_database_backup_ocid"`
 	BackupType                   string `tfschema:"backup_type"`
@@ -46,6 +46,12 @@ func (a AutonomousDatabaseBackupDataSource) Arguments() map[string]*schema.Schem
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
+		"autonomous_database_name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -58,11 +64,6 @@ func (a AutonomousDatabaseBackupDataSource) Attributes() map[string]*schema.Sche
 	return map[string]*pluginsdk.Schema{
 
 		// Required
-		"autonomous_database_id": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
 		"autonomous_backup_database_id": {
 			Type:     schema.TypeString,
 			Required: true,
@@ -151,6 +152,7 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
+			dbClient := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state AutonomousDatabaseBackupDataModel
@@ -158,16 +160,20 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Parse the autonomous database ID to get the resource group and database name
-			dbId, err := autonomousdatabasebackups.ParseAutonomousDatabaseID(state.AutonomousDataBaseId)
+			dbId := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, state.ResourceGroupName, state.AutonomousDataBaseName)
+
+			res, err := dbClient.Get(ctx, dbId)
 			if err != nil {
-				return fmt.Errorf("decoding: %+v", err)
+				if response.WasNotFound(res.HttpResponse) {
+					return fmt.Errorf("%s was not found", dbId)
+				}
+				return fmt.Errorf("retrieving %s: %+v", dbId, err)
 			}
 
 			id := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(
 				subscriptionId,
 				state.ResourceGroupName,
-				dbId.AutonomousDatabaseName,
+				state.AutonomousDataBaseName,
 				state.Name,
 			)
 
@@ -180,22 +186,21 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.AutonomousDataBaseBackupId = id.ID()
 
 				properties := model.Properties
 				if properties != nil {
 					state.AutonomousDatabaseOcid = pointer.From(properties.AutonomousDatabaseOcid)
 					state.AutonomousDataBaseBackupOcid = pointer.From(properties.Ocid)
-					state.BackupType = string(pointer.From((properties.BackupType)))
+					state.BackupType = string(pointer.From(properties.BackupType))
 					state.DbVersion = pointer.From(properties.DbVersion)
 					state.DisplayName = pointer.From(properties.DisplayName)
 					state.BackupSizeInTbs = int64(pointer.From(properties.DatabaseSizeInTbs))
 					state.IsAutomatic = pointer.From(properties.IsAutomatic)
 					state.IsRestorable = pointer.From(properties.IsRestorable)
 					state.LifecycleDetails = pointer.From(properties.LifecycleDetails)
-					state.LifecycleState = string(pointer.From((properties.LifecycleState)))
-					state.ProvisioningState = string(pointer.From((properties.ProvisioningState)))
-					state.RetentionPeriodInDays = pointer.From((properties.RetentionPeriodInDays))
+					state.LifecycleState = string(pointer.From(properties.LifecycleState))
+					state.ProvisioningState = string(pointer.From(properties.ProvisioningState))
+					state.RetentionPeriodInDays = pointer.From(properties.RetentionPeriodInDays)
 					state.TimeAvailableTil = pointer.From(properties.TimeAvailableTil)
 					state.TimeEnded = pointer.From(properties.TimeEnded)
 					state.TimeStarted = pointer.From(properties.TimeStarted)
