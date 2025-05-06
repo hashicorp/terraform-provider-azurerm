@@ -168,6 +168,16 @@ type ListAttribute struct {
 	// computed and the value could be altered by other changes then a default
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.List
+
+	// WriteOnly indicates that Terraform will not store this attribute value
+	// in the plan or state artifacts.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	// WriteOnly cannot be set with Computed.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the result of stepping into a list
@@ -230,6 +240,11 @@ func (a ListAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a ListAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns the WriteOnly field value.
+func (a ListAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // ListDefaultValue returns the Default field value.

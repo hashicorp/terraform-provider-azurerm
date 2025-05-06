@@ -187,3 +187,9 @@ func (a Int32Attribute) IsRequired() bool {
 func (a Int32Attribute) IsSensitive() bool {
 	return a.Sensitive
 }
+
+// IsWriteOnly returns false as write-only attributes are not relevant to ephemeral resource schemas,
+// as these schemas describe data that is explicitly not saved to any artifact.
+func (a Int32Attribute) IsWriteOnly() bool {
+	return false
+}

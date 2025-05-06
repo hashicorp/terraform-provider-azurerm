@@ -4,8 +4,9 @@
 package fwschema
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 // Attribute is the core interface required for implementing Terraform
@@ -63,6 +64,13 @@ type Attribute interface {
 	// sensitive. This is named differently than Sensitive to prevent a
 	// conflict with the tfsdk.Attribute field name.
 	IsSensitive() bool
+
+	// IsWriteOnly should return true if the attribute configuration value is
+	// write-only. This is named differently than WriteOnly to prevent a
+	// conflict with the tfsdk.Attribute field name.
+	//
+	// Write-only attributes are a managed-resource schema concept only.
+	IsWriteOnly() bool
 }
 
 // AttributesEqual is a helper function to perform equality testing on two
@@ -98,6 +106,10 @@ func AttributesEqual(a, b Attribute) bool {
 	}
 
 	if a.IsSensitive() != b.IsSensitive() {
+		return false
+	}
+
+	if a.IsWriteOnly() != b.IsWriteOnly() {
 		return false
 	}
 

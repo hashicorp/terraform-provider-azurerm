@@ -182,3 +182,9 @@ func (a Int32Attribute) IsRequired() bool {
 func (a Int32Attribute) IsSensitive() bool {
 	return a.Sensitive
 }
+
+// IsWriteOnly returns false as write-only attributes are not relevant to provider schemas,
+// as these schemas describe data explicitly not saved to any artifact.
+func (a Int32Attribute) IsWriteOnly() bool {
+	return false
+}
