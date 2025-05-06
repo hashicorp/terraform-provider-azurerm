@@ -107,6 +107,9 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
+			if accountDetails == nil {
+				return fmt.Errorf("unable to locate %s", *accountID)
+			}
 
 			supportLevel := availableFunctionalityForAccount(accountDetails.Kind, accountTier, accountReplicationType)
 
@@ -236,6 +239,9 @@ func (a AccountStaticWebsiteResource) Update() sdk.ResourceFunc {
 			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
 				return err
+			}
+			if accountDetails == nil {
+				return fmt.Errorf("unable to locate %s", *id)
 			}
 
 			client, err := storageClient.AccountsDataPlaneClient(ctx, *accountDetails, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
