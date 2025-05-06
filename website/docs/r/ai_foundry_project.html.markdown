@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "example" {
   purge_protection_enabled = true
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
+resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
@@ -91,6 +91,8 @@ The following arguments are supported:
 ---
 
 * `description` - (Optional) The description of this AI Foundry Project.
+
+* `primary_user_assigned_identity` - (Optional) The user assigned identity ID that represents the AI Foundry Hub identity. This must be set when enabling encryption with a user assigned identity.
 
 * `friendly_name` - (Optional) The display name of this AI Foundry Project.
 
