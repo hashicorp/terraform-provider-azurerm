@@ -332,7 +332,8 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 	payload := existing.Model
 
 	// For NIC attached to private endpoint, tags cannot be updated using PUT.
-	// It has to use the specific update tag PATCH API
+	// It has to use the specific update tag PATCH API.
+	// An issue has been raised to improve the API design: https://github.com/Azure/azure-rest-api-specs/issues/34437
 	propsOtherThanTagsUpdated := false
 	attachedToPrivateEndpoint := payload.Properties.PrivateEndpoint != nil && pointer.From(payload.Properties.PrivateEndpoint.Id) != ""
 
