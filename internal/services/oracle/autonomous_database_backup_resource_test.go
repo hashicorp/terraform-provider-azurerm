@@ -102,10 +102,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  name                   = "backup%[2]d"
-  display_name           = "backup%[2]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = "%[3]s"
+  name                     = "backup%[2]d"
+  display_name             = "backup%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = "%[3]s"
   autonomous_database_name = azurerm_oracle_autonomous_database.test.name
   retention_period_in_days = 30
 }
@@ -121,13 +121,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  name                   = "backup%[2]d"
-  display_name           = "backup%[2]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = "%[3]s"
+  name                     = "backup%[2]d"
+  display_name             = "backup%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = "%[3]s"
   autonomous_database_name = azurerm_oracle_autonomous_database.test.name
   retention_period_in_days = 30
-  backup_type = "LongTerm"
+  backup_type              = "LongTerm"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -141,10 +141,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  name                   = "backup%[2]d"
-  display_name           = "backup%[2]d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = "%[3]s"
+  name                     = "backup%[2]d"
+  display_name             = "backup%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = "%[3]s"
   autonomous_database_name = azurerm_oracle_autonomous_database.test.name
   retention_period_in_days = 60
 }
@@ -156,10 +156,10 @@ func (a AutonomousDatabaseBackupResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_oracle_autonomous_database_backup" "import" {
-  name                   = azurerm_oracle_autonomous_database_backup.test.name
-  display_name           = azurerm_oracle_autonomous_database_backup.test.display_name
-  resource_group_name    = azurerm_oracle_autonomous_database_backup.test.resource_group_name
-  location               = azurerm_oracle_autonomous_database_backup.test.location
+  name                     = azurerm_oracle_autonomous_database_backup.test.name
+  display_name             = azurerm_oracle_autonomous_database_backup.test.display_name
+  resource_group_name      = azurerm_oracle_autonomous_database_backup.test.resource_group_name
+  location                 = azurerm_oracle_autonomous_database_backup.test.location
   autonomous_database_name = azurerm_oracle_autonomous_database_backup.test.autonomous_database_name
   retention_period_in_days = azurerm_oracle_autonomous_database_backup.test.retention_period_in_days
 }
