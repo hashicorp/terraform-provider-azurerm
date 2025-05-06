@@ -153,6 +153,8 @@ When authenticating as a Service Principal using Open ID Connect, the following 
 
 * `oidc_token_file_path` - (Optional) The path to a file containing an ID token when authenticating using OpenID Connect (OIDC). This can also be sourced from the `ARM_OIDC_TOKEN_FILE_PATH` Environment Variable.
 
+~> **Note:** The OIDC token will only be read once from the file at `oidc_token_file_path`. When the Azure access token expires, the provider will not read the OIDC token again from this file.
+
 * `use_oidc` - (Optional) Should OIDC be used for Authentication? This can also be sourced from the `ARM_USE_OIDC` Environment Variable. Defaults to `false`.
 
 More information on [how to configure a Service Principal using OpenID Connect can be found in this guide](guides/service_principal_oidc.html).
