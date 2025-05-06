@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_insights` - the `workspace_id` is now `Computed` [GH-29396]
 * `azurerm_batch_pool` - prevent error when `certificate` is not used [GH-29443]
 * `azurerm_nginx_deployment` - add support for the `web_application_firewall` property [GH-27454]
 * `azurerm_postgresql_flexible_server_virtual_endpoint` - is no longer removed from state when a fail-over occurs [GH-29424]
