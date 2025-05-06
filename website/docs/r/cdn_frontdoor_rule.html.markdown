@@ -152,7 +152,7 @@ The following arguments are supported:
 
 * `order` - (Required) The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.
 
-->**NOTE:** If the Front Door Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
+-> **Note:** If the Front Door Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
 
 * `actions` - (Required) An `actions` block as defined below.
 
@@ -164,7 +164,7 @@ The following arguments are supported:
 
 An `actions` block supports the following:
 
-->**NOTE:** You may include up to 5 separate actions in the `actions` block.
+-> **Note:** You may include up to 5 separate actions in the `actions` block.
 
 Some actions support `Action Server Variables` which provide access to structured information about the request. For more information about `Action Server Variables` see the `Action Server Variables` as defined below.
 
@@ -198,25 +198,23 @@ An `url_redirect_action` block supports the following:
 
 A `route_configuration_override_action` block supports the following:
 
-->**NOTE:** In the v3.x of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will have default values. You can use Terraform's [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes) functionality to ignore these default values. In v4.0 of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will **NOT** have default values and will need to be explicitly set in the configuration file.
-
 * `cache_duration` - (Optional) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
 
 * `cdn_frontdoor_origin_group_id` - (Optional) The Front Door Origin Group resource ID that the request should be routed to. This overrides the configuration specified in the Front Door Endpoint route.
 
 * `forwarding_protocol` - (Optional) The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`.
 
-->**NOTE:** If the `cdn_frontdoor_origin_group_id` is not defined you cannot set the `forwarding_protocol`.
+-> **Note:** If the `cdn_frontdoor_origin_group_id` is not defined you cannot set the `forwarding_protocol`.
 
 * `query_string_caching_behavior` - (Optional) `IncludeSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get included when the cache key gets generated. `UseQueryString` cache every unique URL, each unique URL will have its own cache key. `IgnoreSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get excluded when the cache key gets generated. `IgnoreQueryString` query strings aren't considered when the cache key gets generated. Possible values include `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings` or `IncludeSpecifiedQueryStrings`.
 
 * `query_string_parameters` - (Optional) A list of query string parameter names.
 
-->**NOTE:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
+-> **Note:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
 
 * `compression_enabled` - (Optional) Should the Front Door dynamically compress the content? Possible values include `true` or `false`.
 
-->**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
+-> **Note:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
 
 * `cache_behavior` - (Optional) `HonorOrigin` the Front Door will always honor origin response header directive. If the origin directive is missing, Front Door will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. `Disabled` the Front Door will not cache the response contents, irrespective of Front Door Origin response directives. Possible values include `HonorOrigin`, `OverrideAlways`, `OverrideIfOriginMissing` or `Disabled`.
 
@@ -236,13 +234,13 @@ A `request_header_action` block supports the following:
 
 * `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values include `Append`, `Overwrite` or `Delete`.
 
--> **NOTE:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
+-> **Note:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
 
 * `header_name` - (Required) The name of the header to modify.
 
 * `value` - (Optional) The value to append or overwrite.
 
-->**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
+-> **Note:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
 
 ---
 
@@ -250,19 +248,19 @@ A `response_header_action` block supports the following:
 
 * `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values include `Append`, `Overwrite` or `Delete`.
 
--> **NOTE:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
+-> **Note:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
 
 * `header_name` - (Required) The name of the header to modify.
 
 * `value` - (Optional) The value to append or overwrite.
 
-->**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
+-> **Note:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
 
 ---
 
 A `conditions` block supports the following:
 
-->**NOTE:** You may include up to 10 separate conditions in the `conditions` block.
+-> **Note:** You may include up to 10 separate conditions in the `conditions` block.
 
 * `remote_address_condition` - (Optional) A `remote_address_condition` block as defined below.
 
@@ -362,13 +360,13 @@ A `socket_address_condition` block supports the following:
 
 * `operator` - (Optional) The type of match. The Possible values are `IpMatch` or `Any`. Defaults to `IPMatch`.
 
-->**NOTE:** If the value of the `operator` field is set to `IpMatch` then the `match_values` field is also required.
+-> **Note:** If the value of the `operator` field is set to `IpMatch` then the `match_values` field is also required.
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) Specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic.
 
-->**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
+-> **Note:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
 
 ---
 
@@ -382,7 +380,7 @@ A `remote_address_condition` block supports the following:
 
 * `match_values` - (Optional) For the IP Match or IP Not Match operators: specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic. For the Geo Match or Geo Not Match operators: specify one or more locations using their country code.
 
-->**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
+-> **Note:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
 
 ---
 
@@ -462,7 +460,7 @@ A `request_body_condition` block supports the following:
 
 ->The `request_body_condition` identifies requests based on specific text that appears in the body of the request.
 
-->**NOTE:** If a request body exceeds `64 KB` in size, only the first `64 KB` will be considered for the request body match condition.
+-> **Note:** If a request body exceeds `64 KB` in size, only the first `64 KB` will be considered for the request body match condition.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -488,9 +486,9 @@ A `request_scheme_condition` block supports the following:
 
 An `url_path_condition` block supports the following:
 
-->The `url_path_condition` identifies requests that include the specified path in the request URL. The path is the part of the URL after the hostname and a slash(e.g. in the URL `https://www.contoso.com/files/secure/file1.pdf`, the path is `files/secure/file1.pdf`).
+-> **Note:** The `url_path_condition` identifies requests that include the specified path in the request URL. The path is the part of the URL after the hostname and a slash(e.g. in the URL `https://www.contoso.com/files/secure/file1.pdf`, the path is `files/secure/file1.pdf`).
 
-* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
+* `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual`, `RegEx` or `Wildcard`. Details can be found in the `Condition Operator List` below.
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
@@ -522,7 +520,7 @@ An `url_filename_condition` block supports the following:
 
 * `match_values` - (Optional) A list of one or more string or integer values(e.g. "1") representing the value of the request file name to match. If multiple values are specified, they're evaluated using `OR` logic.
 
--> **NOTE:** The `match_values` field is only optional if the `operator` is set to `Any`.
+-> **Note:** The `match_values` field is only optional if the `operator` is set to `Any`.
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
@@ -645,7 +643,8 @@ For rules that accept values from the standard operator list, the following oper
 | Greater Than or Equal      | Matches when the length of the value is greater than or equal to the specified integer. | GreaterThanOrEqual |
 | Begins With                | Matches when the value begins with the specified string. | BeginsWith |
 | Ends With                  | Matches when the value ends with the specified string. | EndsWith |
-| RegEx                      | Matches when the value matches the specified regular expression. See below for further details. | RegEx |
+| RegEx                      | Matches when the value matches the specified regular expression. See `Condition Regular Expressions` below for more details. | RegEx |
+| Wildcard                   | Matches when the request path matches a wildcard expression. See `Condition Wildcard Expression` below for more details. | Wildcard | 
 | Not Any                    | Matches when there is no value. | Any and negateCondition = true |
 | Not Equal                  | Matches when the value does not match the specified string. | Equal and negateCondition : true |
 | Not Contains               | Matches when the value does not contain the specified string. | Contains and negateCondition = true |
@@ -655,7 +654,8 @@ For rules that accept values from the standard operator list, the following oper
 | Not Greater Than or Equals | Matches when the length of the value is not greater than or equal to the specified integer. | GreaterThanOrEqual and negateCondition = true |
 | Not Begins With            | Matches when the value does not begin with the specified string. | BeginsWith and negateCondition = true |
 | Not Ends With              | Matches when the value does not end with the specified string. | EndsWith and negateCondition = true |
-| Not RegEx                  | Matches when the value does not match the specified regular expression. See `Condition Regular Expressions` for further details. | RegEx and negateCondition = true |
+| Not RegEx                  | Matches when the value does not match the specified regular expression. See `Condition Regular Expressions` for more details. | RegEx and negateCondition = true |
+| Not Wildcard               | Matches when the request path does not match a wildcard expression. See `Condition Wildcard Expression` below for more details. | Wildcard and negateCondition = true |
 
 ---
 
@@ -673,6 +673,10 @@ Regular expressions **don't** support the following operations:
 * The `\K` start of match reset directive.
 * Callouts and embedded code.
 * Atomic grouping and possessive quantifiers.
+
+## Condition Wildcard Expression
+
+A wildcard expression can include the * character to match zero or more characters within the path. For example, the wildcard expression `files/customer*/file.pdf` matches the paths `files/customer1/file.pdf`, `files/customer109/file.pdf`, and `files/customer/file.pdf`, but doesn't match `files/customer2/anotherfile.pdf`.
 
 ---
 
