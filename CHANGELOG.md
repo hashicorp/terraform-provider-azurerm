@@ -7,7 +7,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-dependencies: `eventhub` - update to API version `2024-01-01` [GH-29397]
+* dependencies: `eventhub` - update to API version `2024-01-01` [GH-29397]
+* `azurerm_storage_account_static_website` - the `index_document` property now has validation for length and excluding slashes [GH-29431]
 
 BUG FIXES:
 
