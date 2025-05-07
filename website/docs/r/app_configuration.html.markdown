@@ -177,7 +177,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free`, `developer`,  `standard` and `premium`. Defaults to `free`.
 
-~> **Note:** Azure does not support downgrading `sku`. Downgrading from `premium` tier to `standard` or `free`, or from `standard` to `free`, forces a new resource to be created.
+~> **Note:** Azure does not support downgrading `sku` to a non-production tier (`developer` or `free`). Downgrading from `premium` tier to `developer` or `free`, from `standard` to `developer` or `free`, or from `developer` to `free`, forces a new resource to be created.
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
 
