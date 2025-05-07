@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/managedcluster"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2021-05-01/nodetype"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/nodetype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -257,7 +257,7 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 				Location:   model.Location,
 				Name:       utils.String(model.Name),
 				Properties: expandClusterProperties(&model),
-				Sku:        &managedcluster.Sku{Name: model.Sku},
+				Sku:        managedcluster.Sku{Name: model.Sku},
 			}
 
 			tagsMap := make(map[string]string)
@@ -399,7 +399,7 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 				Location:   model.Location,
 				Name:       utils.String(model.Name),
 				Properties: expandClusterProperties(&model),
-				Sku: &managedcluster.Sku{
+				Sku: managedcluster.Sku{
 					Name: model.Sku,
 				},
 			}
@@ -561,9 +561,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 
 	model.Name = pointer.From(cluster.Name)
 	model.Location = cluster.Location
-	if sku := cluster.Sku; sku != nil {
-		model.Sku = sku.Name
-	}
+	model.Sku = cluster.Sku.Name
 
 	properties := cluster.Properties
 	if properties == nil {
@@ -574,9 +572,9 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 
 	if features := properties.AddonFeatures; features != nil {
 		for _, feature := range *features {
-			if feature == managedcluster.AddonFeaturesDnsService {
+			if feature == managedcluster.ManagedClusterAddOnFeatureDnsService {
 				model.DNSService = true
-			} else if feature == managedcluster.AddonFeaturesBackupRestoreService {
+			} else if feature == managedcluster.ManagedClusterAddOnFeatureBackupRestoreService {
 				model.BackupRestoreService = true
 			}
 		}
@@ -671,7 +669,7 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 	}
 
 	out := NodeType{
-		DataDiskSize:     nt.Properties.DataDiskSizeGB,
+		DataDiskSize:     pointer.From(nt.Properties.DataDiskSizeGB),
 		Name:             pointer.From(nt.Name),
 		Primary:          props.IsPrimary,
 		VmImageOffer:     pointer.From(props.VMImageOffer),
@@ -742,12 +740,12 @@ func flattenNodetypeProperties(nt nodetype.NodeType) NodeType {
 func expandClusterProperties(model *ClusterResourceModel) *managedcluster.ManagedClusterProperties {
 	out := &managedcluster.ManagedClusterProperties{}
 
-	addons := make([]managedcluster.AddonFeatures, 0)
+	addons := make([]managedcluster.ManagedClusterAddOnFeature, 0)
 	if model.DNSService {
-		addons = append(addons, managedcluster.AddonFeaturesDnsService)
+		addons = append(addons, managedcluster.ManagedClusterAddOnFeatureDnsService)
 	}
 	if model.BackupRestoreService {
-		addons = append(addons, managedcluster.AddonFeaturesBackupRestoreService)
+		addons = append(addons, managedcluster.ManagedClusterAddOnFeatureBackupRestoreService)
 	}
 	out.AddonFeatures = &addons
 
@@ -879,7 +877,7 @@ func expandNodeTypeProperties(nt *NodeType) (*nodetype.NodeTypeProperties, error
 			StartPort: appFrom,
 		},
 		Capacities:     &nt.Capacities,
-		DataDiskSizeGB: nt.DataDiskSize,
+		DataDiskSizeGB: &nt.DataDiskSize,
 		DataDiskType:   &nt.DataDiskType,
 		EphemeralPorts: &nodetype.EndpointRangeDescription{
 			EndPort:   ephemeralTo,

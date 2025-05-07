@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateDnsSrvRecordResource struct{}
@@ -90,7 +90,7 @@ func TestAccPrivateDnsSrvRecord_withTags(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsSrvRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PrivateDnsSrvRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := recordsets.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -98,30 +98,18 @@ func (t PrivateDnsSrvRecordResource) Exists(ctx context.Context, clients *client
 
 	resp, err := clients.PrivateDns.RecordSetsClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Private DNS SRV Record (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving Private DNS SRV Record (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (PrivateDnsSrvRecordResource) basic(data acceptance.TestData) string {
+func (r PrivateDnsSrvRecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-prvdns-%d"
-  location = "%s"
-}
-
-resource "azurerm_private_dns_zone" "test" {
-  name                = "testzone%d.com"
-  resource_group_name = azurerm_resource_group.test.name
-}
+%s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "testaccsrv%d"
+  name                = "acctestsrv%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
@@ -139,7 +127,7 @@ resource "azurerm_private_dns_srv_record" "test" {
     target   = "target2.contoso.com"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PrivateDnsSrvRecordResource) requiresImport(data acceptance.TestData) string {
@@ -167,24 +155,12 @@ resource "azurerm_private_dns_srv_record" "import" {
 `, r.basic(data))
 }
 
-func (PrivateDnsSrvRecordResource) updateRecords(data acceptance.TestData) string {
+func (r PrivateDnsSrvRecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_private_dns_zone" "test" {
-  name                = "testzone%d.com"
-  resource_group_name = azurerm_resource_group.test.name
-}
+%s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "test%d"
+  name                = "acctestsrv%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
@@ -207,27 +183,15 @@ resource "azurerm_private_dns_srv_record" "test" {
     target   = "target3.contoso.com"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (PrivateDnsSrvRecordResource) withTags(data acceptance.TestData) string {
+func (r PrivateDnsSrvRecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_private_dns_zone" "test" {
-  name                = "testzone%d.com"
-  resource_group_name = azurerm_resource_group.test.name
-}
+%s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "test%d"
+  name                = "acctestsrv%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
@@ -249,27 +213,15 @@ resource "azurerm_private_dns_srv_record" "test" {
     cost_center = "MSFT"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (PrivateDnsSrvRecordResource) withTagsUpdate(data acceptance.TestData) string {
+func (r PrivateDnsSrvRecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_private_dns_zone" "test" {
-  name                = "testzone%d.com"
-  resource_group_name = azurerm_resource_group.test.name
-}
+%s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "test%d"
+  name                = "acctestsrv%d"
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_private_dns_zone.test.name
   ttl                 = 300
@@ -290,5 +242,23 @@ resource "azurerm_private_dns_srv_record" "test" {
     environment = "staging"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (PrivateDnsSrvRecordResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-prvdns-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "testzone%[1]d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

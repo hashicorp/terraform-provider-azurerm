@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PostgresqlFlexibleServerConfigurationResource struct{}
@@ -257,7 +257,7 @@ func (r PostgresqlFlexibleServerConfigurationResource) Exists(ctx context.Contex
 		return nil, fmt.Errorf("reading Postgresql Configuration (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PostgresqlFlexibleServerConfigurationResource) template(data acceptance.TestData) string {

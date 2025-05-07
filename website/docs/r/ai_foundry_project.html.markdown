@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "example" {
   purge_protection_enabled = true
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
+resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
@@ -73,8 +73,8 @@ resource "azurerm_ai_foundry" "example" {
 
 resource "azurerm_ai_foundry_project" "example" {
   name               = "example"
-  location           = azurerm_ai_services_hub.example.location
-  ai_services_hub_id = azurerm_ai_services_hub.example.id
+  location           = azurerm_ai_foundry.example.location
+  ai_services_hub_id = azurerm_ai_foundry.example.id
 }
 ```
 
@@ -86,11 +86,13 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the AI Foundry Project should exist. Changing this forces a new AI Foundry Project to be created.
 
-* `ai_services_hub_id` - (Required) The AI Services Hub ID under which this Project should be created. Changing this forces a new AI Foundry Project to be created.
+* `ai_services_hub_id` - (Required) The AI Foundry ID under which this Project should be created. Changing this forces a new AI Foundry Project to be created.
 
 ---
 
 * `description` - (Optional) The description of this AI Foundry Project.
+
+* `primary_user_assigned_identity` - (Optional) The user assigned identity ID that represents the AI Foundry Hub identity. This must be set when enabling encryption with a user assigned identity.
 
 * `friendly_name` - (Optional) The display name of this AI Foundry Project.
 
@@ -112,7 +114,7 @@ A `identity` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the AI Foundry Project.
 
