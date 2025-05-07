@@ -51,13 +51,15 @@ resource "azurerm_function_app_flex_consumption" "example" {
   service_plan_id     = azurerm_service_plan.example.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = azurerm_storage_container.example.id
+  storage_container_endpoint  = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}"
   storage_authentication_type = "StorageAccountConnectionString"
   storage_access_key          = azurerm_storage_account.example.primary_access_key
   runtime_name                = "node"
   runtime_version             = "20"
   maximum_instance_count      = 50
   instance_memory_in_mb       = 2048
+
+  site_config {}
 }
 ```
 
@@ -71,9 +73,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Function App should exist. Changing this forces a new Linux Function App to be created.
 
-* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
+* `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App. Changing this forces a new Linux Function App to be created.
 
 * `site_config` - (Required) A `site_config` block as defined below.
+
+* `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
+
+* `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
+
+* `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
+
+* `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java` and `custom`.
+
+* `runtime_version` - (Required) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
 
 ---
 
@@ -91,8 +103,6 @@ The following arguments are supported:
 
 * `auth_settings_v2` - (Optional) An `auth_settings_v2` block as defined below.
 
-* `backup` - (Optional) A `backup` block as defined below.
-
 * `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
 
 * `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. Defaults to `Optional`.
@@ -101,49 +111,31 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
-* `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
-
 * `enabled` - (Optional) Is the Function App enabled? Defaults to `true`.
-
-* `content_share_force_disabled` - (Optional) Should the settings for linking the Function App to storage be suppressed.
-
-* `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
-* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity)
-
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
-
-* `storage_container_type` - (Optional) The storage container type used for the Function App. The current supported type is `blobContainer`.
-
-* `storage_container_endpoint` - (Optional) The backend storage container endpoint which will be used by this Function App.
-
-* `storage_authentication_type` - (Optional) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `storageaccountconnectionstring`, `systemassignedidentity`, and `userassignedidentity`.
 
 * `storage_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
 
-~> **Note:** The`storage_access_key` must be specified when `storage_authentication_type` sets to `storageaccountconnectionstring`.
+~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
 
 * `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_account_access_key`.
 
-~> **Note:** The`storage_user_assigned_identity_id` must be specified when `storage_authentication_type` sets to `userassignedidentity`.
-
-* `runtime_name` - (Optional) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java`.
-
-* `runtime_version` - (Optional) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
+~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
-* `instance_memory_in_mb` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
-~> **Note on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
+~> **Note on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [azurerm_app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
@@ -449,18 +441,6 @@ A `login` block supports the following:
 
 ---
 
-A `backup` block supports the following:
-
-* `name` - (Required) The name which should be used for this Backup.
-
-* `schedule` - (Required) A `schedule` block as defined below.
-
-* `storage_account_url` - (Required) The SAS URL to the container.
-
-* `enabled` - (Optional) Should this backup job be enabled? Defaults to `true`.
-
----
-
 A `connection_string` block supports the following:
 
 * `name` - (Required) The name which should be used for this Connection.
@@ -661,9 +641,11 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) The minimum version of TLS required for SSL requests to the SCM site. Possible values include `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
+
+* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker. Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
@@ -676,22 +658,6 @@ A `sticky_settings` block supports the following:
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
 
 * `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
-
----
-
-A `storage_account` block supports the following:
-
-* `access_key` - (Required) The Access key for the storage account.
-
-* `account_name` - (Required) The Name of the Storage Account.
-
-* `name` - (Required) The name which should be used for this Storage Account.
-
-* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
-
-* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`.
-
-* `mount_path` - (Optional) The path at which to mount the storage share.
 
 ---
 

@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type EncryptedValueDataSourceTest struct{}
+type EncryptedValueDataSource struct{}
 
 func TestAccEncryptedValueDataSource_encryptAndDecrypt(t *testing.T) {
 	// since this config includes both Encrypted and Decrypted we're testing both use-cases (and comparing the values below)
 	// so we only need a single test here
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_encrypted_value", "decrypted")
-	r := EncryptedValueDataSourceTest{}
+	r := EncryptedValueDataSource{}
 	plainText, plainText2 := "this is a test", "some-secret"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -33,7 +33,7 @@ func TestAccEncryptedValueDataSource_encryptAndDecrypt(t *testing.T) {
 	})
 }
 
-func (t EncryptedValueDataSourceTest) decrypt(data acceptance.TestData, plainText, plainText2 string) string {
+func (t EncryptedValueDataSource) decrypt(data acceptance.TestData, plainText, plainText2 string) string {
 	template := t.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -80,7 +80,7 @@ data "azurerm_key_vault_encrypted_value" "decrypted3" {
 `, template, plainText, plainText2)
 }
 
-func (t EncryptedValueDataSourceTest) template(data acceptance.TestData) string {
+func (t EncryptedValueDataSource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 

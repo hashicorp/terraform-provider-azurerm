@@ -731,6 +731,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.KubeletConfig = expandAgentPoolKubeletConfig(kubeletConfigRaw)
 	}
 
+	if d.HasChange("kubelet_disk_type") {
+		props.KubeletDiskType = pointer.To(agentpools.KubeletDiskType(d.Get("kubelet_disk_type").(string)))
+	}
+
 	if d.HasChange("linux_os_config") {
 		linuxOSConfigRaw := d.Get("linux_os_config").([]interface{})
 		if d.Get("os_type").(string) != string(managedclusters.OSTypeLinux) {
@@ -900,6 +904,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		"fips_enabled",
 		"host_encryption_enabled",
 		"kubelet_config",
+		"kubelet_disk_type",
 		"linux_os_config",
 		"max_pods",
 		"node_public_ip_enabled",
@@ -988,7 +993,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
 	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -998,18 +1002,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	// if the parent cluster doesn't exist then the node pool won't
 	clusterId := commonids.NewKubernetesClusterID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName)
-	cluster, err := clustersClient.Get(ctx, clusterId)
-	if err != nil {
-		if response.WasNotFound(cluster.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", clusterId)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving %s: %+v", clusterId, err)
-	}
 
 	resp, err := poolsClient.Get(ctx, *id)
 	if err != nil {
