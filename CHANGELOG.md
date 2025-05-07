@@ -7,6 +7,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: `azurerm_mssql_database` - Update to API version `2023-08-01-preview/replicationlinks` [GH-28705]
 * dependencies: `eventhub` - update to API version `2024-01-01` [GH-29397]
 * `azurerm_ai_foundry_project` - add support for the `primary_user_assigned_identity` property [GH-29197]
 * `azurerm_storage_account_static_website` - the `index_document` property now has validation for length and excluding slashes [GH-29431]
