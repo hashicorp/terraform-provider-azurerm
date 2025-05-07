@@ -72,7 +72,6 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		// Optional
 		"address_space": {
 			Type:         pluginsdk.TypeSet,
 			Optional:     true,
@@ -149,7 +148,7 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"ip_address_pool": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			MaxItems:     1,
+			MaxItems:     2,
 			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -159,12 +158,12 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 						ValidateFunc: ipampools.ValidateIPamPoolID,
 					},
 
-					"ip_address_number": {
+					"number_of_ip_addresses": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile(`^[1-9]\d*$`),
-							"`ip_address_number` must be a string that represents a positive number",
+							"`number_of_ip_addresses` must be a string that represents a positive number",
 						),
 					},
 
@@ -495,10 +494,10 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	payload := existing.Model
 
 	if d.HasChange("address_space") {
-		if payload.Properties.AddressSpace == nil {
-			payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
-		}
 		if v := d.Get("address_space").(*pluginsdk.Set).List(); len(v) > 0 {
+			if payload.Properties.AddressSpace == nil {
+				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+			}
 			payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(v)
 		} else {
 			payload.Properties.AddressSpace.AddressPrefixes = nil
@@ -506,12 +505,25 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("ip_address_pool") {
-		if payload.Properties.AddressSpace == nil {
-			payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
-		}
-
 		if v := d.Get("ip_address_pool").([]interface{}); len(v) > 0 {
-			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = expandVirtualNetworkIPAddressPool(v)
+			if payload.Properties.AddressSpace == nil {
+				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+			}
+
+			expandedIPAddressPool := expandVirtualNetworkIPAddressPool(v)
+
+			if payload.Properties.AddressSpace.IPamPoolPrefixAllocations != nil {
+				for _, existingAllocation := range *payload.Properties.AddressSpace.IPamPoolPrefixAllocations {
+					for _, expandedAllocation := range *expandedIPAddressPool {
+						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && *existingAllocation.NumberOfIPAddresses > *expandedAllocation.NumberOfIPAddresses {
+							return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+						}
+					}
+				}
+			}
+
+			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = expandedIPAddressPool
 		} else {
 			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = nil
 		}
@@ -895,7 +907,7 @@ func expandVirtualNetworkIPAddressPool(input []interface{}) *[]virtualnetworks.I
 		ipPoolRaw := v.(map[string]interface{})
 		output := virtualnetworks.IPamPoolPrefixAllocation{}
 
-		if v, ok := ipPoolRaw["ip_address_number"]; ok {
+		if v, ok := ipPoolRaw["number_of_ip_addresses"]; ok {
 			output.NumberOfIPAddresses = pointer.To(v.(string))
 		}
 
@@ -918,15 +930,14 @@ func flattenVirtualNetworkIPAddressPool(input *[]virtualnetworks.IPamPoolPrefixA
 
 	outputs := make([]interface{}, 0)
 	for _, v := range *input {
-		if v.Pool != nil && v.Pool.Id != nil {
-			output := map[string]interface{}{
-				"id":                            pointer.From(v.Pool.Id),
-				"ip_address_number":             pointer.From(v.NumberOfIPAddresses),
-				"allocated_ip_address_prefixes": pointer.From(v.AllocatedAddressPrefixes),
-			}
-
-			outputs = append(outputs, output)
+		output := map[string]interface{}{
+			"number_of_ip_addresses":        pointer.From(v.NumberOfIPAddresses),
+			"allocated_ip_address_prefixes": pointer.From(v.AllocatedAddressPrefixes),
 		}
+		if v.Pool != nil {
+			output["id"] = pointer.From(v.Pool.Id)
+		}
+		outputs = append(outputs, output)
 	}
 
 	return outputs

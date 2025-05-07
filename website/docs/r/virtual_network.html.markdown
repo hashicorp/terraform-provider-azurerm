@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `flow_timeout_in_minutes` - (Optional) The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between `4` and `30` minutes.
 
-* `ip_address_pool` - (Optional) A `ip_address_pool` blocks as defined below.
+* `ip_address_pool` - (Optional) One or two `ip_address_pool` blocks as defined below. Only one association of each IP type(IPv4 or IPv6) is allowed.
 
 -> **NOTE** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
@@ -121,7 +121,7 @@ An `ip_address_pool` block supports the following:
 
 * `id` - (Required) The ID of the Network Manager IP Address Management (IPAM) Pool.
 
-* `ip_address_number` - (Required) The number of IP addresses to allocated to the Virtual Network. The value must be a string that represents a positive number, e.g., `"100"`.
+* `number_of_ip_addresses` - (Required) The number of IP addresses to allocated to the Virtual Network. The value must be a string that represents a positive number, e.g., `"100"`.
 
 ---
 
