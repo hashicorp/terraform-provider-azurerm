@@ -77,7 +77,7 @@ func dataSourceResources() *pluginsdk.Resource {
 }
 
 func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.ResourcesClient
+	client := meta.(*clients.Client).Resource.LegacyResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
