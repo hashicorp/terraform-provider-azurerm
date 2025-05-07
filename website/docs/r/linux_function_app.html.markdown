@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 
-~> **Note:**   TLS 1.3 and HTTP 2.0 don't support TLS renegotiation. These protocols will not work if your app is configured with client certificate settings that use TLS renegotiation. Either disable ClientCert, or set ClientCertMode to Application or Required (without exclusion paths).
+~> **Note:**   TLS 1.3 and HTTP 2.0 don't support TLS renegotiation. These protocols will not work if your app is configured with client certificate settings that use TLS renegotiation. Either set `client_certificate_enabled` to `false`, or set `client_certificate_mode` to `Optional` or `Required` and remove all `client_certificate_exclusion_paths`.
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
