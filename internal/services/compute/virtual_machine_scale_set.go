@@ -1620,7 +1620,6 @@ func ExpandResilientVMCreationPolicy(input []interface{}) *virtualmachinescalese
 	return &virtualmachinescalesets.ResilientVMCreationPolicy{
 		Enabled: pointer.To(raw["enabled"].(bool)),
 	}
-
 }
 
 func ExpandResilientVMDeletionPolicy(input []interface{}) *virtualmachinescalesets.ResilientVMDeletionPolicy {
