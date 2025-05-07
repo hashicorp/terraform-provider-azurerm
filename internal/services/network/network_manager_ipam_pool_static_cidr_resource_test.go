@@ -159,6 +159,9 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "test" {
   name             = "acctest-ipsc-%[2]d"
   ipam_pool_id     = azurerm_network_manager_ipam_pool.test.id
   address_prefixes = ["10.0.0.0/27"]
+  lifecycle {
+    ignore_changes = [ip_address_number]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -187,9 +190,12 @@ func (r ManagerIpamPoolStaticCidrResource) requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_network_manager_ipam_pool_static_cidr" "import" {
-  name             = azurerm_network_manager_ipam_pool.test.name
-  ipam_pool_id     = azurerm_network_manager_ipam_pool.test.id
+  name             = azurerm_network_manager_ipam_pool_static_cidr.test.name
+  ipam_pool_id     = azurerm_network_manager_ipam_pool_static_cidr.test.ipam_pool_id
   address_prefixes = azurerm_network_manager_ipam_pool_static_cidr.test.address_prefixes
+  lifecycle {
+    ignore_changes = [ip_address_number]
+  }
 }
 `, r.basic(data))
 }
@@ -207,6 +213,9 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "test" {
   ipam_pool_id     = azurerm_network_manager_ipam_pool.test.id
   address_prefixes = ["10.0.0.0/26", "10.0.0.128/27"]
   description      = "test"
+  lifecycle {
+    ignore_changes = [ip_address_number]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

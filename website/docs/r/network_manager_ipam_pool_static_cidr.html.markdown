@@ -56,13 +56,17 @@ The following arguments are supported:
 
 ---
 
-* `address_prefixes` - (Optional) Specifies a list of IPv4 or IPv6 IP address prefixes.
+* `address_prefixes` - (Optional) Specifies a list of IPv4 or IPv6 IP address prefixes which will be allocated to the Static CIDR.
+
+-> **NOTE:** Exactly one of `address_prefixes` or `ip_address_number` must be specified.
 
 * `description` - (Optional) The description of the Network Manager IPAM Pool Static CIDR.
 
-* `ip_address_number` - (Optional) The number of IP addresses to allocated to the Static CIDR. The value must be a string that represents a positive number, e.g., `"100"`.
+* `ip_address_number` - (Optional) The number of IP addresses to allocated to the Static CIDR. The value must be a string that represents a positive number, e.g., `"16"`.
 
--> **NOTE** Exactly one of `address_prefixes` or `ip_address_number` must be specified.
+-> **NOTE:** Exactly one of `address_prefixes` or `ip_address_number` must be specified.
+
+-> **NOTE:** If `ip_address_number` is not a power of 2, the API will return the nearest power of 2. For instance, if `ip_address_number` is `"17"`, Azure API will automatically update it to `"32"`. In such cases, please update the `ip_address_number` in the configuration file to this new value.
 
 ## Attributes Reference
 
@@ -86,4 +90,3 @@ Network Manager IPAM Pool Static CIDRs can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_network_manager_ipam_pool_static_cidr.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Network/networkManagers/manager1/ipamPools/pool1/staticCidrs/cidr1
 ```
-

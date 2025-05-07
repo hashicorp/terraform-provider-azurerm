@@ -167,6 +167,7 @@ func (r ManagerIpamPoolStaticCidrResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					schema.AddressPrefixes = pointer.From(props.AddressPrefixes)
 					schema.Description = pointer.From(props.Description)
+					schema.IpAddressNumber = pointer.From(props.NumberOfIPAddressesToAllocate)
 				}
 			}
 
@@ -191,9 +192,15 @@ func (r ManagerIpamPoolStaticCidrResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := staticcidrs.StaticCidr{
-				Properties: &staticcidrs.StaticCidrProperties{},
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
+			if resp.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` is nil", id)
+			}
+
+			parameters := resp.Model
 
 			if metadata.ResourceData.HasChange("description") {
 				parameters.Properties.Description = pointer.To(model.Description)
@@ -217,7 +224,7 @@ func (r ManagerIpamPoolStaticCidrResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.Create(ctx, *id, parameters); err != nil {
+			if _, err := client.Create(ctx, *id, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
