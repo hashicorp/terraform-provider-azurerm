@@ -169,6 +169,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  "free",
 				ValidateFunc: validation.StringInSlice([]string{
 					"free",
+					"developer",
 					"standard",
 					"premium",
 				}, false),
