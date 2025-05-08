@@ -251,6 +251,8 @@ A `windows_profile` block exports the following:
 
 A `network_profile` block exports the following:
 
+* `advanced_networking` - A `advanced_networking` block as defined below.
+
 * `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
 
 * `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
@@ -264,6 +266,28 @@ A `network_profile` block exports the following:
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
 * `service_cidr` - Network range used by the Kubernetes service.
+
+---
+
+A `advanced_networking` block exports the following:
+
+* `enabled` - Is Advanced Container Networking Services enabled?
+
+* `observability` - A `observability` block as defined below.
+
+* `security` - A `security` block as defined below.
+
+---
+
+A `observability` block exports the following:
+
+* `enabled` - Is the Container Network Observability enabled?
+
+---
+
+A `security` block exports the following:
+
+* `enabled` - Is the Container Network Security enabled?
 
 ---
 
