@@ -62,6 +62,7 @@ const (
 	ConfidentialVMEncryptionTypeEncryptedVMGuestStateOnlyWithPmk ConfidentialVMEncryptionType = "EncryptedVMGuestStateOnlyWithPmk"
 	ConfidentialVMEncryptionTypeEncryptedWithCmk                 ConfidentialVMEncryptionType = "EncryptedWithCmk"
 	ConfidentialVMEncryptionTypeEncryptedWithPmk                 ConfidentialVMEncryptionType = "EncryptedWithPmk"
+	ConfidentialVMEncryptionTypeNonPersistedTPM                  ConfidentialVMEncryptionType = "NonPersistedTPM"
 )
 
 func PossibleValuesForConfidentialVMEncryptionType() []string {
@@ -69,6 +70,7 @@ func PossibleValuesForConfidentialVMEncryptionType() []string {
 		string(ConfidentialVMEncryptionTypeEncryptedVMGuestStateOnlyWithPmk),
 		string(ConfidentialVMEncryptionTypeEncryptedWithCmk),
 		string(ConfidentialVMEncryptionTypeEncryptedWithPmk),
+		string(ConfidentialVMEncryptionTypeNonPersistedTPM),
 	}
 }
 
@@ -90,6 +92,7 @@ func parseConfidentialVMEncryptionType(input string) (*ConfidentialVMEncryptionT
 		"encryptedvmgueststateonlywithpmk": ConfidentialVMEncryptionTypeEncryptedVMGuestStateOnlyWithPmk,
 		"encryptedwithcmk":                 ConfidentialVMEncryptionTypeEncryptedWithCmk,
 		"encryptedwithpmk":                 ConfidentialVMEncryptionTypeEncryptedWithPmk,
+		"nonpersistedtpm":                  ConfidentialVMEncryptionTypeNonPersistedTPM,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -424,11 +427,13 @@ type ReplicationStatusTypes string
 
 const (
 	ReplicationStatusTypesReplicationStatus ReplicationStatusTypes = "ReplicationStatus"
+	ReplicationStatusTypesUefiSettings      ReplicationStatusTypes = "UefiSettings"
 )
 
 func PossibleValuesForReplicationStatusTypes() []string {
 	return []string{
 		string(ReplicationStatusTypesReplicationStatus),
+		string(ReplicationStatusTypesUefiSettings),
 	}
 }
 
@@ -448,6 +453,7 @@ func (s *ReplicationStatusTypes) UnmarshalJSON(bytes []byte) error {
 func parseReplicationStatusTypes(input string) (*ReplicationStatusTypes, error) {
 	vals := map[string]ReplicationStatusTypes{
 		"replicationstatus": ReplicationStatusTypesReplicationStatus,
+		"uefisettings":      ReplicationStatusTypesUefiSettings,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -499,5 +505,90 @@ func parseStorageAccountType(input string) (*StorageAccountType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := StorageAccountType(input)
+	return &out, nil
+}
+
+type UefiKeyType string
+
+const (
+	UefiKeyTypeShaTwoFiveSix UefiKeyType = "sha256"
+	UefiKeyTypeXFiveZeroNine UefiKeyType = "x509"
+)
+
+func PossibleValuesForUefiKeyType() []string {
+	return []string{
+		string(UefiKeyTypeShaTwoFiveSix),
+		string(UefiKeyTypeXFiveZeroNine),
+	}
+}
+
+func (s *UefiKeyType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUefiKeyType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUefiKeyType(input string) (*UefiKeyType, error) {
+	vals := map[string]UefiKeyType{
+		"sha256": UefiKeyTypeShaTwoFiveSix,
+		"x509":   UefiKeyTypeXFiveZeroNine,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UefiKeyType(input)
+	return &out, nil
+}
+
+type UefiSignatureTemplateName string
+
+const (
+	UefiSignatureTemplateNameMicrosoftUefiCertificateAuthorityTemplate UefiSignatureTemplateName = "MicrosoftUefiCertificateAuthorityTemplate"
+	UefiSignatureTemplateNameMicrosoftWindowsTemplate                  UefiSignatureTemplateName = "MicrosoftWindowsTemplate"
+	UefiSignatureTemplateNameNoSignatureTemplate                       UefiSignatureTemplateName = "NoSignatureTemplate"
+)
+
+func PossibleValuesForUefiSignatureTemplateName() []string {
+	return []string{
+		string(UefiSignatureTemplateNameMicrosoftUefiCertificateAuthorityTemplate),
+		string(UefiSignatureTemplateNameMicrosoftWindowsTemplate),
+		string(UefiSignatureTemplateNameNoSignatureTemplate),
+	}
+}
+
+func (s *UefiSignatureTemplateName) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUefiSignatureTemplateName(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUefiSignatureTemplateName(input string) (*UefiSignatureTemplateName, error) {
+	vals := map[string]UefiSignatureTemplateName{
+		"microsoftueficertificateauthoritytemplate": UefiSignatureTemplateNameMicrosoftUefiCertificateAuthorityTemplate,
+		"microsoftwindowstemplate":                  UefiSignatureTemplateNameMicrosoftWindowsTemplate,
+		"nosignaturetemplate":                       UefiSignatureTemplateNameNoSignatureTemplate,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UefiSignatureTemplateName(input)
 	return &out, nil
 }
