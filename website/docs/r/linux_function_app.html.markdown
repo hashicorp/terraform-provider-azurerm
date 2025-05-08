@@ -10,6 +10,8 @@ description: |-
 
 Manages a Linux Function App.
 
+-> **Note:** This Terraform resource is specifically designed to provision the infrastructure for a Function App, which can host one or more individual functions. To package and deploy application code to the Function App, tools like [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) or Azure CLI can be utilized, however application code deployment must typically be performed individually for each Function App.
+
 ## Example Usage
 
 ```hcl
@@ -87,6 +89,8 @@ The following arguments are supported:
 
 * `builtin_logging_enabled` - (Optional) Should built in logging be enabled. Configures `AzureWebJobsDashboard` app setting based on the configured storage setting. Defaults to `true`.
 
+~> **Note:** `builtin_logging_enabled` is only supported for function app whose function runtime is running on version 1.x.
+
 * `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
 
 * `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. Defaults to `Optional`.
@@ -133,16 +137,17 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
+* `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
+
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
 ~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
-[//]: # (TODO 4.0 add it in 4.0 provider)
-[//]: # (* `vnet_image_pull_enabled` - &#40;Optional&#41; Should the traffic for the image pull be routed over virtual network enabled. Defaults to `false`.)
+* `vnet_image_pull_enabled` - (Optional) Should the traffic for the image pull be routed over virtual network enabled. Defaults to `false`.
 
-[//]: # (~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.)
+~> **Note:** The feature can also be enabled via the app setting `WEBSITE_PULL_IMAGE_OVER_VNET`. Must be set to `true` when running in an App Service Environment.
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
@@ -176,11 +181,13 @@ A `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11` & `17`.
+* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11`, `17`, `21`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18` and `20`.
+~> **NOTE:** The value `21` is currently in Preview for `java_version`.
 
-* `python_version` - (Optional) The version of Python to run. Possible values are `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18` `20` and `22`.
+
+* `python_version` - (Optional) The version of Python to run. Possible values are `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, `7.2`, and `7.4`.
 
@@ -702,7 +709,7 @@ A `site_config` block supports the following:
 
 * `remote_debugging_enabled` - (Optional) Should Remote Debugging be enabled. Defaults to `false`.
 
-* `remote_debugging_version` - (Optional) The Remote Debugging Version. Possible values include `VS2017`, `VS2019`, and `VS2022`.
+* `remote_debugging_version` - (Optional) The Remote Debugging Version. Currently only `VS2022` is supported.
 
 * `runtime_scale_monitoring_enabled` - (Optional) Should Scale Monitoring of the Functions Runtime be enabled?
 
@@ -712,7 +719,7 @@ A `site_config` block supports the following:
 
 * `scm_ip_restriction_default_action` - (Optional) The Default action for traffic that does not match any `scm_ip_restriction` rule. possible values include `Allow` and `Deny`. Defaults to `Allow`.
 
-* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, and `1.2`. Defaults to `1.2`.
+* `scm_minimum_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
 

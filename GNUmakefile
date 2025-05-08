@@ -12,11 +12,11 @@ tools:
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
 	go install github.com/client9/misspell/cmd/misspell@latest
 	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
-	go install github.com/bflad/tfproviderdocs@latest
+	go install github.com/YakDriver/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.55.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.64.6
 
 build: fmtcheck generate
 	go install

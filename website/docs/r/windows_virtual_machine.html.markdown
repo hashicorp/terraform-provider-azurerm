@@ -12,19 +12,21 @@ Manages a Windows Virtual Machine.
 
 ## Disclaimers
 
--> **Note** Terraform will automatically remove the OS Disk by default - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block).
+-> **Note:** Terraform will automatically remove the OS Disk by default - this behaviour can be configured using the [features](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) setting within the Provider block.
 
-~> **Note** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+-> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. Read more about [sensitive data](/docs/state/sensitive-data.html) in state.
 
-~> **Note** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine` resource](virtual_machine.html) instead.
+-> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use the [azurerm_virtual_machine](virtual_machine.html) resource instead.
 
-~> **Note** This resource does not support attaching existing OS Disks. You can instead [capture an image of the OS Disk](image.html) or continue to use [the `azurerm_virtual_machine` resource](virtual_machine.html) instead.
+-> **Note:** This resource does not support attaching existing OS Disks. You can instead capture an [image](image.html) of the OS Disk or continue to use the [azurerm_virtual_machine](virtual_machine.html) resource instead.
 
-~> In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
+-> **Note:** In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
+
+!> **Note:** Due to a breaking change in the Azure API the `vm_agent_platform_updates_enabled` field is now a `Read-Only` field that is controlled by the platform. Its value cannot be set, modified, or updated.
 
 ## Example Usage
 
-This example provisions a basic Windows Virtual Machine on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine` resource can be found [in the `./examples/virtual-machines/windows`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/windows) directory within the GitHub Repository.
+This example provisions a basic Windows Virtual Machine on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine` resource can be found in the [./examples/virtual-machines/windows](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/windows) directory within the GitHub Repository.
 
 ```hcl
 provider "azurerm" {
@@ -101,7 +103,7 @@ The following arguments are supported:
 
 * `network_interface_ids` - (Required). A list of Network Interface IDs which should be attached to this Virtual Machine. The first Network Interface ID in this list will be the Primary Network Interface on the Virtual Machine.
 
-* `os_disk` - (Required) A `os_disk` block as defined below.
+* `os_disk` - (Required) An `os_disk` block as defined below.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Windows Virtual Machine should be exist. Changing this forces a new resource to be created.
 
@@ -218,8 +220,6 @@ The following arguments are supported:
 ~> **NOTE:** Orchestrated Virtual Machine Scale Sets can be provisioned using [the `azurerm_orchestrated_virtual_machine_scale_set` resource](/docs/providers/azurerm/r/orchestrated_virtual_machine_scale_set.html).
 
 ~> **NOTE:** To attach an existing VM to a Virtual Machine Scale Set, the scale set must have `single_placement_group` set to `false`, see [the documentation](https://learn.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-attach-detach-vm?tabs=portal-1%2Cportal-2%2Cportal-3#limitations-for-attaching-an-existing-vm-to-a-scale-set) for more information.
-
-* `vm_agent_platform_updates_enabled` - (Optional) Specifies whether VMAgent Platform Updates is enabled. Defaults to `false`.
 
 * `vtpm_enabled` - (Optional) Specifies if vTPM (virtual Trusted Platform Module) and Trusted Launch is enabled for the Virtual Machine. Changing this forces a new resource to be created.
 
@@ -395,6 +395,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as documented below.
 
+* `os_disk` - An `os_disk` block as documented below.
+
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
 
 * `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
@@ -405,6 +407,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `virtual_machine_id` - A 128-bit identifier which uniquely identifies this Virtual Machine.
 
+* `vm_agent_platform_updates_enabled` - Are Virtual Machine Agent Platform Updates `enabled` on this Virtual Machine?
+
 ---
 
 An `identity` block exports the following:
@@ -412,6 +416,12 @@ An `identity` block exports the following:
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
+
+---
+
+An `os_disk` block exports the following:
+
+* `id` - The ID of the OS disk.
 
 ## Timeouts
 

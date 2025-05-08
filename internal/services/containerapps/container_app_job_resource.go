@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/certificates"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -38,9 +38,7 @@ type ContainerAppJobModel struct {
 	ReplicaRetryLimit         int64                                      `tfschema:"replica_retry_limit"`
 	ReplicaTimeoutInSeconds   int64                                      `tfschema:"replica_timeout_in_seconds"`
 	Secrets                   []helpers.Secret                           `tfschema:"secret"`
-	SecretsDeprecated         []helpers.Secret                           `tfschema:"secrets,removedInNextMajorVersion"`
 	Registries                []helpers.Registry                         `tfschema:"registry"`
-	RegistriesDeprecated      []helpers.Registry                         `tfschema:"registries,removedInNextMajorVersion"`
 	EventTriggerConfig        []helpers.EventTriggerConfiguration        `tfschema:"event_trigger_config"`
 	ManualTriggerConfig       []helpers.ManualTriggerConfiguration       `tfschema:"manual_trigger_config"`
 	ScheduleTriggerConfig     []helpers.ScheduleTriggerConfiguration     `tfschema:"schedule_trigger_config"`
@@ -66,7 +64,7 @@ func (r ContainerAppJobResource) IDValidationFunc() pluginsdk.SchemaValidateFunc
 }
 
 func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -203,8 +201,6 @@ func (r ContainerAppJobResource) Arguments() map[string]*schema.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	return schema
 }
 
 func (r ContainerAppJobResource) Attributes() map[string]*schema.Schema {

@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
-  name                = "acctest-01"
+  name                = "example-workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
@@ -30,6 +30,7 @@ resource "azurerm_container_app_environment" "example" {
   name                       = "my-environment"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  logs_destination           = "log-analytics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 }
 ```
@@ -64,9 +65,13 @@ The following arguments are supported:
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
 
-* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to.
+* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. 
 
-* `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
+~> **Note:** required if `logs_destination` is set to `log-analytics`. Cannot be set if `logs_destination` is set to `azure-monitor`.
+
+* `logs_destination` - (Optional) Where the application logs will be saved for this Container Apps Managed Environment. Possible values include `log-analytics` and `azure-monitor`. Omitting this value will result in logs being streamed only.
+
+* `workload_profile` - (Optional) One or more `workload_profile` blocks as defined below.
 
 * `mutual_tls_enabled` - (Optional) Should mutual transport layer security (mTLS) be enabled? Defaults to `false`.
 
@@ -124,8 +129,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment.
 
 ## Import

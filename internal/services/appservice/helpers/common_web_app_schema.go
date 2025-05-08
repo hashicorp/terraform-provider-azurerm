@@ -5,10 +5,12 @@ package helpers
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -663,6 +665,35 @@ func applicationLogSchema() *pluginsdk.Schema {
 				"azure_blob_storage": appLogBlobStorageSchema(),
 			},
 		},
+		DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
+			stateLogs, planLogs := d.GetChange("logs.0.application_logs")
+			if stateLogs == nil || planLogs == nil {
+				return false
+			}
+			stateAttrs := stateLogs.([]interface{})
+			planAttrs := planLogs.([]interface{})
+
+			// If the plan wants to set default values and the state is empty; suppress diff
+			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
+				planAttr := planAttrs[0].(map[string]interface{})
+				newFileSystemLevel, ok := planAttr["file_system_level"].(string)
+				if !ok {
+					return false
+				}
+
+				// if something is in `azure_blob_storage`, then we don't suppress the diff as we don't allow the default values for `azure_blob_storage` to be passed in
+				newAzureBlobStorage, ok := planAttr["azure_blob_storage"].([]interface{})
+				if !ok || len(newAzureBlobStorage) != 0 {
+					return false
+				}
+
+				if newFileSystemLevel == string(webapps.LogLevelOff) {
+					return true
+				}
+			}
+
+			return false
+		},
 	}
 }
 
@@ -941,7 +972,7 @@ func ExpandBackupConfig(backupConfigs []Backup) (*webapps.BackupRequest, error) 
 		if err != nil {
 			return nil, fmt.Errorf("parsing back up start_time: %+v", err)
 		}
-		result.Properties.BackupSchedule.StartTime = pointer.To(dateTimeToStart.String())
+		result.Properties.BackupSchedule.StartTime = pointer.To(dateTimeToStart.Format("2006-01-02T15:04:05.999999"))
 	}
 
 	return result, nil
@@ -1124,7 +1155,7 @@ func FlattenBackupConfig(backupRequest *webapps.BackupRequest) []Backup {
 			RetentionPeriodDays:  schedule.RetentionPeriodInDays,
 		}
 
-		startTimeAsTime, err := time.Parse(time.RFC3339, *schedule.StartTime)
+		startTimeAsTime, err := time.Parse("2006-01-02T15:04:05.999999", *schedule.StartTime)
 		if err == nil {
 			if schedule.StartTime != nil && !startTimeAsTime.IsZero() {
 				backupSchedule.StartTime = startTimeAsTime.Format(time.RFC3339)
@@ -1132,7 +1163,7 @@ func FlattenBackupConfig(backupRequest *webapps.BackupRequest) []Backup {
 		}
 
 		if schedule.LastExecutionTime != nil {
-			lastExecutionTimeAsTime, err := time.Parse(time.RFC3339, *schedule.LastExecutionTime)
+			lastExecutionTimeAsTime, err := time.Parse("2006-01-02T15:04:05.999999", *schedule.LastExecutionTime)
 			if err == nil {
 				if schedule.LastExecutionTime != nil && !lastExecutionTimeAsTime.IsZero() {
 					backupSchedule.LastExecutionTime = lastExecutionTimeAsTime.Format(time.RFC3339)
@@ -1161,7 +1192,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 		appLogs := *props.ApplicationLogs
 		applicationLog := ApplicationLog{}
 
-		if appLogs.FileSystem != nil && pointer.From(appLogs.FileSystem.Level) != webapps.LogLevelOff {
+		if appLogs.FileSystem != nil {
 			applicationLog.FileSystemLevel = string(pointer.From(appLogs.FileSystem.Level))
 			if appLogs.AzureBlobStorage != nil && appLogs.AzureBlobStorage.SasURL != nil {
 				blobStorage := AzureBlobStorage{
@@ -1174,7 +1205,23 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 
 				applicationLog.AzureBlobStorage = []AzureBlobStorage{blobStorage}
 			}
-			logs.ApplicationLogs = []ApplicationLog{applicationLog}
+
+			// Only set ApplicationLogs if it's not the default values
+			/*
+				"applicationLogs": {
+					"fileSystem": {
+						"level": "Off"
+					},
+					"azureBlobStorage": {
+						"level": "Off",
+						"sasUrl": null,
+						"retentionInDays": null
+					}
+				},
+			*/
+			if !strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) && len(applicationLog.AzureBlobStorage) > 0 {
+				logs.ApplicationLogs = []ApplicationLog{applicationLog}
+			}
 		}
 	}
 
@@ -1401,8 +1448,8 @@ func flattenHandlerMapping(appHandlerMappings *[]webapps.HandlerMapping) []Handl
 	return handlerMappings
 }
 
-func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication) []VirtualApplication {
-	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications) {
+func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplication, alwaysOn bool) []VirtualApplication {
+	if appVirtualApplications == nil || onlyDefaultVirtualApplication(*appVirtualApplications, alwaysOn) {
 		return []VirtualApplication{}
 	}
 
@@ -1432,7 +1479,7 @@ func flattenVirtualApplications(appVirtualApplications *[]webapps.VirtualApplica
 	return virtualApplications
 }
 
-func onlyDefaultVirtualApplication(input []webapps.VirtualApplication) bool {
+func onlyDefaultVirtualApplication(input []webapps.VirtualApplication, alwaysOn bool) bool {
 	if len(input) > 1 {
 		return false
 	}
@@ -1440,8 +1487,13 @@ func onlyDefaultVirtualApplication(input []webapps.VirtualApplication) bool {
 	if app.VirtualPath == nil || app.PhysicalPath == nil {
 		return false
 	}
-	if *app.VirtualPath == "/" && *app.PhysicalPath == "site\\wwwroot" && *app.PreloadEnabled && app.VirtualDirectories == nil {
-		return true
+
+	if *app.VirtualPath == "/" && *app.PhysicalPath == "site\\wwwroot" && app.VirtualDirectories == nil {
+		// if alwaysOn is true, then the default for PreloadEnabled is true
+		// if alwaysOn is false, then the default for PreloadEnabled is false
+		if (alwaysOn && *app.PreloadEnabled) || (!alwaysOn && !*app.PreloadEnabled) {
+			return true
+		}
 	}
 	return false
 }

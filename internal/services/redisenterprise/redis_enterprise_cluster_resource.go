@@ -16,9 +16,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,7 +29,7 @@ import (
 )
 
 func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceRedisEnterpriseClusterCreate,
 		Read:   resourceRedisEnterpriseClusterRead,
 		Update: resourceRedisEnterpriseClusterUpdate,
@@ -72,8 +73,6 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 				ForceNew: true,
 				Default:  string(redisenterprise.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redisenterprise.TlsVersionOnePointZero),
-					string(redisenterprise.TlsVersionOnePointOne),
 					string(redisenterprise.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -86,6 +85,22 @@ func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(redisenterprise.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redisenterprise.TlsVersionOnePointZero),
+				string(redisenterprise.TlsVersionOnePointOne),
+				string(redisenterprise.TlsVersionOnePointTwo),
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceRedisEnterpriseClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {

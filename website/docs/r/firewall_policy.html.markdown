@@ -133,7 +133,7 @@ A `threat_intelligence_allowlist` block supports the following:
 
 A `tls_certificate` block supports the following:
 
-* `key_vault_secret_id` - (Required) The ID of the Key Vault, where the secret or certificate is stored.
+* `key_vault_secret_id` - (Required) The Secret Identifier (URI) of the certificate stored in Azure Key Vault, either as a secret or certificate.
 
 * `name` - (Required) The name of the certificate.
 

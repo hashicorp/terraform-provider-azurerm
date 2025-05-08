@@ -8,8 +8,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -130,8 +133,11 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"blob",
 								"blob_secondary",
+								"Gateway",
+								"managedEnvironments",
 								"sites",
 								"web",
+								"web_secondary",
 							}, false),
 						},
 					},
@@ -152,7 +158,7 @@ func resourceCdnFrontDoorOrigin() *pluginsdk.Resource {
 
 func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
-	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -177,21 +183,31 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 
 	// I need to get the profile SKU so I know if it is valid or not to define a private link as
 	// private links are only allowed in the premium sku...
-	profileId := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+	profileId := profiles.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
 
-	profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+	profileResp, err := profileClient.Get(ctx, profileId)
 	if err != nil {
-		if utils.ResponseWasNotFound(profile.Response) {
+		if response.WasNotFound(profileResp.HttpResponse) {
 			return fmt.Errorf("retrieving parent %s: not found", profileId)
 		}
 
 		return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 	}
 
-	if profile.Sku == nil {
-		return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
+	profileModel := profileResp.Model
+
+	if profileModel == nil {
+		return fmt.Errorf("profileModel is 'nil'")
 	}
-	skuName := profile.Sku.Name
+
+	if profileModel.Properties == nil {
+		return fmt.Errorf("profileModel.Properties is 'nil'")
+	}
+
+	if profileModel.Sku.Name == nil {
+		return fmt.Errorf("profileModel.Sku.Name' is 'nil'")
+	}
+	skuName := string(pointer.From(profileModel.Sku.Name))
 
 	var enabled bool
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "enabled") {
@@ -213,7 +229,7 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 		props.OriginHostHeader = utils.String(originHostHeader)
 	}
 
-	expanded, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), skuName, enableCertNameCheck)
+	expanded, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), profiles.SkuName(skuName), enableCertNameCheck)
 	if err != nil {
 		return err
 	}
@@ -279,7 +295,7 @@ func resourceCdnFrontDoorOriginRead(d *pluginsdk.ResourceData, meta interface{})
 func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginsClient
 	workaroundClient := azuresdkhacks.NewCdnFrontDoorOriginsWorkaroundClient(client)
-	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -320,24 +336,29 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	if d.HasChange("private_link") {
 		// I need to get the profile SKU so I know if it is valid or not to define a private link as
 		// private links are only allowed in the premium sku...
-		profileId := parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
-		profile, err := profileClient.Get(ctx, profileId.ResourceGroup, profileId.ProfileName)
+		profileId := profiles.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+
+		profileResp, err := profileClient.Get(ctx, profileId)
 		if err != nil {
-			if utils.ResponseWasNotFound(profile.Response) {
+			if response.WasNotFound(profileResp.HttpResponse) {
 				return fmt.Errorf("retrieving parent %s: not found", profileId)
 			}
 
 			return fmt.Errorf("retrieving parent %s: %+v", profileId, err)
 		}
 
-		if profile.Sku == nil {
-			return fmt.Errorf("retrieving parent %s: 'sku' was nil", profileId)
+		profileModel := profileResp.Model
+
+		if profileModel == nil {
+			return fmt.Errorf("profileModel is 'nil'")
 		}
 
-		skuName := profile.Sku.Name
+		if profileModel.Sku.Name == nil {
+			return fmt.Errorf("retrieving parent %s: 'profileModel.Sku.Name' was 'nil'", profileId)
+		}
 
 		enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
-		privateLinkSettings, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), skuName, enableCertNameCheck)
+		privateLinkSettings, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), pointer.From(profileModel.Sku.Name), enableCertNameCheck)
 		if err != nil {
 			return err
 		}
@@ -408,14 +429,14 @@ func resourceCdnFrontDoorOriginDelete(d *pluginsdk.ResourceData, meta interface{
 	return nil
 }
 
-func expandPrivateLinkSettings(input []interface{}, skuName cdn.SkuName, enableCertNameCheck bool) (*cdn.SharedPrivateLinkResourceProperties, error) {
+func expandPrivateLinkSettings(input []interface{}, skuName profiles.SkuName, enableCertNameCheck bool) (*cdn.SharedPrivateLinkResourceProperties, error) {
 	if len(input) == 0 {
 		// NOTE: This cannot return an empty object, the service team requires this to be set to nil else you will get the following error during creation:
 		// Property 'AfdOrigin.SharedPrivateLinkResource.PrivateLink' is required but it was not set; Property 'AfdOrigin.SharedPrivateLinkResource.RequestMessage' is required but it was not set
 		return nil, nil
 	}
 
-	if skuName != cdn.SkuNamePremiumAzureFrontDoor {
+	if skuName != profiles.SkuNamePremiumAzureFrontDoor {
 		return nil, fmt.Errorf("the 'private_link' field can only be configured when the Frontdoor Profile is using a 'Premium_AzureFrontDoor' SKU, got %q", skuName)
 	}
 

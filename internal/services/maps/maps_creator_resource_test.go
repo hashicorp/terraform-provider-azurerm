@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,9 @@ import (
 type MapsCreatorResource struct{}
 
 func TestAccMapsCreator_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
 	r := MapsCreatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +38,9 @@ func TestAccMapsCreator_basic(t *testing.T) {
 }
 
 func TestAccMapsCreator_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
 	r := MapsCreatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +55,9 @@ func TestAccMapsCreator_requiresImport(t *testing.T) {
 }
 
 func TestAccMapsCreator_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
 	r := MapsCreatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,6 +72,9 @@ func TestAccMapsCreator_complete(t *testing.T) {
 }
 
 func TestAccMapsCreator_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
 	r := MapsCreatorResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
