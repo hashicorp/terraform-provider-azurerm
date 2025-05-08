@@ -32,11 +32,10 @@ func (ManagerIpamPoolStaticCidrResource) ModelObject() interface{} {
 }
 
 type ManagerIpamPoolStaticCidrResourceModel struct {
-	AddressPrefixes []string `tfschema:"address_prefixes"`
-	Description     string   `tfschema:"description"`
-	IpAddressNumber string   `tfschema:"ip_address_number"`
-	Name            string   `tfschema:"name"`
-	IpamPoolId      string   `tfschema:"ipam_pool_id"`
+	AddressPrefixes               []string `tfschema:"address_prefixes"`
+	IpamPoolId                    string   `tfschema:"ipam_pool_id"`
+	Name                          string   `tfschema:"name"`
+	NumberOfIPAddressesToAllocate string   `tfschema:"number_of_ip_addresses_to_allocate"`
 }
 
 func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schema {
@@ -56,26 +55,20 @@ func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schem
 		"address_prefixes": {
 			Type:         pluginsdk.TypeList,
 			Optional:     true,
-			ExactlyOneOf: []string{"address_prefixes", "ip_address_number"},
+			ExactlyOneOf: []string{"address_prefixes", "number_of_ip_addresses_to_allocate"},
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
 			},
 		},
 
-		"ip_address_number": {
+		"number_of_ip_addresses_to_allocate": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ExactlyOneOf: []string{"address_prefixes", "ip_address_number"},
+			ExactlyOneOf: []string{"address_prefixes", "number_of_ip_addresses_to_allocate"},
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[1-9]\d*$`),
-				"`ip_address_number` must be a string that represents a positive number"),
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+				"`number_of_ip_addresses_to_allocate` must be a string that represents a positive number"),
 		},
 	}
 }
@@ -112,18 +105,16 @@ func (r ManagerIpamPoolStaticCidrResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := staticcidrs.StaticCidr{
-				Name: pointer.To(config.Name),
-				Properties: &staticcidrs.StaticCidrProperties{
-					Description: pointer.To(config.Description),
-				},
+				Name:       pointer.To(config.Name),
+				Properties: &staticcidrs.StaticCidrProperties{},
 			}
 
 			if len(config.AddressPrefixes) > 0 {
 				payload.Properties.AddressPrefixes = pointer.To(config.AddressPrefixes)
 			}
 
-			if config.IpAddressNumber != "" {
-				payload.Properties.NumberOfIPAddressesToAllocate = pointer.To(config.IpAddressNumber)
+			if config.NumberOfIPAddressesToAllocate != "" {
+				payload.Properties.NumberOfIPAddressesToAllocate = pointer.To(config.NumberOfIPAddressesToAllocate)
 			}
 
 			if _, err := client.Create(ctx, id, payload); err != nil {
@@ -166,8 +157,7 @@ func (r ManagerIpamPoolStaticCidrResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					schema.AddressPrefixes = pointer.From(props.AddressPrefixes)
-					schema.Description = pointer.From(props.Description)
-					schema.IpAddressNumber = pointer.From(props.NumberOfIPAddressesToAllocate)
+					schema.NumberOfIPAddressesToAllocate = pointer.From(props.NumberOfIPAddressesToAllocate)
 				}
 			}
 
@@ -202,10 +192,6 @@ func (r ManagerIpamPoolStaticCidrResource) Update() sdk.ResourceFunc {
 
 			parameters := resp.Model
 
-			if metadata.ResourceData.HasChange("description") {
-				parameters.Properties.Description = pointer.To(model.Description)
-			}
-
 			if metadata.ResourceData.HasChange("address_prefixes") {
 				if len(model.AddressPrefixes) > 0 {
 					parameters.Properties.AddressPrefixes = pointer.To(model.AddressPrefixes)
@@ -215,9 +201,9 @@ func (r ManagerIpamPoolStaticCidrResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("ip_address_number") {
-				if model.IpAddressNumber != "" {
-					parameters.Properties.NumberOfIPAddressesToAllocate = pointer.To(model.IpAddressNumber)
+			if metadata.ResourceData.HasChange("number_of_ip_addresses_to_allocate") {
+				if model.NumberOfIPAddressesToAllocate != "" {
+					parameters.Properties.NumberOfIPAddressesToAllocate = pointer.To(model.NumberOfIPAddressesToAllocate)
 					parameters.Properties.AddressPrefixes = pointer.To([]string{})
 				} else {
 					parameters.Properties.NumberOfIPAddressesToAllocate = pointer.To("")

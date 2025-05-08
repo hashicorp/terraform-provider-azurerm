@@ -104,7 +104,7 @@ func testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumber(t *testing.T) {
 	})
 }
 
-func testAccNetworkManagerIpamPoolStaticCidr_updateIpAddressNumber(t *testing.T) {
+func testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_ipam_pool_static_cidr", "test")
 	r := ManagerIpamPoolStaticCidrResource{}
 
@@ -160,7 +160,7 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "test" {
   ipam_pool_id     = azurerm_network_manager_ipam_pool.test.id
   address_prefixes = ["10.0.0.0/27"]
   lifecycle {
-    ignore_changes = [ip_address_number]
+    ignore_changes = [number_of_ip_addresses_to_allocate]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -175,9 +175,9 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_ipam_pool_static_cidr" "test" {
-  name              = "acctest-ipsc-%[2]d"
-  ipam_pool_id      = azurerm_network_manager_ipam_pool.test.id
-  ip_address_number = "16"
+  name                               = "acctest-ipsc-%[2]d"
+  ipam_pool_id                       = azurerm_network_manager_ipam_pool.test.id
+  number_of_ip_addresses_to_allocate = "16"
   lifecycle {
     ignore_changes = [address_prefixes]
   }
@@ -194,7 +194,7 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "import" {
   ipam_pool_id     = azurerm_network_manager_ipam_pool_static_cidr.test.ipam_pool_id
   address_prefixes = azurerm_network_manager_ipam_pool_static_cidr.test.address_prefixes
   lifecycle {
-    ignore_changes = [ip_address_number]
+    ignore_changes = [number_of_ip_addresses_to_allocate]
   }
 }
 `, r.basic(data))
@@ -212,9 +212,8 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "test" {
   name             = "acctest-ipsc-%[2]d"
   ipam_pool_id     = azurerm_network_manager_ipam_pool.test.id
   address_prefixes = ["10.0.0.0/26", "10.0.0.128/27"]
-  description      = "test"
   lifecycle {
-    ignore_changes = [ip_address_number]
+    ignore_changes = [number_of_ip_addresses_to_allocate]
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -236,7 +235,6 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["Connectivity"]
 }
 
 resource "azurerm_network_manager_ipam_pool" "test" {

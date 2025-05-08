@@ -27,7 +27,6 @@ resource "azurerm_network_manager" "example" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["Connectivity"]
 }
 
 resource "azurerm_network_manager_ipam_pool" "example" {
@@ -42,7 +41,9 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "example" {
   name             = "example-ipsc"
   ipam_pool_id     = azurerm_network_manager_ipam_pool.example.id
   address_prefixes = ["10.0.0.0/26", "10.0.0.128/27"]
-  description      = "example"
+  lifecycle {
+    ignore_changes = [number_of_ip_addresses_to_allocate]
+  }
 }
 ```
 
@@ -58,15 +59,13 @@ The following arguments are supported:
 
 * `address_prefixes` - (Optional) Specifies a list of IPv4 or IPv6 IP address prefixes which will be allocated to the Static CIDR.
 
--> **NOTE:** Exactly one of `address_prefixes` or `ip_address_number` must be specified.
+-> **NOTE:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `address_prefixes`, consider adding `number_of_ip_addresses_to_allocate` to `ignore_changes` to avoid plan diff.
 
-* `description` - (Optional) The description of the Network Manager IPAM Pool Static CIDR.
+* `number_of_ip_addresses_to_allocate` - (Optional) The number of IP addresses to allocated to the Static CIDR. The value must be a string that represents a positive number, e.g., `"16"`.
 
-* `ip_address_number` - (Optional) The number of IP addresses to allocated to the Static CIDR. The value must be a string that represents a positive number, e.g., `"16"`.
+-> **NOTE:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `number_of_ip_addresses_to_allocate`, consider adding `address_prefixes` to `ignore_changes` to avoid plan diff.
 
--> **NOTE:** Exactly one of `address_prefixes` or `ip_address_number` must be specified.
-
--> **NOTE:** If `ip_address_number` is not a power of 2, the API will return the nearest power of 2. For instance, if `ip_address_number` is `"17"`, Azure API will automatically update it to `"32"`. In such cases, please update the `ip_address_number` in the configuration file to this new value.
+-> **NOTE:** If `number_of_ip_addresses_to_allocate` is not set to a power of 2, Azure API will return the nearest power of 2. For instance, if `number_of_ip_addresses_to_allocate` is `"20"`, Azure API will automatically update it to `"32"`. In such cases, please update the `number_of_ip_addresses_to_allocate` in the configuration file to this new value.
 
 ## Attributes Reference
 
