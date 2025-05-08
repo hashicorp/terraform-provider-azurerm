@@ -8,6 +8,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `azurerm_mssql_database` - Update to API version `2023-08-01-preview/replicationlinks` [GH-28705]
+* dependencies: `azurerm_mssql_server_security_alert_policy` - update to API version `2023-08-01-preview/serversecurityalertpolicies` [GH-29363]
 * dependencies: `eventhub` - update to API version `2024-01-01` [GH-29397]
 * dependencies: `azurerm_shared_image_version` - update to API version `2024-03-01` [GH-28954]
 * `azurerm_ai_foundry_project` - add support for the `primary_user_assigned_identity` property [GH-29197]
