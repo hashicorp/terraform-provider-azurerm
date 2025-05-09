@@ -540,11 +540,11 @@ A `resiliency_policy` block supports the following:
 
 * `resilient_virtual_machine_creation_policy` - (Required) A `resilient_virtual_machine_creation_policy` block as defined below.
 
--> **NOTE:** `resilient_virtual_machine_creation_policy` requires that the `ResilientScaleSetVMCreation` feature is enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace Microsoft.Compute --name ResilientVMScaleSetVMCreation`.
+-> **Note:** `resilient_virtual_machine_creation_policy` requires that the `ResilientScaleSetVMCreation` feature is enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace Microsoft.Compute --name ResilientVMScaleSetVMCreation`.
 
 * `resilient_virtual_machine_deletion_policy` - (Required) A `resilient_virtual_machine_deletion_policy` block as defined below.
 
--> **NOTE:** `resilient_virtual_machine_deletion_policy` requires that the `ReliableVMDeletion` feature is enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace Microsoft.Compute --name ReliableVMDeletion`.
+-> **Note:** `resilient_virtual_machine_deletion_policy` requires that the `ReliableVMDeletion` feature is enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace Microsoft.Compute --name ReliableVMDeletion`.
 
 ---
 
