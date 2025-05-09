@@ -159,7 +159,7 @@ A `network_interface` block supports the following:
 
 An `operating_system` block supports the following:
 
-* `computer_name` - (Required) The computer name of the Virtual Machine. Changing this forces a new resource to be created.
+* `computer_name` - (Optional) The computer name of the Virtual Machine. Changing this forces a new resource to be created.
 
 * `admin_password` - (Optional) The admin password of the Virtual Machine. Changing this forces a new resource to be created.
 
