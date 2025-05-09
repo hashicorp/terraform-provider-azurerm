@@ -1,5 +1,10 @@
 ## 4.29.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_app_configuration` - add support for `developer` tier to the `sku` property [GH-29492]
+* `azurerm_app_configuration` - the `sku` property can now be downgraded from `premium` to `standard` without recreating the resource [GH-29492]
+
 BUG FIXES:
 
 * `azurerm_api_management_api` - no longer returns an error on the  `oauth2_authorization` and `openid_authentication` properties when updating [GH-29042]
