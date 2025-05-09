@@ -112,7 +112,7 @@ The following arguments are supported:
 
 * `schedule_trigger_config` - (Optional) A `schedule_trigger_config` block as defined below.
 
-~> ** NOTE **: Only one of `manual_trigger_config`, `event_trigger_config` or `schedule_trigger_config` can be specified.
+~> **Note:** Only one of `manual_trigger_config`, `event_trigger_config` or `schedule_trigger_config` can be specified.
 
 * `identity` - (Optional) A `identity` block as defined below.
 
@@ -136,11 +136,11 @@ A `container` block supports the following:
 
 * `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
 * `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
 * `image` - (Required) The image to use to create the container.
 
@@ -152,7 +152,7 @@ A `container` block supports the following:
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
 
-~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+~> **Note:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
@@ -170,11 +170,11 @@ An `init_container` block supports:
 
 * `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
 * `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
 * `image` - (Required) The image to use to create the container.
 
@@ -186,7 +186,7 @@ An `init_container` block supports:
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
 
-~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+~> **Note:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
 * `volume_mounts` - (Optional) A `volume_mounts` block as detailed below.
 

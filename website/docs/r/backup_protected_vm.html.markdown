@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `source_vm_id` - (Optional) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
 
-~> **NOTE:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource.
+~> **Note:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource.
 This allows the source vm to be deleted without having to remove the backup.
 
 * `backup_policy_id` - (Optional) Specifies the id of the backup policy to use. Required in creation or when `protection_stopped` is not specified.

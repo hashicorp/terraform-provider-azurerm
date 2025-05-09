@@ -93,11 +93,11 @@ The following arguments are supported:
 
 * `event_handler` - (Optional) An `event_handler` block as defined below.
 
--> **NOTE:** User can change the order of `event_handler` to change the priority accordingly.
+-> **Note:** User can change the order of `event_handler` to change the priority accordingly.
 
 * `event_listener` - (Optional) An `event_listener` block as defined below.
 
--> **NOTE:**  The managed identity of Web PubSub service must be enabled and the identity must have the "Azure Event Hubs Data sender" role to access the Event Hub.
+-> **Note:** The managed identity of Web PubSub service must be enabled and the identity must have the "Azure Event Hubs Data sender" role to access the Event Hub.
 
 ---
 
@@ -129,7 +129,7 @@ An `auth` block supports the following:
 
 * `managed_identity_id` - (Required) Specify the identity ID of the target resource.
 
--> **NOTE:** `managed_identity_id` is required if the auth block is defined
+-> **Note:** `managed_identity_id` is required if the auth block is defined
 
 ## Attributes Reference
 

@@ -10,7 +10,7 @@ description: |-
 
 Manages a SMS integration for a Bot Channel
 
-~> **Note** A bot can only have a single SMS Channel associated with it.
+~> **Note:** A bot can only have a single SMS Channel associated with it.
 
 ## Example Usage
 

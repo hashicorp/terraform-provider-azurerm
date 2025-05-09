@@ -10,7 +10,7 @@ description: |-
 
 Manages a Disaster Recovery Config for a Service Bus Namespace.
 
-~> **NOTE:** Disaster Recovery Config is a Premium SKU only capability.
+~> **Note:** Disaster Recovery Config is a Premium SKU only capability.
 
 ## Example Usage
 

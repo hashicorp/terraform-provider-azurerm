@@ -55,7 +55,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to the Databricks Access Connector. Only one User Assigned Managed Identity ID is supported per Databricks Access Connector resource.
 
-~> **NOTE:** `identity_ids` are required when `type` is set to `UserAssigned`.
+~> **Note:** `identity_ids` are required when `type` is set to `UserAssigned`.
 
 ---
 

@@ -184,7 +184,7 @@ The following arguments are supported:
 
 * `use_remote_gateways` - (Optional) Controls if remote gateways can be used on the local virtual network. If the flag is set to `true`, and `allow_gateway_transit` on the remote peering is also `true`, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to `true`. This flag cannot be set if virtual network already has a gateway. Defaults to `false`.
 
--> **NOTE:** `use_remote_gateways` must be set to `false` if using Global Virtual Network Peerings.
+-> **Note:** `use_remote_gateways` must be set to `false` if using Global Virtual Network Peerings.
 
 * `triggers` - (Optional) A mapping of key values pairs that can be used to sync network routes from the remote virtual network to the local virtual network. See [the trigger example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network_peering#example-usage-triggers) for an example on how to set it up.
 

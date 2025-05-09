@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `secret` - (Optional) Specifies whether the API Management Named Value is secret. Valid values are `true` or `false`. The default value is `false`.
 
-~> **NOTE:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
+~> **Note:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
 
 * `tags` - (Optional) A list of tags to be applied to the API Management Named Value.
 

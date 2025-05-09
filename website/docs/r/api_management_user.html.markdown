@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `state` - (Optional) The state of this user. Possible values are `active`, `blocked` and `pending`.
 
--> **NOTE:** the State can be changed from Pending -> Active/Blocked but not from Active/Blocked -> Pending.
+-> **Note:** the State can be changed from Pending -> Active/Blocked but not from Active/Blocked -> Pending.
 
 ## Attributes Reference
 

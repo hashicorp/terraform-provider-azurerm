@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `assignable_scopes` - (Optional) One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, `/providers/Microsoft.Management/managementGroups/0b1f6471-1bf0-4dda-aec3-111122223333` , or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
 
-~> **NOTE:** The value for `scope` is automatically included in this list if no other values supplied.
+~> **Note:** The value for `scope` is automatically included in this list if no other values supplied.
 
 ---
 
@@ -120,4 +120,4 @@ Role Definitions can be imported using the `resource id`, e.g.
 terraform import azurerm_role_definition.example "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000|/subscriptions/00000000-0000-0000-0000-000000000000"
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
+-> **Note:** This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.

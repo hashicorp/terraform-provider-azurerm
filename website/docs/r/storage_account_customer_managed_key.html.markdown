@@ -10,7 +10,7 @@ description: |-
 
 Manages a Customer Managed Key for a Storage Account.
 
-~> **NOTE:** It's possible to define a Customer Managed Key both within [the `azurerm_storage_account` resource](storage_account.html) via the `customer_managed_key` block and by using [the `azurerm_storage_account_customer_managed_key` resource](storage_account_customer_managed_key.html). However it's not possible to use both methods to manage a Customer Managed Key for a Storage Account, since there'll be conflicts.
+~> **Note:** It's possible to define a Customer Managed Key both within [the `azurerm_storage_account` resource](storage_account.html) via the `customer_managed_key` block and by using [the `azurerm_storage_account_customer_managed_key` resource](storage_account_customer_managed_key.html). However it's not possible to use both methods to manage a Customer Managed Key for a Storage Account, since there'll be conflicts.
 
 ## Example Usage
 
@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `key_vault_id` - (Optional) The ID of the Key Vault. Exactly one of `managed_hsm_key_id`, `key_vault_id`, or `key_vault_uri` must be specified.
 
-~> Note: When the principal running Terraform has access to the subscription containing the Key Vault, it's recommended to use the `key_vault_id` property for maximum compatibility, rather than the `key_vault_uri` property. However if the Key Vault is in a different subscription from the Storage Account `key_vault_uri` will need to be used instead otherwise there will be a diff.
+~> **Note:** When the principal running Terraform has access to the subscription containing the Key Vault, it's recommended to use the `key_vault_id` property for maximum compatibility, rather than the `key_vault_uri` property. However if the Key Vault is in a different subscription from the Storage Account `key_vault_uri` will need to be used instead otherwise there will be a diff.
 
 * `key_vault_uri` - (Optional) URI pointing at the Key Vault. Required when using `federated_identity_client_id`. Exactly one of `managed_hsm_key_id`, `key_vault_id`, or `key_vault_uri` must be specified.
 

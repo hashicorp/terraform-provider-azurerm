@@ -44,7 +44,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
--> **NOTE:** A `UserAssigned` identity must be specified when `encryption_key_url` is specified.
+-> **Note:** A `UserAssigned` identity must be specified when `encryption_key_url` is specified.
 
 * `tags` - A mapping of tags which should be assigned to the Mobile Network Sim Groups.
 

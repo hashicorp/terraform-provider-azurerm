@@ -30,7 +30,7 @@ resource "azurerm_databricks_workspace" "example" {
 }
 ```
 
--> You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
+-> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
 ## Argument Reference
 

@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `app_id` - (Required) The ID of the Windows or Linux Web App. Changing this forces a new resource to be created.
 
-~> **NOTE:** Function apps are not supported at this time.
+~> **Note:** Function apps are not supported at this time.
 
 * `branch` - (Optional) The branch name to use for deployments. Changing this forces a new resource to be created.
 
@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `rollback_enabled` - (Optional) Should the Deployment Rollback be enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **NOTE:** Azure can typically set this value automatically based on the `repo_url` value.
+~> **Note:** Azure can typically set this value automatically based on the `repo_url` value.
 
 * `use_local_git` - (Optional) Should the App use local Git configuration. Changing this forces a new resource to be created.
 
