@@ -24,9 +24,9 @@ import (
 )
 
 var (
-	_ sdk.Resource                   = VirtualMachineImplicitDataDiskFromSourceResource{}
 	_ sdk.ResourceWithUpdate         = VirtualMachineImplicitDataDiskFromSourceResource{}
 	_ sdk.ResourceWithCustomImporter = VirtualMachineImplicitDataDiskFromSourceResource{}
+	_ sdk.ResourceWithCustomizeDiff  = VirtualMachineImplicitDataDiskFromSourceResource{}
 )
 
 type VirtualMachineImplicitDataDiskFromSourceResource struct{}
@@ -118,6 +118,21 @@ func (r VirtualMachineImplicitDataDiskFromSourceResource) Arguments() map[string
 
 func (r VirtualMachineImplicitDataDiskFromSourceResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
+}
+
+func (r VirtualMachineImplicitDataDiskFromSourceResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if oldSize, newSize := metadata.ResourceDiff.GetChange("disk_size_gb"); newSize.(int) < oldSize.(int) {
+				if err := metadata.ResourceDiff.ForceNew("disk_size_gb"); err != nil {
+					return err
+				}
+			}
+
+			return nil
+		},
+	}
 }
 
 func (r VirtualMachineImplicitDataDiskFromSourceResource) Create() sdk.ResourceFunc {
@@ -498,27 +513,26 @@ func resizeImplicitDataDisk(ctx context.Context, metadata sdk.ResourceMetaData, 
 		Properties: &disks.DiskUpdateProperties{},
 	}
 
-	if oldSize, newSize := metadata.ResourceData.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
-		canBeResizedWithoutDowntime := false
-		if metadata.Client.Features.ManagedDisk.ExpandWithoutDowntime {
-			shouldDetach = determineIfDataDiskRequiresDetaching(disk.Model, oldSize.(int), newSize.(int))
-			diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, shouldDetach)
+	oldSize, newSize := metadata.ResourceData.GetChange("disk_size_gb")
+	canBeResizedWithoutDowntime := false
+	if metadata.Client.Features.ManagedDisk.ExpandWithoutDowntime {
+		shouldDetach = determineIfDataDiskRequiresDetaching(disk.Model, oldSize.(int), newSize.(int))
+		diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, shouldDetach)
 
-			vmSupportsNoDowntimeResize, err := determineIfVirtualMachineSupportsNoDowntimeResize(ctx, disk.Model, virtualMachinesClient, skusClient)
-			if err != nil {
-				return fmt.Errorf("determining if the Virtual Machine supports no-downtime-resizing: %+v", err)
-			}
+		vmSupportsNoDowntimeResize, err := determineIfVirtualMachineSupportsNoDowntimeResize(ctx, disk.Model, virtualMachinesClient, skusClient)
+		if err != nil {
+			return fmt.Errorf("determining if the Virtual Machine supports no-downtime-resizing: %+v", err)
+		}
 
-			canBeResizedWithoutDowntime = *vmSupportsNoDowntimeResize && diskSupportsNoDowntimeResize
-		}
-		if !canBeResizedWithoutDowntime {
-			log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
-			shouldShutDown = true
-		}
-		diskUpdate.Properties.DiskSizeGB = pointer.To(int64(newSize.(int)))
-	} else {
-		return fmt.Errorf("- New size must be greater than original size. Shrinking disks is not supported on Azure")
+		canBeResizedWithoutDowntime = *vmSupportsNoDowntimeResize && diskSupportsNoDowntimeResize
 	}
+
+	if !canBeResizedWithoutDowntime {
+		log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
+		shouldShutDown = true
+	}
+
+	diskUpdate.Properties.DiskSizeGB = pointer.To(int64(newSize.(int)))
 
 	if shouldShutDown {
 		virtualMachineId, err := virtualmachines.ParseVirtualMachineID(*disk.Model.ManagedBy)
