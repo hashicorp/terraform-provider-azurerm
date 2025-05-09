@@ -26,7 +26,6 @@ resource "azurerm_custom_ip_prefix" "example" {
   cidr  = "1.2.3.4/22"
   zones = ["1", "2", "3"]
 
-  prefix_type           = "Singular"
   commissioning_enabled = true
 
   roa_validity_end_date         = "2099-12-12"
