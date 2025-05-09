@@ -112,8 +112,6 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  offer_id            = "qumulo-saas-mpp"
-  plan_id             = "azure-native-qumulo-v3"
   storage_sku         = "Cold_LRS"
   subnet_id           = azurerm_subnet.test.id
   email               = "test@test.com"
@@ -131,8 +129,6 @@ resource "azurerm_qumulo_file_system" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_password      = ")^X#ZX#JRyIY}t9"
-  offer_id            = "qumulo-saas-mpp"
-  plan_id             = "azure-native-qumulo-v3"
   publisher_id        = "qumulo1584033880660"
   storage_sku         = "Cold_LRS"
   subnet_id           = azurerm_subnet.test.id
@@ -155,8 +151,6 @@ resource "azurerm_qumulo_file_system" "import" {
   resource_group_name = azurerm_qumulo_file_system.test.resource_group_name
   location            = azurerm_qumulo_file_system.test.location
   admin_password      = azurerm_qumulo_file_system.test.admin_password
-  offer_id            = azurerm_qumulo_file_system.test.offer_id
-  plan_id             = azurerm_qumulo_file_system.test.plan_id
   storage_sku         = azurerm_qumulo_file_system.test.storage_sku
   subnet_id           = azurerm_qumulo_file_system.test.subnet_id
   email               = azurerm_qumulo_file_system.test.email

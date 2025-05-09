@@ -47,8 +47,6 @@ resource "azurerm_qumulo_file_system" "example" {
   admin_password      = ")^X#ZX#JRyIY}t9"
   availability_zone   = "1"
   delegated_subnet_id = azurerm_subnet.example.id
-  offer_id            = "qumulo-saas-mpp"
-  plan_id             = "azure-native-qumulo-v3"
   storage_sku         = "Standard"
   email               = "test@test.com"
   tags = {
@@ -71,15 +69,15 @@ The following arguments are supported:
 
 * `email` - (Required) The email address used for the Azure Native Qumulo Scalable File System. Changing this forces a new resource to be created.
 
-* `offer_id` - (Required) Specifies the marketplace offer ID. The value can be `qumulo-saas-mpp`. Changing this forces a new resource to be created.
-
-* `plan_id` - (Required) Specifies the marketplace plan ID. The value includes but is not limited to `azure-native-qumulo-v3`. Changing this forces a new resource to be created.
-
 * `storage_sku` - (Required) The storage Sku. Possible values are `Cold_LRS`, `Hot_LRS` and `Hot_ZRS`. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The delegated subnet ID for Vnet injection. Changing this forces a new resource to be created.
 
 * `zone` - (Required) The Availability Zone in which the Azure Native Qumulo Scalable File system is located. Changing this forces a new resource to be created.
+
+* `offer_id` - (Optional) Specifies the marketplace offer ID. Defaults to `qumulo-saas-mpp`. Changing this forces a new resource to be created.
+
+* `plan_id` - (Optional) Specifies the marketplace plan ID. Defaults to `azure-native-qumulo-v3`. Changing this forces a new resource to be created.
 
 * `publisher_id` - (Optional) Specifies the marketplace publisher ID. Defaults to `qumulo1584033880660`. Changing this forces a new resource to be created.
 

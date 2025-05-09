@@ -78,22 +78,6 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"offer_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			// the value can be "qumulo-saas-mpp"
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"plan_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			// the value includes but is not limited to ["azure-native-qumulo-v3"]
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
 		"storage_sku": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -114,6 +98,22 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"zone": commonschema.ZoneSingleRequiredForceNew(),
+
+		"offer_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "qumulo-saas-mpp",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"plan_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "azure-native-qumulo-v3",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
 		"publisher_id": {
 			Type:         pluginsdk.TypeString,
