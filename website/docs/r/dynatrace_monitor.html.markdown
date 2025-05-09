@@ -6,9 +6,9 @@ description: |-
   Manages Dynatrace monitors.
 ---
 
-# azurerm_dynatrace_monitors
+# azurerm_dynatrace_monitor
 
-Manages Dynatrace monitors.
+Manages a Dynatrace monitor.
 
 ## Example Usage
 

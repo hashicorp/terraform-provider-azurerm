@@ -105,6 +105,13 @@ func TestAccApiManagementApi_oauth2Authorization(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.oauth2AuthorizationUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -115,6 +122,13 @@ func TestAccApiManagementApi_openidAuthentication(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.openidAuthentication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.openidAuthenticationUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -845,6 +859,44 @@ resource "azurerm_api_management_api" "test" {
 `, r.template(data, SkuNameConsumption), data.RandomInteger, data.RandomInteger)
 }
 
+func (r ApiManagementApiResource) oauth2AuthorizationUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_authorization_server" "test" {
+  name                         = "acctestauthsrv-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  api_management_name          = azurerm_api_management.test.name
+  display_name                 = "Test Group"
+  authorization_endpoint       = "https://azacceptance.hashicorptest.com/client/authorize"
+  client_id                    = "42424242-4242-4242-4242-424242424242"
+  client_registration_endpoint = "https://azacceptance.hashicorptest.com/client/register"
+
+  grant_types = [
+    "implicit",
+  ]
+
+  authorization_methods = [
+    "GET",
+  ]
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1update"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  oauth2_authorization {
+    authorization_server_name = azurerm_api_management_authorization_server.test.name
+    scope                     = "acctest"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger, data.RandomInteger)
+}
+
 func (r ApiManagementApiResource) openidAuthentication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -864,6 +916,39 @@ resource "azurerm_api_management_api" "test" {
   resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  openid_authentication {
+    openid_provider_name = azurerm_api_management_openid_connect_provider.test.name
+    bearer_token_sending_methods = [
+      "authorizationHeader",
+      "query",
+    ]
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) openidAuthenticationUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_openid_connect_provider" "test" {
+  name                = "acctest-%d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  client_id           = "00001111-2222-3333-%d"
+  client_secret       = "%d-cwdavsxbacsaxZX-%d"
+  display_name        = "Initial Name"
+  metadata_endpoint   = "https://azacceptance.hashicorptest.com/example/foo"
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1update"
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
