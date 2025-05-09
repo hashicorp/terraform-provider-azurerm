@@ -105,7 +105,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 				Properties: &guestagents.GuestAgentProperties{
 					Credentials: &guestagents.GuestCredential{
 						Username: model.Username,
-						Password: metadata.ResourceData.Get("password").(string),
+						Password: model.Password,
 					},
 					ProvisioningAction: pointer.To(guestagents.ProvisioningAction(model.ProvisioningAction)),
 				},
@@ -148,7 +148,7 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineInstanceGuestAgentResourc
 				if props := model.Properties; props != nil {
 					if v := props.Credentials; v != nil {
 						state.Username = v.Username
-						state.Password = v.Password
+						state.Password = metadata.ResourceData.Get("password").(string)
 					}
 
 					state.ProvisioningAction = string(pointer.From(props.ProvisioningAction))
