@@ -1,3 +1,31 @@
+## 4.28.0 (May 09, 2025)
+
+FEATURES:
+
+* **New Resource**: `azurerm_nginx_api_key` ([#28919](https://github.com/hashicorp/terraform-provider-azurerm/issues/28919))
+* **New Data Source**: `azurerm_nginx_api_key` ([#28919](https://github.com/hashicorp/terraform-provider-azurerm/issues/28919))
+
+ENHANCEMENTS:
+
+* dependencies: `azurerm_mssql_database` - Update to API version `2023-08-01-preview/replicationlinks` ([#28705](https://github.com/hashicorp/terraform-provider-azurerm/issues/28705))
+* dependencies: `azurerm_mssql_server_security_alert_policy` - update to API version `2023-08-01-preview/serversecurityalertpolicies` ([#29363](https://github.com/hashicorp/terraform-provider-azurerm/issues/29363))
+* dependencies: `eventhub` - update to API version `2024-01-01` ([#29397](https://github.com/hashicorp/terraform-provider-azurerm/issues/29397))
+* dependencies: `azurerm_shared_image_version` - update to API version `2024-03-01` ([#28954](https://github.com/hashicorp/terraform-provider-azurerm/issues/28954))
+* `azurerm_ai_foundry_project` - add support for the `primary_user_assigned_identity` property ([#29197](https://github.com/hashicorp/terraform-provider-azurerm/issues/29197))
+* `azurerm_storage_account_static_website` - the `index_document` property now has validation for length and excluding slashes ([#29431](https://github.com/hashicorp/terraform-provider-azurerm/issues/29431))
+
+BUG FIXES:
+
+* `azurerm_application_insights` - the `workspace_id` is now `Computed` ([#29396](https://github.com/hashicorp/terraform-provider-azurerm/issues/29396))
+* `azurerm_batch_pool` - prevent error when `certificate` is not used ([#29443](https://github.com/hashicorp/terraform-provider-azurerm/issues/29443))
+* `azurerm_nginx_deployment` - add support for the `web_application_firewall` property ([#27454](https://github.com/hashicorp/terraform-provider-azurerm/issues/27454))
+* `azurerm_postgresql_flexible_server_virtual_endpoint` - is no longer removed from state when a fail-over occurs ([#29424](https://github.com/hashicorp/terraform-provider-azurerm/issues/29424))
+* `azurerm_servicebus_queue` - no longer waits on resource creation ([#29435](https://github.com/hashicorp/terraform-provider-azurerm/issues/29435))
+* `azurerm_virtual_network_gateway` - prevent a panic when `vpn_client_configuration` is removed from from the configuration ([#29456](https://github.com/hashicorp/terraform-provider-azurerm/issues/29456))
+* `azurerm_web_pubsub_custom_certificate` - no longer crashes when `custom_certificate_id` is in a different subscription ([#29410](https://github.com/hashicorp/terraform-provider-azurerm/issues/29410))
+* `azurerm_windows_web_app` - fix perpetual diff around incorrect default for `always_on` and ignore default values for `logs.0.application_logs` ([#29150](https://github.com/hashicorp/terraform-provider-azurerm/issues/29150))
+* `azurerm_windows_web_app_slot` - fix perpetual diff around incorrect default for `always_on` and ignore default values for `logs.0.application_logs` ([#29150](https://github.com/hashicorp/terraform-provider-azurerm/issues/29150))
+
 ## 4.27.0 (April 25, 2025)
 
 FEATURES:
