@@ -44,9 +44,12 @@ func (a AccountStaticWebsiteResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"index_document": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.All(
+				validation.StringDoesNotContainAny("/"),
+				validation.StringLenBetween(3, 255),
+			),
 			AtLeastOneOf: []string{"error_404_document", "index_document"},
 		},
 	}
@@ -106,6 +109,9 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 			accountDetails, err := storageClient.GetAccount(ctx, *accountID)
 			if err != nil {
 				return err
+			}
+			if accountDetails == nil {
+				return fmt.Errorf("unable to locate %s", *accountID)
 			}
 
 			supportLevel := availableFunctionalityForAccount(accountDetails.Kind, accountTier, accountReplicationType)
@@ -236,6 +242,9 @@ func (a AccountStaticWebsiteResource) Update() sdk.ResourceFunc {
 			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
 				return err
+			}
+			if accountDetails == nil {
+				return fmt.Errorf("unable to locate %s", *id)
 			}
 
 			client, err := storageClient.AccountsDataPlaneClient(ctx, *accountDetails, storageClient.DataPlaneOperationSupportingAnyAuthMethod())

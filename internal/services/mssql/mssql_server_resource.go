@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverazureadonlyauthentications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverconnectionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/sqlvulnerabilityassessmentssettings"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -153,6 +154,12 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 					false),
 			},
 
+			"express_vulnerability_assessment_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"transparent_data_encryption_key_vault_key_id": {
@@ -236,6 +243,7 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
+	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -348,6 +356,21 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("creating Connection Policy for %s: %+v", id, err)
 	}
 
+	vaState := sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateDisabled
+	if d.Get("express_vulnerability_assessment_enabled").(bool) {
+		vaState = sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateEnabled
+	}
+
+	va := sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessment{
+		Properties: &sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentPolicyProperties{
+			State: &vaState,
+		},
+	}
+
+	if _, err := vaClient.CreateOrUpdate(ctx, id, va); err != nil {
+		return fmt.Errorf("creating Express Vulnerability Assessment Settings for %s: %+v", id, err)
+	}
+
 	return resourceMsSqlServerRead(d, meta)
 }
 
@@ -356,6 +379,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	aadOnlyAuthenticationsClient := meta.(*clients.Client).MSSQL.ServerAzureADOnlyAuthenticationsClient
+	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -517,6 +541,23 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("updating Connection Policy for %s: %+v", id, err)
 	}
 
+	if d.HasChange("express_vulnerability_assessment_enabled") {
+		vaState := sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateDisabled
+		if d.Get("express_vulnerability_assessment_enabled").(bool) {
+			vaState = sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateEnabled
+		}
+
+		va := sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessment{
+			Properties: &sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentPolicyProperties{
+				State: &vaState,
+			},
+		}
+
+		if _, err := vaClient.CreateOrUpdate(ctx, *id, va); err != nil {
+			return fmt.Errorf("updating Express Vulnerability Assessment Settings for %s: %+v", *id, err)
+		}
+	}
+
 	return resourceMsSqlServerRead(d, meta)
 }
 
@@ -524,6 +565,7 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
+	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -612,6 +654,15 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	if err := d.Set("restorable_dropped_database_ids", flattenSqlServerRestorableDatabases(restorableListPage)); err != nil {
 		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
+	}
+
+	va, err := vaClient.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving Express Vulnerability Assessment Settings for %s: %+v", *id, err)
+	}
+
+	if model := va.Model; model != nil && model.Properties != nil {
+		d.Set("express_vulnerability_assessment_enabled", pointer.From(model.Properties.State) == sqlvulnerabilityassessmentssettings.SqlVulnerabilityAssessmentStateEnabled)
 	}
 
 	return nil

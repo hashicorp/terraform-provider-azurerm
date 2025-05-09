@@ -945,12 +945,13 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return deploymentErr
 	}
 
-	certificates := d.Get("certificate").([]interface{})
-	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
-	if err != nil {
-		return fmt.Errorf("expanding `certificate`: %+v", err)
+	if v, ok := d.GetOk("certificate"); ok {
+		certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `certificate`: %+v", err)
+		}
+		parameters.Properties.Certificates = certificateReferences
 	}
-	parameters.Properties.Certificates = certificateReferences
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err

@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MsSqlJobTargetGroupResourceTest struct{}
+type MsSqlJobTargetGroupResource struct{}
 
 func TestAccMsSqlJobTargetGroupTest_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccMsSqlJobTargetGroupTest_basic(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccMsSqlJobTargetGroupTest_requiresImport(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,7 +72,7 @@ func TestAccMsSqlJobTargetGroupTest_update(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +87,7 @@ func TestAccMsSqlJobTargetGroupTest_complete(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_withDatabase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -102,7 +102,7 @@ func TestAccMsSqlJobTargetGroupTest_withDatabase(t *testing.T) {
 
 func TestAccMsSqlJobTargetGroupTest_withElasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_target_group", "test")
-	r := MsSqlJobTargetGroupResourceTest{}
+	r := MsSqlJobTargetGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -115,7 +115,7 @@ func TestAccMsSqlJobTargetGroupTest_withElasticPool(t *testing.T) {
 	})
 }
 
-func (MsSqlJobTargetGroupResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MsSqlJobTargetGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobtargetgroups.ParseTargetGroupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (MsSqlJobTargetGroupResourceTest) Exists(ctx context.Context, client *clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r MsSqlJobTargetGroupResourceTest) basic(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -140,7 +140,7 @@ resource "azurerm_mssql_job_target_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobTargetGroupResourceTest) requiresImport(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -151,7 +151,7 @@ resource "azurerm_mssql_job_target_group" "import" {
 `, r.basic(data))
 }
 
-func (r MsSqlJobTargetGroupResourceTest) complete(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -168,7 +168,7 @@ resource "azurerm_mssql_job_target_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobTargetGroupResourceTest) withDatabase(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) withDatabase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -191,7 +191,7 @@ resource "azurerm_mssql_job_target_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobTargetGroupResourceTest) withElasticPool(data acceptance.TestData) string {
+func (r MsSqlJobTargetGroupResource) withElasticPool(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -228,7 +228,7 @@ resource "azurerm_mssql_job_target_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlJobTargetGroupResourceTest) template(data acceptance.TestData) string {
+func (MsSqlJobTargetGroupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
