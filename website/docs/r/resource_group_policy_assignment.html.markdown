@@ -101,7 +101,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Managed Identity IDs which should be assigned to the Policy Definition.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 

@@ -104,7 +104,7 @@ The `manual_schedule` block supports the following:
 
 * `days_of_week` - (Optional) A list of days on which backup can take place. Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`
 
-~> **NOTE:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
+~> **Note:** `days_of_week` can only be specified when `manual_schedule` is set to `Weekly`
 
 ---
 
@@ -146,7 +146,7 @@ The `sql_instance` block supports the following:
 
 * `min_server_memory_mb` - (Optional) Minimum amount memory that SQL Server Memory Manager can allocate to the SQL Server process. Possible values are between `0` and `2147483647` Defaults to `0`.
 
-~> **NOTE:** `max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`
+~> **Note:** `max_server_memory_mb` must be greater than or equal to `min_server_memory_mb`
 
 ---
 
@@ -208,7 +208,7 @@ The `schedule` block supports the following:
 
 * `monthly_occurrence` - (Optional) How many months between assessment runs. Valid values are between `1` and `5`.
 
-~> **NOTE:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
+~> **Note:** Either one of `weekly_interval` or `monthly_occurrence` must be specified.
 
 * `day_of_week` - (Required) What day of the week the assessment will be run. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday` and `Wednesday`.
 

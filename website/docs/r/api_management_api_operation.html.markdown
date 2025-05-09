@@ -170,17 +170,17 @@ A `representation` block supports the following:
 
 * `form_parameter` - (Optional) One or more `form_parameter` block as defined above.
 
--> **NOTE:** This is Required when `content_type` is set to `application/x-www-form-urlencoded` or `multipart/form-data`.
+-> **Note:** This is Required when `content_type` is set to `application/x-www-form-urlencoded` or `multipart/form-data`.
 
 * `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The ID of an API Management Schema which represents this Response.
 
--> **NOTE:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
+-> **Note:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
 
 * `type_name` - (Optional) The Type Name defined by the Schema.
 
--> **NOTE:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
+-> **Note:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
 
 ---
 

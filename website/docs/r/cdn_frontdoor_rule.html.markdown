@@ -10,7 +10,7 @@ description: |-
 
 Manages a Front Door (standard/premium) Rule.
 
-!>**IMPORTANT:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
+!> **Note:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
 
 ## Example Usage
 
@@ -152,7 +152,7 @@ The following arguments are supported:
 
 * `order` - (Required) The order in which the rules will be applied for the Front Door Endpoint. The order value should be sequential and begin at `1`(e.g. `1`, `2`, `3`...). A Front Door Rule with a lesser order value will be applied before a rule with a greater order value.
 
-->**NOTE:** If the Front Door Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
+-> **Note:** If the Front Door Rule has an order value of `0` they do not require any conditions and the actions will always be applied.
 
 * `actions` - (Required) An `actions` block as defined below.
 
@@ -164,7 +164,7 @@ The following arguments are supported:
 
 An `actions` block supports the following:
 
-->**NOTE:** You may include up to 5 separate actions in the `actions` block.
+-> **Note:** You may include up to 5 separate actions in the `actions` block.
 
 Some actions support `Action Server Variables` which provide access to structured information about the request. For more information about `Action Server Variables` see the `Action Server Variables` as defined below.
 
@@ -198,7 +198,7 @@ An `url_redirect_action` block supports the following:
 
 A `route_configuration_override_action` block supports the following:
 
-->**NOTE:** In the v3.x of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will have default values. You can use Terraform's [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes) functionality to ignore these default values. In v4.0 of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will **NOT** have default values and will need to be explicitly set in the configuration file.
+-> **Note:** In the v3.x of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will have default values. You can use Terraform's [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes) functionality to ignore these default values. In v4.0 of the provider the `cache_duration`, `cache_behavior` and `query_string_caching_behavior` will **NOT** have default values and will need to be explicitly set in the configuration file.
 
 * `cache_duration` - (Optional) When Cache behavior is set to `Override` or `SetIfMissing`, this field specifies the cache duration to use. The maximum duration is 366 days specified in the `d.HH:MM:SS` format(e.g. `365.23:59:59`). If the desired maximum cache duration is less than 1 day then the maximum cache duration should be specified in the `HH:MM:SS` format(e.g. `23:59:59`).
 
@@ -206,17 +206,17 @@ A `route_configuration_override_action` block supports the following:
 
 * `forwarding_protocol` - (Optional) The forwarding protocol the request will be redirected as. This overrides the configuration specified in the route to be associated with. Possible values include `MatchRequest`, `HttpOnly` or `HttpsOnly`.
 
-->**NOTE:** If the `cdn_frontdoor_origin_group_id` is not defined you cannot set the `forwarding_protocol`.
+-> **Note:** If the `cdn_frontdoor_origin_group_id` is not defined you cannot set the `forwarding_protocol`.
 
 * `query_string_caching_behavior` - (Optional) `IncludeSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get included when the cache key gets generated. `UseQueryString` cache every unique URL, each unique URL will have its own cache key. `IgnoreSpecifiedQueryStrings` query strings specified in the `query_string_parameters` field get excluded when the cache key gets generated. `IgnoreQueryString` query strings aren't considered when the cache key gets generated. Possible values include `IgnoreQueryString`, `UseQueryString`, `IgnoreSpecifiedQueryStrings` or `IncludeSpecifiedQueryStrings`.
 
 * `query_string_parameters` - (Optional) A list of query string parameter names.
 
-->**NOTE:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
+-> **Note:** `query_string_parameters` is a required field when the `query_string_caching_behavior` is set to `IncludeSpecifiedQueryStrings` or `IgnoreSpecifiedQueryStrings`.
 
 * `compression_enabled` - (Optional) Should the Front Door dynamically compress the content? Possible values include `true` or `false`.
 
-->**NOTE:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
+-> **Note:** Content won't be compressed on AzureFrontDoor when requested content is smaller than `1 byte` or larger than `1 MB`.
 
 * `cache_behavior` - (Optional) `HonorOrigin` the Front Door will always honor origin response header directive. If the origin directive is missing, Front Door will cache contents anywhere from `1` to `3` days. `OverrideAlways` the TTL value returned from your Front Door Origin is overwritten with the value specified in the action. This behavior will only be applied if the response is cacheable. `OverrideIfOriginMissing` if no TTL value gets returned from your Front Door Origin, the rule sets the TTL to the value specified in the action. This behavior will only be applied if the response is cacheable. `Disabled` the Front Door will not cache the response contents, irrespective of Front Door Origin response directives. Possible values include `HonorOrigin`, `OverrideAlways`, `OverrideIfOriginMissing` or `Disabled`.
 
@@ -236,13 +236,13 @@ A `request_header_action` block supports the following:
 
 * `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values include `Append`, `Overwrite` or `Delete`.
 
--> **NOTE:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
+-> **Note:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
 
 * `header_name` - (Required) The name of the header to modify.
 
 * `value` - (Optional) The value to append or overwrite.
 
-->**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
+-> **Note:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
 
 ---
 
@@ -250,19 +250,19 @@ A `response_header_action` block supports the following:
 
 * `header_action` - (Required) The action to be taken on the specified `header_name`. Possible values include `Append`, `Overwrite` or `Delete`.
 
--> **NOTE:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
+-> **Note:** `Append` causes the specified header to be added to the request with the specified value. If the header is already present, the value is appended to the existing header value using string concatenation. No delimiters are added. `Overwrite` causes specified header to be added to the request with the specified value. If the header is already present, the specified value overwrites the existing value. `Delete` causes the header to be deleted from the request.
 
 * `header_name` - (Required) The name of the header to modify.
 
 * `value` - (Optional) The value to append or overwrite.
 
-->**NOTE:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
+-> **Note:** `value` is required if the `header_action` is set to `Append` or `Overwrite`.
 
 ---
 
 A `conditions` block supports the following:
 
-->**NOTE:** You may include up to 10 separate conditions in the `conditions` block.
+-> **Note:** You may include up to 10 separate conditions in the `conditions` block.
 
 * `remote_address_condition` - (Optional) A `remote_address_condition` block as defined below.
 
@@ -306,7 +306,7 @@ A `conditions` block supports the following:
 
 A `ssl_protocol_condition` block supports the following:
 
-->The `ssl_protocol_condition` identifies requests based on the SSL protocol of an established TLS connection.
+-> **Note:** The `ssl_protocol_condition` identifies requests based on the SSL protocol of an established TLS connection.
 
 * `match_values` - (Required) A list of one or more HTTP methods. Possible values are `TLSv1`, `TLSv1.1` and `TLSv1.2` logic.
 
@@ -318,7 +318,7 @@ A `ssl_protocol_condition` block supports the following:
 
 A `host_name_condition` block supports the following:
 
-->The `host_name_condition` identifies requests based on the specified hostname in the request from client.
+-> **Note:** The `host_name_condition` identifies requests based on the specified hostname in the request from client.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -332,7 +332,7 @@ A `host_name_condition` block supports the following:
 
 A `server_port_condition` block supports the following:
 
-->The `server_port_condition` identifies requests based on which port of the Front Door server accepted the request on.
+-> **Note:** The `server_port_condition` identifies requests based on which port of the Front Door server accepted the request on.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -344,7 +344,7 @@ A `server_port_condition` block supports the following:
 
 A `client_port_condition` block supports the following:
 
-->The `client_port_condition` identifies requests based on the port of the client which made the request.
+-> **Note:** The `client_port_condition` identifies requests based on the port of the client which made the request.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -356,25 +356,25 @@ A `client_port_condition` block supports the following:
 
 A `socket_address_condition` block supports the following:
 
-->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
+-> **Note:** The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
 
-->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
+-> **Note:** Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
 * `operator` - (Optional) The type of match. The Possible values are `IpMatch` or `Any`. Defaults to `IPMatch`.
 
-->**NOTE:** If the value of the `operator` field is set to `IpMatch` then the `match_values` field is also required.
+-> **Note:** If the value of the `operator` field is set to `IpMatch` then the `match_values` field is also required.
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) Specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic.
 
-->**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
+-> **Note:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
 
 ---
 
 A `remote_address_condition` block supports the following:
 
-->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
+-> **Note:** Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
 * `operator` - (Optional) The type of the remote address to match. Possible values include `Any`, `GeoMatch` or `IPMatch`. Use the `negate_condition` to specify Not `GeoMatch` or Not `IPMatch`. Defaults to `IPMatch`.
 
@@ -382,13 +382,13 @@ A `remote_address_condition` block supports the following:
 
 * `match_values` - (Optional) For the IP Match or IP Not Match operators: specify one or more IP address ranges. If multiple IP address ranges are specified, they're evaluated using `OR` logic. For the Geo Match or Geo Not Match operators: specify one or more locations using their country code.
 
-->**NOTE:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
+-> **Note:** See the `Specifying IP Address Ranges` section below on how to correctly define the `match_values` field.
 
 ---
 
 A `request_method_condition` block supports the following:
 
-->The `request_method_condition` identifies requests that use the specified HTTP request method.
+-> **Note:** The `request_method_condition` identifies requests that use the specified HTTP request method.
 
 * `match_values` - (Required) A list of one or more HTTP methods. Possible values include `GET`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS` or `TRACE`. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -400,7 +400,7 @@ A `request_method_condition` block supports the following:
 
 A `query_string_condition` block supports the following:
 
-->Use the `query_string_condition` to identify requests that contain a specific query string.
+-> **Note:** Use the `query_string_condition` to identify requests that contain a specific query string.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -414,7 +414,7 @@ A `query_string_condition` block supports the following:
 
 A `post_args_condition` block supports the following:
 
-->Use the `post_args_condition` to identify requests based on the arguments provided within a `POST` request's body. A single match condition matches a single argument from the `POST` request's body.
+-> **Note:** Use the `post_args_condition` to identify requests based on the arguments provided within a `POST` request's body. A single match condition matches a single argument from the `POST` request's body.
 
 * `post_args_name` - (Required) A string value representing the name of the `POST` argument.
 
@@ -430,7 +430,7 @@ A `post_args_condition` block supports the following:
 
 A `request_uri_condition` block supports the following:
 
-->The `request_uri_condition` identifies requests that match the specified URL. The entire URL is evaluated, including the protocol and query string, but not the fragment. When you use this rule condition, be sure to include the protocol(e.g. For example, use `https://www.contoso.com` instead of just `www.contoso.com`).
+-> **Note:** The `request_uri_condition` identifies requests that match the specified URL. The entire URL is evaluated, including the protocol and query string, but not the fragment. When you use this rule condition, be sure to include the protocol(e.g. For example, use `https://www.contoso.com` instead of just `www.contoso.com`).
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -444,7 +444,7 @@ A `request_uri_condition` block supports the following:
 
 A `request_header_condition` block supports the following:
 
-->The `request_header_condition` identifies requests that include a specific header in the request. You can use this match condition to check if a header exists whatever its value, or to check if the header matches a specified value.
+-> **Note:** The `request_header_condition` identifies requests that include a specific header in the request. You can use this match condition to check if a header exists whatever its value, or to check if the header matches a specified value.
 
 * `header_name` - (Required) A string value representing the name of the `POST` argument.
 
@@ -460,9 +460,9 @@ A `request_header_condition` block supports the following:
 
 A `request_body_condition` block supports the following:
 
-->The `request_body_condition` identifies requests based on specific text that appears in the body of the request.
+-> **Note:** The `request_body_condition` identifies requests based on specific text that appears in the body of the request.
 
-->**NOTE:** If a request body exceeds `64 KB` in size, only the first `64 KB` will be considered for the request body match condition.
+-> **Note:** If a request body exceeds `64 KB` in size, only the first `64 KB` will be considered for the request body match condition.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -476,7 +476,7 @@ A `request_body_condition` block supports the following:
 
 A `request_scheme_condition` block supports the following:
 
-->The `request_scheme_condition` identifies requests that use the specified protocol.
+-> **Note:** The `request_scheme_condition` identifies requests that use the specified protocol.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
@@ -488,7 +488,7 @@ A `request_scheme_condition` block supports the following:
 
 An `url_path_condition` block supports the following:
 
-->The `url_path_condition` identifies requests that include the specified path in the request URL. The path is the part of the URL after the hostname and a slash(e.g. in the URL `https://www.contoso.com/files/secure/file1.pdf`, the path is `files/secure/file1.pdf`).
+-> **Note:** The `url_path_condition` identifies requests that include the specified path in the request URL. The path is the part of the URL after the hostname and a slash(e.g. in the URL `https://www.contoso.com/files/secure/file1.pdf`, the path is `files/secure/file1.pdf`).
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -502,7 +502,7 @@ An `url_path_condition` block supports the following:
 
 An `url_file_extension_condition` block supports the following:
 
-->The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
+-> **Note:** The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -516,13 +516,13 @@ An `url_file_extension_condition` block supports the following:
 
 An `url_filename_condition` block supports the following:
 
-->The `url_filename_condition` identifies requests that include the specified file name in the request URL.
+-> **Note:** The `url_filename_condition` identifies requests that include the specified file name in the request URL.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
 * `match_values` - (Optional) A list of one or more string or integer values(e.g. "1") representing the value of the request file name to match. If multiple values are specified, they're evaluated using `OR` logic.
 
--> **NOTE:** The `match_values` field is only optional if the `operator` is set to `Any`.
+-> **Note:** The `match_values` field is only optional if the `operator` is set to `Any`.
 
 * `negate_condition` - (Optional) If `true` operator becomes the opposite of its value. Possible values `true` or `false`. Defaults to `false`. Details can be found in the `Condition Operator List` below.
 
@@ -532,7 +532,7 @@ An `url_filename_condition` block supports the following:
 
 A `http_version_condition` block supports the following:
 
-->Use the HTTP version match condition to identify requests that have been made by using a specific version of the HTTP protocol.
+-> **Note:** Use the HTTP version match condition to identify requests that have been made by using a specific version of the HTTP protocol.
 
 * `match_values` - (Required) What HTTP version should this condition match? Possible values `2.0`, `1.1`, `1.0` or `0.9`.
 
@@ -544,7 +544,7 @@ A `http_version_condition` block supports the following:
 
 A `cookies_condition` block supports the following:
 
-->Use the `cookies_condition` to identify requests that have include a specific cookie.
+-> **Note:** Use the `cookies_condition` to identify requests that have include a specific cookie.
 
 * `cookie_name` - (Required) A string value representing the name of the cookie.
 
@@ -560,7 +560,7 @@ A `cookies_condition` block supports the following:
 
 An `is_device_condition` block supports the following:
 
-->Use the `is_device_condition` to identify requests that have been made from a `mobile` or `desktop` device.
+-> **Note:** Use the `is_device_condition` to identify requests that have been made from a `mobile` or `desktop` device.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 

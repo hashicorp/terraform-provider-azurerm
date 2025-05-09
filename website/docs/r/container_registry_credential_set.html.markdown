@@ -12,7 +12,7 @@ Manages a Container Registry Credential Set.
 
 ## Example Usage (minimal)
 
-~> NOTE: Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
+~> **Note:** Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
@@ -131,7 +131,7 @@ A `authentication_credentials` block supports the following:
 
 * `password_secret_id` - (Required) The URI of the secret containing the password in a Key Vault.
 
-~> NOTE: Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
+~> **Note:** Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
 
 An `identity` block supports the following:
 

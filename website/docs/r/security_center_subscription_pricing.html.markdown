@@ -10,7 +10,7 @@ description: |-
 
 Manages the Pricing Tier for Azure Security Center in the current subscription.
 
-~> **NOTE:** Deletion of this resource will reset the pricing tier to `Free`
+~> **Note:** Deletion of this resource will reset the pricing tier to `Free`
 
 ## Example Usage
 
@@ -71,9 +71,9 @@ A `extension` block supports the following:
 
 * `additional_extension_properties` - (Optional) Key/Value pairs that are required for some extensions.
 
-~> **NOTE:** If an extension is not defined, it will not be enabled.
+~> **Note:** If an extension is not defined, it will not be enabled.
 
-~> **NOTE:** Changing the pricing tier to `Standard` affects all resources of the given type in the subscription and could be quite costly.
+~> **Note:** Changing the pricing tier to `Standard` affects all resources of the given type in the subscription and could be quite costly.
 
 ## Attributes Reference
 

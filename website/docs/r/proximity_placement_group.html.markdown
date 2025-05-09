@@ -42,11 +42,11 @@ The following arguments are supported:
 
 * `allowed_vm_sizes` - (Optional) Specifies the supported sizes of Virtual Machines that can be created in the Proximity Placement Group.
 
-~> **NOTE:** Removing `allowed_vm_sizes` after it is set forces a new resource to be created.
+~> **Note:** Removing `allowed_vm_sizes` after it is set forces a new resource to be created.
 
 * `zone` - (Optional) Specifies the supported zone of the Proximity Placement Group. Changing this forces a new resource to be created.
 
-~> **NOTE:** `allowed_vm_sizes` must be set when `zone` is specified.
+~> **Note:** `allowed_vm_sizes` must be set when `zone` is specified.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

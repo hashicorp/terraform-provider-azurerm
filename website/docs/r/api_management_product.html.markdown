@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `approval_required` - (Optional) Do subscribers need to be approved prior to being able to use the Product?
 
--> **NOTE:** `approval_required` can only be set when `subscription_required` is set to `true`.
+-> **Note:** `approval_required` can only be set when `subscription_required` is set to `true`.
 
 * `display_name` - (Required) The Display Name for this API Management Product.
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `subscriptions_limit` - (Optional) The number of subscriptions a user can have to this Product at the same time.
 
--> **NOTE:** `subscriptions_limit` can only be set when `subscription_required` is set to `true`.
+-> **Note:** `subscriptions_limit` can only be set when `subscription_required` is set to `true`.
 
 * `terms` - (Optional) The Terms and Conditions for this Product, which must be accepted by Developers before they can begin the Subscription process.
 

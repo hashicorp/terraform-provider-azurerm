@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `queue_id` - (Required) Specifies the ID of the ServiceBus Queue. Changing this forces a new resource to be created.
 
-~> **NOTE** At least one of the 3 permissions below needs to be set.
+~> **Note:** At least one of the 3 permissions below needs to be set.
 
 * `listen` - (Optional) Does this Authorization Rule have Listen permissions to the ServiceBus Queue? Defaults to `false`.
 

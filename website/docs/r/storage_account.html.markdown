@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
 
-~> **NOTE:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 -> **Note:** At this time `min_tls_version` is only supported in the Public Cloud, China Cloud, and US Government Cloud.
 
@@ -303,7 +303,7 @@ An `identity` block supports the following:
 
 ~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
+~> **Note:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
 
 ---
 
@@ -629,7 +629,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
 
--> You can access the Principal ID via `${azurerm_storage_account.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity[0].tenant_id}`
+-> **Note:** You can access the Principal ID via `${azurerm_storage_account.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_storage_account.example.identity[0].tenant_id}`
 
 ## Timeouts
 

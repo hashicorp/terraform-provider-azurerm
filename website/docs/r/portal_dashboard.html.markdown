@@ -244,7 +244,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Shared Dashboard. Changing this forces a new resource to be created.
 
--> **Note:** You can specify a tag with the key `hidden-title` to set a more user-friendly title for this Dashboard.  
+-> **Note:** You can specify a tag with the key `hidden-title` to set a more user-friendly title for this Dashboard.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the dashboard. Changing this forces a new resource to be created.
 

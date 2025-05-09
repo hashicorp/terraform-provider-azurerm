@@ -12,7 +12,7 @@ Use this data source to access information about an existing Azure VMware Soluti
 
 ## Example Usage
 
-~> **NOTE :**  Normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation.
+~> **Note:** Normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation.
 
 ```hcl
 data "azurerm_vmware_private_cloud" "example" {

@@ -94,7 +94,7 @@ The following arguments are supported:
 
 - `secret_text` - (Required) The value used as the Dataplane API Key. The API key requirements can be found in the [NGINXaaS Documentation](https://docs.nginx.com/nginxaas/azure/quickstart/loadbalancer-kubernetes/#create-an-nginxaas-data-plane-api-key).
 
-  -> **NOTE:** The `secret_text` contains a Dataplane API Key that can be used to modify NGINX upstream servers. The following sources are useful in learning to manage sensitive data.
+-> **Note:** The `secret_text` contains a Dataplane API Key that can be used to modify NGINX upstream servers. The following sources are useful in learning to manage sensitive data.
 
   - [Sensitive Data in State](https://developer.hashicorp.com/terraform/language/state/sensitive-data)
   - [Protect sensitive input variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables)

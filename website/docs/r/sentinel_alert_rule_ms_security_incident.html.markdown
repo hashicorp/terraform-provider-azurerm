@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `severity_filter` - (Required) Only create incidents from alerts when alert severity level is contained in this list. Possible values are `High`, `Medium`, `Low` and `Informational`.
 
-~> **NOTE** At least one of the severity filters need to be set.
+~> **Note:** At least one of the severity filters need to be set.
 
 ---
 
