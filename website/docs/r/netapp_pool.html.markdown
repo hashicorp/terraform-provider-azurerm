@@ -58,6 +58,10 @@ The following arguments are supported:
 
 * `encryption_type` - (Optional) The encryption type of the pool. Valid values include `Single`, and `Double`. Defaults to `Single`. Changing this forces a new resource to be created.
 
+* `cool_access_enabled` - (Optional) Whether the NetApp Pool can hold cool access enabled volumes. Defaults to `false`.
+
+~> **Note:** Disabling `cool_access_enabled` is not allowed and forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
