@@ -140,7 +140,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `update` - (Defaults to 90 minutes) Used when updating the Healthcare Med Tech Service Fhir Destination.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Med Tech Service Fhir Destination.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Healthcare Med Tech Service Fhir Destination.
-* `update` - (Defaults to 90 minutes) Used when updating the Healthcare Medtech Service Fhir Destination.
 
 ## Import
 
