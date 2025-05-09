@@ -3,10 +3,10 @@ subcategory: "Dynatrace"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dynatrace_monitor"
 description: |-
-  Gets information about an existing Dynatrace monitors.
+  Gets information about an existing Dynatrace monitor.
 ---
 
-# Data Source: azurerm_dynatrace_monitor.
+# Data Source: azurerm_dynatrace_monitor
 
 Use this data source to access information about an existing Dynatrace Monitor.
 
