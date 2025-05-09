@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
--> **NOTE:** If either `create_ui_definition` or `main_template` is set they both must be set.
+-> **Note:** If either `create_ui_definition` or `main_template` is set they both must be set.
 
 ---
 

@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
-~> **Note** Downgrading the SKU will force a new resource to be created.
+~> **Note:** Downgrading the SKU will force a new resource to be created.
 
 * `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 

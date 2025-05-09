@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `minimum_child_endpoints` - (Required) This argument specifies the minimum number of endpoints that must be ‘online’ in the child profile in order for the parent profile to direct traffic to any of the endpoints in that child profile. This value must be larger than `0`.
 
-~>**NOTE:** If `min_child_endpoints` is less than either `minimum_required_child_endpoints_ipv4` or `minimum_required_child_endpoints_ipv6`, then it won't have any effect.
+~> **Note:** If `min_child_endpoints` is less than either `minimum_required_child_endpoints_ipv4` or `minimum_required_child_endpoints_ipv6`, then it won't have any effect.
 
 * `name` - (Required) The name of the External Endpoint. Changing this forces a new resource to be created.
 

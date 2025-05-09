@@ -99,17 +99,17 @@ The following arguments are supported:
 
 * `hardware` - (Optional) A `hardware` block as defined below. Changing this forces a new resource to be created.
 
-~> **NOTE:** This resource will be restarted while updating `hardware`.
+~> **Note:** This resource will be restarted while updating `hardware`.
 
 * `network_interface` - (Optional) A `network_interface` block as defined below.
 
-~> **NOTE:** This resource will be restarted while updating `network_interface`.
+~> **Note:** This resource will be restarted while updating `network_interface`.
 
 * `operating_system` - (Optional) An `operating_system` block as defined below. Changing this forces a new resource to be created.
 
 * `storage_disk` - (Optional) A `storage_disk` block as defined below.
 
-~> **NOTE:** This resource will be restarted while updating `storage_disk`.
+~> **Note:** This resource will be restarted while updating `storage_disk`.
 
 * `system_center_virtual_machine_manager_availability_set_ids` - (Optional) A list of IDs of System Center Virtual Machine Manager Availability Set.
 

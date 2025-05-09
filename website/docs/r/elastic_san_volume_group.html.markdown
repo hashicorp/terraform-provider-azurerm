@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as defined below.
 
--> **NOTE:** The `encryption` block can only be set when `encryption_type` is set to `EncryptionAtRestWithCustomerManagedKey`.
+-> **Note:** The `encryption` block can only be set when `encryption_type` is set to `EncryptionAtRestWithCustomerManagedKey`.
 
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Elastic SAN Volume Group.
 

@@ -123,7 +123,7 @@ A `rule` block supports the following:
 
 * `source_ip_groups` - (Optional) A list of source IP Group IDs for the rule.
 
--> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
+-> **Note:** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
 * `translated_address` - (Required) The address of the service behind the Firewall.
 

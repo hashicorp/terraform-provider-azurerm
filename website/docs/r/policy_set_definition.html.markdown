@@ -10,7 +10,7 @@ description: |-
 
 Manages a policy set definition.
 
--> **NOTE:**  Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
+-> **Note:** Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
 
 ## Example Usage
 

@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet that the Route Server will reside. Changing this forces a new resource to be created.
 
--> **NOTE:** Azure Route Server requires a dedicated subnet named RouteServerSubnet. The subnet size has to be at least /27 or short prefix (such as /26 or /25) and cannot be attached to any security group, otherwise, you'll receive an error message when deploying the Route Server.
+-> **Note:** Azure Route Server requires a dedicated subnet named RouteServerSubnet. The subnet size has to be at least /27 or short prefix (such as /26 or /25) and cannot be attached to any security group, otherwise, you'll receive an error message when deploying the Route Server.
 
 * `branch_to_branch_traffic_enabled` - (Optional) Whether to enable route exchange between Azure Route Server and the gateway(s).
 

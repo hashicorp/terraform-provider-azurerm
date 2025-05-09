@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
 
-~> **NOTE:** At least one of `cors_rule`, `logging`, `minute_metrics`, or `hour_metrics` must be specified.
+~> **Note:** At least one of `cors_rule`, `logging`, `minute_metrics`, or `hour_metrics` must be specified.
 
 ---
 

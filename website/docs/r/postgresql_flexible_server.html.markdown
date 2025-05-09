@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-~> **Note** This must be unique across the entire Azure service, not just within the resource group.
+~> **Note:** This must be unique across the entire Azure service, not just within the resource group.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -207,7 +207,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this PostgreSQL Flexible Server. Required if used together with `customer_managed_key` block.
 
-~> **Note**: `identity_ids` is required when `type` is set to `UserAssigned`.
+~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned`.
 
 ---
 

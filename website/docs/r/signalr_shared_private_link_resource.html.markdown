@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The ID of the Shared Private Link Enabled Remote Resource which this Signalr Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
--> **NOTE:** The `sub_resource_name` should match with the type of the `target_resource_id` that's being specified.
+-> **Note:** The `sub_resource_name` should match with the type of the `target_resource_id` that's being specified.
 
 * `request_message` - (Optional) The request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
