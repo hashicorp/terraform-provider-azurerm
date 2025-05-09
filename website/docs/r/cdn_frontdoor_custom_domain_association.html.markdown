@@ -134,7 +134,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Custom Domain Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain Association.
-* `update` - (Defaults to 30 minutes) Used when retrieving the Front Door Custom Domain Association.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Custom Domain Association.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Custom Domain Association.
 
 ## Import

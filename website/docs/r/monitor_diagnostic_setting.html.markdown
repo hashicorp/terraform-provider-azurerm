@@ -135,7 +135,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Diagnostics Setting.
 * `update` - (Defaults to 30 minutes) Used when updating the Diagnostics Setting.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Diagnostics Setting.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Diagnostics Setting.
+* `delete` - (Defaults to 1 hour) Used when deleting the Diagnostics Setting.
 
 ## Import
 

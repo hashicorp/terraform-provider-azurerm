@@ -71,7 +71,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Relay Namespace.
 * `update` - (Defaults to 30 minutes) Used when updating the Relay Namespace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Relay Namespace.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Relay Namespace.
+* `delete` - (Defaults to 1 hour) Used when deleting the Relay Namespace.
 
 ## Import
 

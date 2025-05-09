@@ -70,7 +70,6 @@ In addition to the arguments above, the following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Site Recovery HyperV Network Mapping.
-* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery HyperV Network Mapping.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery HyperV Network Mapping.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Site Recovery HyperV Network Mapping.
 
