@@ -362,7 +362,7 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.CIDR = pointer.From(props.Cidr)
 					state.InternetAdvertisingDisabled = pointer.From(props.NoInternetAdvertise)
-					state.PrefixType = pointer.From((*string)(props.PrefixType))
+					state.PrefixType = string(pointer.From(props.PrefixType))
 					state.WANValidationSignedMessage = pointer.From(props.SignedMessage)
 
 					if parent := props.CustomIPPrefixParent; parent != nil {
