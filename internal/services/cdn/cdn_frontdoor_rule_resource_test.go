@@ -435,6 +435,35 @@ func TestAccCdnFrontDoorRule_urlFilenameConditionOperatorError(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorRule_urlPathConditionOperatorWildcard(t *testing.T) {
+	// NOTE: Regression test case for issue #29415
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_rule", "test")
+	r := CdnFrontDoorRuleResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.urlPathWildcard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.urlPathWildcardNegate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.urlPathWildcard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r CdnFrontDoorRuleResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := rules.ParseRuleID(state.ID)
 	if err != nil {
@@ -1426,4 +1455,82 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
   }
 }
 `, template, data.RandomInteger, operator)
+}
+
+func (r CdnFrontDoorRuleResource) urlPathWildcard(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "Wildcard"
+      negate_condition = false
+      match_values     = ["files/customer*/file.pdf"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRuleResource) urlPathWildcardNegate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_rule" "test" {
+  depends_on = [azurerm_cdn_frontdoor_origin_group.test, azurerm_cdn_frontdoor_origin.test]
+
+  name                      = "accTestRule%d"
+  cdn_frontdoor_rule_set_id = azurerm_cdn_frontdoor_rule_set.test.id
+
+  order = 0
+
+  conditions {
+    url_path_condition {
+      operator         = "Wildcard"
+      negate_condition = true
+      match_values     = ["files/customer*/file.pdf"]
+      transforms       = ["Lowercase", "Trim"]
+    }
+  }
+
+  actions {
+    route_configuration_override_action {
+      query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+      query_string_parameters       = ["foo", "clientIp={client_ip}"]
+      compression_enabled           = true
+      cache_behavior                = "OverrideIfOriginMissing"
+      cache_duration                = "365.23:59:59"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }
