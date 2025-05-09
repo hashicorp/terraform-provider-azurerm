@@ -306,7 +306,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
