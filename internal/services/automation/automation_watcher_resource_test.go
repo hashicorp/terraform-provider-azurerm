@@ -114,7 +114,7 @@ resource "azurerm_automation_watcher" "test" {
   }
 
   script_parameters = {
-    foo = "bar"
+    param_foo = "arg_bar"
   }
 
   etag                           = "etag example"
