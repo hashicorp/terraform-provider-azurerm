@@ -49,7 +49,7 @@ resource "azurerm_custom_ip_prefix" "global" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  cidr        = "2001:db8:1::/48"
+  cidr = "2001:db8:1::/48"
 
   roa_validity_end_date         = "2199-12-12"
   wan_validation_signed_message = "signed message for WAN validation"
