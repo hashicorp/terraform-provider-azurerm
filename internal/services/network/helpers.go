@@ -16,14 +16,14 @@ import (
 
 // subnetAndVnetPoller waits for both a subnet and its parent VNet to reach ProvisioningStateSucceeded.
 type subnetAndVnetPoller struct {
-	subnetClient subnets.SubnetsClient
-	vnetClient   virtualnetworks.VirtualNetworksClient
-	subnetID     commonids.SubnetId
+	subnetClient *subnets.SubnetsClient
+	vnetClient   *virtualnetworks.VirtualNetworksClient
+	subnetID     *commonids.SubnetId
 	deadline     time.Time
 }
 
 // NewSubnetAndVnetPoller creates a new poller for a subnet and its parent VNet.
-func NewSubnetAndVnetPoller(subnetClient subnets.SubnetsClient, vnetClient virtualnetworks.VirtualNetworksClient, subnetID commonids.SubnetId, deadline time.Time) *subnetAndVnetPoller {
+func NewSubnetAndVnetPoller(subnetClient *subnets.SubnetsClient, vnetClient *virtualnetworks.VirtualNetworksClient, subnetID *commonids.SubnetId, deadline time.Time) *subnetAndVnetPoller {
 	return &subnetAndVnetPoller{
 		subnetClient: subnetClient,
 		vnetClient:   vnetClient,
@@ -38,7 +38,7 @@ func (p *subnetAndVnetPoller) Poll(ctx context.Context) error {
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, &p.subnetClient, p.subnetID),
+		Refresh:    SubnetProvisioningStateRefreshFunc(ctx, p.subnetClient, *p.subnetID),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(p.deadline),
 	}
@@ -55,7 +55,7 @@ func (p *subnetAndVnetPoller) Poll(ctx context.Context) error {
 	vnetConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
 		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, &p.vnetClient, vnetID),
+		Refresh:    VirtualNetworkProvisioningStateRefreshFunc(ctx, p.vnetClient, vnetID),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(p.deadline),
 	}

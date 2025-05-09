@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -406,12 +405,21 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	var subnetID *commonids.SubnetId
-	if subnetIDValue, ok := d.GetOk("vnet_subnet_id"); ok {
-		subnetID, err = commonids.ParseSubnetID(subnetIDValue.(string))
-		if err != nil {
-			return err
+	parseOptionalSubnetID := func(d *pluginsdk.ResourceData, key string) (*commonids.SubnetId, error) {
+		if value, ok := d.GetOk(key); ok {
+			return commonids.ParseSubnetID(value.(string))
 		}
+		return nil, nil
+	}
+
+	nodeSubnetID, err := parseOptionalSubnetID(d, "vnet_subnet_id")
+	if err != nil {
+		return err
+	}
+
+	podSubnetID, err := parseOptionalSubnetID(d, "pod_subnet_id")
+	if err != nil {
+		return err
 	}
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
@@ -561,12 +569,12 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
 	}
 
-	if podSubnetID := d.Get("pod_subnet_id").(string); podSubnetID != "" {
-		profile.PodSubnetID = utils.String(podSubnetID)
+	if podSubnetID != nil {
+		profile.PodSubnetID = utils.String(podSubnetID.ID())
 	}
 
-	if subnetID != nil {
-		profile.VnetSubnetID = utils.String(subnetID.ID())
+	if nodeSubnetID != nil {
+		profile.VnetSubnetID = utils.String(nodeSubnetID.ID())
 	}
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
@@ -629,7 +637,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 			SourceResourceId: utils.String(snapshotId),
 		}
 	}
-
 	parameters := agentpools.AgentPool{
 		Name:       utils.String(id.AgentPoolName),
 		Properties: &profile,
@@ -640,35 +647,23 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if subnetID != nil {
-		// Wait for vnet to come back to Succeeded before releasing any locks
-		timeout, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
+	timeout, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	if nodeSubnetID != nil {
+		// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
+		err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, nodeSubnetID, timeout).Poll(ctx)
+		if err != nil {
+			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *nodeSubnetID, err)
 		}
+	}
 
-		// TODO: refactor this into a `custompoller` within the `network` package
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
-			Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-			Refresh:    network.SubnetProvisioningStateRefreshFunc(ctx, subnetClient, *subnetID),
-			MinTimeout: 1 * time.Minute,
-			Timeout:    time.Until(timeout),
-		}
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *subnetID, err)
-		}
-
-		vnetId := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
-		vnetStateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
-			Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-			Refresh:    network.VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
-			MinTimeout: 1 * time.Minute,
-			Timeout:    time.Until(timeout),
-		}
-		if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for provisioning state of virtual network for AKS Node Pool creation %s: %+v", vnetId, err)
+	if podSubnetID != nil {
+		// Wait for vnet and pod subnet to come back to Succeeded before releasing any locks
+		err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, podSubnetID, timeout).Poll(ctx)
+		if err != nil {
+			return fmt.Errorf("waiting for provisioning state of the pod subnet for AKS Node Pool creation %s: %+v", *podSubnetID, err)
 		}
 	}
 
