@@ -1,5 +1,9 @@
 ## 4.29.0 (Unreleased)
 
+BUG FIXES:
+
+* `azurerm_api_management_api` - no longer returns an error on the  `oauth2_authorization` and `openid_authentication` properties when updating [GH-29042]
+
 ## 4.28.0 (May 09, 2025)
 
 FEATURES:
