@@ -142,11 +142,10 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Child",
-				"Parent",
-				"Singular",
-			}, false),
+			ValidateFunc: validation.StringInSlice(
+				customipprefixes.PossibleValuesForCustomIPPrefixType(),
+				false,
+			),
 		},
 	}
 }
