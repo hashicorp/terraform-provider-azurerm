@@ -60,7 +60,6 @@ resource "azurerm_custom_ip_prefix" "regional" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   parent_custom_ip_prefix_id = azurerm_custom_ip_prefix.global.id
-  prefix_type                = "Child"
 
   cidr  = cidrsubnet(azurerm_custom_ip_prefix.global.cidr, 16, 1)
   zones = ["1"]
