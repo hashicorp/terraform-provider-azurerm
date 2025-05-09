@@ -118,16 +118,16 @@ A `services` block contains:
 
 A `permissions` block contains:
 
-* `read` - Should Read permissions be enabled for this SAS?
-* `write` - Should Write permissions be enabled for this SAS?
-* `delete` - Should Delete permissions be enabled for this SAS?
-* `list` - Should List permissions be enabled for this SAS?
-* `add` - Should Add permissions be enabled for this SAS?
-* `create` - Should Create permissions be enabled for this SAS?
-* `update` - Should Update permissions be enabled for this SAS?
-* `process` - Should Process permissions be enabled for this SAS?
-* `tag` - Should Get / Set Index Tags permissions be enabled for this SAS?
-* `filter` - Should Filter by Index Tags permissions be enabled for this SAS?
+* `read` - (Optional) Should Read permissions be enabled for this SAS?
+* `write` - (Optional) Should Write permissions be enabled for this SAS?
+* `delete` - (Optional) Should Delete permissions be enabled for this SAS?
+* `list` - (Optional) Should List permissions be enabled for this SAS?
+* `add` - (Optional) Should Add permissions be enabled for this SAS?
+* `create` - (Optional) Should Create permissions be enabled for this SAS?
+* `update` - (Optional) Should Update permissions be enabled for this SAS?
+* `process` - (Optional) Should Process permissions be enabled for this SAS?
+* `tag` - (Optional) Should Get / Set Index Tags permissions be enabled for this SAS?
+* `filter` - (Optional) Should Filter by Index Tags permissions be enabled for this SAS?
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/constructing-an-account-sas)
 for additional details on the fields above.
