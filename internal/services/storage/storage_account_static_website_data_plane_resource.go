@@ -44,9 +44,12 @@ func (a AccountStaticWebsiteResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"index_document": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.All(
+				validation.StringDoesNotContainAny("/"),
+				validation.StringLenBetween(3, 255),
+			),
 			AtLeastOneOf: []string{"error_404_document", "index_document"},
 		},
 	}
