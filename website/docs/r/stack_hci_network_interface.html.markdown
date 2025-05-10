@@ -94,6 +94,8 @@ An `ip_configuration` block supports the following:
 
 * `private_ip_address` - (Optional) The IPv4 address of the IP configuration. Changing this forces a new resource to be created.
 
+-> **Note:** If `private_ip_address` is not specified, it will be assigned by the server. If you experience a diff you may need to add this to `ignore_changes`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
