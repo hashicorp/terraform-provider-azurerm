@@ -132,11 +132,18 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	// Swagger says: Can be present only if subscriptionRequired property is present and has a value of false.
 	// API/Portal says: Cannot provide values for approvalRequired and subscriptionsLimit when subscriptionRequired is set to false in the request payload
-	if subscriptionRequired && subscriptionsLimit > 0 {
-		properties.Properties.ApprovalRequired = pointer.To(approvalRequired)
-		properties.Properties.SubscriptionsLimit = pointer.To(int64(subscriptionsLimit))
+	if subscriptionRequired {
+		if approvalRequired && subscriptionsLimit <= 0 {
+			return fmt.Errorf("`subscriptions_limit` must be greater than 0 to use `approval_required`")
+		}
+		// Set `subscriptions_limit` to null or omit to allow unlimited per user subscriptions
+		// When `subscriptions_limit` is specified as `0` it means the maximum number of subscriptions is 0, rather than allowing unlimited per user subscriptions
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "subscriptions_limit") && subscriptionsLimit >= 0 {
+			properties.Properties.ApprovalRequired = pointer.To(approvalRequired)
+			properties.Properties.SubscriptionsLimit = pointer.To(int64(subscriptionsLimit))
+		}
 	} else if approvalRequired {
-		return fmt.Errorf("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`")
+		return fmt.Errorf("`subscription_required` must be true to use `approval_required`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties, product.CreateOrUpdateOperationOptions{}); err != nil {
