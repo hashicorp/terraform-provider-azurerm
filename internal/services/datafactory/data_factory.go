@@ -13,13 +13,11 @@ import (
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
-// @tombuildsstuff: these have been ported over from the Azure SDK for Go since the service team has removed them
-// but the casing differs in the API, so we need to ensure these are normalized on our side.
 const (
-	TypeBasicDatasetCompressionTypeBZip2      string = "BZip2"
-	TypeBasicDatasetCompressionTypeDeflate    string = "Deflate"
-	TypeBasicDatasetCompressionTypeGZip       string = "GZip"
-	TypeBasicDatasetCompressionTypeTar        string = "Tar"
+	TypeBasicDatasetCompressionTypeBZip2      string = "bzip2"
+	TypeBasicDatasetCompressionTypeDeflate    string = "deflate"
+	TypeBasicDatasetCompressionTypeGZip       string = "gzip"
+	TypeBasicDatasetCompressionTypeTar        string = "tar"
 	TypeBasicDatasetCompressionTypeTarGZip    string = "TarGZip"
 	TypeBasicDatasetCompressionTypeZipDeflate string = "ZipDeflate"
 )
