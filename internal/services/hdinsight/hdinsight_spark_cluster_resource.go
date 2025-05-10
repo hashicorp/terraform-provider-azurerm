@@ -255,9 +255,19 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if diskEncryptionPropertiesRaw, ok := d.GetOk("disk_encryption"); ok {
-		payload.Properties.DiskEncryptionProperties, err = ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
+		diskEncryptionProperties, diskEncryptionIdentity, err := ExpandHDInsightsDiskEncryptionProperties(diskEncryptionPropertiesRaw.([]interface{}))
 		if err != nil {
 			return err
+		}
+		payload.Properties.DiskEncryptionProperties = diskEncryptionProperties
+		if diskEncryptionIdentity != nil {
+			if payload.Identity == nil {
+				payload.Identity = diskEncryptionIdentity
+			} else {
+				for k, v := range diskEncryptionIdentity.IdentityIds {
+					payload.Identity.IdentityIds[k] = v
+				}
+			}
 		}
 	}
 

@@ -2001,6 +2001,93 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 func (r HDInsightHadoopClusterResource) diskEncryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestidentity-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestkv-%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  enabled_for_disk_encryption = true
+  sku_name                    = "standard"
+  soft_delete_retention_days  = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "SetRotationPolicy",
+      "GetRotationPolicy",
+      "UnwrapKey",
+      "WrapKey",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "SetRotationPolicy",
+      "GetRotationPolicy",
+      "UnwrapKey",
+      "WrapKey",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+    "encrypt",
+    "decrypt",
+    "wrapKey",
+    "unwrapKey",
+  ]
+}
+
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -2015,9 +2102,14 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
+
   disk_encryption {
-    encryption_at_host_enabled = true
+    encryption_at_host            = true
+    encryption_algorithm          = "RSA-OAEP"
+    key_vault_key_id              = azurerm_key_vault_key.test.id
+    key_vault_managed_identity_id = azurerm_user_assigned_identity.test.id
   }
+
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
@@ -2042,8 +2134,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
   }
 }
-
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
 func (r HDInsightHadoopClusterResource) allMetastores(data acceptance.TestData) string {
