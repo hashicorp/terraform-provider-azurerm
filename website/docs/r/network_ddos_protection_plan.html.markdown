@@ -55,8 +55,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DDoS Protection Plan.
-* `update` - (Defaults to 30 minutes) Used when updating the DDoS Protection Plan.
 * `read` - (Defaults to 5 minutes) Used when retrieving the DDoS Protection Plan.
+* `update` - (Defaults to 30 minutes) Used when updating the DDoS Protection Plan.
 * `delete` - (Defaults to 30 minutes) Used when deleting the DDoS Protection Plan.
 
 ## Import

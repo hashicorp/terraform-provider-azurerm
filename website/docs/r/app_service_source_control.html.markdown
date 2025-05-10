@@ -118,7 +118,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Source Control.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source Control.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Source Control.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service Source Control.
 
 ## Import

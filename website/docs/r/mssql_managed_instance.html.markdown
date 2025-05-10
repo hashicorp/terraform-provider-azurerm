@@ -312,8 +312,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 24 hours) Used when creating the Microsoft SQL Managed Instance.
-* `update` - (Defaults to 24 hours) Used when updating the Microsoft SQL Managed Instance.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Managed Instance.
+* `update` - (Defaults to 24 hours) Used when updating the Microsoft SQL Managed Instance.
 * `delete` - (Defaults to 24 hours) Used when deleting the Microsoft SQL Managed Instance.
 
 ## Import

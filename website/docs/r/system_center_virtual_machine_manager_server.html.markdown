@@ -65,10 +65,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating this System Center Virtual Machine Manager Server.
-* `read` - (Defaults to 5 minutes) Used when retrieving this System Center Virtual Machine Manager Server.
-* `update` - (Defaults to 180 minutes) Used when updating this System Center Virtual Machine Manager Server.
-* `delete` - (Defaults to 180 minutes) Used when deleting this System Center Virtual Machine Manager Server.
+* `create` - (Defaults to 3 hours) Used when creating the System Center Virtual Machine Manager Server.
+* `read` - (Defaults to 5 minutes) Used when retrieving the System Center Virtual Machine Manager Server.
+* `update` - (Defaults to 3 hours) Used when updating the System Center Virtual Machine Manager Server.
+* `delete` - (Defaults to 3 hours) Used when deleting the System Center Virtual Machine Manager Server.
 
 ## Import
 

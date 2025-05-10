@@ -82,8 +82,8 @@ A `soa_record` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Private DNS Zone.
-* `update` - (Defaults to 30 minutes) Used when updating the Private DNS Zone.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS Zone.
+* `update` - (Defaults to 30 minutes) Used when updating the Private DNS Zone.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Private DNS Zone.
 
 ## Import

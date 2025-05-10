@@ -72,10 +72,10 @@ The following arguments are supported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kusto Cluster Customer Managed Key.
+* `create` - (Defaults to 1 hour) Used when creating the Kusto Cluster Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Cluster Customer Managed Key.
-* `update` - (Defaults to 60 minutes) Used when updating the Kusto Cluster Customer Managed Key.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Cluster Customer Managed Key.
+* `update` - (Defaults to 1 hour) Used when updating the Kusto Cluster Customer Managed Key.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kusto Cluster Customer Managed Key.
 
 ## Import
 

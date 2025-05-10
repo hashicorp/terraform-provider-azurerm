@@ -86,9 +86,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS SRV Record.
 
-* `update` - (Defaults to 30 minutes) Used when updating the DNS SRV Record.
-
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS SRV Record.
+
+* `update` - (Defaults to 30 minutes) Used when updating the DNS SRV Record.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS SRV Record.
 

@@ -59,7 +59,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Resource Guard.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Guard.
-* `update` - (Defaults to 30 minutes) Used when updating the Resource Guard.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Resource Guard.
 
 ## Import

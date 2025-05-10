@@ -304,7 +304,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 3 hours) Used when creating the Domain Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Domain Service.
+* `delete` - (Defaults to 1 hour) Used when deleting the Domain Service.
 
 ## Import
 

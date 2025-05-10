@@ -92,10 +92,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Load Test.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Load Test.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Load Test.
-* `update` - (Defaults to 30 minutes) Used when updating this Load Test.
+* `create` - (Defaults to 30 minutes) Used when creating the Load Test.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Load Test.
+* `update` - (Defaults to 30 minutes) Used when updating the Load Test.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Load Test.
 
 ## Import
 

@@ -466,8 +466,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace.
 
 ## Import

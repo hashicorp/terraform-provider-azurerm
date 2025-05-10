@@ -56,10 +56,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating a Healthbot Service.
-* `read` - (Defaults to 5 minutes) Used when retrieving a Healthbot Service.
-* `update` - (Defaults to 30 minutes) Used when updating a Healthbot Service.
-* `delete` - (Defaults to 30 minutes) Used when deleting a Healthbot Service.
+* `create` - (Defaults to 30 minutes) Used when creating the Healthbot Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Healthbot Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Healthbot Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Healthbot Service.
 
 ## Import
 

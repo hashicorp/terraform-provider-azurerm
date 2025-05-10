@@ -87,8 +87,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Analysis Services Server.
-* `update` - (Defaults to 30 minutes) Used when updating the Analysis Services Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Analysis Services Server.
+* `update` - (Defaults to 30 minutes) Used when updating the Analysis Services Server.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Analysis Services Server.
 
 ## Import

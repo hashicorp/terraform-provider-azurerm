@@ -103,8 +103,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Mssql Managed Database.
 * `create` - (Defaults to 30 minutes) Used when creating the Mssql Managed Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Mssql Managed Database.
 * `update` - (Defaults to 30 minutes) Used when updating the Mssql Managed Database.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Mssql Managed Database.
 

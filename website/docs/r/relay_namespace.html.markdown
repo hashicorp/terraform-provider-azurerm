@@ -69,9 +69,9 @@ The following attributes are exported only if there is an authorization rule nam
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Relay Namespace.
-* `update` - (Defaults to 30 minutes) Used when updating the Relay Namespace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Relay Namespace.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Relay Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the Relay Namespace.
+* `delete` - (Defaults to 1 hour) Used when deleting the Relay Namespace.
 
 ## Import
 

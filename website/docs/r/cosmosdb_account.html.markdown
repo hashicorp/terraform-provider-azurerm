@@ -369,10 +369,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the CosmosDB Account.
-* `update` - (Defaults to 180 minutes) Used when updating the CosmosDB Account.
+* `create` - (Defaults to 3 hours) Used when creating the CosmosDB Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.
-* `delete` - (Defaults to 180 minutes) Used when deleting the CosmosDB Account.
+* `update` - (Defaults to 3 hours) Used when updating the CosmosDB Account.
+* `delete` - (Defaults to 3 hours) Used when deleting the CosmosDB Account.
 
 ## Import
 

@@ -306,8 +306,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the FrontDoor.
-* `update` - (Defaults to 6 hours) Used when updating the FrontDoor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor.
+* `update` - (Defaults to 6 hours) Used when updating the FrontDoor.
 * `delete` - (Defaults to 6 hours) Used when deleting the FrontDoor.
 
 ## Import

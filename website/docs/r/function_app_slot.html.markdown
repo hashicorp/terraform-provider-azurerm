@@ -360,8 +360,8 @@ The `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function App Deployment Slot.
-* `update` - (Defaults to 30 minutes) Used when updating the Function App Deployment Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function App Deployment Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the Function App Deployment Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Function App Deployment Slot.
 
 ## Import

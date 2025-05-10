@@ -410,10 +410,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Machine.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Machine.
 
 ## Import
 

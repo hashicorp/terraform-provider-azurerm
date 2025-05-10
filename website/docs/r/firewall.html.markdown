@@ -163,8 +163,8 @@ A `virtual_hub` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Firewall.
-* `update` - (Defaults to 90 minutes) Used when updating the Firewall.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall.
+* `update` - (Defaults to 90 minutes) Used when updating the Firewall.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Firewall.
 
 ## Import

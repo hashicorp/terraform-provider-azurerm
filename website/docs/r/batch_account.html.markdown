@@ -169,8 +169,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Batch Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Batch Account.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Batch Account.
 
 ## Import

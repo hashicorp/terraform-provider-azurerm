@@ -160,8 +160,8 @@ An `inbound_network_dependencies` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the 3rd Generation (v3) App Service Environment.
-* `update` - (Defaults to 6 hours) Used when updating the 3rd Generation (v3) App Service Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the 3rd Generation (v3) App Service Environment.
+* `update` - (Defaults to 6 hours) Used when updating the 3rd Generation (v3) App Service Environment.
 * `delete` - (Defaults to 6 hours) Used when deleting the 3rd Generation (v3) App Service Environment.
 
 ## Import

@@ -119,9 +119,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
-* `read` - (Defaults to 5 minutes) Used when retrieving this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
-* `delete` - (Defaults to 30 minutes) Used when deleting this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
+* `create` - (Defaults to 30 minutes) Used when creating the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
+* `read` - (Defaults to 5 minutes) Used when retrieving the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
+* `delete` - (Defaults to 30 minutes) Used when deleting the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
 
 ## Import
 

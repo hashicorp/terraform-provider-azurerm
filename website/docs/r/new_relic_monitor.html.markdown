@@ -142,7 +142,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Native New Relic Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Native New Relic Monitor.
-* `update` - (Defaults to 30 minutes) Used when updating the Azure Native New Relic Monitor.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure Native New Relic Monitor.
 
 ## Import

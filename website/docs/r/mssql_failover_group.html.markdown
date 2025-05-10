@@ -125,8 +125,8 @@ A `partner_server` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Failover Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Failover Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Failover Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Failover Group.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Failover Group.
 
 ## Import

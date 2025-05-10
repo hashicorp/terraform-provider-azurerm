@@ -59,7 +59,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Accelerator.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Accelerator.
-* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Accelerator.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Accelerator.
 
 ## Import

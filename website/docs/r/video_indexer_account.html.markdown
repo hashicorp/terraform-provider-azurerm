@@ -89,10 +89,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Video Indexer Account.
+* `create` - (Defaults to 1 hour) Used when creating the Video Indexer Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Video Indexer Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Video Indexer Account.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Video Indexer Account.
+* `update` - (Defaults to 1 hour) Used when updating the Video Indexer Account.
+* `delete` - (Defaults to 1 hour) Used when deleting the Video Indexer Account.
 
 ## Import
 

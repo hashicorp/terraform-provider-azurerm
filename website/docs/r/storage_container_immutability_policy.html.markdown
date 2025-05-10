@@ -69,8 +69,8 @@ No additional attributes are exported.
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 minutes) Used when creating the Storage Container Immutability Policy.
-* `update` - (Defaults to 10 minutes) Used when updating the Storage Container Immutability Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Container Immutability Policy.
+* `update` - (Defaults to 10 minutes) Used when updating the Storage Container Immutability Policy.
 * `delete` - (Defaults to 10 minutes) Used when deleting the Storage Container Immutability Policy.
 
 ## Import
