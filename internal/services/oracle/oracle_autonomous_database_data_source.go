@@ -78,7 +78,7 @@ type AutonomousDatabaseRegularDataModel struct {
 	UsedDataStorageSizeInGbs                int64    `tfschema:"used_data_storage_size_in_gbs"`
 	UsedDataStorageSizeInTbs                int64    `tfschema:"used_data_storage_size_in_tbs"`
 	VnetId                                  string   `tfschema:"virtual_network_id"`
-	AllowedIps                              []string `tfschema:"allowed_ips"`
+	WhitelistedIPs                          []string `tfschema:"allowed_ips"`
 }
 
 func (d AutonomousDatabaseRegularDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -375,7 +375,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
-		"allowed_ips": {
+		"white_listed_ips": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
@@ -479,7 +479,7 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 					state.UsedDataStorageSizeInGbs = pointer.From(adbsProps.UsedDataStorageSizeInGbs)
 					state.UsedDataStorageSizeInTbs = pointer.From(adbsProps.UsedDataStorageSizeInTbs)
 					state.VnetId = pointer.From(adbsProps.VnetId)
-					state.AllowedIps = pointer.From(adbsProps.WhitelistedIPs)
+					state.WhitelistedIPs = pointer.From(adbsProps.WhitelistedIPs)
 				}
 			}
 
