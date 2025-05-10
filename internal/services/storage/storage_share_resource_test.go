@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
@@ -635,13 +636,14 @@ func (r StorageShareResource) Exists(ctx context.Context, client *clients.Client
 		return pointer.To(props != nil), nil
 	}
 
-	id, err := fileshares.ParseShareID(state.ID)
+	id, err := parse.StorageShareResourceManagerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	existing, err := client.Storage.ResourceManager.FileShares.Get(ctx, *id, fileshares.DefaultGetOperationOptions())
+	sid := fileshares.NewShareID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.FileshareName)
+	existing, err := client.Storage.ResourceManager.FileShares.Get(ctx, sid, fileshares.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", sid, err)
 	}
 
 	return pointer.To(existing.Model != nil), nil
