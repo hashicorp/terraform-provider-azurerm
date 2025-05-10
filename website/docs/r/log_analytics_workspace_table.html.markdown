@@ -71,6 +71,6 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Log Analytics Workspace.
-* `update` - (Defaults to 5 minutes) Used when updating the Log Analytics Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace.
+* `update` - (Defaults to 5 minutes) Used when updating the Log Analytics Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Workspace.

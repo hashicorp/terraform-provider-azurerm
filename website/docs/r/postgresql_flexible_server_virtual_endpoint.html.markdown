@@ -84,8 +84,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 minutes) Used when creating the PostgreSQL Flexible Virtual Endpoint.
-* `update` - (Defaults to 10 minutes) Used when updating the PostgreSQL Flexible Virtual Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Virtual Endpoint.
+* `update` - (Defaults to 10 minutes) Used when updating the PostgreSQL Flexible Virtual Endpoint.
 * `delete` - (Defaults to 5 minutes) Used when deleting the PostgreSQL Flexible Virtual Endpoint.
 
 ## Import

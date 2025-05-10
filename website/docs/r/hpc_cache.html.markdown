@@ -210,8 +210,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 1 hour) Used when creating the HPC Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the HPC Cache.
-* `delete` - (Defaults to 1 hour) Used when deleting the HPC Cache.
 * `update` - (Defaults to 1 hour) Used when updating the Hpc Cache.
+* `delete` - (Defaults to 1 hour) Used when deleting the HPC Cache.
 
 ## Import
 

@@ -66,8 +66,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Chaos Studio Capability.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Chaos Studio Capability.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Chaos Studio Capability.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Chaos Studio Capability.
 
 ## Import
 

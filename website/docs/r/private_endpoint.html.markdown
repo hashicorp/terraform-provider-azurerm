@@ -357,8 +357,8 @@ A `record_sets` block exports:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Private Endpoint.
-* `update` - (Defaults to 1 hour) Used when updating the Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Endpoint.
+* `update` - (Defaults to 1 hour) Used when updating the Private Endpoint.
 * `delete` - (Defaults to 1 hour) Used when deleting the Private Endpoint.
 
 ## Import

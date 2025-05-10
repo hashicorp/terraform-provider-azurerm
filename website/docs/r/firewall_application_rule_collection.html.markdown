@@ -130,8 +130,8 @@ A `protocol` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Application Rule Collection.
-* `update` - (Defaults to 30 minutes) Used when updating the Firewall Application Rule Collection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Application Rule Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Firewall Application Rule Collection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Firewall Application Rule Collection.
 
 ## Import

@@ -357,9 +357,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 1 hour) Used when creating the Container Group.
 
-* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
-
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Group.
+
+* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Group.
 
