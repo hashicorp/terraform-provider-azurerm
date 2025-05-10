@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -181,6 +182,7 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if model := resp.Model; model != nil {
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
+		d.Set("location", location.Normalize(model.Location))
 
 		storageAccountType := ""
 		if sku := model.Sku; sku != nil {
@@ -219,8 +221,6 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				diskEncryptionSetId = *props.Encryption.DiskEncryptionSetId
 			}
 			d.Set("disk_encryption_set_id", diskEncryptionSetId)
-
-			d.Set("location", model.Location)
 
 			if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
 				return fmt.Errorf("setting `encryption_settings`: %+v", err)
