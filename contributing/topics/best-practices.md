@@ -140,10 +140,7 @@ import ...
 
 type SomeResource struct{}
 
-var (
-	_ sdk.Resource           = SomeResource{}
-	_ sdk.ResourceWithUpdate = SomeResource{}
-)
+var _ sdk.ResourceWithUpdate = SomeResource{}
 
 type SomeResourceModel struct {
 	DisplayName           string            `tfschema:"display_name"`
