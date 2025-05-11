@@ -111,8 +111,8 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `fabric_profile`: %+v", err)
 			}
 
-			var payload pools.Pool = pools.Pool{
-				Name: config.Name,
+			payload := pools.Pool{
+				Name: pointer.To(config.Name),
 				Location: location.Normalize(config.Location),
 				Identity: identity,
 				Properties: &pools.PoolProperties{

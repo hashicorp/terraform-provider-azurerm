@@ -5,12 +5,10 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 )
 
-func expandAgentProfileModel(input []AgentProfileModel) (pools.BaseAgentProfileImpl, error) {
+func expandAgentProfileModel(input []AgentProfileModel) (pools.AgentProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -46,7 +44,7 @@ func expandAgentProfileModel(input []AgentProfileModel) (pools.BaseAgentProfileI
 			}
 		}
 
-		return stateful.AgentProfile(), nil
+		return stateful, nil
 
 	case AgentProfileKindStateless:
 		stateless := &pools.StatelessAgentProfile{
@@ -76,7 +74,7 @@ func expandAgentProfileModel(input []AgentProfileModel) (pools.BaseAgentProfileI
 			}
 		}
 
-		return stateless.AgentProfile(), nil
+		return stateless, nil
 
 	default:
 		return nil, fmt.Errorf("invalid agent_profile kind provided: %s", agentProfile.Kind)
@@ -100,7 +98,7 @@ func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourceP
 	}
 }
 
-func expandOrganizationProfileModel(input []OrganizationProfileModel) (pools.BaseOrganizationProfileImpl, error) {
+func expandOrganizationProfileModel(input []OrganizationProfileModel) (pools.OrganizationProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -138,7 +136,7 @@ func expandOrganizationProfileModel(input []OrganizationProfileModel) (pools.Bas
 	}
 }
 
-func expandFabricProfileModel(input []FabricProfileModel) (pools.BaseFabricProfileImpl, error) {
+func expandFabricProfileModel(input []FabricProfileModel) (pools.FabricProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
