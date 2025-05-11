@@ -101,12 +101,12 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `agent_profile`: %+v", err)
 			}
 
-			organizationProfile, err := expandOrganizationProfileModel(input.OrganizationProfile); 
+			organizationProfile, err := expandOrganizationProfileModel(config.OrganizationProfile); 
 			if err != nil {
 				return fmt.Errorf("expanding `organization_profile`: %+v", err)
 			}
 
-			fabricProfile, err := expandFabricProfileModel(input.FabricProfile, output.Properties); 
+			fabricProfile, err := expandFabricProfileModel(config.FabricProfile); 
 			if err != nil {
 				return fmt.Errorf("expanding `fabric_profile`: %+v", err)
 			}
@@ -203,7 +203,7 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("fabric_profile") {
-				fabricProfile, err := expandFabricProfileModel(config.FabricProfile, model.Properties)
+				fabricProfile, err := expandFabricProfileModel(config.FabricProfile)
 				if err != nil {
 					return fmt.Errorf("expanding `fabric_profile`: %+v", err)
 				}

@@ -138,7 +138,7 @@ func expandOrganizationProfileModel(input []OrganizationProfileModel) (pools.Bas
 	}
 }
 
-func expandFabricProfileModel(input []FabricProfileModel) (BaseFabricProfileImpl, error) {
+func expandFabricProfileModel(input []FabricProfileModel) (pools.BaseFabricProfileImpl, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
