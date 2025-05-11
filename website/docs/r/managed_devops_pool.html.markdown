@@ -162,7 +162,7 @@ A `fabric_profile` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Type of managed service identity. Accepted value is `UserAssigned`.
+* `type` - (Required) The type of managed service identity. Accepted value is `UserAssigned`.
 
 * `identity_ids` - (Optional) Specifies a list User assigned managed identity Id's.
 
