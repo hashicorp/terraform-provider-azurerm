@@ -33,11 +33,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
 			),
 		},
-		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
+		"resource_group_name":            commonschema.ResourceGroupName(),
 		"location":                       commonschema.Location(),
 		"agent_profile":                  AgentProfileSchema(),
 		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),

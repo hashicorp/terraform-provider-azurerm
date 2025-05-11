@@ -26,11 +26,7 @@ func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-		"resource_group_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
 
