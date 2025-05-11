@@ -10,42 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 )
 
-func expandResourceModel(input ManagedDevOpsPoolModel, output *pools.Pool) error {
-	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	output.Identity = identity
-	output.Location = location.Normalize(input.Location)
-	output.Name = &input.Name
-	output.Tags = &input.Tags
-
-	if output.Properties == nil {
-		output.Properties = &pools.PoolProperties{}
-	}
-
-	output.Properties.DevCenterProjectResourceId = input.DevCenterProjectResourceId
-	output.Properties.MaximumConcurrency = input.MaximumConcurrency
-
-	if err := expandAgentProfileModel(input.AgentProfile, output.Properties); err != nil {
-		return fmt.Errorf("expanding `agent_profile`: %+v", err)
-	}
-
-	if err := expandOrganizationProfileModel(input.OrganizationProfile, output.Properties); err != nil {
-		return fmt.Errorf("expanding `organization_profile`: %+v", err)
-	}
-
-	if err := expandFabricProfileModel(input.FabricProfile, output.Properties); err != nil {
-		return fmt.Errorf("expanding `fabric_profile`: %+v", err)
-	}
-
-	return nil
-}
-
-func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProperties) error {
+func expandAgentProfileModel(input []AgentProfileModel) (pools.BaseAgentProfileImpl, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	agentProfile := input[0]
@@ -79,7 +46,7 @@ func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProper
 			}
 		}
 
-		output.AgentProfile = stateful.AgentProfile()
+		return stateful.AgentProfile(), nil
 
 	case AgentProfileKindStateless:
 		stateless := &pools.StatelessAgentProfile{
@@ -109,13 +76,11 @@ func expandAgentProfileModel(input []AgentProfileModel, output *pools.PoolProper
 			}
 		}
 
-		output.AgentProfile = stateless.AgentProfile()
+		return stateless.AgentProfile(), nil
 
 	default:
-		return fmt.Errorf("invalid agent_profile kind provided: %s", agentProfile.Kind)
+		return nil, fmt.Errorf("invalid agent_profile kind provided: %s", agentProfile.Kind)
 	}
-
-	return nil
 }
 
 func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourcePredictionsSdkModel {
@@ -129,15 +94,17 @@ func expandResourcePredictionsModel(input []ResourcePredictionsModel) *ResourceP
 		return nil
 	}
 
-	output := ResourcePredictionsSdkModel{
+	return &ResourcePredictionsSdkModel{
 		DaysData: parsedDaysData,
 		TimeZone: resourcePredictions.TimeZone,
 	}
-
-	return pointer.To(output)
 }
 
-func expandOrganizationProfileModel(input []OrganizationProfileModel, output *pools.PoolProperties) error {
+func expandOrganizationProfileModel(input []OrganizationProfileModel) (pools.BaseOrganizationProfileImpl, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
 	organizationProfile := input[0]
 	if organizationProfile.Kind == "AzureDevOps" {
 		poolOrganizations := []pools.Organization{}
@@ -165,15 +132,17 @@ func expandOrganizationProfileModel(input []OrganizationProfileModel, output *po
 			azureDevOpsOrganizationProfile.PermissionProfile = poolPermissionProfile
 		}
 
-		output.OrganizationProfile = azureDevOpsOrganizationProfile
+		return azureDevOpsOrganizationProfile, nil
 	} else {
-		return fmt.Errorf("invalid organization_profile Kind Provided: %s", organizationProfile.Kind)
+		return nil, fmt.Errorf("invalid organization_profile `Kind` Provided: %s", organizationProfile.Kind)
 	}
-
-	return nil
 }
 
-func expandFabricProfileModel(input []FabricProfileModel, output *pools.PoolProperties) error {
+func expandFabricProfileModel(input []FabricProfileModel) (BaseFabricProfileImpl, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
 	fabricProfile := input[0]
 	if fabricProfile.Kind == "Vmss" {
 		vmssFabricProfile := pools.VMSSFabricProfile{
@@ -185,12 +154,10 @@ func expandFabricProfileModel(input []FabricProfileModel, output *pools.PoolProp
 			Kind:           fabricProfile.Kind,
 		}
 
-		output.FabricProfile = vmssFabricProfile
+		return vmssFabricProfile, nil
 	} else {
-		return fmt.Errorf("invalid fabric_profile Kind Provided: %s", fabricProfile.Kind)
+		return nil, fmt.Errorf("invalid fabric_profile Kind Provided: %s", fabricProfile.Kind)
 	}
-
-	return nil
 }
 
 func expandImageModel(input []ImageModel) []pools.PoolImage {
@@ -219,11 +186,9 @@ func expandNetworkProfileModel(input []NetworkProfileModel) *pools.NetworkProfil
 	}
 
 	networkProfile := input[0]
-	output := &pools.NetworkProfile{
+	return &pools.NetworkProfile{
 		SubnetId: networkProfile.SubnetId,
 	}
-
-	return output
 }
 
 func expandOsProfileModel(input []OsProfileModel) *pools.OsProfile {
@@ -233,20 +198,16 @@ func expandOsProfileModel(input []OsProfileModel) *pools.OsProfile {
 
 	osProfile := input[0]
 	logonType := pools.LogonType(osProfile.LogonType)
-	output := &pools.OsProfile{
+	return &pools.OsProfile{
 		LogonType:                 &logonType,
 		SecretsManagementSettings: expandSecretsManagementSettingsModel(osProfile.SecretsManagementSettings),
 	}
-
-	return output
 }
 
 func expandDevOpsAzureSkuModel(input []DevOpsAzureSkuModel) pools.DevOpsAzureSku {
-	output := pools.DevOpsAzureSku{
+	return pools.DevOpsAzureSku{
 		Name: input[0].Name,
 	}
-
-	return output
 }
 
 func expandStorageProfileModel(input []StorageProfileModel) *pools.StorageProfile {
@@ -326,8 +287,7 @@ func flattenStatefulAgentProfileToModel(input pools.Stateful) []AgentProfileMode
 		}
 	}
 
-	output := []AgentProfileModel{agentProfileModel}
-	return output
+	return []AgentProfileModel{agentProfileModel}
 }
 
 func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []AgentProfileModel {
@@ -342,8 +302,7 @@ func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []Ag
 		}
 	}
 
-	output := []AgentProfileModel{agentProfileModel}
-	return output
+	return []AgentProfileModel{agentProfileModel}
 }
 
 func flattenResourcePredictionsProfileToModel(input pools.ResourcePredictionsProfile) []ResourcePredictionsProfileModel {
@@ -364,8 +323,7 @@ func flattenAutomaticResourcePredictionsProfileToModel(input pools.AutomaticReso
 		PredictionPreference: pointer.To(string(pointer.From(input.PredictionPreference))),
 	}
 
-	output := []ResourcePredictionsProfileModel{resourcePredictionsProfileModel}
-	return output
+	return []ResourcePredictionsProfileModel{resourcePredictionsProfileModel}
 }
 
 func flattenManualResourcePredictionsProfileToModel(input pools.ManualResourcePredictionsProfile) []ResourcePredictionsProfileModel {
@@ -373,8 +331,7 @@ func flattenManualResourcePredictionsProfileToModel(input pools.ManualResourcePr
 		Kind: string(input.Kind),
 	}
 
-	output := []ResourcePredictionsProfileModel{resourcePredictionsProfileModel}
-	return output
+	return []ResourcePredictionsProfileModel{resourcePredictionsProfileModel}
 }
 
 func flattenOrganizationProfileToModel(input pools.OrganizationProfile) []OrganizationProfileModel {
@@ -392,8 +349,7 @@ func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganiz
 		PermissionProfile: flattenAzureDevOpsPermissionProfileToModel(input.PermissionProfile),
 	}
 
-	output := []OrganizationProfileModel{organizationProfileModel}
-	return output
+	return []OrganizationProfileModel{organizationProfileModel}
 }
 
 func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel {
@@ -422,8 +378,7 @@ func flattenAzureDevOpsPermissionProfileToModel(input *pools.AzureDevOpsPermissi
 		Users:  input.Users,
 	}
 
-	output := []PermissionProfileModel{permissionProfileModel}
-	return output
+	return []PermissionProfileModel{permissionProfileModel}
 }
 
 func flattenFabricProfileToModel(input pools.FabricProfile) []FabricProfileModel {
@@ -444,8 +399,7 @@ func flattenVmssFabricProfileToModel(input pools.VMSSFabricProfile) []FabricProf
 		StorageProfile: flattenStorageProfileToModel(input.StorageProfile),
 	}
 
-	output := []FabricProfileModel{fabricProfileModel}
-	return output
+	return []FabricProfileModel{fabricProfileModel}
 }
 
 func flattenNetworkProfileToModel(input *pools.NetworkProfile) []NetworkProfileModel {
@@ -457,8 +411,7 @@ func flattenNetworkProfileToModel(input *pools.NetworkProfile) []NetworkProfileM
 		SubnetId: input.SubnetId,
 	}
 
-	output := []NetworkProfileModel{networkProfileModel}
-	return output
+	return []NetworkProfileModel{networkProfileModel}
 }
 
 func flattenOsProfileToModel(input *pools.OsProfile) []OsProfileModel {
@@ -471,8 +424,7 @@ func flattenOsProfileToModel(input *pools.OsProfile) []OsProfileModel {
 		SecretsManagementSettings: flattenSecretsManagementSettingsToModel(input.SecretsManagementSettings),
 	}
 
-	output := []OsProfileModel{osProfileModel}
-	return output
+	return []OsProfileModel{osProfileModel}
 }
 
 func flattenSecretsManagementSettingsToModel(input *pools.SecretsManagementSettings) []SecretsManagementSettingsModel {
@@ -490,8 +442,7 @@ func flattenSecretsManagementSettingsToModel(input *pools.SecretsManagementSetti
 		secretsManagementSettingsModel.CertificateStoreName = pointer.To(string(pointer.From(input.CertificateStoreName)))
 	}
 
-	output := []SecretsManagementSettingsModel{secretsManagementSettingsModel}
-	return output
+	return []SecretsManagementSettingsModel{secretsManagementSettingsModel}
 }
 
 func flattenImagesToModel(input []pools.PoolImage) []ImageModel {
@@ -547,6 +498,5 @@ func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileM
 		storageProfileModel.DataDisks = dataDisksOut
 	}
 
-	output := []StorageProfileModel{storageProfileModel}
-	return output
+	return []StorageProfileModel{storageProfileModel}
 }

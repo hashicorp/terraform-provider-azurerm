@@ -91,9 +91,38 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			var payload pools.Pool
-			if err := expandResourceModel(config, &payload); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+			identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+
+			agentProfile, err := expandAgentProfileModel(config.AgentProfile); 
+			if err != nil {
+				return fmt.Errorf("expanding `agent_profile`: %+v", err)
+			}
+
+			organizationProfile, err := expandOrganizationProfileModel(input.OrganizationProfile); 
+			if err != nil {
+				return fmt.Errorf("expanding `organization_profile`: %+v", err)
+			}
+
+			fabricProfile, err := expandFabricProfileModel(input.FabricProfile, output.Properties); 
+			if err != nil {
+				return fmt.Errorf("expanding `fabric_profile`: %+v", err)
+			}
+
+			var payload pools.Pool = pools.Pool{
+				Name: config.Name,
+				Location: location.Normalize(config.Location),
+				Identity: identity,
+				Properties: &pools.PoolProperties{
+					DevCenterProjectResourceId: config.DevCenterProjectResourceId,
+					MaximumConcurrency:         config.MaximumConcurrency,
+					AgentProfile:               agentProfile,
+					OrganizationProfile:        organizationProfile,
+					FabricProfile:              fabricProfile,
+				},
+				Tags: pointer.To(config.Tags),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
@@ -134,13 +163,58 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
-			properties := existing.Model
+			payload := existing.Model
 
-			if err := expandResourceModel(config, properties); err != nil {
-				return fmt.Errorf("mapping schema model to sdk model: %+v", err)
+			if metadata.ResourceData.HasChange("identity") {
+				identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				payload.Identity = identity
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *properties); err != nil {
+			if metadata.ResourceData.HasChange("dev_center_project_resource_id") {
+				payload.Properties.DevCenterProjectResourceId = config.DevCenterProjectResourceId
+			}
+
+			if metadata.ResourceData.HasChange("maximum_concurrency") {
+				payload.Properties.MaximumConcurrency = config.MaximumConcurrency
+			}
+
+			
+			if metadata.ResourceData.HasChange("location") {
+				payload.Location = location.Normalize(config.Location)
+			}
+
+			if metadata.ResourceData.HasChange("agent_profile") {
+				agentProfile, err := expandAgentProfileModel(config.AgentProfile)
+				if err != nil {
+					return fmt.Errorf("expanding `agent_profile`: %+v", err)
+				}
+				payload.Properties.AgentProfile = agentProfile
+			}
+
+			if metadata.ResourceData.HasChange("organization_profile") {
+				organizationProfile, err := expandOrganizationProfileModel(config.OrganizationProfile)
+				if err != nil {
+					return fmt.Errorf("expanding `organization_profile`: %+v", err)
+				}
+				payload.Properties.OrganizationProfile = organizationProfile
+			}
+
+			if metadata.ResourceData.HasChange("fabric_profile") {
+				fabricProfile, err := expandFabricProfileModel(config.FabricProfile, model.Properties)
+				if err != nil {
+					return fmt.Errorf("expanding `fabric_profile`: %+v", err)
+				}
+				payload.Properties.FabricProfile = fabricProfile
+			}
+			
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(config.Tags)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
