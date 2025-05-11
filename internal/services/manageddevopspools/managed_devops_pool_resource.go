@@ -38,10 +38,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 		},
-		"location":      commonschema.Location(),
-		"agent_profile": AgentProfileSchema(),
+		"location":                       commonschema.Location(),
+		"agent_profile":                  AgentProfileSchema(),
 		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
-		"fabric_profile": FabricProfileSchema(),
+		"fabric_profile":                 FabricProfileSchema(),
 		"maximum_concurrency": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
@@ -96,23 +96,23 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			agentProfile, err := expandAgentProfileModel(config.AgentProfile); 
+			agentProfile, err := expandAgentProfileModel(config.AgentProfile)
 			if err != nil {
 				return fmt.Errorf("expanding `agent_profile`: %+v", err)
 			}
 
-			organizationProfile, err := expandOrganizationProfileModel(config.OrganizationProfile); 
+			organizationProfile, err := expandOrganizationProfileModel(config.OrganizationProfile)
 			if err != nil {
 				return fmt.Errorf("expanding `organization_profile`: %+v", err)
 			}
 
-			fabricProfile, err := expandFabricProfileModel(config.FabricProfile); 
+			fabricProfile, err := expandFabricProfileModel(config.FabricProfile)
 			if err != nil {
 				return fmt.Errorf("expanding `fabric_profile`: %+v", err)
 			}
 
 			payload := pools.Pool{
-				Name: pointer.To(config.Name),
+				Name:     pointer.To(config.Name),
 				Location: location.Normalize(config.Location),
 				Identity: identity,
 				Properties: &pools.PoolProperties{
@@ -181,7 +181,6 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				payload.Properties.MaximumConcurrency = config.MaximumConcurrency
 			}
 
-			
 			if metadata.ResourceData.HasChange("location") {
 				payload.Location = location.Normalize(config.Location)
 			}
@@ -209,7 +208,7 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				}
 				payload.Properties.FabricProfile = fabricProfile
 			}
-			
+
 			if metadata.ResourceData.HasChange("tags") {
 				payload.Tags = pointer.To(config.Tags)
 			}
