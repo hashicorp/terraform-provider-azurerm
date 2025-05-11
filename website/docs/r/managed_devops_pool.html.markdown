@@ -242,7 +242,7 @@ A `resource_predictions_profile` block supports the following:
 
 A `secrets_management_settings` block supports the following:
 
-* `certificate_store_location` - (Optional) Specified where to store certificates on the machine.
+* `certificate_store_location` - (Optional) Specifies where to store certificates on the machine.
 
 * `certificate_store_name` - (Optional) Name of the certificate store to use on the machine. Accepted values are: 'My' and 'Root'.
 
