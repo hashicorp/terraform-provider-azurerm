@@ -165,11 +165,12 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
 			}
-			vaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
-			if err != nil {
-				return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
+			if keyVaultIdRaw != nil {
+				vaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
+				if err != nil {
+					return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
+				}
 			}
-
 			certVersion := ""
 			if resp.Model.Properties.KeyVaultSecretVersion != nil {
 				certVersion = *resp.Model.Properties.KeyVaultSecretVersion

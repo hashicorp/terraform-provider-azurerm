@@ -114,7 +114,7 @@ A `rule` block supports the following:
 
 * `source_ip_groups` - (Optional) A list of IP Group IDs for the rule.
 
--> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
+-> **Note:** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
 * `destination_addresses` - (Optional) Either a list of destination IP addresses and/or IP ranges, or a list of destination [Service Tags](https://docs.microsoft.com/azure/virtual-network/service-tags-overview#available-service-tags).
 
@@ -122,9 +122,9 @@ A `rule` block supports the following:
 
 * `destination_fqdns` - (Optional) A list of destination FQDNS for the rule.
 
--> **NOTE** [You must enable DNS Proxy to use FQDNs in your network rules](https://docs.microsoft.com/azure/firewall/fqdn-filtering-network-rules).
+-> **Note:** [You must enable DNS Proxy to use FQDNs in your network rules](https://docs.microsoft.com/azure/firewall/fqdn-filtering-network-rules).
 
--> **NOTE** At least one of `destination_addresses`, `destination_ip_groups` and `destination_fqdns` must be specified for a rule.
+-> **Note:** At least one of `destination_addresses`, `destination_ip_groups` and `destination_fqdns` must be specified for a rule.
 
 * `destination_ports` - (Required) A list of destination ports.
 

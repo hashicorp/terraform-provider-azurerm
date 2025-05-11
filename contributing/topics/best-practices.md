@@ -72,14 +72,16 @@ An example of both Typed and Untyped Resources can be found below - however as a
 
 Data Sources and Resources built using the Typed SDK have a number of benefits over those using `hashicorp/terraform-plugin-sdk` directly:
 
-* The Typed SDK requires that a number of Azure specific behaviours are present in each Data Source/Resource. For example, the `interface` defining the Typed SDK includes a `IDValidationFunc()` function, which is used during `terraform import` to ensure the Resource ID being specified matches what we're expecting. Whilst this is possible using the Untyped SDK, it's more work to do so, as such using the Typed SDK ensures that these behaviours become common across the provider.
+* The Typed SDK requires that a number of Azure specific behaviours are present in each Data Source/Resource. For example, the `interface` defining the Typed SDK includes an `IDValidationFunc()` function, which is used during `terraform import` to ensure the Resource ID being specified matches what we're expecting. Whilst this is possible using the Untyped SDK, it's more work to do so, as such using the Typed SDK ensures that these behaviours become common across the provider.
 * The Typed SDK exposes an `Encode()` and `Decode()` method, allowing the marshalling/unmarshalling of the Terraform Configuration into a Go Object - which both:
     1. Avoids logic errors when an incorrect key is used in `d.Get` and `d.Set`, since we can validate that each of the HCL keys used for the models (to get and set these from the Terraform Config) is present within the Schema via a unit test, rather than failing during the `Read` function, which takes considerably longer.
-    2. Default values can be implied for fields, rather than requiring an explicit `d.Set` in the Read function for every field - this allows us to ensure that an empty value/list is set for a field, rather than being `null` and thus unreferenceable in user configs.
+    2. Default values can be implied for fields, rather than requiring an explicit `d.Set` in the Read function for every field - this allows us to ensure that an empty value/list is set for a field, rather than being `null` and thus not able to be referenced in user configs.
 * Using the Typed SDK allows Data Sources and Resources to (in the future) be migrated across to using `hashicorp/terraform-plugin-framework` rather than `hashicorp/terraform-plugin-sdk` without rewriting the resource - which will unlock a number of benefits to end-users, but does involve some configuration changes (and as such will need to be done in a major release).
 * Using the Typed SDK means that these Data Sources/Resources can be more easily swapped out for generated versions down the line (since the code changes will be far smaller).
   
 To facilitate the migration across to Typed Resources, we ask that any new Data Source or Resource which is added to the Provider is added as a Typed Data Source/Resource. Enhancements to existing Data Sources/Resources which are Untyped Resources can remain as Untyped Resources, however these will need to be migrated across in the future.
+
+Here is an example of an Untyped Resource:
 
 ```go
 package someservice
@@ -212,21 +214,35 @@ func (r SomeResource) Delete() sdk.ResourceFunc {
 }
 ```
 
-
 ## Setting Properties to Optional + Computed
 
-There's a number of API's within Azure which will specify a default value for a field if one isn't specified, for example the createMode field is typically defaulted (server-side) to Default.
+There are many APIs within Azure that will specify a default value for a field if one isn't specified, for example the `createMode` field is typically defaulted (server-side) to `Default`.
 
 The Azure Provider currently makes use of `hashicorp/terraform-plugin-sdk@v2` to define Data Sources and Resources, which under the hood uses v5 of the Terraform Protocol to interact with Terraform Core.
 
-In version 5 of the Terraform Protocol, if a field is created with one value at Create time and returns a different value immediately after creation, then an internal warning is logged (but no error is raised) - meaning that the only way this change is visible is through a diff when terraform plan is run. The next version of the Terraform Protocol (v6 - used by `hashicorp/terraform-plugin-framework`) changes this from a logged warning to an error at runtime - meaning that these diffs will become more visible to users (and need to be accounted for in the provider).
+In version 5 of the Terraform Protocol, if a field is created with one value at Create time and returns a different value immediately after creation, then an internal warning is logged (but no error is raised) - meaning that the only way this change is visible is through a diff when `terraform plan` is run. The next version of the Terraform Protocol (v6 - used by `hashicorp/terraform-plugin-framework`) changes this from a logged warning to an error at runtime - meaning that these diffs will become more visible to users (and need to be accounted for in the provider).
 
-To workaround situations where we need to expose the default value from the Azure API - we've historically marked fields as both Optional and Computed - meaning that a value will be returned from the API when it's not defined.
+To work around situations where we need to expose the default value from the Azure API - we've historically marked fields as both `Optional` and `Computed` - meaning that a value will be returned from the API when it's not defined.
 
-Whilst this works, one side-effect is that it's hard for users to reset a field to its default value when this is done - as such some fields today (such as the subnets block within the azurerm_virtual_network resource) require that an explicit empty value is specified (for example subnets = []) to remove this value, where this field is Optional & Computed.
+Whilst this works, a side effect is that it's hard for users to reset a field to its default value when this is done - as such some fields today (such as the subnets block within the azurerm_virtual_network resource) require that an explicit empty list is specified (for example `subnets = []`) to remove this value, where this field is `Optional` and `Computed`.
 
-In order to solve this, (new) fields should no longer be marked as `Optional` + `Computed` - instead where a split Create and Update method is used (see above) users can lean on `ignore_changes` to ignore values from a field with a default value, should they wish to continue using the default value.
+In order to solve this, (new) fields should no longer be marked as `Optional` and `Computed` - instead where a split Create and Update method is used (see above) users can lean on `ignore_changes` to ignore values from a field with a default value, should they wish to continue using the default value.
 
-This approach means that we can support users who want to use the default value (by specifying ignore_changes = ["some_field"]), users who want to explicitly define this value (e.g. some_field = "bar") and users who need to remove this value (by either omitting the field or defining it as null, so that gets removed).
+This approach means that we can support users who want to use the default value by specifying `ignore_changes = ["some_field"]`, users who want to explicitly define this value e.g. some_field = "bar" and users who need to remove this value by either omitting the field or defining it as null, so that it gets removed.
 
-Over time, the existing resources will be migrated from `Optional` + `Computed` -> `Optional` (allowing users to rely on ignore_changes) so that this becomes more behaviourally consistent - however new fields should be defined as `Optional` alone, rather than `Optional` and `Computed`.
+Over time, the existing resources will be migrated from `Optional` and `Computed` to just `Optional` (allowing users to rely on `ignore_changes`) so that this becomes more behaviourally consistent - however new fields should be defined as `Optional` alone, rather than `Optional` and `Computed`.
+
+If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
+* The properties are in this sequence: Optional, Explanatory Comment, Computed
+* The comment should start with `// NOTE: O+C `, and then explain the reason for the field being `Optional` and `Computed`
+
+Example:
+
+```go
+	"etag": {
+		Type: pluginsdk.TypeString,
+		Optional: true,
+		// NOTE: O+C Azure generates a new value every time this resource is updated
+		Computed: true,
+	},
+```

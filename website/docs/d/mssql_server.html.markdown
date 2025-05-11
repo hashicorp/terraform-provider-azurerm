@@ -37,21 +37,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Microsoft SQL Server.
 
-* `administrator_login` - The server's administrator login name.
+* `administrator_login` - The administrator login name of the Microsoft SQL Server.
 
-* `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server.
+* `express_vulnerability_assessment_enabled` - Whether the Express Vulnerability Assessment Configuration is enabled.
 
-* `identity` - A `identity` block as defined below.
+* `fully_qualified_domain_name` - The fully qualified domain name of the Microsoft SQL Server.
+
+* `identity` - An `identity` block as defined below.
 
 * `location` - The Azure Region where the Microsoft SQL Server exists.
 
-* `restorable_dropped_database_ids` - A list of dropped restorable database IDs on the server.
+* `restorable_dropped_database_ids` - A list of dropped restorable database IDs on the Microsoft SQL Server.
 
-* `transparent_data_encryption_key_vault_key_id` - The Key Vault key URI to be used as the `Customer Managed Key`(CMK/BYOK) for the `Transparent Data Encryption`(TDE) layer.
+* `transparent_data_encryption_key_vault_key_id` - The Key Vault Key URI to be used as the `Customer Managed Key` (CMK/BYOK) for the `Transparent Data Encryption` (TDE) layer.
 
 * `tags` - A mapping of tags assigned to this Microsoft SQL Server.
 
-* `version` - This servers MS SQL version.
+* `version` - The version of the Microsoft SQL Server.
 
 ---
 

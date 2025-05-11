@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `instant_restore_retention_days` - (Optional) Specifies the instant restore retention range in days. Possible values are between `1` and `5` when `policy_type` is `V1`, and `1` to `30` when `policy_type` is `V2`.
 
-~> **NOTE:** `instant_restore_retention_days` **must** be set to `5` if the backup frequency is set to `Weekly`.
+~> **Note:** `instant_restore_retention_days` **must** be set to `5` if the backup frequency is set to `Weekly`.
 
 * `instant_restore_resource_group` - (Optional) Specifies the instant restore resource group name as documented in the `instant_restore_resource_group` block below.
 
@@ -105,7 +105,7 @@ The `backup` block supports:
 
 * `hour_duration` - (Optional) Duration of the backup window in hours. Possible values are between `4` and `24` This is used when `frequency` is `Hourly`.
 
-~> **NOTE:** `hour_duration` must be multiplier of `hour_interval`
+~> **Note:** `hour_duration` must be multiplier of `hour_interval`
 
 * `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`. This is used when `frequency` is `Weekly`.
 
@@ -146,7 +146,7 @@ The `retention_monthly` block supports:
 
 * `include_last_days` - (Optional) Including the last day of the month, default to `false`.
 
--> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
+-> **Note:** Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
 
@@ -164,7 +164,7 @@ The `retention_yearly` block supports:
 
 * `include_last_days` - (Optional) Including the last day of the month, default to `false`.
 
--> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
+-> **Note:** Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
 

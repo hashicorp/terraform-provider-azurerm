@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `authorization_methods` - (Required) The HTTP Verbs supported by the Authorization Endpoint. Possible values are `DELETE`, `GET`, `HEAD`, `OPTIONS`, `PATCH`, `POST`, `PUT` and `TRACE`.
 
--> **NOTE:** `GET` must always be present.
+-> **Note:** `GET` must always be present.
 
 * `authorization_endpoint` - (Required) The OAUTH Authorization Endpoint.
 
@@ -78,11 +78,11 @@ The following arguments are supported:
 
 * `resource_owner_password` - (Optional) The password associated with the Resource Owner.
 
--> **NOTE:** This can only be specified when `grant_type` includes `resourceOwnerPassword`.
+-> **Note:** This can only be specified when `grant_type` includes `resourceOwnerPassword`.
 
 * `resource_owner_username` - (Optional) The username associated with the Resource Owner.
 
--> **NOTE:** This can only be specified when `grant_type` includes `resourceOwnerPassword`.
+-> **Note:** This can only be specified when `grant_type` includes `resourceOwnerPassword`.
 
 * `support_state` - (Optional) Does this Authorization Server support State? If this is set to `true` the client may use the state parameter to raise protocol security.
 

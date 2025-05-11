@@ -10,7 +10,7 @@ description: |-
 
 Manages a Email integration for a Bot Channel
 
-~> **Note** A bot can only have a single Email Channel associated with it.
+~> **Note:** A bot can only have a single Email Channel associated with it.
 
 ## Example Usage
 

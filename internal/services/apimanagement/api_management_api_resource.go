@@ -261,9 +261,10 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			},
 
 			"oauth2_authorization": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"openid_authentication"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"authorization_server_name": {
@@ -281,9 +282,10 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 			},
 
 			"openid_authentication": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"oauth2_authorization"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"openid_provider_name": {
@@ -526,7 +528,6 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		ApiRevisionDescription:        existing.ApiRevisionDescription,
 		SubscriptionRequired:          existing.SubscriptionRequired,
 		SubscriptionKeyParameterNames: existing.SubscriptionKeyParameterNames,
-		AuthenticationSettings:        existing.AuthenticationSettings,
 		Contact:                       existing.Contact,
 		License:                       existing.License,
 		SourceApiId:                   existing.SourceApiId,
@@ -536,6 +537,26 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		TermsOfServiceURL:             existing.TermsOfServiceURL,
 		Type:                          existing.Type,
 		ApiType:                       pointer.To(soapApiType),
+	}
+
+	// For the setting of `AuthenticationSettingsContract`, the PUT payload restrictions are as follows:
+	//   1. Cannot have both 'oAuth2' and 'openid' set
+	//   2. Cannot use `OAuth2AuthenticationSettings` in combination with `OAuth2` nor `openid`
+	//   3. Cannot use `OpenidAuthenticationSettings` in combination with `Openid` nor `OAuth2`
+	// If specifying `oauth2_authorization`/`openid_authentication` when creating a resource and then updating the resource, the error #2/#3 mentioned above will occur.
+	// This is because starting from the 2022-08-01 version, the Get API additionally returns a collection of `oauth2_authorization`/`openid_authentication` authentication settings, which property name is `OAuth2AuthenticationSettings`/`OpenidAuthenticationSetting`.
+	// Given the API behavior, the update here should only read the specified property `oauth2_authorization`/`openid_authentication` to exclude `OAuth2AuthenticationSettings`/`OpenidAuthenticationSetting` to ensure the update works properly.
+	if v := existing.AuthenticationSettings; v != nil {
+		authenticationSettings := &api.AuthenticationSettingsContract{}
+		if v.OAuth2 != nil {
+			authenticationSettings.OAuth2 = v.OAuth2
+			prop.AuthenticationSettings = authenticationSettings
+		}
+
+		if v.Openid != nil {
+			authenticationSettings.Openid = v.Openid
+			prop.AuthenticationSettings = authenticationSettings
+		}
 	}
 
 	if d.HasChange("path") {
@@ -575,11 +596,8 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		prop.SubscriptionKeyParameterNames = expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
 	}
 
-	authenticationSettings := existing.AuthenticationSettings
-	if authenticationSettings == nil {
-		authenticationSettings = &api.AuthenticationSettingsContract{}
-	}
 	if d.HasChange("oauth2_authorization") {
+		authenticationSettings := &api.AuthenticationSettingsContract{}
 		oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
 		oAuth2AuthorizationSettings := expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
 		authenticationSettings.OAuth2 = oAuth2AuthorizationSettings
@@ -587,6 +605,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("openid_authentication") {
+		authenticationSettings := &api.AuthenticationSettingsContract{}
 		openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
 		openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
 		authenticationSettings.Openid = openIDAuthorizationSettings

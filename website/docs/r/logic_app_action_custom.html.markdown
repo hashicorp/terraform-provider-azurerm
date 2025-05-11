@@ -54,13 +54,13 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the HTTP Action to be created within the Logic App Workflow. Changing this forces a new resource to be created.
 
--> **NOTE:** This name must be unique across all Actions within the Logic App Workflow.
+-> **Note:** This name must be unique across all Actions within the Logic App Workflow.
 
 * `logic_app_id` - (Required) Specifies the ID of the Logic App Workflow. Changing this forces a new resource to be created.
 
 * `body` - (Required) Specifies the JSON Blob defining the Body of this Custom Action.
 
--> **NOTE:** To make the Action more readable, you may wish to consider using HEREDOC syntax (as shown above) or [the `local_file` resource](https://www.terraform.io/docs/providers/local/d/file.html) to load the schema from a file on disk.
+-> **Note:** To make the Action more readable, you may wish to consider using HEREDOC syntax (as shown above) or [the `local_file` resource](https://www.terraform.io/docs/providers/local/d/file.html) to load the schema from a file on disk.
 
 ## Attributes Reference
 
@@ -85,4 +85,4 @@ Logic App Custom Actions can be imported using the `resource id`, e.g.
 terraform import azurerm_logic_app_action_custom.custom1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Logic/workflows/workflow1/actions/custom1
 ```
 
--> **NOTE:** This ID is unique to Terraform and doesn't directly match to any other resource. To compose this ID, you can take the ID Logic App Workflow and append `/actions/{name of the action}`.
+-> **Note:** This ID is unique to Terraform and doesn't directly match to any other resource. To compose this ID, you can take the ID Logic App Workflow and append `/actions/{name of the action}`.

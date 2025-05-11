@@ -87,13 +87,13 @@ The following arguments are supported:
 
 * `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standardv2_Monthly`, `basic_Monthly`.
 
--> **NOTE:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
+-> **Note:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
 
 ---
 
 * `capacity` - (Optional) Specify the number of NGINX capacity units for this NGINX deployment.
 
--> **Note** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
+-> **Note:** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
 * `auto_scale_profile` - (Optional) An `auto_scale_profile` block as defined below.
 
@@ -103,13 +103,15 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `frontend_private` - (Optional) One or more `frontend_private` blocks as defined below. Changing this forces a new NGINX Deployment to be created.
+* `frontend_private` - (Optional) One or more `frontend_private` blocks as defined below.
 
-* `frontend_public` - (Optional) A `frontend_public` block as defined below. Changing this forces a new NGINX Deployment to be created.
+* `frontend_public` - (Optional) A `frontend_public` block as defined below.
 
-* `network_interface` - (Optional) One or more `network_interface` blocks as defined below. Changing this forces a new NGINX Deployment to be created.
+* `network_interface` - (Optional) One or more `network_interface` blocks as defined below.
 
 * `automatic_upgrade_channel` - (Optional) Specify the automatic upgrade channel for the NGINX deployment. Defaults to `stable`. The possible values are `stable` and `preview`.
+
+* `web_application_firewall` - (Optional) A `web_application_firewall` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the NGINX Deployment.
 
@@ -121,29 +123,29 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
 A `frontend_private` block supports the following:
 
-* `allocation_method` - (Required) Specify the method for allocating the private IP. Possible values are `Static` and `Dynamic`. Changing this forces a new NGINX Deployment to be created.
+* `allocation_method` - (Required) Specify the method for allocating the private IP. Possible values are `Static` and `Dynamic`.
 
-* `ip_address` - (Required) Specify the private IP Address. Changing this forces a new NGINX Deployment to be created.
+* `ip_address` - (Required) Specify the private IP Address.
 
-* `subnet_id` - (Required) Specify the Subnet Resource ID for this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
+* `subnet_id` - (Required) Specify the Subnet Resource ID for this NGINX Deployment.
 
 ---
 
 A `frontend_public` block supports the following:
 
-* `ip_address` - (Optional) Specifies a list of Public IP Resource ID to this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
+* `ip_address` - (Optional) Specifies a list of Public IP Resource ID to this NGINX Deployment.
 
 ---
 
 A `network_interface` block supports the following:
 
-* `subnet_id` - (Required) Specify The Subnet Resource ID for this NGINX Deployment. Changing this forces a new NGINX Deployment to be created.
+* `subnet_id` - (Required) Specify The Subnet Resource ID for this NGINX Deployment.
 
 ---
 
@@ -155,7 +157,13 @@ An `auto_scale_profile` block supports the following:
 
 * `max_capacity` - (Required) Specify the maximum number of NGINX capacity units for this NGINX Deployment.
 
--> **NOTE:** If you're using autoscaling with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
+-> **Note:** If you're using autoscaling with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changes) to ignore changes to the `capacity` field.
+
+---
+
+A `web_application_firewall` - block supports the following:
+
+* `activation_state_enabled` - (Required) Whether WAF is enabled/disabled for this NGINX Deployment.
 
 ## Attributes Reference
 
@@ -168,6 +176,20 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `nginx_version` - The version of the NGINX Deployment.
 
 * `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
+
+* `web_application_firewall.status` - A `web_application_firewall.status` block as defined below:
+
+---
+
+A `web_application_firewall.status` - block supports the following:
+
+* `attack_signatures_package` - Indicates the version of the attack signatures package used by NGINX App Protect.
+
+* `bot_signatures_package` - Indicates the version of the bot signatures package used by NGINX App Protect.
+
+* `threat_campaigns_package` - Indicates the version of the threat campaigns package used by NGINX App Protect.
+
+* `component_versions` - Indicates the version of the WAF Engine and Nginx WAF Module used by NGINX App Protect.
 
 ## Timeouts
 

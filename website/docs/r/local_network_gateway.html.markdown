@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `gateway_fqdn` - (Optional) The gateway FQDN to connect with.
 
--> **NOTE:** Either `gateway_address` or `gateway_fqdn` should be specified.
+-> **Note:** Either `gateway_address` or `gateway_fqdn` should be specified.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -38,7 +38,7 @@ resource "azurerm_analysis_services_server" "server" {
 }
 ```
 
--> **NOTE:** The server resource will automatically be started and stopped during an update if it is in `paused` state.
+-> **Note:** The server resource will automatically be started and stopped during an update if it is in `paused` state.
 
 ## Argument Reference
 
