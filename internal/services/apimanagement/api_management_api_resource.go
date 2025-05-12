@@ -519,9 +519,9 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	prop := &api.ApiCreateOrUpdateProperties{
 		Path:                          existing.Path,
-		Protocols:                     existing.Protocols,
+		Protocols:                     protocols,
 		ServiceURL:                    existing.ServiceURL,
-		Description:                   existing.Description,
+		Description:                   pointer.To(d.Get("description").(string)),
 		ApiVersionDescription:         existing.ApiVersionDescription,
 		ApiRevisionDescription:        existing.ApiRevisionDescription,
 		SubscriptionRequired:          existing.SubscriptionRequired,
@@ -530,7 +530,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Contact:                       existing.Contact,
 		License:                       existing.License,
 		SourceApiId:                   existing.SourceApiId,
-		DisplayName:                   existing.DisplayName,
+		DisplayName:                   pointer.To(displayName),
 		ApiVersion:                    existing.ApiVersion,
 		ApiVersionSetId:               existing.ApiVersionSetId,
 		TermsOfServiceURL:             existing.TermsOfServiceURL,
@@ -542,10 +542,6 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		prop.Path = path
 	}
 
-	if d.HasChange("protocols") {
-		prop.Protocols = protocols
-	}
-
 	if d.HasChange("api_type") {
 		prop.Type = pointer.To(apiType)
 		prop.ApiType = pointer.To(soapApiType)
@@ -553,10 +549,6 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("service_url") {
 		prop.ServiceURL = pointer.To(serviceUrl)
-	}
-
-	if d.HasChange("description") {
-		prop.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if d.HasChange("revision_description") {
@@ -603,10 +595,6 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if d.HasChange("source_api_id") {
 		prop.SourceApiId = pointer.To(sourceApiId)
-	}
-
-	if d.HasChange("display_name") {
-		prop.DisplayName = pointer.To(displayName)
 	}
 
 	if d.HasChange("version") {

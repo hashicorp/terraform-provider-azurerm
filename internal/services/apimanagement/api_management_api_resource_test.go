@@ -229,6 +229,13 @@ func TestAccApiManagementApi_importOpenapi(t *testing.T) {
 			),
 		},
 		data.ImportStep("import"),
+		{
+			Config: r.importOpenapiUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -605,11 +612,32 @@ resource "azurerm_api_management_api" "test" {
   api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
   path                = "api1"
-  protocols           = ["https"]
+  protocols           = ["http"]
   revision            = "current"
 
   import {
     content_value  = file("testdata/api_management_api_openapi.yaml")
+    content_format = "openapi"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importOpenapiUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["http"]
+  revision            = "current"
+
+  import {
+    content_value  = file("testdata/api_management_api_openapi_update.yaml")
     content_format = "openapi"
   }
 }
