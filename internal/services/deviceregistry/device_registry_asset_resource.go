@@ -281,7 +281,7 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetClient
+			client := metadata.Client.DeviceRegistry.AssetsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config AssetResourceModel
@@ -398,7 +398,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetClient
+			client := metadata.Client.DeviceRegistry.AssetsClient
 
 			id, err := assets.ParseAssetID(metadata.ResourceData.Id())
 			if err != nil {
@@ -510,7 +510,7 @@ func (AssetResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetClient
+			client := metadata.Client.DeviceRegistry.AssetsClient
 
 			id, err := assets.ParseAssetID(metadata.ResourceData.Id())
 			if err != nil {
@@ -578,7 +578,7 @@ func (AssetResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetClient
+			client := metadata.Client.DeviceRegistry.AssetsClient
 
 			id, err := assets.ParseAssetID(metadata.ResourceData.Id())
 			if err != nil {

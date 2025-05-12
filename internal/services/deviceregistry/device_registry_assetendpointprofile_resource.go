@@ -41,6 +41,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -110,7 +111,7 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
+			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config AssetEndpointProfileResourceModel
@@ -166,7 +167,7 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
+			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
 
 			id, err := assetendpointprofiles.ParseAssetEndpointProfileID(metadata.ResourceData.Id())
 			if err != nil {
@@ -243,7 +244,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
+			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
 
 			id, err := assetendpointprofiles.ParseAssetEndpointProfileID(metadata.ResourceData.Id())
 			if err != nil {
@@ -300,7 +301,7 @@ func (AssetEndpointProfileResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DeviceRegistry.AssetEndpointProfileClient
+			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
 
 			id, err := assetendpointprofiles.ParseAssetEndpointProfileID(metadata.ResourceData.Id())
 			if err != nil {
