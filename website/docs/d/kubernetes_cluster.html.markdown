@@ -64,7 +64,7 @@ The following attributes are exported:
 
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
--> **NOTE:**  At this time Private Link is in Public Preview.
+-> **Note:** At this time Private Link is in Public Preview.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are not disabled.
 
@@ -214,7 +214,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `password` - A password or token used to authenticate to the Kubernetes cluster.
 
--> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+-> **Note:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
 
 ```hcl
 provider "kubernetes" {

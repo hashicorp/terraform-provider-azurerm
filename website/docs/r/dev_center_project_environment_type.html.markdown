@@ -104,10 +104,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center Project Environment Type.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center Project Environment Type.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center Project Environment Type.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center Project Environment Type.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center Project Environment Type.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Project Environment Type.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Center Project Environment Type.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center Project Environment Type.
 
 ## Import
 

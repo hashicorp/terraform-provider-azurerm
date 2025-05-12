@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `slot_id` - (Required) The ID of the Linux or Windows Web App Slot. Changing this forces a new resource to be created.
 
-~> **NOTE:** Function App Slots are not supported at this time.
+~> **Note:** Function App Slots are not supported at this time.
 
 ---
 

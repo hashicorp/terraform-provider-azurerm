@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **Note:** One of `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -187,7 +187,7 @@ OR
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
-~> **NOTE:** A maximum of total number of advanced filter values allowed on event subscription is 25.
+~> **Note:** A maximum of total number of advanced filter values allowed on event subscription is 25.
 
 ---
 
@@ -201,7 +201,7 @@ A `delivery_identity` block supports the following:
 
 A `delivery_property` block supports the following:
 
-~> **NOTE:** `delivery_property` blocks are only effective when using an `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_topic_endpoint_id`, or `webhook_endpoint` endpoint specification.
+~> **Note:** `delivery_property` blocks are only effective when using an `azure_function_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_topic_endpoint_id`, or `webhook_endpoint` endpoint specification.
 
 * `header_name` - (Required) The name of the header to send on to the destination.
 

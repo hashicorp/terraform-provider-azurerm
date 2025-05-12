@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this AI Services Account. Possible values are `F0`, `F1`, `S0`, `S`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, `P2`, `E0` and `DC0`.
 
--> **NOTE:** SKU `DC0` is the commitment tier for AI Services Account containers running in disconnected environments. You must obtain approval from Microsoft by submitting the [request form](https://aka.ms/csdisconnectedcontainers) first, before you can use this SKU. More information on [Purchase a commitment plan to use containers in disconnected environments](https://learn.microsoft.com/en-us/azure/cognitive-services/containers/disconnected-containers?tabs=stt#purchase-a-commitment-plan-to-use-containers-in-disconnected-environments).
+-> **Note:** SKU `DC0` is the commitment tier for AI Services Account containers running in disconnected environments. You must obtain approval from Microsoft by submitting the [request form](https://aka.ms/csdisconnectedcontainers) first, before you can use this SKU. More information on [Purchase a commitment plan to use containers in disconnected environments](https://learn.microsoft.com/en-us/azure/cognitive-services/containers/disconnected-containers?tabs=stt#purchase-a-commitment-plan-to-use-containers-in-disconnected-environments).
 
 * `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. This property is required when `network_acls` is specified. Changing this forces a new resource to be created.
 
@@ -104,7 +104,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this AI Services Account.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -128,7 +128,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_access_key` - The secondary access key which can be used to connect to the AI Services Account.
 
--> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_authentication_enabled` is set to `true`.
+-> **Note:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_authentication_enabled` is set to `true`.
 
 ---
 
@@ -142,10 +142,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the AI Services Account.
-* `update` - (Defaults to 30 minutes) Used when updating the AI Services Account.
+* `create` - (Defaults to 3 hours) Used when creating the AI Services Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AI Services Account.
-* `delete` - (Defaults to 30 minutes) Used when deleting the AI Services Account.
+* `update` - (Defaults to 3 hours) Used when updating the AI Services Account.
+* `delete` - (Defaults to 3 hours) Used when deleting the AI Services Account.
 
 ## Import
 

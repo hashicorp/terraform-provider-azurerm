@@ -82,7 +82,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Datadog Monitor. At this time the only allowed value is `SystemAssigned`.
 
-> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Datadog Monitor has been created. More details are available below.
+-> **Note:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Datadog Monitor has been created. More details are available below.
 
 ---
 
@@ -112,7 +112,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Datadog Monitor.
 
--> You can access the Principal ID via `${azurerm_datadog_monitor.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_datadog_monitor.example.identity[0].tenant_id}`
+-> **Note:** You can access the Principal ID via `${azurerm_datadog_monitor.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_datadog_monitor.example.identity[0].tenant_id}`
 
 ## Role Assignment
 

@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Batch account. Changing this forces a new resource to be created.
 
-~> **NOTE:** To work around [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/5574) this property is currently treated as case-insensitive. A future version of Terraform will require that the casing is correct.
+~> **Note:** To work around [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/5574) this property is currently treated as case-insensitive. A future version of Terraform will require that the casing is correct.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -61,19 +61,19 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for this server. Defaults to `true`.
 
-~> **NOTE:** When using `UserSubscription` mode, an Azure KeyVault reference has to be specified. See `key_vault_reference` below.
+~> **Note:** When using `UserSubscription` mode, an Azure KeyVault reference has to be specified. See `key_vault_reference` below.
 
-~> **NOTE:** When using `UserSubscription` mode, the `Microsoft Azure Batch` service principal has to have `Contributor` role on your subscription scope, as documented [here](https://docs.microsoft.com/azure/batch/batch-account-create-portal#additional-configuration-for-user-subscription-mode).
+~> **Note:** When using `UserSubscription` mode, the `Microsoft Azure Batch` service principal has to have `Contributor` role on your subscription scope, as documented [here](https://docs.microsoft.com/azure/batch/batch-account-create-portal#additional-configuration-for-user-subscription-mode).
 
 * `key_vault_reference` - (Optional) A `key_vault_reference` block, as defined below, that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode.
 
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
 
-~> **NOTE:** When using `storage_account_id`, the `storage_account_authentication_mode` must be specified as well.
+~> **Note:** When using `storage_account_id`, the `storage_account_authentication_mode` must be specified as well.
 
 * `storage_account_authentication_mode` - (Optional) Specifies the storage account authentication mode. Possible values include `StorageKeys`, `BatchAccountManagedIdentity`.
 
-~> **NOTE:** When using `BatchAccountManagedIdentity` mod, the `identity.type` must set to `UserAssigned` or `SystemAssigned`.
+~> **Note:** When using `BatchAccountManagedIdentity` mod, the `identity.type` must set to `UserAssigned` or `SystemAssigned`.
 
 * `storage_account_node_identity` - (Optional) Specifies the user assigned identity for the storage account.
 
@@ -91,7 +91,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Batch Account.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
@@ -101,7 +101,7 @@ A `network_profile` block supports the following:
 
 * `node_management_access` - (Optional) A `node_management_access` block as defined below.
 
-~> **NOTE:** At least one of `account_access` or `node_management_access` must be specified.
+~> **Note:** At least one of `account_access` or `node_management_access` must be specified.
 
 ---
 
@@ -154,7 +154,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `account_endpoint` - The account endpoint used to interact with the Batch service.
 
-~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService` and `allowed_authentication_modes` contains `SharedKey`. See [documentation](https://docs.microsoft.com/azure/batch/batch-api-basics) for more information.
+~> **Note:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService` and `allowed_authentication_modes` contains `SharedKey`. See [documentation](https://docs.microsoft.com/azure/batch/batch-api-basics) for more information.
 
 ---
 
@@ -169,8 +169,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Batch Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Batch Account.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Batch Account.
 
 ## Import

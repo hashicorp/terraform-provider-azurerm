@@ -72,11 +72,11 @@ The following arguments are supported:
 
 * `subresource_name` - (Required) Specify the sub resource name which the Web Pubsub Private Endpoint is able to connect to. Changing this forces a new resource to be created.
 
--> **NOTE:** The available sub resource can be retrieved by using `azurerm_web_pubsub_private_link_resource` data source.
+-> **Note:** The available sub resource can be retrieved by using `azurerm_web_pubsub_private_link_resource` data source.
 
 * `target_resource_id` - (Required) Specify the ID of the Shared Private Link Enabled Remote Resource which this Web Pubsub Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
--> **NOTE:** The sub resource name should match with the type of the target resource id that's being specified.
+-> **Note:** The sub resource name should match with the type of the target resource id that's being specified.
 
 * `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 
@@ -93,8 +93,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Shared Private Link Resource.
-* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Shared Private Link Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Web Pubsub Shared Private Link Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Shared Private Link Resource.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Web Pubsub Shared Private Link Resource.
 
 ## Import
