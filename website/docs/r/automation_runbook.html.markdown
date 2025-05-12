@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `content` - (Optional) The desired content of the runbook.
 
-~> **NOTE** The Azure API requires a `publish_content_link` to be supplied even when specifying your own `content`.
+~> **Note:** The Azure API requires a `publish_content_link` to be supplied even when specifying your own `content`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `job_schedule` - (Optional) One or more `job_schedule` block as defined below.
 
-~> **NOTE** AzureRM provides a stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and this inlined `job_schedule` property to manage the job schedules. At this time you should choose one of them to manage the job schedule resources.
+~> **Note:** AzureRM provides a stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and this inlined `job_schedule` property to manage the job schedules. At this time you should choose one of them to manage the job schedule resources.
 
 ---
 
@@ -164,7 +164,7 @@ The `job_schedule` block supports:
 
 * `parameters` - (Optional) A map of key/value pairs corresponding to the arguments that can be passed to the Runbook.
 
--> **NOTE:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
+-> **Note:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
 
 * `run_on` - (Optional) Name of a Hybrid Worker Group the Runbook will be executed on.
 

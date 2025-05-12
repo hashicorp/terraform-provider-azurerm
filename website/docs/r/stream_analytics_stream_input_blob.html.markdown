@@ -79,6 +79,8 @@ The following arguments are supported:
 
 * `serialization` - (Required) A `serialization` block as defined below.
 
+* `authentication_mode` - (Optional) The authentication mode for the Stream Analytics Input. Possible values are `Msi` and `ConnectionString`. Defaults to `ConnectionString`.
+
 ---
 
 A `serialization` block supports the following:
@@ -87,11 +89,11 @@ A `serialization` block supports the following:
 
 * `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 
--> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
+-> **Note:** This is required when `type` is set to `Csv` or `Json`.
 
 * `field_delimiter` - (Optional) The delimiter that will be used to separate comma-separated value (CSV) records. Possible values are ` ` (space), `,` (comma), `	` (tab), `|` (pipe) and `;`.
 
--> **NOTE:** This is required when `type` is set to `Csv`.
+-> **Note:** This is required when `type` is set to `Csv`.
 
 ## Attributes Reference
 

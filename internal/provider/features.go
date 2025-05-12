@@ -220,11 +220,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
-					"graceful_shutdown": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
 					"skip_shutdown_and_force_delete": {
 						Type:     schema.TypeBool,
 						Optional: true,
@@ -375,9 +370,16 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"vm_backup_stop_protection_and_retain_data_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
+					},
+					"vm_backup_suspend_protection_and_retain_data_on_destroy": {
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
 					},
 					"purge_protected_items_from_vault_on_destroy": {
 						Type:     pluginsdk.TypeBool,
@@ -409,6 +411,31 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"databricks_workspace": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"force_delete": {
+						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+				},
+			},
+		},
+	}
+
+	if !features.FivePointOh() {
+		featuresMap["virtual_machine"].Elem.(*pluginsdk.Resource).Schema["graceful_shutdown"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -417,6 +444,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: featuresMap,
 			},
@@ -560,9 +589,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
 			}
-			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
-				featuresMap.VirtualMachine.GracefulShutdown = v.(bool)
-			}
 			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {
 				featuresMap.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
 			}
@@ -664,6 +690,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
 				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
 			}
+			if v, ok := recoveryServicesRaw["vm_backup_suspend_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = v.(bool)
+			}
 			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
 				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
 			}
@@ -679,6 +708,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := netappRaw["prevent_volume_destruction"]; ok {
 				featuresMap.NetApp.PreventVolumeDestruction = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["databricks_workspace"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			databricksRaw := items[0].(map[string]interface{})
+			if v, ok := databricksRaw["force_delete"]; ok {
+				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
 			}
 		}
 	}

@@ -16,12 +16,12 @@ import (
 type ContainerGroupsListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]ContainerGroup
+	Model        *[]ListResultContainerGroup
 }
 
 type ContainerGroupsListCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []ContainerGroup
+	Items              []ListResultContainerGroup
 }
 
 type ContainerGroupsListCustomPager struct {
@@ -64,7 +64,7 @@ func (c ContainerInstanceClient) ContainerGroupsList(ctx context.Context, id com
 	}
 
 	var values struct {
-		Values *[]ContainerGroup `json:"value"`
+		Values *[]ListResultContainerGroup `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -77,12 +77,12 @@ func (c ContainerInstanceClient) ContainerGroupsList(ctx context.Context, id com
 
 // ContainerGroupsListComplete retrieves all the results into a single object
 func (c ContainerInstanceClient) ContainerGroupsListComplete(ctx context.Context, id commonids.SubscriptionId) (ContainerGroupsListCompleteResult, error) {
-	return c.ContainerGroupsListCompleteMatchingPredicate(ctx, id, ContainerGroupOperationPredicate{})
+	return c.ContainerGroupsListCompleteMatchingPredicate(ctx, id, ListResultContainerGroupOperationPredicate{})
 }
 
 // ContainerGroupsListCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ContainerInstanceClient) ContainerGroupsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ContainerGroupOperationPredicate) (result ContainerGroupsListCompleteResult, err error) {
-	items := make([]ContainerGroup, 0)
+func (c ContainerInstanceClient) ContainerGroupsListCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ListResultContainerGroupOperationPredicate) (result ContainerGroupsListCompleteResult, err error) {
+	items := make([]ListResultContainerGroup, 0)
 
 	resp, err := c.ContainerGroupsList(ctx, id)
 	if err != nil {

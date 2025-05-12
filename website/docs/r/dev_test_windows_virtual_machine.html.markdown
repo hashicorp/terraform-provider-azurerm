@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Dev Test Machine. Changing this forces a new resource to be created.
 
--> **NOTE:** The validation requirements for the Name change based on the `os_type` used in this Virtual Machine. For a Linux VM the name must be between 1-62 characters, and for a Windows VM the name must be between 1-15 characters. It must begin and end with a letter or number, and cannot be all numbers.
+-> **Note:** The validation requirements for the Name change based on the `os_type` used in this Virtual Machine. For a Linux VM the name must be between 1-62 characters, and for a Windows VM the name must be between 1-15 characters. It must begin and end with a letter or number, and cannot be all numbers.
 
 * `lab_name` - (Required) Specifies the name of the Dev Test Lab in which the Virtual Machine should be created. Changing this forces a new resource to be created.
 
@@ -97,7 +97,7 @@ The following arguments are supported:
 
 * `inbound_nat_rule` - (Optional) One or more `inbound_nat_rule` blocks as defined below. Changing this forces a new resource to be created.
 
--> **NOTE:** If any `inbound_nat_rule` blocks are specified then `disallow_public_ip_address` must be set to `true`.
+-> **Note:** If any `inbound_nat_rule` blocks are specified then `disallow_public_ip_address` must be set to `true`.
 
 * `notes` - (Optional) Any notes about the Virtual Machine.
 

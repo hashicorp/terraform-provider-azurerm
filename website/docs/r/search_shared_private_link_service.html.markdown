@@ -24,7 +24,7 @@ resource "azurerm_search_service" "test" {
   sku                 = "standard"
 }
 resource "azurerm_storage_account" "test" {
-  name                     = "xiaxintestsaforsearchspl"
+  name                     = "example"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) Specify the ID of the Shared Private Link Enabled Remote Resource which this Azure Search Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
--> **NOTE:** The sub resource name should match with the type of the target resource id that's being specified.
+-> **Note:** The sub resource name should match with the type of the target resource id that's being specified.
 
 * `request_message` - (Optional) Specify the request message for requesting approval of the Shared Private Link Enabled Remote Resource.
 

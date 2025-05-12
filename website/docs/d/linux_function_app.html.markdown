@@ -111,6 +111,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
 
+* `virtual_network_backup_restore_enabled` - Whether backup and restore operations over the linked virtual network are enabled.
+
 * `virtual_network_subnet_id` - The subnet id which the Linux Function App is vNet Integrated with.
 
 * `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.

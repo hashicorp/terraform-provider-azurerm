@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `encryption_settings` - (Optional) A `encryption_settings` block as defined below.
 
-~> **NOTE:** Removing `encryption_settings` forces a new resource to be created.
+~> **Note:** Removing `encryption_settings` forces a new resource to be created.
 
 * `incremental_enabled` - (Optional) Specifies if the Snapshot is incremental. Changing this forces a new resource to be created.
 

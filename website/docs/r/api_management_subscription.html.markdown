@@ -51,13 +51,13 @@ The following arguments are supported:
 
 * `product_id` - (Optional) The ID of the Product which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
--> **Info:** Only one of `product_id` and `api_id` can be set. If both are missing `all_apis` scope is used for the subscription.
+-> **Note:** Only one of `product_id` and `api_id` can be set. If both are missing `all_apis` scope is used for the subscription.
 
 * `user_id` - (Optional) The ID of the User which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
 * `api_id` - (Optional) The ID of the API which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
--> **Info:** Only one of `product_id` and `api_id` can be set. If both are missing `/apis` scope is used for the subscription and all apis are accessible.
+-> **Note:** Only one of `product_id` and `api_id` can be set. If both are missing `/apis` scope is used for the subscription and all apis are accessible.
 
 * `primary_key` - (Optional) The primary subscription key to use for the subscription.
 

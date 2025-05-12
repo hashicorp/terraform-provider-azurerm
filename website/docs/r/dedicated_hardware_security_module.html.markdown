@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `management_network_profile` - (Optional) A `management_network_profile` block as defined below.
 
-->**NOTE:**  The `management_network_profile` should not be specified when `sku_name` is `SafeNet Luna Network HSM A790`.
+-> **Note:** The `management_network_profile` should not be specified when `sku_name` is `SafeNet Luna Network HSM A790`.
 
 * `stamp_id` - (Optional) The ID of the stamp. Possible values are `stamp1` or `stamp2`. Changing this forces a new Dedicated Hardware Security Module to be created.
 

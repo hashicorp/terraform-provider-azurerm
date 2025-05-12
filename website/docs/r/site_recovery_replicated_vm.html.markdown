@@ -286,7 +286,7 @@ A `managed_disk` block supports the following:
 
 * `target_disk_encryption_set_id` - (Optional) The Disk Encryption Set that the Managed Disk will be associated with. Changing this forces a new resource to be created.
 
--> **NOTE:** Creating replicated vm with `target_disk_encryption_set_id` wil take more time (up to 5 hours), please extend the `timeout` for `create`. 
+-> **Note:** Creating replicated vm with `target_disk_encryption_set_id` wil take more time (up to 5 hours), please extend the `timeout` for `create`.
 
 * `target_disk_encryption` - (Optional) A `target_disk_encryption` block as defined below.
 
@@ -308,13 +308,15 @@ A `network_interface` block supports the following:
 
 * `target_static_ip` - (Optional) Static IP to assign when a failover is done.
 
-* `target_subnet_name` - (Optional) Name of the subnet to to use when a failover is done.
+* `target_subnet_name` - (Optional) Name of the subnet to use when a failover is done.
+
+* `recovery_load_balancer_backend_address_pool_ids` - (Optional) A list of IDs of Load Balancer Backend Address Pools to use when a failover is done.
 
 * `recovery_public_ip_address_id` - (Optional) Id of the public IP object to use when a failover is done.
 
 * `failover_test_static_ip` - (Optional) Static IP to assign when a test failover is done.
 
-* `failover_test_subnet_name` - (Optional) Name of the subnet to to use when a test failover is done.
+* `failover_test_subnet_name` - (Optional) Name of the subnet to use when a test failover is done.
 
 * `failover_test_public_ip_address_id` - (Optional) Id of the public IP object to use when a test failover is done.
 

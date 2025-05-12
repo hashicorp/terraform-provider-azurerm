@@ -146,6 +146,8 @@ The `custom_rules` block supports the following:
 
 * `action` - (Required) Type of action. Possible values are `Allow`, `Block` and `Log`.
 
+~> **Note:** If the `rule_type` is specified as `RateLimitRule`, the `Allow` is not supported.
+
 * `rate_limit_duration` - (Optional) Specifies the duration at which the rate limit policy will be applied. Should be used with `RateLimitRule` rule type. Possible values are `FiveMins` and `OneMin`.
 
 * `rate_limit_threshold` - (Optional) Specifies the threshold value for the rate limit policy. Must be greater than or equal to 1 if provided.
@@ -224,7 +226,7 @@ The `excluded_rule_set` block supports the following:
 
 * `type` - (Optional) The rule set type. Possible values are `Microsoft_DefaultRuleSet`, `Microsoft_BotManagerRuleSet` and `OWASP`. Defaults to `OWASP`.
 
-* `version` - (Optional) The rule set version. Possible values are `1.0` (for rule set type `Microsoft_BotManagerRuleSet`), `2.1` (for rule set type `Microsoft_DefaultRuleSet`) and `3.2` (for rule set type `OWASP`). Defaults to `3.2`.
+* `version` - (Optional) The rule set version. Possible values are `1.0`, `1.1` (for rule set type `Microsoft_BotManagerRuleSet`), `2.1` (for rule set type `Microsoft_DefaultRuleSet`) and `3.2` (for rule set type `OWASP`). Defaults to `3.2`.
 
 * `rule_group` - (Optional) One or more `rule_group` block defined below.
 
@@ -243,7 +245,7 @@ The `managed_rule_set` block supports the following:
 
 * `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet`, `Microsoft_DefaultRuleSet` and `OWASP`. Defaults to `OWASP`.
 
-* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
+* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `1.1`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
 * `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
 

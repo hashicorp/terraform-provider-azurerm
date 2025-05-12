@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `install_patches` - (Optional) An `install_patches` block as defined below.
 
--> **NOTE:** `install_patches` must be specified when `scope` is `InGuestPatch`.
+-> **Note:** `install_patches` must be specified when `scope` is `InGuestPatch`.
 
 * `in_guest_user_patch_mode` - (Optional) The in guest user patch mode. Possible values are `Platform` or `User`. Must be specified when `scope` is `InGuestPatch`.
 

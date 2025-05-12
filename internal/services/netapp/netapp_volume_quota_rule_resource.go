@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -128,9 +128,13 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// Waiting for quota rule to be created
+			if err := waitForQuotaRuleCreateOrUpdate(ctx, client, id); err != nil {
+				return fmt.Errorf("waiting create %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -168,6 +172,11 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 
 				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+				// Waiting for quota rule to be updated
+				if err := waitForQuotaRuleCreateOrUpdate(ctx, client, pointer.From(id)); err != nil {
+					return fmt.Errorf("waiting update %s: %+v", id, err)
 				}
 			}
 
@@ -242,7 +251,73 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 
+			// Waiting for quota rule to be deleted
+			if err := waitForQuotaRuleDelete(ctx, client, pointer.From(id)); err != nil {
+				return fmt.Errorf("waiting delete %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
+}
+
+func waitForQuotaRuleCreateOrUpdate(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"204", "404"},
+		Target:                    []string{"200", "202"},
+		Refresh:                   netAppVolumeQuotaRuleStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish creating/updating: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netAppVolumeQuotaRuleStateRefreshFunc(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
+			}
+		}
+
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = fmt.Sprintf("%d", res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
+	}
+}
+
+func waitForQuotaRuleDelete(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netAppVolumeQuotaRuleStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish deleting: %+v", id, err)
+	}
+
+	return nil
 }

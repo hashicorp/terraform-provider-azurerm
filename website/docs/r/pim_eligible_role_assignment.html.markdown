@@ -98,6 +98,13 @@ The following arguments are supported:
 
 * `ticket` - (Optional) A `ticket` block as defined below. Changing this forces a new resource to be created.
 
+
+* `condition` - (Optional) The condition that limits the resources that the role can be assigned to. See the [official conditions documentation](https://learn.microsoft.com/en-us/azure/role-based-access-control/conditions-overview#what-are-role-assignment-conditions) for details. Changing this forces a new resource to be created.
+
+* `condition_version` - (Optional) The version of the condition. Supported values include `2.0`. Changing this forces a new resource to be created.
+
+~> **Note:** `condition_version` is required when specifying `condition` and vice versa.
+
 ---
 
 An `expiration` block supports the following:
@@ -108,7 +115,7 @@ An `expiration` block supports the following:
 
 * `end_date_time` - (Optional) The end date/time of the role assignment. Changing this forces a new resource to be created.
 
-~> Note: Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
+~> **Note:** Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
 
 ---
 

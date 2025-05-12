@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/attestation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -124,27 +123,6 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 					Optional:     true,
 					ValidateFunc: validate.ContainsABase64UriEncodedJWTOfAStoredAttestationPolicy,
 				},
-			}
-
-			if !features.FourPointOhBeta() {
-				s["policy"] = &pluginsdk.Schema{
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					Deprecated: "This field is no longer used and will be removed in v4.0 of the Azure Provider - use `open_enclave_policy_base64`, `sgx_enclave_policy_base64`, `tpm_policy_base64` and `sev_snp_policy_base64` instead.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"environment_type": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-							},
-
-							"data": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-							},
-						},
-					},
-				}
 			}
 
 			return s
@@ -314,12 +292,6 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("parsing SEV-SNP policy for %s: %+v", *id, err)
 	}
 	d.Set("sev_snp_policy_base64", pointer.From(sevSnpPolicyData))
-
-	if !features.FourPointOhBeta() {
-		if err := d.Set("policy", []interface{}{}); err != nil {
-			return fmt.Errorf("setting `policy`: %+v", err)
-		}
-	}
 
 	return nil
 }

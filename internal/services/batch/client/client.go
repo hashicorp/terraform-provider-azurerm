@@ -8,10 +8,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/application"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/certificate"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	batchDataplane "github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch"
 )

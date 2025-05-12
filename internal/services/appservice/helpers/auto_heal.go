@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -46,7 +45,6 @@ type AutoHealSlowRequest struct {
 	TimeTaken string `tfschema:"time_taken"`
 	Interval  string `tfschema:"interval"`
 	Count     int64  `tfschema:"count"`
-	Path      string `tfschema:"path,removedInNextMajorVersion"`
 }
 
 type AutoHealSlowRequestWithPath struct {
@@ -181,7 +179,7 @@ func autoHealActionSchemaWindowsComputed() *pluginsdk.Schema {
 
 // (@jackofallops) - trigger schemas intentionally left long-hand for now
 func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -317,46 +315,10 @@ func autoHealTriggerSchemaWindows() *pluginsdk.Schema {
 			},
 		},
 	}
-	if !features.FourPointOhBeta() {
-		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"time_taken": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.TimeInterval,
-					},
-
-					"interval": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.TimeInterval,
-					},
-
-					"count": {
-						Type:         pluginsdk.TypeInt,
-						Required:     true,
-						ValidateFunc: validation.IntAtLeast(1),
-					},
-
-					"path": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-						Deprecated:   "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
-					},
-				},
-			},
-		}
-	}
-	return s
 }
 
 func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
@@ -475,37 +437,6 @@ func autoHealTriggerSchemaWindowsComputed() *pluginsdk.Schema {
 			},
 		},
 	}
-	if !features.FourPointOh() {
-		s.Elem.(*pluginsdk.Resource).Schema["slow_request"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"time_taken": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"interval": {
-						Type:     pluginsdk.TypeString,
-						Computed: true,
-					},
-
-					"count": {
-						Type:     pluginsdk.TypeInt,
-						Computed: true,
-					},
-
-					"path": {
-						Type:       pluginsdk.TypeString,
-						Computed:   true,
-						Deprecated: "`path` will be removed in `slow_request` and please use `slow_request_with_path` to set the path in version 4.0 of the AzureRM Provider.",
-					},
-				},
-			},
-		}
-	}
-	return s
 }
 
 func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *webapps.AutoHealRules {
@@ -536,11 +467,6 @@ func expandAutoHealSettingsWindows(autoHealSettings []AutoHealSettingWindows) *w
 			TimeTaken:    pointer.To(triggers.SlowRequests[0].TimeTaken),
 			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
 			Count:        pointer.To(triggers.SlowRequests[0].Count),
-		}
-		if !features.FourPointOh() {
-			if triggers.SlowRequests[0].Path != "" {
-				result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
-			}
 		}
 	}
 
@@ -688,7 +614,6 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 				TimeTaken: pointer.From(triggers.SlowRequests.TimeTaken),
 				Interval:  pointer.From(triggers.SlowRequests.TimeInterval),
 				Count:     pointer.From(triggers.SlowRequests.Count),
-				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
 

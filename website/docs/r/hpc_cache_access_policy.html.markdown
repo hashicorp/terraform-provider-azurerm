@@ -68,7 +68,7 @@ An `access_rule` block supports the following:
 
 * `scope` - (Required) The scope of this rule. The `scope` and (potentially) the `filter` determine which clients match the rule. Possible values are: `default`, `network`, `host`.
 
-~> **NOTE:** Each `access_rule` should set a unique `scope`.
+~> **Note:** Each `access_rule` should set a unique `scope`.
 
 * `access` - (Required) The access level for this rule. Possible values are: `rw`, `ro`, `no`.
 

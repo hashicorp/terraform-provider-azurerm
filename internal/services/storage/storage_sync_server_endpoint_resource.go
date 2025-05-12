@@ -6,6 +6,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -91,7 +92,7 @@ func (r SyncServerEndpointResource) Arguments() map[string]*pluginsdk.Schema {
 		"tier_files_older_than_days": {
 			Optional:     true,
 			Type:         pluginsdk.TypeInt,
-			ValidateFunc: validation.IntBetween(1, 2147483647),
+			ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 		},
 
 		"initial_download_policy": {

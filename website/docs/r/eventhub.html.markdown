@@ -31,11 +31,10 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "acceptanceTestEventHub"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acceptanceTestEventHub"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 2
+  message_retention = 1
 }
 ```
 
@@ -45,9 +44,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) Specifies the name of the EventHub Namespace. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the EventHub's parent Namespace exists. Changing this forces a new resource to be created.
+* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace. Changing this forces a new resource to be created.
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
@@ -85,7 +82,7 @@ A `destination` block supports the following:
 
 * `name` - (Required) The Name of the Destination where the capture should take place. At this time the only supported value is `EventHubArchive.AzureBlockBlob`.
 
--> At this time it's only possible to Capture EventHub messages to Blob Storage. There's [a Feature Request for the Azure SDK to add support for Capturing messages to Azure Data Lake here](https://github.com/Azure/azure-rest-api-specs/issues/2255).
+-> **Note:** At this time it's only possible to Capture EventHub messages to Blob Storage. There's [a Feature Request for the Azure SDK to add support for Capturing messages to Azure Data Lake here](https://github.com/Azure/azure-rest-api-specs/issues/2255).
 
 * `archive_name_format` - (Required) The Blob naming convention for archiving. e.g. `{Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}`. Here all the parameters (Namespace,EventHub .. etc) are mandatory irrespective of order
 

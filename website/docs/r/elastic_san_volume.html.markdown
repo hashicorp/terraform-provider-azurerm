@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `size_in_gib` - (Required) Specifies the size of the Elastic SAN Volume in GiB. The size should be within the remaining capacity of the parent Elastic SAN. Possible values are between `1` and `65536` (16 TiB).
 
--> **NOTE:** The size can only be increased. If `create_source` is specified, then the size must be equal to or greater than the source's size.
+-> **Note:** The size can only be increased. If `create_source` is specified, then the size must be equal to or greater than the source's size.
 
 * `create_source` - (Optional) A `create_source` block as defined below.
 

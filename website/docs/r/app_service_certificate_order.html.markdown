@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `distinguished_name` - (Optional) The Distinguished Name for the App Service Certificate Order.
 
--> **NOTE:** Either `csr` or `distinguished_name` must be set - but not both.
+-> **Note:** Either `csr` or `distinguished_name` must be set - but not both.
 
 * `key_size` - (Optional) Certificate key size. Defaults to `2048`.
 

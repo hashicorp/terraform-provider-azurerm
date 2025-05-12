@@ -45,13 +45,15 @@ The following arguments are supported:
 
 * `storage_account_name` - (Optional) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
 
+~> **Note:** Migrating from the deprecated `storage_account_name` to `storage_account_id` is supported without recreation. Any other change to either property will result in the resource being recreated.
+
 * `storage_account_id` - (Optional) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
 
-~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
-~> **Note** When updating `container_access_type` for an existing storage container resource, Shared Key authentication will always be used, as AzureAD authentication is not supported.
+~> **Note:** When updating `container_access_type` for an existing storage container resource, Shared Key authentication will always be used, as AzureAD authentication is not supported.
 
 * `default_encryption_scope` - (Optional) The default encryption scope to use for blobs uploaded to this container. Changing this forces a new resource to be created.
 
@@ -82,8 +84,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-Storage Containers can be imported using the `resource id`, e.g.
+Storage Containers can be imported using the `resource manager id`, e.g.
 
 ```shell
-terraform import azurerm_storage_container.container1 https://example.blob.core.windows.net/container
+terraform import azurerm_storage_container.container1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/blobServices/default/containers/mycontainer
 ```

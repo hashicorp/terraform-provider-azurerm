@@ -10,7 +10,7 @@ description: |-
 
 Manages a Table within an Azure Storage Account.
 
-~> **Note on Authentication** Shared Key authentication will always be used for this resource, as AzureAD authentication is not supported when setting or retrieving ACLs for Tables.
+~> **Note:** Shared Key authentication will always be used for this resource, as AzureAD authentication is not supported when setting or retrieving ACLs for Tables.
 
 ## Example Usage
 
@@ -67,6 +67,8 @@ A `access_policy` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Table within the Storage Account.
+
+* `resource_manager_id` - The Resource Manager ID of this Storage Table.
 
 ## Timeouts
 

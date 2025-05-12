@@ -10,7 +10,7 @@ description: |-
 
 Manages a Dashboard Grafana Managed Private Endpoint.
 
-~> **NOTE:** This resource will _not_ approve the managed private endpoint connection on the linked resource. This will need to be done manually via Azure CLI, PowerShell, or AzAPI resources. See [here](https://github.com/hashicorp/terraform-provider-azurerm/issues/23950#issuecomment-2035109970) for an example that uses AzAPI.
+~> **Note:** This resource will _not_ approve the managed private endpoint connection on the linked resource. This will need to be done manually via Azure CLI, PowerShell, or AzAPI resources. See [here](https://github.com/hashicorp/terraform-provider-azurerm/issues/23950#issuecomment-2035109970) for an example that uses AzAPI.
 
 ## Example Usage
 
@@ -31,7 +31,7 @@ resource "azurerm_dashboard_grafana" "example" {
   name                          = "example-dg"
   resource_group_name           = azurerm_resource_group.example.name
   location                      = azurerm_resource_group.example.location
-  grafana_major_version         = 10
+  grafana_major_version         = 11
   public_network_access_enabled = false
 
   azure_monitor_workspace_integrations {
