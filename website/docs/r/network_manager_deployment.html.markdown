@@ -174,7 +174,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 24 hours) Used when creating the Network Manager Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Deployment.
 * `update` - (Defaults to 24 hours) Used when updating the Network Manager Deployment.
-* `delete` - (Defaults to 24 hour) Used when deleting the Network Manager Deployment.
+* `delete` - (Defaults to 24 hours) Used when deleting the Network Manager Deployment.
 
 ## Import
 

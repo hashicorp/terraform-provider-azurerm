@@ -96,8 +96,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 80 minutes) Used when creating the Backup File Share.
-* `update` - (Defaults to 80 minutes) Used when updating the Backup File Share.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup File Share.
+* `update` - (Defaults to 80 minutes) Used when updating the Backup File Share.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Backup File Share.
 
 ## Import

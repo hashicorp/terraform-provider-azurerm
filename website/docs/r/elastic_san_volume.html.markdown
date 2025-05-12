@@ -135,10 +135,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Elastic SAN Volume.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Elastic SAN Volume.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Elastic SAN Volume.
-* `update` - (Defaults to 30 minutes) Used when updating this Elastic SAN Volume.
+* `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN Volume.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN Volume.
+* `update` - (Defaults to 30 minutes) Used when updating the Elastic SAN Volume.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Elastic SAN Volume.
 
 ## Import
 

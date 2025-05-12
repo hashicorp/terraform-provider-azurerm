@@ -67,4 +67,4 @@ A `variable` block exports the following attributes:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `read` - (Defaults to 5 minutes) Used when retrieving the Automation String Variable.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation String Variable.

@@ -68,10 +68,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center Gallery.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center Gallery.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center Gallery.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center Gallery.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center Gallery.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Gallery.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center Gallery.
 
 ## Import
 

@@ -105,10 +105,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Backup Instance PostgreSQL Flexible Server.
+* `create` - (Defaults to 1 hour) Used when creating the Backup Instance PostgreSQL Flexible Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Instance PostgreSQL Flexible Server.
-* `update` - (Defaults to 60 minutes) Used when updating the Backup Instance PostgreSQL Flexible Server.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Backup Instance PostgreSQL Flexible Server.
+* `update` - (Defaults to 1 hour) Used when updating the Backup Instance PostgreSQL Flexible Server.
+* `delete` - (Defaults to 1 hour) Used when deleting the Backup Instance PostgreSQL Flexible Server.
 
 ## Import
 

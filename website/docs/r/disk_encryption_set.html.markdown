@@ -273,10 +273,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Disk Encryption Set.
-* `update` - (Defaults to 60 minutes) Used when updating the Disk Encryption Set.
+* `create` - (Defaults to 1 hour) Used when creating the Disk Encryption Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Disk Encryption Set.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Disk Encryption Set.
+* `update` - (Defaults to 1 hour) Used when updating the Disk Encryption Set.
+* `delete` - (Defaults to 1 hour) Used when deleting the Disk Encryption Set.
 
 ## Import
 
