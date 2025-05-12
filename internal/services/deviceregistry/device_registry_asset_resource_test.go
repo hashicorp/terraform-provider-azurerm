@@ -260,7 +260,7 @@ func (AssetTestResource) Exists(ctx context.Context, client *clients.Client, sta
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DeviceRegistry.AssetClient.Get(ctx, *id)
+	resp, err := client.DeviceRegistry.AssetsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

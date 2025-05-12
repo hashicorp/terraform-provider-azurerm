@@ -280,7 +280,7 @@ func (AssetEndpointProfileTestResource) Exists(ctx context.Context, client *clie
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DeviceRegistry.AssetEndpointProfileClient.Get(ctx, *id)
+	resp, err := client.DeviceRegistry.AssetEndpointProfilesClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil
