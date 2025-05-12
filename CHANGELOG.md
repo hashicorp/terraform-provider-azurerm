@@ -13,6 +13,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management_api` - no longer returns an error on the  `oauth2_authorization` and `openid_authentication` properties when updating [GH-29042]
+* `azurerm_route_map` - the validation for the `name` now allows numbers [GH-29519]
 
 ## 4.28.0 (May 09, 2025)
 
