@@ -184,6 +184,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Compute Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Compute Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Compute Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Compute Cluster.
 
 ## Import
