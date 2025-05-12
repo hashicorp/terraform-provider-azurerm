@@ -110,9 +110,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Restore Point Collection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Restore Point Collection.
 * `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Restore Point Collection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Restore Point Collection.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Restore Point Collection.
 
 ## Import
 

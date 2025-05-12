@@ -294,19 +294,19 @@ An `action` block supports the following:
 
 * `fabric_location` - (Optional) The fabric location of runbook or script. Possible values are `Primary` and `Recovery`. It must not be specified when `type` is `ManualActionDetails`.
 
--> **NOTE:** This is required when `type` is set to `AutomationRunbookActionDetails` or `ScriptActionDetails`.
+-> **Note:** This is required when `type` is set to `AutomationRunbookActionDetails` or `ScriptActionDetails`.
 
 * `runbook_id` - (Optional) Id of runbook.
 
--> **NOTE:** This property is required when `type` is set to `AutomationRunbookActionDetails`.
+-> **Note:** This property is required when `type` is set to `AutomationRunbookActionDetails`.
 
 * `manual_action_instruction` - (Optional) Instructions of manual action.
 
--> **NOTE:** This property is required when `type` is set to `ManualActionDetails`.
+-> **Note:** This property is required when `type` is set to `ManualActionDetails`.
 
 * `script_path` - (Optional) Path of action script.
 
--> **NOTE:** This property is required when `type` is set to `ScriptActionDetails`.
+-> **Note:** This property is required when `type` is set to `ScriptActionDetails`.
 
 ---
 

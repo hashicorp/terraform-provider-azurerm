@@ -63,6 +63,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 5 minutes) Used when creating the Redis Cache Access Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache Access Policy.
+* `update` - (Defaults to 5 minutes) Used when updating the Redis Cache Access Policy.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Redis Cache Access Policy.
 
 ## Import

@@ -81,8 +81,8 @@ A `plan` block includes:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Solution.
-* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Solution.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Solution.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Solution.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Solution.
 
 ## Import

@@ -92,8 +92,8 @@ The following arguments are supported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Web Test.
-* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Web Test.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Web Test.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Web Test.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Web Test.
 
 ## Import

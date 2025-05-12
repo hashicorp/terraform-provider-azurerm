@@ -175,9 +175,9 @@ The following arguments are supported:
 
 * `replica` - (Optional) One or more `replica` blocks as defined below.
 
-* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free`, `standard` and `premium`. Defaults to `free`.
+* `sku` - (Optional) The SKU name of the App Configuration. Possible values are `free`, `developer`, `standard` and `premium`. Defaults to `free`.
 
-~> **Note:** Azure does not support downgrading `sku`. Downgrading from `premium` tier to `standard` or `free`, or from `standard` to `free`, forces a new resource to be created.
+~> **Note:** Azure does not support downgrading `sku` to a lower tier, except from `premium` to `standard`. Downgrading will force a new resource to be created.
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This field only works for `standard` sku. This value can be between `1` and `7` days. Defaults to `7`. Changing this forces a new resource to be created.
 
@@ -293,10 +293,10 @@ A `secondary_write_key` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the App Configuration.
+* `create` - (Defaults to 1 hour) Used when creating the App Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
-* `update` - (Defaults to 60 minutes) Used when updating the App Configuration.
-* `delete` - (Defaults to 60 minutes) Used when deleting the App Configuration.
+* `update` - (Defaults to 1 hour) Used when updating the App Configuration.
+* `delete` - (Defaults to 1 hour) Used when deleting the App Configuration.
 
 ## Import
 

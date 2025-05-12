@@ -10,7 +10,7 @@ description: |-
 
 Manages a Front Door (standard/premium) Rule.
 
-!>**IMPORTANT:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
+!> **Note:** The Rules resource **must** include a `depends_on` meta-argument which references the `azurerm_cdn_frontdoor_origin` and the `azurerm_cdn_frontdoor_origin_group`.
 
 ## Example Usage
 
@@ -304,7 +304,7 @@ A `conditions` block supports the following:
 
 A `ssl_protocol_condition` block supports the following:
 
-->The `ssl_protocol_condition` identifies requests based on the SSL protocol of an established TLS connection.
+-> **Note:** The `ssl_protocol_condition` identifies requests based on the SSL protocol of an established TLS connection.
 
 * `match_values` - (Required) A list of one or more HTTP methods. Possible values are `TLSv1`, `TLSv1.1` and `TLSv1.2` logic.
 
@@ -316,7 +316,7 @@ A `ssl_protocol_condition` block supports the following:
 
 A `host_name_condition` block supports the following:
 
-->The `host_name_condition` identifies requests based on the specified hostname in the request from client.
+-> **Note:** The `host_name_condition` identifies requests based on the specified hostname in the request from client.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -330,7 +330,7 @@ A `host_name_condition` block supports the following:
 
 A `server_port_condition` block supports the following:
 
-->The `server_port_condition` identifies requests based on which port of the Front Door server accepted the request on.
+-> **Note:** The `server_port_condition` identifies requests based on which port of the Front Door server accepted the request on.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -342,7 +342,7 @@ A `server_port_condition` block supports the following:
 
 A `client_port_condition` block supports the following:
 
-->The `client_port_condition` identifies requests based on the port of the client which made the request.
+-> **Note:** The `client_port_condition` identifies requests based on the port of the client which made the request.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -354,9 +354,9 @@ A `client_port_condition` block supports the following:
 
 A `socket_address_condition` block supports the following:
 
-->The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
+-> **Note:** The `socket_address_condition` identifies requests based on the IP address of the direct connection to the Front Door Profiles edge. If the client used an HTTP proxy or a load balancer to send the request, the value of Socket address is the IP address of the proxy or load balancer.
 
-->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
+-> **Note:** Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
 * `operator` - (Optional) The type of match. The Possible values are `IpMatch` or `Any`. Defaults to `IPMatch`.
 
@@ -372,7 +372,7 @@ A `socket_address_condition` block supports the following:
 
 A `remote_address_condition` block supports the following:
 
-->Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
+-> **Note:** Remote Address represents the original client IP that is either from the network connection or typically the `X-Forwarded-For` request header if the user is behind a proxy.
 
 * `operator` - (Optional) The type of the remote address to match. Possible values include `Any`, `GeoMatch` or `IPMatch`. Use the `negate_condition` to specify Not `GeoMatch` or Not `IPMatch`. Defaults to `IPMatch`.
 
@@ -386,7 +386,7 @@ A `remote_address_condition` block supports the following:
 
 A `request_method_condition` block supports the following:
 
-->The `request_method_condition` identifies requests that use the specified HTTP request method.
+-> **Note:** The `request_method_condition` identifies requests that use the specified HTTP request method.
 
 * `match_values` - (Required) A list of one or more HTTP methods. Possible values include `GET`, `POST`, `PUT`, `DELETE`, `HEAD`, `OPTIONS` or `TRACE`. If multiple values are specified, they're evaluated using `OR` logic.
 
@@ -398,7 +398,7 @@ A `request_method_condition` block supports the following:
 
 A `query_string_condition` block supports the following:
 
-->Use the `query_string_condition` to identify requests that contain a specific query string.
+-> **Note:** Use the `query_string_condition` to identify requests that contain a specific query string.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -412,7 +412,7 @@ A `query_string_condition` block supports the following:
 
 A `post_args_condition` block supports the following:
 
-->Use the `post_args_condition` to identify requests based on the arguments provided within a `POST` request's body. A single match condition matches a single argument from the `POST` request's body.
+-> **Note:** Use the `post_args_condition` to identify requests based on the arguments provided within a `POST` request's body. A single match condition matches a single argument from the `POST` request's body.
 
 * `post_args_name` - (Required) A string value representing the name of the `POST` argument.
 
@@ -428,7 +428,7 @@ A `post_args_condition` block supports the following:
 
 A `request_uri_condition` block supports the following:
 
-->The `request_uri_condition` identifies requests that match the specified URL. The entire URL is evaluated, including the protocol and query string, but not the fragment. When you use this rule condition, be sure to include the protocol(e.g. For example, use `https://www.contoso.com` instead of just `www.contoso.com`).
+-> **Note:** The `request_uri_condition` identifies requests that match the specified URL. The entire URL is evaluated, including the protocol and query string, but not the fragment. When you use this rule condition, be sure to include the protocol(e.g. For example, use `https://www.contoso.com` instead of just `www.contoso.com`).
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -442,7 +442,7 @@ A `request_uri_condition` block supports the following:
 
 A `request_header_condition` block supports the following:
 
-->The `request_header_condition` identifies requests that include a specific header in the request. You can use this match condition to check if a header exists whatever its value, or to check if the header matches a specified value.
+-> **Note:** The `request_header_condition` identifies requests that include a specific header in the request. You can use this match condition to check if a header exists whatever its value, or to check if the header matches a specified value.
 
 * `header_name` - (Required) A string value representing the name of the `POST` argument.
 
@@ -458,7 +458,7 @@ A `request_header_condition` block supports the following:
 
 A `request_body_condition` block supports the following:
 
-->The `request_body_condition` identifies requests based on specific text that appears in the body of the request.
+-> **Note:** The `request_body_condition` identifies requests based on specific text that appears in the body of the request.
 
 -> **Note:** If a request body exceeds `64 KB` in size, only the first `64 KB` will be considered for the request body match condition.
 
@@ -474,7 +474,7 @@ A `request_body_condition` block supports the following:
 
 A `request_scheme_condition` block supports the following:
 
-->The `request_scheme_condition` identifies requests that use the specified protocol.
+-> **Note:** The `request_scheme_condition` identifies requests that use the specified protocol.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
@@ -500,7 +500,7 @@ An `url_path_condition` block supports the following:
 
 An `url_file_extension_condition` block supports the following:
 
-->The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
+-> **Note:** The `url_file_extension_condition` identifies requests that include the specified file extension in the file name in the request URL. Don't include a leading period(e.g. use `html` instead of `.html`).
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -514,7 +514,7 @@ An `url_file_extension_condition` block supports the following:
 
 An `url_filename_condition` block supports the following:
 
-->The `url_filename_condition` identifies requests that include the specified file name in the request URL.
+-> **Note:** The `url_filename_condition` identifies requests that include the specified file name in the request URL.
 
 * `operator` - (Required) A Conditional operator. Possible values include `Any`, `Equal`, `Contains`, `BeginsWith`, `EndsWith`, `LessThan`, `LessThanOrEqual`, `GreaterThan`, `GreaterThanOrEqual` or `RegEx`. Details can be found in the `Condition Operator List` below.
 
@@ -530,7 +530,7 @@ An `url_filename_condition` block supports the following:
 
 A `http_version_condition` block supports the following:
 
-->Use the HTTP version match condition to identify requests that have been made by using a specific version of the HTTP protocol.
+-> **Note:** Use the HTTP version match condition to identify requests that have been made by using a specific version of the HTTP protocol.
 
 * `match_values` - (Required) What HTTP version should this condition match? Possible values `2.0`, `1.1`, `1.0` or `0.9`.
 
@@ -542,7 +542,7 @@ A `http_version_condition` block supports the following:
 
 A `cookies_condition` block supports the following:
 
-->Use the `cookies_condition` to identify requests that have include a specific cookie.
+-> **Note:** Use the `cookies_condition` to identify requests that have include a specific cookie.
 
 * `cookie_name` - (Required) A string value representing the name of the cookie.
 
@@ -558,7 +558,7 @@ A `cookies_condition` block supports the following:
 
 An `is_device_condition` block supports the following:
 
-->Use the `is_device_condition` to identify requests that have been made from a `mobile` or `desktop` device.
+-> **Note:** Use the `is_device_condition` to identify requests that have been made from a `mobile` or `desktop` device.
 
 * `operator` - (Optional) Possible value `Equal`. Defaults to `Equal`.
 
