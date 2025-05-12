@@ -229,10 +229,13 @@ func (m WatcherResource) Update() sdk.ResourceFunc {
 			}
 
 			var upd watcher.WatcherUpdateParameters
+			upd.Name = pointer.To(id.WatcherName)
 			upd.Properties = &watcher.WatcherUpdateProperties{}
+
 			if meta.ResourceData.HasChange("execution_frequency_in_seconds") {
 				upd.Properties.ExecutionFrequencyInSeconds = utils.Int64(model.ExecutionFrequencyInSeconds)
 			}
+
 			if _, err = client.Update(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", *id, err)
 			}
