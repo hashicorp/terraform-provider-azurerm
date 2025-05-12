@@ -1054,7 +1054,7 @@ import {
 resource "azurerm_network_interface" "test" {
   accelerated_networking_enabled = false
   ip_forwarding_enabled          = false
-  location                       = "australiaeast"
+  location                       = azurerm_resource_group.test.location
   name                           = "acctestnic-%[3]d"
   resource_group_name            = azurerm_resource_group.test.name
 
