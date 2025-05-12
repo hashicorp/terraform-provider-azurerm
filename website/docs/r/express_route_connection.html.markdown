@@ -10,7 +10,7 @@ description: |-
 
 Manages an Express Route Connection.
 
-~> **NOTE:** The provider status of the Express Route Circuit must be set as provisioned while creating the Express Route Connection. See more details [here](https://docs.microsoft.com/azure/expressroute/expressroute-howto-circuit-portal-resource-manager#send-the-service-key-to-your-connectivity-provider-for-provisioning).
+~> **Note:** The provider status of the Express Route Circuit must be set as provisioned while creating the Express Route Connection. See more details [here](https://docs.microsoft.com/azure/expressroute/expressroute-howto-circuit-portal-resource-manager#send-the-service-key-to-your-connectivity-provider-for-provisioning).
 
 ## Example Usage
 
@@ -97,8 +97,6 @@ The following arguments are supported:
 * `enable_internet_security` - (Optional) Is Internet security enabled for this Express Route Connection?
 
 * `express_route_gateway_bypass_enabled` - (Optional) Specified whether Fast Path is enabled for Virtual Wan Firewall Hub. Defaults to `false`.
-
-* `private_link_fast_path_enabled` - (Optional) Bypass the Express Route gateway when accessing private-links. When enabled `express_route_gateway_bypass_enabled` must be set to `true`.
 
 * `routing` - (Optional) A `routing` block as defined below.
 

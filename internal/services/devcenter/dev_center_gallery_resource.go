@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/galleries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/galleries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -64,7 +64,7 @@ func (r DevCenterGalleryResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Galleries
+			client := metadata.Client.DevCenter.V20250201.Galleries
 
 			var config DevCenterGalleryResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -109,7 +109,7 @@ func (r DevCenterGalleryResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Galleries
+			client := metadata.Client.DevCenter.V20250201.Galleries
 			schema := DevCenterGalleryResourceSchema{}
 
 			id, err := galleries.ParseGalleryID(metadata.ResourceData.Id())
@@ -145,7 +145,7 @@ func (r DevCenterGalleryResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.Galleries
+			client := metadata.Client.DevCenter.V20250201.Galleries
 
 			id, err := galleries.ParseGalleryID(metadata.ResourceData.Id())
 			if err != nil {

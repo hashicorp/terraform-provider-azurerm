@@ -127,7 +127,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Synapse Spark. Changing this forces a new resource to be created.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 

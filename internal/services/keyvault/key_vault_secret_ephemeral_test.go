@@ -24,7 +24,7 @@ func TestAccEphemeralKeyVaultSecret_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_secret", "test")
 	r := KeyVaultSecretEphemeral{}
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
 		},
@@ -45,7 +45,7 @@ func TestAccEphemeralKeyVaultSecret_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "ephemeral.azurerm_key_vault_secret", "test")
 	r := KeyVaultSecretEphemeral{}
 
-	resource.UnitTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.10.0-rc1"))),
 		},

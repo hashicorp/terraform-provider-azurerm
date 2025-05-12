@@ -61,7 +61,7 @@ A `variable` block exports the following attributes:
 
 - `value` - The value of the Automation Variable.
 
-~> **NOTE:** There is no `value` property returned for `encrypted` or `null` variable types.
+~> **Note:** There is no `value` property returned for `encrypted` or `null` variable types.
 
 ## Timeouts
 

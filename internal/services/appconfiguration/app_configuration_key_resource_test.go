@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
@@ -238,7 +238,7 @@ func (t AppConfigurationKeyResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("while checking for key's %q existence: %+v", nestedItemId.Key, err)
 	}
 
-	return utils.Bool(res.Response.StatusCode == 200), nil
+	return pointer.To(res.Response.StatusCode == 200), nil
 }
 
 func (t AppConfigurationKeyResource) base(data acceptance.TestData) string {

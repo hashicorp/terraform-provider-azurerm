@@ -74,7 +74,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this App Configuration.
 
-~> **NOTE:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 

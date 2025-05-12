@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `manage` - (Optional) Does this Authorization Rule have Manage access to the Notification Hub? Defaults to `false`.
 
--> **NOTE:** If `manage` is set to `true` then both `send` and `listen` must also be set to `true`.
+-> **Note:** If `manage` is set to `true` then both `send` and `listen` must also be set to `true`.
 
 * `send` - (Optional) Does this Authorization Rule have Send access to the Notification Hub? Defaults to `false`.
 

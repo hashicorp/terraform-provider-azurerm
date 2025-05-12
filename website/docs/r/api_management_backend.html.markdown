@@ -33,7 +33,7 @@ resource "azurerm_api_management_backend" "example" {
   resource_group_name = azurerm_resource_group.example.name
   api_management_name = azurerm_api_management.example.name
   protocol            = "http"
-  url                 = "https://backend"
+  url                 = "https://backend.com/api"
 }
 ```
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `protocol` - (Required) The protocol used by the backend host. Possible values are `http` or `soap`.
 
-* `url` - (Required) The URL of the backend host.
+* `url` - (Required) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend.
 
 ---
 
@@ -105,8 +105,8 @@ A `service_fabric_cluster` block supports the following:
 
 * `client_certificate_id` - (Optional) The client certificate resource id for the management endpoint.
 
-> **Note:** At least one of `client_certificate_thumbprint`, and `client_certificate_id` must be set.
->
+~> **Note:** At least one of `client_certificate_thumbprint`, and `client_certificate_id` must be set.
+
 * `management_endpoints` - (Required) A list of cluster management endpoints.
 
 * `max_partition_resolution_retries` - (Required) The maximum number of retries when attempting resolve the partition.

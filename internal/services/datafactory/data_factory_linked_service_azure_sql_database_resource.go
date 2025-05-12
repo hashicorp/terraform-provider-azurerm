@@ -234,8 +234,10 @@ func resourceDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *pluginsdk.R
 		}
 
 		sqlDatabaseProperties.ServicePrincipalID = utils.String(d.Get("service_principal_id").(string))
-		sqlDatabaseProperties.Tenant = utils.String(d.Get("tenant_id").(string))
 		sqlDatabaseProperties.ServicePrincipalKey = &secureString
+		if v := d.Get("tenant_id").(string); v != "" {
+			sqlDatabaseProperties.Tenant = pointer.To(v)
+		}
 	}
 
 	if v, ok := d.GetOk("key_vault_password"); ok {

@@ -10,9 +10,9 @@ description: |-
 
 Manages the transparent data encryption configuration for a MSSQL Managed Instance
 
-~> **NOTE:** Once transparent data encryption(TDE) is enabled on a MS SQL instance, it is not possible to remove TDE. You will be able to switch between 'ServiceManaged' and 'CustomerManaged' keys, but will not be able to remove encryption. For safety when this resource is deleted, the TDE mode will automatically be set to 'ServiceManaged'. See `key_vault_uri` for more information on how to specify the key types. As SQL Managed Instance only supports a single configuration for encryption settings, this resource will replace the current encryption settings on the server. 
+~> **Note:** Once transparent data encryption(TDE) is enabled on a MS SQL instance, it is not possible to remove TDE. You will be able to switch between 'ServiceManaged' and 'CustomerManaged' keys, but will not be able to remove encryption. For safety when this resource is deleted, the TDE mode will automatically be set to 'ServiceManaged'. See `key_vault_uri` for more information on how to specify the key types. As SQL Managed Instance only supports a single configuration for encryption settings, this resource will replace the current encryption settings on the server.
 
-~> **Note:** See [documentation](https://docs.microsoft.com/azure/azure-sql/database/transparent-data-encryption-byok-overview) for important information on how handle lifecycle management of the keys to prevent data lockout. 
+~> **Note:** See [documentation](https://docs.microsoft.com/azure/azure-sql/database/transparent-data-encryption-byok-overview) for important information on how handle lifecycle management of the keys to prevent data lockout.
 
 ## Example Usage with Service Managed Key
 
@@ -189,9 +189,9 @@ The following arguments are supported:
 
 * `managed_hsm_key_id` -  (Optional)  To use customer managed keys from a managed HSM, provide the Managed HSM Key ID. To use service managed keys, omit this field.
 
-~> **NOTE:** In order to use customer managed keys, the identity of the MSSQL Managed Instance must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey' 
+~> **Note:** In order to use customer managed keys, the identity of the MSSQL Managed Instance must have the following permissions on the key vault: 'get', 'wrapKey' and 'unwrapKey'
 
-~> **NOTE:** If `managed_instance_id` denotes a secondary instance deployed for disaster recovery purposes, then the `key_vault_key_id` should be the same key used for the primary instance's transparent data encryption. Both primary and secondary instances should be encrypted with same key material.
+~> **Note:** If `managed_instance_id` denotes a secondary instance deployed for disaster recovery purposes, then the `key_vault_key_id` should be the same key used for the primary instance's transparent data encryption. Both primary and secondary instances should be encrypted with same key material.
 
 * `auto_rotation_enabled` - (Optional) When enabled, the SQL Managed Instance will continuously check the key vault for any new versions of the key being used as the TDE protector. If a new version of the key is detected, the TDE protector on the SQL Managed Instance will be automatically rotated to the latest key version within 60 minutes.
 
@@ -212,7 +212,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 ## Import
 
-~> **NOTE:** This resource does not need to be imported to manage it, however the import will work. 
+~> **Note:** This resource does not need to be imported to manage it, however the import will work.
 
 SQL Managed Instance Transparent Data Encryption can be imported using the resource id, e.g.
 

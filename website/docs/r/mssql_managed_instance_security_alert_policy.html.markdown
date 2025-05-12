@@ -237,7 +237,7 @@ The following arguments are supported:
 
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. This is mandatory when you use `storage_endpoint` to specify a storage account blob endpoint.
 
--> **NOTE:**  Please note that storage accounts configured with `shared_access_key_enabled = false` cannot be used to configure `azurerm_mssql_managed_instance_security_alert_policy` with `storage_endpoint` for now.
+-> **Note:** Please note that storage accounts configured with `shared_access_key_enabled = false` cannot be used to configure `azurerm_mssql_managed_instance_security_alert_policy` with `storage_endpoint` for now.
 
 ## Attributes Reference
 

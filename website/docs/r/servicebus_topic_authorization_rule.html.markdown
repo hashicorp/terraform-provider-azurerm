@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `topic_id` - (Required) Specifies the ID of the ServiceBus Topic. Changing this forces a new resource to be created.
 
-~> **NOTE** At least one of the 3 permissions below needs to be set.
+~> **Note:** At least one of the 3 permissions below needs to be set.
 
 * `listen` - (Optional) Grants listen access to this this Authorization Rule. Defaults to `false`.
 

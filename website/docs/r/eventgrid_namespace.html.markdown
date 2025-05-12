@@ -62,7 +62,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Event Grid Namespace.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`
+~> **Note:** This is required when `type` is set to `UserAssigned`
 
 ---
 

@@ -61,11 +61,11 @@ The following arguments are supported:
 
 * `version_header_name` - (Optional) The name of the Header which should be read from Inbound Requests which defines the API Version.
 
--> **NOTE:** This must be specified when `versioning_scheme` is set to `Header`.
+-> **Note:** This must be specified when `versioning_scheme` is set to `Header`.
 
 * `version_query_name` - (Optional) The name of the Query String which should be read from Inbound Requests which defines the API Version.
 
--> **NOTE:** This must be specified when `versioning_scheme` is set to `Query`.
+-> **Note:** This must be specified when `versioning_scheme` is set to `Query`.
 
 ## Attributes Reference
 

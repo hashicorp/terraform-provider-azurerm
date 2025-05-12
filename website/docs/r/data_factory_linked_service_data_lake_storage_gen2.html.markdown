@@ -61,7 +61,7 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 * `url` - (Required) The endpoint for the Azure Data Lake Storage Gen2 service.
 
-~> **NOTE** Users should specify only one of the following three authentication strategies: storage account key, managed identity, service principal.
+~> **Note:** Users should specify only one of the following three authentication strategies: storage account key, managed identity, service principal.
 
 * `storage_account_key` - (Optional) The Storage Account Key with which to authenticate against the Azure Data Lake Storage Gen2 account. Incompatible with `service_principal_id`, `service_principal_key`, `tenant` and `use_managed_identity`.
 
@@ -73,7 +73,7 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 * `tenant` - (Optional) The tenant id or name in which the service principal exists to authenticate against the Azure Data Lake Storage Gen2 account.
 
-~> **NOTE** If `service_principal_id` is used, `service_principal_key` and `tenant` are also required.
+~> **Note:** If `service_principal_id` is used, `service_principal_key` and `tenant` are also required.
 
 ## Attributes Reference
 

@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `ignore_missing_vnet_service_endpoint` - (Optional) Create the virtual network rule before the subnet has the virtual network service endpoint enabled. Defaults to `false`.
 
-~> **NOTE:** If `ignore_missing_vnet_service_endpoint` is false, and the target subnet does not contain the `Microsoft.SQL` endpoint in the `service_endpoints` array, the deployment will fail when it tries to create the SQL virtual network rule.
+~> **Note:** If `ignore_missing_vnet_service_endpoint` is false, and the target subnet does not contain the `Microsoft.SQL` endpoint in the `service_endpoints` array, the deployment will fail when it tries to create the SQL virtual network rule.
 
 ## Attributes Reference
 

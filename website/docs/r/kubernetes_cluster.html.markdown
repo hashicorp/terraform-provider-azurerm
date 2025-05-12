@@ -10,6 +10,8 @@ description: |-
 
 Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 
+!> **Note:** As per Microsoft's AKS preview API [deprecation plan](https://learn.microsoft.com/en-us/azure/aks/concepts-preview-api-life-cycle#upcoming-deprecations) several preview APIs have a deprecation schedule and Microsoft recommends performing updates before the deprecation date. Additionally, Microsoft and HashiCorp recommend upgrading to the penultimate 3.x version v3.116.0 to avoid disruption or, ideally, to the latest 4.x provider version to take advantage of the most current API version that the provider supports. Please see [this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/28707) for more details.
+
 -> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -245,6 +247,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `upgrade_override` - (Optional) A `upgrade_override` block as defined below.
+
 * `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
@@ -354,7 +358,7 @@ An `monitor_metrics` block supports the following:
 
 A `default_node_pool` block supports the following:
 
--> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
+-> **Note:** Changing certain properties of the `default_node_pool` is done by cycling the system node pool of the cluster. When cycling the system node pool, it doesn't perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous system node pool.`temporary_name_for_rotation` must be specified when changing any of the following properties: `host_encryption_enabled`, `node_public_ip_enabled`, `fips_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `only_critical_addons_enabled`, `os_disk_size_gb`, `os_disk_type`, `os_sku`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vnet_subnet_id`, `vm_size`, `zones`.
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
@@ -384,7 +388,7 @@ A `default_node_pool` block supports the following:
 
 * `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? `temporary_name_for_rotation` must be specified when changing this block. Changing this forces a new resource to be created.
 
-* `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`.
+* `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`. `temporary_name_for_rotation` must be specified when changing this block.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. `temporary_name_for_rotation` must be specified when changing this property.
 
@@ -422,7 +426,7 @@ A `default_node_pool` block supports the following:
 
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
-~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
+~> **Note:** At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
 
 * `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.
 
@@ -474,7 +478,7 @@ A `key_vault_secrets_provider` block supports the following:
 
 * `secret_rotation_enabled` - (Optional) Should the secret store CSI driver on the AKS cluster be enabled?
 
-* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation` is true. Defaults to `2m`.
+* `secret_rotation_interval` - (Optional) The interval to poll for secret rotation. This attribute is only set when `secret_rotation_enabled` is true. Defaults to `2m`.
 
 -> **Note:** To enable`key_vault_secrets_provider` either `secret_rotation_enabled` or `secret_rotation_interval` must be specified.
 
@@ -681,9 +685,9 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `ip_versions` - (Optional) Specifies a list of IP versions the Kubernetes Cluster will use to assign IP addresses to its nodes and pods. Possible values are `IPv4` and/or `IPv6`. `IPv4` must always be specified. Changing this forces a new resource to be created.
 
-->**Note:** To configure dual-stack networking `ip_versions` should be set to `["IPv4", "IPv6"]`.
+-> **Note:** To configure dual-stack networking `ip_versions` should be set to `["IPv4", "IPv6"]`.
 
-->**Note:** Dual-stack networking requires that the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
+-> **Note:** Dual-stack networking requires that the Preview Feature `Microsoft.ContainerService/AKS-EnableDualStack` is enabled and the Resource Provider is re-registered, see [the documentation](https://docs.microsoft.com/azure/aks/configure-kubenet-dual-stack?tabs=azure-cli%2Ckubectl#register-the-aks-enabledualstack-preview-feature) for more information.
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`. Changing this forces a new resource to be created.
 
@@ -745,7 +749,7 @@ An `ingress_application_gateway` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the subnet on which to create an Application Gateway, which in turn will be integrated with the ingress controller of this Kubernetes Cluster. See [this](https://docs.microsoft.com/azure/application-gateway/tutorial-ingress-controller-add-on-new) page for further details.
 
--> **Note:** Exactly one of `gateway_id`, `subnet_id` or `subnet_cidr` must be specified.
+-> **Note:** Exactly one of `gateway_id`, `gateway_name`, `subnet_id`, or `subnet_cidr` must be specified.
 
 -> **Note:** If specifying `ingress_application_gateway` in conjunction with `only_critical_addons_enabled`, the AGIC pod will fail to start. A separate `azurerm_kubernetes_cluster_node_pool` is required to run the AGIC pod successfully. This is because AGIC is classed as a "non-critical addon".
 
@@ -757,13 +761,13 @@ A `service_mesh_profile` block supports the following:
 
 * `revisions` - (Required) Specify 1 or 2 Istio control plane revisions for managing minor upgrades using the canary upgrade process. For example, create the resource with `revisions` set to `["asm-1-20"]`, or leave it empty (the `revisions` will only be known after apply). To start the canary upgrade, change `revisions` to `["asm-1-20", "asm-1-21"]`. To roll back the canary upgrade, revert to `["asm-1-20"]`. To confirm the upgrade, change to `["asm-1-21"]`.
 
--> **NOTE:** Upgrading to a new (canary) revision does not affect existing sidecar proxies. You need to apply the canary revision label to selected namespaces and restart pods with kubectl to inject the new sidecar proxy. [Learn more](https://istio.io/latest/docs/setup/upgrade/canary/#data-plane).
+-> **Note:** Upgrading to a new (canary) revision does not affect existing sidecar proxies. You need to apply the canary revision label to selected namespaces and restart pods with kubectl to inject the new sidecar proxy. [Learn more](https://istio.io/latest/docs/setup/upgrade/canary/#data-plane).
 
 * `internal_ingress_gateway_enabled` - (Optional) Is Istio Internal Ingress Gateway enabled?
 
 * `external_ingress_gateway_enabled` - (Optional) Is Istio External Ingress Gateway enabled?
 
--> **NOTE:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
+-> **Note:** Currently only one Internal Ingress Gateway and one External Ingress Gateway are allowed per cluster
 
 * `certificate_authority` - (Optional) A `certificate_authority` block as defined below. When this property is specified, `key_vault_secrets_provider` is also required to be set. This configuration allows you to bring your own root certificate and keys for Istio CA in the Istio-based service mesh add-on for Azure Kubernetes Service.
 
@@ -813,7 +817,7 @@ A `storage_profile` block supports the following:
 
 A `sysctl_config` block supports the following:
 
-~> For more information, please refer to [Linux Kernel Doc](https://www.kernel.org/doc/html/latest/admin-guide/sysctl/index.html).
+~> **Note:** For more information, please refer to [Linux Kernel Doc](https://www.kernel.org/doc/html/latest/admin-guide/sysctl/index.html).
 
 * `fs_aio_max_nr` - (Optional) The sysctl setting fs.aio-max-nr. Must be between `65536` and `6553500`.
 
@@ -872,6 +876,20 @@ A `sysctl_config` block supports the following:
 * `vm_swappiness` - (Optional) The sysctl setting vm.swappiness. Must be between `0` and `100`.
 
 * `vm_vfs_cache_pressure` - (Optional) The sysctl setting vm.vfs_cache_pressure. Must be between `0` and `100`.
+
+---
+
+The `upgrade_override` block supports the following:
+
+-> **Note:** Once set, the `upgrade_override` block cannot be removed from the configuration.
+
+* `force_upgrade_enabled` - (Required) Whether to force upgrade the cluster. Possible values are `true` or `false`.
+
+!> **Note:** The `force_upgrade_enabled` field instructs the upgrade operation to bypass upgrade protections (e.g. checking for deprecated API usage) which may render the cluster inoperative after the upgrade process has completed. Use the `force_upgrade_enabled` option with extreme caution only.
+
+* `effective_until` - (Optional) Specifies the duration, in RFC 3339 format (e.g., `2025-10-01T13:00:00Z`), the `upgrade_override` values are effective. This field must be set for the `upgrade_override` values to take effect. The date-time must be within the next 30 days.
+
+-> **Note:** This only matches the start time of an upgrade, and the effectiveness won't change once an upgrade starts even if the `effective_until` value expires as the upgrade proceeds.
 
 ---
 
@@ -1005,15 +1023,17 @@ The `kubelet_identity` block exports the following:
 
 ---
 
-A `load_balancer_profile` block exports the following:
+A `network_profile` block exports the following:
 
-* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
+* `load_balancer_profile` - A `load_balancer_profile` block as defined below.
+
+* `nat_gateway_profile` - A `nat_gateway_profile` block as defined below.
 
 ---
 
-A `network_profile` block supports the following:
+A `load_balancer_profile` block exports the following:
 
-* `nat_gateway_profile` - A `nat_gateway_profile` block as defined below.
+* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
 
 ---
 

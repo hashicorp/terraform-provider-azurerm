@@ -58,7 +58,7 @@ A `sharing` block supports the following:
 
 * `community_gallery` - (Optional) A `community_gallery` block as defined below. Changing this forces a new resource to be created.
 
-~> **NOTE:** `community_gallery` must be set when `permission` is set to `Community`.
+~> **Note:** `community_gallery` must be set when `permission` is set to `Community`.
 
 ---
 

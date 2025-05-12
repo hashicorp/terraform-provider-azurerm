@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -169,17 +168,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"extension_operations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default: func() interface{} {
-					if !features.FourPointOhBeta() {
-						return nil
-					}
-					return true
-				}(),
-				Computed: !features.FourPointOhBeta(),
+				Default:  true,
 				ForceNew: true,
 			},
 
-			// Due to bug in RP extensions cannot curretntly be supported in Terraform ETA for full support is mid Jan 2022
+			// Due to bug in RP extensions cannot currently be supported in Terraform ETA for full support is mid Jan 2022
 			"extension": OrchestratedVirtualMachineScaleSetExtensionsSchema(),
 
 			"extensions_time_budget": {
@@ -247,6 +240,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
+			"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
+
 			// NOTE: single_placement_group is now supported in orchestrated VMSS
 			// Since null is now a valid value for this field there is no default
 			// for this bool
@@ -294,6 +289,18 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"upgrade_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(virtualmachinescalesets.UpgradeModeManual),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(virtualmachinescalesets.UpgradeModeAutomatic),
+					string(virtualmachinescalesets.UpgradeModeManual),
+					string(virtualmachinescalesets.UpgradeModeRolling),
+				}, false),
+			},
+
 			"user_data_base64": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -339,6 +346,17 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					if hasSkuName && skuName == SkuNameMix {
 						return fmt.Errorf("`sku_profile` must be set when `sku_name` is set to `Mix`")
 					}
+				}
+
+				upgradeMode := virtualmachinescalesets.UpgradeMode(diff.Get("upgrade_mode").(string))
+				rollingUpgradePolicyRaw := diff.Get("rolling_upgrade_policy").([]interface{})
+
+				if upgradeMode == virtualmachinescalesets.UpgradeModeManual && len(rollingUpgradePolicyRaw) > 0 {
+					return fmt.Errorf("a `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to `%s`", string(upgradeMode))
+				}
+
+				if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && len(rollingUpgradePolicyRaw) == 0 {
+					return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to `%s`", string(upgradeMode))
 				}
 
 				return nil
@@ -395,6 +413,17 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
 	if len(zones) > 0 {
 		props.Zones = &zones
+	}
+
+	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
+	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(d.Get("rolling_upgrade_policy").([]interface{}), len(zones) > 0, false)
+	if err != nil {
+		return fmt.Errorf("expanding `rolling_upgrade_policy`: %+v", err)
+	}
+
+	props.Properties.UpgradePolicy = &virtualmachinescalesets.UpgradePolicy{
+		Mode:                 pointer.To(upgradeMode),
+		RollingUpgradePolicy: rollingUpgradePolicy,
 	}
 
 	virtualMachineProfile := virtualmachinescalesets.VirtualMachineScaleSetVMProfile{
@@ -456,6 +485,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if hasHealthExtension {
 		log.Printf("[DEBUG] Orchestrated %s has a Health Extension defined", id)
+	}
+
+	// Virtual Machine Scale Set with Flexible Orchestration Mode and 'Rolling' upgradeMode must have Health Extension Present
+	if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && !hasHealthExtension {
+		return fmt.Errorf("a health extension must be specified when `upgrade_mode` is set to `Rolling`")
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -553,7 +587,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 				}
 
 				if hotpatchingEnabled {
-					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch' or '2022-datacenter-azure-edition-hotpatch-smalldisk'")
+					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch', '2022-datacenter-azure-edition-hotpatch-smalldisk', '2025-datacenter-azure-edition', '2025-datacenter-azure-edition-smalldisk', '2025-datacenter-azure-edition-core' or '2025-datacenter-azure-edition-core-smalldisk'")
 				}
 			}
 		}
@@ -601,19 +635,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
 
-	if !features.FourPointOhBeta() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
-			if virtualMachineProfile.OsProfile == nil {
-				virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-			}
-			virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
-		}
-	} else {
-		if virtualMachineProfile.OsProfile == nil {
-			virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-		}
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+	if virtualMachineProfile.OsProfile == nil {
+		virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
 	}
+	virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
 		virtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(v.([]interface{}))
@@ -1160,6 +1185,25 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
+	if d.HasChange("rolling_upgrade_policy") {
+		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
+
+		if existing.Model.Properties.UpgradePolicy != nil {
+			upgradePolicy = *existing.Model.Properties.UpgradePolicy
+		}
+
+		upgradePolicy.Mode = pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string)))
+
+		rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
+		rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())) > 0, false)
+		if err != nil {
+			return fmt.Errorf("expanding `rolling_upgrade_policy`: %+v", err)
+		}
+
+		upgradePolicy.RollingUpgradePolicy = rollingUpgradePolicy
+		updateProps.UpgradePolicy = &upgradePolicy
+	}
+
 	// Only two fields that can change in legacy mode
 	if d.HasChange("proximity_placement_group_id") {
 		if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -1291,6 +1335,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			d.Set("zone_balance", props.ZoneBalance)
 
 			extensionOperationsEnabled := true
+			// if `VirtualMachineProfile` is nil, `UpgradeMode` will not exist in the response
+			upgradeMode := string(virtualmachinescalesets.UpgradeModeManual)
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if err := d.Set("boot_diagnostics", flattenBootDiagnosticsVMSS(profile.DiagnosticsProfile)); err != nil {
 					return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
@@ -1387,6 +1433,14 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				}
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 				d.Set("user_data_base64", profile.UserData)
+
+				if policy := props.UpgradePolicy; policy != nil {
+					upgradeMode = string(pointer.From(policy.Mode))
+					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
+					if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+						return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
+					}
+				}
 			}
 
 			if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {
@@ -1396,6 +1450,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			}
 
 			d.Set("extension_operations_enabled", extensionOperationsEnabled)
+			d.Set("upgrade_mode", upgradeMode)
 		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}

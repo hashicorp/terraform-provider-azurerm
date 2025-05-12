@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `value` - (Optional) The value of the App Configuration Key. This should only be set when type is set to `kv`.
 
-~> **NOTE:** `value` and `vault_key_reference` are mutually exclusive.
+~> **Note:** `value` and `vault_key_reference` are mutually exclusive.
 
 * `locked` - (Optional) Should this App Configuration Key be Locked to prevent changes?
 
@@ -137,9 +137,9 @@ The following arguments are supported:
 
 * `vault_key_reference` - (Optional) The ID of the vault secret this App Configuration Key refers to. This should only be set when `type` is set to `vault`.
 
-~> **NOTE:** `vault_key_reference` and `value` are mutually exclusive.
+~> **Note:** `vault_key_reference` and `value` are mutually exclusive.
 
-~> **NOTE:** When setting the `vault_key_reference` using the `id` will pin the value to specific version of the secret, to reference latest secret value use `versionless_id`
+~> **Note:** When setting the `vault_key_reference` using the `id` will pin the value to specific version of the secret, to reference latest secret value use `versionless_id`
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

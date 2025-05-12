@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventHub Namespace exists. Changing this forces a new resource to be created.
 
-~> **NOTE** At least one of the 3 permissions below needs to be set.
+~> **Note:** At least one of the 3 permissions below needs to be set.
 
 * `listen` - (Optional) Does this Authorization Rule have permissions to Listen to the Event Hub? Defaults to `false`.
 

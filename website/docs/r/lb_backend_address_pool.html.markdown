@@ -10,7 +10,7 @@ description: |-
 
 Manages a Load Balancer Backend Address Pool.
 
-~> **NOTE:** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
+~> **Note:** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `synchronous_mode` - (Optional) The backend address synchronous mode for the Backend Address Pool. Possible values are `Automatic` and `Manual`. This is required with `virtual_network_id`. Changing this forces a new resource to be created.
 
--> **NOTE:** The `synchronous_mode` can set only for Load Balancer with `Standard` SKU.
+-> **Note:** The `synchronous_mode` can set only for Load Balancer with `Standard` SKU.
 
 * `tunnel_interface` - (Optional) One or more `tunnel_interface` blocks as defined below.
 

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkwatchers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkwatchers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -79,6 +79,8 @@ func TestAccNetworkWatcher(t *testing.T) {
 		"FlowLog": {
 			"basic":                   testAccNetworkWatcherFlowLog_basic,
 			"basicWithVirtualNetwork": testAccNetworkWatcherFlowLog_basicWithVirtualNetwork,
+			"basicWithSubnet":         testAccNetworkWatcherFlowLog_basicWithSubnet,
+			"basicWithNIC":            testAccNetworkWatcherFlowLog_basicWithNIC,
 			"requiresImport":          testAccNetworkWatcherFlowLog_requiresImport,
 			"disabled":                testAccNetworkWatcherFlowLog_disabled,
 			"reenabled":               testAccNetworkWatcherFlowLog_reenabled,

@@ -178,6 +178,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 
 			"dns_name_label_reuse_policy": {
 				Type:     pluginsdk.TypeString,
+				ForceNew: true,
 				Optional: true,
 				Default:  string(containerinstance.DnsNameLabelReusePolicyUnsecure),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -813,6 +814,11 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			containerGroupVolumes = append(containerGroupVolumes, containerVolumes...)
 		}
 		model.Properties.Volumes = pointer.To(containerGroupVolumes)
+
+		// As API doesn't return the value of WorkspaceKey, so it has to get the value from tf config and set it to request payload. Otherwise, the Update API call would fail
+		if diagnostics := expandContainerGroupDiagnostics(d.Get("diagnostics").([]interface{})); diagnostics != nil && diagnostics.LogAnalytics != nil {
+			model.Properties.Diagnostics.LogAnalytics.WorkspaceKey = diagnostics.LogAnalytics.WorkspaceKey
+		}
 
 		// As Update API doesn't support to update identity, so it has to use CreateOrUpdate API to update identity
 		if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, *id, model); err != nil {

@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_nat_gateway" "example" {
-  name                    = "nat-Gateway"
+  name                    = "nat-gateway"
   location                = azurerm_resource_group.example.location
   resource_group_name     = azurerm_resource_group.example.name
   sku_name                = "Standard"
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
 
--> **NOTE:** Only one Availability Zone can be defined. For more information, please check out the [Azure documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones)
+-> **Note:** Only one Availability Zone can be defined. For more information, please check out the [Azure documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones)
 
 ## Attributes Reference
 

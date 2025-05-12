@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -17,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 type SpringCloudAcceleratorModel struct {
@@ -27,9 +28,14 @@ type SpringCloudAcceleratorModel struct {
 
 type SpringCloudAcceleratorResource struct{}
 
+func (s SpringCloudAcceleratorResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_accelerator` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
 var (
-	_ sdk.Resource                   = SpringCloudAcceleratorResource{}
-	_ sdk.ResourceWithStateMigration = SpringCloudAcceleratorResource{}
+	_ sdk.Resource                                = SpringCloudAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudAcceleratorResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudAcceleratorResource{}
 )
 
 func (s SpringCloudAcceleratorResource) ResourceType() string {

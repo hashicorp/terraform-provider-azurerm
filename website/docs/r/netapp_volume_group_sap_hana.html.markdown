@@ -10,7 +10,7 @@ description: |-
 
 Manages a Application Volume Group for SAP HANA application.
 
->Note: This feature is intended to be used for SAP-HANA workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-introduction) document as the starting point to understand this feature before using it with Terraform.
+-> **Note:** This feature is intended to be used for SAP-HANA workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-introduction) document as the starting point to understand this feature before using it with Terraform.
 
 ## Example Usage
 
@@ -42,14 +42,14 @@ resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-vnet"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "${var.prefix}-delegated-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -65,7 +65,7 @@ resource "azurerm_subnet" "example1" {
   name                 = "${var.prefix}-hosts-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.6.1.0/24"]
+  address_prefixes     = ["10.88.1.0/24"]
 }
 
 resource "azurerm_proximity_placement_group" "example" {

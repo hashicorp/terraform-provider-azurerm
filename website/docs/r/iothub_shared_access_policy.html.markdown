@@ -53,13 +53,13 @@ The following arguments are supported:
 
 * `registry_write` - (Optional) Adds `RegistryWrite` permission to this Shared Access Account. It allows write access to the identity registry.
 
--> **NOTE** When `registry_write` is set to `true`, `registry_read` must also be set to true. This is a limitation of the Azure REST API
+-> **Note:** When `registry_write` is set to `true`, `registry_read` must also be set to true. This is a limitation of the Azure REST API
 
 * `service_connect` - (Optional) Adds `ServiceConnect` permission to this Shared Access Account. It allows sending and receiving on the cloud-side endpoints.
 
 * `device_connect` - (Optional) Adds `DeviceConnect` permission to this Shared Access Account. It allows sending and receiving on the device-side endpoints.
 
--> **NOTE** At least one of `registry_read`, `registry_write`, `service_connect`, `device_connect` permissions must be set to `true`.
+-> **Note:** At least one of `registry_read`, `registry_write`, `service_connect`, `device_connect` permissions must be set to `true`.
 
 ## Attributes Reference
 

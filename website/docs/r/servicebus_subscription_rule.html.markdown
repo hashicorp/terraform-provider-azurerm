@@ -135,7 +135,7 @@ The `correlation_filter` block supports the following:
 
 * `properties` - (Optional) A list of user defined properties to be included in the filter. Specified as a map of name/value pairs.
 
-~> **NOTE:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
+~> **Note:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
 
 ## Attributes Reference
 
