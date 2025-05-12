@@ -613,7 +613,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 1 hour) Used when creating the Windows Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Windows Virtual Machine Scale Set.
-* `update` - (Defaults to 1 hour) Used when updating the (and rolling the instances of) the Windows Virtual Machine Scale Set (e.g. when changing SKU).
+* `update` - (Defaults to 1 hour) Used when updating the Windows Virtual Machine Scale Set.
 * `delete` - (Defaults to 1 hour) Used when deleting the Windows Virtual Machine Scale Set.
 
 ## Import
