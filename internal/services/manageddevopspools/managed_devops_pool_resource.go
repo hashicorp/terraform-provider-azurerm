@@ -177,10 +177,6 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				payload.Properties.MaximumConcurrency = config.MaximumConcurrency
 			}
 
-			if metadata.ResourceData.HasChange("location") {
-				payload.Location = location.Normalize(config.Location)
-			}
-
 			if metadata.ResourceData.HasChange("agent_profile") {
 				agentProfile, err := expandAgentProfileModel(config.AgentProfile)
 				if err != nil {
