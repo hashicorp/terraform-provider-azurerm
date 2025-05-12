@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -571,10 +572,15 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if podSubnetID != nil {
 		profile.PodSubnetID = utils.String(podSubnetID.ID())
+		locks.ByName(podSubnetID.SubnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(podSubnetID.SubnetName, network.SubnetResourceName)
 	}
 
 	if nodeSubnetID != nil {
 		profile.VnetSubnetID = utils.String(nodeSubnetID.ID())
+		// Lock submet to avoid
+		locks.ByName(nodeSubnetID.SubnetName, network.SubnetResourceName)
+		defer locks.UnlockByName(nodeSubnetID.SubnetName, network.SubnetResourceName)
 	}
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
