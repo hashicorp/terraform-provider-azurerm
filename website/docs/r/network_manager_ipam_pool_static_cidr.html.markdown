@@ -59,13 +59,11 @@ The following arguments are supported:
 
 * `address_prefixes` - (Optional) Specifies a list of IPv4 or IPv6 IP address prefixes which will be allocated to the Static CIDR.
 
--> **NOTE:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `address_prefixes`, consider adding `number_of_ip_addresses_to_allocate` to `ignore_changes` to avoid plan diff.
+-> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `address_prefixes`, consider adding `number_of_ip_addresses_to_allocate` to `ignore_changes` to avoid plan diff.
 
-* `number_of_ip_addresses_to_allocate` - (Optional) The number of IP addresses to allocated to the Static CIDR. The value must be a string that represents a positive number, e.g., `"16"`.
+* `number_of_ip_addresses_to_allocate` - (Optional) The number of IP addresses to allocated to the Static CIDR. The value must be a string representing a positive integer which is a positive power of 2, e.g., `"16"`.
 
--> **NOTE:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `number_of_ip_addresses_to_allocate`, consider adding `address_prefixes` to `ignore_changes` to avoid plan diff.
-
--> **NOTE:** If `number_of_ip_addresses_to_allocate` is not set to a power of 2, Azure API will return the nearest power of 2. For instance, if `number_of_ip_addresses_to_allocate` is `"20"`, Azure API will automatically update it to `"32"`. In such cases, please update the `number_of_ip_addresses_to_allocate` in the configuration file to this new value.
+-> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `number_of_ip_addresses_to_allocate`, consider adding `address_prefixes` to `ignore_changes` to avoid plan diff.
 
 ## Attributes Reference
 

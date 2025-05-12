@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/staticcidrs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -66,9 +67,7 @@ func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ExactlyOneOf: []string{"address_prefixes", "number_of_ip_addresses_to_allocate"},
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[1-9]\d*$`),
-				"`number_of_ip_addresses_to_allocate` must be a string that represents a positive number"),
+			ValidateFunc: validate.NumberOfIpAddresses,
 		},
 	}
 }
