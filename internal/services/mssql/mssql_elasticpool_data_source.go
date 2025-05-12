@@ -94,6 +94,11 @@ func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"high_availability_replica_count": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
 			"license_type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -142,6 +147,7 @@ func dataSourceMsSqlElasticpoolRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("max_size_gb", float64(*props.MaxSizeBytes/int64(1073741824)))
 			d.Set("max_size_bytes", props.MaxSizeBytes)
 			d.Set("zone_redundant", props.ZoneRedundant)
+			d.Set("high_availability_replica_count", props.HighAvailabilityReplicaCount)
 
 			licenseType := ""
 			if props.LicenseType != nil {
