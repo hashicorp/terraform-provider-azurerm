@@ -1047,7 +1047,7 @@ func (r NetworkInterfaceResource) privateEndpointNic(data acceptance.TestData, t
 %[1]s
 
 import {
-  id = "/subscriptions/%[2]s/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.Network/networkInterfaces/acctestnic-%[3]d"
+  id = "/subscriptions/%[2]s/resourceGroups/acctestRG-%[3]d/providers/Microsoft.Network/networkInterfaces/acctestnic-%[3]d"
   to = azurerm_network_interface.test
 }
 
