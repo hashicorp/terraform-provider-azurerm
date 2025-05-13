@@ -396,11 +396,13 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 		e := s.Elem.(*pluginsdk.Resource)
 
 		e.Schema["transparent_huge_page"].Computed = true
+		e.Schema["transparent_huge_page"].ConflictsWith = []string{"transparent_huge_page_enabled"}
 
 		e.Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"transparent_huge_page"},
 			ValidateFunc: validation.StringInSlice([]string{
 				"always",
 				"madvise",
@@ -1041,6 +1043,11 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 	result := &managedclusters.LinuxOSConfig{
 		Sysctls: sysctlConfig,
 	}
+
+	if v := raw["transparent_huge_page"].(string); v != "" {
+		result.TransparentHugePageEnabled = pointer.To(v)
+	}
+
 	if !features.FivePointOh() {
 		if v := raw["transparent_huge_page_enabled"].(string); v != "" {
 			result.TransparentHugePageEnabled = pointer.To(v)
@@ -1531,6 +1538,7 @@ func flattenClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) (
 			"swap_file_size_mb":            swapFileSizeMB,
 			"sysctl_config":                sysctlConfig,
 			"transparent_huge_page_defrag": transparentHugePageDefrag,
+			"transparent_huge_page":        transparentHugePageEnabled,
 		},
 	}
 
