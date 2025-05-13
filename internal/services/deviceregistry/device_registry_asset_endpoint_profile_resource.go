@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assetendpointprofiles"
+	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -21,7 +23,7 @@ type AssetEndpointProfileResource struct{}
 
 type AssetEndpointProfileResourceModel struct {
 	Name                                          string            `tfschema:"name"`
-	ResourceGroupName                             string            `tfschema:"resource_group_name"`
+	ResourceGroupId                               string            `tfschema:"resource_group_id"`
 	Location                                      string            `tfschema:"location"`
 	Tags                                          map[string]string `tfschema:"tags"`
 	ExtendedLocationName                          string            `tfschema:"extended_location_name"`
@@ -44,7 +46,11 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: resourceValidate.ResourceGroupID,
+		},
 		"extended_location_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -112,13 +118,17 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DeviceRegistry.AssetEndpointProfilesClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			resourceGroupId, err := resourceParse.ResourceGroupID(config.ResourceGroupId)
+			if err != nil {
+				return err
+			}
 
 			var config AssetEndpointProfileResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-			id := assetendpointprofiles.NewAssetEndpointProfileID(subscriptionId, config.ResourceGroupName, config.Name)
+			id := assetendpointprofiles.NewAssetEndpointProfileID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroup, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -260,10 +270,12 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
+			resourceGroupId := resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroup)
+
 			// Convert the ARM model to the TF model
 			state := AssetEndpointProfileResourceModel{
 				Name:              id.AssetEndpointProfileName,
-				ResourceGroupName: id.ResourceGroupName,
+				ResourceGroupId: resourceGroupId.ID(),
 			}
 
 			if model := resp.Model; model != nil {

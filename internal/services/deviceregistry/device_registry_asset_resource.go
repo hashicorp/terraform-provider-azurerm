@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assets"
+	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
+	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +27,7 @@ type AssetResource struct{}
 
 type AssetResourceModel struct {
 	Name                         string                 `tfschema:"name"`
-	ResourceGroupName            string                 `tfschema:"resource_group_name"`
+	ResourceGroupId              string                 `tfschema:"resource_group_id"`
 	Location                     string                 `tfschema:"location"`
 	Tags                         map[string]string      `tfschema:"tags"`
 	ExtendedLocationName         string                 `tfschema:"extended_location_name"`
@@ -84,7 +86,11 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"resource_group_id": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: resourceValidate.ResourceGroupID,
+		},
 		"location":            commonschema.Location(),
 		"tags":                commonschema.Tags(),
 		"extended_location_name": {
@@ -292,7 +298,13 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-			id := assets.NewAssetID(subscriptionId, config.ResourceGroupName, config.Name)
+
+			resourceGroupId, err := resourceParse.ParseResourceGroupID(config.ResourceGroupId)
+			if err != nil {
+				return fmt.Errorf("parsing resource group id: %+v", err)
+			}
+
+			id := assets.NewAssetID(resourceGroupId.SubscriptionId, resourceGroupId.ResourceGroup, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -530,10 +542,12 @@ func (AssetResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
+			resourceGroupId, err := resourceParse.ParseResourceGroupID(id.SubscriptionId, id.ResourceGroup)
+
 			// Convert the ARM model to the TF model
 			state := AssetResourceModel{
 				Name:              id.AssetName,
-				ResourceGroupName: id.ResourceGroupName,
+				ResourceGroupId: resourceGroupId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
