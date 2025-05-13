@@ -366,3 +366,9 @@ Site Recovery Replicated VM's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_site_recovery_replicated_vm.vmreplication /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric-name/replicationProtectionContainers/protection-container-name/replicationProtectedItems/vm-replication-name
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices`: 2024-04-01

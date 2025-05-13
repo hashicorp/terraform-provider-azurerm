@@ -76,3 +76,9 @@ Relay Hybrid Connection's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_relay_hybrid_connection.relay1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1/hybridConnections/hconn1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Relay`: 2021-11-01

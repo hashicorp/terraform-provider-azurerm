@@ -93,3 +93,9 @@ An existing Private Link Association can be imported into Terraform using the `r
 ```shell
 terraform import azurerm_resource_management_private_link_association.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/privateLinkAssociations/00000000-0000-0000-0000-000000000000
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Management`: 2020-05-01

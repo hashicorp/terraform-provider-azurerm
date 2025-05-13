@@ -57,3 +57,9 @@ An existing Resource Management Private Link can be imported into Terraform usin
 ```shell
 terraform import azurerm_resource_management_private_link.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Authorization/resourceManagementPrivateLinks/link1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2020-05-01
