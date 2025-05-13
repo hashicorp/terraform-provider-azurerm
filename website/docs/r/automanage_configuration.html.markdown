@@ -235,3 +235,9 @@ Automanage Configuration can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_automanage_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AutoManage/configurationProfiles/configurationProfile1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AutoManage`: 2022-05-04
