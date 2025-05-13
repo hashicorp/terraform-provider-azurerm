@@ -105,8 +105,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Automation Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Account.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Automation Account.
 
 ## Import

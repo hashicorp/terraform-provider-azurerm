@@ -11,9 +11,9 @@ description: |-
 
 Manages an AzureNetwork DDoS Protection Plan.
 
--> **NOTE** Azure only allows `one` DDoS Protection Plan per region.
+-> **Note:** Azure only allows `one` DDoS Protection Plan per region.
 
-~> **NOTE** The DDoS Protection Plan is a [high-cost service](https://azure.microsoft.com/en-us/pricing/details/ddos-protection/#pricing). Please keep this in mind while testing and learning.
+~> **Note:** The DDoS Protection Plan is a [high-cost service](https://azure.microsoft.com/en-us/pricing/details/ddos-protection/#pricing). Please keep this in mind while testing and learning.
 
 ## Example Usage
 
@@ -55,8 +55,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DDoS Protection Plan.
-* `update` - (Defaults to 30 minutes) Used when updating the DDoS Protection Plan.
 * `read` - (Defaults to 5 minutes) Used when retrieving the DDoS Protection Plan.
+* `update` - (Defaults to 30 minutes) Used when updating the DDoS Protection Plan.
 * `delete` - (Defaults to 30 minutes) Used when deleting the DDoS Protection Plan.
 
 ## Import

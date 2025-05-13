@@ -58,7 +58,7 @@ An `policy_definition_reference` block exports the following:
 
 * `parameters` - The mapping of the parameter values for the referenced policy rule. The keys are the parameter names.
 
--> **NOTE:** Since Terraform's concept of a map requires all of the elements to be of the same type, the value in parameters will all be converted to string type.
+-> **Note:** Since Terraform's concept of a map requires all of the elements to be of the same type, the value in parameters will all be converted to string type.
 
 ~> **Note:** This field only supports String fields and is deprecated in favour of the `parameters_values` field
 

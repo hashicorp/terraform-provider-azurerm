@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `personal_desktop_assignment_type` - (Optional) `Automatic` assignment – The service will select an available host and assign it to an user. Possible values are `Automatic` and `Direct`. `Direct` Assignment – Admin selects a specific host to assign to an user. Changing this forces a new resource to be created.
 
-~> **NOTE:** `personal_desktop_assignment_type` is required if the `type` of your Virtual Desktop Host Pool is `Personal`
+~> **Note:** `personal_desktop_assignment_type` is required if the `type` of your Virtual Desktop Host Pool is `Personal`
 
 * `public_network_access` - (Optional) Whether public network access is allowed for the Virtual Desktop Host Pool. Possible values are `Enabled`, `Disabled`, `EnabledForClientsOnly` and `EnabledForSessionHostsOnly`. Defaults to `Enabled`.
 
@@ -91,7 +91,7 @@ A `scheduled_agent_updates` block supports the following:
 
 * `enabled` - (Optional) Enables or disables scheduled updates of the AVD agent components (RDAgent, Geneva Monitoring agent, and side-by-side stack) on session hosts. If this is enabled then up to two `schedule` blocks must be defined. Default is `false`.
 
-~> **NOTE:** if `enabled` is set to `true` then at least one and a maximum of two `schedule` blocks must be provided.
+~> **Note:** if `enabled` is set to `true` then at least one and a maximum of two `schedule` blocks must be provided.
 
 * `timezone` - (Optional) Specifies the time zone in which the agent update schedule will apply, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). If `use_session_host_timezone` is enabled then it will override this setting. Default is `UTC`
 * `use_session_host_timezone` - (Optional) Specifies whether scheduled agent updates should be applied based on the timezone of the affected session host. If configured then this setting overrides `timezone`. Default is `false`.
@@ -116,10 +116,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Host Pool.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Desktop Host Pool.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Desktop Host Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Desktop Host Pool.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Desktop Host Pool.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Desktop Host Pool.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Desktop Host Pool.
 
 ## Import
 

@@ -173,7 +173,7 @@ A `main_profile` block supports the following:
 
 * `encryption_at_host_enabled` - (Optional) Whether main virtual machines are encrypted at host. Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
+~> **Note:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
 
 * `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. Changing this forces a new resource to be created.
 
@@ -191,7 +191,7 @@ A `worker_profile` block supports the following:
 
 * `encryption_at_host_enabled` - (Optional) Whether worker virtual machines are encrypted at host. Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
+~> **Note:** `encryption_at_host_enabled` is only available for certain VM sizes and the `EncryptionAtHost` feature must be enabled for your subscription. Please see the [Azure documentation](https://learn.microsoft.com/azure/virtual-machines/disks-enable-host-based-encryption-portal?tabs=azure-powershell) for more information.
 
 * `disk_encryption_set_id` - (Optional) The resource ID of an associated disk encryption set. Changing this forces a new resource to be created.
 
@@ -274,8 +274,8 @@ A `ingress_profile` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Red Hat OpenShift cluster.
-* `update` - (Defaults to 90 minutes) Used when updating the Red Hat OpenShift cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Red Hat OpenShift cluster.
+* `update` - (Defaults to 90 minutes) Used when updating the Red Hat OpenShift cluster.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Red Hat OpenShift cluster.
 
 ## Import

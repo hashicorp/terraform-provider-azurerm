@@ -101,7 +101,7 @@ The `plan` block exports the following:
 
 * `promotion_code` - (Optional) Specifies the promotion code to use with the plan. Changing this forces a new resource to be created.
 
-~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
+~> **Note:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
 
 ## Attributes Reference
 
@@ -116,8 +116,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Managed Application.
-* `update` - (Defaults to 30 minutes) Used when updating the Managed Application.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Application.
+* `update` - (Defaults to 30 minutes) Used when updating the Managed Application.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Managed Application.
 
 ## Import

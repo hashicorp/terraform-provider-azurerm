@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access information about an existing File Share.
 
-~> **Note on Authentication** Shared Key authentication will always be used for this data source, as AzureAD authentication is not supported by the Storage API for files.
+~> **Note:** Shared Key authentication will always be used for this data source, as AzureAD authentication is not supported by the Storage API for files.
 
 ## Example Usage
 
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) The ID of the storage account in which the share exists.
 
-~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 ## Attributes Reference
 

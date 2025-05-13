@@ -93,11 +93,11 @@ The following arguments are supported:
 
 * `event_handler` - (Optional) An `event_handler` block as defined below.
 
--> **NOTE:** User can change the order of `event_handler` to change the priority accordingly.
+-> **Note:** User can change the order of `event_handler` to change the priority accordingly.
 
 * `event_listener` - (Optional) An `event_listener` block as defined below.
 
--> **NOTE:**  The managed identity of Web PubSub service must be enabled and the identity must have the "Azure Event Hubs Data sender" role to access the Event Hub.
+-> **Note:** The managed identity of Web PubSub service must be enabled and the identity must have the "Azure Event Hubs Data sender" role to access the Event Hub.
 
 ---
 
@@ -129,7 +129,7 @@ An `auth` block supports the following:
 
 * `managed_identity_id` - (Required) Specify the identity ID of the target resource.
 
--> **NOTE:** `managed_identity_id` is required if the auth block is defined
+-> **Note:** `managed_identity_id` is required if the auth block is defined
 
 ## Attributes Reference
 
@@ -144,8 +144,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Pubsub Resource.
-* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Web Pubsub Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Web Pubsub Resource.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Web Pubsub Resource.
 
 ## Import

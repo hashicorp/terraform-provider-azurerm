@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
--> **NOTE:** If either `create_ui_definition` or `main_template` is set they both must be set.
+-> **Note:** If either `create_ui_definition` or `main_template` is set they both must be set.
 
 ---
 
@@ -91,8 +91,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Managed Application Definition.
-* `update` - (Defaults to 30 minutes) Used when updating the Managed Application Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Application Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Managed Application Definition.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Managed Application Definition.
 
 ## Import

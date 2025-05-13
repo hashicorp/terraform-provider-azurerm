@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `priority` - (Optional) The priority of the Container Group. Possible values are `Regular` and `Spot`. Changing this forces a new resource to be created.
 
-~> **NOTE:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
+~> **Note:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
@@ -119,13 +119,13 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Group. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, the identity of the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
+~> **Note:** When `type` is set to `SystemAssigned`, the identity of the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Group.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
-~> **NOTE:** Currently you can't use a managed identity in a container group deployed to a virtual network.
+~> **Note:** Currently you can't use a managed identity in a container group deployed to a virtual network.
 
 ---
 
@@ -251,7 +251,7 @@ A `volume` block supports:
 
 ~> **Note:** Exactly one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) must be specified.
 
-~> **Note** when using a storage account volume, all of `share_name`, `storage_account_name`, and `storage_account_key` must be specified.
+~> **Note:** when using a storage account volume, all of `share_name`, `storage_account_name`, and `storage_account_key` must be specified.
 
 ~> **Note:** The secret values must be supplied as Base64 encoded strings, such as by using the Terraform [base64encode function](https://www.terraform.io/docs/configuration/functions/base64encode.html). The secret values are decoded to their original values when mounted in the volume on the container.
 
@@ -329,7 +329,7 @@ The `security` block supports:
 
 * `privilege_enabled` - (Required) Whether the container's permission is elevated to privileged? Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`. 
+~> **Note:** Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`.
 
 ## Attributes Reference
 
@@ -355,11 +355,11 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Container Group.
-
-* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
+* `create` - (Defaults to 1 hour) Used when creating the Container Group.
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Group.
+
+* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Group.
 

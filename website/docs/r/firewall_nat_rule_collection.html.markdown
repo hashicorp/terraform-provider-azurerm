@@ -123,7 +123,7 @@ A `rule` block supports the following:
 
 * `source_ip_groups` - (Optional) A list of source IP Group IDs for the rule.
 
--> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
+-> **Note:** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
 * `translated_address` - (Required) The address of the service behind the Firewall.
 
@@ -134,8 +134,8 @@ A `rule` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall NAT Rule Collection.
-* `update` - (Defaults to 30 minutes) Used when updating the Firewall NAT Rule Collection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall NAT Rule Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Firewall NAT Rule Collection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Firewall NAT Rule Collection.
 
 ## Import

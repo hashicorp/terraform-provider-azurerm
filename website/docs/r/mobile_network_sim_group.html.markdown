@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
--> **NOTE:** A `UserAssigned` identity must be specified when `encryption_key_url` is specified.
+-> **Note:** A `UserAssigned` identity must be specified when `encryption_key_url` is specified.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Sim Groups.
 
@@ -97,10 +97,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the Mobile Network Sim Groups.
+* `create` - (Defaults to 3 hours) Used when creating the Mobile Network Sim Groups.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Sim Groups.
-* `update` - (Defaults to 180 minutes) Used when updating the Mobile Network Sim Groups.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Mobile Network Sim Groups.
+* `update` - (Defaults to 3 hours) Used when updating the Mobile Network Sim Groups.
+* `delete` - (Defaults to 3 hours) Used when deleting the Mobile Network Sim Groups.
 
 ## Import
 

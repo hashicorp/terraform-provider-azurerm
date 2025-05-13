@@ -49,7 +49,7 @@ output "virtual_machine_id" {
 
 * `power_state` - The power state of the virtual machine.
 
-~> In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
+~> **Note:** In this release there's a known issue where the `public_ip_address` and `public_ip_addresses` fields may not be fully populated for Dynamic Public IP's.
 
 ---
 

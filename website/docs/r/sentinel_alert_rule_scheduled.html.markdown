@@ -85,17 +85,17 @@ The following arguments are supported:
 
 * `query_period` - (Optional) The ISO 8601 timespan duration, which determine the time period of the data covered by the query. For example, it can query the past 10 minutes of data, or the past 6 hours of data. Defaults to `PT5H`.
 
--> **NOTE** `query_period` must larger than or equal to `query_frequency`, which ensures there is no gaps in the overall query coverage.
+-> **Note:** `query_period` must larger than or equal to `query_frequency`, which ensures there is no gaps in the overall query coverage.
 
 * `suppression_duration` - (Optional) If `suppression_enabled` is `true`, this is ISO 8601 timespan duration, which specifies the amount of time the query should stop running after alert is generated. Defaults to `PT5H`.
 
--> **NOTE** `suppression_duration` must larger than or equal to `query_frequency`, otherwise the suppression has no actual effect since no query will happen during the suppression duration.
+-> **Note:** `suppression_duration` must larger than or equal to `query_frequency`, otherwise the suppression has no actual effect since no query will happen during the suppression duration.
 
 * `suppression_enabled` - (Optional) Should the Sentinel Scheduled Alert Rulea stop running query after alert is generated? Defaults to `false`.
 
 * `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
 
--> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 10.
+-> **Note:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 10.
 
 * `tactics` - (Optional) A list of categories of attacks by which to classify the rule. Possible values are `Collection`, `CommandAndControl`, `CredentialAccess`, `DefenseEvasion`, `Discovery`, `Execution`, `Exfiltration`, `ImpairProcessControl`, `InhibitResponseFunction`, `Impact`, `InitialAccess`, `LateralMovement`, `Persistence`, `PrivilegeEscalation`, `PreAttack`, `Reconnaissance` and `ResourceDevelopment`.
 
