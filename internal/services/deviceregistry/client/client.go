@@ -19,7 +19,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Assets Client: %+v", err)
 	}
 	o.Configure(assetsClient.Client, o.Authorizers.ResourceManager)
-	
+
 	assetEndpointProfilesClient, err := assetendpointprofiles.NewAssetEndpointProfilesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Asset Endpoint Profiles Client: %+v", err)

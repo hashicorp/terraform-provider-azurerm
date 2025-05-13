@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -26,39 +26,39 @@ var _ sdk.Resource = AssetResource{}
 type AssetResource struct{}
 
 type AssetResourceModel struct {
-	Name                         string                 `tfschema:"name"`
-	ResourceGroupId              string                 `tfschema:"resource_group_id"`
-	Location                     string                 `tfschema:"location"`
-	Tags                         map[string]string      `tfschema:"tags"`
-	ExtendedLocationName         string                 `tfschema:"extended_location_name"`
-	ExtendedLocationType         string                 `tfschema:"extended_location_type"`
-	Enabled                      bool                   `tfschema:"enabled"`
-	ExternalAssetId              string                 `tfschema:"external_asset_id"`
-	DisplayName                  string                 `tfschema:"display_name"`
-	Description                  string                 `tfschema:"description"`
-	AssetEndpointProfileReference      string                 `tfschema:"asset_endpoint_profile_reference"`
-	Manufacturer                 string                 `tfschema:"manufacturer"`
-	ManufacturerUri              string                 `tfschema:"manufacturer_uri"`
-	Model                        string                 `tfschema:"model"`
-	ProductCode                  string                 `tfschema:"product_code"`
-	HardwareRevision             string                 `tfschema:"hardware_revision"`
-	SoftwareRevision             string                 `tfschema:"software_revision"`
-	DocumentationUri             string                 `tfschema:"documentation_uri"`
-	SerialNumber                 string                 `tfschema:"serial_number"`
-	Attributes                   map[string]interface{} `tfschema:"attributes"`
-	DiscoveredAssetReferences          []string               `tfschema:"discovered_asset_references"`
-	DefaultDatasetsConfiguration string                 `tfschema:"default_datasets_configuration"`
-	DefaultEventsConfiguration   string                 `tfschema:"default_events_configuration"`
-	DefaultTopic []TopicModel `tfschema:"default_topic"`
-	Datasets                     []Dataset              `tfschema:"dataset"`
-	Events                       []Event                `tfschema:"event"`
+	Name                          string                 `tfschema:"name"`
+	ResourceGroupId               string                 `tfschema:"resource_group_id"`
+	Location                      string                 `tfschema:"location"`
+	Tags                          map[string]string      `tfschema:"tags"`
+	ExtendedLocationName          string                 `tfschema:"extended_location_name"`
+	ExtendedLocationType          string                 `tfschema:"extended_location_type"`
+	Enabled                       bool                   `tfschema:"enabled"`
+	ExternalAssetId               string                 `tfschema:"external_asset_id"`
+	DisplayName                   string                 `tfschema:"display_name"`
+	Description                   string                 `tfschema:"description"`
+	AssetEndpointProfileReference string                 `tfschema:"asset_endpoint_profile_reference"`
+	Manufacturer                  string                 `tfschema:"manufacturer"`
+	ManufacturerUri               string                 `tfschema:"manufacturer_uri"`
+	Model                         string                 `tfschema:"model"`
+	ProductCode                   string                 `tfschema:"product_code"`
+	HardwareRevision              string                 `tfschema:"hardware_revision"`
+	SoftwareRevision              string                 `tfschema:"software_revision"`
+	DocumentationUri              string                 `tfschema:"documentation_uri"`
+	SerialNumber                  string                 `tfschema:"serial_number"`
+	Attributes                    map[string]interface{} `tfschema:"attributes"`
+	DiscoveredAssetReferences     []string               `tfschema:"discovered_asset_references"`
+	DefaultDatasetsConfiguration  string                 `tfschema:"default_datasets_configuration"`
+	DefaultEventsConfiguration    string                 `tfschema:"default_events_configuration"`
+	DefaultTopic                  []TopicModel           `tfschema:"default_topic"`
+	Datasets                      []Dataset              `tfschema:"dataset"`
+	Events                        []Event                `tfschema:"event"`
 }
 
 type Dataset struct {
-	Name                 string      `tfschema:"name"`
-	DatasetConfiguration string      `tfschema:"dataset_configuration"`
-	Topic []TopicModel `tfschema:"topic"`
-	DataPoints           []DataPoint `tfschema:"data_point"`
+	Name                 string       `tfschema:"name"`
+	DatasetConfiguration string       `tfschema:"dataset_configuration"`
+	Topic                []TopicModel `tfschema:"topic"`
+	DataPoints           []DataPoint  `tfschema:"data_point"`
 }
 
 type DataPoint struct {
@@ -69,11 +69,11 @@ type DataPoint struct {
 }
 
 type Event struct {
-	Name               string `tfschema:"name"`
-	EventNotifier      string `tfschema:"event_notifier"`
-	ObservabilityMode  string `tfschema:"observability_mode"`
-	EventConfiguration string `tfschema:"event_configuration"`
-	Topic 						 []TopicModel `tfschema:"topic"`
+	Name               string       `tfschema:"name"`
+	EventNotifier      string       `tfschema:"event_notifier"`
+	ObservabilityMode  string       `tfschema:"observability_mode"`
+	EventConfiguration string       `tfschema:"event_configuration"`
+	Topic              []TopicModel `tfschema:"topic"`
 }
 
 type TopicModel struct {
@@ -93,8 +93,8 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: resourceValidate.ResourceGroupID,
 		},
-		"location":            commonschema.Location(),
-		"tags":                commonschema.Tags(),
+		"location": commonschema.Location(),
+		"tags":     commonschema.Tags(),
 		"extended_location_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -192,7 +192,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
-						Default: 		string(assets.TopicRetainTypeNever),
+						Default:      string(assets.TopicRetainTypeNever),
 					},
 				},
 			},
@@ -224,7 +224,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
-									Default: 		string(assets.TopicRetainTypeNever),
+									Default:      string(assets.TopicRetainTypeNever),
 								},
 							},
 						},
@@ -295,7 +295,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
-									Default: 		string(assets.TopicRetainTypeNever),
+									Default:      string(assets.TopicRetainTypeNever),
 								},
 							},
 						},
@@ -575,7 +575,7 @@ func (AssetResource) Read() sdk.ResourceFunc {
 
 			// Convert the ARM model to the TF model
 			state := AssetResourceModel{
-				Name:              id.AssetName,
+				Name:            id.AssetName,
 				ResourceGroupId: resourceGroupId.ID(),
 			}
 
@@ -728,7 +728,7 @@ func flattenDatasets(datasets *[]assets.Dataset) []Dataset {
 			Name:                 dataset.Name,
 			DatasetConfiguration: pointer.From(dataset.DatasetConfiguration),
 			DataPoints:           flattenDataPoints(dataset.DataPoints),
-			Topic: flattenTopic(dataset.Topic),
+			Topic:                flattenTopic(dataset.Topic),
 		}
 	}
 
@@ -765,7 +765,7 @@ func flattenEvents(events *[]assets.Event) []Event {
 			EventNotifier:      event.EventNotifier,
 			ObservabilityMode:  string(pointer.From(event.ObservabilityMode)),
 			EventConfiguration: pointer.From(event.EventConfiguration),
-			Topic: flattenTopic(event.Topic),
+			Topic:              flattenTopic(event.Topic),
 		}
 	}
 
@@ -779,7 +779,7 @@ func flattenTopic(topic *assets.Topic) []TopicModel {
 
 	return []TopicModel{
 		{
-			Path:	 topic.Path,
+			Path:   topic.Path,
 			Retain: string(pointer.From(topic.Retain)),
 		},
 	}
