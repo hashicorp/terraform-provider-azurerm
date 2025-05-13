@@ -137,10 +137,10 @@ The `custom_https_configuration` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 6 hours) Used when creating a Custom HTTPS Configuration.
-* `update` - (Defaults to 6 hours) Used when updating a Custom HTTPS Configuration.
-* `read` - (Defaults to 5 minutes) Used when retrieving a Custom HTTPS Configuration.
-* `delete` - (Defaults to 6 hours) Used when deleting a Custom HTTPS Configuration.
+* `create` - (Defaults to 6 hours) Used when creating the Custom HTTPS Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Custom HTTPS Configuration.
+* `update` - (Defaults to 6 hours) Used when updating the Custom HTTPS Configuration.
+* `delete` - (Defaults to 6 hours) Used when deleting the Custom HTTPS Configuration.
 
 ## Import
 

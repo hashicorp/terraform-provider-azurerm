@@ -1151,8 +1151,8 @@ The `web_app_routing_identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Kubernetes Cluster.
-* `update` - (Defaults to 90 minutes) Used when updating the Kubernetes Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster.
+* `update` - (Defaults to 90 minutes) Used when updating the Kubernetes Cluster.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Kubernetes Cluster.
 
 ## Import

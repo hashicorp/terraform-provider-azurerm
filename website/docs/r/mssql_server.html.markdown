@@ -225,10 +225,10 @@ A `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Microsoft SQL Server.
+* `create` - (Defaults to 1 hour) Used when creating the Microsoft SQL Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Server.
-* `update` - (Defaults to 60 minutes) Used when updating the Microsoft SQL Server.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Microsoft SQL Server.
+* `update` - (Defaults to 1 hour) Used when updating the Microsoft SQL Server.
+* `delete` - (Defaults to 1 hour) Used when deleting the Microsoft SQL Server.
 
 ## Import
 

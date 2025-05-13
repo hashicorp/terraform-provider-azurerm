@@ -67,9 +67,9 @@ A `feature` block supports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 120 minutes) Used when registering the Resource Provider/Features.
+* `create` - (Defaults to 2 hours) Used when registering the Resource Provider/Features.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Provider.
-* `update` - (Defaults to 120 minutes) Used when updating the Resource Provider/Features.
+* `update` - (Defaults to 2 hours) Used when updating the Resource Provider/Features.
 * `delete` - (Defaults to 30 minutes) Used when unregistering the Resource Provider.
 
 ## Import

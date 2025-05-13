@@ -132,7 +132,7 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 hour) Used when creating the AI Foundry Project.
+* `create` - (Defaults to 30 minutes) Used when creating the AI Foundry Project.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AI Foundry Project.
 * `update` - (Defaults to 30 minutes) Used when updating the AI Foundry Project.
 * `delete` - (Defaults to 30 minutes) Used when deleting the AI Foundry Project.

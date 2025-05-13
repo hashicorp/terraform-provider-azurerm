@@ -178,7 +178,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure VMware Solution Private Cloud Netapp File Volume Attachment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure VMware Solution Private Cloud Netapp File Volume Attachment.
-* `update` - (Defaults to 10 hours) Used when updating the Azure VMware Solution Private Cloud Netapp File Volume Attachment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure VMware Solution Private Cloud Netapp File Volume Attachment.
 
 ## Import

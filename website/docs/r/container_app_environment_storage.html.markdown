@@ -65,14 +65,16 @@ The following arguments are supported:
 
 * `container_app_environment_id` - (Required) The ID of the Container App Environment to which this storage belongs. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The Azure Storage Account in which the Share to be used is located. Changing this forces a new resource to be created.
+* `account_name` - (Optional) The Azure Storage Account in which the Share to be used is located. Changing this forces a new resource to be created.
 
-* `access_key` - (Required) The Storage Account Access Key.
+* `access_key` - (Optional) The Storage Account Access Key.
 
 * `share_name` - (Required) The name of the Azure Storage Share to use. Changing this forces a new resource to be created.
 
 * `access_mode` - (Required) The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`. Changing this forces a new resource to be created.
 
+* `nfs_server_url` - (Optional) The NFS server to use for the Azure File Share, the format will be `yourstorageaccountname.file.core.windows.net`. Changing this forces a new resource to be created.
+* 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -85,8 +87,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment Storage.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Storage.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment Storage.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Storage.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment Storage.
 
 ## Import

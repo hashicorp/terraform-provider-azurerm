@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the location which the configurations will be deployed to. Changing this forces a new Network Manager Deployment to be created.
 
-* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`. Changing this forces a new Network Manager Deployment to be created.
+* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`. Changing this forces a new Network Manager Deployment to be created.
 
 * `configuration_ids` - (Required) A list of Network Manager Configuration IDs which should be aligned with `scope_access`.
 
@@ -174,7 +174,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 24 hours) Used when creating the Network Manager Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Manager Deployment.
 * `update` - (Defaults to 24 hours) Used when updating the Network Manager Deployment.
-* `delete` - (Defaults to 24 hour) Used when deleting the Network Manager Deployment.
+* `delete` - (Defaults to 24 hours) Used when deleting the Network Manager Deployment.
 
 ## Import
 

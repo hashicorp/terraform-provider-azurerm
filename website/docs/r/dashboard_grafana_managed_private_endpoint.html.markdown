@@ -81,10 +81,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `create` - (Defaults to 30 minutes) Used when creating the Dashboard Grafana Managed Private Endpoint.
-- `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard Grafana Managed Private Endpoint.
-- `update` - (Defaults to 30 minutes) Used when updating the Dashboard Grafana Managed Private Endpoint.
-- `delete` - (Defaults to 5 minutes) Used when deleting the Dashboard Grafana Managed Private Endpoint.
+* `create` - (Defaults to 30 minutes) Used when creating the Dashboard Grafana Managed Private Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard Grafana Managed Private Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the Dashboard Grafana Managed Private Endpoint.
+* `delete` - (Defaults to 5 minutes) Used when deleting the Dashboard Grafana Managed Private Endpoint.
 
 ## Import
 
