@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assetendpointprofiles"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -22,23 +22,23 @@ var _ sdk.Resource = AssetEndpointProfileResource{}
 type AssetEndpointProfileResource struct{}
 
 type AssetEndpointProfileResourceModel struct {
-	Name                                          string            `tfschema:"name"`
-	ResourceGroupId                               string            `tfschema:"resource_group_id"`
-	Location                                      string            `tfschema:"location"`
-	Tags                                          map[string]string `tfschema:"tags"`
-	ExtendedLocationName                          string            `tfschema:"extended_location_name"`
-	ExtendedLocationType                          string            `tfschema:"extended_location_type"`
-	TargetAddress                                 string            `tfschema:"target_address"`
-	EndpointProfileType                           string            `tfschema:"endpoint_profile_type"`
-	DiscoveredAssetEndpointProfileReference             string            `tfschema:"discovered_asset_endpoint_profile_reference"`
-	AdditionalConfiguration                       string            `tfschema:"additional_configuration"`
-	Authentication 															  []AuthenticationModel    `tfschema:"authentication"`
+	Name                                    string                `tfschema:"name"`
+	ResourceGroupId                         string                `tfschema:"resource_group_id"`
+	Location                                string                `tfschema:"location"`
+	Tags                                    map[string]string     `tfschema:"tags"`
+	ExtendedLocationName                    string                `tfschema:"extended_location_name"`
+	ExtendedLocationType                    string                `tfschema:"extended_location_type"`
+	TargetAddress                           string                `tfschema:"target_address"`
+	EndpointProfileType                     string                `tfschema:"endpoint_profile_type"`
+	DiscoveredAssetEndpointProfileReference string                `tfschema:"discovered_asset_endpoint_profile_reference"`
+	AdditionalConfiguration                 string                `tfschema:"additional_configuration"`
+	Authentication                          []AuthenticationModel `tfschema:"authentication"`
 }
 
 type AuthenticationModel struct {
-	Method string `tfschema:"method"`
+	Method                      string                             `tfschema:"method"`
 	UsernamePasswordCredentials []UsernamePasswordCredentialsModel `tfschema:"username_password_credentials"`
-	X509Credentials []X509CredentialsModel `tfschema:"x509_credentials"`
+	X509Credentials             []X509CredentialsModel             `tfschema:"x509_credentials"`
 }
 
 type UsernamePasswordCredentialsModel struct {
@@ -49,7 +49,6 @@ type UsernamePasswordCredentialsModel struct {
 type X509CredentialsModel struct {
 	CertificateSecretName string `tfschema:"certificate_secret_name"`
 }
-
 
 func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -93,7 +92,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 		"authentication": {
-			Type: pluginsdk.TypeList,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
@@ -104,7 +103,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice(assetendpointprofiles.PossibleValuesForAuthenticationMethod(), false),
 					},
 					"username_password_credentials": {
-						Type: pluginsdk.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
@@ -121,7 +120,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 					"x509_credentials": {
-						Type: pluginsdk.TypeList,
+						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
@@ -313,7 +312,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 
 			// Convert the ARM model to the TF model
 			state := AssetEndpointProfileResourceModel{
-				Name:              id.AssetEndpointProfileName,
+				Name:            id.AssetEndpointProfileName,
 				ResourceGroupId: resourceGroupId.ID(),
 			}
 
