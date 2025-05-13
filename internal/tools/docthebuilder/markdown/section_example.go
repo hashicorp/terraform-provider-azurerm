@@ -32,6 +32,6 @@ func (s *ExampleSection) GetContent() []string {
 }
 
 func (s *ExampleSection) Template() string {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }

@@ -48,7 +48,7 @@ func NewService(fs afero.Fs, providerDir string, service any, serviceName string
 		names = append(names, nameFunc(serviceName), labelFunc(s.AssociatedGitHubLabel()))
 	case sdk.TypedServiceRegistrationWithAGitHubLabel:
 		names = append(names, nameFunc(serviceName), labelFunc(s.AssociatedGitHubLabel()))
-	case sdk.UntypedServiceRegistration, sdk.TypedServiceRegistration, sdk.FrameworkTypedServiceRegistration:
+	case sdk.UntypedServiceRegistration, sdk.FrameworkTypedServiceRegistration, sdk.TypedServiceRegistration:
 		names = append(names, nameFunc(serviceName))
 	default:
 		return nil, fmt.Errorf("unexpected service type `%T`", s)

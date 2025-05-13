@@ -30,6 +30,6 @@ func (s *AttributesSection) GetContent() []string {
 }
 
 func (s *AttributesSection) Template() string {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }

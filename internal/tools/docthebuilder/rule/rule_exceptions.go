@@ -6,16 +6,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
 )
 
-var (
-	// Exceptions contains resources and rules they should skip.
-	// Name format: "(d|e|r).<resource name>"
-	// TODO: externalize as configurable item?
-	Exceptions = map[string]map[string]struct{}{
-		"r.azurerm_resource_provider_registration": {
-			"S002": struct{}{},
-		},
-	}
-)
+// Exceptions contains resources and rules they should skip.
+// Name format: "(d|e|r).<resource name>"
+// TODO: externalize as configurable item?
+var Exceptions = map[string]map[string]struct{}{
+	"r.azurerm_resource_provider_registration": {
+		"S002": struct{}{},
+	},
+}
 
 func ShouldSkipRule(resourceType data.ResourceType, resourceName string, ruleName string) bool {
 	prefix := ""

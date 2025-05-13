@@ -54,7 +54,7 @@ var (
 
 				if r.Document.HasChange {
 					resourceWithErrCount++
-					errCount = errCount + len(r.Errors)
+					errCount += len(r.Errors)
 
 					if err := r.Document.Write(fs); err != nil {
 						if err != nil {
@@ -71,11 +71,11 @@ var (
 			if errCount > 0 {
 				errStr, resourceStr := "error", "resource"
 				if errCount > 1 {
-					errStr = errStr + "s"
+					errStr += "s"
 				}
 
 				if resourceWithErrCount > 1 {
-					resourceStr = resourceStr + "s"
+					resourceStr += "s"
 				}
 				fmt.Printf(util.Red("Found %d %s in %d %s and applied fixes where possible, please review the changes\n"), errCount, errStr, resourceWithErrCount, resourceStr)
 			} else {

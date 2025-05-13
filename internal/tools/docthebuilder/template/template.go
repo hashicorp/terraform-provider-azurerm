@@ -27,6 +27,9 @@ func Render(data *data.ResourceData, text string) ([]string, error) {
 	}
 
 	err = tmpl.Execute(&b, data)
+	if err != nil {
+		return nil, err
+	}
 
 	content := strings.ReplaceAll(b.String(), "[bt]", "`")
 	return strings.Split(content, "\n"), nil

@@ -231,9 +231,9 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 	}
 
 	// TODO: Framework resources
-	//for _, s := range provider.SupportedFrameworkServices() {
+	// for _, s := range provider.SupportedFrameworkServices() {
 	//
-	//}
+	// }
 
 	return result
 }

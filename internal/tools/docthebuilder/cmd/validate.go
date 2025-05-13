@@ -56,7 +56,7 @@ var (
 			for _, r := range resources {
 				if l := len(r.Errors); l > 0 {
 					resourceWithErrCount++
-					errCount = errCount + l
+					errCount += l
 					r.PrintErrors()
 				}
 			}
@@ -64,11 +64,11 @@ var (
 			if errCount > 0 {
 				errStr, resourceStr := "error", "resource"
 				if errCount > 1 {
-					errStr = errStr + "s"
+					errStr += "s"
 				}
 
 				if resourceWithErrCount > 1 {
-					resourceStr = resourceStr + "s"
+					resourceStr += "s"
 				}
 				fmt.Printf(util.Red("Found %d %s in %d %s\n"), errCount, errStr, resourceWithErrCount, resourceStr)
 			} else {

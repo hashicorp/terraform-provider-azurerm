@@ -165,7 +165,7 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 			}
 		}
 
-		orderChanged := false
+		var orderChanged bool
 		content, orderChanged = reorderTimeouts(content, foundTimeouts)
 		if orderChanged {
 			errs = append(errs, fmt.Errorf("%s - Timeouts are not ordered as expected (CRUD)", r.Name()))

@@ -28,6 +28,6 @@ func (s *TitleSection) GetContent() []string {
 }
 
 func (s *TitleSection) Template() string {
-	//TODO implement me
+	// TODO implement me
 	panic("implement me")
 }

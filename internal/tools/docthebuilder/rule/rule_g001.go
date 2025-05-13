@@ -10,9 +10,7 @@ import (
 
 type G001 struct{}
 
-var (
-	_ Rule = G001{}
-)
+var _ Rule = G001{}
 
 func (r G001) Name() string {
 	return "G001"

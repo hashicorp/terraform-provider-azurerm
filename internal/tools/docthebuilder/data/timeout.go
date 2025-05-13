@@ -36,12 +36,12 @@ func (t Timeout) duration() string {
 	unit := "minute"
 
 	if (duration % 60) == 0 {
-		duration = duration / 60
+		duration /= 60
 		unit = "hour"
 	}
 
 	if duration > 1 {
-		unit = unit + "s"
+		unit += "s"
 	}
 
 	return fmt.Sprintf("%d %s", duration, unit)

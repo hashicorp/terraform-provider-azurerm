@@ -27,7 +27,6 @@ type packageData struct {
 }
 
 type pkg struct {
-	id  string
 	ssa *ssa.Package
 	pkg *packages.Package
 }
@@ -210,7 +209,7 @@ func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
 	// todo: refactor loadPackages to only return the service package and ignore others such as `client`
 	servicePackage := servicePackages[0]
 	if !ok {
-		return nil //err?
+		return nil // err?
 	}
 
 	registration := servicePackage.pkg.Types.Scope().Lookup("Registration")
@@ -305,7 +304,7 @@ func findAPIsForTypedResources(d packageData, s *Service) map[string][]API {
 	// todo: refactor loadPackages to only return the service package and ignore others such as `client`
 	servicePackage := servicePackages[0]
 	if !ok {
-		return nil //err?
+		return nil // err?
 	}
 
 	ssaPkg := servicePackage.ssa
@@ -343,7 +342,7 @@ func findAPIsForTypedResources(d packageData, s *Service) map[string][]API {
 
 			rfn := findResourceFunc(d.prog, servicePackage.pkg, servicePackage.ssa, ssaFn)
 			if rfn == nil {
-				continue //err or debug log?
+				continue // err or debug log?
 			}
 
 			// for the SSA func, get file name and add to map, most of the time this is exactly the same as `resourceFileName`
@@ -513,7 +512,6 @@ func usedMethods(fset *token.FileSet, pkg *packages.Package, fileNames []string)
 								}
 							}
 						}
-
 					}
 					return false
 				})
@@ -631,14 +629,4 @@ func findFileByPosition(pkgs []*packages.Package, pos token.Pos) (*packages.Pack
 
 	log.Debug("unable to find *ast.File at provided position in provided packages")
 	return nil, nil
-}
-
-func findFileByName(pkg *packages.Package, name string) *ast.File {
-	for _, file := range pkg.Syntax {
-		if matchesFile(pkg.Fset, file, name, true) {
-			return file
-		}
-	}
-
-	return nil
 }

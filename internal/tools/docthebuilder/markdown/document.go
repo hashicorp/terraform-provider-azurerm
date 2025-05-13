@@ -29,8 +29,8 @@ func (d *Document) Write(fs afero.Fs) error {
 		docContent = append(docContent, section.GetContent()...)
 	}
 
-	if err := afero.WriteFile(fs, d.Path, []byte(strings.Join(docContent, "\n")), 0644); err != nil {
-		return err // todo better error
+	if err := afero.WriteFile(fs, d.Path, []byte(strings.Join(docContent, "\n")), 0o644); err != nil {
+		return fmt.Errorf("writing to file `%s`: %+v", d.Path, err)
 	}
 
 	return nil
@@ -42,7 +42,7 @@ func (d *Document) Parse(fs afero.Fs) error {
 
 	file, err := fs.Open(d.Path)
 	if err != nil {
-		return fmt.Errorf("error: %+v", err) //todo better error
+		return fmt.Errorf("opening file `%s`: %+v", d.Path, err)
 	}
 
 	scanner := bufio.NewScanner(file)
