@@ -299,7 +299,7 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resourceGroupId, err := resourceParse.ParseResourceGroupID(config.ResourceGroupId)
+			resourceGroupId, err := resourceParse.ResourceGroupID(config.ResourceGroupId)
 			if err != nil {
 				return fmt.Errorf("parsing resource group id: %+v", err)
 			}
@@ -382,7 +382,7 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 				param.Properties.Attributes = pointer.To(config.Attributes)
 			}
 
-			if config.DiscoveredAssetRefs != nil {
+			if config.DiscoveredAssetReferences != nil {
 				param.Properties.DiscoveredAssetRefs = pointer.To(config.DiscoveredAssetReferences)
 			}
 
@@ -542,7 +542,7 @@ func (AssetResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			resourceGroupId, err := resourceParse.ParseResourceGroupID(id.SubscriptionId, id.ResourceGroup)
+			resourceGroupId := resourceParse.NewResourceGroupID(id.SubscriptionId, id.ResourceGroupName)
 
 			// Convert the ARM model to the TF model
 			state := AssetResourceModel{
