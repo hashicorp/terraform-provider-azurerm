@@ -191,7 +191,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		},
 
 		// the name is always being lower-cased by the api: https://github.com/Azure/azure-rest-api-specs/issues/33095
-		"always_ready_config": {
+		"always_ready": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -463,7 +463,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			alwaysReady, err := ExpandAlwaysReadyConfiguration(functionAppFlexConsumption.AlwaysReady, functionAppFlexConsumption.MaximumInstanceCount)
 			if err != nil {
-				return fmt.Errorf("expanding `always_ready_config` for %s: %+v", id, err)
+				return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
 			}
 
 			scaleAndConcurrencyConfig := webapps.FunctionsScaleAndConcurrency{
@@ -888,9 +888,9 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
 			if err != nil {
-				return fmt.Errorf("expanding `always_ready_config` for %s: %+v", id, err)
+				return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
 			}
-			if metadata.ResourceData.HasChange("always_ready_config") {
+			if metadata.ResourceData.HasChange("always_ready") {
 				model.Properties.FunctionAppConfig.ScaleAndConcurrency.AlwaysReady = arc
 			}
 
