@@ -57,7 +57,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Advisor suppression.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Advisor suppression.
-* `update` - (Defaults to 30 minutes) Used when updating the Advisor suppression.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Advisor suppression.
 
 ## Import

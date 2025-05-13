@@ -56,7 +56,7 @@ The following attributes are exported:
 
 * `os_type` - A string indicating the Operating System type for this function app.
 
-~> **NOTE:** This value will be `linux` for Linux Derivatives, or an empty string for Windows.
+~> **Note:** This value will be `linux` for Linux Derivatives, or an empty string for Windows.
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses.
 

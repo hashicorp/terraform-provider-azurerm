@@ -55,7 +55,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to the Databricks Access Connector. Only one User Assigned Managed Identity ID is supported per Databricks Access Connector resource.
 
-~> **NOTE:** `identity_ids` are required when `type` is set to `UserAssigned`.
+~> **Note:** `identity_ids` are required when `type` is set to `UserAssigned`.
 
 ---
 
@@ -85,8 +85,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databricks Access Connector.
-* `update` - (Defaults to 30 minutes) Used when updating the Databricks Access Connector.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Access Connector.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Access Connector.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Access Connector.
 
 ## Import

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Cassandra Datacenter.
 
-~> **NOTE:** In order for the `Azure Managed Instances for Apache Cassandra` to work properly the product requires the `Azure Cosmos DB` Application ID to be present and working in your tenant. If the `Azure Cosmos DB` Application ID is missing in your environment you will need to have an administrator of your tenant run the following command to add the `Azure Cosmos DB` Application ID to your tenant:
+~> **Note:** In order for the `Azure Managed Instances for Apache Cassandra` to work properly the product requires the `Azure Cosmos DB` Application ID to be present and working in your tenant. If the `Azure Cosmos DB` Application ID is missing in your environment you will need to have an administrator of your tenant run the following command to add the `Azure Cosmos DB` Application ID to your tenant:
 
 ```powershell
 New-AzADServicePrincipal -ApplicationId a232010e-820c-4083-83bb-3ace5fc29d0b
@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Determines the selected sku.
 
--> **NOTE:** In v4.0 of the provider the `sku_name` will have a default value of `Standard_E16s_v5`.
+-> **Note:** In v4.0 of the provider the `sku_name` will have a default value of `Standard_E16s_v5`.
 
 * `disk_count` - (Optional) Determines the number of p30 disks that are attached to each node.
 
@@ -118,10 +118,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Cassandra Datacenter.
+* `create` - (Defaults to 1 hour) Used when creating the Cassandra Datacenter.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Datacenter.
-* `update` - (Defaults to 60 minutes) Used when updating the Cassandra Datacenter.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Cassandra Datacenter.
+* `update` - (Defaults to 1 hour) Used when updating the Cassandra Datacenter.
+* `delete` - (Defaults to 1 hour) Used when deleting the Cassandra Datacenter.
 
 ## Import
 

@@ -11,7 +11,7 @@ description: |-
 
 Manages a Security Alert Policy for a MSSQL Server.
 
--> **NOTE** Security Alert Policy is currently only available for MS SQL databases.
+-> **Note:** Security Alert Policy is currently only available for MS SQL databases.
 
 ## Example Usage
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 -> **Note:** The `storage_account_access_key` field is required when the `storage_endpoint` field has been set.
 
--> **Note:**  Storage accounts configured with `shared_access_key_enabled = false` cannot be used for the `storage_endpoint` field.
+-> **Note:** Storage accounts configured with `shared_access_key_enabled = false` cannot be used for the `storage_endpoint` field.
 
 * `storage_account_access_key` - (Optional) Specifies the primary access key of the Threat Detection audit logs blob storage endpoint.
 
@@ -94,8 +94,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MSSQL Server Security Alert Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the MSSQL Server Security Alert Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MSSQL Server Security Alert Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the MSSQL Server Security Alert Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the MSSQL Server Security Alert Policy.
 
 ## Import

@@ -135,7 +135,7 @@ The `correlation_filter` block supports the following:
 
 * `properties` - (Optional) A list of user defined properties to be included in the filter. Specified as a map of name/value pairs.
 
-~> **NOTE:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
+~> **Note:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
 
 ## Attributes Reference
 
@@ -148,8 +148,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Subscription Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Subscription Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Subscription Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Subscription Rule.
 
 ## Import

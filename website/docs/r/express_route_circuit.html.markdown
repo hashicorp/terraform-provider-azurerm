@@ -55,9 +55,9 @@ The following arguments are supported:
 
 * `bandwidth_in_mbps` - (Optional) The bandwidth in Mbps of the circuit being created on the Service Provider.
 
-~> **NOTE:** Once you increase your bandwidth, you will not be able to decrease it to its previous value.
+~> **Note:** Once you increase your bandwidth, you will not be able to decrease it to its previous value.
 
-~> **NOTE:** The `service_provider_name`, the `peering_location` and the `bandwidth_in_mbps` should be set together and they conflict with `express_route_port_id` and `bandwidth_in_gbps`.
+~> **Note:** The `service_provider_name`, the `peering_location` and the `bandwidth_in_mbps` should be set together and they conflict with `express_route_port_id` and `bandwidth_in_gbps`.
 
 * `allow_classic_operations` - (Optional) Allow the circuit to interact with classic (RDFE) resources. Defaults to `false`.
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `bandwidth_in_gbps` - (Optional) The bandwidth in Gbps of the circuit being created on the Express Route Port.
 
-~> **NOTE:** The `express_route_port_id` and the `bandwidth_in_gbps` should be set together and they conflict with `service_provider_name`, `peering_location` and `bandwidth_in_mbps`.
+~> **Note:** The `express_route_port_id` and the `bandwidth_in_gbps` should be set together and they conflict with `service_provider_name`, `peering_location` and `bandwidth_in_mbps`.
 
 * `authorization_key` - (Optional) The authorization key. This can be used to set up an ExpressRoute Circuit with an ExpressRoute Port from another subscription.
 
@@ -81,7 +81,7 @@ The `sku` block supports the following:
 
 * `family` - (Required) The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.
 
-~> **NOTE:** You can migrate from `MeteredData` to `UnlimitedData`, but not the other way around.
+~> **Note:** You can migrate from `MeteredData` to `UnlimitedData`, but not the other way around.
 
 ## Attributes Reference
 
@@ -96,8 +96,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit.
-* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit.
 * `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit.
+* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit.
 * `delete` - (Defaults to 30 minutes) Used when deleting the ExpressRoute Circuit.
 
 ## Import

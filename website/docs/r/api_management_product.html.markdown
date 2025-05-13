@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `approval_required` - (Optional) Do subscribers need to be approved prior to being able to use the Product?
 
--> **NOTE:** `approval_required` can only be set when `subscription_required` is set to `true`.
+-> **Note:** `approval_required` can only be set when `subscription_required` is set to `true`.
 
 * `display_name` - (Required) The Display Name for this API Management Product.
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `subscriptions_limit` - (Optional) The number of subscriptions a user can have to this Product at the same time.
 
--> **NOTE:** `subscriptions_limit` can only be set when `subscription_required` is set to `true`.
+-> **Note:** `subscriptions_limit` can only be set when `subscription_required` is set to `true`.
 
 * `terms` - (Optional) The Terms and Conditions for this Product, which must be accepted by Developers before they can begin the Subscription process.
 
@@ -80,8 +80,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Product.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Product.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Product.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Product.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Product.
 
 ## Import

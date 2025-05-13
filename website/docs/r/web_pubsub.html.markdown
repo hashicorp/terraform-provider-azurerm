@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `capacity` - (Optional) Specifies the number of units associated with this Web PubSub resource. Valid values are `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`, `20`, `30`, `40`, `50`, `60`, `70`, `80`, `90`, `100`, `200`, `300`, `400`, `500`, `600`, `700`, `800`, `900` and `1000`.
 
-~> **NOTE:** The valid capacity range for sku `Free_F1` is `1`, for sku `Premium_P2` is from `100` to `1000`, and from `1` to `100` for sku `Standard_S1` and `Premium_P1`.
+~> **Note:** The valid capacity range for sku `Free_F1` is `1`, for sku `Premium_P2` is from `100` to `1000`, and from `1` to `100` for sku `Standard_S1` and `Premium_P1`.
 
 * `public_network_access_enabled` - (Optional) Whether to enable public network access? Defaults to `true`.
 
@@ -90,7 +90,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Web PubSub.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`
+~> **Note:** This is required when `type` is set to `UserAssigned`
 
 ## Attributes Reference
 
@@ -130,8 +130,8 @@ The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web PubSub Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Web PubSub Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Web PubSub Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Web PubSub Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Web PubSub Service.
 
 ## Import

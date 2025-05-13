@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `service_resource_id` - (Required) Specifies the Service Resource ID to connect. Changing this forces a new resource to be created.
 
-~> **Note** Supported service resources: **Key Vault**, **Storage Account**, **Machine Learning Workspace**, **Redis**.
+~> **Note:** Supported service resources: **Key Vault**, **Storage Account**, **Machine Learning Workspace**, **Redis**.
 
 * `sub_resource_target` - (Required) Specifies the Sub Resource of the service resource to connect to. Possible values are `vault`,`amlworkspace`,`blob`,`table`,`queue`,`file`,`web`,`dfs`, `redisCache`. Changing this forces a new resource to be created.
   

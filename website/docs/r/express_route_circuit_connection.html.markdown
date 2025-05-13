@@ -111,7 +111,7 @@ The following arguments are supported:
 
 * `address_prefix_ipv6` - (Optional) The IPv6 address space from which to allocate customer addresses for global reach.
 
--> **NOTE:** `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
+-> **Note:** `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
 
 ## Attributes Reference
 

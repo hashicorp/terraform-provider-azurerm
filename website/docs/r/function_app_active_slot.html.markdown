@@ -138,8 +138,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function App Active Slot.
-* `update` - (Defaults to 30 minutes) Used when updating the Function App Active Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function App Active Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the Function App Active Slot.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Function App Active Slot.
 
 ## Import

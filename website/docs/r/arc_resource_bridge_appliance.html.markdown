@@ -81,7 +81,7 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Arc Resource Bridge Appliance.
+* `create` - (Defaults to 1 hour) Used when creating the Arc Resource Bridge Appliance.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Arc Resource Bridge Appliance.
 * `update` - (Defaults to 30 minutes) Used when updating the Arc Resource Bridge Appliance.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Arc Resource Bridge Appliance.

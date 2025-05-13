@@ -110,7 +110,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this AI Foundry Project.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -132,7 +132,7 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 hour) Used when creating the AI Foundry Project.
+* `create` - (Defaults to 30 minutes) Used when creating the AI Foundry Project.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AI Foundry Project.
 * `update` - (Defaults to 30 minutes) Used when updating the AI Foundry Project.
 * `delete` - (Defaults to 30 minutes) Used when deleting the AI Foundry Project.
