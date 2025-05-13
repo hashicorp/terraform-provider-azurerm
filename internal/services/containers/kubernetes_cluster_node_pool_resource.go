@@ -571,14 +571,15 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if podSubnetID != nil {
+		// Lock pod subnet to avoid race condition with AKS
 		profile.PodSubnetID = utils.String(podSubnetID.ID())
 		locks.ByName(podSubnetID.SubnetName, network.SubnetResourceName)
 		defer locks.UnlockByName(podSubnetID.SubnetName, network.SubnetResourceName)
 	}
 
 	if nodeSubnetID != nil {
+		// Lock node subnet to avoid race condition with AKS
 		profile.VnetSubnetID = utils.String(nodeSubnetID.ID())
-		// Lock submet to avoid
 		locks.ByName(nodeSubnetID.SubnetName, network.SubnetResourceName)
 		defer locks.UnlockByName(nodeSubnetID.SubnetName, network.SubnetResourceName)
 	}
@@ -653,6 +654,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
 	timeout, ok := ctx.Deadline()
 	if !ok {
 		return fmt.Errorf("internal-error: context had no deadline")
