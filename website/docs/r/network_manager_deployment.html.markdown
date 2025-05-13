@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the location which the configurations will be deployed to. Changing this forces a new Network Manager Deployment to be created.
 
-* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity` and `SecurityAdmin`. Changing this forces a new Network Manager Deployment to be created.
+* `scope_access` - (Required) Specifies the configuration deployment type. Possible values are `Connectivity`, `SecurityAdmin` and `Routing`. Changing this forces a new Network Manager Deployment to be created.
 
 * `configuration_ids` - (Required) A list of Network Manager Configuration IDs which should be aligned with `scope_access`.
 
