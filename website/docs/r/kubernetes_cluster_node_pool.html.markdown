@@ -12,7 +12,7 @@ Manages a Node Pool within a Kubernetes Cluster
 
 -> **Note:** Due to the fast-moving nature of AKS, we recommend using the latest version of the Azure Provider when using AKS - you can find [the latest version of the Azure Provider here](https://registry.terraform.io/providers/hashicorp/azurerm/latest).
 
-~> **NOTE:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets.
+~> **Note:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets.
 
 -> **Note:** Changing certain properties is done by cycling the node pool. When cycling it, it doesn’t perform cordon and drain, and it will disrupt rescheduling pods currently running on the previous node pool. `temporary_name_for_rotation` must be specified when changing any of the following properties: `fips_enabled`, `host_encryption_enabled`, `kubelet_config`, `kubelet_disk_type`, `linux_os_config`, `max_pods`, `node_public_ip_enabled`, `os_disk_size_gb`, `os_disk_type`, `pod_subnet_id`, `snapshot_id`, `ultra_ssd_enabled`, `vm_size`, `vnet_subnet_id`, `zones`.
 
@@ -62,11 +62,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Node Pool which should be created within the Kubernetes Cluster. Changing this forces a new resource to be created.
 
-~> **NOTE:** A Windows Node Pool cannot have a `name` longer than 6 characters.
+~> **Note:** A Windows Node Pool cannot have a `name` longer than 6 characters.
 
 * `kubernetes_cluster_id` - (Required) The ID of the Kubernetes Cluster where this Node Pool should exist. Changing this forces a new resource to be created.
 
-~> **NOTE:** The type of Default Node Pool for the Kubernetes Cluster must be `VirtualMachineScaleSets` to attach multiple node pools.
+~> **Note:** The type of Default Node Pool for the Kubernetes Cluster must be `VirtualMachineScaleSets` to attach multiple node pools.
 
 * `vm_size` - (Required) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this property requires specifying `temporary_name_for_rotation`.
 
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `host_encryption_enabled` - (Optional) Should the nodes in this Node Pool have host encryption enabled? Changing this property requires specifying `temporary_name_for_rotation`.
 
-~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
+~> **Note:** Additional fields must be configured depending on the value of this field - see below.
 
 * `node_public_ip_enabled` - (Optional) Should each node have a Public IP Address? Changing this property requires specifying `temporary_name_for_rotation`.
 
@@ -140,7 +140,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
+~> **Note:** At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
 
 * `scale_down_mode` - (Optional) Specifies how the node pool should deal with scaled-down nodes. Allowed values are `Delete` and `Deallocate`. Defaults to `Delete`.
 
@@ -152,7 +152,7 @@ The following arguments are supported:
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Changing this property requires specifying `temporary_name_for_rotation`.
 
-~> **NOTE:** A route table must be configured on this Subnet.
+~> **Note:** A route table must be configured on this Subnet.
 
 * `windows_profile` - (Optional) A `windows_profile` block as documented below. Changing this forces a new resource to be created.
 
@@ -172,7 +172,7 @@ If `auto_scaling_enabled` is set to `true`, then the following fields can also b
 
 * `node_count` - (Optional) The initial number of nodes which should exist within this Node Pool. Valid values are between `0` and `1000` (inclusive) for user pools and between `1` and `1000` (inclusive) for system pools and must be a value in the range `min_count` - `max_count`.
 
--> **NOTE:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
+-> **Note:** If you're specifying an initial number of nodes you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
 
 If `auto_scaling_enabled` is set to `false`, then the following fields can also be configured:
 
@@ -240,7 +240,7 @@ An `allowed_host_ports` block supports the following:
 
 A `sysctl_config` block supports the following:
 
-~> For more information, please refer to [Linux Kernel Doc](https://www.kernel.org/doc/html/latest/admin-guide/sysctl/index.html).
+~> **Note:** For more information, please refer to [Linux Kernel Doc](https://www.kernel.org/doc/html/latest/admin-guide/sysctl/index.html).
 
 * `fs_aio_max_nr` - (Optional) The sysctl setting fs.aio-max-nr. Must be between `65536` and `6553500`.
 
@@ -328,10 +328,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kubernetes Cluster Node Pool.
-* `update` - (Defaults to 60 minutes) Used when updating the Kubernetes Cluster Node Pool.
+* `create` - (Defaults to 1 hour) Used when creating the Kubernetes Cluster Node Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Node Pool.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kubernetes Cluster Node Pool.
+* `update` - (Defaults to 1 hour) Used when updating the Kubernetes Cluster Node Pool.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kubernetes Cluster Node Pool.
 
 ## Import
 

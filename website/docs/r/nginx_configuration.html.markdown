@@ -119,7 +119,7 @@ The following arguments are supported:
 
 ---
 
--> **NOTE:** Either `package_data` or `config_file` must be specified - but not both.
+-> **Note:** Either `package_data` or `config_file` must be specified - but not both.
 
 * `package_data` - (Optional) Specifies the package data for this configuration.
 

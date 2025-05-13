@@ -107,7 +107,7 @@ The `filters` block supports the following:
 * `prefix_match` - (Optional) An array of strings for prefixes to be matched.
 * `match_blob_index_tag` - (Optional) A `match_blob_index_tag` block as defined below. The block defines the blob index tag based filtering for blob objects.
 
-~> **NOTE:** The `match_blob_index_tag` property requires enabling the `blobIndex` feature with [PSH or CLI commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/).
+~> **Note:** The `match_blob_index_tag` property requires enabling the `blobIndex` feature with [PSH or CLI commands](https://azure.microsoft.com/en-us/blog/manage-and-find-data-with-blob-index-for-azure-storage-now-in-preview/).
 
 ---
 
@@ -192,8 +192,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Account Management Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Management Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Management Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Management Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Account Management Policy.
 
 ## Import

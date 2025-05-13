@@ -204,7 +204,7 @@ The `itsm_receiver` block supports the following:
 * `ticket_configuration` - (Required) A JSON blob for the configurations of the ITSM action. CreateMultipleWorkItems option will be part of this blob as well.
 * `region` - (Required) The region of the workspace.
 
--> **NOTE** `ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys (e.g., `ticket_configuration="{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\"}"`), and `ticket_configuration="{}"` will return an error, see more at this [REST API issue](https://github.com/Azure/azure-rest-api-specs/issues/20488)
+-> **Note:** `ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys (e.g., `ticket_configuration="{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\"}"`), and `ticket_configuration="{}"` will return an error, see more at this [REST API issue](https://github.com/Azure/azure-rest-api-specs/issues/20488)
 
 ---
 
@@ -240,7 +240,7 @@ The `webhook_receiver` block supports the following:
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 * `aad_auth` - (Optional) The `aad_auth` block as defined below.
 
-~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
+~> **Note:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
 
 ---
 
@@ -261,8 +261,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Action Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Action Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Action Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Action Group.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Action Group.
 
 ## Import

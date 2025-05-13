@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint`, `webhook_endpoint` or `azure_function_endpoint` must be specified.
+~> **Note:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint`, `webhook_endpoint` or `azure_function_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -177,7 +177,7 @@ OR
 
 * `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
 
-~> **NOTE:** A maximum of total number of advanced filter values allowed on event subscription is 25.
+~> **Note:** A maximum of total number of advanced filter values allowed on event subscription is 25.
 
 ---
 
@@ -236,8 +236,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventGrid Event Subscription.
-* `update` - (Defaults to 30 minutes) Used when updating the EventGrid Event Subscription.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Event Subscription.
+* `update` - (Defaults to 30 minutes) Used when updating the EventGrid Event Subscription.
 * `delete` - (Defaults to 30 minutes) Used when deleting the EventGrid Event Subscription.
 
 ## Import

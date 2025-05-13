@@ -89,9 +89,9 @@ resource "azurerm_service_plan" "example" {
 
 * `subnet_id` - (Required) The ID of the Subnet which the App Service Environment should be connected to. Changing this forces a new resource to be created.
 
-~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE, this size cannot be changed.
+~> **Note:** a /24 or larger CIDR is required. Once associated with an ASE, this size cannot be changed.
 
-~> **NOTE:** This Subnet requires a delegation to `Microsoft.Web/hostingEnvironments` as detailed in the example above.
+~> **Note:** This Subnet requires a delegation to `Microsoft.Web/hostingEnvironments` as detailed in the example above.
 
 * `allow_new_private_endpoint_connections` - (Optional) Should new Private Endpoint Connections be allowed. Defaults to `true`.
 
@@ -103,19 +103,19 @@ resource "azurerm_service_plan" "example" {
 
 * `zone_redundant` - (Optional) Set to `true` to deploy the ASEv3 with availability zones supported. Zonal ASEs can be deployed in some regions, you can refer to [Availability Zone support for App Service Environments](https://docs.microsoft.com/azure/app-service/environment/zone-redundancy). You can only set either `dedicated_host_count` or `zone_redundant` but not both. Changing this forces a new resource to be created.
 
-~> **NOTE:** Setting this value will provision 2 Physical Hosts for your App Service Environment V3, this is done at additional cost, please be aware of the pricing commitment in the [General Availability Notes](https://techcommunity.microsoft.com/t5/apps-on-azure/announcing-app-service-environment-v3-ga/ba-p/2517990)
+~> **Note:** Setting this value will provision 2 Physical Hosts for your App Service Environment V3, this is done at additional cost, please be aware of the pricing commitment in the [General Availability Notes](https://techcommunity.microsoft.com/t5/apps-on-azure/announcing-app-service-environment-v3-ga/ba-p/2517990)
 
 * `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None` (for an External VIP Type), and `"Web, Publishing"` (for an Internal VIP Type). Defaults to `None`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-~> **NOTE:** The underlying API does not currently support changing Tags on this resource. Making changes in the portal for tags will cause Terraform to detect a change that will force a recreation of the ASEV3 unless `ignore_changes` lifecycle meta-argument is used.
+~> **Note:** The underlying API does not currently support changing Tags on this resource. Making changes in the portal for tags will cause Terraform to detect a change that will force a recreation of the ASEV3 unless `ignore_changes` lifecycle meta-argument is used.
 
 ---
 
 A `cluster_setting` block supports the following:
 
-~> **NOTE:** If this block is specified it must contain the `FrontEndSSLCipherSuiteOrder` setting, with the value `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`.
+~> **Note:** If this block is specified it must contain the `FrontEndSSLCipherSuiteOrder` setting, with the value `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`.
 
 * `name` - (Required) The name of the Cluster Setting.
 
@@ -160,8 +160,8 @@ An `inbound_network_dependencies` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the 3rd Generation (v3) App Service Environment.
-* `update` - (Defaults to 6 hours) Used when updating the 3rd Generation (v3) App Service Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the 3rd Generation (v3) App Service Environment.
+* `update` - (Defaults to 6 hours) Used when updating the 3rd Generation (v3) App Service Environment.
 * `delete` - (Defaults to 6 hours) Used when deleting the 3rd Generation (v3) App Service Environment.
 
 ## Import

@@ -46,11 +46,11 @@ The following arguments are supported:
 
 * `value` - (Required) The value of the Policy Fragment.
 
-~> **NOTE:** Be aware of the two format possibilities. If the `value` is not applied and continues to cause a diff the format could be wrong.
+~> **Note:** Be aware of the two format possibilities. If the `value` is not applied and continues to cause a diff the format could be wrong.
 
 * `format` - (Optional) The format of the Policy Fragment. Possible values are `xml` or `rawxml`. Default is `xml`.
 
-~> **NOTE:** The `value` property will be updated to reflect the corresponding format when `format` is updated.
+~> **Note:** The `value` property will be updated to reflect the corresponding format when `format` is updated.
 
 ---
 
@@ -75,7 +75,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 Api Management Policy Fragments can be imported using the `resource id`, e.g.
 
-~> **NOTE:** Due to the behaviour of the API, Api Management Policy Fragments can only be imported as `xml`, but can be updated to the desired format after importing.
+~> **Note:** Due to the behaviour of the API, Api Management Policy Fragments can only be imported as `xml`, but can be updated to the desired format after importing.
 
 ```shell
 terraform import azurerm_api_management_policy_fragment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/instance1/policyFragments/policyFragment1

@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `cidrs` - (Optional) A list of CIDRs or IP addresses.
 
-~> **NOTE:** The AzureRM Terraform provider provides cidr support via the standalone resource [azurerm_ip_group_cidr](ip_group_cidr.html) and in-line within this resource using the `cidrs` property. You cannot use both methods simultaneously. If cidrs are set via the resource `azurerm_ip_group_cidr` then `ignore_changes` should be used in the ip group configuration.
+~> **Note:** The AzureRM Terraform provider provides cidr support via the standalone resource [azurerm_ip_group_cidr](ip_group_cidr.html) and in-line within this resource using the `cidrs` property. You cannot use both methods simultaneously. If cidrs are set via the resource `azurerm_ip_group_cidr` then `ignore_changes` should be used in the ip group configuration.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -62,8 +62,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IP Group.
-* `update` - (Defaults to 30 minutes) Used when updating the IP Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IP Group.
+* `update` - (Defaults to 30 minutes) Used when updating the IP Group.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IP Group.
 
 ## Import

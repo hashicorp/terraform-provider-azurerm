@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `topic_id` - (Required) Specifies the ID of the ServiceBus Topic. Changing this forces a new resource to be created.
 
-~> **NOTE** At least one of the 3 permissions below needs to be set.
+~> **Note:** At least one of the 3 permissions below needs to be set.
 
 * `listen` - (Optional) Grants listen access to this this Authorization Rule. Defaults to `false`.
 
@@ -82,8 +82,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Topic Authorization Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Topic Authorization Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Topic Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Topic Authorization Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Topic Authorization Rule.
 
 ## Import

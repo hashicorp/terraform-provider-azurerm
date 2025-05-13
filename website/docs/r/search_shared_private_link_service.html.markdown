@@ -67,10 +67,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Azure Search Shared Private Link Resource.
+* `create` - (Defaults to 1 hour) Used when creating the Azure Search Shared Private Link Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Search Shared Private Link Resource.
-* `update` - (Defaults to 60 minutes) Used when updating the Azure Search Shared Private Link Resource.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Azure Search Shared Private Link Resource.
+* `update` - (Defaults to 1 hour) Used when updating the Azure Search Shared Private Link Resource.
+* `delete` - (Defaults to 1 hour) Used when deleting the Azure Search Shared Private Link Resource.
 
 ## Import
 

@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `ignore_missing_vnet_service_endpoint` - (Optional) Create the virtual network rule before the subnet has the virtual network service endpoint enabled. Defaults to `false`.
 
-~> **NOTE:** If `ignore_missing_vnet_service_endpoint` is false, and the target subnet does not contain the `Microsoft.SQL` endpoint in the `service_endpoints` array, the deployment will fail when it tries to create the SQL virtual network rule.
+~> **Note:** If `ignore_missing_vnet_service_endpoint` is false, and the target subnet does not contain the `Microsoft.SQL` endpoint in the `service_endpoints` array, the deployment will fail when it tries to create the SQL virtual network rule.
 
 ## Attributes Reference
 
@@ -74,8 +74,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the SQL Virtual Network Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the SQL Virtual Network Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SQL Virtual Network Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the SQL Virtual Network Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the SQL Virtual Network Rule.
 
 ## Import

@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `confidential_vm_enabled` - (Optional) Specifies if Confidential Virtual Machines enabled. It will enable all the features of trusted, with higher confidentiality features for isolate machines or encrypted data. Available for Gen2 machines. Changing this forces a new resource to be created.
 
--> **Note:**: Only one of `trusted_launch_supported`, `trusted_launch_enabled`, `confidential_vm_supported` and `confidential_vm_enabled` can be specified.
+-> **Note:** Only one of `trusted_launch_supported`, `trusted_launch_enabled`, `confidential_vm_supported` and `confidential_vm_enabled` can be specified.
 
 * `accelerated_network_support_enabled` - (Optional) Specifies if the Shared Image supports Accelerated Network. Changing this forces a new resource to be created.
 
@@ -143,8 +143,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Shared Image.
-* `update` - (Defaults to 30 minutes) Used when updating the Shared Image.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image.
 
 ## Import

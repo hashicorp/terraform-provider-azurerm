@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic`, `Standard` and `Gateway`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
--> **NOTE:** The `Microsoft.Network/AllowGatewayLoadBalancer` feature is required to be registered in order to use the `Gateway` SKU. The feature can only be registered by the Azure service team, please submit an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket/) for that.
+-> **Note:** The `Microsoft.Network/AllowGatewayLoadBalancer` feature is required to be registered in order to use the `Gateway` SKU. The feature can only be registered by the Azure service team, please submit an [Azure support ticket](https://azure.microsoft.com/en-us/support/create-ticket/) for that.
 
 * `sku_tier` - (Optional) `sku_tier` - (Optional) The SKU tier of this Load Balancer. Possible values are `Global` and `Regional`. Defaults to `Regional`. Changing this forces a new resource to be created.
 
@@ -69,7 +69,7 @@ The `frontend_ip_configuration` block supports the following:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which the IP Address for this Load Balancer should be located.
 
--> **NOTE:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time.
+-> **Note:** Availability Zones are only supported with a [Standard SKU](https://docs.microsoft.com/azure/load-balancer/load-balancer-standard-availability-zones) and [in select regions](https://docs.microsoft.com/azure/availability-zones/az-overview) at this time.
 
 * `subnet_id` - (Optional) The ID of the Subnet which should be associated with the IP Configuration.
 * `gateway_load_balancer_frontend_ip_configuration_id` - (Optional) The Frontend IP Configuration ID of a Gateway SKU Load Balancer.
@@ -108,8 +108,8 @@ A `frontend_ip_configuration` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Balancer.
-* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer.
+* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Load Balancer.
 
 ## Import

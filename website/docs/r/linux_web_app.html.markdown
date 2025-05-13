@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Linux Web App. Changing this forces a new Linux Web App to be created.
 
-~> **NOTE:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
+~> **Note:** Terraform will perform a name availability check as part of the creation progress, if this Web App is part of an App Service Environment terraform will require Read permission on the ASE for this to complete reliably.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Linux Web App should exist. Changing this forces a new Linux Web App to be created.
 
@@ -99,13 +99,13 @@ The following arguments are supported:
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Web App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
-~> **NOTE on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the web app configuration.
+~> **Note:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the web app configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
 * `webdeploy_publish_basic_authentication_enabled` - (Optional) Should the default WebDeploy Basic Authentication publishing credentials enabled. Defaults to `true`.
 
-~> **NOTE:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
+~> **Note:** Setting this value to true will disable the ability to use `zip_deploy_file` which currently relies on the default publishing profile.
 
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Web App.
 
@@ -156,7 +156,7 @@ An `application_stack` block supports the following:
 
 * `docker_registry_password` - (Optional) The User Name to use for authentication against the registry to pull the image.
 
-~> **NOTE:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
+~> **Note:** `docker_registry_url`, `docker_registry_username`, and `docker_registry_password` replace the use of the `app_settings` values of `DOCKER_REGISTRY_SERVER_URL`, `DOCKER_REGISTRY_SERVER_USERNAME` and `DOCKER_REGISTRY_SERVER_PASSWORD` respectively, these values will be managed by the provider and should not be specified in the `app_settings` map.
 
 * `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `5.0`, `6.0`, `7.0`, `8.0` and `9.0`.
 
@@ -164,23 +164,23 @@ An `application_stack` block supports the following:
 
 * `java_server` - (Optional) The Java server type. Possible values include `JAVA`, `TOMCAT`, and `JBOSSEAP`.
 
-~> **NOTE:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option.
+~> **Note:** `JBOSSEAP` requires a Premium Service Plan SKU to be a valid option.
 
 * `java_server_version` - (Optional) The Version of the `java_server` to use.
 
 * `java_version` - (Optional) The Version of Java to use. Possible values include `8`, `11`, `17`, and `21`.
 
-~> **NOTE:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --os-type linux`.
+~> **Note:** The valid version combinations for `java_version`, `java_server` and `java_server_version` can be checked from the command line via `az webapp list-runtimes --os-type linux`.
 
-~> **NOTE:** `java_server`, `java_server_version`, and `java_version` must all be specified if building a java app
+~> **Note:** `java_server`, `java_server_version`, and `java_version` must all be specified if building a java app
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12-lts`, `14-lts`, `16-lts`, `18-lts`, `20-lts` and `22-lts`. This property conflicts with `java_version`.
 
-~> **NOTE:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
+~> **Note:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
 * `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1`, `8.2` and `8.3`.
 
-~> **NOTE:** version `7.4` is deprecated and will be removed from the provider in a future version.
+~> **Note:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
 * `python_version` - (Optional) The version of Python to run. Possible values include `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
@@ -200,7 +200,7 @@ An `auth_settings` block supports the following:
 
 * `default_provider` - (Optional) The default authentication provider to use when multiple providers are configured. Possible values include: `BuiltInAuthenticationProviderAzureActiveDirectory`, `BuiltInAuthenticationProviderFacebook`, `BuiltInAuthenticationProviderGoogle`, `BuiltInAuthenticationProviderMicrosoftAccount`, `BuiltInAuthenticationProviderTwitter`, `BuiltInAuthenticationProviderGithub`
 
-~> **NOTE:** This setting is only needed if multiple providers are configured, and the `unauthenticated_client_action` is set to "RedirectToLoginPage".
+~> **Note:** This setting is only needed if multiple providers are configured, and the `unauthenticated_client_action` is set to "RedirectToLoginPage".
 
 * `facebook` - (Optional) A `facebook` block as defined below.
 
@@ -210,7 +210,7 @@ An `auth_settings` block supports the following:
 
 * `issuer` - (Optional) The OpenID Connect Issuer URI that represents the entity that issues access tokens for this Linux Web App.
 
-~> **NOTE:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
+~> **Note:** When using Azure Active Directory, this value is the URI of the directory tenant, e.g. <https://sts.windows.net/{tenant-guid}/>.
 
 * `microsoft` - (Optional) A `microsoft` block as defined below.
 
@@ -242,11 +242,11 @@ An `auth_settings_v2` block supports the following:
 
 * `default_provider` - (Optional) The Default Authentication Provider to use when the `unauthenticated_action` is set to `RedirectToLoginPage`. Possible values include: `apple`, `azureactivedirectory`, `facebook`, `github`, `google`, `twitter` and the `name` of your `custom_oidc_v2` provider.
 
-~> **NOTE:** Whilst any value will be accepted by the API for `default_provider`, it can leave the app in an unusable state if this value does not correspond to the name of a known provider (either built-in value, or custom_oidc name) as it is used to build the auth endpoint URI.
+~> **Note:** Whilst any value will be accepted by the API for `default_provider`, it can leave the app in an unusable state if this value does not correspond to the name of a known provider (either built-in value, or custom_oidc name) as it is used to build the auth endpoint URI.
 
 * `excluded_paths` - (Optional) The paths which should be excluded from the `unauthenticated_action` when it is set to `RedirectToLoginPage`.
 
-~> **NOTE:** This list should be used instead of setting `WEBSITE_WARMUP_PATH` in `app_settings` as it takes priority.
+~> **Note:** This list should be used instead of setting `WEBSITE_WARMUP_PATH` in `app_settings` as it takes priority.
 
 * `require_https` - (Optional) Should HTTPS be required on connections? Defaults to `true`.
 
@@ -286,11 +286,11 @@ An `apple_v2` block supports the following:
 
 * `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for Apple Login.
 
-!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+!> **Note:** A setting with this name must exist in `app_settings` to function correctly.
 
 * `login_scopes` - A list of Login Scopes provided by this Authentication Provider.
 
-~> **NOTE:** This is configured on the Authentication Provider side and is Read Only here.
+~> **Note:** This is configured on the Authentication Provider side and is Read Only here.
 
 ---
 
@@ -300,15 +300,15 @@ An `active_directory_v2` block supports the following:
 
 * `tenant_auth_endpoint` - (Required) The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
-~> **NOTE:** [Here](https://learn.microsoft.com/en-us/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
+~> **Note:** [Here](https://learn.microsoft.com/en-us/entra/identity-platform/authentication-national-cloud#microsoft-entra-authentication-endpoints) is a list of possible authentication endpoints based on the cloud environment. [Here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-tenant) is more information to better understand how to configure authentication for Azure App Service or Azure Functions.
 
 * `client_secret_setting_name` - (Optional) The App Setting name that contains the client secret of the Client.
 
-!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+!> **Note:** A setting with this name must exist in `app_settings` to function correctly.
 
 * `client_secret_certificate_thumbprint` - (Optional) The thumbprint of the certificate used for signing purposes.
 
-!> **NOTE:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
+!> **Note:** If one `client_secret_setting_name` or `client_secret_certificate_thumbprint` is specified, terraform won't write the client secret or secret certificate thumbprint back to `app_setting`, so make sure they are existed in `app_settings` to function correctly.
 
 * `jwt_allowed_groups` - (Optional) A list of Allowed Groups in the JWT Claim.
 
@@ -326,7 +326,7 @@ An `active_directory_v2` block supports the following:
 
 * `allowed_audiences` - (Optional) Specifies a list of Allowed audience values to consider when validating JWTs issued by Azure Active Directory.
 
-~> **NOTE:** This is configured on the Authentication Provider side and is Read Only here.
+~> **Note:** This is configured on the Authentication Provider side and is Read Only here.
 
 ---
 
@@ -340,7 +340,7 @@ A `custom_oidc_v2` block supports the following:
 
 * `name` - (Required) The name of the Custom OIDC Authentication Provider.
 
-~> **NOTE:** An `app_setting` matching this value in upper case with the suffix of `_PROVIDER_AUTHENTICATION_SECRET` is required. e.g. `MYOIDC_PROVIDER_AUTHENTICATION_SECRET` for a value of `myoidc`.
+~> **Note:** An `app_setting` matching this value in upper case with the suffix of `_PROVIDER_AUTHENTICATION_SECRET` is required. e.g. `MYOIDC_PROVIDER_AUTHENTICATION_SECRET` for a value of `myoidc`.
 
 * `client_id` - (Required) The ID of the Client to use to authenticate with the Custom OIDC.
 
@@ -370,7 +370,7 @@ A `facebook_v2` block supports the following:
 
 * `app_secret_setting_name` - (Required) The app setting name that contains the `app_secret` value used for Facebook Login.
 
-!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+!> **Note:** A setting with this name must exist in `app_settings` to function correctly.
 
 * `graph_api_version` - (Optional) The version of the Facebook API to be used while logging in.
 
@@ -384,7 +384,7 @@ A `github_v2` block supports the following:
 
 * `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for GitHub Login.
 
-!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+!> **Note:** A setting with this name must exist in `app_settings` to function correctly.
 
 * `login_scopes` - (Optional) The list of OAuth 2.0 scopes that should be requested as part of GitHub Login authentication.
 
@@ -396,7 +396,7 @@ A `google_v2` block supports the following:
 
 * `client_secret_setting_name` - (Required) The app setting name that contains the `client_secret` value used for Google Login.
 
-!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+!> **Note:** A setting with this name must exist in `app_settings` to function correctly.
 
 * `allowed_audiences` - (Optional) Specifies a list of Allowed Audiences that should be requested as part of Google Sign-In authentication.
 
@@ -410,7 +410,7 @@ A `microsoft_v2` block supports the following:
 
 * `client_secret_setting_name` - (Required) The app setting name containing the OAuth 2.0 client secret that was created for the app used for authentication.
 
-!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+!> **Note:** A setting with this name must exist in `app_settings` to function correctly.
 
 * `allowed_audiences` - (Optional) Specifies a list of Allowed Audiences that will be requested as part of Microsoft Sign-In authentication.
 
@@ -424,7 +424,7 @@ A `twitter_v2` block supports the following:
 
 * `consumer_secret_setting_name` - (Required) The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
-!> **NOTE:** A setting with this name must exist in `app_settings` to function correctly.
+!> **Note:** A setting with this name must exist in `app_settings` to function correctly.
 
 ---
 
@@ -550,7 +550,7 @@ A `google` block supports the following:
 
 A `headers` block supports the following:
 
-~> **NOTE:** Please see the [official Azure Documentation](https://docs.microsoft.com/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
+~> **Note:** Please see the [official Azure Documentation](https://docs.microsoft.com/azure/app-service/app-service-ip-restrictions#filter-by-http-header) for details on using header filtering.
 
 * `x_azure_fdid` - (Optional) Specifies a list of Azure Front Door IDs.
 
@@ -584,7 +584,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Linux Web App.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -604,7 +604,7 @@ An `ip_restriction` block supports the following:
 
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
-~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
+~> **Note:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
 
@@ -646,7 +646,7 @@ A `schedule` block supports the following:
 
 * `frequency_interval` - (Required) How often the backup should be executed (e.g. for weekly backup, this should be set to `7` and `frequency_unit` should be set to `Day`).
 
-~> **NOTE:** Not all intervals are supported on all Linux Web App SKUs. Please refer to the official documentation for appropriate values.
+~> **Note:** Not all intervals are supported on all Linux Web App SKUs. Please refer to the official documentation for appropriate values.
 
 * `frequency_unit` - (Required) The unit of time for how often the backup should take place. Possible values include: `Day`, `Hour`
 
@@ -674,7 +674,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
-~> **NOTE:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
+~> **Note:** One and only one of `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified.
 
 * `description` - (Optional) The Description of this IP Restriction.
 
@@ -684,7 +684,7 @@ A `site_config` block supports the following:
 
 * `always_on` - (Optional) If this Linux Web App is Always On enabled. Defaults to `true`.
 
-~> **NOTE:** `always_on` must be explicitly set to `false` when using `Free`, `F1`, `D1`, or `Shared` Service Plans.
+~> **Note:** `always_on` must be explicitly set to `false` when using `Free`, `F1`, `D1`, or `Shared` Service Plans.
 
 * `api_definition_url` - (Optional) The URL to the API Definition for this Linux Web App.
 
@@ -706,7 +706,7 @@ A `site_config` block supports the following:
 
 * `ftps_state` - (Optional) The State of FTP / FTPS service. Possible values include `AllAllowed`, `FtpsOnly`, and `Disabled`. Defaults to `Disabled`.
 
-~> **NOTE:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it.
+~> **Note:** Azure defaults this value to `AllAllowed`, however, in the interests of security Terraform will default this to `Disabled` to ensure the user makes a conscious choice to enable it.
 
 * `health_check_path` - (Optional) The path to the Health Check.
 
@@ -864,7 +864,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_linux_web_app.example.identity[0].principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity[0].tenant_id`
+-> **Note:** You can access the Principal ID via `azurerm_linux_web_app.example.identity[0].principal_id` and the Tenant ID via `azurerm_linux_web_app.example.identity[0].tenant_id`
 
 ---
 

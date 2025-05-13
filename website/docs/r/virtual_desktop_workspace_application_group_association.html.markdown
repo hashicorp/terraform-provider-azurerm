@@ -68,9 +68,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Workspace.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Desktop Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Desktop Workspace.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Desktop Workspace.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Desktop Workspace.
 
 ## Import
 
@@ -80,4 +80,4 @@ Associations between Virtual Desktop Workspaces and Virtual Desktop Application 
 terraform import azurerm_virtual_desktop_workspace_application_group_association.association1 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/workspaces/myworkspace|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/applicationGroups/myapplicationgroup"
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{virtualDesktopWorkspaceID}|{virtualDesktopApplicationGroupID}`.
+-> **Note:** This ID is specific to Terraform - and is of the format `{virtualDesktopWorkspaceID}|{virtualDesktopApplicationGroupID}`.

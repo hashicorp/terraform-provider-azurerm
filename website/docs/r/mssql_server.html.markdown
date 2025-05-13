@@ -157,9 +157,9 @@ The following arguments are supported:
 
 * `transparent_data_encryption_key_vault_key_id` - (Optional) The fully versioned `Key Vault` `Key` URL (e.g. `'https://<YourVaultName>.vault.azure.net/keys/<YourKeyName>/<YourKeyVersion>`) to be used as the `Customer Managed Key`(CMK/BYOK) for the `Transparent Data Encryption`(TDE) layer.
 
-~> **Note:** To successfully deploy a `Microsoft SQL Server` in CMK/BYOK TDE the `Key Vault` must have `Soft-delete` and `purge protection` enabled to protect from data loss due to accidental key and/or key vault deletion. The `Key Vault` and the `Microsoft SQL Server` `User Managed Identity Instance` must belong to the same `Azure Active Directory` `tenant`. 
+~> **Note:** To successfully deploy a `Microsoft SQL Server` in CMK/BYOK TDE the `Key Vault` must have `Soft-delete` and `purge protection` enabled to protect from data loss due to accidental key and/or key vault deletion. The `Key Vault` and the `Microsoft SQL Server` `User Managed Identity Instance` must belong to the same `Azure Active Directory` `tenant`.
 
-~> **Note:**  Cross-tenant `Key Vault` and `Microsoft SQL Server` interactions are not supported. Please see the [product documentation](https://learn.microsoft.com/azure/azure-sql/database/transparent-data-encryption-byok-overview?view=azuresql#requirements-for-configuring-customer-managed-tde) for more information. 
+~> **Note:** Cross-tenant `Key Vault` and `Microsoft SQL Server` interactions are not supported. Please see the [product documentation](https://learn.microsoft.com/azure/azure-sql/database/transparent-data-encryption-byok-overview?view=azuresql#requirements-for-configuring-customer-managed-tde) for more information.
 
 ~> **Note:** When using a firewall with a `Key Vault`, you must enable the option `Allow trusted Microsoft services to bypass the firewall`.
 
@@ -219,16 +219,16 @@ A `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
--> You can access the Principal ID via `azurerm_mssql_server.example.identity[0].principal_id` and the Tenant ID via `azurerm_mssql_server.example.identity[0].tenant_id`
+-> **Note:** You can access the Principal ID via `azurerm_mssql_server.example.identity[0].principal_id` and the Tenant ID via `azurerm_mssql_server.example.identity[0].tenant_id`
 
 ### Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Microsoft SQL Server.
+* `create` - (Defaults to 1 hour) Used when creating the Microsoft SQL Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Server.
-* `update` - (Defaults to 60 minutes) Used when updating the Microsoft SQL Server.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Microsoft SQL Server.
+* `update` - (Defaults to 1 hour) Used when updating the Microsoft SQL Server.
+* `delete` - (Defaults to 1 hour) Used when deleting the Microsoft SQL Server.
 
 ## Import
 

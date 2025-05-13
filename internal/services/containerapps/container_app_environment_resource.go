@@ -16,10 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -358,7 +359,11 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						if appLogsConfig.LogAnalyticsConfiguration != nil && appLogsConfig.LogAnalyticsConfiguration.CustomerId != nil {
 							workspaceId, err := findWorkspaceResourceIDFromCustomerID(ctx, metadata, *appLogsConfig.LogAnalyticsConfiguration.CustomerId)
 							if err != nil {
-								return fmt.Errorf("retrieving Log Analytics Workspace ID for %s: %+v", id, err)
+								if v := metadata.ResourceData.GetRawConfig().AsValueMap()["log_analytics_workspace_id"]; !v.IsNull() && v.AsString() != "" {
+									state.LogAnalyticsWorkspaceId = v.AsString()
+								} else {
+									return fmt.Errorf("retrieving Log Analytics Workspace ID for %s: %+v", *appLogsConfig.LogAnalyticsConfiguration.CustomerId, err)
+								}
 							}
 
 							state.LogAnalyticsWorkspaceId = workspaceId.ID()
@@ -413,6 +418,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
+			workaroundClient := azuresdkhacks.NewManagedEnvironmentWorkaroundClient(client)
 			id, err := managedenvironments.ParseManagedEnvironmentID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -425,31 +431,49 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			payload := azuresdkhacks.ManagedEnvironment{
+				Name:       pointer.To(state.Name),
+				Location:   state.Location,
+				Properties: &azuresdkhacks.ManagedEnvironmentProperties{},
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				existing.Model.Tags = tags.Expand(state.Tags)
+				payload.Tags = tags.Expand(state.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile") {
-				existing.Model.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
+				payload.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
 			}
 
 			if metadata.ResourceData.HasChange("mutual_tls_enabled") {
-				existing.Model.Properties.PeerAuthentication.Mtls.Enabled = pointer.To(state.Mtls)
-				existing.Model.Properties.PeerTrafficConfiguration.Encryption.Enabled = pointer.To(state.Mtls)
+				payload.Properties.PeerAuthentication = &managedenvironments.ManagedEnvironmentPropertiesPeerAuthentication{
+					Mtls: &managedenvironments.Mtls{
+						Enabled: pointer.To(state.Mtls),
+					},
+				}
+				payload.Properties.PeerTrafficConfiguration = &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfiguration{
+					Encryption: &managedenvironments.ManagedEnvironmentPropertiesPeerTrafficConfigurationEncryption{
+						Enabled: pointer.To(state.Mtls),
+					},
+				}
 			}
 
 			if metadata.ResourceData.HasChanges("logs_destination", "log_analytics_workspace_id") {
-				// For 4.x we need to be compensate for the legacy behaviour of setting log destination based on the presence of log_analytics_workspace_id
+				// For 4.x we need to compensate for the legacy behaviour of setting log destination based on the presence of log_analytics_workspace_id
 				if !features.FivePointOh() && metadata.ResourceData.GetRawConfig().AsValueMap()["logs_destination"].IsNull() && state.LogAnalyticsWorkspaceId == "" {
 					state.LogsDestination = LogsDestinationNone
 				}
 
 				switch state.LogsDestination {
 				case LogsDestinationAzureMonitor:
-					existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
 						Destination:               pointer.To(LogsDestinationAzureMonitor),
 						LogAnalyticsConfiguration: nil,
 					}
@@ -460,7 +484,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 							return fmt.Errorf("retrieving access keys to Log Analytics Workspace for %s: %+v", id, err)
 						}
 
-						existing.Model.Properties.AppLogsConfiguration = &managedenvironments.AppLogsConfiguration{
+						payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
 							Destination: pointer.To(LogsDestinationLogAnalytics),
 							LogAnalyticsConfiguration: &managedenvironments.LogAnalyticsConfiguration{
 								CustomerId: customerId,
@@ -468,13 +492,15 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 							},
 						}
 					}
-
 				default:
-					existing.Model.Properties.AppLogsConfiguration = nil
+					payload.Properties.AppLogsConfiguration = &azuresdkhacks.AppLogsConfiguration{
+						Destination:               pointer.To(LogsDestinationNone),
+						LogAnalyticsConfiguration: nil,
+					}
 				}
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+			if err := workaroundClient.UpdateThenPoll(ctx, *id, payload); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 

@@ -47,7 +47,7 @@ resource "azurerm_dynatrace_monitor" "example" {
 }
 
 resource "azurerm_dynatrace_tag_rules" "example" {
-  name       = "examplestreamanalyticscluster"
+  name       = "default"
   monitor_id = azurerm_dynatrace_monitors.test.id
 
   log_rule {
@@ -79,21 +79,21 @@ The following arguments are supported:
 
 * `monitor_id` - (Required) Name of the Dynatrace monitor. Changing this forces a new resource to be created.
 
-* `log_rule` - (Optional) Set of rules for sending logs for the Monitor resource. Changing this forces a new resource to be created. A `log_rule` block as defined below.
+* `log_rule` - (Optional) Set of rules for sending logs for the Monitor resource. A `log_rule` block as defined below.
 
-* `metric_rule` - (Optional) Set of rules for sending metrics for the Monitor resource. Changing this forces a new resource to be created. A `metric_rule` block as defined below.
+* `metric_rule` - (Optional) Set of rules for sending metrics for the Monitor resource. A `metric_rule` block as defined below.
 
 ---
 
 The `log_rule` block supports the following:
 
-* `send_azure_active_directory_logs_enabled` - (Optional) Send Azure Active Directory logs. The default value is `false`. Changing this forces a new resource to be created.
+* `send_azure_active_directory_logs_enabled` - (Optional) Send Azure Active Directory logs. The default value is `false`.
 
-* `send_activity_logs_enabled` - (Optional) Send Activity logs. The default value is `false`. Changing this forces a new resource to be created.
+* `send_activity_logs_enabled` - (Optional) Send Activity logs. The default value is `false`.
 
-* `send_subscription_logs_enabled` - (Optional) Send Subscription logs. The default value is `false`. Changing this forces a new resource to be created.
+* `send_subscription_logs_enabled` - (Optional) Send Subscription logs. The default value is `false`.
 
-* `filtering_tag` - (Optional) Filtering tag for the log rule. A `filtering_tag` block as defined below. Changing this forces a new resource to be created.
+* `filtering_tag` - (Optional) Filtering tag for the log rule. A `filtering_tag` block as defined below.
 
 ---
 
@@ -105,11 +105,11 @@ The `metric_rule` block supports the following:
 
 The `filtering_tag` block supports the following:
 
-* `name` - (Required) Name of the filtering tag. Changing this forces a new resource to be created.
+* `name` - (Required) Name of the filtering tag.
 
-* `value` - (Required) Value of the filtering tag. Changing this forces a new resource to be created.
+* `value` - (Required) Value of the filtering tag.
 
-* `action` - (Required) Action of the filtering tag. Possible values are `Include` and `Exclude`. Changing this forces a new resource to be created.
+* `action` - (Required) Action of the filtering tag. Possible values are `Include` and `Exclude`.
 
 ## Attributes Reference
 
@@ -123,6 +123,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dynatrace tag rules.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dynatrace tag rules.
+* `update` - (Defaults to 30 minutes) Used when updating the Dynatrace tag rules.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Dynatrace tag rules.
 
 ## Import

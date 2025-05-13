@@ -16,7 +16,7 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.55.1
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.64.6
 
 build: fmtcheck generate
 	go install

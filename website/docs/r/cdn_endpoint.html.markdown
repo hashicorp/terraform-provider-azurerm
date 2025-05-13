@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `probe_path` - (Optional) the path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the `origin_path`.
 
--> **NOTE:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
+-> **Note:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
 
 * `global_delivery_rule` - (Optional) Actions that are valid for all resources regardless of any conditions. A `global_delivery_rule` block as defined below.
 
@@ -413,8 +413,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the CDN Endpoint.
 
 ## Import

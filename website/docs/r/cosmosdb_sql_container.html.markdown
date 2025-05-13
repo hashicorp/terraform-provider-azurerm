@@ -174,8 +174,8 @@ A `spatial_index` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB SQL Container.
-* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Container.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB SQL Container.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Container.
 * `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB SQL Container.
 
 ## Import

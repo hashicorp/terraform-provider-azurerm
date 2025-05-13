@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `configuration_id` - (Required) The ARM resource ID of the Automanage Configuration to assign to the Virtual Machine. Changing this forces a new resource to be created.
 
-~> **NOTE:** For a successful creation of this resource, locate "Automanage API Access" app within your Entra ID tenant. Make sure it's granted access to the scope that includes the arc server.
+~> **Note:** For a successful creation of this resource, locate "Automanage API Access" app within your Entra ID tenant. Make sure it's granted access to the scope that includes the arc server.
 
 ---
 ## Attributes Reference

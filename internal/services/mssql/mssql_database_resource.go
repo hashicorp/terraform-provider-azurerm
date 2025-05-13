@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -24,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/geobackuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/longtermretentionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/replicationlinks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/transparentdataencryptions"
@@ -119,7 +119,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 }
 
 func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-	legacyreplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 
@@ -135,7 +135,7 @@ func resourceMsSqlDatabaseImporter(ctx context.Context, d *pluginsdk.ResourceDat
 	}
 	d.Set("enclave_type", enclaveType)
 
-	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyreplicationLinksClient, resourcesClient, *id, enclaveType, []sql.ReplicationRole{sql.ReplicationRolePrimary})
+	partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, *id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRolePrimary})
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -235,8 +235,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	skuName := d.Get("sku_name").(string)
+
 	if skuName != "" {
-		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, enclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+		partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, enclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 		if err != nil {
 			return err
 		}
@@ -267,7 +268,7 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 					},
 				})
 				if err != nil {
-					return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+					return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 				}
 			}
 		}
@@ -644,7 +645,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	elasticPoolClient := meta.(*clients.Client).MSSQL.ElasticPoolsClient
 	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	legacyReplicationLinksClient := meta.(*clients.Client).MSSQL.LegacyReplicationLinksClient
+	replicationLinksClient := meta.(*clients.Client).MSSQL.ReplicationLinksClient
 	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
@@ -829,10 +830,12 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				existingEnclaveType = *model.Properties.PreferredEnclaveType
 			}
 
-			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, legacyReplicationLinksClient, resourcesClient, id, existingEnclaveType, []sql.ReplicationRole{sql.ReplicationRoleSecondary, sql.ReplicationRoleNonReadableSecondary})
+			partnerDatabases, err := helper.FindDatabaseReplicationPartners(ctx, client, replicationLinksClient, resourcesClient, id, existingEnclaveType, []replicationlinks.ReplicationRole{replicationlinks.ReplicationRoleSecondary, replicationlinks.ReplicationRoleNonReadableSecondary})
 			if err != nil {
 				return err
 			}
+
+			log.Printf("[INFO] Found %d Partner Databases", len(partnerDatabases))
 
 			// Place a lock for the partner databases, so they can't update themselves whilst we're poking their SKUs
 			for _, v := range partnerDatabases {
@@ -847,6 +850,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 			// Update the SKUs of any partner databases where deemed necessary
 			for _, partnerDatabase := range partnerDatabases {
+				log.Printf("[INFO] Parsing Replication Partner Database ID: %s", *partnerDatabase.Id)
 				partnerDatabaseId, err := commonids.ParseSqlDatabaseIDInsensitively(*partnerDatabase.Id)
 				if err != nil {
 					return fmt.Errorf("parsing ID for Replication Partner Database %q: %+v", *partnerDatabase.Id, err)
@@ -854,14 +858,17 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 				// See: https://docs.microsoft.com/en-us/azure/azure-sql/database/active-geo-replication-overview#configuring-secondary-database
 				if partnerDatabase.Sku != nil && partnerDatabase.Sku.Name != "" && helper.CompareDatabaseSkuServiceTiers(skuName, partnerDatabase.Sku.Name) {
+					log.Printf("[INFO] Updating SKU of Replication Partner Database from %q to %q", partnerDatabase.Sku.Name, skuName)
 					err := client.UpdateThenPoll(ctx, *partnerDatabaseId, databases.DatabaseUpdate{
 						Sku: &databases.Sku{
 							Name: skuName,
 						},
 					})
 					if err != nil {
-						return fmt.Errorf("updating SKU of Replication Partner %s: %+v", partnerDatabaseId, err)
+						return fmt.Errorf("updating SKU of Replication Partner Database %s: %+v", partnerDatabaseId, err)
 					}
+
+					log.Printf("[INFO] SKU of Replication Partner Database updated successfully to %q", skuName)
 				}
 			}
 		}
@@ -1463,7 +1470,8 @@ func resourceMsSqlDatabaseMaintenanceNames() []string {
 		"SQL_WestUS_DB_1", "SQL_AustraliaSoutheast_DB_2", "SQL_BrazilSouth_DB_2", "SQL_CanadaCentral_DB_2", "SQL_CanadaEast_DB_2", "SQL_CentralUS_DB_2", "SQL_EastAsia_DB_2", "SQL_FranceCentral_DB_2",
 		"SQL_GermanyWestCentral_DB_2", "SQL_CentralIndia_DB_2", "SQL_SouthIndia_DB_2", "SQL_JapanEast_DB_2", "SQL_JapanWest_DB_2", "SQL_NorthCentralUS_DB_2", "SQL_UKWest_DB_2", "SQL_WestUS_DB_2",
 		"SQL_WestCentralUS_DB_1", "SQL_FranceSouth_DB_1", "SQL_WestCentralUS_DB_2", "SQL_FranceSouth_DB_2", "SQL_SwitzerlandNorth_DB_1", "SQL_SwitzerlandNorth_DB_2", "SQL_BrazilSoutheast_DB_1",
-		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2", "SQL_SouthAfricaNorth_DB_1", "SQL_SouthAfricaNorth_DB_2", "SQL_WestUS3_DB_1", "SQL_WestUS3_DB_2",
+		"SQL_UAENorth_DB_1", "SQL_BrazilSoutheast_DB_2", "SQL_UAENorth_DB_2", "SQL_SouthAfricaNorth_DB_1", "SQL_SouthAfricaNorth_DB_2", "SQL_WestUS3_DB_1", "SQL_WestUS3_DB_2", "SQL_SwedenCentral_DB_1",
+		"SQL_SwedenCentral_DB_2",
 	}
 }
 

@@ -9,7 +9,7 @@ description: |-
 # azurerm_virtual_machine_scale_set_standby_pool
 
 Manages a Standby Pool for Virtual Machine Scale Sets.
-~> **NOTE :** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/azure/virtual-machine-scale-sets/standby-pools-create?tabs=portal#prerequisites) before using this resource.
+~> **Note:** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/azure/virtual-machine-scale-sets/standby-pools-create?tabs=portal#prerequisites) before using this resource.
 
 ## Example Usage
 
@@ -71,7 +71,7 @@ An `elasticity_profile` block supports the following:
 
 * `min_ready_capacity` - (Required) Specifies the desired minimum number of virtual machines in the standby pool.
 
-~> **NOTE** `min_ready_capacity` cannot exceed `max_ready_capacity`.
+~> **Note:** `min_ready_capacity` cannot exceed `max_ready_capacity`.
 
 ## Attributes Reference
 

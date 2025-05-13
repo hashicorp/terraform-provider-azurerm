@@ -53,7 +53,7 @@ The following attributes are exported:
 
 * `secondary_access_key` - The secondary access key of the Cognitive Services Account
 
--> **NOTE:** The `primary_access_key` and `secondary_access_key` properties are only available when `location_auth_enabled` is `true`.
+-> **Note:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_auth_enabled` is `true`.
 
 * `tags` - A mapping of tags to assigned to the resource.
 

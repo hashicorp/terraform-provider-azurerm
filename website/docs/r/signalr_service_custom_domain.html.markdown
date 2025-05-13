@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `domain_name` - (Required) Specifies the custom domain name of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
--> **NOTE:** Please ensure the custom domain name is included in the Subject Alternative Names of the selected SignalR Custom Certificate.
+-> **Note:** Please ensure the custom domain name is included in the Subject Alternative Names of the selected SignalR Custom Certificate.
 
 * `signalr_service_id` - (Required) Specifies the SignalR ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
 

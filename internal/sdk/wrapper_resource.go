@@ -148,12 +148,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	if v, ok := rw.resource.(ResourceWithDeprecationAndNoReplacement); ok {
-		message := v.DeprecationMessage()
-		if message == "" {
-			return nil, fmt.Errorf("Resource %q must return a non-empty DeprecationMessage if implementing ResourceWithDeprecationAndNoReplacement", rw.resource.ResourceType())
-		}
-
-		resource.DeprecationMessage = message
+		resource.DeprecationMessage = v.DeprecationMessage()
 	}
 	if v, ok := rw.resource.(ResourceWithDeprecationReplacedBy); ok {
 		if resource.DeprecationMessage != "" {

@@ -58,7 +58,7 @@ A `sharing` block supports the following:
 
 * `community_gallery` - (Optional) A `community_gallery` block as defined below. Changing this forces a new resource to be created.
 
-~> **NOTE:** `community_gallery` must be set when `permission` is set to `Community`.
+~> **Note:** `community_gallery` must be set when `permission` is set to `Community`.
 
 ---
 
@@ -91,8 +91,8 @@ A `community_gallery` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Shared Image Gallery.
-* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Gallery.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image Gallery.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Gallery.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image Gallery.
 
 ## Import

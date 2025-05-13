@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Optional) The ID of the tenant that this Office 365 Project Data Connector connects to. Changing this forces a new Office 365 Project Data Connector to be created.
 
--> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
+-> **Note:** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
 ## Attributes Reference
 

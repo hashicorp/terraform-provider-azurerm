@@ -105,8 +105,8 @@ A `service_fabric_cluster` block supports the following:
 
 * `client_certificate_id` - (Optional) The client certificate resource id for the management endpoint.
 
-> **Note:** At least one of `client_certificate_thumbprint`, and `client_certificate_id` must be set.
->
+~> **Note:** At least one of `client_certificate_thumbprint`, and `client_certificate_id` must be set.
+
 * `management_endpoints` - (Required) A list of cluster management endpoints.
 
 * `max_partition_resolution_retries` - (Required) The maximum number of retries when attempting resolve the partition.
@@ -144,8 +144,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Backend.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Backend.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Backend.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Backend.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Backend.
 
 ## Import

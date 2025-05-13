@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `end_ip_address` - (Required) Specifies the End IP Address associated with this Firewall Rule. 
 
--> **NOTE:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` which ([is documented in the Azure API Docs](https://docs.microsoft.com/rest/api/sql/firewallrules/createorupdate)).
+-> **Note:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` which ([is documented in the Azure API Docs](https://docs.microsoft.com/rest/api/sql/firewallrules/createorupdate)).
 
 ## Attributes Reference
 
@@ -106,8 +106,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MySQL Firewall Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the MySQL Firewall Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Firewall Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the MySQL Firewall Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the MySQL Firewall Rule.
 
 ## Import

@@ -61,11 +61,11 @@ The following arguments are supported:
 
 * `version_header_name` - (Optional) The name of the Header which should be read from Inbound Requests which defines the API Version.
 
--> **NOTE:** This must be specified when `versioning_scheme` is set to `Header`.
+-> **Note:** This must be specified when `versioning_scheme` is set to `Header`.
 
 * `version_query_name` - (Optional) The name of the Query String which should be read from Inbound Requests which defines the API Version.
 
--> **NOTE:** This must be specified when `versioning_scheme` is set to `Query`.
+-> **Note:** This must be specified when `versioning_scheme` is set to `Query`.
 
 ## Attributes Reference
 
@@ -78,8 +78,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Version Set.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management API Version Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Version Set.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Version Set.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Version Set.
 
 ## Import

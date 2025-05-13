@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -336,8 +337,12 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.Hos
 
 		output["host_name"] = config.HostName
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
-		output["key_vault_id"] = pointer.From(config.KeyVaultId)
+		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
 		output["ssl_keyvault_identity_client_id"] = pointer.From(config.IdentityClientId)
+
+		if !features.FivePointOh() {
+			output["key_vault_id"] = pointer.From(config.KeyVaultId)
+		}
 
 		var configType string
 		switch strings.ToLower(string(config.Type)) {

@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `install_patches` - (Optional) An `install_patches` block as defined below.
 
--> **NOTE:** `install_patches` must be specified when `scope` is `InGuestPatch`.
+-> **Note:** `install_patches` must be specified when `scope` is `InGuestPatch`.
 
 * `in_guest_user_patch_mode` - (Optional) The in guest user patch mode. Possible values are `Platform` or `User`. Must be specified when `scope` is `InGuestPatch`.
 
@@ -117,8 +117,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Maintenance Configuration.
-* `update` - (Defaults to 30 minutes) Used when updating the Maintenance Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Maintenance Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the Maintenance Configuration.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Maintenance Configuration.
 
 ## Import

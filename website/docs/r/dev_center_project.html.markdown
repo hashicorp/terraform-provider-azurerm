@@ -47,9 +47,21 @@ The following arguments are supported:
 
 * `description` - (Optional) Description of the project. Changing this forces a new Dev Center Project to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `maximum_dev_boxes_per_user` - (Optional) When specified, limits the maximum number of Dev Boxes a single user can create across all pools in the project.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of identity used for this Dev Center Project. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) The ID of the User Assigned Identity which should be assigned to this Dev Center Project.
+
+-> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -59,18 +71,24 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dev_center_uri` - The URI of the Dev Center resource this project is associated with.
 
+* `identity` - An `identity` block as defined below.
+
 ---
 
+An `identity` block exports the following:
 
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Dev Center Project.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Dev Center Project.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center Project.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center Project.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center Project.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center Project.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center Project.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Project.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Center Project.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center Project.
 
 ## Import
 

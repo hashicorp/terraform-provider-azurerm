@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `windows` - (Optional) A `windows` block as defined below.
 
-~> **NOTE:** One of `linux` or `windows` must be specified.
+~> **Note:** One of `linux` or `windows` must be specified.
 
 * `virtual_machine_ids` - (Optional) Specifies a list of Azure Resource IDs of azure virtual machines.
 

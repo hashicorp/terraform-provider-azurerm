@@ -102,7 +102,7 @@ The following arguments are supported:
 
 * `shared_access_policy_name` - (Required) Specifies the IotHub Shared Access Policy this data connection will use for ingestion, which must have read permission. Changing this forces a new resource to be created.
 
-* `event_system_properties` - (Optional) Specifies the System Properties that each IoT Hub message should contain. Changing this forces a new resource to be created. Possible values are `message-id`, `sequence-number`, `to`, `absolute-expiry-time`, `iothub-enqueuedtime`, `correlation-id`, `user-id`, `iothub-ack`, `iothub-connection-device-id`, `iothub-connection-auth-generation-id` and `iothub-connection-auth-method`.
+* `event_system_properties` - (Optional) Specifies the System Properties that each IoT Hub message should contain. Changing this forces a new resource to be created.
 
 * `table_name` - (Optional) Specifies the target table name used for the message ingestion. Table must exist before resource is created. Changing this forces a new resource to be created.
 
@@ -122,9 +122,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kusto IotHub Data Connection.
+* `create` - (Defaults to 1 hour) Used when creating the Kusto IotHub Data Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto IotHub Data Connection.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto IotHub Data Connection.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kusto IotHub Data Connection.
 
 ## Import
 

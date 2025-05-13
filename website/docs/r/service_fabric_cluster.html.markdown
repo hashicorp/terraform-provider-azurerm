@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `reliability_level` - (Required) Specifies the Reliability Level of the Cluster. Possible values include `None`, `Bronze`, `Silver`, `Gold` and `Platinum`.
 
--> **NOTE:** The Reliability Level of the Cluster depends on the number of nodes in the Cluster: `Platinum` requires at least 9 VM's, `Gold` requires at least 7 VM's, `Silver` requires at least 5 VM's, `Bronze` requires at least 3 VM's.
+-> **Note:** The Reliability Level of the Cluster depends on the number of nodes in the Cluster: `Platinum` requires at least 9 VM's, `Gold` requires at least 7 VM's, `Silver` requires at least 5 VM's, `Bronze` requires at least 3 VM's.
 
 * `management_endpoint` - (Required) Specifies the Management Endpoint of the cluster such as `http://example.com`. Changing this forces a new resource to be created.
 
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `client_certificate_common_name` - (Optional) A `client_certificate_common_name` block as defined below.
 
--> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
+-> **Note:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
 * `diagnostics_config` - (Optional) A `diagnostics_config` block as defined below.
 
@@ -121,7 +121,7 @@ A `common_names` block supports the following:
 
 * `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
--> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
+-> **Note:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 ---
 
@@ -167,7 +167,7 @@ A `client_certificate_common_name` block supports the following:
 
 * `issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
--> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
+-> **Note:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 * `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
 
@@ -292,8 +292,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Service Fabric Cluster.
-* `update` - (Defaults to 30 minutes) Used when updating the Service Fabric Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Fabric Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Fabric Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Service Fabric Cluster.
 
 ## Import

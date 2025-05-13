@@ -175,9 +175,9 @@ The following arguments are supported:
 
 * `windows` - (Optional) A `windows` block that describes the Windows configuration in the pool as defined below.
 
--> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
+-> **Note:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
-~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
+~> **Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
 ---
 
@@ -226,7 +226,7 @@ If specified, the extensions mentioned in this configuration will be installed o
 
 * `automatic_upgrade_enabled` - (Optional) Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Supported values are `true` and `false`.
 
-~> **NOTE:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` should be manually ignored by user.
+~> **Note:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` should be manually ignored by user.
 
 * `settings_json` - (Optional) JSON formatted public settings for the extension, the value should be encoded with [`jsonencode`](https://developer.hashicorp.com/terraform/language/functions/jsonencode) function.
 
@@ -320,7 +320,7 @@ A `user_identity` block supports the following:
 
 * `auto_user` - (Optional) A `auto_user` block that describes the user identity under which the start task runs as defined below.
 
-~> **Please Note:** `user_name` and `auto_user` blocks cannot be used both at the same time, but you need to define one or the other.
+~> **Note:** `user_name` and `auto_user` blocks cannot be used both at the same time, but you need to define one or the other.
 
 ---
 
@@ -338,7 +338,7 @@ A `certificate` block supports the following:
 
 * `store_location` - (Required) The location of the certificate store on the compute node into which to install the certificate. Possible values are `CurrentUser` or `LocalMachine`.
 
- -> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
+-> **Note:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
 * `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used.
 
@@ -372,7 +372,7 @@ A `resource_file` block supports the following:
 
 * `user_assigned_identity_id` - (Optional) An identity reference from pool's user assigned managed identity list.
 
-~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
+~> **Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
 
 ---
 
@@ -515,9 +515,9 @@ A `security_profile` block supports the following:
 
 * `vtpm_enabled` - (Optional) Whether to enable virtual trusted platform module (vTPM) for the Virtual Machine or Virtual Machine Scale Set. Possible values are `true` and `false`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `security_profile` block can only be specified during creation and does not support updates.
+~> **Note:** `security_profile` block can only be specified during creation and does not support updates.
 
-~> **NOTE:** `security_type` must be specified to set UEFI related properties including `secure_boot_enabled` and `vtpm_enabled`.
+~> **Note:** `security_type` must be specified to set UEFI related properties including `secure_boot_enabled` and `vtpm_enabled`.
 
 ---
 
@@ -570,8 +570,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Pool.
-* `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Batch Pool.
 
 ## Import

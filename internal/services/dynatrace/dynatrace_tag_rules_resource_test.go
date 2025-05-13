@@ -66,6 +66,28 @@ func TestAccDynatraceTagRules_complete(t *testing.T) {
 	})
 }
 
+func TestAccDynatraceTagRules_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dynatrace_tag_rules", "test")
+	r := NewTagRulesResource()
+	r.preCheck(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.updated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDynatraceTagRules_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_tag_rules", "test")
 	r := NewTagRulesResource()
@@ -121,10 +143,10 @@ func (r TagRulesResource) basic(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_dynatrace_tag_rules" "test" {
-  name       = "acctesttagrules%d"
+  name       = "default"
   monitor_id = azurerm_dynatrace_monitor.test.id
 }
-`, MonitorsResource{}.basic(data), data.RandomInteger)
+`, MonitorsResource{}.basic(data))
 }
 
 func (r TagRulesResource) complete(data acceptance.TestData) string {
@@ -132,7 +154,7 @@ func (r TagRulesResource) complete(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_dynatrace_tag_rules" "test" {
-  name       = "acctesttagrules%d"
+  name       = "default"
   monitor_id = azurerm_dynatrace_monitor.test.id
 
   log_rule {
@@ -154,7 +176,37 @@ resource "azurerm_dynatrace_tag_rules" "test" {
     }
   }
 }
-`, MonitorsResource{}.basic(data), data.RandomInteger)
+`, MonitorsResource{}.basic(data))
+}
+
+func (r TagRulesResource) updated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_dynatrace_tag_rules" "test" {
+  name       = "default"
+  monitor_id = azurerm_dynatrace_monitor.test.id
+
+  log_rule {
+    filtering_tag {
+      name   = "Foo"
+      value  = "Bar"
+      action = "Exclude"
+    }
+    send_azure_active_directory_logs_enabled = false
+    send_activity_logs_enabled               = false
+    send_subscription_logs_enabled           = false
+  }
+
+  metric_rule {
+    filtering_tag {
+      name   = "Foo"
+      value  = "Bar"
+      action = "Exclude"
+    }
+  }
+}
+`, MonitorsResource{}.basic(data))
 }
 
 func (r TagRulesResource) requiresImport(data acceptance.TestData) string {

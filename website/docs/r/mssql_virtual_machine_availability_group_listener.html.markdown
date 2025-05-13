@@ -107,7 +107,7 @@ The following arguments are supported:
 
 * `load_balancer_configuration` - (Optional) A `load_balancer_configuration` block as defined below. Changing this forces a new resource to be created.
 
-~> **NOTE:** Either one of `load_balancer_configuration` or `multi_subnet_ip_configuration` must be specified.
+~> **Note:** Either one of `load_balancer_configuration` or `multi_subnet_ip_configuration` must be specified.
 
 * `multi_subnet_ip_configuration` - (Optional) One or more `multi_subnet_ip_configuration` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -129,7 +129,7 @@ A `load_balancer_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ID of the Subnet to create the listener. Changing this forces a new resource to be created.
 
-~> **NOTE:** `sql_virtual_machine_ids` should match with the SQL Virtual Machines specified in `replica`.
+~> **Note:** `sql_virtual_machine_ids` should match with the SQL Virtual Machines specified in `replica`.
 
 ---
 
@@ -141,7 +141,7 @@ A `multi_subnet_ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) The ID of the Subnet to create the listener. Changing this forces a new resource to be created.
 
-~> **NOTE:** `sql_virtual_machine_id` should match with the SQL Virtual Machines specified in `replica`.
+~> **Note:** `sql_virtual_machine_id` should match with the SQL Virtual Machines specified in `replica`.
 
 ---
 

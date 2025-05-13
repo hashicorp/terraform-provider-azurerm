@@ -247,7 +247,7 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`.
 
-~> **NOTE:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 * `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`.
 
@@ -285,7 +285,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Managed Instance. Required when `type` includes `UserAssigned`.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and SQL Managed Instance has been created.
+~> **Note:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and SQL Managed Instance has been created.
 
 ## Attributes Reference
 
@@ -305,15 +305,15 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
--> You can access the Principal ID via `azurerm_mssql_managed_instance.example.identity[0].principal_id` and the Tenant ID via `azurerm_mssql_managed_instance.example.identity[0].tenant_id`
+-> **Note:** You can access the Principal ID via `azurerm_mssql_managed_instance.example.identity[0].principal_id` and the Tenant ID via `azurerm_mssql_managed_instance.example.identity[0].tenant_id`
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 24 hours) Used when creating the Microsoft SQL Managed Instance.
-* `update` - (Defaults to 24 hours) Used when updating the Microsoft SQL Managed Instance.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Managed Instance.
+* `update` - (Defaults to 24 hours) Used when updating the Microsoft SQL Managed Instance.
 * `delete` - (Defaults to 24 hours) Used when deleting the Microsoft SQL Managed Instance.
 
 ## Import

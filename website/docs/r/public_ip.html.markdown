@@ -10,7 +10,7 @@ description: |-
 
 Manages a Public IP Address.
 
-~> **Note** If this resource is to be associated with a resource that requires disassociation before destruction (such as `azurerm_network_interface`) it is recommended to set the `lifecycle` argument `create_before_destroy = true`. Otherwise, it can fail to disassociate on destruction.
+~> **Note:** If this resource is to be associated with a resource that requires disassociation before destruction (such as `azurerm_network_interface`) it is recommended to set the `lifecycle` argument `create_before_destroy = true`. Otherwise, it can fail to disassociate on destruction.
 
 ## Example Usage
 
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `allocation_method` - (Required) Defines the allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 
-~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure. See `ip_address` argument.
+~> **Note:** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure. See `ip_address` argument.
 
 ---
 
@@ -68,11 +68,11 @@ The following arguments are supported:
 
 * `ip_tags` - (Optional) A mapping of IP tags to assign to the public IP. Changing this forces a new resource to be created.
 
--> **Note** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
+-> **Note:** IP Tag `RoutingPreference` requires multiple `zones` and `Standard` SKU to be set.
 
 * `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4. Changing this forces a new resource to be created. Defaults to `IPv4`.
 
--> **Note** Only `static` IP address allocation is supported for IPv6.
+-> **Note:** Only `static` IP address allocation is supported for IPv6.
 
 * `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource. Changing this forces a new resource to be created.
 
@@ -80,11 +80,11 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Public IP. Accepted values are `Basic` and `Standard`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
--> **Note** Public IP Standard SKUs require `allocation_method` to be set to `Static`.
+-> **Note:** Public IP Standard SKUs require `allocation_method` to be set to `Static`.
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
 
--> **Note** When `sku_tier` is set to `Global`, `sku` must be set to `Standard`.
+-> **Note:** When `sku_tier` is set to `Global`, `sku` must be set to `Standard`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -96,7 +96,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `ip_address` - The IP address value that was allocated.
 
-~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
+~> **Note:** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
 
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. `domain_name_label` must be specified to get the `fqdn`. This is the concatenation of the `domain_name_label` and the regionalized DNS zone
 
@@ -105,8 +105,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Public IP.
-* `update` - (Defaults to 30 minutes) Used when updating the Public IP.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Public IP.
+* `update` - (Defaults to 30 minutes) Used when updating the Public IP.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Public IP.
 
 ## Import

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Directory within an Azure Storage File Share.
 
--> **Note on Permissions** When using Azure Active Directory Authentication (i.e. setting the provider property `storage_use_azuread = true`), the principal running Terraform must have the *Storage File Data Privileged Contributor* IAM role assigned. The *Storage File Data SMB Share Contributor* does not have sufficient permissions to create directories. Refer to [official documentation](https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-azure-active-directory#permissions-for-file-service-operations) for more details.
+-> **Note:** When using Azure Active Directory Authentication (i.e. setting the provider property `storage_use_azuread = true`), the principal running Terraform must have the *Storage File Data Privileged Contributor* IAM role assigned. The *Storage File Data SMB Share Contributor* does not have sufficient permissions to create directories. Refer to [official documentation](https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-azure-active-directory#permissions-for-file-service-operations) for more details.
 
 ## Example Usage
 
@@ -61,8 +61,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Share Directory.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Share Directory.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Share Directory.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Share Directory.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Share Directory.
 
 ## Import

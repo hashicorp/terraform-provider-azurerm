@@ -68,11 +68,11 @@ The following arguments are supported:
 
 * `module` - (Optional) A `module` block as defined below. Changing this forces a new resource to be created.
 
--> **NOTE:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication
+-> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication
 
 * `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5.
 
--> **NOTE:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database be removed from the list will be forcefully unlinked.The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
+-> **Note:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database be removed from the list will be forcefully unlinked.The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
 
 * `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this force a new Redis Enterprise Geo Database to be created.
 

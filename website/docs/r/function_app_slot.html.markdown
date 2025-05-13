@@ -11,7 +11,7 @@ description: |-
 
 Manages a Function App deployment Slot.
 
-!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_linux_function_app_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app_slot) and [`azurerm_windows_function_app_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app_slot) resources instead.
+!> **Note:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_linux_function_app_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app_slot) and [`azurerm_windows_function_app_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app_slot) resources instead.
 
 ## Example Usage (with App Service Plan)
 
@@ -82,9 +82,9 @@ The following arguments are supported:
 
 ~> **Note:** When integrating a `CI/CD pipeline` and expecting to run from a deployed package in `Azure` you must seed your `app settings` as part of terraform code for function app to be successfully deployed. `Important Default key pairs`: (`"WEBSITE_RUN_FROM_PACKAGE" = ""`, `"FUNCTIONS_WORKER_RUNTIME" = "node"` (or Python, etc), `"WEBSITE_NODE_DEFAULT_VERSION" = "10.14.1"`, `"APPINSIGHTS_INSTRUMENTATIONKEY" = ""`).
 
-~> **NOTE:** The values for `AzureWebJobsStorage` and `FUNCTIONS_EXTENSION_VERSION` will be filled by other input arguments and shouldn't be configured separately. `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`.
+~> **Note:** The values for `AzureWebJobsStorage` and `FUNCTIONS_EXTENSION_VERSION` will be filled by other input arguments and shouldn't be configured separately. `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`.
 
-~> **Note:**  When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+~> **Note:** When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `auth_settings` - (Optional) An `auth_settings` block as defined below.
 
@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. The only possible value is `linux`. Changing this forces a new resource to be created.
 
-~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default).
+~> **Note:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default).
 
 * `enabled` - (Optional) Is the Function App enabled? Defaults to `true`.
 
@@ -148,15 +148,15 @@ The `site_config` block supports the following:
 
 * `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing IP restrictions as defined below.
 
--> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
+-> **Note:** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
 * `scm_type` - (Optional) The type of Source Control used by this function App. Valid values include: `BitBucketGit`, `BitBucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None` (default), `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`.
 
-~> **NOTE:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided.
+~> **Note:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided.
 
 * `scm_use_main_ip_restriction` - (Optional) IP security restrictions for scm to use main. Defaults to `false`.
 
--> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.
+-> **Note:** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.
 
 * `elastic_instance_minimum` - (Optional) The number of minimum instances for this function app. Only applicable to apps on the Premium plan.
 
@@ -184,7 +184,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Function App. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Function App has been created. More details are available below.
+~> **Note:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Function App has been created. More details are available below.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
@@ -202,7 +202,7 @@ An `auth_settings` block supports the following:
 
 * `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
 
-~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
+~> **Note:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
 
 * `facebook` - (Optional) A `facebook` block as defined below.
 
@@ -280,7 +280,7 @@ A `ip_restriction` block supports the following:
 
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
+-> **Note:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
@@ -300,7 +300,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
+-> **Note:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
@@ -360,8 +360,8 @@ The `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function App Deployment Slot.
-* `update` - (Defaults to 30 minutes) Used when updating the Function App Deployment Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function App Deployment Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the Function App Deployment Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Function App Deployment Slot.
 
 ## Import

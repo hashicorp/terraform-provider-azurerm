@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `hostname` - (Required) Specifies the Custom Hostname to use for the App Service, example `www.example.com`. Changing this forces a new resource to be created.
 
-~> **NOTE:** A CNAME needs to be configured from this Hostname to the Azure Website - otherwise Azure will reject the Hostname Binding.
+~> **Note:** A CNAME needs to be configured from this Hostname to the Azure Website - otherwise Azure will reject the Hostname Binding.
 
 * `app_service_name` - (Required) The name of the App Service in which to add the Custom Hostname Binding. Changing this forces a new resource to be created.
 
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `thumbprint` - (Optional) The SSL certificate thumbprint. Changing this forces a new resource to be created.
 
--> **NOTE:** `thumbprint` must be specified when `ssl_state` is set.
+-> **Note:** `thumbprint` must be specified when `ssl_state` is set.
 
 ## Attributes Reference
 

@@ -170,17 +170,17 @@ A `representation` block supports the following:
 
 * `form_parameter` - (Optional) One or more `form_parameter` block as defined above.
 
--> **NOTE:** This is Required when `content_type` is set to `application/x-www-form-urlencoded` or `multipart/form-data`.
+-> **Note:** This is Required when `content_type` is set to `application/x-www-form-urlencoded` or `multipart/form-data`.
 
 * `example` - (Optional) One or more `example` blocks as defined above.
 
 * `schema_id` - (Optional) The ID of an API Management Schema which represents this Response.
 
--> **NOTE:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
+-> **Note:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
 
 * `type_name` - (Optional) The Type Name defined by the Schema.
 
--> **NOTE:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
+-> **Note:** This can only be specified when `content_type` is not set to `application/x-www-form-urlencoded` or `multipart/form-data`.
 
 ---
 
@@ -229,8 +229,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Operation.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Operation.
 
 ## Import

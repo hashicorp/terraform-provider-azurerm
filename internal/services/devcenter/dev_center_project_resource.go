@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
@@ -30,14 +31,15 @@ func (r DevCenterProjectResource) ModelObject() interface{} {
 }
 
 type DevCenterProjectResourceSchema struct {
-	Description            string                 `tfschema:"description"`
-	DevCenterId            string                 `tfschema:"dev_center_id"`
-	DevCenterUri           string                 `tfschema:"dev_center_uri"`
-	Location               string                 `tfschema:"location"`
-	MaximumDevBoxesPerUser int64                  `tfschema:"maximum_dev_boxes_per_user"`
-	Name                   string                 `tfschema:"name"`
-	ResourceGroupName      string                 `tfschema:"resource_group_name"`
-	Tags                   map[string]interface{} `tfschema:"tags"`
+	Description            string                                     `tfschema:"description"`
+	DevCenterId            string                                     `tfschema:"dev_center_id"`
+	DevCenterUri           string                                     `tfschema:"dev_center_uri"`
+	Identity               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Location               string                                     `tfschema:"location"`
+	MaximumDevBoxesPerUser int64                                      `tfschema:"maximum_dev_boxes_per_user"`
+	Name                   string                                     `tfschema:"name"`
+	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
+	Tags                   map[string]interface{}                     `tfschema:"tags"`
 }
 
 func (r DevCenterProjectResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -67,6 +69,7 @@ func (r DevCenterProjectResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Type:     pluginsdk.TypeString,
 		},
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"maximum_dev_boxes_per_user": {
 			Optional: true,
 			Type:     pluginsdk.TypeInt,
@@ -114,6 +117,12 @@ func (r DevCenterProjectResource) Create() sdk.ResourceFunc {
 			payload.Location = location.Normalize(config.Location)
 			payload.Tags = tags.Expand(config.Tags)
 
+			identity, err := identity.ExpandSystemAndUserAssignedMapFromModel(config.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			payload.Identity = identity
+
 			if payload.Properties == nil {
 				payload.Properties = &projects.ProjectProperties{}
 			}
@@ -157,6 +166,12 @@ func (r DevCenterProjectResource) Read() sdk.ResourceFunc {
 				schema.ResourceGroupName = id.ResourceGroupName
 				schema.Location = location.Normalize(model.Location)
 				schema.Tags = tags.Flatten(model.Tags)
+
+				identity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %v", err)
+				}
+				schema.Identity = pointer.From(identity)
 
 				if props := model.Properties; props != nil {
 					schema.Description = pointer.From(props.Description)
@@ -211,6 +226,14 @@ func (r DevCenterProjectResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChanges("tags") {
 				payload.Tags = tags.Expand(config.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				identity, err := identity.ExpandSystemAndUserAssignedMapFromModel(config.Identity)
+				if err != nil {
+					return err
+				}
+				payload.Identity = identity
 			}
 
 			if payload.Properties == nil {

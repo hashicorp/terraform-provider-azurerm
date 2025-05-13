@@ -41,17 +41,17 @@ The following arguments are supported:
 
 * `base_size_in_tib` - (Required) Specifies the base size of the Elastic SAN resource in TiB. Possible values are between `1` and `100`.
 
--> **NOTE** When updating `base_size_in_tib`, the new value should be greater than the existing one.
+-> **Note:** When updating `base_size_in_tib`, the new value should be greater than the existing one.
 
 * `sku` - (Required) A `sku` block as defined below.
 
 * `extended_size_in_tib` - (Optional) Specifies the extended size of the Elastic SAN resource in TiB. Possible values are between `1` and `100`.
 
--> **NOTE** `extended_size_in_tib` cannot be removed and when updating, the new value should be greater than the existing one.
+-> **Note:** `extended_size_in_tib` cannot be removed and when updating, the new value should be greater than the existing one.
 
 * `zones` - (Optional) Logical zone for the Elastic SAN resource. Changing this forces a new resource to be created.
 
--> **NOTE** `zones` cannot be specified if `sku.name` is set to `Premium_ZRS`.
+-> **Note:** `zones` cannot be specified if `sku.name` is set to `Premium_ZRS`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Elastic SAN resource.
 
@@ -61,7 +61,7 @@ The `sku` block supports the following arguments:
 
 * `name` - (Required) The SKU name. Possible values are `Premium_LRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
 
--> **NOTE** `Premium_ZRS` SKU is only available in limited Azure regions including `France Central`, `North Europe`, `West Europe`, and `West US 2`. Please refer to this [document](https://azure.microsoft.com/updates/regional-expansion-azure-elastic-san-public-preview-is-now-available-in-more-regions) for more details.
+-> **Note:** `Premium_ZRS` SKU is only available in limited Azure regions including `France Central`, `North Europe`, `West Europe`, and `West US 2`. Please refer to this [document](https://azure.microsoft.com/updates/regional-expansion-azure-elastic-san-public-preview-is-now-available-in-more-regions) for more details.
 
 * `tier` - (Optional) The SKU tier. The only possible value is `Premium`. Defaults to `Premium`.
 
@@ -85,10 +85,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Elastic SAN resource.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Elastic SAN resource.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Elastic SAN resource.
-* `update` - (Defaults to 30 minutes) Used when updating this Elastic SAN resource.
+* `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Elastic SAN resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Elastic SAN resource.
 
 ## Import
 

@@ -11,7 +11,7 @@ description: |-
 
 Manages a Function App.
 
-!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_linux_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) and [`azurerm_windows_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app) resources instead.
+!> **Note:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_linux_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_function_app) and [`azurerm_windows_function_app`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_function_app) resources instead.
 
 ~> **Note:** To connect an Azure Function App and a subnet within the same region `azurerm_app_service_virtual_network_swift_connection` can be used.
 For an example, check the `azurerm_app_service_virtual_network_swift_connection` documentation.
@@ -205,7 +205,7 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-~> **NOTE:** The values for `AzureWebJobsStorage` and `FUNCTIONS_EXTENSION_VERSION` will be filled by other input arguments and shouldn't be configured separately. `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`.
+~> **Note:** The values for `AzureWebJobsStorage` and `FUNCTIONS_EXTENSION_VERSION` will be filled by other input arguments and shouldn't be configured separately. `AzureWebJobsStorage` is filled based on `storage_account_name` and `storage_account_access_key`. `FUNCTIONS_EXTENSION_VERSION` is filled based on `version`.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
@@ -227,7 +227,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. Possible values are `linux` and ``(empty string). Changing this forces a new resource to be created. Defaults to `""`.
 
-~> **NOTE:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "Linux"` and `reserved = true`
+~> **Note:** This value will be `linux` for Linux derivatives, or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "Linux"` and `reserved = true`
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
@@ -239,7 +239,7 @@ The following arguments are supported:
 
 ~> **Note:** When integrating a `CI/CD pipeline` and expecting to run from a deployed package in `Azure` you must seed your `app settings` as part of terraform code for function app to be successfully deployed. `Important Default key pairs`: (`"WEBSITE_RUN_FROM_PACKAGE" = ""`, `"FUNCTIONS_WORKER_RUNTIME" = "node"` (or Python, etc), `"WEBSITE_NODE_DEFAULT_VERSION" = "10.14.1"`, `"APPINSIGHTS_INSTRUMENTATIONKEY" = ""`).
 
-~> **Note:**  When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+~> **Note:** When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `version` - (Optional) The runtime version associated with the Function App. Defaults to `~1`.
 
@@ -277,7 +277,7 @@ The `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) A list of `ip_restriction` objects representing IP restrictions as defined below.
 
--> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
+-> **Note:** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
 * `java_version` - (Optional) Java version hosted by the function app in Azure. Possible values are `1.8`, `11` & `17` (In-Preview).
 
@@ -291,15 +291,15 @@ The `site_config` block supports the following:
 
 * `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing IP restrictions as defined below.
 
--> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
+-> **Note:** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
 * `scm_type` - (Optional) The type of Source Control used by the Function App. Valid values include: `BitBucketGit`, `BitBucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None` (default), `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`.
 
-~> **NOTE:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided.
+~> **Note:** This setting is incompatible with the `source_control` block which updates this value based on the setting provided.
 
 * `scm_use_main_ip_restriction` - (Optional) IP security restrictions for scm to use main. Defaults to `false`.
 
--> **NOTE** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.
+-> **Note:** Any `scm_ip_restriction` blocks configured are ignored by the service when `scm_use_main_ip_restriction` is set to `true`. Any scm restrictions will become active if this is subsequently set to `false` or removed.
 
 * `use_32_bit_worker_process` - (Optional) Should the Function App run in 32 bit mode, rather than 64 bit mode? Defaults to `true`.
 
@@ -307,13 +307,13 @@ The `site_config` block supports the following:
 
 * `vnet_route_all_enabled` - (Optional) Should all outbound traffic to have Virtual Network Security Groups and User Defined Routes applied? Defaults to `false`.
 
-~> **NOTE:** This setting supersedes the previous mechanism of setting the `app_settings` value of `WEBSITE_VNET_ROUTE_ALL`. However, to prevent older configurations breaking Terraform will update this value if it not explicitly set to the value in `app_settings.WEBSITE_VNET_ROUTE_ALL`.
+~> **Note:** This setting supersedes the previous mechanism of setting the `app_settings` value of `WEBSITE_VNET_ROUTE_ALL`. However, to prevent older configurations breaking Terraform will update this value if it not explicitly set to the value in `app_settings.WEBSITE_VNET_ROUTE_ALL`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
 * `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
-~> **NOTE:** This attribute is only used for slots.
+~> **Note:** This attribute is only used for slots.
 
 ---
 
@@ -329,7 +329,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Function App. Possible values are `SystemAssigned` (where Azure will generate a Service Principal for you), `UserAssigned` where you can specify the Service Principal IDs in the `identity_ids` field, and `SystemAssigned, UserAssigned` which assigns both a system managed identity as well as the specified user assigned identities.
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Function App has been created. More details are available below.
+~> **Note:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Function App has been created. More details are available below.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned. Required if `type` is `UserAssigned`.
 
@@ -347,7 +347,7 @@ An `auth_settings` block supports the following:
 
 * `default_provider` - (Optional) The default provider to use when multiple providers have been set up. Possible values are `AzureActiveDirectory`, `Facebook`, `Google`, `MicrosoftAccount` and `Twitter`.
 
-~> **NOTE:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
+~> **Note:** When using multiple providers, the default provider must be set for settings like `unauthenticated_client_action` to work.
 
 * `facebook` - (Optional) A `facebook` block as defined below.
 
@@ -425,7 +425,7 @@ A `ip_restriction` block supports the following:
 
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
+-> **Note:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
@@ -445,7 +445,7 @@ A `scm_ip_restriction` block supports the following:
 
 * `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
 
--> **NOTE:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
+-> **Note:** One of either `ip_address`, `service_tag` or `virtual_network_subnet_id` must be specified
 
 * `name` - (Optional) The name for this IP Restriction.
 
@@ -509,7 +509,7 @@ The `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
--> You can access the Principal ID via `azurerm_app_service.example.identity[0].principal_id` and the Tenant ID via `azurerm_app_service.example.identity[0].tenant_id`
+-> **Note:** You can access the Principal ID via `azurerm_app_service.example.identity[0].principal_id` and the Tenant ID via `azurerm_app_service.example.identity[0].tenant_id`
 
 ---
 
@@ -524,8 +524,8 @@ The `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function App.
-* `update` - (Defaults to 30 minutes) Used when updating the Function App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function App.
+* `update` - (Defaults to 30 minutes) Used when updating the Function App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Function App.
 
 ## Import

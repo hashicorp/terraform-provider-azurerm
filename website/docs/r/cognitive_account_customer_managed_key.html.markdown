@@ -10,7 +10,7 @@ description: |-
 
 Manages a Customer Managed Key for a Cognitive Services Account.
 
-~> **NOTE:** It's possible to define a Customer Managed Key both within [the `azurerm_cognitive_account` resource](cognitive_account.html) via the `customer_managed_key` block and by using [the `azurerm_cognitive_account_customer_managed_key` resource](cognitive_account_customer_managed_key.html). However it's not possible to use both methods to manage a Customer Managed Key for a Cognitive Account, since there'll be conflicts.
+~> **Note:** It's possible to define a Customer Managed Key both within [the `azurerm_cognitive_account` resource](cognitive_account.html) via the `customer_managed_key` block and by using [the `azurerm_cognitive_account_customer_managed_key` resource](cognitive_account_customer_managed_key.html). However it's not possible to use both methods to manage a Customer Managed Key for a Cognitive Account, since there'll be conflicts.
 
 ## Example Usage
 

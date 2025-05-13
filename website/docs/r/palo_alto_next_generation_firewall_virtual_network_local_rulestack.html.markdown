@@ -145,7 +145,7 @@ The following arguments are supported:
 
 * `plan_id` - (Optional) The billing plan ID as published by Liftr.PAN. Defaults to `panw-cloud-ngfw-payg`.
 
-~> **NOTE:** The former `plan_id` `panw-cloud-ngfw-payg` is defined as stop sell, but has been set as the default to not break any existing resources that were originally provisioned with it. Users need to explicitly set `plan_id` to `panw-cngfw-payg` when creating new resources.
+~> **Note:** The former `plan_id` `panw-cloud-ngfw-payg` is defined as stop sell, but has been set as the default to not break any existing resources that were originally provisioned with it. Users need to explicitly set `plan_id` to `panw-cngfw-payg` when creating new resources.
 
 ---
 

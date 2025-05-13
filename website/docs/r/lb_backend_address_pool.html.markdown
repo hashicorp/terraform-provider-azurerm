@@ -10,7 +10,7 @@ description: |-
 
 Manages a Load Balancer Backend Address Pool.
 
-~> **NOTE:** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
+~> **Note:** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `synchronous_mode` - (Optional) The backend address synchronous mode for the Backend Address Pool. Possible values are `Automatic` and `Manual`. This is required with `virtual_network_id`. Changing this forces a new resource to be created.
 
--> **NOTE:** The `synchronous_mode` can set only for Load Balancer with `Standard` SKU.
+-> **Note:** The `synchronous_mode` can set only for Load Balancer with `Standard` SKU.
 
 * `tunnel_interface` - (Optional) One or more `tunnel_interface` blocks as defined below.
 
@@ -91,8 +91,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Balancer Backend Address Pool.
-* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer Backend Address Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer Backend Address Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the Load Balancer Backend Address Pool.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Load Balancer Backend Address Pool.
 
 ## Import

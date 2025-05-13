@@ -29,6 +29,7 @@ resource "azurerm_cognitive_account" "example" {
 resource "azurerm_cognitive_deployment" "example" {
   name                 = "example-cd"
   cognitive_account_id = azurerm_cognitive_account.example.id
+
   model {
     format  = "OpenAI"
     name    = "text-curie-001"
@@ -64,7 +65,7 @@ The following arguments are supported:
 
 A `model` block supports the following:
 
-* `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created. Possible value is `OpenAI`.
+* `format` - (Required) The format of the Cognitive Services Account Deployment model. Possible values are `OpenAI` and `Cohere`. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 

@@ -50,7 +50,7 @@ output "contributor_role_definition_id" {
 
 * `name` - (Optional) Specifies the Name of either a built-in or custom Role Definition.
 
--> You can also use this for built-in roles such as `Contributor`, `Owner`, `Reader` and `Virtual Machine Contributor`
+-> **Note:** You can also use this for built-in roles such as `Contributor`, `Owner`, `Reader` and `Virtual Machine Contributor`
 
 * `role_definition_id` - (Optional) Specifies the ID of the Role Definition as a UUID/GUID.
 

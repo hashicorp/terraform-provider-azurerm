@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `secret` - (Optional) Specifies whether the API Management Named Value is secret. Valid values are `true` or `false`. The default value is `false`.
 
-~> **NOTE:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
+~> **Note:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
 
 * `tags` - (Optional) A list of tags to be applied to the API Management Named Value.
 
@@ -78,8 +78,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Named Value.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Named Value.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Named Value.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Named Value.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Named Value.
 
 ## Import

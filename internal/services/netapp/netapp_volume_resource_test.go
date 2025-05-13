@@ -10,13 +10,28 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+// getOverriddenTestLocations returns the overridden test locations for the NetApp Volume tests, specifically for CRR
+// that is not aligned with traditional region pairs.
+func getOverriddenTestLocations() struct {
+	Primary   string
+	Secondary string
+} {
+	return struct {
+		Primary   string
+		Secondary string
+	}{
+		Primary:   "westus2",
+		Secondary: "eastus2",
+	}
+}
 
 type NetAppVolumeResource struct{}
 
@@ -827,6 +842,7 @@ resource "azurerm_netapp_volume" "test" {
 }
 
 func (NetAppVolumeResource) crossRegionReplication(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
 	template := NetAppVolumeResource{}.templateForCrossRegionReplication(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -893,7 +909,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, template, data.RandomInteger, "eastus2")
+`, template, data.RandomInteger, overriddenlocations.Secondary)
 }
 
 func (NetAppVolumeResource) nfsv3FromSnapshot(data acceptance.TestData) string {
@@ -1233,6 +1249,7 @@ resource "azurerm_netapp_volume" "test" {
 }
 
 func (r NetAppVolumeResource) templateForCrossRegionReplication(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1289,10 +1306,11 @@ resource "azurerm_netapp_pool" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, r.template(data), data.RandomInteger, "eastus2")
+`, r.template(data), data.RandomInteger, overriddenlocations.Secondary)
 }
 
 func (r NetAppVolumeResource) template(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
 	return fmt.Sprintf(`
 %s
 
@@ -1360,10 +1378,11 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, r.templateProviderFeatureFlags(), data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) templatePoolQosManual(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
 	return fmt.Sprintf(`
 %s
 
@@ -1443,7 +1462,7 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, r.templateProviderFeatureFlags(), data.RandomInteger, "westus2", data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r NetAppVolumeResource) networkTemplate(data acceptance.TestData) string {

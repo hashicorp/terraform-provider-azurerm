@@ -10,7 +10,7 @@ description: |-
 
 Manages an AlertingAction Scheduled Query Rules resource within Azure Monitor.
 
--> **Warning** This resource is using an older AzureRM API version which is known to cause problems e.g. with custom webhook properties not included in triggered alerts. This resource is superseded by the [azurerm_monitor_scheduled_query_rules_alert_v2](./monitor_scheduled_query_rules_alert_v2.html.markdown) resource using newer API versions.
+-> **Note:** This resource is using an older AzureRM API version which is known to cause problems e.g. with custom webhook properties not included in triggered alerts. This resource is superseded by the [azurerm_monitor_scheduled_query_rules_alert_v2](./monitor_scheduled_query_rules_alert_v2.html.markdown) resource using newer API versions.
 
 ## Example Usage
 
@@ -118,7 +118,7 @@ The following arguments are supported:
 * `action` - (Required) An `action` block as defined below.
 * `authorized_resource_ids` - (Optional) List of Resource IDs referred into query.
 * `auto_mitigation_enabled` - (Optional) Should the alerts in this Metric Alert be auto resolved? Defaults to `false`.
--> **NOTE** `auto_mitigation_enabled` and `throttling` are mutually exclusive and cannot both be set.
+-> **Note:** `auto_mitigation_enabled` and `throttling` are mutually exclusive and cannot both be set.
 * `description` - (Optional) The description of the scheduled query rule.
 * `enabled` - (Optional) Whether this scheduled query rule is enabled. Default is `true`.
 * `query_type` - (Optional) The type of query results. Possible values are `ResultCount` and `Number`. Default is `ResultCount`. If set to `ResultCount`, `query` must include an `AggregatedValue` column of a numeric type, for example, `Heartbeat | summarize AggregatedValue = count() by bin(TimeGenerated, 5m)`.
@@ -162,8 +162,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Scheduled Query Rule Alert.
-* `update` - (Defaults to 30 minutes) Used when updating the Scheduled Query Rule Alert.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Scheduled Query Rule Alert.
+* `update` - (Defaults to 30 minutes) Used when updating the Scheduled Query Rule Alert.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Scheduled Query Rule Alert.
 
 ## Import

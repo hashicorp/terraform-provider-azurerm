@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Azure Firewall should be located. Changing this forces a new Azure Firewall to be created.
 
--> **Please Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
+-> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -100,17 +100,17 @@ An `ip_configuration` block supports the following:
 
 * `subnet_id` - (Optional) Reference to the subnet associated with the IP Configuration. Changing this forces a new resource to be created.
 
--> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least a `/26`.
+-> **Note:** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least a `/26`.
 
--> **NOTE** At least one and only one `ip_configuration` block may contain a `subnet_id`.
+-> **Note:** At least one and only one `ip_configuration` block may contain a `subnet_id`.
 
 * `public_ip_address_id` - (Optional) The ID of the Public IP Address associated with the firewall.
 
--> **NOTE** A public ip address is required unless a `management_ip_configuration` block is specified.
+-> **Note:** A public ip address is required unless a `management_ip_configuration` block is specified.
 
--> **NOTE** When multiple `ip_configuration` blocks with `public_ip_address_id` are configured, `terraform apply` will raise an error when one or some of these `ip_configuration` blocks are removed. because the `public_ip_address_id` is still used by the `firewall` resource until the `firewall` resource is updated. and the destruction of `azurerm_public_ip` happens before the update of firewall by default. to destroy of `azurerm_public_ip` will cause the error. The workaround is to set `create_before_destroy=true` to the `azurerm_public_ip` resource `lifecycle` block. See more detail: [destroying.md#create-before-destroy](https://github.com/hashicorp/terraform/blob/main/docs/destroying.md#create-before-destroy)
+-> **Note:** When multiple `ip_configuration` blocks with `public_ip_address_id` are configured, `terraform apply` will raise an error when one or some of these `ip_configuration` blocks are removed. because the `public_ip_address_id` is still used by the `firewall` resource until the `firewall` resource is updated. and the destruction of `azurerm_public_ip` happens before the update of firewall by default. to destroy of `azurerm_public_ip` will cause the error. The workaround is to set `create_before_destroy=true` to the `azurerm_public_ip` resource `lifecycle` block. See more detail: [destroying.md#create-before-destroy](https://github.com/hashicorp/terraform/blob/main/docs/destroying.md#create-before-destroy)
 
--> **NOTE** The Public IP must have a `Static` allocation and `Standard` SKU.
+-> **Note:** The Public IP must have a `Static` allocation and `Standard` SKU.
 
 ---
 
@@ -120,11 +120,11 @@ A `management_ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) Reference to the subnet associated with the IP Configuration. Changing this forces a new resource to be created.
 
--> **NOTE** The Management Subnet used for the Firewall must have the name `AzureFirewallManagementSubnet` and the subnet mask must be at least a `/26`.
+-> **Note:** The Management Subnet used for the Firewall must have the name `AzureFirewallManagementSubnet` and the subnet mask must be at least a `/26`.
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
--> **NOTE** The Public IP must have a `Static` allocation and `Standard` SKU.
+-> **Note:** The Public IP must have a `Static` allocation and `Standard` SKU.
 
 ---
 
@@ -163,8 +163,8 @@ A `virtual_hub` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Firewall.
-* `update` - (Defaults to 90 minutes) Used when updating the Firewall.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall.
+* `update` - (Defaults to 90 minutes) Used when updating the Firewall.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Firewall.
 
 ## Import

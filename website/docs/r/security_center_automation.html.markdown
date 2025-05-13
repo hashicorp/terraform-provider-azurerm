@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Security Center Automation. Changing this forces a new Security Center Automation to be created.
 
-~> **NOTE:** For the automation to appear in Azure Portal correctly under Microsoft Defender for Cloud -> Environment Settings -> Account -> Continuous Export, either `ExportToWorkspace` or `ExportToEventHub` must be used.
+~> **Note:** For the automation to appear in Azure Portal correctly under Microsoft Defender for Cloud -> Environment Settings -> Account -> Continuous Export, either `ExportToWorkspace` or `ExportToEventHub` must be used.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Security Center Automation should exist. Changing this forces a new Security Center Automation to be created.
 
@@ -119,7 +119,7 @@ A `source` block defines the source data in Security Center to be exported, supp
 
 * `rule_set` - (Optional) A set of rules which evaluate upon event and data interception. This is defined in one or more `rule_set` blocks as defined below.
 
-~> **NOTE:** When multiple `rule_set` block are provided, a logical 'OR' is applied to the evaluation of them.
+~> **Note:** When multiple `rule_set` block are provided, a logical 'OR' is applied to the evaluation of them.
 
 ---
 
@@ -127,7 +127,7 @@ A `rule_set` block supports the following:
 
 * `rule` - (Required) One or more `rule` blocks as defined below.
 
-~> **NOTE:** This automation will trigger when all of the `rule`s in this `rule_set` are evaluated as 'true'. This is equivalent to a logical 'AND'.
+~> **Note:** This automation will trigger when all of the `rule`s in this `rule_set` are evaluated as 'true'. This is equivalent to a logical 'AND'.
 
 ---
 
@@ -141,7 +141,7 @@ A `rule` block supports the following:
 
 * `property_type` - (Required) The data type of the compared operands, must be one of: `Integer`, `String`, `Boolean` or `Number`.
 
-~> **NOTE:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
+~> **Note:** The schema for Security Center alerts (when `event_source` is "Alerts") [can be found here](https://docs.microsoft.com/azure/security-center/alerts-schemas?tabs=schema-continuousexport)
 
 ## Attributes Reference
 

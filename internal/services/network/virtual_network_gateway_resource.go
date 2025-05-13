@@ -1086,6 +1086,11 @@ func expandVirtualNetworkGatewayIPConfigurations(d *pluginsdk.ResourceData) *[]v
 
 func expandVirtualNetworkGatewayVpnClientConfig(d *pluginsdk.ResourceData, vnetGatewayId virtualnetworkgateways.VirtualNetworkGatewayId) *virtualnetworkgateways.VpnClientConfiguration {
 	configSets := d.Get("vpn_client_configuration").([]interface{})
+	if len(configSets) == 0 {
+		// return nil will delete the existing vpn client configuration
+		return nil
+	}
+
 	conf := configSets[0].(map[string]interface{})
 
 	confAddresses := conf["address_space"].([]interface{})

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Application Volume Group for Oracle application.
 
-~> **NOTE**: This feature is intended to be used for Oracle workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for Oracle](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-oracle-introduction) document as the starting point to understand this feature before using it with Terraform.
+~> **Note:** This feature is intended to be used for Oracle workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for Oracle](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-oracle-introduction) document as the starting point to understand this feature before using it with Terraform.
 
 ## Example Usage
 
@@ -166,7 +166,7 @@ A `volume` block supports the following:
 
 * `proximity_placement_group_id` - (Optional) The ID of the proximity placement group (PPG). Changing this forces a new Application Volume Group to be created and data will be lost. 
 
-~> **NOTE**: For Oracle application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for Oracle](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-oracle-considerations) for details and other requirements. Note that this cannot be used together with `zone`.
+~> **Note:** For Oracle application, it is required to have PPG enabled so Azure NetApp Files can pin the volumes next to your compute resources, please check [Requirements and considerations for application volume group for Oracle](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-oracle-considerations) for details and other requirements. Note that this cannot be used together with `zone`.
 
 * `zone` - (Optional) Specifies the Availability Zone in which the Volume should be located. Possible values are `1`, `2` and `3`, depending on the Azure region. Changing this forces a new resource to be created. This feature is currently in preview, for more information on how to enable it, please refer to [Manage availability zone volume placement for Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/manage-availability-zone-volume-placement). Note that this cannot be used together with `proximity_placement_group_id`.
 

@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Optional) The ID of the tenant that this Threat Intelligence TAXII Data Connector connects to. Changing this forces a new Threat Intelligence TAXII Data Connector to be created.
 
--> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
+-> **Note:** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
 ## Attributes Reference
 
@@ -78,8 +78,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Threat Intelligence TAXII Data Connector.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Threat Intelligence TAXII Data Connector.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Threat Intelligence TAXII Data Connector.
 * `update` - (Defaults to 30 minutes) Used when updating the Sentinel Data Connector Threat Intelligence Taxii.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Threat Intelligence TAXII Data Connector.
 
 ## Import
 

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -108,8 +109,8 @@ func (ApiManagementCustomDomainResource) Exists(ctx context.Context, clients *cl
 }
 
 func (r ApiManagementCustomDomainResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`%s
 
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
@@ -122,6 +123,25 @@ resource "azurerm_api_management_custom_domain" "test" {
   developer_portal {
     host_name    = "portal.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+}
+`, r.template(data, true))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_id = azurerm_api_management.test.id
+
+  gateway {
+    host_name                = "api.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
+  }
+
+  developer_portal {
+    host_name                = "portal.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
 `, r.template(data, true))
@@ -135,8 +155,8 @@ resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
   gateway {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    host_name                = "api.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
 `, r.template(data, true))
@@ -150,8 +170,8 @@ resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
   developer_portal {
-    host_name    = "portal.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    host_name                = "portal.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
 `, r.template(data, true))
@@ -165,13 +185,13 @@ resource "azurerm_api_management_custom_domain" "import" {
   api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
   gateway {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    host_name                = "api.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 
   developer_portal {
-    host_name    = "portal.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    host_name                = "portal.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
 `, r.basic(data))
@@ -331,13 +351,13 @@ resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
   gateway {
-    host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    host_name                = "api.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 
   developer_portal {
-    host_name    = "portal.example.com"
-    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+    host_name                = "portal.example.com"
+    key_vault_certificate_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
 `, r.template(data, false))

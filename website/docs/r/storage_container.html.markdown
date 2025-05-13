@@ -49,11 +49,11 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) The name of the Storage Account where the Container should be created. Changing this forces a new resource to be created.
 
-~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
-~> **Note** When updating `container_access_type` for an existing storage container resource, Shared Key authentication will always be used, as AzureAD authentication is not supported.
+~> **Note:** When updating `container_access_type` for an existing storage container resource, Shared Key authentication will always be used, as AzureAD authentication is not supported.
 
 * `default_encryption_scope` - (Optional) The default encryption scope to use for blobs uploaded to this container. Changing this forces a new resource to be created.
 
@@ -78,8 +78,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Container.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Container.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Container.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Container.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Container.
 
 ## Import

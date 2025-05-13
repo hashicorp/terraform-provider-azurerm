@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `sentinel_entity_mapping` - (Optional) A list of `sentinel_entity_mapping` blocks as defined below.
 
--> **NOTE:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
+-> **Note:** `entity_mapping` and `sentinel_entity_mapping` together can't exceed 5.
 
 * `incident` - (Optional) A `incident` block as defined below.
 

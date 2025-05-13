@@ -118,9 +118,9 @@ The following arguments are supported:
 
 * `evaluation_frequency` - (Optional) How often the scheduled query rule is evaluated, represented in ISO 8601 duration format. Possible values are `PT1M`, `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D`.
 
--> **Note** `evaluation_frequency` cannot be greater than the query look back which is `window_duration`*`number_of_evaluation_periods`.
+-> **Note:** `evaluation_frequency` cannot be greater than the query look back which is `window_duration`*`number_of_evaluation_periods`.
 
--> **Note** `evaluation_frequency` cannot be greater than the `mute_actions_after_alert_duration`.
+-> **Note:** `evaluation_frequency` cannot be greater than the `mute_actions_after_alert_duration`.
 
 * `scopes` - (Required) Specifies the list of resource IDs that this scheduled query rule is scoped to. Changing this forces a new resource to be created. Currently, the API supports exactly 1 resource ID in the scopes list.
 
@@ -142,11 +142,11 @@ The following arguments are supported:
 
 * `mute_actions_after_alert_duration` - (Optional) Mute actions for the chosen period of time in ISO 8601 duration format after the alert is fired. Possible values are `PT5M`, `PT10M`, `PT15M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D` and `P2D`.
 
--> **Note** `auto_mitigation_enabled` and `mute_actions_after_alert_duration` are mutually exclusive and cannot both be set.
+-> **Note:** `auto_mitigation_enabled` and `mute_actions_after_alert_duration` are mutually exclusive and cannot both be set.
 
 * `query_time_range_override` - (Optional) Set this if the alert evaluation period is different from the query time range. If not specified, the value is `window_duration`*`number_of_evaluation_periods`. Possible values are `PT5M`, `PT10M`, `PT15M`, `PT20M`, `PT30M`, `PT45M`, `PT1H`, `PT2H`, `PT3H`, `PT4H`, `PT5H`, `PT6H`, `P1D` and `P2D`.
 
--> **Note** `query_time_range_override` cannot be less than the query look back which is `window_duration`*`number_of_evaluation_periods`.
+-> **Note:** `query_time_range_override` cannot be less than the query look back which is `window_duration`*`number_of_evaluation_periods`.
 
 * `skip_query_validation` - (Optional) Specifies the flag which indicates whether the provided query should be validated or not. The default is false.
 
@@ -182,7 +182,7 @@ A `criteria` block supports the following:
 
 * `metric_measure_column` - (Optional) Specifies the column containing the metric measure number.
 
--> **Note** `metric_measure_column` is required if `time_aggregation_method` is `Average`, `Maximum`, `Minimum`, or `Total`. And `metric_measure_column` can not be specified if `time_aggregation_method` is `Count`.
+-> **Note:** `metric_measure_column` is required if `time_aggregation_method` is `Average`, `Maximum`, `Minimum`, or `Total`. And `metric_measure_column` can not be specified if `time_aggregation_method` is `Count`.
 
 * `resource_id_column` - (Optional) Specifies the column containing the resource ID. The content of the column must be an uri formatted as resource ID.
 
@@ -204,9 +204,9 @@ A `failing_periods` block supports the following:
 
 * `number_of_evaluation_periods` - (Required) Specifies the number of aggregated look-back points. The look-back time window is calculated based on the aggregation granularity `window_duration` and the selected number of aggregated points. Possible value is integer between 1 and 6.
 
--> **Note** The query look back which is `window_duration`*`number_of_evaluation_periods` cannot exceed 48 hours.
+-> **Note:** The query look back which is `window_duration`*`number_of_evaluation_periods` cannot exceed 48 hours.
 
--> **Note** `number_of_evaluation_periods` must be `1` for queries that do not project timestamp column
+-> **Note:** `number_of_evaluation_periods` must be `1` for queries that do not project timestamp column
 
 ---
 
@@ -216,7 +216,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Scheduled Query Rule.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`. The identity associated must have required roles, read the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule#configure-the-alert-rule-details) for more information.
+~> **Note:** This is required when `type` is set to `UserAssigned`. The identity associated must have required roles, read the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-create-log-alert-rule#configure-the-alert-rule-details) for more information.
 
 ## Attributes Reference
 
@@ -240,7 +240,7 @@ A `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service slot.
 
--> You can access the Principal ID via `azurerm_monitor_scheduled_query_rules_alert_v2.example.identity[0].principal_id` and the Tenant ID via `azurerm_monitor_scheduled_query_rules_alert_v2.example.identity[0].tenant_id`
+-> **Note:** You can access the Principal ID via `azurerm_monitor_scheduled_query_rules_alert_v2.example.identity[0].principal_id` and the Tenant ID via `azurerm_monitor_scheduled_query_rules_alert_v2.example.identity[0].tenant_id`
 
 ## Timeouts
 

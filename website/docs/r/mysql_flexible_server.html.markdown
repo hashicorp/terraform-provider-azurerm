@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `public_network_access` - (Optional) Whether approved public traffic is allowed through the firewall to this server. Possible values are `Enabled` and `Disabled`.
 
-~> **Note:**  `public_network_access` is automatically set to `Disabled` if the server is created with VNet Integration (i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`").
+~> **Note:** `public_network_access` is automatically set to `Disabled` if the server is created with VNet Integration (i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`").
 
 * `replication_role` - (Optional) The replication role. Possible value is `None`.
 
@@ -131,7 +131,7 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) The SKU Name for the MySQL Flexible Server.
 
--> **Note:** `sku_name` should start with SKU tier `B (Burstable)`, `GP (General Purpose)`, `MO (Memory Optimized)` like `B_Standard_B1s`.
+-> **Note:** `sku_name` should start with SKU tier `B (Burstable)`, `GP (General Purpose)`, `MO (Memory Optimized)` like `B_Standard_B1ms`.
 
 * `source_server_id` - (Optional) The resource ID of the source MySQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, and `Replica`. Changing this forces a new MySQL Flexible Server to be created.
 
@@ -205,6 +205,8 @@ A `storage` block supports the following:
 
 * `iops` - (Optional) The storage IOPS for the MySQL Flexible Server. Possible values are between `360` and `20000`.
 
+* `log_on_disk_enabled` - (Optional) Should Storage Log On Disk be enabled? Defaults to `false`.
+
 * `size_gb` - (Optional) The max storage allowed for the MySQL Flexible Server. Possible values are between `20` and `16384`.
 
 -> **Note:** Decreasing `size_gb` forces a new resource to be created.
@@ -223,9 +225,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hour) Used when creating the MySQL Flexible Server.
+* `create` - (Defaults to 2 hours) Used when creating the MySQL Flexible Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Flexible Server.
-* `update` - (Defaults to 2 hour) Used when updating the MySQL Flexible Server.
+* `update` - (Defaults to 2 hours) Used when updating the MySQL Flexible Server.
 * `delete` - (Defaults to 1 hour) Used when deleting the MySQL Flexible Server.
 
 ## Import

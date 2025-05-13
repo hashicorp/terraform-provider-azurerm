@@ -11,7 +11,7 @@ description: |-
 
 Manages a network security group that contains a list of network security rules.  Network security groups enable inbound or outbound traffic to be enabled or denied.
 
-~> **NOTE on Network Security Groups and Network Security Rules:** Terraform currently
+~> **Note:** Terraform currently
 provides both a standalone [Network Security Rule resource](network_security_rule.html), and allows for Network Security Rules to be defined in-line within the [Network Security Group resource](network_security_group.html).
 At this time you cannot use a Network Security Group with in-line Network Security Rules in conjunction with any Network Security Rule resources. Doing so will cause a conflict of rule settings and will overwrite rules.
 
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `security_rule` - (Optional) List of `security_rule` objects representing security rules, as defined below.
 
--> **NOTE** Since `security_rule` can be configured both inline and via the separate `azurerm_network_security_rule` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+-> **Note:** Since `security_rule` can be configured both inline and via the separate `azurerm_network_security_rule` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -109,8 +109,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Security Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Network Security Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Security Group.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Network Security Group.
 
 ## Import

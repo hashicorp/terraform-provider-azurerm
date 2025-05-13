@@ -98,10 +98,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the Mobile Network Packet Core Data Plane.
+* `create` - (Defaults to 3 hours) Used when creating the Mobile Network Packet Core Data Plane.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Packet Core Data Plane.
-* `update` - (Defaults to 180 minutes) Used when updating the Mobile Network Packet Core Data Plane.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Mobile Network Packet Core Data Plane.
+* `update` - (Defaults to 3 hours) Used when updating the Mobile Network Packet Core Data Plane.
+* `delete` - (Defaults to 3 hours) Used when deleting the Mobile Network Packet Core Data Plane.
 
 ## Import
 

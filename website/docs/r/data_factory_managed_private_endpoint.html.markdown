@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `fqdns` - (Optional) Fully qualified domain names. Changing this forces a new resource to be created.
 
--> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
+-> **Note:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
 
 ## Attributes Reference
 

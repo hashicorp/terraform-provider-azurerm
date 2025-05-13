@@ -145,8 +145,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the implicit Data Disk of the Virtual Machine.
-* `update` - (Defaults to 30 minutes) Used when updating the implicit Data Disk of the Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the implicit Data Disk of the Virtual Machine.
+* `update` - (Defaults to 30 minutes) Used when updating the implicit Data Disk of the Virtual Machine.
 * `delete` - (Defaults to 30 minutes) Used when deleting the implicit Data Disk of the Virtual Machine.
 
 ## Import
@@ -157,4 +157,4 @@ The implicit Data Disk of the Virtual Machine can be imported using the `resourc
 terraform import azurerm_virtual_machine_implicit_data_disk_from_source.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/disk1
 ```
 
--> **Please Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`
+-> **Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`

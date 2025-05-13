@@ -10,9 +10,9 @@ description: |-
 
 Manages a Blueprint Assignment resource
 
-~> **NOTE:** Azure Blueprints are in Preview and potentially subject to breaking change without notice.
+~> **Note:** Azure Blueprints are in Preview and potentially subject to breaking change without notice.
 
-~> **NOTE:** Azure Blueprint Assignments can only be applied to Subscriptions.  Assignments to Management Groups is not currently supported by the service or by Terraform.
+~> **Note:** Azure Blueprint Assignments can only be applied to Subscriptions.  Assignments to Management Groups is not currently supported by the service or by Terraform.
 
 ## Example Usage
 
@@ -118,11 +118,11 @@ resource "azurerm_blueprint_assignment" "example" {
 
 * `parameter_values` - (Optional) a JSON string to supply Blueprint Assignment parameter values.
 
-~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
+~> **Note:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
 * `resource_groups` - (Optional) a JSON string to supply the Blueprint Resource Group information.
 
-~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
+~> **Note:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
 * `lock_mode` - (Optional) The locking mode of the Blueprint Assignment. One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`. Defaults to `None`.
 
@@ -153,8 +153,8 @@ An `identity` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Blueprint Assignment.
-* `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Blueprint Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Blueprint Assignment.
 
 ## Import

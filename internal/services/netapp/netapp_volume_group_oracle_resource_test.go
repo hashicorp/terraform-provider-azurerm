@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -181,7 +181,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-data1"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -212,7 +212,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-log"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -342,7 +342,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-data1"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -372,7 +372,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-log"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -438,7 +438,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-data1"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -472,7 +472,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-log"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -546,7 +546,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-data1"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -576,7 +576,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-log"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -626,7 +626,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-data1"
     storage_quota_in_gb        = 1200
     throughput_in_mibps        = 24
@@ -656,7 +656,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test.id
     subnet_id                  = azurerm_subnet.test.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-log"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -929,7 +929,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
   }
 }
-`, data.RandomInteger, tenantID, "eastus")
+`, data.RandomInteger, tenantID, data.Locations.Primary)
 }
 
 func (NetAppVolumeGroupOracleResource) templatePpgOracle(data acceptance.TestData) string {

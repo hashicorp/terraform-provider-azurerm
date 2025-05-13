@@ -244,7 +244,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Shared Dashboard. Changing this forces a new resource to be created.
 
--> **Note:** You can specify a tag with the key `hidden-title` to set a more user-friendly title for this Dashboard.  
+-> **Note:** You can specify a tag with the key `hidden-title` to set a more user-friendly title for this Dashboard.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the dashboard. Changing this forces a new resource to be created.
 
@@ -265,8 +265,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dashboard.
-* `update` - (Defaults to 30 minutes) Used when updating the Dashboard.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard.
+* `update` - (Defaults to 30 minutes) Used when updating the Dashboard.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Dashboard.
 
 ## Import

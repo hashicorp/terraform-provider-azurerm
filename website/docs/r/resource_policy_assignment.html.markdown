@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `resource_id` - (Required) The ID of the Resource (or Resource Scope) where this should be applied. Changing this forces a new Resource Policy Assignment to be created.
 
-~> To create a Policy Assignment at a Management Group use the `azurerm_management_group_policy_assignment` resource, for a Resource Group use the `azurerm_resource_group_policy_assignment` and for a Subscription use the `azurerm_subscription_policy_assignment` resource.
+~> **Note:** To create a Policy Assignment at a Management Group use the `azurerm_management_group_policy_assignment` resource, for a Resource Group use the `azurerm_resource_group_policy_assignment` and for a Subscription use the `azurerm_subscription_policy_assignment` resource.
 
 ---
 
@@ -92,7 +92,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Managed Identity IDs which should be assigned to the Policy Definition.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Front Door (standard/premium) Origin.
 
-!>**IMPORTANT:** If you are attempting to implement an Origin that uses its own Private Link Service with a Load Balancer the Profile resource in your configuration file **must** have a `depends_on` meta-argument which references the `azurerm_private_link_service`, see `Example Usage With Private Link Service` below.
+!> **Note:** If you are attempting to implement an Origin that uses its own Private Link Service with a Load Balancer the Profile resource in your configuration file **must** have a `depends_on` meta-argument which references the `azurerm_private_link_service`, see `Example Usage With Private Link Service` below.
 
 ## Example Usage
 
@@ -217,7 +217,7 @@ The following arguments are supported:
 
 * `host_name` - (Required) The IPv4 address, IPv6 address or Domain name of the Origin.
 
-!> **IMPORTANT:** This must be unique across all Front Door Origins within a Front Door Endpoint.
+!> **Note:** This must be unique across all Front Door Origins within a Front Door Endpoint.
 
 * `certificate_name_check_enabled` - (Required) Specifies whether certificate name checks are enabled for this origin.
 
@@ -229,13 +229,13 @@ The following arguments are supported:
 
 * `origin_host_header` - (Optional) The host header value (an IPv4 address, IPv6 address or Domain name) which is sent to the origin with each request. If unspecified the hostname from the request will be used.
 
--> Azure Front Door Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin's hostname. This field's value overrides the host header defined in the Front Door Endpoint. For more information on how to properly set the origin host header value please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/origin?pivots=front-door-standard-premium#origin-host-header).
+-> **Note:** Azure Front Door Origins, such as Web Apps, Blob Storage, and Cloud Services require this host header value to match the origin's hostname. This field's value overrides the host header defined in the Front Door Endpoint. For more information on how to properly set the origin host header value please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/origin?pivots=front-door-standard-premium#origin-host-header).
 
 * `priority` - (Optional) Priority of origin in given origin group for load balancing. Higher priorities will not be used for load balancing if any lower priority origin is healthy. Must be between `1` and `5` (inclusive). Defaults to `1`.
 
 * `private_link` - (Optional) A `private_link` block as defined below.
 
--> **NOTE:** Private Link requires that the Front Door Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` and that the `certificate_name_check_enabled` field is set to `true`.
+-> **Note:** Private Link requires that the Front Door Profile this Origin is hosted within is using the SKU `Premium_AzureFrontDoor` and that the `certificate_name_check_enabled` field is set to `true`.
 
 * `weight` - (Optional) The weight of the origin in a given origin group for load balancing. Must be between `1` and `1000`. Defaults to `500`.
 
@@ -243,17 +243,17 @@ The following arguments are supported:
 
 A `private_link` block supports the following:
 
-~> **NOTE:** At this time the Private Link Endpoint **must be approved manually** - for more information and region availability please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
+~> **Note:** At this time the Private Link Endpoint **must be approved manually** - for more information and region availability please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/private-link).
 
-!> **IMPORTANT:** Origin support for direct private end point connectivity is limited to `Storage (Azure Blobs)`, `App Services` and `internal load balancers`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
+!> **Note:** Origin support for direct private endpoint connectivity is limited to `Storage (Azure Blobs)`, `Storage (Static Web Sites)`, `App Services`, `internal load balancers`, `Azure Container Apps (preview)` and `Azure API Management`. The Azure Front Door Private Link feature is region agnostic but for the best latency, you should always pick an Azure region closest to your origin when choosing to enable Azure Front Door Private Link endpoint.
 
-!> **IMPORTANT:** To associate a Load Balancer with a Front Door Origin via Private Link you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the Front Door Service.
+!> **Note:** To associate a Load Balancer with a Front Door Origin via Private Link you must stand up your own `azurerm_private_link_service` - and ensure that a `depends_on` exists on the `azurerm_cdn_frontdoor_origin` resource to ensure it's destroyed before the `azurerm_private_link_service` resource (e.g. `depends_on = [azurerm_private_link_service.example]`) due to the design of the Front Door Service.
 
 * `request_message` - (Optional) Specifies the request message that will be submitted to the `private_link_target_id` when requesting the private link endpoint connection. Values must be between `1` and `140` characters in length. Defaults to `Access request for CDN FrontDoor Private Link Origin`.
 
-* `target_type` - (Optional) Specifies the type of target for this Private Link Endpoint. Possible values are `blob`, `blob_secondary`, `web` and `sites`.
+* `target_type` - (Optional) Specifies the type of target for this Private Link Endpoint. Possible values are `blob`, `blob_secondary`, `Gateway`, `managedEnvironments`, `sites`, `web` and `web_secondary`.
 
--> **NOTE:** `target_type` cannot be specified when using a Load Balancer as an Origin.
+-> **Note:** `target_type` cannot be specified when using a Load Balancer as an Origin.
 
 * `location` - (Required) Specifies the location where the Private Link resource should exist. Changing this forces a new resource to be created.
 

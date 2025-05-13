@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `shared_access_signature` - (Optional) The Shared Access Signature of the Storage Account. Conflicts with `account_key`.
 
-~> **Note:**  One of `account_key` or `shared_access_signature` must be specified.
+~> **Note:** One of `account_key` or `shared_access_signature` must be specified.
 
 * `description` - (Optional) Text used to describe the asset. Changing this forces a new Machine Learning DataStore to be created.
 

@@ -178,6 +178,40 @@ func TestAccPostgresqlFlexibleServer_updateSku(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_updateVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withVersion(data, 12, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.withVersion(data, 13, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withVersion(data, 13, "Update"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.withVersion(data, 14, "Default"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func TestAccPostgresqlFlexibleServer_geoRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -467,25 +501,6 @@ func TestAccPostgresqlFlexibleServer_invalidStorageTier(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlFlexibleServer_invalidStorageMbScaling(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	r := PostgresqlFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.invalidStorageMbScaling(data, "524288"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config:      r.invalidStorageMbScaling(data, "262144"),
-			ExpectError: regexp.MustCompile("'storage_mb' can only be scaled up"),
-		},
-	})
-}
-
 func TestAccPostgresqlFlexibleServer_invalidStorageTierScalingStorageMb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -770,6 +785,29 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) withVersion(data acceptance.TestData, versionNum int, creatMode string) string {
+	createModeProp := ""
+	if creatMode != "" {
+		createModeProp = fmt.Sprintf("create_mode = \"%s\"", creatMode)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "%d"
+  %s
+  sku_name = "GP_Standard_D2s_v3"
+  zone     = "2"
+}
+`, r.template(data), data.RandomInteger, versionNum, createModeProp)
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
@@ -1455,25 +1493,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r PostgresqlFlexibleServerResource) invalidStorageMbScaling(data acceptance.TestData, storageMb string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  storage_mb             = %s
-  storage_tier           = "P20"
-  version                = "12"
-  sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
-}
-`, r.template(data), data.RandomInteger, storageMb)
 }
 
 func (r PostgresqlFlexibleServerResource) invalidStorageTierScaling(data acceptance.TestData, storageTier string, storageMb string) string {

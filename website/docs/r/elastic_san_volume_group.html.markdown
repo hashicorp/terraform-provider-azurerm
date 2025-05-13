@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as defined below.
 
--> **NOTE:** The `encryption` block can only be set when `encryption_type` is set to `EncryptionAtRestWithCustomerManagedKey`.
+-> **Note:** The `encryption` block can only be set when `encryption_type` is set to `EncryptionAtRestWithCustomerManagedKey`.
 
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Elastic SAN Volume Group.
 
@@ -197,10 +197,10 @@ An `identity` block exports the following arguments:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Elastic SAN Volume Group.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Elastic SAN Volume Group.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Elastic SAN Volume Group.
-* `update` - (Defaults to 30 minutes) Used when updating this Elastic SAN Volume Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN Volume Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN Volume Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Elastic SAN Volume Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Elastic SAN Volume Group.
 
 ## Import
 

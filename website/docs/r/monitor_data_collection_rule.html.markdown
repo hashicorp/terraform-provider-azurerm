@@ -235,7 +235,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore` and `WorkspaceTransforms`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
-~> **NOTE** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
+~> **Note:** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 
 * `stream_declaration` - (Optional) A `stream_declaration` block as defined below.
 
@@ -319,9 +319,9 @@ A `destinations` block supports the following:
 
 * `storage_table_direct` - (Optional) One or more `storage_table_direct` blocks as defined below.
 
--> **NOTE** `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are only available for rules of kind `AgentDirectToStore`.
+-> **Note:** `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are only available for rules of kind `AgentDirectToStore`.
 
--> **NOTE** At least one of `azure_monitor_metrics`, `event_hub`, `event_hub_direct`, `log_analytics`, `monitor_account`, `storage_blob`, `storage_blob_direct`,and `storage_table_direct` blocks must be specified.
+-> **Note:** At least one of `azure_monitor_metrics`, `event_hub`, `event_hub_direct`, `log_analytics`, `monitor_account`, `storage_blob`, `storage_blob_direct`,and `storage_table_direct` blocks must be specified.
 
 ---
 
@@ -381,7 +381,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Data Collection Rule. Currently, up to 1 identity is supported.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 

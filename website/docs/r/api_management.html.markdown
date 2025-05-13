@@ -12,7 +12,7 @@ Manages an API Management Service.
 
 ## Disclaimers
 
--> When creating a new API Management resource in version 3.0 of the AzureRM Provider and later, please be aware that the AzureRM Provider will now clean up any sample APIs and Products created by the Azure API during the creation of the API Management resource.
+-> **Note:** When creating a new API Management resource in version 3.0 of the AzureRM Provider and later, please be aware that the AzureRM Provider will now clean up any sample APIs and Products created by the Azure API during the creation of the API Management resource.
 
 -> **Note:** Version 2.77 and later of the Azure Provider include a Feature Toggle which will purge an API Management resource on destroy, rather than the default soft-delete. See [the Features block documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) for more information on Feature Toggles within Terraform.
 
@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure location where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should be exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service should exist. Changing this forces a new resource to be created.
 
 * `publisher_name` - (Required) The name of publisher/company.
 
@@ -53,9 +53,9 @@ The following arguments are supported:
 
 * `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
-~> **NOTE:** Premium SKU's are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
+~> **Note:** Premium SKUs are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
 
-~> **NOTE:** Consumption SKU capacity should be 0 (e.g. `Consumption_0`) as this tier includes automatic scaling.
+~> **Note:** Consumption SKU capacity should be 0 (e.g. `Consumption_0`) as this tier includes automatic scaling.
 
 ---
 
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this API Management service should be located.
 
-~> **NOTE:** Availability zones are only supported in the Premium tier.
+~> **Note:** Availability zones are only supported in the Premium tier.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -93,15 +93,15 @@ The following arguments are supported:
 
 * `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
-~> **NOTE:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
+~> **Note:** Custom public IPs are only supported on the `Premium` and `Developer` tiers when deployed in a virtual network.
 
 * `public_network_access_enabled` - (Optional) Is public access to the service allowed? Defaults to `true`.
 
-~> **NOTE:** This option is applicable only to the Management plane, not the API gateway or Developer portal. It is required to be `true` on the creation.
+~> **Note:** This option is applicable only to the Management plane, not the API gateway or Developer portal. It is required to be `true` on the creation.
 
 * `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`. Defaults to `None`.
 
-> **NOTE:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. And please ensure other necessary ports are open according to [api management network configuration](https://learn.microsoft.com/azure/api-management/virtual-network-reference).
+~> **Note:** Please ensure that in the subnet, inbound port 3443 is open when `virtual_network_type` is `Internal` or `External`. Additionally, please ensure other necessary ports are open according to [api management network configuration](https://learn.microsoft.com/azure/api-management/virtual-network-reference).
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
@@ -119,7 +119,7 @@ A `additional_location` block supports the following:
 
 * `public_ip_address_id` - (Optional) ID of a standard SKU IPv4 Public IP.
 
-~> **NOTE:** Availability zones and custom public IPs are only supported in the Premium tier.
+~> **Note:** Availability zones and custom public IPs are only supported in the Premium tier.
 
 * `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
@@ -169,7 +169,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this API Management Service.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -177,21 +177,21 @@ A `management`, `portal`, `developer_portal` and `scm` block supports the follow
 
 * `host_name` - (Required) The Hostname to use for the Management API.
 
-* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
+* `key_vault_certificate_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.
 
--> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Possible values are versioned or versionless secret ID. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
+-> **Note:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Possible values are versioned or versionless secret ID. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
 * `certificate` - (Optional) The Base64 Encoded Certificate.
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
--> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
+-> **Note:** Either `key_vault_certificate_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
 * `ssl_keyvault_identity_client_id` - (Optional) System or User Assigned Managed identity clientId as generated by Azure AD, which has `GET` access to the keyVault containing the SSL certificate.
 
--> **NOTE:** If a User Assigned Managed identity is specified for `ssl_keyvault_identity_client_id` then this identity must be associated to the `azurerm_api_management` within an `identity` block.
+-> **Note:** If a User Assigned Managed identity is specified for `ssl_keyvault_identity_client_id` then this identity must be associated to the `azurerm_api_management` within an `identity` block.
 
 ---
 
@@ -201,15 +201,15 @@ A `proxy` block supports the following:
 
 * `host_name` - (Required) The Hostname to use for the Management API.
 
-* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type `application/x-pkcs12`.
+* `key_vault_certificate_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be of the type `application/x-pkcs12`.
 
--> **NOTE:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
+-> **Note:** Setting this field requires the `identity` block to be specified, since this identity is used for to retrieve the Key Vault Certificate. Auto-updating the Certificate from the Key Vault requires the Secret version isn't specified.
 
 * `certificate` - (Optional) The Base64 Encoded Certificate.
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
--> **NOTE:** Either `key_vault_id` or `certificate` and `certificate_password` must be specified.
+-> **Note:** Either `key_vault_certificate_id` or `certificate` and `certificate_password` must be specified.
 
 * `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to `false`.
 
@@ -219,79 +219,79 @@ A `proxy` block supports the following:
 
 A `protocols` block supports the following:
 
-* `enable_http2` - (Optional) Should HTTP/2 be supported by the API Management Service? Defaults to `false`.
+* `http2_enabled` - (Optional) Should HTTP/2 be supported by the API Management Service? Defaults to `false`.
 
 ---
 
 A `security` block supports the following:
 
-* `enable_backend_ssl30` - (Optional) Should SSL 3.0 be enabled on the backend of the gateway? Defaults to `false`.
+* `backend_ssl30_enabled` - (Optional) Should SSL 3.0 be enabled on the backend of the gateway? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30` field
 
-* `enable_backend_tls10` - (Optional) Should TLS 1.0 be enabled on the backend of the gateway? Defaults to `false`.
+* `backend_tls10_enabled` - (Optional) Should TLS 1.0 be enabled on the backend of the gateway? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` field
 
-* `enable_backend_tls11` - (Optional) Should TLS 1.1 be enabled on the backend of the gateway? Defaults to `false`.
+* `backend_tls11_enabled` - (Optional) Should TLS 1.1 be enabled on the backend of the gateway? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` field
 
-* `enable_frontend_ssl30` - (Optional) Should SSL 3.0 be enabled on the frontend of the gateway? Defaults to `false`.
+* `frontend_ssl30_enabled` - (Optional) Should SSL 3.0 be enabled on the frontend of the gateway? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30` field
 
-* `enable_frontend_tls10` - (Optional) Should TLS 1.0 be enabled on the frontend of the gateway? Defaults to `false`.
+* `frontend_tls10_enabled` - (Optional) Should TLS 1.0 be enabled on the frontend of the gateway? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` field
 
-* `enable_frontend_tls11` - (Optional) Should TLS 1.1 be enabled on the frontend of the gateway? Defaults to `false`.
+* `frontend_tls11_enabled` - (Optional) Should TLS 1.1 be enabled on the frontend of the gateway? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
 
 * `tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` field
 
 * `tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` field
 
 * `tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` field
 
 * `tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` field
 
 * `tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA256` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256` field
 
 * `tls_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA` field
 
 * `tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_GCM_SHA256` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256` field
 
 * `tls_rsa_with_aes256_gcm_sha384_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_GCM_SHA384` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_GCM_SHA384` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_GCM_SHA384` field
 
 * `tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA256` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256` field
 
 * `tls_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA` field
 
 * `triple_des_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? 
 
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
+-> **Note:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
 
 ---
 
@@ -416,8 +416,8 @@ The `proxy` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the API Management Service.
-* `update` - (Defaults to 3 hours) Used when updating the API Management Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
+* `update` - (Defaults to 3 hours) Used when updating the API Management Service.
 * `delete` - (Defaults to 3 hours) Used when deleting the API Management Service.
 
 ## Import

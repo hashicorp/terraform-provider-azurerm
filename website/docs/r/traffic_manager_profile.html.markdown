@@ -78,7 +78,7 @@ The following arguments are supported:
 
 * `max_return` - (Optional) The amount of endpoints to return for DNS queries to this Profile. Possible values range from `1` to `8`.
 
-~> **NOTE:** `max_return` must be set when the `traffic_routing_method` is `MultiValue`.
+~> **Note:** `max_return` must be set when the `traffic_routing_method` is `MultiValue`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -131,8 +131,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Traffic Manager Profile.
-* `update` - (Defaults to 30 minutes) Used when updating the Traffic Manager Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Traffic Manager Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the Traffic Manager Profile.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Traffic Manager Profile.
 
 ## Import

@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `status_change_alert_enabled` - (Optional) Whether the status change alert is enabled. Defaults to `false`.
 
--> **NOTE:** `status_change_alert_enabled` requires that the `AutomanageAlertsEnabled` feature is enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace Microsoft.Automanage --name AutomanageAlertsEnabled`.
+-> **Note:** `status_change_alert_enabled` requires that the `AutomanageAlertsEnabled` feature is enabled. To enable this feature for your subscription, use the following command: `az feature register --namespace Microsoft.Automanage --name AutomanageAlertsEnabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

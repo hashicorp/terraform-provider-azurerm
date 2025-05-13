@@ -86,9 +86,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cognitive Service Account RAI Policy.
 
-* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account RAI Policy.
-
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Service Account RAI Policy.
+
+* `update` - (Defaults to 30 minutes) Used when updating the Cognitive Service Account RAI Policy.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the Cognitive Service Account RAI Policy.
 

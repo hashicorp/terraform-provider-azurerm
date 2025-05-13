@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `type_handler_version` - (Optional) Specifies the version of the script handler.
 
--> **NOTE:** `type_handler_version` cannot be set when `automatic_upgrade_enabled` is set to `true`.
+-> **Note:** `type_handler_version` cannot be set when `automatic_upgrade_enabled` is set to `true`.
 
 ## Attributes Reference
 

@@ -108,7 +108,7 @@ An `expiration` block supports the following:
 
 * `end_date_time` - (Optional) The end date/time of the role assignment. Changing this forces a new resource to be created.
 
-~> Note: Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
+~> **Note:** Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
 
 ---
 

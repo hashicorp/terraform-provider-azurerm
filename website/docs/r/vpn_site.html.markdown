@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `address_cidrs` - (Optional) Specifies a list of IP address CIDRs that are located on your on-premises site. Traffic destined for these address spaces is routed to your local site.
 
--> **NOTE:** The `address_cidrs` has to be set when the `link.bgp` isn't specified.
+-> **Note:** The `address_cidrs` has to be set when the `link.bgp` isn't specified.
 
 * `device_model` - (Optional) The model of the VPN device.
 
@@ -86,13 +86,13 @@ A `link` block supports the following:
 
 * `bgp` - (Optional) A `bgp` block as defined above.
 
--> **NOTE:** The `link.bgp` has to be set when the `address_cidrs` isn't specified.
+-> **Note:** The `link.bgp` has to be set when the `address_cidrs` isn't specified.
 
 * `fqdn` - (Optional) The FQDN of this VPN Site Link.
 
 * `ip_address` - (Optional) The IP address of this VPN Site Link.
 
--> **NOTE:** Either `fqdn` or `ip_address` should be specified.
+-> **Note:** Either `fqdn` or `ip_address` should be specified.
 
 * `provider_name` - (Optional) The name of the physical link at the VPN Site. Example: `ATT`, `Verizon`.
 

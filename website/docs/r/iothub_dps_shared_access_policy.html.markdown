@@ -51,21 +51,21 @@ The following arguments are supported:
 
 * `enrollment_read` - (Optional) Adds `EnrollmentRead` permission to this Shared Access Account. It allows read access to enrollment data.
 
--> **NOTE** When `enrollment_read` is set to `true`, `registration_read` must also be set to true. This is a limitation of the Azure REST API
+-> **Note:** When `enrollment_read` is set to `true`, `registration_read` must also be set to true. This is a limitation of the Azure REST API
 
 * `enrollment_write` - (Optional) Adds `EnrollmentWrite` permission to this Shared Access Account. It allows write access to enrollment data.
 
--> **NOTE** When `registration_write` is set to `true`, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true. This is a requirement of the Azure API.
+-> **Note:** When `registration_write` is set to `true`, `enrollment_read`, `registration_read`, and `registration_write` must also be set to true. This is a requirement of the Azure API.
 
 * `registration_read` - (Optional) Adds `RegistrationStatusRead` permission to this Shared Access Account. It allows read access to device registrations.
 
 * `registration_write` - (Optional) Adds `RegistrationStatusWrite` permission to this Shared Access Account. It allows write access to device registrations.
 
--> **NOTE** When `registration_write` is set to `true`, `registration_read` must also be set to true. This is a requirement of the Azure API.
+-> **Note:** When `registration_write` is set to `true`, `registration_read` must also be set to true. This is a requirement of the Azure API.
 
 * `service_config` - (Optional) Adds `ServiceConfig` permission to this Shared Access Account. It allows configuration of the Device Provisioning Service.
 
--> **NOTE** At least one of `registration_read`, `registration_write`, `service_config`, `enrollment_read`, `enrollment_write` permissions must be set to `true`.
+-> **Note:** At least one of `registration_read`, `registration_write`, `service_config`, `enrollment_read`, `enrollment_write` permissions must be set to `true`.
 
 ## Attributes Reference
 
@@ -86,8 +86,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Device Provisioning Service Shared Access Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub Device Provisioning Service Shared Access Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Device Provisioning Service Shared Access Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Device Provisioning Service Shared Access Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Device Provisioning Service Shared Access Policy.
 
 ## Import

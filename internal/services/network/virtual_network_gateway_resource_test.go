@@ -168,6 +168,13 @@ func TestAccVirtualNetworkGateway_vpnClientConfig(t *testing.T) {
 				check.That(data.ResourceName).Key("vpn_client_configuration.0.vpn_client_protocols.#").HasValue("1"),
 			),
 		},
+		{
+			Config: r.deleteVPNClientConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("vpn_client_configuration.#").HasValue("0"),
+			),
+		},
 	})
 }
 
@@ -905,6 +912,70 @@ uGLOhRJOFprPdoDIUBB+tmCl3oDcBy3vnUeOEioz8zAkprcb3GHwHAK+vHmmfgcn
 WsfMLH4JCLa/tRYL+Rw/N3ybCkDp00s0WUZ+AoDywSl0Q/ZEnNY0MsFiw6LyIdbq
 M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkGatewayResource) deleteVPNClientConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  depends_on          = [azurerm_public_ip.test]
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type     = "Vpn"
+  vpn_type = "RouteBased"
+  sku      = "VpnGw1"
+
+  ip_configuration {
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  policy_group {
+    name       = "TestPolicyGroup"
+    is_default = true
+    priority   = 1
+
+    policy_member {
+      name  = "TestPolicyMember"
+      type  = "RadiusAzureGroupId"
+      value = "6ad1bd08"
     }
   }
 }

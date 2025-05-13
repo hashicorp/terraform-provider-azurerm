@@ -10,7 +10,7 @@ description: |-
 
 Manages a policy set definition.
 
--> **NOTE:**  Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
+-> **Note:** Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
 
 ## Example Usage
 
@@ -103,8 +103,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Set Definition.
-* `update` - (Defaults to 30 minutes) Used when updating the Policy Set Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Set Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Set Definition.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Policy Set Definition.
 
 ## Import

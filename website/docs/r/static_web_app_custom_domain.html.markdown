@@ -10,7 +10,7 @@ description: |-
 
 Manages a Static Web App Custom Domain.
 
-!> DNS validation polling is only done for CNAME records, terraform will not validate TXT validation records are complete.
+!> **Note:** DNS validation polling is only done for CNAME records, terraform will not validate TXT validation records are complete.
 
 ## Example Usage
 
@@ -84,9 +84,9 @@ The following arguments are supported:
 
 * `validation_type` - (Required) One of `cname-delegation` or `dns-txt-token`. Changing this forces a new Static Site Custom Domain to be created.
 
--> **NOTE:** Apex domains must use `dns-txt-token` validation.
+-> **Note:** Apex domains must use `dns-txt-token` validation.
 
--> **NOTE:** Validation using `dns-txt-token` is performed asynchronously and Terraform does not wait for the validation process to be successful before marking the resource as created successfully. Please ensure that the appropriate TXT record is created using the `validation_token` value for this to complete out of band. 
+-> **Note:** Validation using `dns-txt-token` is performed asynchronously and Terraform does not wait for the validation process to be successful before marking the resource as created successfully. Please ensure that the appropriate TXT record is created using the `validation_token` value for this to complete out of band.
 
 ## Attributes Reference
 
@@ -96,7 +96,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `validation_token` - Token to be used with `dns-txt-token` validation.
 
--> **NOTE:** For `cname-delegation` this will be empty. For `dns-txt-token` validation, this value exists until the domain has been validated and is then cleared. 
+-> **Note:** For `cname-delegation` this will be empty. For `dns-txt-token` validation, this value exists until the domain has been validated and is then cleared.
 
 ## Timeouts
 

@@ -8,9 +8,11 @@ description: |-
 
 # azurerm_spring_cloud_dynatrace_application_performance_monitoring
 
--> **NOTE:** This resource is only applicable for Spring Cloud Service enterprise tier
+-> **Note:** This resource is only applicable for Spring Cloud Service enterprise tier
 
 Manages a Spring Cloud Application Performance Monitoring resource for Dynatrace.
+
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_dynatrace_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
 
 ## Example Usage
 

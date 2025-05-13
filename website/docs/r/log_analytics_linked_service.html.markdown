@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `write_access_id` - (Optional) The ID of the writable Resource that will be linked to the workspace. This should be used for linking to a Log Analytics Cluster resource.
 
-~> **NOTE:** You must define at least one of the above access resource id attributes (e.g. `read_access_id` or `write_access_id`).
+~> **Note:** You must define at least one of the above access resource id attributes (e.g. `read_access_id` or `write_access_id`).
 
 ## Attributes Reference
 
@@ -71,8 +71,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Workspace.
 
 ## Import

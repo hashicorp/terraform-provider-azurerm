@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `replica_server_id` - (Required) The Resource ID of the *Replica* Postgres Flexible Server this should be associated with
 
+~> **Note:** If a fail-over has occurred, you will be unable to update `replica_server_id`. You can remove the resource from state and reimport it back in with `source_server_id` and `replica_server_id` flipped and then update `replica_server_id`.
+
 * `type` - (Required) The type of Virtual Endpoint. Currently only `ReadWrite` is supported.
 
 ## Attributes Reference
@@ -81,15 +83,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Flexible Virtual Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Flexible Virtual Endpoint.
+* `create` - (Defaults to 10 minutes) Used when creating the PostgreSQL Flexible Virtual Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Virtual Endpoint.
-* `delete` - (Defaults to 30 minutes) Used when deleting the PostgreSQL Flexible Virtual Endpoint.
+* `update` - (Defaults to 10 minutes) Used when updating the PostgreSQL Flexible Virtual Endpoint.
+* `delete` - (Defaults to 5 minutes) Used when deleting the PostgreSQL Flexible Virtual Endpoint.
 
 ## Import
 
 A PostgreSQL Flexible Virtual Endpoint can be imported using the `resource id`, e.g.
-
 ```shell
-terraform import azurerm_postgresql_flexible_server_virtual_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/server1/virtualEndpoints/endpoint1
+terraform import azurerm_postgresql_flexible_server_virtual_endpoint.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/sourceServerName/virtualEndpoints/endpointName|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/replicaServerName/virtualEndpoints/endpointName"
 ```

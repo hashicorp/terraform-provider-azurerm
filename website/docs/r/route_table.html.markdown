@@ -11,7 +11,7 @@ description: |-
 
 Manages a Route Table
 
-~> **NOTE on Route Tables and Routes:** Terraform currently
+~> **Note:** Terraform currently
 provides both a standalone [Route resource](route.html), and allows for Routes to be defined in-line within the [Route Table resource](route_table.html).
 At this time you cannot use a Route Table with in-line Routes in conjunction with any Route resources. Doing so will cause a conflict of Route configurations and will overwrite Routes.
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `route` - (Optional) List of `route` objects representing routes as defined below. Each object accepts the arguments documented below.
 
--> **NOTE** Since `route` can be configured both inline and via the separate `azurerm_route` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+-> **Note:** Since `route` can be configured both inline and via the separate `azurerm_route` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
 * `bgp_route_propagation_enabled` - (Optional) Boolean flag which controls propagation of routes learned by BGP on that route table. Defaults to `true`.
 
@@ -82,8 +82,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Route Table.
-* `update` - (Defaults to 30 minutes) Used when updating the Route Table.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Route Table.
+* `update` - (Defaults to 30 minutes) Used when updating the Route Table.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Route Table.
 
 ## Import

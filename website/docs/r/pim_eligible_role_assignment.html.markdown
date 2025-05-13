@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `condition_version` - (Optional) The version of the condition. Supported values include `2.0`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `condition_version` is required when specifying `condition` and vice versa.
+~> **Note:** `condition_version` is required when specifying `condition` and vice versa.
 
 ---
 
@@ -115,7 +115,7 @@ An `expiration` block supports the following:
 
 * `end_date_time` - (Optional) The end date/time of the role assignment. Changing this forces a new resource to be created.
 
-~> Note: Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
+~> **Note:** Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
 
 ---
 

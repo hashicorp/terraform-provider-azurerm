@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -1033,7 +1033,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
 }
 
 
-`, template, data.RandomInteger, "westus2")
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r NetAppVolumeGroupSAPHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
@@ -1216,7 +1216,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, template, data.RandomInteger, "westus2")
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (NetAppVolumeGroupSAPHanaResource) templatePPG(data acceptance.TestData) string {
@@ -1424,5 +1424,5 @@ resource "azurerm_netapp_pool" "test" {
     "SkipASMAzSecPack" = "true"
   }
 }
-`, data.RandomInteger, "westus3")
+`, data.RandomInteger, data.Locations.Primary)
 }

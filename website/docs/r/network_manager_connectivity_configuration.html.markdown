@@ -103,7 +103,7 @@ An `applies_to_group` block supports the following:
  
 * `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported for this group. Possible values are `true` and `false`.
 
--> **NOTE:** A group can be global only if the `group_connectivity` is `DirectlyConnected`. 
+-> **Note:** A group can be global only if the `group_connectivity` is `DirectlyConnected`.
 
 * `use_hub_gateway` - (Optional) Indicates whether the hub gateway is used. Possible values are `true` and `false`.
 

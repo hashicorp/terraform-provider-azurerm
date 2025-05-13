@@ -142,4 +142,4 @@ Associations between Private Endpoint and Application Security Group can be impo
 terraform import azurerm_private_endpoint_application_security_group_association.association1 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoints1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationSecurityGroups/securityGroup1",
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{privateEndpointId}|{applicationSecurityGroupId}`.
+-> **Note:** This ID is specific to Terraform - and is of the format `{privateEndpointId}|{applicationSecurityGroupId}`.

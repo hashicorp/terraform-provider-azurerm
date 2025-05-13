@@ -75,25 +75,25 @@ The following arguments are supported:
 
 * `sku` - (Required) The SKU which should be used for this Search Service. Possible values include `basic`, `free`, `standard`, `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2`. Changing this forces a new Search Service to be created.
 
--> The `basic` and `free` SKUs provision the Search Service in a Shared Cluster - the `standard` SKUs use a Dedicated Cluster.
+-> **Note:** The `basic` and `free` SKUs provision the Search Service in a Shared Cluster - the `standard` SKUs use a Dedicated Cluster.
 
-~> **NOTE:** The SKUs `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2` are only available by submitting a quota increase request to Microsoft. Please see the [product documentation](https://learn.microsoft.com/azure/azure-resource-manager/troubleshooting/error-resource-quota?tabs=azure-cli) on how to submit a quota increase request.
+~> **Note:** The SKUs `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2` are only available by submitting a quota increase request to Microsoft. Please see the [product documentation](https://learn.microsoft.com/azure/azure-resource-manager/troubleshooting/error-resource-quota?tabs=azure-cli) on how to submit a quota increase request.
 
 ---
 
 * `allowed_ips` - (Optional) Specifies a list of inbound IPv4 or CIDRs that are allowed to access the Search Service. If the incoming IP request is from an IP address which is not included in the `allowed_ips` it will be blocked by the Search Services firewall.
 
--> **NOTE:** The `allowed_ips` are only applied if the `public_network_access_enabled` field has been set to `true`, else all traffic over the public interface will be rejected, even if the `allowed_ips` field has been defined. When the `public_network_access_enabled` field has been set to `false` the private endpoint connections are the only allowed access point to the Search Service.
+-> **Note:** The `allowed_ips` are only applied if the `public_network_access_enabled` field has been set to `true`, else all traffic over the public interface will be rejected, even if the `allowed_ips` field has been defined. When the `public_network_access_enabled` field has been set to `false` the private endpoint connections are the only allowed access point to the Search Service.
 
 * `authentication_failure_mode` - (Optional) Specifies the response that the Search Service should return for requests that fail authentication. Possible values include `http401WithBearerChallenge` or `http403`.
 
--> **NOTE:** `authentication_failure_mode` can only be configured when using `local_authentication_enabled` is set to `true` - which when set together specifies that both API Keys and AzureAD Authentication should be supported.
+-> **Note:** `authentication_failure_mode` can only be configured when using `local_authentication_enabled` is set to `true` - which when set together specifies that both API Keys and AzureAD Authentication should be supported.
 
 * `customer_managed_key_enforcement_enabled` - (Optional) Specifies whether the Search Service should enforce that non-customer resources are encrypted. Defaults to `false`.
 
 * `hosting_mode` - (Optional) Specifies the Hosting Mode, which allows for High Density partitions (that allow for up to 1000 indexes) should be supported. Possible values are `highDensity` or `default`. Defaults to `default`. Changing this forces a new Search Service to be created.
 
--> **NOTE:** `hosting_mode` can only be configured when `sku` is set to `standard3`.
+-> **Note:** `hosting_mode` can only be configured when `sku` is set to `standard3`.
 
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `partition_count` - (Optional) Specifies the number of partitions which should be created. This field cannot be set when using a `free` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)). Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.
 
--> **NOTE:** when `hosting_mode` is set to `highDensity` the maximum number of partitions allowed is `3`.
+-> **Note:** when `hosting_mode` is set to `highDensity` the maximum number of partitions allowed is `3`.
 
 * `public_network_access_enabled` - (Optional) Specifies whether Public Network Access is allowed for this resource. Defaults to `true`.
 
@@ -112,7 +112,7 @@ The following arguments are supported:
 
 * `semantic_search_sku` - (Optional) Specifies the Semantic Search SKU which should be used for this Search Service. Possible values include `free` and `standard`.
 
-~> **NOTE:** The `semantic_search_sku` cannot be defined if your Search Services `sku` is set to `free`. The Semantic Search feature is only available in certain regions, please see the [product documentation](https://learn.microsoft.com/azure/search/semantic-search-overview#availability-and-pricing) for more information.
+~> **Note:** The `semantic_search_sku` cannot be defined if your Search Services `sku` is set to `free`. The Semantic Search feature is only available in certain regions, please see the [product documentation](https://learn.microsoft.com/azure/search/semantic-search-overview#availability-and-pricing) for more information.
 
 * `tags` - (Optional) Specifies a mapping of tags which should be assigned to this Search Service.
 
@@ -162,10 +162,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Search Service.
+* `create` - (Defaults to 1 hour) Used when creating the Search Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Search Service.
-* `update` - (Defaults to 60 minutes) Used when updating the Search Service.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Search Service.
+* `update` - (Defaults to 1 hour) Used when updating the Search Service.
+* `delete` - (Defaults to 1 hour) Used when deleting the Search Service.
 
 ## Import
 

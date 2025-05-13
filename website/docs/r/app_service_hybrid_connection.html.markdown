@@ -11,7 +11,7 @@ description: |-
 
 Manages an App Service Hybrid Connection for an existing App Service, Relay and Service Bus.
 
-!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_function_app_hybrid_connection`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_hybrid_connection) and [`azurerm_web_app_hybrid_connection`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_hybrid_connection) resources instead.
+!> **Note:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_function_app_hybrid_connection`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/function_app_hybrid_connection) and [`azurerm_web_app_hybrid_connection`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_hybrid_connection) resources instead.
 
 ## Example Usage
 
@@ -101,8 +101,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Hybrid Connection.
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Hybrid Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Hybrid Connection.
 * `update` - (Defaults to 30 minutes) Used when updating the App Service Hybrid Connection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service Hybrid Connection.
 

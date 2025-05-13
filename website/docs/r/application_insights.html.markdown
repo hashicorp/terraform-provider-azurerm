@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `workspace_id` - (Optional) Specifies the id of a log analytics workspace resource.
 
-~> **NOTE:** `workspace_id` cannot be removed after set. More details can be found at [Migrate to workspace-based Application Insights resources](https://docs.microsoft.com/azure/azure-monitor/app/convert-classic-resource#migration-process). If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in the config file to the new value.
+~> **Note:** `workspace_id` cannot be removed after set. More details can be found at [Migrate to workspace-based Application Insights resources](https://docs.microsoft.com/azure/azure-monitor/app/convert-classic-resource#migration-process). If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in the config file to the new value.
 
 * `local_authentication_disabled` - (Optional) Disable Non-Azure AD based Auth. Defaults to `false`.
 
@@ -119,9 +119,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Application Insights Component.
-* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
+* `create` - (Defaults to 1 hour) Used when creating the Application Insights Component.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Component.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Component.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Component.
 
 ## Import

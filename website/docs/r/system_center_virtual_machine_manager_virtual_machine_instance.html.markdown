@@ -99,17 +99,17 @@ The following arguments are supported:
 
 * `hardware` - (Optional) A `hardware` block as defined below. Changing this forces a new resource to be created.
 
-~> **NOTE:** This resource will be restarted while updating `hardware`.
+~> **Note:** This resource will be restarted while updating `hardware`.
 
 * `network_interface` - (Optional) A `network_interface` block as defined below.
 
-~> **NOTE:** This resource will be restarted while updating `network_interface`.
+~> **Note:** This resource will be restarted while updating `network_interface`.
 
 * `operating_system` - (Optional) An `operating_system` block as defined below. Changing this forces a new resource to be created.
 
 * `storage_disk` - (Optional) A `storage_disk` block as defined below.
 
-~> **NOTE:** This resource will be restarted while updating `storage_disk`.
+~> **Note:** This resource will be restarted while updating `storage_disk`.
 
 * `system_center_virtual_machine_manager_availability_set_ids` - (Optional) A list of IDs of System Center Virtual Machine Manager Availability Set.
 
@@ -159,7 +159,7 @@ A `network_interface` block supports the following:
 
 An `operating_system` block supports the following:
 
-* `computer_name` - (Required) The computer name of the Virtual Machine. Changing this forces a new resource to be created.
+* `computer_name` - (Optional) The computer name of the Virtual Machine. Changing this forces a new resource to be created.
 
 * `admin_password` - (Optional) The admin password of the Virtual Machine. Changing this forces a new resource to be created.
 
@@ -193,10 +193,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating this System Center Virtual Machine Manager Virtual Machine Instance.
-* `read` - (Defaults to 5 minutes) Used when retrieving this System Center Virtual Machine Manager Virtual Machine Instance.
-* `update` - (Defaults to 60 minutes) Used when updating this System Center Virtual Machine Manager Virtual Machine Instance.
-* `delete` - (Defaults to 60 minutes) Used when deleting this System Center Virtual Machine Manager Virtual Machine Instance.
+* `create` - (Defaults to 1 hour) Used when creating the System Center Virtual Machine Manager Virtual Machine Instance.
+* `read` - (Defaults to 5 minutes) Used when retrieving the System Center Virtual Machine Manager Virtual Machine Instance.
+* `update` - (Defaults to 1 hour) Used when updating the System Center Virtual Machine Manager Virtual Machine Instance.
+* `delete` - (Defaults to 1 hour) Used when deleting the System Center Virtual Machine Manager Virtual Machine Instance.
 
 ## Import
 

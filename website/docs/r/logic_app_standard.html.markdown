@@ -153,7 +153,7 @@ The following arguments are supported:
 
 ~> **Note:** When integrating a `CI/CD pipeline` and expecting to run from a deployed package in `Azure` you must seed your `app settings` as part of terraform code for Logic App to be successfully deployed. `Important Default key pairs`: (`"WEBSITE_RUN_FROM_PACKAGE" = ""`, `"FUNCTIONS_WORKER_RUNTIME" = "node"` (or Python, etc.), `"WEBSITE_NODE_DEFAULT_VERSION" = "10.14.1"`, `"APPINSIGHTS_INSTRUMENTATIONKEY" = ""`).
 
-~> **Note:**  When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+~> **Note:** When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `version` - (Optional) The runtime version associated with the Logic App. Defaults to `~4`.
 
@@ -201,17 +201,17 @@ The `site_config` block supports the following:
 
 * `ip_restriction` - (Optional) A list of `ip_restriction` objects representing IP restrictions as defined below.
 
--> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
+-> **Note:** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
 * `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
 
--> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
+-> **Note:** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
 
 * `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1` and `1.2`.
 
-~> **Note** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 * `scm_type` - (Optional) The type of Source Control used by the Logic App in use by the Windows Function App. Defaults to `None`. Possible values are: `BitbucketGit`, `BitbucketHg`, `CodePlexGit`, `CodePlexHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `None`, `OneDrive`, `Tfs`, `VSO`, and `VSTSRM`
 
@@ -221,7 +221,7 @@ The `site_config` block supports the following:
 
 * `min_tls_version` - (Optional) The minimum supported TLS version for the Logic App. Possible values are `1.0`, `1.1`, and `1.2`. Defaults to `1.2` for new Logic Apps.
 
-~> **Note** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this Logic App Only affects apps on the Premium plan.
 

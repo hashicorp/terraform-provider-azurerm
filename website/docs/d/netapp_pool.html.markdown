@@ -46,6 +46,8 @@ The following attributes are exported:
 
 * `encryption_type` - The encryption type of the pool.
 
+* `cool_access_enabled` - Whether the NetApp Pool can hold cool access enabled volumes.
+
 ---
 
 ## Timeouts

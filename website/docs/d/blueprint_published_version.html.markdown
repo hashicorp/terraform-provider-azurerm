@@ -10,7 +10,7 @@ description: |-
 
 Use this data source to access information about an existing Blueprint Published Version
 
-~> **NOTE:** Azure Blueprints are in Preview and potentially subject to breaking change without notice.
+~> **Note:** Azure Blueprints are in Preview and potentially subject to breaking change without notice.
 
 ## Example Usage
 

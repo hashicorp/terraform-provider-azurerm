@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `minimal_tls_version` - (Optional) Specifies the minimal TLS version for the CosmosDB account. Possible values are: `Tls`, `Tls11`, and `Tls12`. Defaults to `Tls12`.
 
-~> **Note** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
 
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account; currently, this can only be set to `Standard`.
 
@@ -369,10 +369,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the CosmosDB Account.
-* `update` - (Defaults to 180 minutes) Used when updating the CosmosDB Account.
+* `create` - (Defaults to 3 hours) Used when creating the CosmosDB Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.
-* `delete` - (Defaults to 180 minutes) Used when deleting the CosmosDB Account.
+* `update` - (Defaults to 3 hours) Used when updating the CosmosDB Account.
+* `delete` - (Defaults to 3 hours) Used when deleting the CosmosDB Account.
 
 ## Import
 

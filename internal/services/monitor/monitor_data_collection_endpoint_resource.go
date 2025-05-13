@@ -34,6 +34,7 @@ type DataCollectionEndpoint struct {
 	Name                        string                 `tfschema:"name"`
 	Location                    string                 `tfschema:"location"`
 	LogsIngestionEndpoint       string                 `tfschema:"logs_ingestion_endpoint"`
+	MetricsIngestionEndpoint    string                 `tfschema:"metrics_ingestion_endpoint"`
 	PublicNetworkAccessEnabled  bool                   `tfschema:"public_network_access_enabled"`
 	ResourceGroupName           string                 `tfschema:"resource_group_name"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
@@ -87,6 +88,11 @@ func (r DataCollectionEndpointResource) Attributes() map[string]*pluginsdk.Schem
 		},
 
 		"logs_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"metrics_ingestion_endpoint": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -171,7 +177,7 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			var publicNetWorkAccessEnabled bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
+			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, metricsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
@@ -191,6 +197,10 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
 					}
 
+					if prop.MetricsIngestion != nil && prop.MetricsIngestion.Endpoint != nil {
+						metricsIngestionEndpoint = *prop.MetricsIngestion.Endpoint
+					}
+
 					if prop.ImmutableId != nil {
 						immutableId = *prop.ImmutableId
 					}
@@ -204,6 +214,7 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				ImmutableId:                 immutableId,
 				Location:                    location,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
+				MetricsIngestionEndpoint:    metricsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
 				PublicNetworkAccessEnabled:  publicNetWorkAccessEnabled,
 				ResourceGroupName:           id.ResourceGroupName,

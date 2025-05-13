@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A map of Key-Value pairs.
 
--> **NOTE:** Any parameters specified must exist in the Schema defined in `workflow_parameters`.
+-> **Note:** Any parameters specified must exist in the Schema defined in `workflow_parameters`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -119,7 +119,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Logic App Workflow.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`
+~> **Note:** This is required when `type` is set to `UserAssigned`
 
 ## Attributes Reference
 
@@ -152,8 +152,8 @@ The `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Workflow.
-* `update` - (Defaults to 30 minutes) Used when updating the Logic App Workflow.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.
+* `update` - (Defaults to 30 minutes) Used when updating the Logic App Workflow.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Logic App Workflow.
 
 ## Import

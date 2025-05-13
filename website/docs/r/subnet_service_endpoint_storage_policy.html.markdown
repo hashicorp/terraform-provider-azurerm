@@ -81,7 +81,7 @@ A `definition` block supports the following:
 
 * `service_resources` - (Required) Specifies a list of resources or aliases that this Subnet Service Endpoint Storage Policy Definition applies to.
 
-~> **NOTE** The `service_resources` property must contain either Aliases or Resource IDs, but not both.
+~> **Note:** The `service_resources` property must contain either Aliases or Resource IDs, but not both.
 
 * `description` - (Optional) The description of this Subnet Service Endpoint Storage Policy Definition.
 

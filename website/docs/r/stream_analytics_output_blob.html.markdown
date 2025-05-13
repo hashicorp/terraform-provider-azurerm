@@ -94,19 +94,19 @@ A `serialization` block supports the following:
 
 * `type` - (Required) The serialization format used for outgoing data streams. Possible values are `Avro`, `Csv`, `Json` and `Parquet`.
 
--> **NOTE:** `batch_max_wait_time` and `batch_min_rows` are required when `type` is set to `Parquet`
+-> **Note:** `batch_max_wait_time` and `batch_min_rows` are required when `type` is set to `Parquet`
 
 * `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 
--> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
+-> **Note:** This is required when `type` is set to `Csv` or `Json`.
 
 * `field_delimiter` - (Optional) The delimiter that will be used to separate comma-separated value (CSV) records. Possible values are ` ` (space), `,` (comma), `	` (tab), `|` (pipe) and `;`.
 
--> **NOTE:** This is required when `type` is set to `Csv`.
+-> **Note:** This is required when `type` is set to `Csv`.
 
 * `format` - (Optional) Specifies the format of the JSON the output will be written in. Possible values are `Array` and `LineSeparated`.
 
--> **NOTE:** This is Required and can only be specified when `type` is set to `Json`.
+-> **Note:** This is Required and can only be specified when `type` is set to `Json`.
 
 ## Attributes Reference
 
@@ -119,8 +119,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Output Blob Storage.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output Blob Storage.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Output Blob Storage.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Output Blob Storage.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Output Blob Storage.
 
 ## Import
