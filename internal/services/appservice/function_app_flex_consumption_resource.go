@@ -63,7 +63,7 @@ type FunctionAppFlexConsumptionModel struct {
 	RuntimeVersion                string                                         `tfschema:"runtime_version"`
 	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
 	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
-	AlwaysReadyConfig             []FunctionAppAlwaysReadyConfig                 `tfschema:"always_ready_config"`
+	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
 	Tags                          map[string]string                              `tfschema:"tags"`
@@ -80,7 +80,7 @@ type FunctionAppFlexConsumptionModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-type FunctionAppAlwaysReadyConfig struct {
+type FunctionAppAlwaysReady struct {
 	Name          string `tfschema:"name"`
 	InstanceCount int64  `tfschema:"instance_count"`
 }
@@ -461,7 +461,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				Version: &functionAppFlexConsumption.RuntimeVersion,
 			}
 
-			alwaysReady, err := ExpandAlwaysReadyConfiguration(functionAppFlexConsumption.AlwaysReadyConfig, functionAppFlexConsumption.MaximumInstanceCount)
+			alwaysReady, err := ExpandAlwaysReadyConfiguration(functionAppFlexConsumption.AlwaysReady, functionAppFlexConsumption.MaximumInstanceCount)
 			if err != nil {
 				return fmt.Errorf("expanding `always_ready_config` for %s: %+v", id, err)
 			}
@@ -710,7 +710,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					}
 
 					if faConfigScale := functionAppConfig.ScaleAndConcurrency; faConfigScale != nil {
-						state.AlwaysReadyConfig = FlattenAlwaysReadyConfiguration(faConfigScale.AlwaysReady)
+						state.AlwaysReady = FlattenAlwaysReadyConfiguration(faConfigScale.AlwaysReady)
 						state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
 						state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
 					}
@@ -886,7 +886,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
-			arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReadyConfig, state.MaximumInstanceCount)
+			arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
 			if err != nil {
 				return fmt.Errorf("expanding `always_ready_config` for %s: %+v", id, err)
 			}
@@ -1047,7 +1047,7 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 	m.AppSettings = appSettings
 }
 
-func ExpandAlwaysReadyConfiguration(input []FunctionAppAlwaysReadyConfig, maximumInstanceCount int64) (*[]webapps.FunctionsAlwaysReadyConfig, error) {
+func ExpandAlwaysReadyConfiguration(input []FunctionAppAlwaysReady, maximumInstanceCount int64) (*[]webapps.FunctionsAlwaysReadyConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1062,21 +1062,21 @@ func ExpandAlwaysReadyConfiguration(input []FunctionAppAlwaysReadyConfig, maximu
 	}
 
 	if totalInstanceCount > maximumInstanceCount {
-		return nil, fmt.Errorf("the total of always-ready instances should not exceed the maximum sacle out limit")
+		return nil, fmt.Errorf("the total number of always-ready instances should not exceed the maximum scale out limit")
 	}
 
 	return &arList, nil
 }
 
-func FlattenAlwaysReadyConfiguration(alwaysReady *[]webapps.FunctionsAlwaysReadyConfig) []FunctionAppAlwaysReadyConfig {
+func FlattenAlwaysReadyConfiguration(alwaysReady *[]webapps.FunctionsAlwaysReadyConfig) []FunctionAppAlwaysReady {
 	if alwaysReady == nil || len(*alwaysReady) == 0 {
-		return []FunctionAppAlwaysReadyConfig{}
+		return []FunctionAppAlwaysReady{}
 	}
 
-	alwaysReadyList := make([]FunctionAppAlwaysReadyConfig, 0)
+	alwaysReadyList := make([]FunctionAppAlwaysReady, 0)
 
 	for _, v := range *alwaysReady {
-		alwaysReadyList = append(alwaysReadyList, FunctionAppAlwaysReadyConfig{
+		alwaysReadyList = append(alwaysReadyList, FunctionAppAlwaysReady{
 			Name:          pointer.From(v.Name),
 			InstanceCount: pointer.From(v.InstanceCount),
 		})

@@ -127,7 +127,7 @@ The following arguments are supported:
 
 ~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
-* `always_ready_config` - (Optional) A list of `always_ready_config` of the Linux Function App. Each `always_ready_config` block supports fields documented below.
+* `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
@@ -151,11 +151,11 @@ The following arguments are supported:
 
 ---
 
-An `always_ready_config` block supports the following:
+An `always_ready` block supports the following:
 
-* `name` - (Required) The name of the `always_ready_config` of the flex function app.
+* `name`  - (Required) The name of the `always_ready` of the Function App.
 
-* `instance_count` - (Required) The instance count of the `always_ready_config` of the flex function app. The minimum number is `0` and the total number of `instance_count` under `always_ready_config` should not exceed the number of `maximum_instance_count`.
+* `instance_count` - (Required) The instance count of the `always_ready` of the  Function App. The minimum number is `0`. The total number of `instance_count` should not exceed the `maximum_instance_count`.
 
 ---
 
