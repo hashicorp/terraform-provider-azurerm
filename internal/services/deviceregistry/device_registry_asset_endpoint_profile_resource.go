@@ -30,7 +30,7 @@ type AssetEndpointProfileResourceModel struct {
 	ExtendedLocationType                          string            `tfschema:"extended_location_type"`
 	TargetAddress                                 string            `tfschema:"target_address"`
 	EndpointProfileType                           string            `tfschema:"endpoint_profile_type"`
-	DiscoveredAssetEndpointProfileRef             string            `tfschema:"discovered_asset_endpoint_profile_ref"`
+	DiscoveredAssetEndpointProfileReference             string            `tfschema:"discovered_asset_endpoint_profile_reference"`
 	AdditionalConfiguration                       string            `tfschema:"additional_configuration"`
 	Authentication 															  []AuthenticationModel    `tfschema:"authentication"`
 }
@@ -84,7 +84,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-		"discovered_asset_endpoint_profile_ref": {
+		"discovered_asset_endpoint_profile_reference": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
@@ -194,8 +194,8 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if config.DiscoveredAssetEndpointProfileRef != "" {
-				param.Properties.DiscoveredAssetEndpointProfileRef = pointer.To(config.DiscoveredAssetEndpointProfileRef)
+			if config.DiscoveredAssetEndpointProfileReference != "" {
+				param.Properties.DiscoveredAssetEndpointProfileRef = pointer.To(config.DiscoveredAssetEndpointProfileReference)
 			}
 
 			if config.AdditionalConfiguration != "" {
@@ -326,7 +326,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.TargetAddress = props.TargetAddress
 					state.EndpointProfileType = props.EndpointProfileType
-					state.DiscoveredAssetEndpointProfileRef = pointer.From(props.DiscoveredAssetEndpointProfileRef)
+					state.DiscoveredAssetEndpointProfileReference = pointer.From(props.DiscoveredAssetEndpointProfileRef)
 					state.AdditionalConfiguration = pointer.From(props.AdditionalConfiguration)
 
 					if authenticationModel := props.Authentication; authenticationModel != nil {
