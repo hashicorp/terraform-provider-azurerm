@@ -17,6 +17,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+const (
+	AssetEndpointProfileExtendedLocationTypeCustomLocation = "CustomLocation"
+)
+
 var _ sdk.Resource = AssetEndpointProfileResource{}
 
 type AssetEndpointProfileResource struct{}
@@ -26,8 +30,7 @@ type AssetEndpointProfileResourceModel struct {
 	ResourceGroupId                         string                `tfschema:"resource_group_id"`
 	Location                                string                `tfschema:"location"`
 	Tags                                    map[string]string     `tfschema:"tags"`
-	ExtendedLocationName                    string                `tfschema:"extended_location_name"`
-	ExtendedLocationType                    string                `tfschema:"extended_location_type"`
+	ExtendedLocationId                      string                `tfschema:"extended_location_id"`
 	TargetAddress                           string                `tfschema:"target_address"`
 	EndpointProfileType                     string                `tfschema:"endpoint_profile_type"`
 	DiscoveredAssetEndpointProfileReference string                `tfschema:"discovered_asset_endpoint_profile_reference"`
@@ -63,12 +66,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: resourceValidate.ResourceGroupID,
 		},
-		"extended_location_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"extended_location_type": {
+		"extended_location_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -184,8 +182,8 @@ func (r AssetEndpointProfileResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(config.Location),
 				Tags:     pointer.To(config.Tags),
 				ExtendedLocation: assetendpointprofiles.ExtendedLocation{
-					Name: config.ExtendedLocationName,
-					Type: config.ExtendedLocationType,
+					Name: config.ExtendedLocationId,
+					Type: AssetEndpointProfileExtendedLocationTypeCustomLocation,
 				},
 				Properties: &assetendpointprofiles.AssetEndpointProfileProperties{
 					TargetAddress:       config.TargetAddress,
@@ -319,8 +317,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
-				state.ExtendedLocationName = model.ExtendedLocation.Name
-				state.ExtendedLocationType = model.ExtendedLocation.Type
+				state.ExtendedLocationId = model.ExtendedLocation.Name
 
 				if props := model.Properties; props != nil {
 					state.TargetAddress = props.TargetAddress

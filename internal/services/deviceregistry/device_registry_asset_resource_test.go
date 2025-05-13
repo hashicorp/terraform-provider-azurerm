@@ -279,8 +279,7 @@ func (r AssetTestResource) basic(data acceptance.TestData) string {
 resource "azurerm_device_registry_asset" "test" {
   name                             = "acctest-asset-%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
-  extended_location_name           = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
-  extended_location_type           = "CustomLocation"
+  extended_location_id             = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   asset_endpoint_profile_reference = "myAssetEndpointProfile"
   discovered_asset_references = [
     "foo",
@@ -306,8 +305,7 @@ func (r AssetTestResource) complete(data acceptance.TestData) string {
 resource "azurerm_device_registry_asset" "test" {
   name                             = "acctest-asset-%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
-  extended_location_name           = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
-  extended_location_type           = "CustomLocation"
+  extended_location_id             = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   location                         = "%[3]s"
   asset_endpoint_profile_reference = "myAssetEndpointProfile"
   display_name                     = "my asset"
@@ -440,8 +438,7 @@ func (r AssetTestResource) requiresImport(data acceptance.TestData) string {
 resource "azurerm_device_registry_asset" "import" {
   name                             = azurerm_device_registry_asset.test.name
   resource_group_name              = azurerm_device_registry_asset.test.resource_group_name
-  extended_location_name           = azurerm_device_registry_asset.test.extended_location_name
-  extended_location_type           = azurerm_device_registry_asset.test.extended_location_type
+  extended_location_id             = azurerm_device_registry_asset.test.extended_location_id
   asset_endpoint_profile_reference = azurerm_device_registry_asset.test.asset_endpoint_profile_reference
   display_name                     = azurerm_device_registry_asset.test.display_name
   enabled                          = azurerm_device_registry_asset.test.enabled

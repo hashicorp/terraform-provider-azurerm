@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	AssestExtendedLocationTypeCustomLocation = "CustomLocation"
+	AssetExtendedLocationTypeCustomLocation = "CustomLocation"
 )
 
 var _ sdk.Resource = AssetResource{}
@@ -30,8 +30,7 @@ type AssetResourceModel struct {
 	ResourceGroupId               string                 `tfschema:"resource_group_id"`
 	Location                      string                 `tfschema:"location"`
 	Tags                          map[string]string      `tfschema:"tags"`
-	ExtendedLocationName          string                 `tfschema:"extended_location_name"`
-	ExtendedLocationType          string                 `tfschema:"extended_location_type"`
+	ExtendedLocationId            string                 `tfschema:"extended_location_id"`
 	Enabled                       bool                   `tfschema:"enabled"`
 	ExternalAssetId               string                 `tfschema:"external_asset_id"`
 	DisplayName                   string                 `tfschema:"display_name"`
@@ -95,12 +94,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"location": commonschema.Location(),
 		"tags":     commonschema.Tags(),
-		"extended_location_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"extended_location_type": {
+		"extended_location_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -350,8 +344,8 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(config.Location),
 				Tags:     pointer.To(config.Tags),
 				ExtendedLocation: assets.ExtendedLocation{
-					Name: config.ExtendedLocationName,
-					Type: config.ExtendedLocationType,
+					Name: config.ExtendedLocationId,
+					Type: AssetExtendedLocationTypeCustomLocation,
 				},
 				Properties: &assets.AssetProperties{
 					AssetEndpointProfileRef: config.AssetEndpointProfileReference,
@@ -582,8 +576,7 @@ func (AssetResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
-				state.ExtendedLocationName = model.ExtendedLocation.Name
-				state.ExtendedLocationType = model.ExtendedLocation.Type
+				state.ExtendedLocationId = model.ExtendedLocation.Name
 				if props := model.Properties; props != nil {
 					state.AssetEndpointProfileReference = props.AssetEndpointProfileRef
 					state.Enabled = pointer.From(props.Enabled)
