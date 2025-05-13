@@ -261,6 +261,10 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 				model.Tags = &mpe.Tags
 			}
 
+			if metadata.ResourceData.HasChange("private_link_service_url") {
+				model.Properties.PrivateLinkServiceURL = &mpe.PrivateLinkServiceURL
+			}
+
 			if err := client.CreateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
