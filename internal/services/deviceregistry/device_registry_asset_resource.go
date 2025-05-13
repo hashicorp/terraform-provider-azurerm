@@ -49,8 +49,7 @@ type AssetResourceModel struct {
 	DiscoveredAssetReferences          []string               `tfschema:"discovered_asset_references"`
 	DefaultDatasetsConfiguration string                 `tfschema:"default_datasets_configuration"`
 	DefaultEventsConfiguration   string                 `tfschema:"default_events_configuration"`
-	DefaultTopicPath             string                 `tfschema:"default_topic_path"`
-	DefaultTopicRetain           string                 `tfschema:"default_topic_retain"`
+	DefaultTopic []TopicModel `tfschema:"default_topic"`
 	Datasets                     []Dataset              `tfschema:"dataset"`
 	Events                       []Event                `tfschema:"event"`
 }
@@ -58,8 +57,7 @@ type AssetResourceModel struct {
 type Dataset struct {
 	Name                 string      `tfschema:"name"`
 	DatasetConfiguration string      `tfschema:"dataset_configuration"`
-	TopicPath            string      `tfschema:"topic_path"`
-	TopicRetain          string      `tfschema:"topic_retain"`
+	Topic []TopicModel `tfschema:"topic"`
 	DataPoints           []DataPoint `tfschema:"data_point"`
 }
 
@@ -75,8 +73,12 @@ type Event struct {
 	EventNotifier      string `tfschema:"event_notifier"`
 	ObservabilityMode  string `tfschema:"observability_mode"`
 	EventConfiguration string `tfschema:"event_configuration"`
-	TopicPath          string `tfschema:"topic_path"`
-	TopicRetain        string `tfschema:"topic_retain"`
+	Topic 						 []TopicModel `tfschema:"topic"`
+}
+
+type TopicModel struct {
+	Path   string `tfschema:"path"`
+	Retain string `tfschema:"retain"`
 }
 
 func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
@@ -176,15 +178,24 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
-		"default_topic_path": {
-			Type:     pluginsdk.TypeString,
+		"default_topic": {
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-		},
-		"default_topic_retain": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
-			RequiredWith: []string{"default_topic_path"},
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"path": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"retain": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
+						Default: 		string(assets.TopicRetainTypeNever),
+					},
+				},
+			},
 		},
 		"dataset": {
 			Type:     pluginsdk.TypeList,
@@ -199,14 +210,24 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
-					"topic_path": {
-						Type:     pluginsdk.TypeString,
+					"topic": {
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-					},
-					"topic_retain": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"path": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"retain": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
+									Default: 		string(assets.TopicRetainTypeNever),
+								},
+							},
+						},
 					},
 					"data_point": {
 						Type:     pluginsdk.TypeList,
@@ -260,14 +281,24 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
-					"topic_path": {
-						Type:     pluginsdk.TypeString,
+					"topic": {
+						Type:     pluginsdk.TypeList,
 						Optional: true,
-					},
-					"topic_retain": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"path": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"retain": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
+									Default: 		string(assets.TopicRetainTypeNever),
+								},
+							},
+						},
 					},
 				},
 			},
@@ -292,7 +323,6 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DeviceRegistry.AssetsClient
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var config AssetResourceModel
 			if err := metadata.Decode(&config); err != nil {
@@ -394,7 +424,7 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 				param.Properties.DefaultEventsConfiguration = pointer.To(config.DefaultEventsConfiguration)
 			}
 
-			param.Properties.DefaultTopic = expandTopic(config.DefaultTopicPath, config.DefaultTopicRetain)
+			param.Properties.DefaultTopic = expandTopic(config.DefaultTopic)
 
 			param.Properties.Datasets = expandDatasets(config.Datasets)
 
@@ -451,18 +481,17 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 				param.Properties.DefaultEventsConfiguration = pointer.To(config.DefaultEventsConfiguration)
 			}
 
-			defaultTopicPathChanged := metadata.ResourceData.HasChange("default_topic_path")
-			defaultTopicRetainChanged := metadata.ResourceData.HasChange("default_topic_retain")
-			if defaultTopicPathChanged || defaultTopicRetainChanged {
-				param.Properties.DefaultTopic = &assets.TopicUpdate{}
-				if defaultTopicPathChanged {
-					param.Properties.DefaultTopic.Path = pointer.To(config.DefaultTopicPath)
-				}
-				if defaultTopicRetainChanged {
+			if metadata.ResourceData.HasChange("default_topic") {
+				topic := &assets.TopicUpdate{}
+				param.Properties.DefaultTopic = topic
+				if config.DefaultTopic != nil && len(config.DefaultTopic) > 0 {
+					topic.Path = pointer.To(config.DefaultTopic[0].Path)
 					// Bug with `go-azure-sdk` library: you can't set retain to null because empty string will cause
 					// ARM to throw validation error (retain must be one of the property's possible enum values),
 					// and go-azure-sdk library will ignore the retain field if it's set to nil, even if explicitly set.
-					param.Properties.DefaultTopic.Retain = pointer.To(assets.TopicRetainType(config.DefaultTopicRetain))
+					if config.DefaultTopic[0].Retain != "" {
+						topic.Retain = pointer.To(assets.TopicRetainType(config.DefaultTopic[0].Retain))
+					}
 				}
 			}
 
@@ -575,7 +604,7 @@ func (AssetResource) Read() sdk.ResourceFunc {
 					state.DefaultEventsConfiguration = pointer.From(props.DefaultEventsConfiguration)
 
 					if defaultTopic := props.DefaultTopic; defaultTopic != nil {
-						state.DefaultTopicPath, state.DefaultTopicRetain = flattenTopic(props.DefaultTopic)
+						state.DefaultTopic = flattenTopic(props.DefaultTopic)
 					}
 
 					if datasets := props.Datasets; datasets != nil {
@@ -626,7 +655,7 @@ func expandDatasets(datasets []Dataset) *[]assets.Dataset {
 		azureDatasets[i] = assets.Dataset{
 			Name:                 dataset.Name,
 			DatasetConfiguration: pointer.To(dataset.DatasetConfiguration),
-			Topic:                expandTopic(dataset.TopicPath, dataset.TopicRetain),
+			Topic:                expandTopic(dataset.Topic),
 			DataPoints:           expandDataPoints(dataset.DataPoints),
 		}
 	}
@@ -664,25 +693,25 @@ func expandEvents(events []Event) *[]assets.Event {
 			EventNotifier:      event.EventNotifier,
 			EventConfiguration: pointer.To(event.EventConfiguration),
 			ObservabilityMode:  pointer.To(assets.EventObservabilityMode(event.ObservabilityMode)),
-			Topic:              expandTopic(event.TopicPath, event.TopicRetain),
+			Topic:              expandTopic(event.Topic),
 		}
 	}
 
 	return &azureEvents
 }
 
-func expandTopic(topicPath string, topicRetain string) *assets.Topic {
-	if topicPath == "" && topicRetain == "" {
+func expandTopic(topic []TopicModel) *assets.Topic {
+	if topic == nil || len(topic) == 0 {
 		return nil
 	}
 
 	azureTopic := assets.Topic{
-		Path: topicPath,
+		Path: topic[0].Path,
 	}
 
 	// Topic retain is optional, but if it's set, it must be one of the possible values
-	if topicRetain != "" {
-		azureTopic.Retain = pointer.To(assets.TopicRetainType(topicRetain))
+	if topic[0].Retain != "" {
+		azureTopic.Retain = pointer.To(assets.TopicRetainType(topic[0].Retain))
 	}
 
 	return &azureTopic
@@ -695,13 +724,11 @@ func flattenDatasets(datasets *[]assets.Dataset) []Dataset {
 
 	tfDatasets := make([]Dataset, len(*datasets))
 	for i, dataset := range *datasets {
-		topicPath, topicRetain := flattenTopic(dataset.Topic)
 		tfDatasets[i] = Dataset{
 			Name:                 dataset.Name,
 			DatasetConfiguration: pointer.From(dataset.DatasetConfiguration),
 			DataPoints:           flattenDataPoints(dataset.DataPoints),
-			TopicPath:            topicPath,
-			TopicRetain:          topicRetain,
+			Topic: flattenTopic(dataset.Topic),
 		}
 	}
 
@@ -733,28 +760,27 @@ func flattenEvents(events *[]assets.Event) []Event {
 
 	tfEvents := make([]Event, len(*events))
 	for i, event := range *events {
-		topicPath, topicRetain := flattenTopic(event.Topic)
 		tfEvents[i] = Event{
 			Name:               event.Name,
 			EventNotifier:      event.EventNotifier,
 			ObservabilityMode:  string(pointer.From(event.ObservabilityMode)),
 			EventConfiguration: pointer.From(event.EventConfiguration),
-			TopicPath:          topicPath,
-			TopicRetain:        topicRetain,
+			Topic: flattenTopic(event.Topic),
 		}
 	}
 
 	return tfEvents
 }
 
-func flattenTopic(topic *assets.Topic) (string, string) {
+func flattenTopic(topic *assets.Topic) []TopicModel {
 	if topic == nil {
-		return "", ""
+		return nil
 	}
 
-	if topic.Retain == nil {
-		return topic.Path, ""
-	} else {
-		return topic.Path, string(pointer.From(topic.Retain))
+	return []TopicModel{
+		{
+			Path:	 topic.Path,
+			Retain: string(pointer.From(topic.Retain)),
+		},
 	}
 }
