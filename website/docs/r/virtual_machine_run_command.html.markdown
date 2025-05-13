@@ -333,3 +333,9 @@ An existing Virtual Machine Run Command can be imported into Terraform using the
 ```shell
 terraform import azurerm_virtual_machine_run_command.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/vm1/runCommands/rc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute`: 2023-03-01
