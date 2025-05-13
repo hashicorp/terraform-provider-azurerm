@@ -297,9 +297,9 @@ func (r AssetEndpointProfileTestResource) basic(data acceptance.TestData) string
 %s
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
-  name                 = "acctest-assetendpointprofile-%[2]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  extended_location_id = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
+  name                                  = "acctest-assetendpointprofile-%[2]d"
+  resource_group_name                   = azurerm_resource_group.test.id
+  extended_location_id                  = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   target_address                        = "opc.tcp://foo"
   endpoint_profile_type                 = "OpcUa"
   discovered_asset_endpoint_profile_ref = "discoveredAssetEndpointProfile123"
@@ -319,7 +319,7 @@ func (r AssetEndpointProfileTestResource) completeCertificate(data acceptance.Te
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
   name                                     = "acctest-assetendpointprofile-%[2]d"
-  resource_group_name                      = azurerm_resource_group.test.name
+  resource_group_id                        = azurerm_resource_group.test.id
   extended_location_id                     = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   target_address                           = "opc.tcp://foo"
   endpoint_profile_type                    = "OpcUa"
@@ -346,7 +346,7 @@ func (r AssetEndpointProfileTestResource) completeUsernamePassword(data acceptan
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
   name                                               = "acctest-assetendpointprofile-%[2]d"
-  resource_group_name                                = azurerm_resource_group.test.name
+  resource_group_id                                  = azurerm_resource_group.test.id
   extended_location_id                               = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   target_address                                     = "opc.tcp://foo"
   endpoint_profile_type                              = "OpcUa"
@@ -374,7 +374,7 @@ func (r AssetEndpointProfileTestResource) completeAnonymous(data acceptance.Test
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
   name                                  = "acctest-assetendpointprofile-%[2]d"
-  resource_group_name                   = azurerm_resource_group.test.name
+  resource_group_id                     = azurerm_resource_group.test.id
   extended_location_id                  = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   target_address                        = "opc.tcp://foo"
   endpoint_profile_type                 = "OpcUa"
@@ -399,7 +399,7 @@ func (r AssetEndpointProfileTestResource) requiresImport(data acceptance.TestDat
 
 resource "azurerm_device_registry_asset_endpoint_profile" "import" {
   name                                  = azurerm_device_registry_asset_endpoint_profile.test.name
-  resource_group_name                   = azurerm_device_registry_asset_endpoint_profile.test.resource_group_name
+  resource_group_id                     = azurerm_device_registry_asset_endpoint_profile.test.resource_group_id
   extended_location_id                  = azurerm_device_registry_asset_endpoint_profile.test.extended_location_id
   target_address                        = azurerm_device_registry_asset_endpoint_profile.test.target_address
   endpoint_profile_type                 = azurerm_device_registry_asset_endpoint_profile.test.endpoint_profile_type
