@@ -92,3 +92,9 @@ Sentinel MS Security Incident Alert Rules can be imported using the `resource id
 ```shell
 terraform import azurerm_sentinel_alert_rule_ms_security_incident.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/alertRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2023-12-01-preview
