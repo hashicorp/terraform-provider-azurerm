@@ -92,3 +92,9 @@ Static Web App Function App Registration can be imported using the `resource id`
 ```shell
 terraform import azurerm_static_web_app_function_app_registration.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Web/staticSites/my-static-site1/userProvidedFunctionApps/myFunctionApp
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web`: 2023-12-01, 2023-01-01
