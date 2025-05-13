@@ -329,13 +329,13 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 					state.DiscoveredAssetEndpointProfileReference = pointer.From(props.DiscoveredAssetEndpointProfileRef)
 					state.AdditionalConfiguration = pointer.From(props.AdditionalConfiguration)
 
-					if authenticationModel := props.Authentication; authenticationModel != nil {
+					if auth := props.Authentication; auth != nil {
 						authenticationModel := AuthenticationModel{
-							Method: string(authenticationModel.Method),
+							Method: string(auth.Method),
 						}
 
-						if usernamePassword := authenticationModel.UsernamePasswordCredentials; usernamePassword != nil {
-							authenticationModel.UsernamePasswordCredentials = [1]UsernamePasswordCredentialsModel{
+						if usernamePassword := auth.UsernamePasswordCredentials; usernamePassword != nil {
+							authenticationModel.UsernamePasswordCredentials = []UsernamePasswordCredentialsModel{
 								{
 									UsernameSecretName: usernamePassword.UsernameSecretName,
 									PasswordSecretName: usernamePassword.PasswordSecretName,
@@ -343,15 +343,15 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 							}
 						}
 
-						if x509 := authenticationModel.X509Credentials; x509 != nil {
-							authenticationModel.X509Credentials = [1]X509CredentialsModel{
+						if x509 := auth.X509Credentials; x509 != nil {
+							authenticationModel.X509Credentials = []X509CredentialsModel{
 								{
 									CertificateSecretName: x509.CertificateSecretName,
 								},
 							}
 						}
 
-						state.Authentication = [1]AuthenticationModel{
+						state.Authentication = []AuthenticationModel{
 							authenticationModel,
 						}
 					}
