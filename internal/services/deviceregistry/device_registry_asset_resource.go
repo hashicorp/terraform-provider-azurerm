@@ -36,7 +36,7 @@ type AssetResourceModel struct {
 	ExternalAssetId              string                 `tfschema:"external_asset_id"`
 	DisplayName                  string                 `tfschema:"display_name"`
 	Description                  string                 `tfschema:"description"`
-	AssetEndpointProfileRef      string                 `tfschema:"asset_endpoint_profile_ref"`
+	AssetEndpointProfileReference      string                 `tfschema:"asset_endpoint_profile_reference"`
 	Manufacturer                 string                 `tfschema:"manufacturer"`
 	ManufacturerUri              string                 `tfschema:"manufacturer_uri"`
 	Model                        string                 `tfschema:"model"`
@@ -46,7 +46,7 @@ type AssetResourceModel struct {
 	DocumentationUri             string                 `tfschema:"documentation_uri"`
 	SerialNumber                 string                 `tfschema:"serial_number"`
 	Attributes                   map[string]interface{} `tfschema:"attributes"`
-	DiscoveredAssetRefs          []string               `tfschema:"discovered_asset_refs"`
+	DiscoveredAssetReferences          []string               `tfschema:"discovered_asset_references"`
 	DefaultDatasetsConfiguration string                 `tfschema:"default_datasets_configuration"`
 	DefaultEventsConfiguration   string                 `tfschema:"default_events_configuration"`
 	DefaultTopicPath             string                 `tfschema:"default_topic_path"`
@@ -119,7 +119,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
-		"asset_endpoint_profile_ref": {
+		"asset_endpoint_profile_reference": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -161,7 +161,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 		},
-		"discovered_asset_refs": {
+		"discovered_asset_references": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
@@ -324,7 +324,7 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 					Type: config.ExtendedLocationType,
 				},
 				Properties: &assets.AssetProperties{
-					AssetEndpointProfileRef: config.AssetEndpointProfileRef,
+					AssetEndpointProfileRef: config.AssetEndpointProfileReference,
 				},
 			}
 
@@ -383,7 +383,7 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.DiscoveredAssetRefs != nil {
-				param.Properties.DiscoveredAssetRefs = pointer.To(config.DiscoveredAssetRefs)
+				param.Properties.DiscoveredAssetRefs = pointer.To(config.DiscoveredAssetReferences)
 			}
 
 			if config.DefaultDatasetsConfiguration != "" {
@@ -556,7 +556,7 @@ func (AssetResource) Read() sdk.ResourceFunc {
 				state.ExtendedLocationName = model.ExtendedLocation.Name
 				state.ExtendedLocationType = model.ExtendedLocation.Type
 				if props := model.Properties; props != nil {
-					state.AssetEndpointProfileRef = props.AssetEndpointProfileRef
+					state.AssetEndpointProfileReference = props.AssetEndpointProfileRef
 					state.Enabled = pointer.From(props.Enabled)
 					state.ExternalAssetId = pointer.From(props.ExternalAssetId)
 					state.DisplayName = pointer.From(props.DisplayName)
@@ -570,7 +570,7 @@ func (AssetResource) Read() sdk.ResourceFunc {
 					state.DocumentationUri = pointer.From(props.DocumentationUri)
 					state.SerialNumber = pointer.From(props.SerialNumber)
 					state.Attributes = pointer.From(props.Attributes)
-					state.DiscoveredAssetRefs = pointer.From(props.DiscoveredAssetRefs)
+					state.DiscoveredAssetReferences = pointer.From(props.DiscoveredAssetRefs)
 					state.DefaultDatasetsConfiguration = pointer.From(props.DefaultDatasetsConfiguration)
 					state.DefaultEventsConfiguration = pointer.From(props.DefaultEventsConfiguration)
 
