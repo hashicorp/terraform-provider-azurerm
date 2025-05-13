@@ -118,3 +118,9 @@ A PostgreSQL Server Key can be imported using the `resource id` of the PostgreSQ
 ```shell
 terraform import azurerm_postgresql_server_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/servers/server1/keys/keyvaultname_key-name_keyversion
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2020-01-01
