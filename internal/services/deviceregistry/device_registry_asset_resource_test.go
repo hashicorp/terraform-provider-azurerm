@@ -51,11 +51,11 @@ func TestAccAsset_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("asset_endpoint_profile_ref").HasValue("myAssetEndpointProfile"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.#").HasValue("3"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.1").HasValue("bar"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.2").HasValue("baz"),
+				check.That(data.ResourceName).Key("asset_endpoint_profile_reference").HasValue("myAssetEndpointProfile"),
+				check.That(data.ResourceName).Key("discovered_asset_references.#").HasValue("3"),
+				check.That(data.ResourceName).Key("discovered_asset_references.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("discovered_asset_references.1").HasValue("bar"),
+				check.That(data.ResourceName).Key("discovered_asset_references.2").HasValue("baz"),
 				check.That(data.ResourceName).Key("display_name").HasValue("my asset"),
 				check.That(data.ResourceName).Key("enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("external_asset_id").HasValue("8ZBA6LRHU0A458969"),
@@ -86,7 +86,7 @@ func TestAccAsset_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("asset_endpoint_profile_ref").HasValue("myAssetEndpointProfile"),
+				check.That(data.ResourceName).Key("asset_endpoint_profile_reference").HasValue("myAssetEndpointProfile"),
 				check.That(data.ResourceName).Key("display_name").HasValue("my asset"),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("external_asset_id").HasValue("8ZBA6LRHU0A458969"),
@@ -94,13 +94,13 @@ func TestAccAsset_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("attributes.x").HasValue("y"),
 				check.That(data.ResourceName).Key("default_datasets_configuration").HasValue("{\"defaultPublishingInterval\":200,\"defaultQueueSize\":10,\"defaultSamplingInterval\":500}"),
 				check.That(data.ResourceName).Key("default_events_configuration").HasValue("{\"defaultPublishingInterval\":200,\"defaultQueueSize\":10,\"defaultSamplingInterval\":500}"),
-				check.That(data.ResourceName).Key("default_topic_path").HasValue("/path/defaultTopic"),
-				check.That(data.ResourceName).Key("default_topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("default_topic.0.path").HasValue("/path/defaultTopic"),
+				check.That(data.ResourceName).Key("default_topic.0.retain").HasValue("Keep"),
 				check.That(data.ResourceName).Key("description").HasValue("this is my asset"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.#").HasValue("3"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.1").HasValue("bar"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.2").HasValue("baz"),
+				check.That(data.ResourceName).Key("discovered_asset_references.#").HasValue("3"),
+				check.That(data.ResourceName).Key("discovered_asset_references.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("discovered_asset_references.1").HasValue("bar"),
+				check.That(data.ResourceName).Key("discovered_asset_references.2").HasValue("baz"),
 				check.That(data.ResourceName).Key("documentation_uri").HasValue("https://example.com/about"),
 				check.That(data.ResourceName).Key("hardware_revision").HasValue("1.0"),
 				check.That(data.ResourceName).Key("manufacturer").HasValue("Contoso"),
@@ -113,8 +113,8 @@ func TestAccAsset_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("dataset.#").HasValue("1"),
 				check.That(data.ResourceName).Key("dataset.0.dataset_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
 				check.That(data.ResourceName).Key("dataset.0.name").HasValue("dataset1"),
-				check.That(data.ResourceName).Key("dataset.0.topic_path").HasValue("/path/dataset1"),
-				check.That(data.ResourceName).Key("dataset.0.topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("dataset.0.topic.0.path").HasValue("/path/dataset1"),
+				check.That(data.ResourceName).Key("dataset.0.topic.0.retain").HasValue("Keep"),
 				check.That(data.ResourceName).Key("dataset.0.data_point.#").HasValue("2"),
 				check.That(data.ResourceName).Key("dataset.0.data_point.0.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
 				check.That(data.ResourceName).Key("dataset.0.data_point.0.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"),
@@ -129,14 +129,14 @@ func TestAccAsset_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("event.0.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"),
 				check.That(data.ResourceName).Key("event.0.name").HasValue("event1"),
 				check.That(data.ResourceName).Key("event.0.observability_mode").HasValue("Log"),
-				check.That(data.ResourceName).Key("event.0.topic_path").HasValue("/path/event1"),
-				check.That(data.ResourceName).Key("event.0.topic_retain").HasValue("Never"),
+				check.That(data.ResourceName).Key("event.0.topic.0.path").HasValue("/path/event1"),
+				check.That(data.ResourceName).Key("event.0.topic.0.retain").HasValue("Never"),
 				check.That(data.ResourceName).Key("event.1.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
 				check.That(data.ResourceName).Key("event.1.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"),
 				check.That(data.ResourceName).Key("event.1.name").HasValue("event2"),
 				check.That(data.ResourceName).Key("event.1.observability_mode").HasValue("None"),
-				check.That(data.ResourceName).Key("event.1.topic_path").HasValue("/path/event2"),
-				check.That(data.ResourceName).Key("event.1.topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("event.1.topic.0.path").HasValue("/path/event2"),
+				check.That(data.ResourceName).Key("event.1.topic.0.retain").HasValue("Keep"),
 			),
 		},
 		data.ImportStep(),
@@ -198,7 +198,7 @@ func TestAccAsset_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("asset_endpoint_profile_ref").HasValue("myAssetEndpointProfile"),
+				check.That(data.ResourceName).Key("asset_endpoint_profile_reference").HasValue("myAssetEndpointProfile"),
 				check.That(data.ResourceName).Key("display_name").HasValue("my asset"),
 				check.That(data.ResourceName).Key("enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("external_asset_id").HasValue("8ZBA6LRHU0A458969"),
@@ -206,13 +206,13 @@ func TestAccAsset_update(t *testing.T) {
 				check.That(data.ResourceName).Key("attributes.x").HasValue("y"),
 				check.That(data.ResourceName).Key("default_datasets_configuration").HasValue("{\"defaultPublishingInterval\":200,\"defaultQueueSize\":10,\"defaultSamplingInterval\":500}"),
 				check.That(data.ResourceName).Key("default_events_configuration").HasValue("{\"defaultPublishingInterval\":200,\"defaultQueueSize\":10,\"defaultSamplingInterval\":500}"),
-				check.That(data.ResourceName).Key("default_topic_path").HasValue("/path/defaultTopic"),
-				check.That(data.ResourceName).Key("default_topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("default_topic.0.path").HasValue("/path/defaultTopic"),
+				check.That(data.ResourceName).Key("default_topic.0.retain").HasValue("Keep"),
 				check.That(data.ResourceName).Key("description").HasValue("this is my asset"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.#").HasValue("3"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.0").HasValue("foo"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.1").HasValue("bar"),
-				check.That(data.ResourceName).Key("discovered_asset_refs.2").HasValue("baz"),
+				check.That(data.ResourceName).Key("discovered_asset_references.#").HasValue("3"),
+				check.That(data.ResourceName).Key("discovered_asset_references.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("discovered_asset_references.1").HasValue("bar"),
+				check.That(data.ResourceName).Key("discovered_asset_references.2").HasValue("baz"),
 				check.That(data.ResourceName).Key("documentation_uri").HasValue("https://example.com/about"),
 				check.That(data.ResourceName).Key("hardware_revision").HasValue("1.0"),
 				check.That(data.ResourceName).Key("manufacturer").HasValue("Contoso"),
@@ -225,8 +225,8 @@ func TestAccAsset_update(t *testing.T) {
 				check.That(data.ResourceName).Key("dataset.#").HasValue("1"),
 				check.That(data.ResourceName).Key("dataset.0.dataset_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
 				check.That(data.ResourceName).Key("dataset.0.name").HasValue("dataset1"),
-				check.That(data.ResourceName).Key("dataset.0.topic_path").HasValue("/path/dataset1"),
-				check.That(data.ResourceName).Key("dataset.0.topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("dataset.0.topic.0.path").HasValue("/path/dataset1"),
+				check.That(data.ResourceName).Key("dataset.0.topic.0.retain").HasValue("Keep"),
 				check.That(data.ResourceName).Key("dataset.0.data_point.#").HasValue("2"),
 				check.That(data.ResourceName).Key("dataset.0.data_point.0.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
 				check.That(data.ResourceName).Key("dataset.0.data_point.0.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"),
@@ -241,14 +241,14 @@ func TestAccAsset_update(t *testing.T) {
 				check.That(data.ResourceName).Key("event.0.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"),
 				check.That(data.ResourceName).Key("event.0.name").HasValue("event1"),
 				check.That(data.ResourceName).Key("event.0.observability_mode").HasValue("Log"),
-				check.That(data.ResourceName).Key("event.0.topic_path").HasValue("/path/event1"),
-				check.That(data.ResourceName).Key("event.0.topic_retain").HasValue("Never"),
+				check.That(data.ResourceName).Key("event.0.topic.0.path").HasValue("/path/event1"),
+				check.That(data.ResourceName).Key("event.0.topic.0.retain").HasValue("Never"),
 				check.That(data.ResourceName).Key("event.1.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
 				check.That(data.ResourceName).Key("event.1.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"),
 				check.That(data.ResourceName).Key("event.1.name").HasValue("event2"),
 				check.That(data.ResourceName).Key("event.1.observability_mode").HasValue("None"),
-				check.That(data.ResourceName).Key("event.1.topic_path").HasValue("/path/event2"),
-				check.That(data.ResourceName).Key("event.1.topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("event.1.topic.0.path").HasValue("/path/event2"),
+				check.That(data.ResourceName).Key("event.1.topic.0.retain").HasValue("Keep"),
 			),
 		},
 		data.ImportStep(),
@@ -277,12 +277,12 @@ func (r AssetTestResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_device_registry_asset" "test" {
-  name                       = "acctest-asset-%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  extended_location_name     = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
-  extended_location_type     = "CustomLocation"
-  asset_endpoint_profile_ref = "myAssetEndpointProfile"
-  discovered_asset_refs = [
+  name                             = "acctest-asset-%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  extended_location_name           = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
+  extended_location_type           = "CustomLocation"
+  asset_endpoint_profile_reference = "myAssetEndpointProfile"
+  discovered_asset_references = [
     "foo",
     "bar",
     "baz",
@@ -304,15 +304,15 @@ func (r AssetTestResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_device_registry_asset" "test" {
-  name                       = "acctest-asset-%[2]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  extended_location_name     = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
-  extended_location_type     = "CustomLocation"
-  location                   = "%[3]s"
-  asset_endpoint_profile_ref = "myAssetEndpointProfile"
-  display_name               = "my asset"
-  enabled                    = true
-  external_asset_id          = "8ZBA6LRHU0A458969"
+  name                             = "acctest-asset-%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  extended_location_name           = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
+  extended_location_type           = "CustomLocation"
+  location                         = "%[3]s"
+  asset_endpoint_profile_reference = "myAssetEndpointProfile"
+  display_name                     = "my asset"
+  enabled                          = true
+  external_asset_id                = "8ZBA6LRHU0A458969"
   attributes = {
     "foo" = "bar"
     "x"   = "y"
@@ -331,10 +331,12 @@ resource "azurerm_device_registry_asset" "test" {
       defaultSamplingInterval   = 500
     }
   )
-  default_topic_path   = "/path/defaultTopic"
-  default_topic_retain = "Keep"
-  description          = "this is my asset"
-  discovered_asset_refs = [
+  default_topic {
+    path   = "/path/defaultTopic"
+    retain = "Keep"
+  }
+  description = "this is my asset"
+  discovered_asset_references = [
     "foo",
     "bar",
     "baz",
@@ -359,9 +361,11 @@ resource "azurerm_device_registry_asset" "test" {
         samplingInterval   = 1000
       }
     )
-    name         = "dataset1"
-    topic_path   = "/path/dataset1"
-    topic_retain = "Keep"
+    name = "dataset1"
+    topic {
+      path   = "/path/dataset1"
+      retain = "Keep"
+    }
 
     data_point {
       data_point_configuration = jsonencode(
@@ -400,8 +404,10 @@ resource "azurerm_device_registry_asset" "test" {
     event_notifier     = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"
     name               = "event1"
     observability_mode = "Log"
-    topic_path         = "/path/event1"
-    topic_retain       = "Never"
+    topic {
+      path   = "/path/event1"
+      retain = "Never"
+    }
   }
   event {
     event_configuration = jsonencode(
@@ -414,8 +420,10 @@ resource "azurerm_device_registry_asset" "test" {
     event_notifier     = "nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"
     name               = "event2"
     observability_mode = "None"
-    topic_path         = "/path/event2"
-    topic_retain       = "Keep"
+    topic {
+      path   = "/path/event2"
+      retain = "Keep"
+    }
   }
   depends_on = [
     azurerm_linux_virtual_machine.test
@@ -430,15 +438,15 @@ func (r AssetTestResource) requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_device_registry_asset" "import" {
-  name                       = azurerm_device_registry_asset.test.name
-  resource_group_name        = azurerm_device_registry_asset.test.resource_group_name
-  extended_location_name     = azurerm_device_registry_asset.test.extended_location_name
-  extended_location_type     = azurerm_device_registry_asset.test.extended_location_type
-  asset_endpoint_profile_ref = azurerm_device_registry_asset.test.asset_endpoint_profile_ref
-  display_name               = azurerm_device_registry_asset.test.display_name
-  enabled                    = azurerm_device_registry_asset.test.enabled
-  external_asset_id          = azurerm_device_registry_asset.test.external_asset_id
-  location                   = azurerm_device_registry_asset.test.location
+  name                             = azurerm_device_registry_asset.test.name
+  resource_group_name              = azurerm_device_registry_asset.test.resource_group_name
+  extended_location_name           = azurerm_device_registry_asset.test.extended_location_name
+  extended_location_type           = azurerm_device_registry_asset.test.extended_location_type
+  asset_endpoint_profile_reference = azurerm_device_registry_asset.test.asset_endpoint_profile_reference
+  display_name                     = azurerm_device_registry_asset.test.display_name
+  enabled                          = azurerm_device_registry_asset.test.enabled
+  external_asset_id                = azurerm_device_registry_asset.test.external_asset_id
+  location                         = azurerm_device_registry_asset.test.location
   depends_on = [
     azurerm_linux_virtual_machine.test
   ]
