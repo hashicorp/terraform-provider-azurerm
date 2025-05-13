@@ -168,3 +168,9 @@ Container Registry Credential Sets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry_credential_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerRegistry/registries/registry1/credentialSets/credentialSet1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry`: 2023-07-01

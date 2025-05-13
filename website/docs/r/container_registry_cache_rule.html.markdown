@@ -76,3 +76,9 @@ Container Registry Cache Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry_cache_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.ContainerRegistry/registries/myRegistry/cacheRules/myCacheRule
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry`: 2023-07-01
