@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -199,7 +198,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							},
 						},
 
-						"protocols": { // protocol or protocols? If only singular probably the former
+						"protocols_enabled": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -410,26 +409,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 			return nil
 		},
-	}
-
-	if !features.FivePointOh() {
-		epr := resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource)
-		epr.Schema["protocols_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			MinItems: 1,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					"NFSv3",
-					"NFSv4.1",
-					"CIFS",
-				}, false),
-			},
-		}
-		epr.Schema["protocols"] = &pluginsdk.Schema{}
 	}
 
 	return resource
@@ -1067,6 +1046,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			cifsEnabled := false
 			nfsv3Enabled := false
 			nfsv41Enabled := false
+
 			if vpe := v["protocols_enabled"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {

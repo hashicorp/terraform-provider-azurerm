@@ -168,7 +168,7 @@ The following arguments are supported:
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
-* `snapshot_directory_visible` - (Optional) Specifies whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible. Defaults to `true`.
+* `snapshot_directory_visible` - (Optional) Specifies whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible, default value is true.
 
 * `create_from_snapshot_resource_id` - (Optional) Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name`, `account_name` and `pool_name`. Changing this forces a new resource to be created.
 
@@ -184,7 +184,7 @@ The following arguments are supported:
 
 * `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`. Changing this forces a new resource to be created.
 
-* `kerberos_enabled` - (Optional) Enable to allow Kerberos secured volumes. Requires appropriate export rules. Changing this forces a new resource to be created.
+* `kerberos_enabled` - (Optional) Enable to allow Kerberos secured volumes. Requires appropriate export rules.
 
 ~> **Note:** `kerberos_enabled` requires that the parent `azurerm_netapp_account` has a *valid* AD connection defined. If the configuration is invalid, the volume will still be created but in a failed state. This requires manually deleting the volume and recreating it again via Terraform once the AD configuration has been corrected.
 
@@ -194,9 +194,9 @@ The following arguments are supported:
 
 * `smb_access_based_enumeration_enabled` - (Optional) Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share. For instance, if a user doesn't have access to read a file or folder in a share with access-based enumeration enabled, then the file or folder doesn't show up in directory listings. Defaults to `false`. For more information, please refer to [Understand NAS share permissions in Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/network-attached-storage-permissions#:~:text=security%20for%20administrators.-,Access%2Dbased%20enumeration,in%20an%20Azure%20NetApp%20Files%20SMB%20volume.%20Only%20contosoadmin%20has%20access.,-In%20the%20below)
 
-* `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability. Changing this forces a new resource to be created.
+* `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability.
 
-* `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption. Changing this forces a new resource to be created.
+* `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -210,7 +210,7 @@ An `export_policy_rule` block supports the following:
 
 * `allowed_clients` - (Required) A list of allowed clients IPv4 addresses.
 
-* `protocols` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
+* `protocols_enabled` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
 
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
@@ -282,10 +282,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the NetApp Volume.
-* `update` - (Defaults to 60 minutes) Used when updating the NetApp Volume.
+* `create` - (Defaults to 1 hour) Used when creating the NetApp Volume.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.
-* `delete` - (Defaults to 60 minutes) Used when deleting the NetApp Volume.
+* `update` - (Defaults to 1 hour) Used when updating the NetApp Volume.
+* `delete` - (Defaults to 1 hour) Used when deleting the NetApp Volume.
 
 ## Import
 
