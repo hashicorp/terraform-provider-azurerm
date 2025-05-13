@@ -179,3 +179,9 @@ API Management Diagnostics can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_diagnostic.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/diagnostics/applicationinsights
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement`: 2022-08-01

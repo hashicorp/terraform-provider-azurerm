@@ -77,3 +77,9 @@ API Management Groups can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/groups/example-apimg
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement`: 2022-08-01

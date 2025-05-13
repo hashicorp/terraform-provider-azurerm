@@ -95,3 +95,9 @@ API Management API Schema's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_api_tag_description.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/tagDescriptions/tagDescriptionId1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement`: 2022-08-01
