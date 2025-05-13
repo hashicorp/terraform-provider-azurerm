@@ -504,7 +504,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	// Validate applicability of backup policies
 	if dataProtectionReplication != nil && dataProtectionReplication.Backup != nil {
 		// Validate that backup policies are not being enforced in a data protection replication destination volume
-		if strings.EqualFold(volumeType, "dst") && dataProtectionReplication.Backup.PolicyEnforced == pointer.To(true) {
+		if strings.EqualFold(volumeType, "dst") && dataProtectionReplication.Backup.PolicyEnforced == utils.Bool(true) {
 			return fmt.Errorf("backup policy cannot be enforced on a data protection destination volume, NetApp Volume %q (Resource Group %q)", id.VolumeName, id.ResourceGroupName)
 		}
 	}
@@ -595,22 +595,22 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			SecurityStyle:             &securityStyle,
 			UsageThreshold:            storageQuotaInGB,
 			ExportPolicy:              exportPolicyRule,
-			VolumeType:                pointer.To(volumeType),
-			SnapshotId:                pointer.To(snapshotID),
+			VolumeType:                utils.String(volumeType),
+			SnapshotId:                utils.String(snapshotID),
 			DataProtection: &volumes.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 				Backup:      dataProtectionBackupPolicy.Backup,
 			},
 			AvsDataStore:             &avsDataStoreEnabled,
-			SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
+			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
 	}
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
-		parameters.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
+		parameters.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
 	if encryptionKeySource, ok := d.GetOk("encryption_key_source"); ok {
@@ -644,7 +644,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, *replVolID, volumesreplication.AuthorizeRequest{
-			RemoteVolumeResourceId: pointer.To(id.ID()),
+			RemoteVolumeResourceId: utils.String(id.ID()),
 		},
 		); err != nil {
 			return fmt.Errorf("cannot authorize volume replication: %v", err)
@@ -688,7 +688,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("storage_quota_in_gb") {
 		storageQuotaInBytes := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
-		update.Properties.UsageThreshold = pointer.To(storageQuotaInBytes)
+		update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
 	}
 
 	if d.HasChange("export_policy_rule") {
@@ -733,7 +733,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("throughput_in_mibps") {
 		throughputMibps := d.Get("throughput_in_mibps")
-		update.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
+		update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
@@ -939,7 +939,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 				// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
 				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
 				if _, err = replicationClient.VolumesBreakReplication(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
-					ForceBreakReplication: pointer.To(true),
+					ForceBreakReplication: utils.Bool(true),
 				}); err != nil {
 					return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
 				}
@@ -978,7 +978,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 					Properties: &volumes.VolumePatchProperties{
 						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
 							Backup: &volumes.VolumeBackupProperties{
-								PolicyEnforced: pointer.To(false),
+								PolicyEnforced: utils.Bool(false),
 							},
 						},
 					},
@@ -1023,7 +1023,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// Deleting volume and waiting for it fo fully complete the operation
 	if err = client.DeleteThenPoll(ctx, *id, volumes.DeleteOperationOptions{
-		ForceDelete: pointer.To(true),
+		ForceDelete: utils.Bool(true),
 	}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -1076,20 +1076,20 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			kerberos5prw := v["kerberos_5p_read_write_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients:      pointer.To(allowedClients),
-				Cifs:                pointer.To(cifsEnabled),
-				Nfsv3:               pointer.To(nfsv3Enabled),
-				Nfsv41:              pointer.To(nfsv41Enabled),
-				Kerberos5ReadOnly:   pointer.To(kerberos5ro),
-				Kerberos5ReadWrite:  pointer.To(kerberos5rw),
-				Kerberos5iReadOnly:  pointer.To(kerberos5iro),
-				Kerberos5iReadWrite: pointer.To(kerberos5irw),
-				Kerberos5pReadOnly:  pointer.To(kerberos5pro),
-				Kerberos5pReadWrite: pointer.To(kerberos5prw),
-				RuleIndex:           pointer.To(ruleIndex),
-				UnixReadOnly:        pointer.To(unixReadOnly),
-				UnixReadWrite:       pointer.To(unixReadWrite),
-				HasRootAccess:       pointer.To(rootAccessEnabled),
+				AllowedClients:      utils.String(allowedClients),
+				Cifs:                utils.Bool(cifsEnabled),
+				Nfsv3:               utils.Bool(nfsv3Enabled),
+				Nfsv41:              utils.Bool(nfsv41Enabled),
+				Kerberos5ReadOnly:   utils.Bool(kerberos5ro),
+				Kerberos5ReadWrite:  utils.Bool(kerberos5rw),
+				Kerberos5iReadOnly:  utils.Bool(kerberos5iro),
+				Kerberos5iReadWrite: utils.Bool(kerberos5irw),
+				Kerberos5pReadOnly:  utils.Bool(kerberos5pro),
+				Kerberos5pReadWrite: utils.Bool(kerberos5prw),
+				RuleIndex:           utils.Int64(ruleIndex),
+				UnixReadOnly:        utils.Bool(unixReadOnly),
+				UnixReadWrite:       utils.Bool(unixReadWrite),
+				HasRootAccess:       utils.Bool(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -1136,14 +1136,14 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients: pointer.To(allowedClients),
-				Cifs:           pointer.To(cifsEnabled),
-				Nfsv3:          pointer.To(nfsv3Enabled),
-				Nfsv41:         pointer.To(nfsv41Enabled),
-				RuleIndex:      pointer.To(ruleIndex),
-				UnixReadOnly:   pointer.To(unixReadOnly),
-				UnixReadWrite:  pointer.To(unixReadWrite),
-				HasRootAccess:  pointer.To(rootAccessEnabled),
+				AllowedClients: utils.String(allowedClients),
+				Cifs:           utils.Bool(cifsEnabled),
+				Nfsv3:          utils.Bool(nfsv3Enabled),
+				Nfsv41:         utils.Bool(nfsv41Enabled),
+				RuleIndex:      utils.Int64(ruleIndex),
+				UnixReadOnly:   utils.Bool(unixReadOnly),
+				UnixReadWrite:  utils.Bool(unixReadWrite),
+				HasRootAccess:  utils.Bool(rootAccessEnabled),
 			}
 
 			results = append(results, result)
