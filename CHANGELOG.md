@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `azurerm_app_configuration` - the `sku` property can now be downgraded from `premium` to `standard` without recreating the resource [GH-29492]
 * `azurerm_netapp_pool` - add support for `cool_access_enabled` [GH-29468]
 * `azurerm_network_manager_deployment` - add support for the `Routing` value in the `scope_access` property [GH-29536]
+* `key_vault_managed_hardware_security_module_key` - add support for the `import` value in the `key_opts` property [GH-29524]
 
 BUG FIXES:
 
