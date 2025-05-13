@@ -207,3 +207,9 @@ NGINX Deployments can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_nginx_deployment.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/dep1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Nginx.NginxPlus`: 2024-11-01-preview
