@@ -15,6 +15,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+const (
+	AssestExtendedLocationTypeCustomLocation = "CustomLocation"
+)
+
 var _ sdk.Resource = AssetResource{}
 
 type AssetResource struct{}
@@ -45,8 +49,8 @@ type AssetResourceModel struct {
 	DefaultEventsConfiguration   string                 `tfschema:"default_events_configuration"`
 	DefaultTopicPath             string                 `tfschema:"default_topic_path"`
 	DefaultTopicRetain           string                 `tfschema:"default_topic_retain"`
-	Datasets                     []Dataset              `tfschema:"datasets"`
-	Events                       []Event                `tfschema:"events"`
+	Datasets                     []Dataset              `tfschema:"dataset"`
+	Events                       []Event                `tfschema:"event"`
 }
 
 type Dataset struct {
@@ -54,7 +58,7 @@ type Dataset struct {
 	DatasetConfiguration string      `tfschema:"dataset_configuration"`
 	TopicPath            string      `tfschema:"topic_path"`
 	TopicRetain          string      `tfschema:"topic_retain"`
-	DataPoints           []DataPoint `tfschema:"data_points"`
+	DataPoints           []DataPoint `tfschema:"data_point"`
 }
 
 type DataPoint struct {
@@ -176,7 +180,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
 			RequiredWith: []string{"default_topic_path"},
 		},
-		"datasets": {
+		"dataset": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -198,7 +202,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 						Optional:     true,
 						ValidateFunc: validation.StringInSlice(assets.PossibleValuesForTopicRetainType(), false),
 					},
-					"data_points": {
+					"data_point": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -227,7 +231,7 @@ func (AssetResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"events": {
+		"event": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -378,11 +382,11 @@ func (r AssetResource) Create() sdk.ResourceFunc {
 				param.Properties.DefaultEventsConfiguration = pointer.To(config.DefaultEventsConfiguration)
 			}
 
-			param.Properties.DefaultTopic = toAzureTopic(config.DefaultTopicPath, config.DefaultTopicRetain)
+			param.Properties.DefaultTopic = expandTopic(config.DefaultTopicPath, config.DefaultTopicRetain)
 
-			param.Properties.Datasets = toAzureDatasets(config.Datasets)
+			param.Properties.Datasets = expandDatasets(config.Datasets)
 
-			param.Properties.Events = toAzureEvents(config.Events)
+			param.Properties.Events = expandEvents(config.Events)
 
 			if err := client.CreateOrReplaceThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -424,7 +428,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("datasets") {
-				param.Properties.Datasets = toAzureDatasets(config.Datasets)
+				param.Properties.Datasets = expandDatasets(config.Datasets)
 			}
 
 			if metadata.ResourceData.HasChange("default_datasets_configuration") {
@@ -467,7 +471,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("events") {
-				param.Properties.Events = toAzureEvents(config.Events)
+				param.Properties.Events = expandEvents(config.Events)
 			}
 
 			if metadata.ResourceData.HasChange("hardware_revision") {
@@ -557,15 +561,15 @@ func (AssetResource) Read() sdk.ResourceFunc {
 					state.DefaultEventsConfiguration = pointer.From(props.DefaultEventsConfiguration)
 
 					if defaultTopic := props.DefaultTopic; defaultTopic != nil {
-						state.DefaultTopicPath, state.DefaultTopicRetain = toTFTopic(props.DefaultTopic)
+						state.DefaultTopicPath, state.DefaultTopicRetain = flattenTopic(props.DefaultTopic)
 					}
 
 					if datasets := props.Datasets; datasets != nil {
-						state.Datasets = toTFDatasets(datasets)
+						state.Datasets = flattenDatasets(datasets)
 					}
 
 					if events := props.Events; events != nil {
-						state.Events = toTFEvents(events)
+						state.Events = flattenEvents(events)
 					}
 				}
 			}
@@ -598,7 +602,7 @@ func (AssetResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return assets.ValidateAssetID
 }
 
-func toAzureDatasets(datasets []Dataset) *[]assets.Dataset {
+func expandDatasets(datasets []Dataset) *[]assets.Dataset {
 	if datasets == nil {
 		return nil
 	}
@@ -608,15 +612,15 @@ func toAzureDatasets(datasets []Dataset) *[]assets.Dataset {
 		azureDatasets[i] = assets.Dataset{
 			Name:                 dataset.Name,
 			DatasetConfiguration: pointer.To(dataset.DatasetConfiguration),
-			Topic:                toAzureTopic(dataset.TopicPath, dataset.TopicRetain),
-			DataPoints:           toAzureDataPoints(dataset.DataPoints),
+			Topic:                expandTopic(dataset.TopicPath, dataset.TopicRetain),
+			DataPoints:           expandDataPoints(dataset.DataPoints),
 		}
 	}
 
 	return &azureDatasets
 }
 
-func toAzureDataPoints(dataPoints []DataPoint) *[]assets.DataPoint {
+func expandDataPoints(dataPoints []DataPoint) *[]assets.DataPoint {
 	if dataPoints == nil {
 		return nil
 	}
@@ -634,7 +638,7 @@ func toAzureDataPoints(dataPoints []DataPoint) *[]assets.DataPoint {
 	return &azureDataPoints
 }
 
-func toAzureEvents(events []Event) *[]assets.Event {
+func expandEvents(events []Event) *[]assets.Event {
 	if events == nil {
 		return nil
 	}
@@ -646,14 +650,14 @@ func toAzureEvents(events []Event) *[]assets.Event {
 			EventNotifier:      event.EventNotifier,
 			EventConfiguration: pointer.To(event.EventConfiguration),
 			ObservabilityMode:  pointer.To(assets.EventObservabilityMode(event.ObservabilityMode)),
-			Topic:              toAzureTopic(event.TopicPath, event.TopicRetain),
+			Topic:              expandTopic(event.TopicPath, event.TopicRetain),
 		}
 	}
 
 	return &azureEvents
 }
 
-func toAzureTopic(topicPath string, topicRetain string) *assets.Topic {
+func expandTopic(topicPath string, topicRetain string) *assets.Topic {
 	if topicPath == "" && topicRetain == "" {
 		return nil
 	}
@@ -670,18 +674,18 @@ func toAzureTopic(topicPath string, topicRetain string) *assets.Topic {
 	return &azureTopic
 }
 
-func toTFDatasets(datasets *[]assets.Dataset) []Dataset {
+func flattenDatasets(datasets *[]assets.Dataset) []Dataset {
 	if datasets == nil {
 		return nil
 	}
 
 	tfDatasets := make([]Dataset, len(*datasets))
 	for i, dataset := range *datasets {
-		topicPath, topicRetain := toTFTopic(dataset.Topic)
+		topicPath, topicRetain := flattenTopic(dataset.Topic)
 		tfDatasets[i] = Dataset{
 			Name:                 dataset.Name,
 			DatasetConfiguration: pointer.From(dataset.DatasetConfiguration),
-			DataPoints:           toTFDataPoints(dataset.DataPoints),
+			DataPoints:           flattenDataPoints(dataset.DataPoints),
 			TopicPath:            topicPath,
 			TopicRetain:          topicRetain,
 		}
@@ -690,7 +694,7 @@ func toTFDatasets(datasets *[]assets.Dataset) []Dataset {
 	return tfDatasets
 }
 
-func toTFDataPoints(dataPoints *[]assets.DataPoint) []DataPoint {
+func flattenDataPoints(dataPoints *[]assets.DataPoint) []DataPoint {
 	if dataPoints == nil {
 		return nil
 	}
@@ -708,14 +712,14 @@ func toTFDataPoints(dataPoints *[]assets.DataPoint) []DataPoint {
 	return tfDataPoints
 }
 
-func toTFEvents(events *[]assets.Event) []Event {
+func flattenEvents(events *[]assets.Event) []Event {
 	if events == nil {
 		return nil
 	}
 
 	tfEvents := make([]Event, len(*events))
 	for i, event := range *events {
-		topicPath, topicRetain := toTFTopic(event.Topic)
+		topicPath, topicRetain := flattenTopic(event.Topic)
 		tfEvents[i] = Event{
 			Name:               event.Name,
 			EventNotifier:      event.EventNotifier,
@@ -729,7 +733,7 @@ func toTFEvents(events *[]assets.Event) []Event {
 	return tfEvents
 }
 
-func toTFTopic(topic *assets.Topic) (string, string) {
+func flattenTopic(topic *assets.Topic) (string, string) {
 	if topic == nil {
 		return "", ""
 	}

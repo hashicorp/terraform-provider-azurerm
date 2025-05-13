@@ -110,33 +110,33 @@ func TestAccAsset_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("serial_number").HasValue("64-103816-519918-8"),
 				check.That(data.ResourceName).Key("software_revision").HasValue("2.0"),
 				check.That(data.ResourceName).Key("tags.site").HasValue("building-1"),
-				check.That(data.ResourceName).Key("datasets.#").HasValue("1"),
-				check.That(data.ResourceName).Key("datasets.0.dataset_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("datasets.0.name").HasValue("dataset1"),
-				check.That(data.ResourceName).Key("datasets.0.topic_path").HasValue("/path/dataset1"),
-				check.That(data.ResourceName).Key("datasets.0.topic_retain").HasValue("Keep"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.#").HasValue("2"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.0.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.0.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.0.name").HasValue("datapoint1"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.0.observability_mode").HasValue("Counter"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.1.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.1.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.1.name").HasValue("datapoint2"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.1.observability_mode").HasValue("None"),
-				check.That(data.ResourceName).Key("events.#").HasValue("2"),
-				check.That(data.ResourceName).Key("events.0.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("events.0.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"),
-				check.That(data.ResourceName).Key("events.0.name").HasValue("event1"),
-				check.That(data.ResourceName).Key("events.0.observability_mode").HasValue("Log"),
-				check.That(data.ResourceName).Key("events.0.topic_path").HasValue("/path/event1"),
-				check.That(data.ResourceName).Key("events.0.topic_retain").HasValue("Never"),
-				check.That(data.ResourceName).Key("events.1.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("events.1.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"),
-				check.That(data.ResourceName).Key("events.1.name").HasValue("event2"),
-				check.That(data.ResourceName).Key("events.1.observability_mode").HasValue("None"),
-				check.That(data.ResourceName).Key("events.1.topic_path").HasValue("/path/event2"),
-				check.That(data.ResourceName).Key("events.1.topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("dataset.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dataset.0.dataset_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("dataset.0.name").HasValue("dataset1"),
+				check.That(data.ResourceName).Key("dataset.0.topic_path").HasValue("/path/dataset1"),
+				check.That(data.ResourceName).Key("dataset.0.topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.#").HasValue("2"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.0.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.0.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.0.name").HasValue("datapoint1"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.0.observability_mode").HasValue("Counter"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.1.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.1.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.1.name").HasValue("datapoint2"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.1.observability_mode").HasValue("None"),
+				check.That(data.ResourceName).Key("event.#").HasValue("2"),
+				check.That(data.ResourceName).Key("event.0.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("event.0.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"),
+				check.That(data.ResourceName).Key("event.0.name").HasValue("event1"),
+				check.That(data.ResourceName).Key("event.0.observability_mode").HasValue("Log"),
+				check.That(data.ResourceName).Key("event.0.topic_path").HasValue("/path/event1"),
+				check.That(data.ResourceName).Key("event.0.topic_retain").HasValue("Never"),
+				check.That(data.ResourceName).Key("event.1.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("event.1.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"),
+				check.That(data.ResourceName).Key("event.1.name").HasValue("event2"),
+				check.That(data.ResourceName).Key("event.1.observability_mode").HasValue("None"),
+				check.That(data.ResourceName).Key("event.1.topic_path").HasValue("/path/event2"),
+				check.That(data.ResourceName).Key("event.1.topic_retain").HasValue("Keep"),
 			),
 		},
 		data.ImportStep(),
@@ -222,33 +222,33 @@ func TestAccAsset_update(t *testing.T) {
 				check.That(data.ResourceName).Key("serial_number").HasValue("64-103816-519918-8"),
 				check.That(data.ResourceName).Key("software_revision").HasValue("2.0"),
 				check.That(data.ResourceName).Key("tags.site").HasValue("building-1"),
-				check.That(data.ResourceName).Key("datasets.#").HasValue("1"),
-				check.That(data.ResourceName).Key("datasets.0.dataset_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("datasets.0.name").HasValue("dataset1"),
-				check.That(data.ResourceName).Key("datasets.0.topic_path").HasValue("/path/dataset1"),
-				check.That(data.ResourceName).Key("datasets.0.topic_retain").HasValue("Keep"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.#").HasValue("2"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.0.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.0.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.0.name").HasValue("datapoint1"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.0.observability_mode").HasValue("Counter"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.1.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.1.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.1.name").HasValue("datapoint2"),
-				check.That(data.ResourceName).Key("datasets.0.data_points.1.observability_mode").HasValue("None"),
-				check.That(data.ResourceName).Key("events.#").HasValue("2"),
-				check.That(data.ResourceName).Key("events.0.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("events.0.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"),
-				check.That(data.ResourceName).Key("events.0.name").HasValue("event1"),
-				check.That(data.ResourceName).Key("events.0.observability_mode").HasValue("Log"),
-				check.That(data.ResourceName).Key("events.0.topic_path").HasValue("/path/event1"),
-				check.That(data.ResourceName).Key("events.0.topic_retain").HasValue("Never"),
-				check.That(data.ResourceName).Key("events.1.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
-				check.That(data.ResourceName).Key("events.1.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"),
-				check.That(data.ResourceName).Key("events.1.name").HasValue("event2"),
-				check.That(data.ResourceName).Key("events.1.observability_mode").HasValue("None"),
-				check.That(data.ResourceName).Key("events.1.topic_path").HasValue("/path/event2"),
-				check.That(data.ResourceName).Key("events.1.topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("dataset.#").HasValue("1"),
+				check.That(data.ResourceName).Key("dataset.0.dataset_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("dataset.0.name").HasValue("dataset1"),
+				check.That(data.ResourceName).Key("dataset.0.topic_path").HasValue("/path/dataset1"),
+				check.That(data.ResourceName).Key("dataset.0.topic_retain").HasValue("Keep"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.#").HasValue("2"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.0.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.0.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt1"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.0.name").HasValue("datapoint1"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.0.observability_mode").HasValue("Counter"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.1.data_point_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.1.data_source").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt2"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.1.name").HasValue("datapoint2"),
+				check.That(data.ResourceName).Key("dataset.0.data_point.1.observability_mode").HasValue("None"),
+				check.That(data.ResourceName).Key("event.#").HasValue("2"),
+				check.That(data.ResourceName).Key("event.0.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("event.0.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt3"),
+				check.That(data.ResourceName).Key("event.0.name").HasValue("event1"),
+				check.That(data.ResourceName).Key("event.0.observability_mode").HasValue("Log"),
+				check.That(data.ResourceName).Key("event.0.topic_path").HasValue("/path/event1"),
+				check.That(data.ResourceName).Key("event.0.topic_retain").HasValue("Never"),
+				check.That(data.ResourceName).Key("event.1.event_configuration").HasValue("{\"publishingInterval\":7,\"queueSize\":8,\"samplingInterval\":1000}"),
+				check.That(data.ResourceName).Key("event.1.event_notifier").HasValue("nsu=http://microsoft.com/Opc/OpcPlc/;s=FastUInt4"),
+				check.That(data.ResourceName).Key("event.1.name").HasValue("event2"),
+				check.That(data.ResourceName).Key("event.1.observability_mode").HasValue("None"),
+				check.That(data.ResourceName).Key("event.1.topic_path").HasValue("/path/event2"),
+				check.That(data.ResourceName).Key("event.1.topic_retain").HasValue("Keep"),
 			),
 		},
 		data.ImportStep(),
@@ -351,7 +351,7 @@ resource "azurerm_device_registry_asset" "test" {
     "site" = "building-1"
   }
 
-  datasets {
+  dataset {
     dataset_configuration = jsonencode(
       {
         publishingInterval = 7
@@ -363,7 +363,7 @@ resource "azurerm_device_registry_asset" "test" {
     topic_path   = "/path/dataset1"
     topic_retain = "Keep"
 
-    data_points {
+    data_point {
       data_point_configuration = jsonencode(
         {
           publishingInterval = 7
@@ -375,7 +375,7 @@ resource "azurerm_device_registry_asset" "test" {
       name               = "datapoint1"
       observability_mode = "Counter"
     }
-    data_points {
+    data_point {
       data_point_configuration = jsonencode(
         {
           publishingInterval = 7
@@ -389,7 +389,7 @@ resource "azurerm_device_registry_asset" "test" {
     }
   }
 
-  events {
+  event {
     event_configuration = jsonencode(
       {
         publishingInterval = 7
@@ -403,7 +403,7 @@ resource "azurerm_device_registry_asset" "test" {
     topic_path         = "/path/event1"
     topic_retain       = "Never"
   }
-  events {
+  event {
     event_configuration = jsonencode(
       {
         publishingInterval = 7
