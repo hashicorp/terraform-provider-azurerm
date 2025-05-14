@@ -858,10 +858,6 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			//if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-			//	return err
-			//}
-
 			if err := pluginsdk.SetResourceIdentityDataDiscriminatedType(metadata.ResourceData, id, r.DiscriminatedType()); err != nil {
 				return err
 			}
