@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `scopes` - (Optional) A list of scopes to which this component applies.
 
-~> **NOTE:** See the official docs for more information at https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#component-scopes
+~> **Note:** See the official docs for more information at https://learn.microsoft.com/en-us/azure/container-apps/dapr-overview?tabs=bicep1%2Cyaml#component-scopes
 
 * `secret` - (Optional) A `secret` block as detailed below.
 
@@ -97,8 +97,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment Dapr Component.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Dapr Component.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment Dapr Component.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Dapr Component.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment Dapr Component.
 
 ## Import

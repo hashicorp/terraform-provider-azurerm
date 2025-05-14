@@ -148,6 +148,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Service Bus Namespace Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Namespace Customer Managed Key.
 * `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace Customer Managed Key.
+* `delete` - (Defaults to 5 minutes) Used when deleting the Service Bus Namespace Customer Managed Key.
 
 ## Import
 

@@ -9,7 +9,7 @@ description: |-
 
 Manages a Azure Machine Learning Workspace
 
-~> **NOTE:** For examples on how to set up the Azure Machine Learning workspace, together with compute and integrated services, see [Terraform Quickstart](https://github.com/Azure/terraform/tree/master/quickstart)
+~> **Note:** For examples on how to set up the Azure Machine Learning workspace, together with compute and integrated services, see [Terraform Quickstart](https://github.com/Azure/terraform/tree/master/quickstart)
 
 ## Example Usage
 
@@ -64,7 +64,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 
 ## Example Usage with Data encryption
 
-~> **NOTE:** The Key Vault must enable purge protection.
+~> **Note:** The Key Vault must enable purge protection.
 
 ```hcl
 provider "azurerm" {
@@ -158,7 +158,7 @@ resource "azurerm_machine_learning_workspace" "example" {
 
 ## Example Usage with User Assigned Identity and Data Encryption
 
-~> **NOTE:** The Key Vault must enable purge protection.
+~> **Note:** The Key Vault must enable purge protection.
 
 ```hcl
 provider "azurerm" {
@@ -354,7 +354,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
--> **NOTE:** The `account_tier` cannot be `Premium` in order to associate the Storage Account to this Machine Learning Workspace.
+-> **Note:** The `account_tier` cannot be `Premium` in order to associate the Storage Account to this Machine Learning Workspace.
 
 * `identity` - (Required) An `identity` block as defined below.
 
@@ -362,11 +362,11 @@ The following arguments are supported:
 
 * `container_registry_id` - (Optional) The ID of the container registry associated with this Machine Learning Workspace. Changing this forces a new resource to be created.
 
--> **NOTE:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
+-> **Note:** The `admin_enabled` should be `true` in order to associate the Container Registry to this Machine Learning Workspace.
 
 * `public_network_access_enabled` - (Optional) Enable public access when this Machine Learning Workspace is behind VNet. Defaults to `true`.
 
-~> **NOTE:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
+~> **Note:** `public_access_behind_virtual_network_enabled` is deprecated and will be removed in favour of the property `public_network_access_enabled`.
 
 * `image_build_compute_name` - (Optional) The compute name for image build of the Machine Learning Workspace.
 
@@ -400,7 +400,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Workspace.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -466,8 +466,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace.
 
 ## Import

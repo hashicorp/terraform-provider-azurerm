@@ -109,7 +109,7 @@ A `rule` block supports the following:
 
 * `source_ip_groups` - (Optional) A list of source IP Group IDs for the rule.
 
--> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
+-> **Note:** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
 * `fqdn_tags` - (Optional) A list of FQDN tags. Possible values are `AppServiceEnvironment`, `AzureBackup`, `AzureKubernetesService`, `HDInsight`, `MicrosoftActiveProtectionService`, `WindowsDiagnostics`, `WindowsUpdate` and `WindowsVirtualDesktop`.
 
@@ -130,8 +130,8 @@ A `protocol` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Application Rule Collection.
-* `update` - (Defaults to 30 minutes) Used when updating the Firewall Application Rule Collection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Application Rule Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Firewall Application Rule Collection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Firewall Application Rule Collection.
 
 ## Import

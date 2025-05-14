@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `source_vm_id` - (Optional) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
 
-~> **NOTE:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource.
+~> **Note:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource.
 This allows the source vm to be deleted without having to remove the backup.
 
 * `backup_policy_id` - (Optional) Specifies the id of the backup policy to use. Required in creation or when `protection_stopped` is not specified.
@@ -83,9 +83,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 120 minutes) Used when creating the Backup Protected Virtual Machine.
-* `update` - (Defaults to 120 minutes) Used when updating the Backup Protected Virtual Machine.
+* `create` - (Defaults to 2 hours) Used when creating the Backup Protected Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Protected Virtual Machine.
+* `update` - (Defaults to 2 hours) Used when updating the Backup Protected Virtual Machine.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Backup Protected Virtual Machine.
 
 ## Import

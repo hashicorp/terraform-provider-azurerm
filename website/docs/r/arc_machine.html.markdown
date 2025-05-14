@@ -76,10 +76,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Arc Machine.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Arc Machine.
-* `update` - (Defaults to 30 minutes) Used when updating this Arc Machine.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Arc Machine.
+* `create` - (Defaults to 30 minutes) Used when creating the Arc Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Arc Machine.
+* `update` - (Defaults to 30 minutes) Used when updating the Arc Machine.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Arc Machine.
 
 ## Import
 

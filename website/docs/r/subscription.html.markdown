@@ -10,15 +10,15 @@ description: |-
 
 Manages an Alias for a Subscription - which adds an Alias to an existing Subscription, allowing it to be managed in Terraform - or create a new Subscription with a new Alias.
 
-~> **NOTE:** Destroying a Subscription controlled by this resource will place the Subscription into a cancelled state. It is possible to re-activate a subscription within 90-days of cancellation, after which time the Subscription is irrevocably deleted, and the Subscription ID cannot be re-used. For further information see [here](https://docs.microsoft.com/azure/cost-management-billing/manage/cancel-azure-subscription#what-happens-after-subscription-cancellation). Users can optionally delete a Subscription once 72 hours have passed, however, this functionality is not suitable for Terraform. A `Deleted` subscription cannot be reactivated.
+~> **Note:** Destroying a Subscription controlled by this resource will place the Subscription into a cancelled state. It is possible to re-activate a subscription within 90-days of cancellation, after which time the Subscription is irrevocably deleted, and the Subscription ID cannot be re-used. For further information see [here](https://docs.microsoft.com/azure/cost-management-billing/manage/cancel-azure-subscription#what-happens-after-subscription-cancellation). Users can optionally delete a Subscription once 72 hours have passed, however, this functionality is not suitable for Terraform. A `Deleted` subscription cannot be reactivated.
 
-~> **NOTE:** It is not possible to destroy (cancel) a subscription if it contains resources. If resources are present that are not managed by Terraform then these will need to be removed before the Subscription can be destroyed.
+~> **Note:** It is not possible to destroy (cancel) a subscription if it contains resources. If resources are present that are not managed by Terraform then these will need to be removed before the Subscription can be destroyed.
 
 ~> **Note:** This resource will automatically attempt to cancel a subscription when it is deleted. This behavior can be disabled in the provider `features` block by setting the `prevent_cancellation_on_destroy` field to `true` within the `subscription` block.
 
-~> **NOTE:** Azure supports Multiple Aliases per Subscription, however, to reliably manage this resource in Terraform only a single Alias is supported.
+~> **Note:** Azure supports Multiple Aliases per Subscription, however, to reliably manage this resource in Terraform only a single Alias is supported.
 
-~> **NOTE:** When using this resource across tenants the `client_id` and `tenant_id` of the `provider` config block should be for the home tenant details for the SPN / User or a permissions error will likely be encountered. See [the official documentation](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/programmatically-create-subscription) for more details. 
+~> **Note:** When using this resource across tenants the `client_id` and `tenant_id` of the `provider` config block should be for the home tenant details for the SPN / User or a permissions error will likely be encountered. See [the official documentation](https://learn.microsoft.com/en-us/azure/cost-management-billing/manage/programmatically-create-subscription) for more details.
 
 ## Example Usage - creating a new Alias and Subscription for an Enrollment Account
 
@@ -87,9 +87,9 @@ The following arguments are supported:
 
 * `subscription_id` - (Optional) The ID of the Subscription. Changing this forces a new Subscription to be created.
 
-~> **NOTE:** This value can be specified only for adopting control of an existing Subscription, it cannot be used to provide a custom Subscription ID.
+~> **Note:** This value can be specified only for adopting control of an existing Subscription, it cannot be used to provide a custom Subscription ID.
 
-~> **NOTE:** Either `billing_scope_id` or `subscription_id` has to be specified.
+~> **Note:** Either `billing_scope_id` or `subscription_id` has to be specified.
 
 * `workload` - (Optional) The workload type of the Subscription. Possible values are `Production` (default) and `DevTest`. Changing this forces a new Subscription to be created.
 
@@ -120,5 +120,5 @@ Subscriptions can be imported using the `resource id`, e.g.
 terraform import azurerm_subscription.example "/providers/Microsoft.Subscription/aliases/subscription1"
 ```
 
-!> **NOTE:** When importing a Subscription that was not created programmatically, either by this Terraform resource or using the Alias API, it will have no Alias ID to import via `terraform import`.
+!> **Note:** When importing a Subscription that was not created programmatically, either by this Terraform resource or using the Alias API, it will have no Alias ID to import via `terraform import`.
 In this scenario, the `subscription_id` property can be completed and Terraform will assume control of the existing subscription by creating an Alias. See the `adding an Alias to an existing Subscription` above. Terrafom requires an alias to correctly manage Subscription resources due to Azure Subscription API design.

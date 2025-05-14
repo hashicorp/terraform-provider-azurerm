@@ -10,7 +10,7 @@ description: |-
 
 Applies a Guest Configuration Policy to a Virtual Machine.
 
-~> **NOTE:** You can create Guest Configuration Policies without defining a `azurerm_virtual_machine_extension` resource, however the policies will not be executed until a `azurerm_virtual_machine_extension` has been provisioned to the virtual machine.
+~> **Note:** You can create Guest Configuration Policies without defining a `azurerm_virtual_machine_extension` resource, however the policies will not be executed until a `azurerm_virtual_machine_extension` has been provisioned to the virtual machine.
 
 ## Example Usage
 
@@ -138,7 +138,7 @@ A `configuration` block supports the following:
 
 * `content_uri` - (Optional) The content URI where the Guest Configuration package is stored.
 
-~> **NOTE:** When deploying a Custom Guest Configuration package the `content_hash` and `content_uri` fields must be defined. For Built-in Guest Configuration packages, such as the `AzureWindowsBaseline` package, the `content_hash` and `content_uri` should not be defined, rather these fields will be returned after the Built-in Guest Configuration package has been provisioned. For more information on guest configuration assignments please see the [product documentation](https://docs.microsoft.com/azure/governance/policy/concepts/guest-configuration-assignments).
+~> **Note:** When deploying a Custom Guest Configuration package the `content_hash` and `content_uri` fields must be defined. For Built-in Guest Configuration packages, such as the `AzureWindowsBaseline` package, the `content_hash` and `content_uri` should not be defined, rather these fields will be returned after the Built-in Guest Configuration package has been provisioned. For more information on guest configuration assignments please see the [product documentation](https://docs.microsoft.com/azure/governance/policy/concepts/guest-configuration-assignments).
 
 * `parameter` - (Optional) One or more `parameter` blocks as defined below which define what configuration parameters and values against.
 
@@ -163,8 +163,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Virtual Machine Configuration Assignment.
-* `update` - (Defaults to 30 minutes) Used when updating the Policy Virtual Machine Configuration Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Virtual Machine Configuration Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Virtual Machine Configuration Assignment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Policy Virtual Machine Configuration Assignment.
 
 ## Import

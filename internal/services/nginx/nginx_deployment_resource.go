@@ -45,6 +45,28 @@ type AutoScaleProfile struct {
 	Max  int64  `tfschema:"max_capacity"`
 }
 
+type WebApplicationFirewall struct {
+	ActivationStateEnabled bool                           `tfschema:"activation_state_enabled"`
+	Status                 []WebApplicationFirewallStatus `tfschema:"status"`
+}
+
+type WebApplicationFirewallPackage struct {
+	RevisionDatetime string `tfschema:"revision_datetime"`
+	Version          string `tfschema:"version"`
+}
+
+type WebApplicationFirewallComponentVersions struct {
+	WafEngineVersion string `tfschema:"waf_engine_version"`
+	WafNginxVersion  string `tfschema:"waf_nginx_version"`
+}
+
+type WebApplicationFirewallStatus struct {
+	AttackSignaturesPackage []WebApplicationFirewallPackage           `tfschema:"attack_signatures_package"`
+	BotSignaturesPackage    []WebApplicationFirewallPackage           `tfschema:"bot_signatures_package"`
+	ComponentVersions       []WebApplicationFirewallComponentVersions `tfschema:"component_versions"`
+	ThreatCampaignsPackage  []WebApplicationFirewallPackage           `tfschema:"threat_campaigns_package"`
+}
+
 type DeploymentModel struct {
 	ResourceGroupName      string                                     `tfschema:"resource_group_name"`
 	Name                   string                                     `tfschema:"name"`
@@ -63,6 +85,7 @@ type DeploymentModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	WebApplicationFirewall []WebApplicationFirewall                   `tfschema:"web_application_firewall"`
 	DataplaneAPIEndpoint   string                                     `tfschema:"dataplane_api_endpoint"`
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
@@ -245,6 +268,32 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				}, false),
 		},
 
+		"web_application_firewall": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"activation_state_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+					"status": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"attack_signatures_package": webApplicationFirewallPackageComputed(),
+								"bot_signatures_package":    webApplicationFirewallPackageComputed(),
+								"threat_campaigns_package":  webApplicationFirewallPackageComputed(),
+								"component_versions":        webApplicationFirewallComponentVersionsComputed(),
+							},
+						},
+					},
+				},
+			},
+		},
+
 		"tags": commonschema.Tags(),
 	}
 
@@ -398,6 +447,19 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			if len(model.WebApplicationFirewall) > 0 {
+				activationState := nginxdeployment.ActivationStateDisabled
+				if model.WebApplicationFirewall[0].ActivationStateEnabled {
+					activationState = nginxdeployment.ActivationStateEnabled
+				}
+
+				prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
+						ActivationState: &activationState,
+					},
+				}
+			}
+
 			req.Properties = prop
 
 			req.Identity, err = identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
@@ -519,6 +581,55 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
 					}
 
+					if nap := props.NginxAppProtect; nap != nil {
+						waf := WebApplicationFirewall{}
+						if state := nap.WebApplicationFirewallSettings.ActivationState; state != nil {
+							switch *state {
+							case nginxdeployment.ActivationStateEnabled:
+								waf.ActivationStateEnabled = true
+							default:
+								waf.ActivationStateEnabled = false
+							}
+						}
+						if status := nap.WebApplicationFirewallStatus; status != nil {
+							wafStatus := WebApplicationFirewallStatus{}
+							if attackSignature := status.AttackSignaturesPackage; attackSignature != nil {
+								wafStatus.AttackSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: attackSignature.RevisionDatetime,
+										Version:          attackSignature.Version,
+									},
+								}
+							}
+							if botSignature := status.BotSignaturesPackage; botSignature != nil {
+								wafStatus.BotSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: botSignature.RevisionDatetime,
+										Version:          botSignature.Version,
+									},
+								}
+							}
+							if threatCampaign := status.ThreatCampaignsPackage; threatCampaign != nil {
+								wafStatus.ThreatCampaignsPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: threatCampaign.RevisionDatetime,
+										Version:          threatCampaign.Version,
+									},
+								}
+							}
+							if componentVersions := status.ComponentVersions; componentVersions != nil {
+								wafStatus.ComponentVersions = []WebApplicationFirewallComponentVersions{
+									{
+										WafEngineVersion: componentVersions.WafEngineVersion,
+										WafNginxVersion:  componentVersions.WafNginxVersion,
+									},
+								}
+							}
+							waf.Status = []WebApplicationFirewallStatus{wafStatus}
+							output.WebApplicationFirewall = []WebApplicationFirewall{waf}
+						}
+					}
+
 					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %v", err)
@@ -620,6 +731,18 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 
 			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
 				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+			}
+
+			if meta.ResourceData.HasChange("web_application_firewall") {
+				activationState := nginxdeployment.ActivationStateDisabled
+				if model.WebApplicationFirewall[0].ActivationStateEnabled {
+					activationState = nginxdeployment.ActivationStateEnabled
+				}
+				req.Properties.NginxAppProtect = &nginxdeployment.NginxDeploymentUpdatePropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: &nginxdeployment.WebApplicationFirewallSettings{
+						ActivationState: &activationState,
+					},
+				}
 			}
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {

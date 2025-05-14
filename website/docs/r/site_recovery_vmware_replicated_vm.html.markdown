@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `target_network_id` - (Optional) The ID of network to use when a failover is done.
 
-~> **Note:** `target_network_id` is required when `network_interface` is specified. 
+~> **Note:** `target_network_id` is required when `network_interface` is specified.
 
 * `default_log_storage_account_id` - (Optional) The ID of the stroage account that should be used for logging during replication. 
 
@@ -116,13 +116,13 @@ The following arguments are supported:
 
 ~> **Note:** Changing `default_log_storage_account_id` forces a new resource to be created. But removing it does not.
 
-~> **Note:** When `default_log_storage_account_id` co-exist with `managed_disk`, the value of `default_log_storage_account_id` must be as same as `log_storage_account_id` of every `managed_disk` or it forces a new resource to be created. 
+~> **Note:** When `default_log_storage_account_id` co-exist with `managed_disk`, the value of `default_log_storage_account_id` must be as same as `log_storage_account_id` of every `managed_disk` or it forces a new resource to be created.
 
 * `default_target_disk_encryption_set_id` - (Optional) The ID of the default Disk Encryption Set that should be used for the disks when a failover is done.
 
 ~> **Note:** Changing `default_target_disk_encryption_set_id` forces a new resource to be created. But removing it does not.
 
-~> **Note:** When `default_target_disk_encryption_set_id` co-exist with `managed_disk`, the value of `default_target_disk_encryption_set_id` must be as same as `target_disk_encryption_set_id` of every `managed_disk` or it forces a new resource to be created. 
+~> **Note:** When `default_target_disk_encryption_set_id` co-exist with `managed_disk`, the value of `default_target_disk_encryption_set_id` must be as same as `target_disk_encryption_set_id` of every `managed_disk` or it forces a new resource to be created.
 
 * `default_recovery_disk_type` - (Optional) The type of storage account that should be used for recovery disks when a failover is done. Possible values are `Premium_LRS`, `Standard_LRS` and `StandardSSD_LRS`.
 
@@ -192,8 +192,8 @@ In addition to the arguments above, the following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Site Recovery HyperV Replicated VM.
-* `update` - (Defaults to 90 minutes) Used when updating the Site Recovery HyperV Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery HyperV Replicated VM.
+* `update` - (Defaults to 90 minutes) Used when updating the Site Recovery HyperV Replicated VM.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Site Recovery HyperV Replicated VM.
 
 ## Import
