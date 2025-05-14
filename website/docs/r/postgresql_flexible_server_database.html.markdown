@@ -77,3 +77,9 @@ Azure PostgreSQL Flexible Server Database can be imported using the `resource id
 ```shell
 terraform import azurerm_postgresql_flexible_server_database.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/flexibleServers/flexibleServer1/databases/database1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2024-08-01

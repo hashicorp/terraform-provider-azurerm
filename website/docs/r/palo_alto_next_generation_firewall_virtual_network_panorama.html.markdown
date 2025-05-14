@@ -237,3 +237,9 @@ Palo Alto Next Generation Firewall Virtual Network Panoramas can be imported usi
 ```shell
 terraform import azurerm_palo_alto_next_generation_firewall_virtual_network_panorama.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVNetPanoramaFW
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw`: 2023-09-01
