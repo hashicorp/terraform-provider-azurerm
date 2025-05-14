@@ -5,6 +5,8 @@ package knownvalue
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 	"sort"
 )
 
@@ -24,18 +26,14 @@ func (v objectExact) CheckValue(other any) error {
 	}
 
 	if len(otherVal) != len(v.value) {
-		expectedAttributes := "attributes"
-		actualAttributes := "attributes"
-
-		if len(v.value) == 1 {
-			expectedAttributes = "attribute"
+		deltaMsg := ""
+		if len(otherVal) > len(v.value) {
+			deltaMsg = createDeltaString(otherVal, v.value, "actual value has extra attribute(s): ")
+		} else {
+			deltaMsg = createDeltaString(v.value, otherVal, "actual value is missing attribute(s): ")
 		}
 
-		if len(otherVal) == 1 {
-			actualAttributes = "attribute"
-		}
-
-		return fmt.Errorf("expected %d %s for ObjectExact check, got %d %s", len(v.value), expectedAttributes, len(otherVal), actualAttributes)
+		return fmt.Errorf("expected %d attribute(s) for ObjectExact check, got %d attribute(s): %s", len(v.value), len(otherVal), deltaMsg)
 	}
 
 	var keys []string
@@ -91,4 +89,28 @@ func ObjectExact(value map[string]Check) objectExact {
 	return objectExact{
 		value: value,
 	}
+}
+
+// createDeltaString prints the map keys that are present in mapA and not present in mapB
+func createDeltaString[T any, V any](mapA map[string]T, mapB map[string]V, msgPrefix string) string {
+	deltaMsg := ""
+
+	deltaMap := make(map[string]T, len(mapA))
+	maps.Copy(deltaMap, mapA)
+	for key := range mapB {
+		delete(deltaMap, key)
+	}
+
+	deltaKeys := slices.Sorted(maps.Keys(deltaMap))
+
+	for i, k := range deltaKeys {
+		if i == 0 {
+			deltaMsg += msgPrefix
+		} else if i != 0 {
+			deltaMsg += ", "
+		}
+		deltaMsg += fmt.Sprintf("%q", k)
+	}
+
+	return deltaMsg
 }

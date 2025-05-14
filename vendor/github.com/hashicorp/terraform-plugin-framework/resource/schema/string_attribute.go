@@ -152,6 +152,16 @@ type StringAttribute struct {
 	// computed and the value could be altered by other changes then a default
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.String
+
+	// WriteOnly indicates that Terraform will not store this attribute value
+	// in the plan or state artifacts.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	// WriteOnly cannot be set with Computed.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep always returns an error as it is not
@@ -212,6 +222,11 @@ func (a StringAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a StringAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns the WriteOnly field value.
+func (a StringAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
 }
 
 // StringDefaultValue returns the Default field value.

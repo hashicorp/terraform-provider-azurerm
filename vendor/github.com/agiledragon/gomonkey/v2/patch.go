@@ -11,6 +11,7 @@ import (
 
 type Patches struct {
 	originals    map[uintptr][]byte
+	targets      map[uintptr]uintptr
 	values       map[reflect.Value]reflect.Value
 	valueHolders map[reflect.Value]reflect.Value
 }
@@ -70,11 +71,23 @@ func ApplyFuncVarReturn(target interface{}, output ...interface{}) *Patches {
 }
 
 func create() *Patches {
-	return &Patches{originals: make(map[uintptr][]byte), values: make(map[reflect.Value]reflect.Value), valueHolders: make(map[reflect.Value]reflect.Value)}
+	return &Patches{originals: make(map[uintptr][]byte), targets: map[uintptr]uintptr{},
+		values: make(map[reflect.Value]reflect.Value), valueHolders: make(map[reflect.Value]reflect.Value)}
 }
 
 func NewPatches() *Patches {
 	return create()
+}
+
+func (this *Patches) Origin(fn func()) {
+	for target, bytes := range this.originals {
+		modifyBinary(target, bytes)
+	}
+	fn()
+	for target, targetPtr := range this.targets {
+		code := buildJmpDirective(targetPtr)
+		modifyBinary(target, code)
+	}
 }
 
 func (this *Patches) ApplyFunc(target, double interface{}) *Patches {
@@ -214,6 +227,7 @@ func (this *Patches) ApplyCore(target, double reflect.Value) *Patches {
 	if _, ok := this.originals[assTarget]; !ok {
 		this.originals[assTarget] = original
 	}
+	this.targets[assTarget] = uintptr(getPointer(double))
 	this.valueHolders[double] = double
 	return this
 }
@@ -227,6 +241,7 @@ func (this *Patches) ApplyCoreOnlyForPrivateMethod(target unsafe.Pointer, double
 	if _, ok := this.originals[assTarget]; !ok {
 		this.originals[assTarget] = original
 	}
+	this.targets[assTarget] = uintptr(getPointer(double))
 	this.valueHolders[double] = double
 	return this
 }
@@ -254,6 +269,17 @@ func (this *Patches) check(target, double reflect.Value) {
 		doubleIn := doubleType.In(i)
 
 		if targetIn.AssignableTo(doubleIn) {
+			continue
+		}
+
+		panic(fmt.Sprintf("target type(%s) and double type(%s) are different", target.Type(), double.Type()))
+	}
+
+	for i, size := 0, doubleType.NumOut(); i < size; i++ {
+		targetOut := targetType.Out(i)
+		doubleOut := doubleType.Out(i)
+
+		if targetOut.AssignableTo(doubleOut) {
 			continue
 		}
 

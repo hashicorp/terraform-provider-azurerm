@@ -255,6 +255,11 @@ func (a SetNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported for sets and set-based data.
+func (a SetNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // SetDefaultValue returns the Default field value.
 func (a SetNestedAttribute) SetDefaultValue() defaults.Set {
 	return a.Default
@@ -277,6 +282,10 @@ func (a SetNestedAttribute) SetValidators() []validator.Set {
 func (a SetNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
 		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
+	}
+
+	if fwschema.ContainsAnyWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwschema.InvalidSetNestedAttributeWithWriteOnlyDiag(req.Path))
 	}
 
 	if a.SetDefaultValue() != nil {

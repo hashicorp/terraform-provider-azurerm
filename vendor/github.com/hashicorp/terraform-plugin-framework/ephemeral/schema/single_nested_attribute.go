@@ -238,6 +238,12 @@ func (a SingleNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not relevant to ephemeral resource schemas,
+// as these schemas describe data that is explicitly not saved to any artifact.
+func (a SingleNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // ObjectValidators returns the Validators field value.
 func (a SingleNestedAttribute) ObjectValidators() []validator.Object {
 	return a.Validators

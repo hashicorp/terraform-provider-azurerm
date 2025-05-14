@@ -4,13 +4,14 @@
 package schema
 
 import (
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -179,6 +180,11 @@ func (a BoolAttribute) IsOptional() bool {
 // IsRequired returns the Required field value.
 func (a BoolAttribute) IsRequired() bool {
 	return a.Required
+}
+
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
+func (a BoolAttribute) IsWriteOnly() bool {
+	return false
 }
 
 // IsSensitive returns the Sensitive field value.

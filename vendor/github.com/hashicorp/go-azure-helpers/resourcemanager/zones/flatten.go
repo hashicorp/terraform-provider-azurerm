@@ -7,9 +7,7 @@ func Flatten(input *Schema) []string {
 	out := make([]string, 0)
 
 	if input != nil {
-		for _, v := range *input {
-			out = append(out, v)
-		}
+		out = append(out, *input...)
 	}
 
 	return out

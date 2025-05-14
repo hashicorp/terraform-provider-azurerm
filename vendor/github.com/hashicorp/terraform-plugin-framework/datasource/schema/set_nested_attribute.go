@@ -226,6 +226,11 @@ func (a SetNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not supported in data source schemas.
+func (a SetNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
 // SetValidators returns the Validators field value.
 func (a SetNestedAttribute) SetValidators() []validator.Set {
 	return a.Validators

@@ -6,6 +6,8 @@ package schema
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema/fwxschema"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -74,7 +75,6 @@ type ListAttribute struct {
 
 	// Sensitive indicates whether the value of this attribute should be
 	// considered sensitive data. Setting it to true will obscure the value
-	// in CLI output.
 	Sensitive bool
 
 	// Description is used in various tooling, like the language server, to
@@ -198,6 +198,12 @@ func (a ListAttribute) IsRequired() bool {
 // IsSensitive returns the Sensitive field value.
 func (a ListAttribute) IsSensitive() bool {
 	return a.Sensitive
+}
+
+// IsWriteOnly returns false as write-only attributes are not relevant to ephemeral resource schemas,
+// as these schemas describe data that is explicitly not saved to any artifact.
+func (a ListAttribute) IsWriteOnly() bool {
+	return false
 }
 
 // ListValidators returns the Validators field value.
