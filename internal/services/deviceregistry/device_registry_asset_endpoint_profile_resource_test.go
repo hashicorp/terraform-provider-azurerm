@@ -53,12 +53,9 @@ func TestAccAssetEndpointProfile_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
 				check.That(data.ResourceName).Key("endpoint_profile_type").HasValue("OpcUa"),
-				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_ref").HasValue("discoveredAssetEndpointProfile123"),
+				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_reference").HasValue("discoveredAssetEndpointProfile123"),
 				check.That(data.ResourceName).Key("additional_configuration").HasValue(""),
-				check.That(data.ResourceName).Key("authentication_method").HasValue(""),
-				check.That(data.ResourceName).Key("x509_credentials_certificate_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_username_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_password_secret_name").HasValue(""),
+				check.That(data.ResourceName).Key("authentication").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -88,12 +85,11 @@ func TestAccAssetEndpointProfile_complete_certificate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
 				check.That(data.ResourceName).Key("endpoint_profile_type").HasValue("OpcUa"),
-				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_ref").HasValue("discoveredAssetEndpointProfile123"),
+				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_reference").HasValue("discoveredAssetEndpointProfile123"),
 				check.That(data.ResourceName).Key("additional_configuration").HasValue("{\"foo\": \"bar\"}"),
-				check.That(data.ResourceName).Key("authentication_method").HasValue("Certificate"),
-				check.That(data.ResourceName).Key("x509_credentials_certificate_secret_name").HasValue("myCertificateRef"),
-				check.That(data.ResourceName).Key("username_password_credentials_username_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_password_secret_name").HasValue(""),
+				check.That(data.ResourceName).Key("authentication.0.method").HasValue("Certificate"),
+				check.That(data.ResourceName).Key("authentication.0.x509_credential.0.certificate_secret_name").HasValue("myCertificateRef"),
+				check.That(data.ResourceName).Key("authentication.0.username_password_credential").IsEmpty(),
 				check.That(data.ResourceName).Key("tags.sensor").HasValue("temperature,humidity"),
 			),
 		},
@@ -124,12 +120,12 @@ func TestAccAssetEndpointProfile_complete_usernamePassword(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
 				check.That(data.ResourceName).Key("endpoint_profile_type").HasValue("OpcUa"),
-				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_ref").HasValue("discoveredAssetEndpointProfile123"),
+				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_reference").HasValue("discoveredAssetEndpointProfile123"),
 				check.That(data.ResourceName).Key("additional_configuration").HasValue("{\"foo\": \"bar\"}"),
-				check.That(data.ResourceName).Key("authentication_method").HasValue("UsernamePassword"),
-				check.That(data.ResourceName).Key("x509_credentials_certificate_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_username_secret_name").HasValue("myUsernameRef"),
-				check.That(data.ResourceName).Key("username_password_credentials_password_secret_name").HasValue("myPasswordRef"),
+				check.That(data.ResourceName).Key("authentication.0.method").HasValue("UsernamePassword"),
+				check.That(data.ResourceName).Key("authentication.0.x509_credential").IsEmpty(),
+				check.That(data.ResourceName).Key("authentication.0.username_password_credential.0.username_secret_name").HasValue("myUsernameRef"),
+				check.That(data.ResourceName).Key("authentication.0.username_password_credential.0.password_secret_name").HasValue("myPasswordRef"),
 				check.That(data.ResourceName).Key("tags.sensor").HasValue("temperature,humidity"),
 			),
 		},
@@ -160,12 +156,11 @@ func TestAccAssetEndpointProfile_complete_anonymous(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
 				check.That(data.ResourceName).Key("endpoint_profile_type").HasValue("OpcUa"),
-				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_ref").HasValue("discoveredAssetEndpointProfile123"),
+				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_reference").HasValue("discoveredAssetEndpointProfile123"),
 				check.That(data.ResourceName).Key("additional_configuration").HasValue("{\"foo\": \"bar\"}"),
-				check.That(data.ResourceName).Key("authentication_method").HasValue("Anonymous"),
-				check.That(data.ResourceName).Key("x509_credentials_certificate_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_username_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_password_secret_name").HasValue(""),
+				check.That(data.ResourceName).Key("authentication.0.method").HasValue("Anonymous"),
+				check.That(data.ResourceName).Key("authentication.0.x509_credential").IsEmpty(),
+				check.That(data.ResourceName).Key("authentication.0.username_password_credential").IsEmpty(),
 				check.That(data.ResourceName).Key("tags.sensor").HasValue("temperature,humidity"),
 			),
 		},
@@ -230,12 +225,11 @@ func TestAccAssetEndpointProfile_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
 				check.That(data.ResourceName).Key("endpoint_profile_type").HasValue("OpcUa"),
-				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_ref").HasValue("discoveredAssetEndpointProfile123"),
+				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_reference").HasValue("discoveredAssetEndpointProfile123"),
 				check.That(data.ResourceName).Key("additional_configuration").HasValue("{\"foo\": \"bar\"}"),
-				check.That(data.ResourceName).Key("authentication_method").HasValue("Certificate"),
-				check.That(data.ResourceName).Key("x509_credentials_certificate_secret_name").HasValue("myCertificateRef"),
-				check.That(data.ResourceName).Key("username_password_credentials_username_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_password_secret_name").HasValue(""),
+				check.That(data.ResourceName).Key("authentication.0.method").HasValue("Certificate"),
+				check.That(data.ResourceName).Key("authentication.0.x509_credential.0.certificate_secret_name").HasValue("myCertificateRef"),
+				check.That(data.ResourceName).Key("authentication.0.username_password_credential").IsEmpty(),
 				check.That(data.ResourceName).Key("tags.sensor").HasValue("temperature,humidity"),
 			),
 		},
@@ -246,12 +240,12 @@ func TestAccAssetEndpointProfile_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
 				check.That(data.ResourceName).Key("endpoint_profile_type").HasValue("OpcUa"),
-				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_ref").HasValue("discoveredAssetEndpointProfile123"),
+				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_reference").HasValue("discoveredAssetEndpointProfile123"),
 				check.That(data.ResourceName).Key("additional_configuration").HasValue("{\"foo\": \"bar\"}"),
-				check.That(data.ResourceName).Key("authentication_method").HasValue("UsernamePassword"),
-				check.That(data.ResourceName).Key("x509_credentials_certificate_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_username_secret_name").HasValue("myUsernameRef"),
-				check.That(data.ResourceName).Key("username_password_credentials_password_secret_name").HasValue("myPasswordRef"),
+				check.That(data.ResourceName).Key("authentication.0.method").HasValue("UsernamePassword"),
+				check.That(data.ResourceName).Key("authentication.0.x509_credential").IsEmpty(),
+				check.That(data.ResourceName).Key("authentication.0.username_password_credential.0.username_secret_name").HasValue("myUsernameRef"),
+				check.That(data.ResourceName).Key("authentication.0.username_password_credential.0.password_secret_name").HasValue("myPasswordRef"),
 				check.That(data.ResourceName).Key("tags.sensor").HasValue("temperature,humidity"),
 			),
 		},
@@ -262,12 +256,11 @@ func TestAccAssetEndpointProfile_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("target_address").HasValue("opc.tcp://foo"),
 				check.That(data.ResourceName).Key("endpoint_profile_type").HasValue("OpcUa"),
-				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_ref").HasValue("discoveredAssetEndpointProfile123"),
+				check.That(data.ResourceName).Key("discovered_asset_endpoint_profile_reference").HasValue("discoveredAssetEndpointProfile123"),
 				check.That(data.ResourceName).Key("additional_configuration").HasValue("{\"foo\": \"bar\"}"),
-				check.That(data.ResourceName).Key("authentication_method").HasValue("Anonymous"),
-				check.That(data.ResourceName).Key("x509_credentials_certificate_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_username_secret_name").HasValue(""),
-				check.That(data.ResourceName).Key("username_password_credentials_password_secret_name").HasValue(""),
+				check.That(data.ResourceName).Key("authentication.0.method").HasValue("Anonymous"),
+				check.That(data.ResourceName).Key("authentication.0.x509_credential").IsEmpty(),
+				check.That(data.ResourceName).Key("authentication.0.username_password_credential").IsEmpty(),
 				check.That(data.ResourceName).Key("tags.sensor").HasValue("temperature,humidity"),
 			),
 		},
@@ -298,11 +291,11 @@ func (r AssetEndpointProfileTestResource) basic(data acceptance.TestData) string
 
 resource "azurerm_device_registry_asset_endpoint_profile" "test" {
   name                                  = "acctest-assetendpointprofile-%[2]d"
-  resource_group_name                   = azurerm_resource_group.test.id
+  resource_group_id                     = azurerm_resource_group.test.id
   extended_location_id                  = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   target_address                        = "opc.tcp://foo"
   endpoint_profile_type                 = "OpcUa"
-  discovered_asset_endpoint_profile_ref = "discoveredAssetEndpointProfile123"
+  discovered_asset_endpoint_profile_reference = "discoveredAssetEndpointProfile123"
   location                              = "%[3]s"
   depends_on = [
     azurerm_linux_virtual_machine.test
@@ -323,10 +316,14 @@ resource "azurerm_device_registry_asset_endpoint_profile" "test" {
   extended_location_id                     = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   target_address                           = "opc.tcp://foo"
   endpoint_profile_type                    = "OpcUa"
-  discovered_asset_endpoint_profile_ref    = "discoveredAssetEndpointProfile123"
+  discovered_asset_endpoint_profile_reference    = "discoveredAssetEndpointProfile123"
   additional_configuration                 = "{\"foo\": \"bar\"}"
-  authentication_method                    = "Certificate"
-  x509_credentials_certificate_secret_name = "myCertificateRef"
+	authentication {
+		method = "Certificate"
+		x509_credential {
+			certificate_secret_name = "myCertificateRef"
+		}
+	}
   tags = {
     "sensor" = "temperature,humidity"
   }
@@ -350,11 +347,15 @@ resource "azurerm_device_registry_asset_endpoint_profile" "test" {
   extended_location_id                               = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   target_address                                     = "opc.tcp://foo"
   endpoint_profile_type                              = "OpcUa"
-  discovered_asset_endpoint_profile_ref              = "discoveredAssetEndpointProfile123"
+  discovered_asset_endpoint_profile_reference              = "discoveredAssetEndpointProfile123"
   additional_configuration                           = "{\"foo\": \"bar\"}"
-  authentication_method                              = "UsernamePassword"
-  username_password_credentials_username_secret_name = "myUsernameRef"
-  username_password_credentials_password_secret_name = "myPasswordRef"
+	authentication {
+		method = "UsernamePassword"
+		username_password_credential {
+			username_secret_name = "myUsernameRef"
+			password_secret_name = "myPasswordRef"
+		}
+	}
   tags = {
     "sensor" = "temperature,humidity"
   }
@@ -378,9 +379,11 @@ resource "azurerm_device_registry_asset_endpoint_profile" "test" {
   extended_location_id                  = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.test.name}/providers/Microsoft.ExtendedLocation/customLocations/${local.custom_location}"
   target_address                        = "opc.tcp://foo"
   endpoint_profile_type                 = "OpcUa"
-  discovered_asset_endpoint_profile_ref = "discoveredAssetEndpointProfile123"
+  discovered_asset_endpoint_profile_reference = "discoveredAssetEndpointProfile123"
+	authentication {
+		method = "Anonymous"
+	}
   additional_configuration              = "{\"foo\": \"bar\"}"
-  authentication_method                 = "Anonymous"
   tags = {
     "sensor" = "temperature,humidity"
   }
@@ -403,7 +406,7 @@ resource "azurerm_device_registry_asset_endpoint_profile" "import" {
   extended_location_id                  = azurerm_device_registry_asset_endpoint_profile.test.extended_location_id
   target_address                        = azurerm_device_registry_asset_endpoint_profile.test.target_address
   endpoint_profile_type                 = azurerm_device_registry_asset_endpoint_profile.test.endpoint_profile_type
-  discovered_asset_endpoint_profile_ref = "discoveredAssetEndpointProfile123"
+  discovered_asset_endpoint_profile_reference = "discoveredAssetEndpointProfile123"
   location                              = azurerm_device_registry_asset_endpoint_profile.test.location
   depends_on = [
     azurerm_linux_virtual_machine.test
