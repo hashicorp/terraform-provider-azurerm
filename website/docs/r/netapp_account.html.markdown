@@ -10,7 +10,7 @@ description: |-
 
 Manages a NetApp Account.
 
-~> **NOTE:** Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
+~> **Note:** Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
 
 ## NetApp Account Usage
 
@@ -91,7 +91,7 @@ The `active_directory` block supports the following:
 
 * `kerberos_kdc_ip` - (Optional) kdc server IP addresses for the active directory machine.
 
-~> **IMPORTANT:** If you plan on using **Kerberos** volumes, both `ad_name` and `kdc_ip` are required in order to create the volume.
+~> **Note:** If you plan on using **Kerberos** volumes, both `ad_name` and `kdc_ip` are required in order to create the volume.
 
 * `aes_encryption_enabled` - (Optional) If enabled, AES encryption will be enabled for SMB communication. Defaults to `false`.
 
@@ -111,7 +111,7 @@ The `identity` block supports the following:
 
 ---
 
-~> **IMPORTANT:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module.
+~> **Note:** Changing identity type from `SystemAssigned` to `UserAssigned` is a supported operation but the reverse is not supported from within Terraform Azure NetApp Files module.
 
 ## Attributes Reference
 
@@ -124,8 +124,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the NetApp Account.
-* `update` - (Defaults to 30 minutes) Used when updating the NetApp Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Account.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Account.
 * `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Account.
 
 ## Import
@@ -136,4 +136,4 @@ NetApp Accounts can be imported using the `resource id`, e.g.
 terraform import azurerm_netapp_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1
 ```
 
-~> **IMPORTANT:** When importing a NetApp account, the `active_directory.password` and `active_directory.server_root_ca_certificate` values *cannot* be retrieved from the Azure API and will need to be redeclared within the resource.
+~> **Note:** When importing a NetApp account, the `active_directory.password` and `active_directory.server_root_ca_certificate` values *cannot* be retrieved from the Azure API and will need to be redeclared within the resource.

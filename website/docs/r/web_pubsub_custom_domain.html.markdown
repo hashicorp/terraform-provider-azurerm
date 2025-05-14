@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `domain_name` - (Required) Specifies the custom domain name of the Web PubSub Custom Domain. Changing this forces a new resource to be created.
 
--> **NOTE:** Please ensure the custom domain name is included in the Subject Alternative Names of the selected Web PubSub Custom Certificate. 
+-> **Note:** Please ensure the custom domain name is included in the Subject Alternative Names of the selected Web PubSub Custom Certificate.
 
 * `web_pubsub_id` - (Required) Specifies the Web PubSub ID of the Web PubSub Custom Domain. Changing this forces a new resource to be created.
 

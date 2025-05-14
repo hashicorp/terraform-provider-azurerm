@@ -60,7 +60,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Service. Changing this forces a new resource to be created.
 * `location` - (Required) Specifies the supported Azure Region where the Service should be created. Changing this forces a new resource to be created.
 
-~> **Please Note:** Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
+~> **Note:** Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
 * `configuration_export_storage_account_name` - (Optional) Specifies the name of the storage account which the operation configuration information is exported to.
 * `identity` - (Optional) An `identity` block as defined below.
@@ -69,7 +69,7 @@ The following arguments are supported:
 * `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`100000`. Defaults to `1000`.
 * `cosmosdb_key_vault_key_versionless_id` - (Optional) A versionless Key Vault Key ID for CMK encryption of the backing database. Changing this forces a new resource to be created.
 
-~> **Please Note:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
+~> **Note:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
 * `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
 * `public_network_access_enabled` - (Optional) Whether public network access is enabled or disabled for this service instance. Defaults to `true`.
@@ -109,8 +109,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Healthcare Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Healthcare Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Healthcare Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare Service.
 
 ## Import

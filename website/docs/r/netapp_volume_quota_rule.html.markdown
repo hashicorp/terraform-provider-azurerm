@@ -128,9 +128,9 @@ The following arguments are supported:
 
 * `quota_target` - (Optional) Quota Target. This can be Unix UID/GID for NFSv3/NFSv4.1 volumes and Windows User SID for CIFS based volumes. Changing this forces a new resource to be created.
 
--> **NOTE:** `quota_target ` must be used when `quota_type` is `IndividualGroupQuota` or `IndividualUserQuota`
+-> **Note:** `quota_target ` must be used when `quota_type` is `IndividualGroupQuota` or `IndividualUserQuota`
 
-~> **NOTE:** more information about this resource can be found at [Understand default and individual user and group quotas](https://learn.microsoft.com/en-us/azure/azure-netapp-files/default-individual-user-group-quotas-introduction)
+~> **Note:** more information about this resource can be found at [Understand default and individual user and group quotas](https://learn.microsoft.com/en-us/azure/azure-netapp-files/default-individual-user-group-quotas-introduction)
 
 ## Attributes Reference
 

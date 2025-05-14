@@ -137,10 +137,9 @@ The following arguments are supported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Healthcare Med Tech Service Fhir Destination.
-* `update` - (Defaults to 30 minut es) Used when updating the Healthcare Med Tech Service Fhir Destination.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Med Tech Service Fhir Destination.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare Med Tech Service Fhir Destination.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Healthcare Med Tech Service Fhir Destination.
-* `update` - (Defaults to 90 minutes) Used when updating the Healthcare Medtech Service Fhir Destination.
 
 ## Import
 

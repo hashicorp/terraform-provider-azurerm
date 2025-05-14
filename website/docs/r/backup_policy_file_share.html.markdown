@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `timezone` - (Optional) Specifies the timezone. [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `UTC`
 
--> **NOTE:** The maximum number of snapshots that Azure Files can retain is 200. If your combined snapshot count exceeds 200 based on your retention policies, it will result in an error. See [this](https://docs.microsoft.com/azure/backup/backup-azure-files-faq#what-is-the-maximum-retention-i-can-configure-for-backups) article for more information.
+-> **Note:** The maximum number of snapshots that Azure Files can retain is 200. If your combined snapshot count exceeds 200 based on your retention policies, it will result in an error. See [this](https://docs.microsoft.com/azure/backup/backup-azure-files-faq#what-is-the-maximum-retention-i-can-configure-for-backups) article for more information.
 
 * `retention_daily` - (Required) Configures the policy daily retention as documented in the `retention_daily` block below.
 
@@ -91,11 +91,11 @@ The `backup` block supports:
 
 * `frequency` - (Required) Sets the backup frequency. Possible values are `Daily` and `Hourly`. 
 
--> **NOTE:** This argument is made available for consistency with VM backup policies and to allow for potential future support of weekly backups
+-> **Note:** This argument is made available for consistency with VM backup policies and to allow for potential future support of weekly backups
 
 * `time` - (Optional) The time of day to perform the backup in 24-hour format. Times must be either on the hour or half hour (e.g. 12:00, 12:30, 13:00, etc.)
 
--> **NOTE:** `time` is required when `frequency` is set to `Daily`.
+-> **Note:** `time` is required when `frequency` is set to `Daily`.
 
 * `hourly` - (Optional) A `hourly` block defined as below. This is required when `frequency` is set to `Hourly`.
 
@@ -137,7 +137,7 @@ The `retention_monthly` block supports:
 
 * `include_last_days` - (Optional) Including the last day of the month, default to `false`.
 
--> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
+-> **Note:** Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ---
 
@@ -155,7 +155,7 @@ The `retention_yearly` block supports:
 
 * `include_last_days` - (Optional) Including the last day of the month, default to `false`.
 
--> **NOTE:**: Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
+-> **Note:** Either `weekdays` and `weeks` or `days` and `include_last_days` must be specified.
 
 ## Attributes Reference
 
@@ -168,8 +168,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the File Share Backup Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the File Share Backup Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the File Share Backup Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the File Share Backup Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the File Share Backup Policy.
 
 ## Import

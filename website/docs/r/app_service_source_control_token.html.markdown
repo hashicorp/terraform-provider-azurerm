@@ -11,9 +11,9 @@ description: |-
 
 Manages an App Service source control token.
 
-!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_service_plan`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) resource instead.
+!> **Note:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_service_plan`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) resource instead.
 
-~> **NOTE:** Source Control Tokens are configured at the subscription level, not on each App Service - as such this can only be configured Subscription-wide
+~> **Note:** Source Control Tokens are configured at the subscription level, not on each App Service - as such this can only be configured Subscription-wide
 
 ## Example Usage
 
@@ -39,8 +39,8 @@ The following arguments are supported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Source Control Token.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Source Control Token.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Source Control Token.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Source Control Token.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service Source Control Token.
 
 ## Import

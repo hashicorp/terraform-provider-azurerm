@@ -14,7 +14,7 @@ Manages a virtual machine scale set.
 
 !> **Note:** The `azurerm_virtual_machine_scale_set` resource has been deprecated in favour of the [`azurerm_linux_virtual_machine_scale_set`](linux_virtual_machine_scale_set.html) and [`azurerm_windows_virtual_machine_scale_set`](windows_virtual_machine_scale_set.html) resources. Whilst this will continue to be available throughout the 2.x and 3.x releases however is in a feature-frozen state to maintain compatibility - new functionality will instead be added to the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources and the `azurerm_virtual_machine_scale_set` resource will be removed in the future.
 
-~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage with Managed Disks (Recommended)
 
@@ -295,7 +295,7 @@ The following arguments are supported:
 
 * `eviction_policy` - (Optional) Specifies the eviction policy for Virtual Machines in this Scale Set. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
--> **NOTE:** `eviction_policy` can only be set when `priority` is set to `Low`.
+-> **Note:** `eviction_policy` can only be set when `priority` is set to `Low`.
 
 * `health_probe_id` - (Optional) Specifies the identifier for the load balancer health probe. Required when using `Rolling` as your `upgrade_policy_mode`.
 
@@ -321,7 +321,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over. Changing this forces a new resource to be created.
 
--> **NOTE:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
+-> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 ---
 
@@ -437,7 +437,7 @@ The `os_profile_linux_config` block supports the following:
 
 ~> **Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure.
 
-~> **NOTE:** At least one `ssh_keys` block is required if `disable_password_authentication` is set to `true`.
+~> **Note:** At least one `ssh_keys` block is required if `disable_password_authentication` is set to `true`.
 
 ---
 
@@ -466,11 +466,11 @@ The `ip_configuration` block supports the following:
 * `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of multiple application gateways. Multiple scale sets can use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 
--> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
+-> **Note:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
 
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT pools for load balancers. A scale set can reference inbound NAT pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 
--> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
+-> **Note:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
 
 * `primary` - (Required) Specifies if this ip_configuration is the primary one.
 * `application_security_group_ids` - (Optional) Specifies up to `20` application security group IDs.
@@ -492,11 +492,11 @@ A `ssh_keys` block supports the following:
 
 ~> **Note:** Azure only supports RSA SSH2 key signatures of at least 2048 bits in length
 
--> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
+-> **Note:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
 
 * `path` - (Required) The path of the destination file on the virtual machine
 
--> **NOTE:** Due to a limitation in the Azure VM Agent the only allowed `path` is `/home/{username}/.ssh/authorized_keys`.
+-> **Note:** Due to a limitation in the Azure VM Agent the only allowed `path` is `/home/{username}/.ssh/authorized_keys`.
 
 ---
 
@@ -591,10 +591,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine Scale Set.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine Scale Set.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine Scale Set.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Machine Scale Set.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Machine Scale Set.
 
 ## Import
 
