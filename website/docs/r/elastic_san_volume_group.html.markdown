@@ -209,3 +209,9 @@ An existing Elastic SAN Volume Group can be imported into Terraform using the `r
 ```shell
 terraform import azurerm_elastic_san_volume_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ElasticSan/elasticSans/esan1/volumeGroups/vg1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ElasticSan`: 2023-01-01
