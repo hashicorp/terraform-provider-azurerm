@@ -37,14 +37,11 @@ var VirtualNetworkResourceName = "azurerm_virtual_network"
 
 func resourceVirtualNetwork() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkCreate,
-		Read:   resourceVirtualNetworkRead,
-		Update: resourceVirtualNetworkUpdate,
-		Delete: resourceVirtualNetworkDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseVirtualNetworkID(id)
-			return err
-		}),
+		Create:   resourceVirtualNetworkCreate,
+		Read:     resourceVirtualNetworkRead,
+		Update:   resourceVirtualNetworkUpdate,
+		Delete:   resourceVirtualNetworkDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualNetworkId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -56,8 +53,7 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 		Schema: resourceVirtualNetworkSchema(),
 
 		Identity: &schema.ResourceIdentity{
-			Version: 1,
-			Schema:  pluginsdk.GenerateResourceIdentitySchema(&commonids.VirtualNetworkId{}),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualNetworkId{}),
 		},
 	}
 }
