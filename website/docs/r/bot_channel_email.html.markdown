@@ -77,3 +77,9 @@ The Email Integration for a Bot Channel can be imported using the `resource id`,
 ```shell
 terraform import azurerm_bot_channel_email.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.BotService/botServices/example/channels/EmailChannel
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.BotService`: 2022-09-15
