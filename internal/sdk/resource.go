@@ -108,6 +108,20 @@ type ResourceWithCustomImporter interface {
 	CustomImporter() ResourceRunFunc
 }
 
+type ResourceWithIdentity interface {
+	Resource
+
+	// Identity returns the identity for this resource
+	Identity() resourceids.ResourceId
+}
+
+type ResourceWithDiscriminatedType interface {
+	Resource
+
+	// Identity returns the identity for this resource
+	DiscriminatedType() pluginsdk.DiscriminatedType
+}
+
 // ResourceWithUpdate is an optional interface
 //
 // Notably the Arguments for Resources implementing this interface
@@ -170,6 +184,10 @@ type ResourceWithConfigValidation interface {
 // metadata is a reference to an object containing the Client, ResourceData and a Logger
 type ResourceRunFunc func(ctx context.Context, metadata ResourceMetaData) error
 
+//	type DiscriminatedType struct {
+//		Field string
+//		Value string
+//	}
 type ResourceFunc struct {
 	// Func is the function which should be called for this Resource Func
 	// for example, during Read this is the Read function, during Update this is the Update function
