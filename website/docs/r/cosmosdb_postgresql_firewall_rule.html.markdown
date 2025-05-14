@@ -70,3 +70,9 @@ Azure Cosmos DB for PostgreSQL Firewall Rules can be imported using the `resourc
 ```shell
 terraform import azurerm_cosmosdb_postgresql_firewall_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DBforPostgreSQL/serverGroupsv2/cluster1/firewallRules/firewallRule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2022-11-08

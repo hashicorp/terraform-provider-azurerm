@@ -62,3 +62,9 @@ terraform import azurerm_kubernetes_fleet_manager.example /subscriptions/{subscr
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Kubernetes Fleet Manager exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this Kubernetes Fleet Manager exists. For example `example-resource-group`.
 * Where `{fleetName}` is the name of the Fleet. For example `fleetValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService`: 2024-04-01

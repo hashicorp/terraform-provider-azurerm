@@ -98,3 +98,9 @@ Confidential Ledgers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_confidential_ledger.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-group/providers/Microsoft.ConfidentialLedger/ledgers/example-ledger
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ConfidentialLedger`: 2022-05-13
