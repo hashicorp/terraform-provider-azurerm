@@ -5,6 +5,7 @@ package migration
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -38,7 +39,7 @@ func (k KubernetesClusterNodePoolV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFu
 }
 
 func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -316,7 +317,7 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"transparent_huge_page_enabled": {
+					"transparent_huge_page": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
@@ -459,4 +460,16 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ConflictsWith: []string{"transparent_huge_page"},
+			Deprecated:    "`linux_os_config.transparent_huge_page_enabled` has been deprecated in favour of the `linux_os_config.transparent_huge_page` property and will be removed in v5.0 of the AzureRM Provider"}
+
+		s["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"].ConflictsWith = []string{"transparent_huge_page_enabled"}
+	}
+
+	return s
 }
