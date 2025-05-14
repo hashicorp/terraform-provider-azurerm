@@ -203,7 +203,7 @@ A `nat_rule` (NAT rule) block supports the following:
 
 * `translated_fqdn` - (Optional) Specifies the translated FQDN.
 
-~> **NOTE:** Exactly one of `translated_address` and `translated_fqdn` should be set.
+~> **Note:** Exactly one of `translated_address` and `translated_fqdn` should be set.
 
 * `translated_port` - (Required) Specifies the translated port.
 

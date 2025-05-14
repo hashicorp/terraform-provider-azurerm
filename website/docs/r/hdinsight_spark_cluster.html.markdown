@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `tls_min_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
 
-~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
+~> **Note:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
 
 ---
 
@@ -141,7 +141,7 @@ A `gateway` block supports the following:
 
 * `password` - (Required) The password used for the Ambari Portal.
 
--> **NOTE:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
+-> **Note:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
 
 * `username` - (Required) The username used for the Ambari Portal. Changing this forces a new resource to be created.
 
@@ -155,11 +155,11 @@ A `head_node` block supports the following:
 
 * `password` - (Optional) The Password associated with the local administrator for the Head Nodes. Changing this forces a new resource to be created.
 
--> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
+-> **Note:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
 
 * `ssh_keys` - (Optional) A list of SSH Keys which should be used for the local administrator on the Head Nodes. Changing this forces a new resource to be created.
 
--> **NOTE:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
+-> **Note:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
 
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
@@ -193,7 +193,7 @@ A `network` block supports the following:
 
 * `connection_direction` - (Optional) The direction of the resource provider connection. Possible values include `Inbound` or `Outbound`. Defaults to `Inbound`. Changing this forces a new resource to be created.
 
--> **NOTE:** To enabled the private link the `connection_direction` must be set to `Outbound`.
+-> **Note:** To enabled the private link the `connection_direction` must be set to `Outbound`.
 
 * `private_link_enabled` - (Optional) Is the private link enabled? Possible values include `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -211,13 +211,13 @@ A `storage_account` block supports the following:
 
 * `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
 
--> **NOTE:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
+-> **Note:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
 * `storage_account_key` - (Required) The Access Key which should be used to connect to the Storage Account. Changing this forces a new resource to be created.
 
 * `storage_container_id` - (Required) The ID of the Storage Container. Changing this forces a new resource to be created.
 
--> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+-> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 
 * `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
@@ -227,7 +227,7 @@ A `storage_account_gen2` block supports the following:
 
 * `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
 
--> **NOTE:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
+-> **Note:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
 * `storage_resource_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
 
@@ -235,7 +235,7 @@ A `storage_account_gen2` block supports the following:
 
 * `managed_identity_resource_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
 
--> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+-> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 
 ---
 
@@ -273,11 +273,11 @@ A `worker_node` block supports the following:
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
--> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
+-> **Note:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
 
 * `ssh_keys` - (Optional) A list of SSH Keys which should be used for the local administrator on the Worker Nodes. Changing this forces a new resource to be created.
 
--> **NOTE:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
+-> **Note:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
 
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
@@ -299,11 +299,11 @@ A `zookeeper_node` block supports the following:
 
 * `password` - (Optional) The Password associated with the local administrator for the Zookeeper Nodes. Changing this forces a new resource to be created.
 
--> **NOTE:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
+-> **Note:** If specified, this password must be at least 10 characters in length and must contain at least one digit, one uppercase and one lower case letter, one non-alphanumeric character (except characters ' " ` \).
 
 * `ssh_keys` - (Optional) A list of SSH Keys which should be used for the local administrator on the Zookeeper Nodes. Changing this forces a new resource to be created.
 
--> **NOTE:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
+-> **Note:** Either a `password` or one or more `ssh_keys` must be specified - but not both.
 
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
@@ -391,7 +391,7 @@ An `autoscale` block supports the following:
 
 * `recurrence` - (Optional) A `recurrence` block as defined below.
 
--> **NOTE:** Either a `capacity` or `recurrence` block must be specified - but not both.
+-> **Note:** Either a `capacity` or `recurrence` block must be specified - but not both.
 
 ---
 
@@ -451,10 +451,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Spark HDInsight Cluster.
-* `update` - (Defaults to 60 minutes) Used when updating the Spark HDInsight Cluster.
+* `create` - (Defaults to 1 hour) Used when creating the Spark HDInsight Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spark HDInsight Cluster.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Spark HDInsight Cluster.
+* `update` - (Defaults to 1 hour) Used when updating the Spark HDInsight Cluster.
+* `delete` - (Defaults to 1 hour) Used when deleting the Spark HDInsight Cluster.
 
 ## Import
 

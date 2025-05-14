@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `zones` - A list of Availability Zones which the NAT Gateway exists in.
 
-~> **NOTE:** The field `public_ip_address_ids` has been deprecated in favour of `azurerm_nat_gateway_public_ip_association`.
+~> **Note:** The field `public_ip_address_ids` has been deprecated in favour of `azurerm_nat_gateway_public_ip_association`.
 
 ## Timeouts
 

@@ -50,13 +50,17 @@ The following arguments are supported:
 
 * `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `1` and `2048`.
 
-~> **NOTE** `2` TB capacity pool sizing is currently in preview. You can only take advantage of the `2` TB minimum if all the volumes in the capacity pool are using `Standard` network features. If any volume is using `Basic` network features, the minimum size is `4` TB. Please see the product [documentation](https://learn.microsoft.com/azure/azure-netapp-files/azure-netapp-files-set-up-capacity-pool) for more information.
+~> **Note:** `2` TB capacity pool sizing is currently in preview. You can only take advantage of the `2` TB minimum if all the volumes in the capacity pool are using `Standard` network features. If any volume is using `Basic` network features, the minimum size is `4` TB. Please see the product [documentation](https://learn.microsoft.com/azure/azure-netapp-files/azure-netapp-files-set-up-capacity-pool) for more information.
 
-~> **NOTE** The maximum `size_in_tb` is goverened by regional quotas. You may request additional capacity from Azure, currently up to `2048`.
+~> **Note:** The maximum `size_in_tb` is goverened by regional quotas. You may request additional capacity from Azure, currently up to `2048`.
 
 * `qos_type` - (Optional) QoS Type of the pool. Valid values include `Auto` or `Manual`. Defaults to `Auto`.
 
 * `encryption_type` - (Optional) The encryption type of the pool. Valid values include `Single`, and `Double`. Defaults to `Single`. Changing this forces a new resource to be created.
+
+* `cool_access_enabled` - (Optional) Whether the NetApp Pool can hold cool access enabled volumes. Defaults to `false`.
+
+~> **Note:** Disabling `cool_access_enabled` is not allowed and forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -73,8 +77,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the NetApp Pool.
-* `update` - (Defaults to 30 minutes) Used when updating the NetApp Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Pool.
 * `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Pool.
 
 ## Import

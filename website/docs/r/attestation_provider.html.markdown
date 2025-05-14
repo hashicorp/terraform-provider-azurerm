@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `policy_signing_certificate_data` - (Optional) A valid X.509 certificate (Section 4 of [RFC4648](https://tools.ietf.org/html/rfc4648)). Changing this forces a new resource to be created.
 
--> **NOTE:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
+-> **Note:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
 
 * `open_enclave_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `sev_snp_policy_base64` - (Optional) Specifies the base64 URI Encoded RFC 7519 JWT that should be used for the Attestation Policy.
 
--> [More information on the JWT Policies can be found in this article on `learn.microsoft.com`](https://learn.microsoft.com/azure/attestation/author-sign-policy).
+-> **Note:** [More information on the JWT Policies can be found in this article on `learn.microsoft.com`](https://learn.microsoft.com/azure/attestation/author-sign-policy).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Attestation Provider.
 

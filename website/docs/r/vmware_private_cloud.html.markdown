@@ -12,7 +12,7 @@ Manages an Azure VMware Solution Private Cloud.
 
 ## Example Usage
 
-~> **NOTE :**  Normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation.
+~> **Note:** Normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation.
 
 ```hcl
 provider "azurerm" {
@@ -53,14 +53,14 @@ The following arguments are supported:
 * `location` - (Required) The Azure Region where the Azure VMware Solution Private Cloud should exist. Changing this forces a new Azure VMware Solution Private Cloud to be created.
 
 * `management_cluster` - (Required) A `management_cluster` block as defined below.
-~> **NOTE :** `internet_connection_enabled` and `management_cluster[0].size` cannot be updated at the same time.
+~> **Note:** `internet_connection_enabled` and `management_cluster[0].size` cannot be updated at the same time.
 
 * `network_subnet_cidr` - (Required) The subnet which should be unique across virtual network in your subscription as well as on-premise. Changing this forces a new Azure VMware Solution Private Cloud to be created.
 
 * `sku_name` - (Required) The Name of the SKU used for this Azure VMware Solution Private Cloud. Possible values are `av20`, `av36`, `av36t`, `av36p`, `av36pt`, `av48`, `av48t`, `av52`, `av52t`, and `av64`. Changing this forces a new Azure VMware Solution Private Cloud to be created.
 
 * `internet_connection_enabled` - (Optional) Is the Azure VMware Solution Private Cloud connected to the internet? This field can not be updated with `management_cluster[0].size` together.
-~> **NOTE :** `internet_connection_enabled` and `management_cluster[0].size` cannot be updated at the same time.
+~> **Note:** `internet_connection_enabled` and `management_cluster[0].size` cannot be updated at the same time.
 
 * `nsxt_password` - (Optional) The password of the VMware NSX Manager cloudadmin. Changing this forces a new Azure VMware Solution Private Cloud to be created.
 

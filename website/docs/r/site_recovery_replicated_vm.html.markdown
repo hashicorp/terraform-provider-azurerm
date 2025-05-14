@@ -286,7 +286,7 @@ A `managed_disk` block supports the following:
 
 * `target_disk_encryption_set_id` - (Optional) The Disk Encryption Set that the Managed Disk will be associated with. Changing this forces a new resource to be created.
 
--> **NOTE:** Creating replicated vm with `target_disk_encryption_set_id` wil take more time (up to 5 hours), please extend the `timeout` for `create`. 
+-> **Note:** Creating replicated vm with `target_disk_encryption_set_id` wil take more time (up to 5 hours), please extend the `timeout` for `create`.
 
 * `target_disk_encryption` - (Optional) A `target_disk_encryption` block as defined below.
 
@@ -355,8 +355,8 @@ In addition to the arguments above, the following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Site Recovery Replicated VM.
-* `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replicated VM.
+* `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Site Recovery Replicated VM.
 
 ## Import

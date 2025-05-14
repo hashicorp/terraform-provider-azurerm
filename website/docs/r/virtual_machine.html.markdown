@@ -145,7 +145,7 @@ The following arguments are supported:
 
 * `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks as defined below.
 
-~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
+~> **Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
 
 * `storage_image_reference` - (Optional) A `storage_image_reference` block as defined below. Changing this forces a new resource to be created.
 
@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of a single item of the Availability Zone which the Virtual Machine should be allocated in. Changing this forces a new resource to be created.
 
--> **Please Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
+-> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 For more information on the different example configurations, please check out the [Azure documentation](https://docs.microsoft.com/en-gb/rest/api/compute/virtualmachines/createorupdate#examples)
 
@@ -179,7 +179,7 @@ A `boot_diagnostics` block supports the following:
 
 * `storage_uri` - (Required) The Storage Account's Blob Endpoint which should hold the virtual machine's diagnostic files.
 
-~> **NOTE:** This needs to be the root of a Storage Account and not a Storage Container.
+~> **Note:** This needs to be the root of a Storage Account and not a Storage Container.
 
 ---
 
@@ -195,13 +195,13 @@ A `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Virtual Machine. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
--> **NOTE:** Managed Service Identity previously required the installation of a VM Extension, but this information [is now available via the Azure Instance Metadata Service](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview#how-does-it-work).
+-> **Note:** Managed Service Identity previously required the installation of a VM Extension, but this information [is now available via the Azure Instance Metadata Service](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview#how-does-it-work).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the virtual machine has been created. More details are available below. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for additional information.
+~> **Note:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the virtual machine has been created. More details are available below. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for additional information.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Virtual Machine.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -213,9 +213,9 @@ A `os_profile` block supports the following:
 
 * `admin_password` - (Optional) (Optional for Windows, Optional for Linux) The password associated with the local administrator account.
 
--> **NOTE:** If using Linux, it may be preferable to use SSH Key authentication (available in the `os_profile_linux_config` block) instead of password authentication.
+-> **Note:** If using Linux, it may be preferable to use SSH Key authentication (available in the `os_profile_linux_config` block) instead of password authentication.
 
-~> **NOTE:** `admin_password` must be between 6-72 characters long and must satisfy at least 3 of password complexity requirements from the following:
+~> **Note:** `admin_password` must be between 6-72 characters long and must satisfy at least 3 of password complexity requirements from the following:
 
 1. Contains an uppercase character
 2. Contains a lowercase character
@@ -246,7 +246,7 @@ A `os_profile_windows_config` block supports the following:
 
 * `provision_vm_agent` - (Optional) Should the Azure Virtual Machine Guest Agent be installed on this Virtual Machine? Defaults to `false`.
 
--> **NOTE:** This is different from the Default value used for this field within Azure.
+-> **Note:** This is different from the Default value used for this field within Azure.
 
 * `enable_automatic_upgrades` - (Optional) Are automatic updates enabled on this Virtual Machine? Defaults to `false`.
 
@@ -274,11 +274,11 @@ A `ssh_keys` block supports the following:
 
 ~> **Note:** Azure only supports RSA SSH2 key signatures of at least 2048 bits in length
 
--> **NOTE:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
+-> **Note:** Rather than defining this in-line you can source this from a local file using [the `file` function](https://www.terraform.io/docs/configuration/functions/file.html) - for example `key_data = file("~/.ssh/id_rsa.pub")`.
 
 * `path` - (Required) The path of the destination file on the virtual machine
 
--> **NOTE:** Due to a limitation in the Azure VM Agent the only allowed `path` is `/home/{username}/.ssh/authorized_keys`.
+-> **Note:** Due to a limitation in the Azure VM Agent the only allowed `path` is `/home/{username}/.ssh/authorized_keys`.
 
 ---
 
@@ -300,13 +300,13 @@ To provision a Custom Image, the following fields are applicable:
 
 * `id` - (Optional) Specifies the ID of the Custom Image which the Virtual Machine should be created from. Changing this forces a new resource to be created.
 
--> **NOTE:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
+-> **Note:** An example of how to use this is available within [the `./examples/virtual-machines/virtual_machine/managed-disks/from-custom-image` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/virtual-machines/virtual_machine/managed-disks/from-custom-image)
 
 ---
 
 A `storage_data_disk` block supports the following:
 
-~> **NOTE:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
+~> **Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
 
 * `name` - (Required) The name of the Data Disk.
 
@@ -314,7 +314,7 @@ A `storage_data_disk` block supports the following:
 
 * `create_option` - (Required) Specifies how the data disk should be created. Possible values are `Attach`, `FromImage` and `Empty`.
 
-~> **NOTE:** If using an image that does not have data to be written to the Data Disk, use `Empty` as the create option in order to create the desired disk without any data.
+~> **Note:** If using an image that does not have data to be written to the Data Disk, use `Empty` as the create option in order to create the desired disk without any data.
 
 * `disk_size_gb` - (Optional) Specifies the size of the data disk in gigabytes.
 
@@ -376,7 +376,7 @@ A `vault_certificates` block supports the following:
 }
 ```
 
--> **NOTE:** If your certificate is stored in Azure Key Vault - this can be sourced from the `secret_id` property on the `azurerm_key_vault_certificate` resource.
+-> **Note:** If your certificate is stored in Azure Key Vault - this can be sourced from the `secret_id` property on the `azurerm_key_vault_certificate` resource.
 
 * `certificate_store` - (Optional) (Required, on windows machines) Specifies the certificate store on the Virtual Machine where the certificate should be added to, such as `My`.
 
@@ -388,7 +388,7 @@ A `winrm` block supports the following:
 
 * `certificate_url` - (Optional) The ID of the Key Vault Secret which contains the encrypted Certificate which should be installed on the Virtual Machine. This certificate must also be specified in the `vault_certificates` block within the `os_profile_secrets` block.
 
--> **NOTE:** This can be sourced from the `secret_id` field on the `azurerm_key_vault_certificate` resource.
+-> **Note:** This can be sourced from the `secret_id` field on the `azurerm_key_vault_certificate` resource.
 
 ## Attributes Reference
 
@@ -404,16 +404,16 @@ An `identity` block exports the following:
 
 * `principal_id` - The Principal ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `${azurerm_virtual_machine.example.identity[0].principal_id}`
+-> **Note:** You can access the Principal ID via `${azurerm_virtual_machine.example.identity[0].principal_id}`
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Machine.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Machine.
 
 ## Import
 

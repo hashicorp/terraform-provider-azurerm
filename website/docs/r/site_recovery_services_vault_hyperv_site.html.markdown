@@ -54,7 +54,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Recovery Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Service.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Recovery Service.
+* `delete` - (Defaults to 3 hours) Used when deleting the Recovery Service.
 
 ## Import
 
