@@ -61,7 +61,7 @@ The following arguments are supported:
 
 -> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `address_prefixes`, consider adding `number_of_ip_addresses_to_allocate` to `ignore_changes` to avoid plan diff.
 
-* `number_of_ip_addresses_to_allocate` - (Optional) The number of IP addresses to allocated to the Static CIDR. The value must be a string representing a positive integer which is a positive power of 2, e.g., `"16"`.
+* `number_of_ip_addresses_to_allocate` - (Optional) The number of IP addresses to allocate to the Static CIDR. The value must be a string representing a positive integer which is a positive power of 2, e.g., `"16"`.
 
 -> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `number_of_ip_addresses_to_allocate`, consider adding `address_prefixes` to `ignore_changes` to avoid plan diff.
 
