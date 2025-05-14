@@ -6,6 +6,12 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"testing"
 	"time"
 
@@ -20,6 +26,32 @@ import (
 )
 
 type SubnetResource struct{}
+
+func TestAccSubnetIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.12.0-beta1"))),
+			//tfversion.SkipBelow(tfversion.Version1_12_0),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectIdentity("azurerm_subnet.test", map[string]knownvalue.Check{
+						"subscription_id":      knownvalue.StringExact(data.Subscriptions.Primary),
+						"resource_group_name":  knownvalue.StringExact(fmt.Sprintf("acctestRG-%d", data.RandomInteger)),
+						"virtual_network_name": knownvalue.StringExact(fmt.Sprintf("acctestvirtnet%d", data.RandomInteger)),
+						"subnet_name":          knownvalue.StringExact("internal"),
+					}),
+				},
+			},
+		},
+	})
+}
 
 func TestAccSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")

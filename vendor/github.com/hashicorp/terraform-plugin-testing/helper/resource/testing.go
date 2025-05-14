@@ -454,6 +454,37 @@ type ExternalProvider struct {
 	Source            string // the provider source
 }
 
+type ImportStateKind byte
+
+const (
+	// ImportCommandWithID tests import by using the ID string with the `terraform import` command
+	ImportCommandWithID ImportStateKind = iota
+
+	// ImportBlockWithID tests import by using the ID string in an import configuration block with the `terraform plan` command
+	ImportBlockWithID
+
+	// ImportBlockWithResourceIdentity imports the state using an import block with a resource identity
+	ImportBlockWithResourceIdentity
+)
+
+// plannable reports whether this kind indicates the use of plannable import blocks
+func (kind ImportStateKind) plannable() bool {
+	return kind == ImportBlockWithID || kind == ImportBlockWithResourceIdentity
+}
+
+// resourceIdentity reports whether this kind indicates the use of resource identity in import blocks
+func (kind ImportStateKind) resourceIdentity() bool {
+	return kind == ImportBlockWithResourceIdentity
+}
+
+func (kind ImportStateKind) String() string {
+	return map[ImportStateKind]string{
+		ImportCommandWithID:             "ImportCommandWithID",
+		ImportBlockWithID:               "ImportBlockWithID",
+		ImportBlockWithResourceIdentity: "ImportBlockWithResourceIdentity",
+	}[kind]
+}
+
 // TestStep is a single apply sequence of a test, done within the
 // context of a state.
 //
@@ -633,6 +664,8 @@ type TestStep struct {
 	// ID of that resource.
 	ImportState bool
 
+	ImportStateKind ImportStateKind
+
 	// ImportStateId is the ID to perform an ImportState operation with.
 	// This is optional. If it isn't set, then the resource ID is automatically
 	// determined by inspecting the state for ResourceName's ID.
@@ -665,6 +698,13 @@ type TestStep struct {
 	// import, which the testing framework will skip to prevent the need for
 	// Terraform version specific logic in provider testing.
 	ImportStateCheck ImportStateCheckFunc
+
+	// ImportPlanChecks allows assertions to be made against the plan file at different points of a plannable import test using a plan check.
+	// Custom plan checks can be created by implementing the [PlanCheck] interface, or by using a PlanCheck implementation from the provided [plancheck] package
+	//
+	// [PlanCheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck#PlanCheck
+	// [plancheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck
+	ImportPlanChecks ImportPlanChecks
 
 	// ImportStateVerify, if true, will also check that the state values
 	// that are finally put into the state after import match for all the
@@ -797,6 +837,13 @@ type ConfigPlanChecks struct {
 	PostApplyPostRefresh []plancheck.PlanCheck
 }
 
+// ImportPlanChecks defines the different points in an Import TestStep when plan checks can be run.
+type ImportPlanChecks struct {
+	// PreApply runs all plan checks in the slice. This occurs after the plan of an Import test is computed. This slice cannot be populated
+	// with TestStep.PlanOnly, as there is no PreApply plan run with that flag set. All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
+	PreApply []plancheck.PlanCheck
+}
+
 // RefreshPlanChecks defines the different points in a Refresh TestStep when plan checks can be run.
 type RefreshPlanChecks struct {
 	// PostRefresh runs all plan checks in the slice. This occurs after the refresh of the Refresh test is run.
@@ -916,11 +963,7 @@ func Test(t testing.T, c TestCase) {
 	// This is done after creating the helper because a working directory is required
 	// to retrieve the Terraform version.
 	if c.TerraformVersionChecks != nil {
-		logging.HelperResourceDebug(ctx, "Calling TestCase Terraform version checks")
-
 		runTFVersionChecks(ctx, t, helper.TerraformVersion(), c.TerraformVersionChecks)
-
-		logging.HelperResourceDebug(ctx, "Called TestCase Terraform version checks")
 	}
 
 	runNewTest(ctx, t, c, helper)
@@ -940,17 +983,17 @@ func UnitTest(t testing.T, c TestCase) {
 	Test(t, c)
 }
 
-func testResource(c TestStep, state *terraform.State) (*terraform.ResourceState, error) {
+func testResource(name string, state *terraform.State) (*terraform.ResourceState, error) {
 	for _, m := range state.Modules {
 		if len(m.Resources) > 0 {
-			if v, ok := m.Resources[c.ResourceName]; ok {
+			if v, ok := m.Resources[name]; ok {
 				return v, nil
 			}
 		}
 	}
 
 	return nil, fmt.Errorf(
-		"Resource specified by ResourceName couldn't be found: %s", c.ResourceName)
+		"Resource specified by ResourceName couldn't be found: %s", name)
 }
 
 // ComposeTestCheckFunc lets you compose multiple TestCheckFuncs into

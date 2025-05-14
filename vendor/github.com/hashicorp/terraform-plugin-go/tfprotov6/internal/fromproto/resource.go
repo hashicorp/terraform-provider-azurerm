@@ -36,6 +36,20 @@ func UpgradeResourceStateRequest(in *tfplugin6.UpgradeResourceState_Request) *tf
 	return resp
 }
 
+func UpgradeResourceIdentityRequest(in *tfplugin6.UpgradeResourceIdentity_Request) *tfprotov6.UpgradeResourceIdentityRequest {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.UpgradeResourceIdentityRequest{
+		RawIdentity: RawState(in.RawIdentity),
+		TypeName:    in.TypeName,
+		Version:     in.Version,
+	}
+
+	return resp
+}
+
 func ReadResourceRequest(in *tfplugin6.ReadResource_Request) *tfprotov6.ReadResourceRequest {
 	if in == nil {
 		return nil
@@ -47,6 +61,7 @@ func ReadResourceRequest(in *tfplugin6.ReadResource_Request) *tfprotov6.ReadReso
 		ProviderMeta:       DynamicValue(in.ProviderMeta),
 		TypeName:           in.TypeName,
 		ClientCapabilities: ReadResourceClientCapabilities(in.ClientCapabilities),
+		CurrentIdentity:    ResourceIdentityData(in.CurrentIdentity),
 	}
 
 	return resp
@@ -65,6 +80,7 @@ func PlanResourceChangeRequest(in *tfplugin6.PlanResourceChange_Request) *tfprot
 		ProviderMeta:       DynamicValue(in.ProviderMeta),
 		TypeName:           in.TypeName,
 		ClientCapabilities: PlanResourceChangeClientCapabilities(in.ClientCapabilities),
+		PriorIdentity:      ResourceIdentityData(in.PriorIdentity),
 	}
 
 	return resp
@@ -76,12 +92,13 @@ func ApplyResourceChangeRequest(in *tfplugin6.ApplyResourceChange_Request) *tfpr
 	}
 
 	resp := &tfprotov6.ApplyResourceChangeRequest{
-		Config:         DynamicValue(in.Config),
-		PlannedPrivate: in.PlannedPrivate,
-		PlannedState:   DynamicValue(in.PlannedState),
-		PriorState:     DynamicValue(in.PriorState),
-		ProviderMeta:   DynamicValue(in.ProviderMeta),
-		TypeName:       in.TypeName,
+		Config:          DynamicValue(in.Config),
+		PlannedPrivate:  in.PlannedPrivate,
+		PlannedState:    DynamicValue(in.PlannedState),
+		PriorState:      DynamicValue(in.PriorState),
+		ProviderMeta:    DynamicValue(in.ProviderMeta),
+		TypeName:        in.TypeName,
+		PlannedIdentity: ResourceIdentityData(in.PlannedIdentity),
 	}
 
 	return resp
@@ -96,6 +113,7 @@ func ImportResourceStateRequest(in *tfplugin6.ImportResourceState_Request) *tfpr
 		TypeName:           in.TypeName,
 		ID:                 in.Id,
 		ClientCapabilities: ImportResourceStateClientCapabilities(in.ClientCapabilities),
+		Identity:           ResourceIdentityData(in.Identity),
 	}
 
 	return resp
@@ -113,6 +131,7 @@ func MoveResourceStateRequest(in *tfplugin6.MoveResourceState_Request) *tfprotov
 		SourceState:           RawState(in.SourceState),
 		SourceTypeName:        in.SourceTypeName,
 		TargetTypeName:        in.TargetTypeName,
+		SourceIdentity:        RawState(in.SourceIdentity),
 	}
 
 	return resp

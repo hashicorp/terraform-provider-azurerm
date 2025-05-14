@@ -6,6 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
@@ -112,6 +113,11 @@ func resourceSubnet() *pluginsdk.Resource {
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			Version: 1,
+			Schema:  pluginsdk.GenerateResourceIdentitySchema(&commonids.SubnetId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -500,6 +506,10 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
 			}
 		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
 	}
 
 	return nil

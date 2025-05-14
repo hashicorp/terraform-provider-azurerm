@@ -7,10 +7,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
-	"strings"
-	"time"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -23,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -31,6 +28,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"log"
+	"strings"
+	"time"
 )
 
 var VirtualNetworkResourceName = "azurerm_virtual_network"
@@ -54,6 +54,11 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 		},
 
 		Schema: resourceVirtualNetworkSchema(),
+
+		Identity: &schema.ResourceIdentity{
+			Version: 1,
+			Schema:  pluginsdk.GenerateResourceIdentitySchema(&commonids.VirtualNetworkId{}),
+		},
 	}
 }
 
@@ -424,7 +429,13 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
 	}
 
 	return nil
