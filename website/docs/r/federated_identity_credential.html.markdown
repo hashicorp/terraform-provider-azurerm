@@ -74,3 +74,9 @@ An existing Federated Identity Credential can be imported into Terraform using t
 ```shell
 terraform import azurerm_federated_identity_credential.example /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{parentIdentityName}/federatedIdentityCredentials/{resourceName}
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ManagedIdentity`: 2023-01-31

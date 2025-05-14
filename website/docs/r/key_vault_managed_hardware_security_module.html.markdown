@@ -110,3 +110,9 @@ Key Vault Managed Hardware Security Module can be imported using the `resource i
 ```shell
 terraform import azurerm_key_vault_managed_hardware_security_module.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/managedHSMs/hsm1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KeyVault`: 2023-07-01
