@@ -6,7 +6,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strings"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -99,14 +99,11 @@ var subnetDelegationServiceNames = []string{
 
 func resourceSubnet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetCreate,
-		Read:   resourceSubnetRead,
-		Update: resourceSubnetUpdate,
-		Delete: resourceSubnetDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseSubnetID(id)
-			return err
-		}),
+		Create:   resourceSubnetCreate,
+		Read:     resourceSubnetRead,
+		Update:   resourceSubnetUpdate,
+		Delete:   resourceSubnetDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -116,8 +113,7 @@ func resourceSubnet() *pluginsdk.Resource {
 		},
 
 		Identity: &schema.ResourceIdentity{
-			Version: 1,
-			Schema:  pluginsdk.GenerateResourceIdentitySchema(&commonids.SubnetId{}),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SubnetId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
