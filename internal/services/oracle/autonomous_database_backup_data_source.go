@@ -5,16 +5,16 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabasebackups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"time"
 )
 
 type AutonomousDatabaseBackupDataSource struct{}
@@ -23,120 +23,126 @@ type AutonomousDatabaseBackupDataModel struct {
 	Name              string `tfschema:"name"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
 
-	AutonomousDataBaseName       string `tfschema:"autonomous_database_name"`
+	AutonomousDatabaseId  string `tfschema:"autonomous_database_id"`
+	DisplayName           string `tfschema:"display_name"`
+	BackupType            string `tfschema:"backup_type"`
+	RetentionPeriodInDays int64  `tfschema:"retention_period_in_days"`
+
+	// Computed fields
 	AutonomousDatabaseOcid       string `tfschema:"autonomous_database_ocid"`
-	AutonomousDataBaseBackupOcid string `tfschema:"autonomous_database_backup_ocid"`
-	BackupType                   string `tfschema:"backup_type"`
+	AutonomousDatabaseBackupOcid string `tfschema:"autonomous_database_backup_ocid"`
 	DbVersion                    string `tfschema:"database_version"`
-	DisplayName                  string `tfschema:"display_name"`
 	BackupSizeInTbs              int64  `tfschema:"database_backup_size_in_tbs"`
 	IsAutomatic                  bool   `tfschema:"is_automatic"`
 	IsRestorable                 bool   `tfschema:"is_restorable"`
 	LifecycleDetails             string `tfschema:"lifecycle_details"`
 	LifecycleState               string `tfschema:"lifecycle_state"`
-	LicenseModel                 string `tfschema:"license_model"`
 	ProvisioningState            string `tfschema:"provisioning_state"`
-	RetentionPeriodInDays        int64  `tfschema:"retention_period_in_days"`
 	TimeAvailableTil             string `tfschema:"time_available_til"`
 	TimeEnded                    string `tfschema:"time_ended"`
 	TimeStarted                  string `tfschema:"time_started"`
+	Location                     string `tfschema:"location"`
 }
 
 func (a AutonomousDatabaseBackupDataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
-
-		"autonomous_database_name": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
+		},
+
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+
+		"autonomous_database_id": {
+			Type:     schema.TypeString,
+			Required: true,
 		},
 	}
 }
 
 func (a AutonomousDatabaseBackupDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-
-		// Required
-		"autonomous_backup_database_id": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
 		"display_name": {
 			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"retention_period_in_days": {
-			Type:     schema.TypeInt,
-			Required: true,
 			Computed: true,
 		},
 
-		// Optional
-		// Computed
-		"autonomous_database_ocid": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"autonomous_database_backup_ocid": {
+		"location": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"database_backup_size_in_tbs": {
-			Type:     schema.TypeFloat,
-			Computed: true,
-		},
-		"database_version": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
+
 		"backup_type": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+
+		"retention_period_in_days": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+
+		"autonomous_database_ocid": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"autonomous_database_backup_ocid": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"database_backup_size_in_tbs": {
+			Type:     schema.TypeFloat,
+			Computed: true,
+		},
+
+		"database_version": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
 		"is_automatic": {
 			Type:     schema.TypeBool,
 			Computed: true,
 		},
+
 		"is_restorable": {
 			Type:     schema.TypeBool,
 			Computed: true,
 		},
+
 		"lifecycle_details": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+
 		"lifecycle_state": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+
 		"provisioning_state": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+
 		"time_available_til": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+
 		"time_ended": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+
 		"time_started": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
 	}
-
 }
 
 func (a AutonomousDatabaseBackupDataSource) ModelObject() interface{} {
@@ -152,7 +158,6 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
-			dbClient := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state AutonomousDatabaseBackupDataModel
@@ -160,20 +165,16 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			dbId := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, state.ResourceGroupName, state.AutonomousDataBaseName)
-
-			res, err := dbClient.Get(ctx, dbId)
+			// Extract resource group and autonomous database name from the ID
+			resourceGroupName, autonomousDatabaseName, err := extractResourceGroupAndNameFromID(state.AutonomousDatabaseId)
 			if err != nil {
-				if response.WasNotFound(res.HttpResponse) {
-					return fmt.Errorf("%s was not found", dbId)
-				}
-				return fmt.Errorf("retrieving %s: %+v", dbId, err)
+				return err
 			}
 
 			id := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(
 				subscriptionId,
-				state.ResourceGroupName,
-				state.AutonomousDataBaseName,
+				resourceGroupName,
+				autonomousDatabaseName,
 				state.Name,
 			)
 
@@ -187,20 +188,19 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 
-				properties := model.Properties
-				if properties != nil {
+				if properties := model.Properties; properties != nil {
+					state.DisplayName = pointer.From(properties.DisplayName)
+					state.RetentionPeriodInDays = pointer.From(properties.RetentionPeriodInDays)
 					state.AutonomousDatabaseOcid = pointer.From(properties.AutonomousDatabaseOcid)
-					state.AutonomousDataBaseBackupOcid = pointer.From(properties.Ocid)
+					state.AutonomousDatabaseBackupOcid = pointer.From(properties.Ocid)
 					state.BackupType = string(pointer.From(properties.BackupType))
 					state.DbVersion = pointer.From(properties.DbVersion)
-					state.DisplayName = pointer.From(properties.DisplayName)
 					state.BackupSizeInTbs = int64(pointer.From(properties.DatabaseSizeInTbs))
 					state.IsAutomatic = pointer.From(properties.IsAutomatic)
 					state.IsRestorable = pointer.From(properties.IsRestorable)
 					state.LifecycleDetails = pointer.From(properties.LifecycleDetails)
 					state.LifecycleState = string(pointer.From(properties.LifecycleState))
 					state.ProvisioningState = string(pointer.From(properties.ProvisioningState))
-					state.RetentionPeriodInDays = pointer.From(properties.RetentionPeriodInDays)
 					state.TimeAvailableTil = pointer.From(properties.TimeAvailableTil)
 					state.TimeEnded = pointer.From(properties.TimeEnded)
 					state.TimeStarted = pointer.From(properties.TimeStarted)
@@ -208,9 +208,7 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-
 			return metadata.Encode(&state)
-
 		},
 	}
 }

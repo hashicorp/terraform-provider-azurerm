@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"log"
+	"strings"
 	"time"
 )
 
@@ -23,15 +25,17 @@ type AutonomousDatabaseBackupResource struct{}
 type AutonomousDatabaseBackupResourceModel struct {
 	Location          string `tfschema:"location"`
 	ResourceGroupName string `tfschema:"resource_group_name"`
-	Name              string `tfschema:"display_name"`
+	DisplayName       string `tfschema:"display_name"`
 
 	// Required
-	AutonomousDataBaseName       string `tfschema:"autonomous_database_name"`
+	AutonomousDataBaseID  string `tfschema:"autonomous_database_id"`
+	BackupType            string `tfschema:"backup_type"`
+	RetentionPeriodInDays int64  `tfschema:"retention_period_in_days"`
+
+	//computed
 	AutonomousDataBaseBackupOcid string `tfschema:"autonomous_database_backup_ocid"`
 	AutonomousDatabaseOcid       string `tfschema:"autonomous_database_ocid"`
-	BackupType                   string `tfschema:"backup_type"`
 	DbVersion                    string `tfschema:"database_version"`
-	DisplayName                  string `tfschema:"display_name"`
 	BackupSizeInTbs              int64  `tfschema:"database_backup_size_in_tbs"`
 	IsAutomatic                  bool   `tfschema:"is_automatic"`
 	IsRestorable                 bool   `tfschema:"is_restorable"`
@@ -39,7 +43,6 @@ type AutonomousDatabaseBackupResourceModel struct {
 	LifecycleState               string `tfschema:"lifecycle_state"`
 	LicenseModel                 string `tfschema:"license_model"`
 	ProvisioningState            string `tfschema:"provisioning_state"`
-	RetentionPeriodInDays        int64  `tfschema:"retention_period_in_days"`
 	TimeAvailableTil             string `tfschema:"time_available_til"`
 	TimeEnded                    string `tfschema:"time_ended"`
 	TimeStarted                  string `tfschema:"time_started"`
@@ -49,7 +52,7 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 	return map[string]*pluginsdk.Schema{
 
 		// Required
-		"autonomous_database_name": {
+		"autonomous_database_id": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -62,36 +65,43 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 		"retention_period_in_days": {
 			Type:         schema.TypeInt,
 			Required:     true,
-			Computed:     true,
-			ValidateFunc: validation.IntBetween(1, 60),
+			ValidateFunc: validation.IntBetween(90, 3650),
 		},
 
 		// Optional
-
-		// Computed
-		"autonomous_database_backup_ocid": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-		"autonomous_database_ocid": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
 		"backup_type": {
 			Type:     schema.TypeString,
-			Computed: true,
+			Optional: true,
+			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeFull),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeFull),
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeIncremental),
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
 			}, false),
 		},
+	}
+}
+
+func (r AutonomousDatabaseBackupResource) Attributes() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{
+
+		"location": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"autonomous_database_backup_ocid": {
+			Type:     schema.TypeString,
+			Computed: true,
+			ForceNew: true,
+		},
+		"autonomous_database_ocid": {
+			Type:     schema.TypeString,
+			Computed: true,
+			ForceNew: true,
+		},
 		"database_backup_size_in_tbs": {
-			Type:         schema.TypeFloat,
-			Computed:     true,
-			ValidateFunc: validation.IntBetween(1, 384),
+			Type:     schema.TypeFloat,
+			Computed: true,
 		},
 		"database_version": {
 			Type:     schema.TypeString,
@@ -117,10 +127,6 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-		"ocid": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
 		"time_available_til": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -136,16 +142,12 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (r AutonomousDatabaseBackupResource) Attributes() map[string]*schema.Schema {
-	return map[string]*pluginsdk.Schema{}
-}
-
 func (r AutonomousDatabaseBackupResource) ModelObject() interface{} {
 	return &AutonomousDatabaseBackupResource{}
 }
 
 func (r AutonomousDatabaseBackupResource) ResourceType() string {
-	return "azurerm_autonomous_database_backup"
+	return "azurerm_oracle_autonomous_database_backup"
 }
 
 func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
@@ -161,12 +163,15 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding model: %+v", err)
 			}
 
+			autonomousDatabaseId := model.AutonomousDataBaseID
+
+			resourceGroupName, autonomousDatabaseName, err := extractResourceGroupAndNameFromID(autonomousDatabaseId)
+			if err != nil {
+				return err
+			}
+
 			// Check if the autonomous database exists
-			dbId := autonomousdatabases.NewAutonomousDatabaseID(
-				subscriptionId,
-				model.ResourceGroupName,
-				model.AutonomousDataBaseName,
-			)
+			dbId := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, resourceGroupName, autonomousDatabaseName)
 
 			existing, err := dbClient.Get(ctx, dbId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -175,9 +180,9 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 
 			id := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(
 				subscriptionId,
-				model.ResourceGroupName,
-				model.AutonomousDataBaseName,
-				model.Name,
+				resourceGroupName,
+				autonomousDatabaseName,
+				model.DisplayName,
 			)
 
 			resp, err := client.Get(ctx, id)
@@ -193,6 +198,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
 					DisplayName:           pointer.To(model.DisplayName),
 					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
+					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.BackupType)),
 				},
 			}
 
@@ -201,6 +207,9 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			log.Printf("[DEBUG] Created resource with ID: %s", id.ID())
+			log.Printf("[DEBUG] Resource uses display_name: %s", model.DisplayName)
+			log.Printf("[DEBUG] Resource uses autonomous_database_id: %s", model.AutonomousDataBaseID)
 			return nil
 		},
 	}
@@ -214,43 +223,95 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 
 			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
 			if err != nil {
+				fmt.Printf("[DEBUG] Error parsing ID: %s - %+v\n", metadata.ResourceData.Id(), err)
 				return fmt.Errorf("parsing ID: %+v", err)
 			}
+			fmt.Printf("[DEBUG] Reading ID: %s\n", metadata.ResourceData.Id())
+			fmt.Printf("[DEBUG] Parsed ID: %+v\n", *id)
 
-			result, err := client.Get(ctx, *id)
+			adbId := autonomousdatabases.NewAutonomousDatabaseID(
+				id.SubscriptionId,
+				id.ResourceGroupName,
+				id.AutonomousDatabaseName,
+			)
+
+			log.Printf("[DEBUG] Retrieving backups for Autonomous Database %s", adbId.ID())
+			resp, err := client.ListByAutonomousDatabase(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
 			if err != nil {
-				if response.WasNotFound(result.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+				log.Printf("[ERROR] Failed to list backups: %+v", err)
+				return fmt.Errorf("retrieving Autonomous Database Backups: %+v", err)
 			}
+			log.Printf("[DEBUG] Looking for backup with name: %s", id.AutonomousDatabaseBackupName)
+			var backup *autonomousdatabasebackups.AutonomousDatabaseBackup
+			if resp.Model != nil {
+				log.Printf("[DEBUG] Found %d backups for database", len(*resp.Model))
+
+				for i := range *resp.Model {
+					item := (*resp.Model)[i]
+
+					// Log each backup's details
+					itemName := "nil"
+					if item.Name != nil {
+						itemName = *item.Name
+					}
+
+					itemDisplayName := "nil"
+					if item.Properties != nil && item.Properties.DisplayName != nil {
+						itemDisplayName = *item.Properties.DisplayName
+					}
+
+					log.Printf("[DEBUG] Backup %d: Name=%s, DisplayName=%s", i, itemName, itemDisplayName)
+
+					// Try matching against both Name and DisplayName
+					if (item.Name != nil && *item.Name == id.AutonomousDatabaseBackupName) ||
+						(item.Properties != nil && item.Properties.DisplayName != nil && *item.Properties.DisplayName == id.AutonomousDatabaseBackupName) {
+						log.Printf("[DEBUG] Found matching backup: %s", itemName)
+						backup = &(*resp.Model)[i] // Use direct array access to avoid reference issues
+						break
+					}
+				}
+			} else {
+				log.Printf("[DEBUG] No backups returned from API (resp.Model is nil)")
+			}
+			if backup == nil {
+				log.Printf("[DEBUG] Resource Autonomous Database Backup %s not found in any of the backups", id.AutonomousDatabaseBackupName)
+				metadata.ResourceData.SetId("")
+				return nil
+			}
+			log.Printf("[DEBUG] Successfully found backup %s", *backup.Name)
+
+			// Construct the autonomous database ID from the parsed ID components
+			autonomousDatabaseId := adbId.ID()
+			log.Printf("[DEBUG] Setting autonomous_database_id to: %s", autonomousDatabaseId)
 
 			state := AutonomousDatabaseBackupResourceModel{
-				Name:                   id.AutonomousDatabaseBackupName,
-				ResourceGroupName:      id.ResourceGroupName,
-				AutonomousDataBaseName: id.AutonomousDatabaseName,
+				DisplayName:       id.AutonomousDatabaseBackupName,
+				ResourceGroupName: id.ResourceGroupName,
+				// CRITICAL: Add this line to set the autonomous database ID
+				AutonomousDataBaseID: autonomousDatabaseId,
 			}
 
-			if model := result.Model; model != nil {
-
-				if properties := model.Properties; properties != nil {
-					state.DisplayName = pointer.From(properties.DisplayName)
-					state.RetentionPeriodInDays = pointer.From(properties.RetentionPeriodInDays)
-					state.AutonomousDatabaseOcid = pointer.From(properties.AutonomousDatabaseOcid)
-					state.AutonomousDataBaseBackupOcid = pointer.From(properties.Ocid)
-					state.BackupType = string(pointer.From(properties.BackupType))
-					state.DbVersion = pointer.From(properties.DbVersion)
-					state.BackupSizeInTbs = int64(pointer.From(properties.DatabaseSizeInTbs))
-					state.IsAutomatic = pointer.From(properties.IsAutomatic)
-					state.IsRestorable = pointer.From(properties.IsRestorable)
-					state.LifecycleDetails = pointer.From(properties.LifecycleDetails)
-					state.LifecycleState = string(pointer.From(properties.LifecycleState))
-					state.ProvisioningState = string(pointer.From(properties.ProvisioningState))
-					state.TimeAvailableTil = pointer.From(properties.TimeAvailableTil)
-					state.TimeEnded = pointer.From(properties.TimeEnded)
-					state.TimeStarted = pointer.From(properties.TimeStarted)
-				}
+			fmt.Printf("[DEBUG] Initial State: %+v\n", state)
+			if model := backup.Properties; model != nil {
+				state.DisplayName = pointer.From(model.DisplayName)
+				state.RetentionPeriodInDays = pointer.From(model.RetentionPeriodInDays)
+				state.AutonomousDatabaseOcid = pointer.From(model.AutonomousDatabaseOcid)
+				state.AutonomousDataBaseBackupOcid = pointer.From(model.Ocid)
+				state.BackupType = string(pointer.From(model.BackupType))
+				state.DbVersion = pointer.From(model.DbVersion)
+				state.BackupSizeInTbs = int64(pointer.From(model.DatabaseSizeInTbs))
+				state.IsAutomatic = pointer.From(model.IsAutomatic)
+				state.IsRestorable = pointer.From(model.IsRestorable)
+				state.LifecycleDetails = pointer.From(model.LifecycleDetails)
+				state.LifecycleState = string(pointer.From(model.LifecycleState))
+				state.ProvisioningState = string(pointer.From(model.ProvisioningState))
+				state.TimeAvailableTil = pointer.From(model.TimeAvailableTil)
+				state.TimeEnded = pointer.From(model.TimeEnded)
+				state.TimeStarted = pointer.From(model.TimeStarted)
 			}
+
+			log.Printf("[DEBUG] Final state before encoding: %+v", state)
+			log.Printf("[DEBUG] autonomous_database_id in final state: %s", state.AutonomousDataBaseID)
 
 			return metadata.Encode(&state)
 		},
@@ -318,4 +379,15 @@ func (r AutonomousDatabaseBackupResource) Delete() sdk.ResourceFunc {
 
 func (r AutonomousDatabaseBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabasebackups.ValidateAutonomousDatabaseBackupID
+}
+
+func extractResourceGroupAndNameFromID(id string) (resourceGroup string, name string, err error) {
+	parts := strings.Split(id, "/")
+	if len(parts) != 9 {
+		return "", "", fmt.Errorf("invalid Autonomous Database ID format: %s", id)
+	}
+
+	resourceGroup = parts[4]
+	name = parts[8]
+	return resourceGroup, name, nil
 }
