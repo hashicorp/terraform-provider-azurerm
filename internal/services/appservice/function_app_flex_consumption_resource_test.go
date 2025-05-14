@@ -242,7 +242,7 @@ func TestAccFunctionAppFlexConsumption_alwaysReadyInstanceCountError(t *testing.
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.alwaysReadyInstanceCountError(data),
-			ExpectError: regexp.MustCompile("the total of always-ready instances should not exceed the maximum sacle out limit"),
+			ExpectError: regexp.MustCompile("the total number of always-ready instances should not exceed the maximum scale out limit"),
 		},
 	})
 }
@@ -429,7 +429,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -457,7 +457,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -491,7 +491,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -548,7 +548,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -588,7 +588,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -700,7 +700,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -732,7 +732,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
@@ -766,7 +766,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-tf%d"
+  name                = "acctest-LFA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
