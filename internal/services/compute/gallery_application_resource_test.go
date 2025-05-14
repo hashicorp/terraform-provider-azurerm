@@ -12,13 +12,46 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type GalleryApplicationResource struct{}
+
+func TestAccGalleryApplication_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_gallery_application", "test")
+	r := GalleryApplicationResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.12.0-rc2"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectIdentity("azurerm_gallery_application.test", map[string]knownvalue.Check{
+						"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+						"resource_group_name": knownvalue.StringExact(fmt.Sprintf("acctest-compute-%d", data.RandomInteger)),
+						"gallery_name":        knownvalue.StringExact(fmt.Sprintf("acctestsig%d", data.RandomInteger)),
+						"application_name":    knownvalue.StringExact(fmt.Sprintf("acctest-app-%d", data.RandomInteger)),
+					}),
+				},
+			},
+			data.ImportBlockWithResourceIdentityStep(),
+			data.ImportBlockWithIDStep(),
+		},
+	})
+}
 
 func TestAccGalleryApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application", "test")

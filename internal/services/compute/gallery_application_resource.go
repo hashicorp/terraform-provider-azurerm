@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -27,7 +28,12 @@ type GalleryApplicationResource struct{}
 var (
 	_ sdk.ResourceWithUpdate        = GalleryApplicationResource{}
 	_ sdk.ResourceWithCustomizeDiff = GalleryApplicationResource{}
+	_ sdk.ResourceWithIdentity      = GalleryApplicationResource{}
 )
+
+func (r GalleryApplicationResource) Identity() resourceids.ResourceId {
+	return &galleryapplications.ApplicationId{}
+}
 
 type GalleryApplicationModel struct {
 	Name                string            `tfschema:"name"`
@@ -241,6 +247,10 @@ func (r GalleryApplicationResource) Read() sdk.ResourceFunc {
 
 					state.SupportedOSType = string(props.SupportedOSType)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(state)
