@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -94,12 +95,25 @@ var _ sdk.ResourceWithCustomizeDiff = LinuxFunctionAppResource{}
 
 var _ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
 
+var _ sdk.ResourceWithIdentity = LinuxFunctionAppResource{}
+
 func (r LinuxFunctionAppResource) ModelObject() interface{} {
 	return &LinuxFunctionAppModel{}
 }
 
 func (r LinuxFunctionAppResource) ResourceType() string {
 	return "azurerm_linux_function_app"
+}
+
+func (r LinuxFunctionAppResource) Identity() resourceids.ResourceId {
+	return &commonids.FunctionAppId{}
+}
+
+func (r LinuxFunctionAppResource) DiscriminatedType() pluginsdk.DiscriminatedType {
+	return pluginsdk.DiscriminatedType{
+		Field: "kind",
+		Value: "functionapp,linux",
+	}
 }
 
 func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -842,6 +856,14 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("encoding: %+v", err)
 					}
 				}
+			}
+
+			//if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+			//	return err
+			//}
+
+			if err := pluginsdk.SetResourceIdentityDataDiscriminatedType(metadata.ResourceData, id, r.DiscriminatedType()); err != nil {
+				return err
 			}
 
 			return nil
