@@ -88,7 +88,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-				return fmt.Errorf("PrivateEndpoint %q does not exsit", privateEndpointId)
+				return fmt.Errorf("PrivateEndpoint %q does not exist", privateEndpointId)
 			}
 
 			if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil {
@@ -101,7 +101,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			if response.WasNotFound(existingASG.HttpResponse) {
-				return fmt.Errorf("ApplicationSecurityGroup %q does not exsit", ASGId)
+				return fmt.Errorf("ApplicationSecurityGroup %q does not exist", ASGId)
 			}
 
 			if existingASG.Model == nil || existingASG.Model.Properties == nil {
@@ -214,7 +214,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Read() sdk.R
 				}
 			}
 			if !ASGInPE {
-				log.Printf("ApplicationSecurityGroup %q does not exsit in %q, removing from state.", ASGId, privateEndpointId)
+				log.Printf("ApplicationSecurityGroup %q does not exist in %q, removing from state.", ASGId, privateEndpointId)
 				err := metadata.MarkAsGone(resourceId)
 				if err != nil {
 					return err
@@ -266,7 +266,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 			}
 
 			if response.WasNotFound(existingPrivateEndpoint.HttpResponse) {
-				return fmt.Errorf("PrivateEndpoint %q does not exsit", privateEndpointId)
+				return fmt.Errorf("PrivateEndpoint %q does not exist", privateEndpointId)
 			}
 
 			if existingPrivateEndpoint.Model == nil || existingPrivateEndpoint.Model.Properties == nil {
@@ -279,7 +279,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Delete() sdk
 			}
 
 			if response.WasNotFound(existingASG.HttpResponse) {
-				return fmt.Errorf("ApplicationSecurityGroup %q does not exsit", ASGId)
+				return fmt.Errorf("ApplicationSecurityGroup %q does not exist", ASGId)
 			}
 
 			resourceId := parse.NewPrivateEndpointApplicationSecurityGroupAssociationId(*privateEndpointId, *ASGId)
