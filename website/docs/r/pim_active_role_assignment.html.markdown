@@ -150,3 +150,9 @@ terraform import azurerm_pim_active_role_assignment.example /subscriptions/00000
 ```
 
 -> **Note:** This ID is specific to Terraform - and is of the format `{scope}|{roleDefinitionId}|{principalId}`, where the first segment is the scope of the role assignment, the second segment is the role definition ID, and the last segment is the principal object ID.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2020-10-01
