@@ -285,3 +285,9 @@ Red Hat OpenShift Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_redhat_openshift_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.RedHatOpenShift/openShiftClusters/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RedHatOpenShift`: 2023-09-04
