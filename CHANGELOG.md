@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_key_vault_managed_hardware_security_module_key` - add support for the `import` value in the `key_opts` property [GH-29524]
 * `azurerm_netapp_pool` - add support for `cool_access_enabled` [GH-29468]
 * `azurerm_network_manager_deployment` - add support for the `Routing` value in the `scope_access` property [GH-29536]
+* `azurerm_private_endpoint_application_security_group_association` - resource is now removed from state if it no longer exist [GH-29601]
 * `azurerm_virtual_machine_implicit_data_disk_from_source` - the `disk_size_gb` property can now be increased without recreating the resource [GH-29239]
 * `azurerm_web_application_firewall_policy` - add support for the `JSChallenge` in the `action` property [GH-29614]
 
