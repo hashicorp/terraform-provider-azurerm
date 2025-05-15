@@ -41,7 +41,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(50 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -73,6 +73,7 @@ func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionAllow),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionBlock),
 								string(webapplicationfirewallpolicies.WebApplicationFirewallActionLog),
+								string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
 							}, false),
 						},
 						"enabled": {
