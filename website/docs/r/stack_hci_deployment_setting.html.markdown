@@ -592,3 +592,13 @@ Stack HCI Deployment Settings can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_stack_hci_deployment_setting.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AzureStackHCI/clusters/clus1/deploymentSettings/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AzureStackHCI`: 2024-01-01
+
+* `Microsoft.ExtendedLocation`: 2021-08-15
+
+* `Microsoft.ResourceConnector`: 2022-10-27

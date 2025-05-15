@@ -80,3 +80,9 @@ terraform import azurerm_chaos_studio_capability.example /{scope}/providers/Micr
 * Where `{scope}` is the ID of the Azure Resource under which the Chaos Studio Target exists. For example `/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group`.
 * Where `{targetName}` is the name of the Target. For example `targetValue`.
 * Where `{capabilityName}` is the name of the Capability. For example `capabilityName`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Chaos`: 2023-11-01

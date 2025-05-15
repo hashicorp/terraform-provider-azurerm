@@ -108,3 +108,9 @@ terraform import azurerm_load_test.example /subscriptions/{subscriptionId}/resou
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Load Test exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this Load Test exists. For example `example-resource-group`.
 * Where `{loadTestName}` is the name of the Load Test. For example `loadTestValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.LoadTestService`: 2022-12-01

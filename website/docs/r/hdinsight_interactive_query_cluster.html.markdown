@@ -453,3 +453,9 @@ HDInsight Interactive Query Clusters can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_hdinsight_interactive_query_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.HDInsight`: 2021-06-01

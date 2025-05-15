@@ -188,3 +188,9 @@ Sentinel Metadata can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_sentinel_metadata.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/metadata/metadata1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2022-10-01-preview

@@ -109,3 +109,9 @@ Mobile Network Sim Groups can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mobile_network_sim_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.MobileNetwork/simGroups/simGroup1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork`: 2022-11-01

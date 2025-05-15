@@ -137,3 +137,9 @@ terraform import azurerm_netapp_account.example /subscriptions/00000000-0000-000
 ```
 
 ~> **Note:** When importing a NetApp account, the `active_directory.password` and `active_directory.server_root_ca_certificate` values *cannot* be retrieved from the Azure API and will need to be redeclared within the resource.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetApp`: 2025-01-01

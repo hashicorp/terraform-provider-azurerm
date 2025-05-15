@@ -106,3 +106,9 @@ terraform import azurerm_dev_center_catalog.example /subscriptions/{subscription
 * Where `{resourceGroupName}` is the name of Resource Group where this Dev Center exists. For example `example-resource-group`.
 * Where `{devCenterName}` is the name of the Dev Center. For example `devCenterValue`.
 * Where `{catalogName}` is the name of the Dev Center Catalog. For example `catalogValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter`: 2025-02-01

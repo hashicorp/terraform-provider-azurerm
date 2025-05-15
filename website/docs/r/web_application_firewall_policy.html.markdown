@@ -144,7 +144,7 @@ The `custom_rules` block supports the following:
 
 * `match_conditions` - (Required) One or more `match_conditions` blocks as defined below.
 
-* `action` - (Required) Type of action. Possible values are `Allow`, `Block` and `Log`.
+* `action` - (Required) Type of action. Possible values are `Allow`, `Block`, `JSChallenge` and `Log`.
 
 ~> **Note:** If the `rule_type` is specified as `RateLimitRule`, the `Allow` is not supported.
 

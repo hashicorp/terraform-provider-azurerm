@@ -121,3 +121,9 @@ Virtual Machine Restore Point Collections can be imported using the `resource id
 ```shell
 terraform import azurerm_virtual_machine_restore_point_collection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/restorePointCollections/collection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute`: 2024-03-01

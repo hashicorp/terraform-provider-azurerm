@@ -90,3 +90,9 @@ A Container App Environment Certificate can be imported using the `resource id`,
 ```shell
 terraform import azurerm_container_app_environment_certificate.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myenv/certificates/mycertificate"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App`: 2025-01-01

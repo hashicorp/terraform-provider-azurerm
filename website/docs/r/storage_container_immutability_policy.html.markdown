@@ -80,3 +80,9 @@ Storage Container Immutability Policies can be imported using the `resource id`,
 ```shell
 terraform import azurerm_storage_container_immutability_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/blobServices/default/containers/mycontainer/immutabilityPolicies/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage`: 2023-05-01

@@ -117,3 +117,9 @@ External Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_traffic_manager_external_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-group/providers/Microsoft.Network/trafficManagerProfiles/example-profile/ExternalEndpoints/example-endpoint
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2022-04-01
