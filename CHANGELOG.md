@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_netapp_pool` - add support for `cool_access_enabled` [GH-29468]
 * `azurerm_network_manager_deployment` - add support for the `Routing` value in the `scope_access` property [GH-29536]
 * `azurerm_virtual_machine_implicit_data_disk_from_source` - the `disk_size_gb` property can now be increased without recreating the resource [GH-29239]
+* `azurerm_web_application_firewall_policy` - add support for the `JSChallenge` in the `action` property [GH-29614]
 
 BUG FIXES:
 
