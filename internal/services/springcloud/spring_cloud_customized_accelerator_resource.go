@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -57,9 +58,14 @@ type SshAuthModel struct {
 
 type SpringCloudCustomizedAcceleratorResource struct{}
 
+func (s SpringCloudCustomizedAcceleratorResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_customized_accelerator` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
 var (
-	_ sdk.ResourceWithUpdate         = SpringCloudCustomizedAcceleratorResource{}
-	_ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithUpdate                      = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudCustomizedAcceleratorResource{}
 )
 
 func (s SpringCloudCustomizedAcceleratorResource) ResourceType() string {

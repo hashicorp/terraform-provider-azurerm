@@ -171,18 +171,26 @@ The following example follows a fictional resource that will have the following 
          },
       }
    
+      // Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.
+	  // This is to make cleanup easy so we can delete this block when the next major version releases.
       if !features.FivePointOh() {
          args["enable_scaling"] = &pluginsdk.Schema{
-            Type:     pluginsdk.TypeBool,
-            Optional: true,
-            Computed: true,
-            Default:  false,
+            Type:          pluginsdk.TypeBool,
+            Optional:      true,
+            Computed:      true,
+            Default:       false,
             ConflictsWith: []string{"scaling_enabled"},
+            Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v5.0 of the AzureRM Provider",
          }
          // When renaming a property both properties need to have `Computed` set on them until the old property is removed in the next major release
          // We also need to remember to set ConflictsWith on both the old and the renamed property to ensure users don't set both in their config
-         args["scaling_enabled"].Computed = true
-         args["scaling_enabled"].ConflictsWith = []string{"enable_scaling"}
+         args["scaling_enabled"] = &pluginsdk.Schema{
+            Type:          pluginsdk.TypeBool,
+            Optional:      true,
+            Computed:      true,
+            Default:       false,
+            ConflictsWith: []string{"enable_scaling"},
+         }
          
          args["version"].Default = 1
       }

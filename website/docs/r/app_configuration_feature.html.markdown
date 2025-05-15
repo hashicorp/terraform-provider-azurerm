@@ -109,8 +109,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 45 minutes) Used when creating the App Configuration Feature.
-* `update` - (Defaults to 30 minutes) Used when updating the App Configuration Feature.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration Feature.
+* `update` - (Defaults to 30 minutes) Used when updating the App Configuration Feature.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Configuration Feature.
 
 ## Import

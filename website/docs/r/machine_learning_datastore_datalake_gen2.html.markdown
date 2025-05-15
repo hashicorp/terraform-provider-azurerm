@@ -122,3 +122,9 @@ Machine Learning DataStores can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_datastore_datalake_gen2.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/mlw1/dataStores/datastore1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices`: 2024-04-01
