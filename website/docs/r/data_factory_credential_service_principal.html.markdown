@@ -130,3 +130,9 @@ Data Factory Credentials can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_factory_credential_service_principal.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.DataFactory/factories/example/credentials/credential1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataFactory`: 2018-06-01

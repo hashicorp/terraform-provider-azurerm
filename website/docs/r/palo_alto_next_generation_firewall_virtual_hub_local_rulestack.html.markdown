@@ -162,3 +162,9 @@ Palo Alto Next Generation Firewall VHub Local Rulestacks can be imported using t
 ```shell
 terraform import azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVhubRulestackFW
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw`: 2023-09-01, 2022-08-29

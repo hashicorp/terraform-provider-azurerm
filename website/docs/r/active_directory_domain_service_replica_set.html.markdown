@@ -313,3 +313,9 @@ Domain Service Replica Sets can be imported using the resource ID of the parent 
 ```shell
 terraform import azurerm_active_directory_domain_service_replica_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.AAD/domainServices/instance1/replicaSets/00000000-0000-0000-0000-000000000000
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AAD`: 2021-05-01

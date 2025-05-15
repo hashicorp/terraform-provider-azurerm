@@ -76,3 +76,9 @@ A PostgreSQL Active Directory Administrator can be imported using the `resource 
 ```shell
 terraform import azurerm_postgresql_active_directory_administrator.administrator /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/servers/myserver
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2017-12-01

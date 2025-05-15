@@ -165,3 +165,9 @@ Management Group Policy Assignments can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_management_group_policy_assignment.example /providers/Microsoft.Management/managementGroups/group1/providers/Microsoft.Authorization/policyAssignments/assignment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2022-06-01

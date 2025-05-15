@@ -71,3 +71,9 @@ API Management Twitter Identity Provider can be imported using the `resource id`
 ```shell
 terraform import azurerm_api_management_identity_provider_twitter.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/identityProviders/twitter
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement`: 2022-08-01
