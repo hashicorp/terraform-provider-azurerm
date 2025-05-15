@@ -463,7 +463,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 				param.Properties.Attributes = pointer.To(config.Attributes)
 			}
 
-			if metadata.ResourceData.HasChange("datasets") {
+			if metadata.ResourceData.HasChange("dataset") {
 				param.Properties.Datasets = expandDatasets(config.Datasets)
 			}
 
@@ -505,7 +505,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 				param.Properties.Enabled = pointer.To(config.Enabled)
 			}
 
-			if metadata.ResourceData.HasChange("events") {
+			if metadata.ResourceData.HasChange("event") {
 				param.Properties.Events = expandEvents(config.Events)
 			}
 
