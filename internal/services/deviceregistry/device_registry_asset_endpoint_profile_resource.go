@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/deviceregistry/2024-11-01/assetendpointprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
@@ -39,9 +40,9 @@ type AssetEndpointProfileResourceModel struct {
 }
 
 type AuthenticationModel struct {
-	Method                     string                            `tfschema:"method"`
-	UsernamePasswordCredential []UsernamePasswordCredentialModel `tfschema:"username_password_credential"`
-	X509Credential             []X509CredentialModel             `tfschema:"x509_credential"`
+	Method                      string                            `tfschema:"method"`
+	UsernamePasswordCredentials []UsernamePasswordCredentialModel `tfschema:"username_password_credential"`
+	X509Credentials             []X509CredentialModel             `tfschema:"x509_credential"`
 }
 
 type UsernamePasswordCredentialModel struct {
@@ -69,7 +70,7 @@ func (AssetEndpointProfileResource) Arguments() map[string]*pluginsdk.Schema {
 		"extended_location_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: customlocations.ValidateCustomLocationID,
 		},
 		"target_address": {
 			Type:         pluginsdk.TypeString,
@@ -248,32 +249,36 @@ func (r AssetEndpointProfileResource) Update() sdk.ResourceFunc {
 				param.Properties.AdditionalConfiguration = pointer.To(config.AdditionalConfiguration)
 			}
 
-			if metadata.ResourceData.HasChange("authentication") {
-				authenticationModel := config.Authentication[0]
-				authentication := &assetendpointprofiles.AuthenticationUpdate{}
-				param.Properties.Authentication = authentication
+			authenticationMethodChanged := metadata.ResourceData.HasChange("authentication.0.method")
+			usernameSecretNameChanged := metadata.ResourceData.HasChange("authentication.0.username_password_credential.0.username_secret_name")
+			passwordSecretNameChanged := metadata.ResourceData.HasChange("authentication.0.username_password_credential.0.password_secret_name")
+			certificateSecretNameChanged := metadata.ResourceData.HasChange("authentication.0.x509_credential.0.certificate_secret_name")
 
-				if metadata.ResourceData.HasChange("authentication.0.method") {
+			if authenticationMethodChanged || usernameSecretNameChanged || passwordSecretNameChanged || certificateSecretNameChanged {
+				authenticationModel := config.Authentication[0]
+				authentication := assetendpointprofiles.AuthenticationUpdate{}
+				param.Properties.Authentication = &authentication
+
+				if authenticationMethodChanged {
 					authentication.Method = pointer.To(assetendpointprofiles.AuthenticationMethod(authenticationModel.Method))
 				}
 
-				if metadata.ResourceData.HasChange("authentication.0.username_password_credential") {
-					authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentialsUpdate{}
-					if authenticationModel.UsernamePasswordCredential != nil && len(authenticationModel.UsernamePasswordCredential) > 0 {
-						credentials := authenticationModel.UsernamePasswordCredential[0]
-						if metadata.ResourceData.HasChange("authentication.0.username_password_credential.0.username_secret_name") {
-							authentication.UsernamePasswordCredentials.UsernameSecretName = pointer.To(credentials.UsernameSecretName)
-						}
-						if metadata.ResourceData.HasChange("authentication.0.username_password_credential.0.password_secret_name") {
-							authentication.UsernamePasswordCredentials.PasswordSecretName = pointer.To(credentials.PasswordSecretName)
-						}
+				if usernameSecretNameChanged || passwordSecretNameChanged {
+					usernamePasswordCredsUpdate := assetendpointprofiles.UsernamePasswordCredentialsUpdate{}
+					authentication.UsernamePasswordCredentials = &usernamePasswordCredsUpdate
+					credentials := authenticationModel.UsernamePasswordCredentials[0]
+
+					if usernameSecretNameChanged {
+						usernamePasswordCredsUpdate.UsernameSecretName = pointer.To(credentials.UsernameSecretName)
+					}
+					if passwordSecretNameChanged {
+						usernamePasswordCredsUpdate.PasswordSecretName = pointer.To(credentials.PasswordSecretName)
 					}
 				}
 
-				if metadata.ResourceData.HasChange("authentication.0.x509_credential") {
-					authentication.X509Credentials = &assetendpointprofiles.X509CredentialsUpdate{}
-					if authenticationModel.X509Credential != nil && len(authenticationModel.X509Credential) > 0 {
-						authentication.X509Credentials.CertificateSecretName = pointer.To(authenticationModel.X509Credential[0].CertificateSecretName)
+				if certificateSecretNameChanged {
+					authentication.X509Credentials = &assetendpointprofiles.X509CredentialsUpdate{
+						CertificateSecretName: pointer.To(authenticationModel.X509Credentials[0].CertificateSecretName),
 					}
 				}
 			}
@@ -331,7 +336,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 						}
 
 						if usernamePassword := auth.UsernamePasswordCredentials; usernamePassword != nil {
-							authenticationModel.UsernamePasswordCredential = []UsernamePasswordCredentialModel{
+							authenticationModel.UsernamePasswordCredentials = []UsernamePasswordCredentialModel{
 								{
 									UsernameSecretName: usernamePassword.UsernameSecretName,
 									PasswordSecretName: usernamePassword.PasswordSecretName,
@@ -340,7 +345,7 @@ func (AssetEndpointProfileResource) Read() sdk.ResourceFunc {
 						}
 
 						if x509 := auth.X509Credentials; x509 != nil {
-							authenticationModel.X509Credential = []X509CredentialModel{
+							authenticationModel.X509Credentials = []X509CredentialModel{
 								{
 									CertificateSecretName: x509.CertificateSecretName,
 								},
@@ -392,17 +397,17 @@ func expandAuthentication(authenticationModels []AuthenticationModel) *assetendp
 		Method: assetendpointprofiles.AuthenticationMethod(authenticationModel.Method),
 	}
 
-	if authenticationModel.UsernamePasswordCredential != nil && len(authenticationModel.UsernamePasswordCredential) > 0 {
-		credentials := authenticationModel.UsernamePasswordCredential[0]
+	if authenticationModel.UsernamePasswordCredentials != nil && len(authenticationModel.UsernamePasswordCredentials) > 0 {
+		credentials := authenticationModel.UsernamePasswordCredentials[0]
 		authentication.UsernamePasswordCredentials = &assetendpointprofiles.UsernamePasswordCredentials{
 			UsernameSecretName: credentials.UsernameSecretName,
 			PasswordSecretName: credentials.PasswordSecretName,
 		}
 	}
 
-	if authenticationModel.X509Credential != nil && len(authenticationModel.X509Credential) > 0 {
+	if authenticationModel.X509Credentials != nil && len(authenticationModel.X509Credentials) > 0 {
 		authentication.X509Credentials = &assetendpointprofiles.X509Credentials{
-			CertificateSecretName: authenticationModel.X509Credential[0].CertificateSecretName,
+			CertificateSecretName: authenticationModel.X509Credentials[0].CertificateSecretName,
 		}
 	}
 
