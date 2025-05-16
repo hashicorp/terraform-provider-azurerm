@@ -742,7 +742,7 @@ func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.MetricSe
 			continue
 		}
 
-		category := ""
+		output["category"] = pointer.From(v.Category)
 		if v.Category != nil {
 			category = *v.Category
 		}
