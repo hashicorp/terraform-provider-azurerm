@@ -52,6 +52,9 @@ The following arguments are supported:
 
 * `registration_enabled` - (Optional) Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled? Defaults to `false`.
 
+* `fallback_to_internet` - (Optional) Should Azure DNS use Azure based public DNS resolution for this zone if it cannot find a record? Defaults to `false`.
+~> **Note:** fallback_to_internet can only be enabled for Azure private link DNS zones.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference

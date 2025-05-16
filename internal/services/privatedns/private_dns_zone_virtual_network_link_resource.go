@@ -6,8 +6,10 @@ package privatedns
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -75,6 +77,12 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"fallback_to_internet": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -109,6 +117,18 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 			},
 			RegistrationEnabled: utils.Bool(d.Get("registration_enabled").(bool)),
 		},
+	}
+
+	if !strings.HasPrefix(id.PrivateDnsZoneName, "privatelink.") && d.Get("fallback_to_internet").(bool) {
+		return fmt.Errorf("fallback_to_internet can only be configured for private link DNS zones")
+	}
+
+	if strings.HasPrefix(id.PrivateDnsZoneName, "privatelink.") {
+		if d.Get("fallback_to_internet").(bool) {
+			parameters.Properties.ResolutionPolicy = pointer.To(virtualnetworklinks.ResolutionPolicyNxDomainRedirect)
+		} else if !d.Get("fallback_to_internet").(bool) {
+			parameters.Properties.ResolutionPolicy = pointer.To(virtualnetworklinks.ResolutionPolicyDefault)
+		}
 	}
 
 	options := virtualnetworklinks.CreateOrUpdateOperationOptions{
@@ -150,6 +170,14 @@ func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, met
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("registration_enabled", props.RegistrationEnabled)
+
+			if strings.HasPrefix(id.PrivateDnsZoneName, "privatelink.") {
+				if *props.ResolutionPolicy == virtualnetworklinks.ResolutionPolicyNxDomainRedirect {
+					d.Set("fallback_to_internet", true)
+				}
+			} else {
+				d.Set("fallback_to_internet", false)
+			}
 
 			if network := props.VirtualNetwork; network != nil {
 				d.Set("virtual_network_id", network.Id)
