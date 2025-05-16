@@ -438,7 +438,6 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 			ApiType:                       pointer.To(soapApiType),
 			Path:                          path,
 			Protocols:                     protocols,
-			ServiceURL:                    pointer.To(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
@@ -447,6 +446,10 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 			Contact:                       contactInfo,
 			License:                       licenseInfo,
 		},
+	}
+
+	if serviceUrl != "" {
+		params.Properties.ServiceURL = pointer.To(serviceUrl)
 	}
 
 	if sourceApiId != "" {
