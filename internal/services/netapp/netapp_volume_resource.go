@@ -120,11 +120,12 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"protocols": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				ForceNew: true,
 				Optional: true,
 				Computed: true,
-				MaxItems: 2,
+				MinItems: 1,
+				MaxItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -199,9 +200,10 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							},
 						},
 
-						"protocols": { // protocol or protocols? If only singular probably the former
+						"protocols": { // protocol or protocols? If only singular probably the former, change type to String?
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							MinItems: 1,
 							Elem: &pluginsdk.Schema{
@@ -413,8 +415,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		epr := resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource)
-		epr.Schema["protocols_enabled"] = &pluginsdk.Schema{
+		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols_enabled"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
@@ -429,7 +430,8 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}, false),
 			},
 		}
-		epr.Schema["protocols"] = &pluginsdk.Schema{}
+
+		//resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols"].ConflictsWith = []string{"export_policy_rule.0.protocols_enabled"}
 	}
 
 	return resource
@@ -1067,7 +1069,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			cifsEnabled := false
 			nfsv3Enabled := false
 			nfsv41Enabled := false
-			if vpe := v["protocols_enabled"]; vpe != nil {
+			if vpe := v["protocols"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
@@ -1079,6 +1081,25 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
+							}
+						}
+					}
+				}
+			}
+			if !features.FivePointOh() {
+				if vpe := v["protocols_enabled"]; vpe != nil {
+					protocolsEnabled := vpe.([]interface{})
+					if len(protocolsEnabled) != 0 {
+						for _, protocol := range protocolsEnabled {
+							if protocol != nil {
+								switch strings.ToLower(protocol.(string)) {
+								case "cifs":
+									cifsEnabled = true
+								case "nfsv3":
+									nfsv3Enabled = true
+								case "nfsv4.1":
+									nfsv41Enabled = true
+								}
 							}
 						}
 					}
@@ -1132,8 +1153,7 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			nfsv3Enabled := false
 			nfsv41Enabled := false
 			cifsEnabled := false
-
-			if vpe := v["protocols_enabled"]; vpe != nil {
+			if vpe := v["protocols"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
@@ -1145,6 +1165,25 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
+							}
+						}
+					}
+				}
+			}
+			if !features.FivePointOh() {
+				if vpe := v["protocols_enabled"]; vpe != nil {
+					protocolsEnabled := vpe.([]interface{})
+					if len(protocolsEnabled) != 0 {
+						for _, protocol := range protocolsEnabled {
+							if protocol != nil {
+								switch strings.ToLower(protocol.(string)) {
+								case "cifs":
+									cifsEnabled = true
+								case "nfsv3":
+									nfsv3Enabled = true
+								case "nfsv4.1":
+									nfsv41Enabled = true
+								}
 							}
 						}
 					}
@@ -1210,12 +1249,17 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			"kerberos_5i_read_write_enabled": pointer.From(item.Kerberos5iReadWrite),
 			"kerberos_5p_read_only_enabled":  pointer.From(item.Kerberos5pReadOnly),
 			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
-			"protocols_enabled":              utils.FlattenStringSlice(&protocolsEnabled),
+			"protocols":                      utils.FlattenStringSlice(&protocolsEnabled),
 			"root_access_enabled":            pointer.From(item.HasRootAccess),
 			"rule_index":                     ruleIndex,
 			"unix_read_only":                 pointer.From(item.UnixReadOnly),
 			"unix_read_write":                pointer.From(item.UnixReadWrite),
 		}
+
+		if !features.FivePointOh() {
+			result["protocols_enabled"] = utils.FlattenStringSlice(&protocolsEnabled)
+		}
+
 		results = append(results, result)
 	}
 
