@@ -10,7 +10,7 @@ description: |-
 
 Manages a NetApp Volume.
 
-!>**IMPORTANT:** This resource uses a feature to prevent deletion called `prevent_volume_destruction`, defaulting to `true`. It is intentionally set to `true` to prevent the possibility of accidental data loss. The example in this page shows all possible protection options you can apply, it is using same values as the defaults.
+!> **Note:** This resource uses a feature to prevent deletion called `prevent_volume_destruction`, defaulting to `true`. It is intentionally set to `true` to prevent the possibility of accidental data loss. The example in this page shows all possible protection options you can apply, it is using same values as the defaults.
 
 ## NetApp Volume Usage
 
@@ -282,10 +282,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the NetApp Volume.
-* `update` - (Defaults to 60 minutes) Used when updating the NetApp Volume.
+* `create` - (Defaults to 1 hour) Used when creating the NetApp Volume.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.
-* `delete` - (Defaults to 60 minutes) Used when deleting the NetApp Volume.
+* `update` - (Defaults to 1 hour) Used when updating the NetApp Volume.
+* `delete` - (Defaults to 1 hour) Used when deleting the NetApp Volume.
 
 ## Import
 
@@ -294,3 +294,9 @@ NetApp Volumes can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_netapp_volume.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/volume1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetApp`: 2025-01-01
