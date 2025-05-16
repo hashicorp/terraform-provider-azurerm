@@ -92,12 +92,10 @@ func (r AutonomousDatabaseBackupResource) Attributes() map[string]*schema.Schema
 		"autonomous_database_backup_ocid": {
 			Type:     schema.TypeString,
 			Computed: true,
-			ForceNew: true,
 		},
 		"autonomous_database_ocid": {
 			Type:     schema.TypeString,
 			Computed: true,
-			ForceNew: true,
 		},
 		"database_backup_size_in_tbs": {
 			Type:     schema.TypeFloat,
