@@ -420,6 +420,10 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			if !feature[0].DataPlaneAvailable.IsNull() && !feature[0].DataPlaneAvailable.IsUnknown() {
 				f.Storage.DataPlaneAvailable = feature[0].DataPlaneAvailable.ValueBool()
 			}
+			f.Storage.DataPlaneAuthAnyScopeEnabled = false
+			if !feature[0].DataPlaneAuthAnyScopeEnabled.IsNull() && !feature[0].DataPlaneAuthAnyScopeEnabled.IsUnknown() {
+				f.Storage.DataPlaneAuthAnyScopeEnabled = feature[0].DataPlaneAuthAnyScopeEnabled.ValueBool()
+			}
 		}
 
 		if !features.Subscription.IsNull() && !features.Subscription.IsUnknown() {

@@ -89,6 +89,11 @@ provider "azurerm" {
       recover_soft_deleted_backup_protected_vm = true
     }
 
+    storage {
+      data_plane_available              = true
+      data_plane_auth_any_scope_enabled = false
+    }
+
     subscription {
       prevent_cancellation_on_destroy = false
     }
@@ -267,6 +272,13 @@ The `resource_group` block supports the following:
 The `recovery_services_vault` block supports the following:
 
 * `recover_soft_deleted_backup_protected_vm` - (Optional) Should the `azurerm_backup_protected_vm` resource recover a Soft-Deleted protected VM? Defaults to `false`.
+
+---
+
+The `storage` block supports the following:
+
+* `data_plane_available` - (Optional) Should the `azurerm_storage_account` resource reach to the data plane endpoints during creation? Defaults to `true`.
+* `data_plane_auth_any_scope_enabled` - (Optional) Should the storage data plane client that supports AAD auth (enabled via the provider level attribute `storage_use_azuread`) request the access token using the resource identifier of `https://storage.azure.com` instead of the per-resource resource identifier? Defaults to `false`.
 
 ---
 
