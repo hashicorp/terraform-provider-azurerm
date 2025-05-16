@@ -721,10 +721,6 @@ func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.MetricSe
 		}
 
 		output["category"] = pointer.From(v.Category)
-		if v.Category != nil {
-			category = *v.Category
-		}
-		output["category"] = category
 
 		enabledLogs = append(enabledLogs, output)
 	}
