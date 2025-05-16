@@ -68,3 +68,9 @@ An existing Account can be imported into Terraform using the `resource id`, e.g.
 ```shell
 terraform import azurerm_graph_services_account.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.GraphServices/accounts/account1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.GraphServices`: 2023-04-13

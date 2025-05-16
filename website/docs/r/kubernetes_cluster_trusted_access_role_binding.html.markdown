@@ -122,3 +122,9 @@ terraform import azurerm_kubernetes_cluster_trusted_access_role_binding.example 
 * Where `{resourceGroupName}` is the name of Resource Group where this Kubernetes Cluster Trusted Access Role Binding exists. For example `example-resource-group`.
 * Where `{managedClusterName}` is the name of the Managed Cluster. For example `managedClusterValue`.
 * Where `{trustedAccessRoleBindingName}` is the name of the Trusted Access Role Binding. For example `trustedAccessRoleBindingValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService`: 2024-09-01

@@ -68,3 +68,11 @@ A Container App Environment Custom Domain Suffix can be imported using the `reso
 ```shell
 terraform import azurerm_container_app_environment_custom_domain.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myEnvironment"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App`: 2025-01-01
+
+* `Microsoft.OperationalInsights`: 2020-08-01

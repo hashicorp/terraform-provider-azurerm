@@ -120,3 +120,9 @@ terraform import azurerm_virtual_desktop_scaling_plan_host_pool_association.exam
 ```
 
 -> **Note:** This ID is specific to Terraform - and is of the format `{virtualDesktopScalingPlanID}|{virtualDesktopHostPoolID}`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DesktopVirtualization`: 2024-04-03

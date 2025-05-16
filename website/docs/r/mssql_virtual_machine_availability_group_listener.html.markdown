@@ -178,3 +178,9 @@ Microsoft SQL Virtual Machine Availability Group Listeners can be imported using
 ```shell
 terraform import azurerm_mssql_virtual_machine_availability_group_listener.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachineGroups/vmgroup1/availabilityGroupListeners/listener1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SqlVirtualMachine`: 2023-10-01

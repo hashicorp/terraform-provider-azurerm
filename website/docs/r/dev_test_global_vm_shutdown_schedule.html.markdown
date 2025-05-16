@@ -141,3 +141,9 @@ terraform import azurerm_dev_test_global_vm_shutdown_schedule.example /subscript
 ```
 
 The name of the resource within the `resource id` will always follow the format `shutdown-computevm-<VM Name>` where `<VM Name>` is replaced by the name of the target Virtual Machine
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevTestLab`: 2018-09-15

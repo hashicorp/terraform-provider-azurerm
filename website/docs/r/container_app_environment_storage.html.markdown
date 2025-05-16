@@ -98,3 +98,9 @@ A Container App Environment Storage can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_container_app_environment_storage.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myEnvironment/storages/mystorage"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App`: 2025-01-01

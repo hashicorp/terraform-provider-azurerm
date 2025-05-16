@@ -79,3 +79,9 @@ Azure Search Shared Private Link Resource can be imported using the `resource id
 ```shell
 terraform import azurerm_search_shared_private_link_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Search/searchServices/service1/sharedPrivateLinkResources/resource1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Search`: 2024-06-01-preview

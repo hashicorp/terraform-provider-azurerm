@@ -157,3 +157,9 @@ Service Bus Namespace Customer Managed Key can be imported using the `resource i
 ```shell
 terraform import azurerm_servicebus_namespace_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceBus/namespaces/sbns1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus`: 2022-10-01-preview

@@ -220,3 +220,8 @@ SQL Managed Instance Transparent Data Encryption can be imported using the resou
 terraform import azurerm_mssql_managed_instance_transparent_data_encryption.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/managedInstances/instance1/encryptionProtector/current
 ```
 
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql`: 2023-08-01-preview

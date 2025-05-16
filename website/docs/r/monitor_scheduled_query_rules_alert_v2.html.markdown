@@ -258,3 +258,9 @@ Monitor Scheduled Query Rule Alert can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_scheduled_query_rules_alert_v2.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Insights/scheduledQueryRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights`: 2023-03-15-preview
