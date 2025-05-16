@@ -351,6 +351,10 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				if values["source_api_id"].IsNull() && (values["display_name"].IsNull() || protocols == nil || len(*protocols) == 0) {
 					return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 				}
+
+				if d.Get("api_type").(string) == string(api.ApiTypeWebsocket) && d.Get("service_url").(string) == "" {
+					return errors.New("`service_url` is required when `api_type` is `websocket`")
+				}
 				return nil
 			}),
 		),

@@ -580,6 +580,7 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["wss"]
   revision            = "1"
+  service_url         = "wss://example.com/foo/bar"
 }
 `, r.template(data, SkuNameDeveloper), data.RandomInteger)
 }
