@@ -86,8 +86,8 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		config := resource.Schema["linux_os_config"].Elem.(*pluginsdk.Resource)
-		config.Schema["transparent_huge_page"].ConflictsWith = []string{"linux_os_config.transparent_huge_page_enabled"}
-		config.Schema["transparent_huge_page_enabled"].ConflictsWith = []string{"linux_os_config.transparent_huge_page"}
+		config.Schema["transparent_huge_page"].ConflictsWith = []string{"linux_os_config.0.transparent_huge_page_enabled"}
+		config.Schema["transparent_huge_page_enabled"].ConflictsWith = []string{"linux_os_config.0.transparent_huge_page"}
 	}
 
 	return resource
