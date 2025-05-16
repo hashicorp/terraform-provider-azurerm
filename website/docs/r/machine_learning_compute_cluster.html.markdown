@@ -9,7 +9,6 @@ description: |-
 # azurerm_machine_learning_compute_cluster
 
 Manages a Machine Learning Compute Cluster.
-**NOTE:** At this point in time the resource cannot be updated (not supported by the backend Azure Go SDK). Therefore it can only be created and deleted, not updated. At the moment, there is also no possibility to specify ssh User Account Credentials to ssh into the compute cluster.
 
 ## Example Usage
 
