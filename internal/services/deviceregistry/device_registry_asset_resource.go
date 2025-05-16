@@ -479,7 +479,7 @@ func (r AssetResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("default_topic") {
 				topic := &assets.TopicUpdate{}
 				param.Properties.DefaultTopic = topic
-				if config.DefaultTopic != nil && len(config.DefaultTopic) > 0 {
+				if len(config.DefaultTopic) > 0 {
 					topic.Path = pointer.To(config.DefaultTopic[0].Path)
 					// Bug with `go-azure-sdk` library: you can't set retain to null because empty string will cause
 					// ARM to throw validation error (retain must be one of the property's possible enum values),
@@ -695,7 +695,7 @@ func expandEvents(events []Event) *[]assets.Event {
 }
 
 func expandTopic(topic []TopicModel) *assets.Topic {
-	if topic == nil || len(topic) == 0 {
+	if len(topic) == 0 {
 		return nil
 	}
 

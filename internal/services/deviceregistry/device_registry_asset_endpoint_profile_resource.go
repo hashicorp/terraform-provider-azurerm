@@ -350,7 +350,7 @@ func (AssetEndpointProfileResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 
 func expandAuthentication(authenticationModels []AuthenticationModel) *assetendpointprofiles.Authentication {
-	if authenticationModels == nil || len(authenticationModels) == 0 {
+	if len(authenticationModels) == 0 {
 		return nil
 	}
 
