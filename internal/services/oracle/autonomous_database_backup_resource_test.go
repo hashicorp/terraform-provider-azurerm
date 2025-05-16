@@ -103,7 +103,7 @@ provider "azurerm" {
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
   display_name             = "backup%[2]d"
-  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
   backup_type              = "LongTerm"
 }
@@ -120,7 +120,7 @@ provider "azurerm" {
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
   display_name             = "backup%[2]d"
-  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
   backup_type              = "LongTerm"
 }
@@ -137,7 +137,7 @@ provider "azurerm" {
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
   display_name             = "backup%[2]d"
-  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
