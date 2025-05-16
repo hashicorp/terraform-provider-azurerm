@@ -85,7 +85,7 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 func (r AutonomousDatabaseBackupResource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
 
-		"location": {
+		"resource_group_name": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -236,78 +236,40 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			)
 
 			log.Printf("[DEBUG] Retrieving backups for Autonomous Database %s", adbId.ID())
-			resp, err := client.ListByAutonomousDatabase(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
+			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				log.Printf("[ERROR] Failed to list backups: %+v", err)
 				return fmt.Errorf("retrieving Autonomous Database Backups: %+v", err)
 			}
 			log.Printf("[DEBUG] Looking for backup with name: %s", id.AutonomousDatabaseBackupName)
-			var backup *autonomousdatabasebackups.AutonomousDatabaseBackup
-			if resp.Model != nil {
-				log.Printf("[DEBUG] Found %d backups for database", len(*resp.Model))
-
-				for i := range *resp.Model {
-					item := (*resp.Model)[i]
-
-					// Log each backup's details
-					itemName := "nil"
-					if item.Name != nil {
-						itemName = *item.Name
-					}
-
-					itemDisplayName := "nil"
-					if item.Properties != nil && item.Properties.DisplayName != nil {
-						itemDisplayName = *item.Properties.DisplayName
-					}
-
-					log.Printf("[DEBUG] Backup %d: Name=%s, DisplayName=%s", i, itemName, itemDisplayName)
-
-					// Try matching against both Name and DisplayName
-					if (item.Name != nil && *item.Name == id.AutonomousDatabaseBackupName) ||
-						(item.Properties != nil && item.Properties.DisplayName != nil && *item.Properties.DisplayName == id.AutonomousDatabaseBackupName) {
-						log.Printf("[DEBUG] Found matching backup: %s", itemName)
-						backup = &(*resp.Model)[i] // Use direct array access to avoid reference issues
-						break
-					}
-				}
-			} else {
-				log.Printf("[DEBUG] No backups returned from API (resp.Model is nil)")
-			}
-			if backup == nil {
-				log.Printf("[DEBUG] Resource Autonomous Database Backup %s not found in any of the backups", id.AutonomousDatabaseBackupName)
-				metadata.ResourceData.SetId("")
-				return nil
-			}
-			log.Printf("[DEBUG] Successfully found backup %s", *backup.Name)
 
 			// Construct the autonomous database ID from the parsed ID components
 			autonomousDatabaseId := adbId.ID()
 			log.Printf("[DEBUG] Setting autonomous_database_id to: %s", autonomousDatabaseId)
 
 			state := AutonomousDatabaseBackupResourceModel{
-				DisplayName:       id.AutonomousDatabaseBackupName,
-				ResourceGroupName: id.ResourceGroupName,
-				// CRITICAL: Add this line to set the autonomous database ID
+				DisplayName:          id.AutonomousDatabaseBackupName,
+				ResourceGroupName:    id.ResourceGroupName,
 				AutonomousDataBaseID: autonomousDatabaseId,
 			}
 
-			fmt.Printf("[DEBUG] Initial State: %+v\n", state)
-			if model := backup.Properties; model != nil {
-				state.DisplayName = pointer.From(model.DisplayName)
-				state.RetentionPeriodInDays = pointer.From(model.RetentionPeriodInDays)
-				state.AutonomousDatabaseOcid = pointer.From(model.AutonomousDatabaseOcid)
-				state.AutonomousDataBaseBackupOcid = pointer.From(model.Ocid)
-				state.BackupType = string(pointer.From(model.BackupType))
-				state.DbVersion = pointer.From(model.DbVersion)
-				state.BackupSizeInTbs = int64(pointer.From(model.DatabaseSizeInTbs))
-				state.IsAutomatic = pointer.From(model.IsAutomatic)
-				state.IsRestorable = pointer.From(model.IsRestorable)
-				state.LifecycleDetails = pointer.From(model.LifecycleDetails)
-				state.LifecycleState = string(pointer.From(model.LifecycleState))
-				state.ProvisioningState = string(pointer.From(model.ProvisioningState))
-				state.TimeAvailableTil = pointer.From(model.TimeAvailableTil)
-				state.TimeEnded = pointer.From(model.TimeEnded)
-				state.TimeStarted = pointer.From(model.TimeStarted)
+			if model := resp.Model; model != nil {
+				props := model.Properties
+				state.DisplayName = pointer.From(props.DisplayName)
+				state.RetentionPeriodInDays = pointer.From(props.RetentionPeriodInDays)
+				state.AutonomousDatabaseOcid = pointer.From(props.AutonomousDatabaseOcid)
+				state.AutonomousDataBaseBackupOcid = pointer.From(props.Ocid)
+				state.BackupType = string(pointer.From(props.BackupType))
+				state.DbVersion = pointer.From(props.DbVersion)
+				state.BackupSizeInTbs = int64(pointer.From(props.DatabaseSizeInTbs))
+				state.IsAutomatic = pointer.From(props.IsAutomatic)
+				state.IsRestorable = pointer.From(props.IsRestorable)
+				state.LifecycleDetails = pointer.From(props.LifecycleDetails)
+				state.LifecycleState = string(pointer.From(props.LifecycleState))
+				state.ProvisioningState = string(pointer.From(props.ProvisioningState))
+				state.TimeAvailableTil = pointer.From(props.TimeAvailableTil)
+				state.TimeEnded = pointer.From(props.TimeEnded)
+				state.TimeStarted = pointer.From(props.TimeStarted)
 			}
 
 			log.Printf("[DEBUG] Final state before encoding: %+v", state)
