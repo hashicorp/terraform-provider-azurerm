@@ -3,11 +3,12 @@ package deviceregistry_test
 import (
 	"context"
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -604,7 +605,6 @@ This function will grab the VM's public IP address to SSH into the VM and run th
 */
 func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data acceptance.TestData) func() {
 	return func() {
-
 		// Set up the test client so we can fetch the public IP address.
 		clientManager, err := testclient.Build()
 		if err != nil {
@@ -685,7 +685,6 @@ func (r AssetEndpointProfileTestResource) setupAIOClusterOnVM(t *testing.T, data
 		if err := runSession.Run("sudo bash /home/adminuser/setup_aio_cluster.sh &> /home/adminuser/agent_log"); err != nil {
 			t.Fatalf("failed to run command for running setup script. Error: %s", err)
 		}
-
 	}
 }
 

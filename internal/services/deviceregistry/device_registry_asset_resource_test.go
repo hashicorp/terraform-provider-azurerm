@@ -3,11 +3,12 @@ package deviceregistry_test
 import (
 	"context"
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
