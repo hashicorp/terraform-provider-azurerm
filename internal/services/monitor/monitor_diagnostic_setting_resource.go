@@ -163,34 +163,15 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: resourceMonitorDiagnosticEnabledMetricsSettingHash,
 			},
 		},
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["enabled_metric"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			MaxItems:   1,
-			Deprecated: "`retention_policy` has been deprecated in favor of the `azurerm_storage_management_policy` resource and will be removed in v5.0 of the AzureRM provider - to learn more go to https://aka.ms/diagnostic_settings_log_retention",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"enabled": {
-						Type:     pluginsdk.TypeBool,
-						Required: true,
-					},
-					"days": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
-			},
-		}
-
 		resource.Schema["enabled_metric"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
 		resource.Schema["enabled_metric"].Computed = true
+		resource.Schema["enabled_metric"].ConflictsWith = []string{"metric"}
+
 		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
 
 		resource.Schema["metric"] = &pluginsdk.Schema{
@@ -293,7 +274,7 @@ func resourceMonitorDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta inte
 	if enabledMetrics, ok := d.GetOk("enabled_metric"); ok {
 		enabledMetricsList := enabledMetrics.(*pluginsdk.Set).List()
 		if len(enabledMetricsList) > 0 {
-			metrics = *expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetricsList)
+			metrics = expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetricsList)
 			hasEnabledMetrics = true
 		}
 	}
@@ -420,10 +401,7 @@ func resourceMonitorDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta inte
 		enabledMetrics := d.Get("enabled_metric").(*pluginsdk.Set).List()
 		if len(enabledMetrics) > 0 {
 			expandEnabledMetrics := expandMonitorDiagnosticsSettingsEnabledMetrics(enabledMetrics)
-			if err != nil {
-				return fmt.Errorf("expanding enabled_metric: %+v", err)
-			}
-			metrics = *expandEnabledMetrics
+			metrics = expandEnabledMetrics
 			hasEnabledMetrics = true
 		} else if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.Metrics != nil {
 			// if the enabled_metric is updated to empty, we disable the metric explicitly
@@ -785,7 +763,7 @@ func expandMonitorDiagnosticsSettingsMetrics(input []interface{}) []diagnosticse
 	return results
 }
 
-func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) *[]diagnosticsettings.MetricSettings {
+func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) []diagnosticsettings.MetricSettings {
 	results := make([]diagnosticsettings.MetricSettings, 0)
 
 	for _, raw := range input {
@@ -799,7 +777,7 @@ func expandMonitorDiagnosticsSettingsEnabledMetrics(input []interface{}) *[]diag
 		results = append(results, output)
 	}
 
-	return &results
+	return results
 }
 
 func flattenMonitorDiagnosticMetrics(input *[]diagnosticsettings.MetricSettings) []interface{} {
@@ -889,19 +867,6 @@ func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
 			if days, ok := policy["days"]; ok {
 				buf.WriteString(fmt.Sprintf("%d-", days.(int)))
 			}
-		}
-	}
-	return pluginsdk.HashString(buf.String())
-}
-
-func resourceMonitorDiagnosticEnabledMetricsSettingHash(input interface{}) int {
-	var buf bytes.Buffer
-	if rawData, ok := input.(map[string]interface{}); ok {
-		if category, ok := rawData["category"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", category.(string)))
-		}
-		if enabled, ok := rawData["enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", enabled.(bool)))
 		}
 	}
 	return pluginsdk.HashString(buf.String())

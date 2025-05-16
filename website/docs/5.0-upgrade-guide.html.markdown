@@ -205,6 +205,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_monitor_diagnostic_setting`
 
+* The deprecated `metric.retention_policy` block has been removed.
 * The deprecated `metric` block has been removed in favour of the `enabled_metric` block.
 
 ### `azurerm_mssql_database`
