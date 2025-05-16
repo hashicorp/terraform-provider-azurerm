@@ -5,9 +5,9 @@ package migration
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -466,7 +466,8 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			ConflictsWith: []string{"transparent_huge_page"},
-			Deprecated:    "`linux_os_config.transparent_huge_page_enabled` has been deprecated in favour of the `linux_os_config.transparent_huge_page` property and will be removed in v5.0 of the AzureRM Provider"}
+			Deprecated:    "`linux_os_config.transparent_huge_page_enabled` has been deprecated in favour of the `linux_os_config.transparent_huge_page` property and will be removed in v5.0 of the AzureRM Provider",
+		}
 
 		s["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"].ConflictsWith = []string{"transparent_huge_page_enabled"}
 	}
