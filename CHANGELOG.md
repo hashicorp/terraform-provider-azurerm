@@ -1,6 +1,6 @@
 ## 4.29.0 (May 16, 2025)
 
-FEATURES:
+FEATURES: 
 
 * **New Resource**: `azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent` ([#28953](https://github.com/hashicorp/terraform-provider-azurerm/issues/28953))
 
