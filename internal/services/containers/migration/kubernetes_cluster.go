@@ -2547,5 +2547,18 @@ func (k KubernetesClusterV1ToV2) Schema() map[string]*pluginsdk.Schema {
 		},
 	}
 
+	if !features.FivePointOh() {
+		if nodePoolConfig := s["default_node_pool"].Elem.(*pluginsdk.Resource); nodePoolConfig != nil {
+			if linuxOsConfig := nodePoolConfig.Schema["linux_os_config"].Elem.(*pluginsdk.Resource); linuxOsConfig != nil {
+				linuxOsConfig.Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				}
+				linuxOsConfig.Schema["transparent_huge_page"].ConflictsWith = []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page_enabled"}
+				linuxOsConfig.Schema["transparent_huge_page_enabled"].ConflictsWith = []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page"}
+			}
+		}
+	}
+
 	return s
 }
