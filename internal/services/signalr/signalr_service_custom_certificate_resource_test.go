@@ -142,6 +142,7 @@ resource "azurerm_signalr_service_custom_certificate" "test" {
   name                  = "signalr-cert-%s"
   signalr_service_id    = azurerm_signalr_service.test.id
   custom_certificate_id = azurerm_key_vault_certificate.test.id
+  use_specific_version  = false
 
   depends_on = [azurerm_key_vault.test]
 }
@@ -156,6 +157,7 @@ resource "azurerm_signalr_service_custom_certificate" "import" {
   name                  = azurerm_signalr_service_custom_certificate.test.name
   signalr_service_id    = azurerm_signalr_service_custom_certificate.test.signalr_service_id
   custom_certificate_id = azurerm_signalr_service_custom_certificate.test.custom_certificate_id
+  use_specific_version  = true
 }
 `, r.basic(data))
 }
