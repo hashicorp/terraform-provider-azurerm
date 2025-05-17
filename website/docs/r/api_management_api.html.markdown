@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
+-> **Note:** The `service_url` is required when `api_type` is specified as `websocket`.
+
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
 * `subscription_required` - (Optional) Should this API require a subscription key? Defaults to `true`.
