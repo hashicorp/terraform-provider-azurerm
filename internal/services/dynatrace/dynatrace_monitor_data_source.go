@@ -212,6 +212,7 @@ func (d MonitorsDataSource) Read() sdk.ResourceFunc {
 				if model.Tags != nil {
 					monitorResource.Tags = pointer.From(model.Tags)
 				}
+				metadata.SetID(id)
 				return metadata.Encode(&monitorResource)
 			}
 			return nil
