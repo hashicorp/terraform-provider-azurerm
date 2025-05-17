@@ -127,6 +127,8 @@ The following arguments are supported:
 
 ~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
+* `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
+
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
 * `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
@@ -146,6 +148,14 @@ The following arguments are supported:
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+
+---
+
+An `always_ready` block supports the following:
+
+* `name`  - (Required) The name of the `always_ready` of the Function App.
+
+* `instance_count` - (Required) The instance count of the `always_ready` of the  Function App. The minimum number is `0`. The total number of `instance_count` should not exceed the `maximum_instance_count`.
 
 ---
 
