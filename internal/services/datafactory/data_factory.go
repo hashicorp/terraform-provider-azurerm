@@ -467,10 +467,10 @@ func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression)
 
 	// the Azure API returns these in a different case to what we're expecting, so we need to convert these
 	compressionTypes := []string{
-		TypeBasicDatasetCompressionTypeBZip2,
-		TypeBasicDatasetCompressionTypeDeflate,
-		TypeBasicDatasetCompressionTypeGZip,
-		TypeBasicDatasetCompressionTypeTar,
+		strings.ToLower(TypeBasicDatasetCompressionTypeBZip2),
+		strings.ToLower(TypeBasicDatasetCompressionTypeDeflate),
+		strings.ToLower(TypeBasicDatasetCompressionTypeGZip),
+		strings.ToLower(TypeBasicDatasetCompressionTypeTar),
 		TypeBasicDatasetCompressionTypeTarGZip,
 		TypeBasicDatasetCompressionTypeZipDeflate,
 	}
