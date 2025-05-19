@@ -1,3 +1,9 @@
+## 4.30.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* Data Source: `azurerm_managed_disk` - add support for `location` [GH-29513]
+
 ## 4.29.0 (May 16, 2025)
 
 FEATURES: 
