@@ -41,7 +41,9 @@ The following arguments are supported:
 
 * `schema_compatibility` - (Required) Specifies the compatibility of this schema group. Possible values are `None`, `Backward`, `Forward`. Changing this forces a new resource to be created.
 
-* `schema_type` - (Required) Specifies the Type of this schema group. Possible values are `Avro`, `Unknown`. Changing this forces a new resource to be created.
+* `schema_type` - (Required) Specifies the Type of this schema group. Possible values are `Avro`, `Unknown` and `Json`. Changing this forces a new resource to be created.
+
+~> **Note:** When `schema_type` is specified as `Json`, `schema_compatibility` must be set to `None`.
 
 ## Attributes Reference
 
