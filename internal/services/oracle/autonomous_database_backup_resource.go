@@ -285,9 +285,8 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			log.Printf("[DEBUG] Setting autonomous_database_id to: %s", autonomousDatabaseId)
 
 			state := AutonomousDatabaseBackupResourceModel{
-				DisplayName:       id.AutonomousDatabaseBackupName,
-				ResourceGroupName: id.ResourceGroupName,
-				// CRITICAL: Add this line to set the autonomous database ID
+				DisplayName:          id.AutonomousDatabaseBackupName,
+				ResourceGroupName:    id.ResourceGroupName,
 				AutonomousDataBaseID: autonomousDatabaseId,
 			}
 
