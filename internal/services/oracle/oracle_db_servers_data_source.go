@@ -197,7 +197,7 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 
 			id := dbservers.NewCloudExadataInfrastructureID(subscriptionId, state.ResourceGroupName, state.CloudExadataInfrastructureName)
 
-			resp, err := client.ListByCloudExadataInfrastructure(ctx, id)
+			resp, err := client.ListByParent(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
