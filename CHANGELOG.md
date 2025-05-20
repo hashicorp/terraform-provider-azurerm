@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* dependencies: `go-azure-sdk` - update to `v0.20250520.1180806` [GH-29665]
 * Data Source: `azurerm_managed_disk` - add support for `location` [GH-29513]
 * `azurerm_eventhub_namespace_schema_group` - add support for the `Json` value in the `schema_type` property [GH-29641]
 
