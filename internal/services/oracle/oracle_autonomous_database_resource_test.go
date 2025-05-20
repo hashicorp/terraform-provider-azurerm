@@ -121,6 +121,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
+  permission_level 				   = "Unrestricted"
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
 }
@@ -148,17 +149,18 @@ resource "azurerm_oracle_autonomous_database" "test" {
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = false
+  mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
+  permission_level 				   = "Unrestricted"
   customer_contacts                = ["test@test.com"]
-  white_listed_ips                 = ["10.0.2.1","10.0.2.2","10.0.2.0/24"]
+  whitelisted_ips                  = []
 }
-`, a.template(data), data.RandomInteger, data.Locations.Primary)
+`, a.basicTemplate(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
@@ -258,5 +260,16 @@ resource "azurerm_subnet" "test" {
   }
 }
 
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (a AdbsRegularResource) basicTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
