@@ -142,22 +142,26 @@ data "azurerm_role_definition" "mi-contributor" {
   name = "Managed Identity Contributor"
 }
 
+data "azuread_service_principal" "test" {
+  display_name = "Standby Pool Resource Provider"
+}
+
 resource "azurerm_role_assignment" "vm-contributor" {
   scope              = azurerm_resource_group.test.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.vm-contributor.id}"
-  principal_id       = "f6aeedb8-1697-401e-8e75-9dc348caa49e"
+  principal_id       = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_role_assignment" "nw-contributor" {
   scope              = azurerm_resource_group.test.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.nw-contributor.id}"
-  principal_id       = "f6aeedb8-1697-401e-8e75-9dc348caa49e"
+  principal_id       = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_role_assignment" "mi-contributor" {
   scope              = azurerm_resource_group.test.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.mi-contributor.id}"
-  principal_id       = "f6aeedb8-1697-401e-8e75-9dc348caa49e"
+  principal_id       = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_resource_group" "test" {
