@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "example" {
   purge_protection_enabled = true
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
+resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
@@ -68,6 +68,78 @@ resource "azurerm_ai_foundry" "example" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+```
+
+## Example Usage with user identity
+
+```hcl
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example"
+  location = "westeurope"
+}
+
+resource "azurerm_key_vault" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "example" {
+  key_vault_id = azurerm_key_vault.example.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Create",
+    "Get",
+    "Delete",
+    "Purge",
+    "GetRotationPolicy",
+  ]
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "example"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_ai_services" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "S0"
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_ai_foundry" "example" {
+  name                = "example"
+  location            = azurerm_ai_services.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  storage_account_id  = azurerm_storage_account.example.id
+  key_vault_id        = azurerm_key_vault.example.id
+
+  primary_user_assigned_identity = azurerm_user_assigned_identity.example.id
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id,
+    ]
   }
 }
 ```
