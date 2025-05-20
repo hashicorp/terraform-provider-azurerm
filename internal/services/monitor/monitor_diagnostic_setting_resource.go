@@ -168,19 +168,20 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
+
 		resource.Schema["enabled_metric"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
 		resource.Schema["enabled_metric"].Computed = true
 		resource.Schema["enabled_metric"].ConflictsWith = []string{"metric"}
 
-		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
-
 		resource.Schema["metric"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeSet,
-			Optional:     true,
-			Computed:     true,
-			Deprecated:   "`metric` has been deprecated in favor of the `enabled_metric` property and will be removed in v5.0 of the AzureRM provider",
-			AtLeastOneOf: []string{"enabled_log", "enabled_metric", "metric"},
-			Set:          resourceMonitorDiagnosticMetricsSettingHash,
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`metric` has been deprecated in favor of the `enabled_metric` property and will be removed in v5.0 of the AzureRM provider",
+			AtLeastOneOf:  []string{"enabled_log", "enabled_metric", "metric"},
+			ConflictsWith: []string{"enabled_metric"},
+			Set:           resourceMonitorDiagnosticMetricsSettingHash,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"category": {
