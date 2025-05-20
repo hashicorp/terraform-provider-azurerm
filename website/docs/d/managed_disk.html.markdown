@@ -41,6 +41,8 @@ output "id" {
 
 * `image_reference_id` - The ID of the source image used for creating this Managed Disk.
 
+* `location` - The Azure location of the Managed Disk.
+
 * `os_type` - The operating system used for this Managed Disk.
 
 * `storage_account_type` - The storage account type for the Managed Disk.
