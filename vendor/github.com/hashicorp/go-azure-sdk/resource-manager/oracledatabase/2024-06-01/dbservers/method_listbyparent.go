@@ -12,22 +12,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListByCloudExadataInfrastructureOperationResponse struct {
+type ListByParentOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]DbServer
 }
 
-type ListByCloudExadataInfrastructureCompleteResult struct {
+type ListByParentCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []DbServer
 }
 
-type ListByCloudExadataInfrastructureCustomPager struct {
+type ListByParentCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *ListByCloudExadataInfrastructureCustomPager) NextPageLink() *odata.Link {
+func (p *ListByParentCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -35,15 +35,15 @@ func (p *ListByCloudExadataInfrastructureCustomPager) NextPageLink() *odata.Link
 	return p.NextLink
 }
 
-// ListByCloudExadataInfrastructure ...
-func (c DbServersClient) ListByCloudExadataInfrastructure(ctx context.Context, id CloudExadataInfrastructureId) (result ListByCloudExadataInfrastructureOperationResponse, err error) {
+// ListByParent ...
+func (c DbServersClient) ListByParent(ctx context.Context, id CloudExadataInfrastructureId) (result ListByParentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Pager:      &ListByCloudExadataInfrastructureCustomPager{},
+		Pager:      &ListByParentCustomPager{},
 		Path:       fmt.Sprintf("%s/dbServers", id.ID()),
 	}
 
@@ -74,16 +74,16 @@ func (c DbServersClient) ListByCloudExadataInfrastructure(ctx context.Context, i
 	return
 }
 
-// ListByCloudExadataInfrastructureComplete retrieves all the results into a single object
-func (c DbServersClient) ListByCloudExadataInfrastructureComplete(ctx context.Context, id CloudExadataInfrastructureId) (ListByCloudExadataInfrastructureCompleteResult, error) {
-	return c.ListByCloudExadataInfrastructureCompleteMatchingPredicate(ctx, id, DbServerOperationPredicate{})
+// ListByParentComplete retrieves all the results into a single object
+func (c DbServersClient) ListByParentComplete(ctx context.Context, id CloudExadataInfrastructureId) (ListByParentCompleteResult, error) {
+	return c.ListByParentCompleteMatchingPredicate(ctx, id, DbServerOperationPredicate{})
 }
 
-// ListByCloudExadataInfrastructureCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c DbServersClient) ListByCloudExadataInfrastructureCompleteMatchingPredicate(ctx context.Context, id CloudExadataInfrastructureId, predicate DbServerOperationPredicate) (result ListByCloudExadataInfrastructureCompleteResult, err error) {
+// ListByParentCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c DbServersClient) ListByParentCompleteMatchingPredicate(ctx context.Context, id CloudExadataInfrastructureId, predicate DbServerOperationPredicate) (result ListByParentCompleteResult, err error) {
 	items := make([]DbServer, 0)
 
-	resp, err := c.ListByCloudExadataInfrastructure(ctx, id)
+	resp, err := c.ListByParent(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -97,7 +97,7 @@ func (c DbServersClient) ListByCloudExadataInfrastructureCompleteMatchingPredica
 		}
 	}
 
-	result = ListByCloudExadataInfrastructureCompleteResult{
+	result = ListByParentCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

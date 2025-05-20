@@ -12,22 +12,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListByCloudVMClusterOperationResponse struct {
+type ListByParentOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]DbNode
 }
 
-type ListByCloudVMClusterCompleteResult struct {
+type ListByParentCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []DbNode
 }
 
-type ListByCloudVMClusterCustomPager struct {
+type ListByParentCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *ListByCloudVMClusterCustomPager) NextPageLink() *odata.Link {
+func (p *ListByParentCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -35,15 +35,15 @@ func (p *ListByCloudVMClusterCustomPager) NextPageLink() *odata.Link {
 	return p.NextLink
 }
 
-// ListByCloudVMCluster ...
-func (c DbNodesClient) ListByCloudVMCluster(ctx context.Context, id CloudVMClusterId) (result ListByCloudVMClusterOperationResponse, err error) {
+// ListByParent ...
+func (c DbNodesClient) ListByParent(ctx context.Context, id CloudVMClusterId) (result ListByParentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Pager:      &ListByCloudVMClusterCustomPager{},
+		Pager:      &ListByParentCustomPager{},
 		Path:       fmt.Sprintf("%s/dbNodes", id.ID()),
 	}
 
@@ -74,16 +74,16 @@ func (c DbNodesClient) ListByCloudVMCluster(ctx context.Context, id CloudVMClust
 	return
 }
 
-// ListByCloudVMClusterComplete retrieves all the results into a single object
-func (c DbNodesClient) ListByCloudVMClusterComplete(ctx context.Context, id CloudVMClusterId) (ListByCloudVMClusterCompleteResult, error) {
-	return c.ListByCloudVMClusterCompleteMatchingPredicate(ctx, id, DbNodeOperationPredicate{})
+// ListByParentComplete retrieves all the results into a single object
+func (c DbNodesClient) ListByParentComplete(ctx context.Context, id CloudVMClusterId) (ListByParentCompleteResult, error) {
+	return c.ListByParentCompleteMatchingPredicate(ctx, id, DbNodeOperationPredicate{})
 }
 
-// ListByCloudVMClusterCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c DbNodesClient) ListByCloudVMClusterCompleteMatchingPredicate(ctx context.Context, id CloudVMClusterId, predicate DbNodeOperationPredicate) (result ListByCloudVMClusterCompleteResult, err error) {
+// ListByParentCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c DbNodesClient) ListByParentCompleteMatchingPredicate(ctx context.Context, id CloudVMClusterId, predicate DbNodeOperationPredicate) (result ListByParentCompleteResult, err error) {
 	items := make([]DbNode, 0)
 
-	resp, err := c.ListByCloudVMCluster(ctx, id)
+	resp, err := c.ListByParent(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -97,7 +97,7 @@ func (c DbNodesClient) ListByCloudVMClusterCompleteMatchingPredicate(ctx context
 		}
 	}
 
-	result = ListByCloudVMClusterCompleteResult{
+	result = ListByParentCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}
