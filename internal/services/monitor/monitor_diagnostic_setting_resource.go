@@ -553,8 +553,7 @@ func resourceMonitorDiagnosticSettingRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
 
-			enabledMetrics := flattenMonitorDiagnosticEnabledMetrics(resp.Model.Properties.Metrics)
-			if err = d.Set("enabled_metric", enabledMetrics); err != nil {
+			if err = d.Set("enabled_metric", flattenMonitorDiagnosticEnabledMetrics(resp.Model.Properties.Metrics)); err != nil {
 				return fmt.Errorf("setting `enabled_metric`: %+v", err)
 			}
 
