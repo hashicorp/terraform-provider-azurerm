@@ -125,6 +125,39 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) template(data acceptance.T
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+  resource_providers_to_register = ["Microsoft.StandbyPool"]
+}
+
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_role_definition" "vm-contributor" {
+  name = "Virtual Machine Contributor"
+}
+
+data "azurerm_role_definition" "nw-contributor" {
+  name = "Network Contributor"
+}
+
+data "azurerm_role_definition" "mi-contributor" {
+  name = "Managed Identity Contributor"
+}
+
+resource "azurerm_role_assignment" "vm-contributor" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.vm-contributor.id}"
+  principal_id       = "f6aeedb8-1697-401e-8e75-9dc348caa49e"
+}
+
+resource "azurerm_role_assignment" "nw-contributor" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.nw-contributor.id}"
+  principal_id       = "f6aeedb8-1697-401e-8e75-9dc348caa49e"
+}
+
+resource "azurerm_role_assignment" "mi-contributor" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.mi-contributor.id}"
+  principal_id       = "f6aeedb8-1697-401e-8e75-9dc348caa49e"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -140,6 +173,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   platform_fault_domain_count = 1
 
   zones = ["1"]
+
+  depends_on = [
+    azurerm_role_assignment.vm-contributor, azurerm_role_assignment.nw-contributor, azurerm_role_assignment.mi-contributor
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
