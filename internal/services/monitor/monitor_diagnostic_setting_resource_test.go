@@ -139,7 +139,14 @@ func TestAccMonitorDiagnosticSetting_storageAccountTarget(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageAccountTarget(data),
+			Config: r.storageAccountTarget(data, "Transaction"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageAccountTarget(data, "Capacity"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -789,7 +796,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func (MonitorDiagnosticSettingResource) storageAccountTarget(data acceptance.TestData) string {
+func (MonitorDiagnosticSettingResource) storageAccountTarget(data acceptance.TestData, metric string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -817,10 +824,10 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
   enabled_metric {
-    category = "Transaction"
+    category = "%[4]s" # Transaction, Capacity, AllMetrics
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17), metric)
 }
 
 func (MonitorDiagnosticSettingResource) metric(data acceptance.TestData) string {
