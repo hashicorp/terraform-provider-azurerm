@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * Data Source: `azurerm_managed_disk` - add support for `location` [GH-29513]
+* `azurerm_eventhub_namespace_schema_group` - add support for the `json` value in the `schema_type` property [GH-29641]
 
 ## 4.29.0 (May 16, 2025)
 
