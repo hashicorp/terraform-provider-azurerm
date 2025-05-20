@@ -23,7 +23,7 @@ data "azurerm_stream_analytics_job" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_sql_server" "example" {
+resource "azurerm_mssql_server" "example" {
   name                         = "example-server"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = azurerm_resource_group.example.location
@@ -32,15 +32,9 @@ resource "azurerm_sql_server" "example" {
   administrator_login_password = "example-password"
 }
 
-resource "azurerm_sql_database" "example" {
-  name                             = "exampledb"
-  resource_group_name              = azurerm_resource_group.example.name
-  location                         = azurerm_resource_group.example.location
-  server_name                      = azurerm_sql_server.example.name
-  requested_service_objective_name = "S0"
-  collation                        = "SQL_LATIN1_GENERAL_CP1_CI_AS"
-  max_size_bytes                   = "268435456000"
-  create_mode                      = "Default"
+resource "azurerm_mssql_database" "example" {
+  name      = "exampledb"
+  server_id = azurerm_mssql_server.test.id
 }
 
 resource "azurerm_stream_analytics_output_mssql" "example" {
@@ -48,10 +42,10 @@ resource "azurerm_stream_analytics_output_mssql" "example" {
   stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
   resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
 
-  server   = azurerm_sql_server.example.fully_qualified_domain_name
-  user     = azurerm_sql_server.example.administrator_login
-  password = azurerm_sql_server.example.administrator_login_password
-  database = azurerm_sql_database.example.name
+  server   = azurerm_mssql_server.example.fully_qualified_domain_name
+  user     = azurerm_mssql_server.example.administrator_login
+  password = azurerm_mssql_server.example.administrator_login_password
+  database = azurerm_mssql_database.example.name
   table    = "ExampleTable"
 }
 ```
@@ -68,7 +62,7 @@ The following arguments are supported:
 
 * `server` - (Required) The SQL server url. Changing this forces a new resource to be created.
 
-* `user` - (Optional) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created. Required if `authentication_mode` is `ConnectionString`. 
+* `user` - (Optional) Username used to login to the Microsoft SQL Server. Changing this forces a new resource to be created. Required if `authentication_mode` is `ConnectionString`.
 
 * `database` - (Required) The MS SQL database name where the reference table exists. Changing this forces a new resource to be created.
 
