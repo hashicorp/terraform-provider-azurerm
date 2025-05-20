@@ -18,7 +18,7 @@ data "azurerm_api_management_subscription" "example" {
   subscription_id   = "example-subscription-id"
 }
 
-output "id" {
+output "subscription_primary_key" {
   value = data.azurerm_api_management_subscription.example.subscription_id
 }
 ```
