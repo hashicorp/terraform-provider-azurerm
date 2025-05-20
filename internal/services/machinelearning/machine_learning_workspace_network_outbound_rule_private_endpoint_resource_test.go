@@ -447,11 +447,11 @@ resource "azurerm_machine_learning_workspace" "test2" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-	name                = "acctestcogaccount-%[3]s"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	kind 							  = "OpenAI"
-	sku_name            = "S0"
+  name                = "acctestcogaccount-%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "OpenAI"
+  sku_name            = "S0"
 
 }
 
