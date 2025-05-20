@@ -465,11 +465,13 @@ func (k KubernetesClusterNodePoolV0ToV1) Schema() map[string]*pluginsdk.Schema {
 		s["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
+			Computed:      true,
 			ConflictsWith: []string{"transparent_huge_page"},
 			Deprecated:    "`linux_os_config.transparent_huge_page_enabled` has been deprecated in favour of the `linux_os_config.transparent_huge_page` property and will be removed in v5.0 of the AzureRM Provider",
 		}
 
 		s["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"].ConflictsWith = []string{"linux_os_config.0.transparent_huge_page_enabled"}
+		s["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"].Computed = true
 	}
 
 	return s

@@ -403,6 +403,7 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 				"never",
 			}, false),
 		}
+		s.Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"].Computed = true
 	}
 
 	return s

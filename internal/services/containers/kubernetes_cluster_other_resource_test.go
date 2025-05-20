@@ -1503,7 +1503,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
 
     linux_os_config {
-      transparent_huge_page_enabled = "always"
+      transparent_huge_page_enabled = "always" # This property is deprecated and is removed in v5.0 of the provider
 
       sysctl_config {
         fs_aio_max_nr               = 65536
