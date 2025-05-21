@@ -19,6 +19,9 @@ import (
 type HPCCacheBlobNFSTargetResource struct{}
 
 func TestAccHPCCacheBlobNFSTarget_basic(t *testing.T) {
+	// https://azure.microsoft.com/en-us/updates?id=hpccacheretirement
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -34,6 +37,8 @@ func TestAccHPCCacheBlobNFSTarget_basic(t *testing.T) {
 }
 
 func TestAccHPCCacheBlobNFSTarget_accessPolicy(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -70,6 +75,8 @@ func TestAccHPCCacheBlobNFSTarget_accessPolicy(t *testing.T) {
 }
 
 func TestAccHPCCacheBlobNFSTarget_update(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -92,6 +99,8 @@ func TestAccHPCCacheBlobNFSTarget_update(t *testing.T) {
 }
 
 func TestAccHPCCacheBlobNFSTarget_requiresImport(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -107,6 +116,8 @@ func TestAccHPCCacheBlobNFSTarget_requiresImport(t *testing.T) {
 }
 
 func TestAccHPCCacheBlobNFSTarget_usageModel(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
