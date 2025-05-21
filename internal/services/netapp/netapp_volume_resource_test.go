@@ -135,7 +135,7 @@ func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_snapshot(t *testing.T) {
+func TestAccNetAppVolume_createFromSnapshotInAnotherPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 	r := NetAppVolumeResource{}
 
@@ -822,8 +822,6 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps              = 1.562
   create_from_snapshot_resource_id = azurerm_netapp_snapshot.test_original.id
 }
-
-
 `, template, data.RandomInteger)
 }
 

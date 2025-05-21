@@ -554,7 +554,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			checkPropertyMismatch(&propertyMismatch, "resource_group_name", sourceVolumeId.ResourceGroupName, id.ResourceGroupName)
 			checkPropertyMismatch(&propertyMismatch, "account_name", sourceVolumeId.NetAppAccountName, id.NetAppAccountName)
 			if len(propertyMismatch) > 0 {
-				return fmt.Errorf("property mismatch.\n%s\nSource volume:\n%v", strings.Join(propertyMismatch, "\n"), id)
+				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s\n", strings.Join(propertyMismatch, "\n"), id)
 			}
 		}
 	}
@@ -1270,7 +1270,7 @@ func flattenNetAppVolumeDataProtectionBackupPolicy(input *volumes.VolumeProperti
 
 func checkPropertyMismatch(propertyMismatch *[]string, propertyName string, expected, actual interface{}) {
 	if !strings.EqualFold(fmt.Sprintf("%v", expected), fmt.Sprintf("%v", actual)) {
-		message := fmt.Sprintf("Specifying a different '%v' property for new volume is not supported. Original volume: '%v' -- new volume: '%v'", propertyName, expected, actual)
+		message := fmt.Sprintf("'%v' - Snapshot value: '%v' -- New Volume Value: '%v'", propertyName, expected, actual)
 		*propertyMismatch = append(*propertyMismatch, message)
 	}
 }
