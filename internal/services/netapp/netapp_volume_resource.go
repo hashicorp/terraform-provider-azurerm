@@ -545,16 +545,31 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		propertyMismatch := []string{}
 		if model := sourceVolume.Model; model != nil {
 			props := model.Properties
-			checkPropertyMismatch(&propertyMismatch, "protocols", *props.ProtocolTypes, *utils.ExpandStringSlice(protocols))
-			checkPropertyMismatch(&propertyMismatch, "subnet_id", props.SubnetId, subnetID)
-			checkPropertyMismatch(&propertyMismatch, "location", model.Location, location)
-			if volumeServiceLevel := props.ServiceLevel; volumeServiceLevel != nil {
-				checkPropertyMismatch(&propertyMismatch, "service_level", *props.ServiceLevel, serviceLevel)
+			if !ValidateSlicesEquality(*props.ProtocolTypes, *utils.ExpandStringSlice(protocols), false) {
+				propertyMismatch = append(propertyMismatch, "protocols")
 			}
-			checkPropertyMismatch(&propertyMismatch, "resource_group_name", sourceVolumeId.ResourceGroupName, id.ResourceGroupName)
-			checkPropertyMismatch(&propertyMismatch, "account_name", sourceVolumeId.NetAppAccountName, id.NetAppAccountName)
+			if !strings.EqualFold(props.SubnetId, subnetID) {
+				propertyMismatch = append(propertyMismatch, "subnet_id")
+			}
+			if !strings.EqualFold(model.Location, location) {
+				propertyMismatch = append(propertyMismatch, "location")
+			}
+			if volumeServiceLevel := props.ServiceLevel; volumeServiceLevel != nil {
+				if !strings.EqualFold(string(*props.ServiceLevel), string(serviceLevel)) {
+					propertyMismatch = append(propertyMismatch, "service_level")
+				}
+			}
+			if !strings.EqualFold(sourceVolumeId.ResourceGroupName, id.ResourceGroupName) {
+				propertyMismatch = append(propertyMismatch, "resource_group_name")
+			}
+			if !strings.EqualFold(sourceVolumeId.NetAppAccountName, id.NetAppAccountName) {
+				propertyMismatch = append(propertyMismatch, "account_name")
+			}
+			if !strings.EqualFold(sourceVolumeId.CapacityPoolName, id.CapacityPoolName) {
+				propertyMismatch = append(propertyMismatch, "pool_name")
+			}
 			if len(propertyMismatch) > 0 {
-				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s\n", strings.Join(propertyMismatch, "\n"), id)
+				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s\n", strings.Join(propertyMismatch, "\n"))
 			}
 		}
 	}
@@ -1265,12 +1280,5 @@ func flattenNetAppVolumeDataProtectionBackupPolicy(input *volumes.VolumeProperti
 			"policy_enabled":   policyEnforced,
 			"backup_vault_id":  backupVaultID,
 		},
-	}
-}
-
-func checkPropertyMismatch(propertyMismatch *[]string, propertyName string, expected, actual interface{}) {
-	if !strings.EqualFold(fmt.Sprintf("%v", expected), fmt.Sprintf("%v", actual)) {
-		message := fmt.Sprintf("'%v' - Snapshot value: '%v' -- New Volume Value: '%v'", propertyName, expected, actual)
-		*propertyMismatch = append(*propertyMismatch, message)
 	}
 }
