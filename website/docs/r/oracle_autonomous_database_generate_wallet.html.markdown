@@ -25,19 +25,19 @@ resource "azurerm_oracle_autonomous_database" "example" {
   location            = azurerm_resource_group.example.location
 
   # Required properties for demonstration purposes
-  admin_password                 = "StrongPassword12#$"
-  backup_retention_period_in_days = 60
-  character_set                  = "AL32UTF8"
-  compute_count                  = 2
-  compute_model                  = "ECPU"
-  data_storage_size_in_tbs       = 1
-  db_version                     = "19c"
-  db_workload                    = "OLTP"
-  display_name                   = "example-adb"
-  license_model                  = "BringYourOwnLicense"
-  national_character_set         = "AL16UTF16"
-  mtls_connection_required       = true
-  auto_scaling_enabled           = true
+  admin_password                   = "StrongPassword12#$"
+  backup_retention_period_in_days  = 60
+  character_set                    = "AL32UTF8"
+  compute_count                    = 2
+  compute_model                    = "ECPU"
+  data_storage_size_in_tbs         = 1
+  db_version                       = "19c"
+  db_workload                      = "OLTP"
+  display_name                     = "example-adb"
+  license_model                    = "BringYourOwnLicense"
+  national_character_set           = "AL16UTF16"
+  mtls_connection_required         = true
+  auto_scaling_enabled             = true
   auto_scaling_for_storage_enabled = false
 }
 
@@ -45,10 +45,10 @@ resource "azurerm_oracle_autonomous_database" "example" {
 resource "azurerm_oracle_autonomous_database_wallet" "example" {
   autonomous_database_id = azurerm_oracle_autonomous_database.example.id
   password               = "WalletPassword123!"
-  
+
   # Optional configurations
-  generate_type          = "SINGLE"
-  is_regional            = false
+  generate_type = "SINGLE"
+  is_regional   = false
 }
 ``` 
 
