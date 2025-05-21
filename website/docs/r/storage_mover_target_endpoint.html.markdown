@@ -85,3 +85,9 @@ Storage Mover Target Endpoint can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_storage_mover_target_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageMover/storageMovers/storageMover1/endpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageMover`: 2023-03-01
