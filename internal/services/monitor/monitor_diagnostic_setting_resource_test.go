@@ -372,7 +372,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -428,7 +428,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -486,7 +486,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -965,7 +965,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -1041,7 +1041,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -1108,7 +1108,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -1184,7 +1184,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_name      = azurerm_eventhub_namespace.test.name
+  namespace_id        = azurerm_eventhub_namespace.test.id
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
