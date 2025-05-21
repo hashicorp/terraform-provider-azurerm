@@ -12,22 +12,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListByAutonomousDatabaseOperationResponse struct {
+type ListByParentOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]AutonomousDatabaseBackup
 }
 
-type ListByAutonomousDatabaseCompleteResult struct {
+type ListByParentCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []AutonomousDatabaseBackup
 }
 
-type ListByAutonomousDatabaseCustomPager struct {
+type ListByParentCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *ListByAutonomousDatabaseCustomPager) NextPageLink() *odata.Link {
+func (p *ListByParentCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -35,15 +35,15 @@ func (p *ListByAutonomousDatabaseCustomPager) NextPageLink() *odata.Link {
 	return p.NextLink
 }
 
-// ListByAutonomousDatabase ...
-func (c AutonomousDatabaseBackupsClient) ListByAutonomousDatabase(ctx context.Context, id AutonomousDatabaseId) (result ListByAutonomousDatabaseOperationResponse, err error) {
+// ListByParent ...
+func (c AutonomousDatabaseBackupsClient) ListByParent(ctx context.Context, id AutonomousDatabaseId) (result ListByParentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Pager:      &ListByAutonomousDatabaseCustomPager{},
+		Pager:      &ListByParentCustomPager{},
 		Path:       fmt.Sprintf("%s/autonomousDatabaseBackups", id.ID()),
 	}
 
@@ -74,16 +74,16 @@ func (c AutonomousDatabaseBackupsClient) ListByAutonomousDatabase(ctx context.Co
 	return
 }
 
-// ListByAutonomousDatabaseComplete retrieves all the results into a single object
-func (c AutonomousDatabaseBackupsClient) ListByAutonomousDatabaseComplete(ctx context.Context, id AutonomousDatabaseId) (ListByAutonomousDatabaseCompleteResult, error) {
-	return c.ListByAutonomousDatabaseCompleteMatchingPredicate(ctx, id, AutonomousDatabaseBackupOperationPredicate{})
+// ListByParentComplete retrieves all the results into a single object
+func (c AutonomousDatabaseBackupsClient) ListByParentComplete(ctx context.Context, id AutonomousDatabaseId) (ListByParentCompleteResult, error) {
+	return c.ListByParentCompleteMatchingPredicate(ctx, id, AutonomousDatabaseBackupOperationPredicate{})
 }
 
-// ListByAutonomousDatabaseCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c AutonomousDatabaseBackupsClient) ListByAutonomousDatabaseCompleteMatchingPredicate(ctx context.Context, id AutonomousDatabaseId, predicate AutonomousDatabaseBackupOperationPredicate) (result ListByAutonomousDatabaseCompleteResult, err error) {
+// ListByParentCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c AutonomousDatabaseBackupsClient) ListByParentCompleteMatchingPredicate(ctx context.Context, id AutonomousDatabaseId, predicate AutonomousDatabaseBackupOperationPredicate) (result ListByParentCompleteResult, err error) {
 	items := make([]AutonomousDatabaseBackup, 0)
 
-	resp, err := c.ListByAutonomousDatabase(ctx, id)
+	resp, err := c.ListByParent(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -97,7 +97,7 @@ func (c AutonomousDatabaseBackupsClient) ListByAutonomousDatabaseCompleteMatchin
 		}
 	}
 
-	result = ListByAutonomousDatabaseCompleteResult{
+	result = ListByParentCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

@@ -211,7 +211,7 @@ func (d DBNodesDataSource) Read() sdk.ResourceFunc {
 			}
 			id := dbnodes.NewCloudVMClusterID(subscriptionId, parsedCloudVmClusterId.ResourceGroupName, parsedCloudVmClusterId.CloudVmClusterName)
 
-			resp, err := client.ListByCloudVMCluster(ctx, id)
+			resp, err := client.ListByParent(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
