@@ -12,22 +12,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListByCloudVMClusterOperationResponse struct {
+type ListByParentOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]VirtualNetworkAddress
 }
 
-type ListByCloudVMClusterCompleteResult struct {
+type ListByParentCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []VirtualNetworkAddress
 }
 
-type ListByCloudVMClusterCustomPager struct {
+type ListByParentCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *ListByCloudVMClusterCustomPager) NextPageLink() *odata.Link {
+func (p *ListByParentCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -35,15 +35,15 @@ func (p *ListByCloudVMClusterCustomPager) NextPageLink() *odata.Link {
 	return p.NextLink
 }
 
-// ListByCloudVMCluster ...
-func (c VirtualNetworkAddressesClient) ListByCloudVMCluster(ctx context.Context, id CloudVMClusterId) (result ListByCloudVMClusterOperationResponse, err error) {
+// ListByParent ...
+func (c VirtualNetworkAddressesClient) ListByParent(ctx context.Context, id CloudVMClusterId) (result ListByParentOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Pager:      &ListByCloudVMClusterCustomPager{},
+		Pager:      &ListByParentCustomPager{},
 		Path:       fmt.Sprintf("%s/virtualNetworkAddresses", id.ID()),
 	}
 
@@ -74,16 +74,16 @@ func (c VirtualNetworkAddressesClient) ListByCloudVMCluster(ctx context.Context,
 	return
 }
 
-// ListByCloudVMClusterComplete retrieves all the results into a single object
-func (c VirtualNetworkAddressesClient) ListByCloudVMClusterComplete(ctx context.Context, id CloudVMClusterId) (ListByCloudVMClusterCompleteResult, error) {
-	return c.ListByCloudVMClusterCompleteMatchingPredicate(ctx, id, VirtualNetworkAddressOperationPredicate{})
+// ListByParentComplete retrieves all the results into a single object
+func (c VirtualNetworkAddressesClient) ListByParentComplete(ctx context.Context, id CloudVMClusterId) (ListByParentCompleteResult, error) {
+	return c.ListByParentCompleteMatchingPredicate(ctx, id, VirtualNetworkAddressOperationPredicate{})
 }
 
-// ListByCloudVMClusterCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c VirtualNetworkAddressesClient) ListByCloudVMClusterCompleteMatchingPredicate(ctx context.Context, id CloudVMClusterId, predicate VirtualNetworkAddressOperationPredicate) (result ListByCloudVMClusterCompleteResult, err error) {
+// ListByParentCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c VirtualNetworkAddressesClient) ListByParentCompleteMatchingPredicate(ctx context.Context, id CloudVMClusterId, predicate VirtualNetworkAddressOperationPredicate) (result ListByParentCompleteResult, err error) {
 	items := make([]VirtualNetworkAddress, 0)
 
-	resp, err := c.ListByCloudVMCluster(ctx, id)
+	resp, err := c.ListByParent(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -97,7 +97,7 @@ func (c VirtualNetworkAddressesClient) ListByCloudVMClusterCompleteMatchingPredi
 		}
 	}
 
-	result = ListByCloudVMClusterCompleteResult{
+	result = ListByParentCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

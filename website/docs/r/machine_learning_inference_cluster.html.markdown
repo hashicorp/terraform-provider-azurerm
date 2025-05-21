@@ -192,3 +192,11 @@ Machine Learning Inference Clusters can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_machine_learning_inference_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService`: 2024-09-01
+
+* `Microsoft.MachineLearningServices`: 2024-04-01

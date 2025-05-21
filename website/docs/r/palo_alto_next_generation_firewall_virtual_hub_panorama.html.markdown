@@ -167,3 +167,9 @@ Palo Alto Next Generation Firewall VHub Panoramas can be imported using the `res
 ```shell
 terraform import azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/firewalls/myVhubPanoramaFW
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw`: 2023-09-01

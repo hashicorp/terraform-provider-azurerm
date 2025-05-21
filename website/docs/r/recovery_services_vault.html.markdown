@@ -134,3 +134,9 @@ Recovery Services Vaults can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_recovery_services_vault.vault1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/vault1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices`: 2024-04-01, 2024-01-01

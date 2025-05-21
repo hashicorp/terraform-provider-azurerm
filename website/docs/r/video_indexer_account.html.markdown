@@ -101,3 +101,9 @@ Video Indexer Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_video_indexer_account.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.VideoIndexer/accounts/example-account-name
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.VideoIndexer`: 2024-01-01

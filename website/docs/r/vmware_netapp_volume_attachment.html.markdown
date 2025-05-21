@@ -187,3 +187,9 @@ Azure VMware Solution Private Cloud Netapp File Volume Attachments can be import
 ```shell
 terraform import azurerm_vmware_netapp_volume_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/privateClouds/privateCloud1/clusters/Cluster1/dataStores/datastore1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AVS`: 2022-05-01

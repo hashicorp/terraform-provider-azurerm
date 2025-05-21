@@ -80,3 +80,9 @@ System Center Virtual Machine Manager Clouds can be imported into Terraform usin
 ```shell
 terraform import azurerm_system_center_virtual_machine_manager_cloud.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ScVmm/clouds/cloud1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ScVmm`: 2023-10-07

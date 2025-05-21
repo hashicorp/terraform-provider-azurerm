@@ -117,3 +117,9 @@ Backup Instance PostgreSQL Flexible Servers can be imported using the `resource 
 ```shell
 terraform import azurerm_data_protection_backup_instance_postgresql_flexible_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataProtection/backupVaults/vault1/backupInstances/backupInstance1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataProtection`: 2024-04-01

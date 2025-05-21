@@ -121,3 +121,9 @@ terraform import azurerm_role_definition.example "/subscriptions/00000000-0000-0
 ```
 
 -> **Note:** This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2022-05-01-preview

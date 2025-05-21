@@ -220,3 +220,9 @@ Chaos Studio Experiments can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_chaos_studio_experiment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Chaos/experiments/experiment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Chaos`: 2023-11-01

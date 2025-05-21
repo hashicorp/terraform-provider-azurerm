@@ -156,3 +156,9 @@ Gallery Application Versions can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_gallery_application_version.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/galleries/gallery1/applications/galleryApplication1/versions/galleryApplicationVersion1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute`: 2022-03-03
