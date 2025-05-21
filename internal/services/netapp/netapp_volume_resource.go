@@ -565,9 +565,6 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			if !strings.EqualFold(sourceVolumeId.NetAppAccountName, id.NetAppAccountName) {
 				propertyMismatch = append(propertyMismatch, "account_name")
 			}
-			if !strings.EqualFold(sourceVolumeId.CapacityPoolName, id.CapacityPoolName) {
-				propertyMismatch = append(propertyMismatch, "pool_name")
-			}
 			if len(propertyMismatch) > 0 {
 				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s\n", strings.Join(propertyMismatch, "\n"))
 			}
