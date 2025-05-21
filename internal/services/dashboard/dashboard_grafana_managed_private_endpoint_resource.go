@@ -108,9 +108,12 @@ func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		"private_link_service_url": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^([0-9A-Za-z\-]+\.){2,}([0-9A-Za-z\-]+)\.?$`),
+				"The URL must contain at least 3 parts separated by dots, containing only alphanumeric characters and hyphens",
+			),
 		},
 	}
 }
@@ -259,6 +262,10 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = &mpe.Tags
+			}
+
+			if metadata.ResourceData.HasChange("private_link_service_url") {
+				model.Properties.PrivateLinkServiceURL = &mpe.PrivateLinkServiceURL
 			}
 
 			if err := client.CreateThenPoll(ctx, *id, *model); err != nil {
