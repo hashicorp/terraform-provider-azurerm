@@ -49,7 +49,6 @@ func (MaintenanceAssignmentArcMachineResource) Arguments() map[string]*pluginsdk
 			DiffSuppressFunc: suppress.CaseDifference,
 		},
 	}
-
 }
 
 func (MaintenanceAssignmentArcMachineResource) Attributes() map[string]*pluginsdk.Schema {
