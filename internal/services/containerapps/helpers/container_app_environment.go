@@ -27,6 +27,14 @@ const (
 	WorkloadProfileSkuE32         WorkloadProfileSku = "E32"
 )
 
+// NOTE: the GPU Workload Profile SKUs aren't defined in the Swagger definition so we define them here
+const (
+	WorkloadProfileSkuConsumptionGPUNC4asT4  WorkloadProfileSku = "Consumption-GPU-NC4as-T4"
+	WorkloadProfileSkuConsumptionGPUNC8asT4  WorkloadProfileSku = "Consumption-GPU-NC8as-T4"
+	WorkloadProfileSkuConsumptionGPUNC16asT4 WorkloadProfileSku = "Consumption-GPU-NC16as-T4"
+	WorkloadProfileSkuConsumptionGPUNC32asT4 WorkloadProfileSku = "Consumption-GPU-NC32as-T4"
+)
+
 func PossibleValuesForWorkloadProfileSku() []string {
 	return []string{
 		string(WorkloadProfileSkuConsumption),
@@ -38,6 +46,10 @@ func PossibleValuesForWorkloadProfileSku() []string {
 		string(WorkloadProfileSkuE8),
 		string(WorkloadProfileSkuE16),
 		string(WorkloadProfileSkuE32),
+		string(WorkloadProfileSkuConsumptionGPUNC4asT4),
+		string(WorkloadProfileSkuConsumptionGPUNC8asT4),
+		string(WorkloadProfileSkuConsumptionGPUNC16asT4),
+		string(WorkloadProfileSkuConsumptionGPUNC32asT4),
 	}
 }
 
@@ -92,7 +104,9 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 			Name: v.Name,
 		}
 
-		if v.Name != string(WorkloadProfileSkuConsumption) {
+		isConsumptionSku := strings.HasPrefix(v.WorkloadProfileType, "Consumption")
+
+		if !isConsumptionSku {
 			r.WorkloadProfileType = v.WorkloadProfileType
 			r.MaximumCount = pointer.To(v.MaximumCount)
 			r.MinimumCount = pointer.To(v.MinimumCount)
