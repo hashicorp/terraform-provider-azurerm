@@ -43,43 +43,27 @@ func TestAccOracleAutonomousDatabaseWallet_basic(t *testing.T) {
 			Config: r.basic(data, adbsResource),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("content").Exists(),
+				check.That(data.ResourceName).Key("wallet_files").Exists(),
 				check.That(data.ResourceName).Key("generate_type").HasValue("SINGLE"),
-				check.That(data.ResourceName).Key("base64_encode").HasValue("false"),
+				check.That(data.ResourceName).Key("is_regional").HasValue("false"),
 			),
 		},
 	})
 }
 
-func TestAccOracleAutonomousDatabaseWallet_withBase64Encode(t *testing.T) {
+func TestAccOracleAutonomousDatabaseWallet_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_wallet", "test")
 	r := AutonomousDatabaseWalletResource{}
 	adbsResource := AdbsRegularResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withBase64Encode(data, adbsResource),
+			Config: r.complete(data, adbsResource),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("content").Exists(),
-				check.That(data.ResourceName).Key("base64_encode").HasValue("true"),
-			),
-		},
-	})
-}
-
-func TestAccOracleAutonomousDatabaseWallet_withRegionalGenerateType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_wallet", "test")
-	r := AutonomousDatabaseWalletResource{}
-	adbsResource := AdbsRegularResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withRegionalGenerateType(data, adbsResource),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("content").Exists(),
-				check.That(data.ResourceName).Key("generate_type").HasValue("REGIONAL"),
+				check.That(data.ResourceName).Key("wallet_files").Exists(),
+				check.That(data.ResourceName).Key("generate_type").HasValue("ALL"),
+				check.That(data.ResourceName).Key("is_regional").HasValue("true"),
 			),
 		},
 	})
@@ -88,7 +72,6 @@ func TestAccOracleAutonomousDatabaseWallet_withRegionalGenerateType(t *testing.T
 func (r AutonomousDatabaseWalletResource) basic(data acceptance.TestData, adbsResource AdbsRegularResource) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_oracle_autonomous_database_wallet" "test" {
   autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   password               = "TestPass#2024#"
@@ -96,26 +79,14 @@ resource "azurerm_oracle_autonomous_database_wallet" "test" {
 `, adbsResource.basic(data))
 }
 
-func (r AutonomousDatabaseWalletResource) withBase64Encode(data acceptance.TestData, adbsResource AdbsRegularResource) string {
+func (r AutonomousDatabaseWalletResource) complete(data acceptance.TestData, adbsResource AdbsRegularResource) string {
 	return fmt.Sprintf(`
 %s
-
 resource "azurerm_oracle_autonomous_database_wallet" "test" {
   autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   password               = "TestPass#2024#"
-  base64_encode          = true
-}
-`, adbsResource.basic(data))
-}
-
-func (r AutonomousDatabaseWalletResource) withRegionalGenerateType(data acceptance.TestData, adbsResource AdbsRegularResource) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_oracle_autonomous_database_wallet" "test" {
-  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
-  password               = "TestPass#2024#"
-  generate_type          = "REGIONAL"
+  generate_type          = "ALL"
+  is_regional            = true
 }
 `, adbsResource.basic(data))
 }

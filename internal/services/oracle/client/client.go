@@ -13,7 +13,7 @@ import (
 
 type Client struct {
 	OracleClient   *oracle.Client
-	oracleClient25 *oracle25.Client
+	OracleClient25 *oracle25.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -32,6 +32,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	return &Client{
 		OracleClient:   oracleClient,
-		oracleClient25: oracleClient25,
+		OracleClient25: oracleClient25,
 	}, nil
 }

@@ -4,7 +4,9 @@ package oracle
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -12,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -46,8 +48,8 @@ type AutonomousDatabaseRegularResourceModel struct {
 	NationalCharacterSet         string   `tfschema:"national_character_set"`
 	SubnetId                     string   `tfschema:"subnet_id"`
 	VnetId                       string   `tfschema:"virtual_network_id"`
-	whitelistedIps               []string `tfschema:"white_listed_ips"`
-	permissionLevel              string   `tfschema:"permission_level"`
+	PermissionLevel              string   `tfschema:"permission_level"`
+	WhitelistedIps               []string `tfschema:"whitelisted_ips"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -201,7 +203,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
-		"white_listed_ips": {
+		"whitelisted_ips": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
@@ -230,7 +232,7 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient25.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model AutonomousDatabaseRegularResourceModel
@@ -249,39 +251,58 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
+			properties := &autonomousdatabases.AutonomousDatabaseProperties{
+				AdminPassword:                  pointer.To(model.AdminPassword),
+				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
+				CharacterSet:                   pointer.To(model.CharacterSet),
+				ComputeCount:                   pointer.To(model.ComputeCount),
+				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				DataBaseType:                   "Regular",
+				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
+				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+				DbVersion:                      pointer.To(model.DbVersion),
+				DisplayName:                    pointer.To(model.DisplayName),
+				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
+				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
+				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
+				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
+				WhitelistedIPs:                 pointer.To(model.WhitelistedIps),
+			}
+
+			if len(model.CustomerContacts) > 0 {
+				properties.CustomerContacts = pointer.To(expandAdbsCustomerContacts(model.CustomerContacts))
+			}
+			if model.PermissionLevel != "" {
+				properties.PermissionLevel = pointer.To(autonomousdatabases.PermissionLevelType(model.PermissionLevel))
+			}
+
+			if model.SubnetId != "" {
+				properties.SubnetId = pointer.To(model.SubnetId)
+			}
+
+			if model.VnetId != "" {
+				properties.VnetId = pointer.To(model.VnetId)
+			}
 
 			param := autonomousdatabases.AutonomousDatabase{
-				Name:     pointer.To(model.Name),
-				Location: location.Normalize(model.Location),
-				Tags:     pointer.To(model.Tags),
-				Properties: &autonomousdatabases.AutonomousDatabaseProperties{
-					AdminPassword:                  pointer.To(model.AdminPassword),
-					BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
-					CharacterSet:                   pointer.To(model.CharacterSet),
-					ComputeCount:                   pointer.To(model.ComputeCount),
-					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-					CustomerContacts:               pointer.To(expandAdbsCustomerContacts(model.CustomerContacts)),
-					DataBaseType:                   "Regular",
-					DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
-					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
-					DbVersion:                      pointer.To(model.DbVersion),
-					DisplayName:                    pointer.To(model.DisplayName),
-					IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
-					IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
-					IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-					LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-					NcharacterSet:                  pointer.To(model.NationalCharacterSet),
-					PermissionLevel:                pointer.To(autonomousdatabases.PermissionLevelType(model.permissionLevel)),
-					SubnetId:                       pointer.To(model.SubnetId),
-					VnetId:                         pointer.To(model.VnetId),
-					WhitelistedIPs:                 pointer.To(model.whitelistedIps),
-				},
+				Name:       pointer.To(model.Name),
+				Location:   location.Normalize(model.Location),
+				Tags:       pointer.To(model.Tags),
+				Properties: properties,
 			}
 
+			// Debug: Log the request payload
+			payloadBytes, _ := json.MarshalIndent(param, "", "  ")
+			log.Printf("[DEBUG] Sending payload to create %s: %s", id, string(payloadBytes))
+
+			// Check if WhitelistedIPs is correctly being sent
+			log.Printf("[DEBUG] WhitelistedIPs: %v", model.WhitelistedIps)
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+				// Debug: Log any error response
+				log.Printf("[DEBUG] Error creating %s: %+v", id, err)
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 			return nil
 		},
@@ -292,7 +313,7 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient25.AutonomousDatabases
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -346,7 +367,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient25.AutonomousDatabases
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
@@ -383,8 +404,8 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
-				state.whitelistedIps = pointer.From(props.WhitelistedIPs)
-				state.permissionLevel = string(pointer.From(props.PermissionLevel))
+				state.WhitelistedIps = pointer.From(props.WhitelistedIPs)
+				state.PermissionLevel = string(pointer.From(props.PermissionLevel))
 			}
 			return metadata.Encode(&state)
 		},
@@ -395,7 +416,7 @@ func (AutonomousDatabaseRegularResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			client := metadata.Client.Oracle.OracleClient25.AutonomousDatabases
 
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {

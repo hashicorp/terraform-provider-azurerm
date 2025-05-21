@@ -2,8 +2,8 @@ package oracle
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
@@ -16,19 +16,11 @@ var _ sdk.Resource = AutonomousDatabaseWalletResource{}
 type AutonomousDatabaseWalletResource struct{}
 
 type AutonomousDatabaseWalletResourceModel struct {
-	// Required
 	AutonomousDatabaseId string `tfschema:"autonomous_database_id"`
 	Password             string `tfschema:"password"`
-
-	// Optional
-	GenerateType string `tfschema:"generate_type"`
-	Base64Encode bool   `tfschema:"base64_encode"`
-}
-
-type AutonomousDatabaseWalletResourceResponseModel struct {
-	// Computed
-	Content        string `tfschema:"content"`
-	WalletFileName string `tfschema:"wallet_file_name"`
+	GenerateType         string `tfschema:"generate_type"`
+	IsRegional           bool   `tfschema:"is_regional"`
+	WalletFiles          string `tfschema:"wallet_files"`
 }
 
 func (AutonomousDatabaseWalletResource) Arguments() map[string]*pluginsdk.Schema {
@@ -38,65 +30,42 @@ func (AutonomousDatabaseWalletResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-				v := i.(string)
-				if _, err := autonomousdatabases.ParseAutonomousDatabaseID(v); err != nil {
-					errors = append(errors, fmt.Errorf("invalid %q: %s", k, err))
-				}
-				return
-			},
 		},
-
 		"password": {
-			Type:      pluginsdk.TypeString,
-			Required:  true,
-			ForceNew:  true,
-			Sensitive: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringLenBetween(8, 30),
 		},
 
 		// Optional
 		"generate_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  "SINGLE",
 			ForceNew: true,
-			ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
-				v := i.(string)
-				validTypes := []string{"SINGLE", "REGIONAL"}
-				isValid := false
-				for _, t := range validTypes {
-					if v == t {
-						isValid = true
-						break
-					}
-				}
-				if !isValid {
-					errors = append(errors, fmt.Errorf("%q must be one of: %v", k, validTypes))
-				}
-				return
-			},
+			Default:  "SINGLE",
+			ValidateFunc: validation.StringInSlice([]string{
+				"SINGLE",
+				"ALL",
+			}, false),
 		},
-
-		"base64_encode": {
+		"is_regional": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  false,
 			ForceNew: true,
+			Default:  false,
 		},
 	}
 }
 
 func (AutonomousDatabaseWalletResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"content": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"wallet_file_name": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+		"wallet_files": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Sensitive:   true,
+			Description: "The base64 encoded wallet files",
 		},
 	}
 }
@@ -141,29 +110,19 @@ func (r AutonomousDatabaseWalletResource) Create() sdk.ResourceFunc {
 			}
 
 			if walletResult.Model == nil {
-				return fmt.Errorf("received empty wallet model for %s", model.AutonomousDatabaseId)
+				return fmt.Errorf("empty response when generating wallet for %s", model.AutonomousDatabaseId)
 			}
 
-			walletBytes := []byte(walletResult.Model.WalletFiles)
-			content := string(walletBytes)
-
-			if model.Base64Encode {
-				content = base64.StdEncoding.EncodeToString(walletBytes)
+			walletFiles := walletResult.Model.WalletFiles
+			if walletFiles == "" {
+				return fmt.Errorf("no wallet files in response for %s", model.AutonomousDatabaseId)
 			}
 
-			responseModel := AutonomousDatabaseWalletResourceResponseModel{
-				Content:        content,
-				WalletFileName: walletResult.Model.WalletFiles,
-			}
-
-			// Set the response values
-			metadata.ResourceData.Set("content", responseModel.Content)
-			metadata.ResourceData.Set("wallet_file_name", responseModel.WalletFileName)
-
-			// Construct the resource ID correctly
+			// Set the wallet files in our model
+			model.WalletFiles = walletFiles
 			metadata.SetID(autonomousDatabaseId)
 
-			return nil
+			return metadata.Encode(&model)
 		},
 	}
 }
