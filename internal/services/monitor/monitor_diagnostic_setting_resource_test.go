@@ -133,7 +133,7 @@ func TestAccMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 	})
 }
 
-func TestAccMonitorDiagnosticSetting_storageAccountTarget(t *testing.T) {
+func TestAccMonitorDiagnosticSetting_updateEnabledMetric(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	r := MonitorDiagnosticSettingResource{}
 
