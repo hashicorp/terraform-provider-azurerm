@@ -372,7 +372,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name              = "acctest-EH-%[1]d"
-  namespace_name    = azurerm_eventhub_namespace.test.name # Property replaced with namespace_id in 5.0
+  namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 2
   message_retention = 1
 }
