@@ -139,14 +139,21 @@ func TestAccMonitorDiagnosticSetting_updateEnabledMetric(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageAccountTarget(data, "Transaction"),
+			Config: r.storageAccountTargetTransaction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.storageAccountTarget(data, "Capacity"),
+			Config: r.storageAccountTargetTransactionCapacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageAccountTargetTransaction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -365,7 +372,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name              = "acctest-EH-%[1]d"
-  namespace_id      = azurerm_eventhub_namespace.test.id
+  namespace_name    = azurerm_eventhub_namespace.test.name # Property replaced with namespace_id in 5.0
   partition_count   = 2
   message_retention = 1
 }
@@ -428,7 +435,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_id        = azurerm_eventhub_namespace.test.id
+  namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -486,7 +493,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_id        = azurerm_eventhub_namespace.test.id
+  namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -796,7 +803,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func (MonitorDiagnosticSettingResource) storageAccountTarget(data acceptance.TestData, metric string) string {
+func (MonitorDiagnosticSettingResource) storageAccountTargetTransaction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -824,10 +831,48 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   storage_account_id = azurerm_storage_account.test.id
 
   enabled_metric {
-    category = "%[4]s" # Transaction, Capacity, AllMetrics
+    category = "Transaction"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17), metric)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func (MonitorDiagnosticSettingResource) storageAccountTargetTransactionCapacity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = azurerm_storage_account.test.id
+  storage_account_id = azurerm_storage_account.test.id
+
+  enabled_metric {
+    category = "Transaction"
+  }
+
+  enabled_metric {
+    category = "Capacity"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
 func (MonitorDiagnosticSettingResource) metric(data acceptance.TestData) string {
@@ -965,7 +1010,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_id        = azurerm_eventhub_namespace.test.id
+  namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -1041,7 +1086,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_id        = azurerm_eventhub_namespace.test.id
+  namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -1108,7 +1153,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_id        = azurerm_eventhub_namespace.test.id
+  namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
@@ -1184,7 +1229,7 @@ resource "azurerm_eventhub" "test" {
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "example"
-  namespace_id        = azurerm_eventhub_namespace.test.id
+  namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
   send                = true
