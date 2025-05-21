@@ -143,7 +143,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20250513.1112057
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20250409.1192141
 ## explicit; go 1.22
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -901,28 +901,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/giv
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/oraclesubscriptions
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/systemversions
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/virtualnetworkaddresses
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasebackups
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasecharactersets
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasenationalcharactersets
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabaseversions
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudexadatainfrastructures
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudvmclusters
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbnodes
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbservers
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbsystemshapes
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dnsprivateviews
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dnsprivatezones
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exadbvmclusters
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exascaledbnodes
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exascaledbstoragevaults
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/flexcomponents
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/giminorversions
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/giversions
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/oraclesubscriptions
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/systemversions
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/virtualnetworkaddresses
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contact
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/groundstation
@@ -1190,7 +1168,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20250513.1112057
+# github.com/hashicorp/go-azure-sdk/sdk v0.20250409.1192141
 ## explicit; go 1.22
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
