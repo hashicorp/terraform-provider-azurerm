@@ -114,14 +114,15 @@ resource "azurerm_oracle_autonomous_database" "test" {
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = true
+  mtls_connection_required         = false
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
-  whitelisted_ips                  = []
+  subnet_id                        = azurerm_subnet.test.id
+  virtual_network_id               = azurerm_virtual_network.test.id
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -157,7 +158,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
 }
-`, a.basicTemplate(data), data.RandomInteger, data.Locations.Primary)
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
@@ -219,6 +220,39 @@ resource "azurerm_oracle_autonomous_database" "import" {
   virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
 }
 `, a.basic(data))
+}
+
+func (a AdbsRegularResource) publicAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_oracle_autonomous_database" "test" {
+  name                             = "OFake%[2]d"
+  display_name                     = "OFake%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = "%[3]s"
+  compute_model                    = "ECPU"
+  compute_count                    = 2
+  license_model                    = "BringYourOwnLicense"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = true
+  data_storage_size_in_tbs         = 1
+  db_workload                      = "OLTP"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  national_character_set           = "AL16UTF16"
+  allowed_ips                 = []
+}
+`, a.basicTemplate(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a AdbsRegularResource) template(data acceptance.TestData) string {

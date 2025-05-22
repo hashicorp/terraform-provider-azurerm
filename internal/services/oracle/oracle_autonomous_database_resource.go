@@ -202,10 +202,9 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"allowed_ips": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(1, 1024),
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -267,6 +266,12 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.WhitelistedIps),
+			}
+
+			if len(model.WhitelistedIps) > 0 {
+				if err := validate.ValidateAllowedIPsList(model.WhitelistedIps); err != nil {
+					return err
+				}
 			}
 
 			if len(model.CustomerContacts) > 0 {
