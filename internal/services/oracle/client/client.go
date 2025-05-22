@@ -24,7 +24,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	oracleClient, err := oracle.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("building Oracle client: %+v", err)
 	}
