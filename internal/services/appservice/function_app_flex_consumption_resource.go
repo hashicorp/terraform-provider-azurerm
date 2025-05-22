@@ -886,11 +886,11 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
-			arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
-			if err != nil {
-				return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
-			}
 			if metadata.ResourceData.HasChange("always_ready") {
+				arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
+				if err != nil {
+					return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
+				}
 				model.Properties.FunctionAppConfig.ScaleAndConcurrency.AlwaysReady = arc
 			}
 
