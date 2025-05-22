@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_managed_disk` - add support for `location` [GH-29513]
 * `azurerm_dns_caa_record` - add support for the `contactemail` value in the `tag` property [GH-29664]
 * `azurerm_eventhub_namespace_schema_group` - add support for the `Json` value in the `schema_type` property [GH-29641]
+* `azurerm_function_app_flex_consumption` - add support for the `always_ready` block [GH-29023]
 * `azurerm_security_center_subscription_pricing` - add support for the `AI` value for the `resource_type` property [GH-29631]
 
 ## 4.29.0 (May 16, 2025)
