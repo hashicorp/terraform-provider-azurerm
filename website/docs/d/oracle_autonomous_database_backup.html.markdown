@@ -19,9 +19,6 @@ data "azurerm_oracle_autonomous_database_backup" "example" {
   autonomous_database_name = "existingadb"
 }
 
-output "id" {
-  value = data.azurerm_oracle_autonomous_database_backup.example.id
-}
 ```
 
 ## Arguments Reference

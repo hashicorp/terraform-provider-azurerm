@@ -8,20 +8,34 @@ description: |-
 
 # azurerm_oracle_autonomous_database_backup
 
-Use this data source to access information about an existing Autonomous Database Backup.
+Manages an Oracle Autonomous Database Backup in Azure.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_oracle_autonomous_database_backup" "example" {
-  name                     = "existing"
-  resource_group_name      = "existing"
-  autonomous_database_name = "existingadb"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "East US"
+}
+resource "azurerm_oracle_autonomous_database" "example" {
+  name                = "example-adb"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  # ... other autonomous database properties ...
 }
 
-output "id" {
-  value = data.azurerm_oracle_autonomous_database_backup.example.id
+resource "azurerm_oracle_autonomous_database_backup" "example" {
+  name                     = "example-backup"
+  resource_group_name      = azurerm_resource_group.example.name
+  autonomous_database_name = azurerm_oracle_autonomous_database.example.name
+  retention_period_in_days = 120
+  backup_type              = "Full"
+
+  # Optional: specify a custom display name
+  display_name             = "My Database Backup"
 }
+
 ```
 
 ## Arguments Reference
@@ -32,6 +46,11 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Database Backup exists.
 
 * `autonomous_database_` - (Required) The name of the Autonomous Database that this backup is for.
+* `retention_period_in_days` - (Required) (Updatable) The number of days to retain the backup. Must be between 90 and 3650 days.
+
+* `backup_type` - (Optional) The type of backup to create. Possible values are Full, Incremental, and LongTerm. Defaults to Full.
+
+* `display_name` - (Optional) The display name of the Autonomous Database Backup. If not specified, the name will be used.
 
 ## Attributes Reference
 In addition to the Arguments listed above—the following Attributes are exported:
@@ -44,11 +63,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `backup_size_in_tbs` - The size of the backup in terabytes.
 
-* `backup_type` - The type of backup.
-
 * `db_version` - The Oracle Database version of the Autonomous Database at the time the backup was taken.
-
-* `display_name` - The user-friendly name of the backup.
 
 * `is_automatic` - Indicates whether the backup is user-initiated or automatic.
 
@@ -58,13 +73,9 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `lifecycle_state` - The current state of the backup.
 
-* `location` `- The Azure Region where the Autonomous Database Backup exists.
-
 * `license_model` - The license model of the Autonomous Database at the time the backup was taken.
 
 * `provisioning_state` - The current provisioning state of the Autonomous Database Backup.
-
-* `retention_period_in_days` - The retention period in days for the Autonomous Database Backup.
 
 * `time_available_til` - The date and time the backup will become unusable.
 
@@ -76,4 +87,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 ## Timeouts
 The `timeouts` block allows you to specify timeouts for certain actions:
 
+* `create` - (Defaults to 30 minutes) Used when creating the Autonomous Database Backup.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database Backup.
+* `update` - (Defaults to 30 minutes) Used when updating the Autonomous Database Backup.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Autonomous Database Backup.
