@@ -98,3 +98,9 @@ Network Manager Management Group Connection can be imported using the `resource 
 ```shell
 terraform import azurerm_network_manager_management_group_connection.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Network/networkManagerConnections/networkManagerConnection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Management`: 2024-05-01

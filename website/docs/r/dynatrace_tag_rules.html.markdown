@@ -123,6 +123,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dynatrace tag rules.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dynatrace tag rules.
+* `update` - (Defaults to 30 minutes) Used when updating the Dynatrace tag rules.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Dynatrace tag rules.
 
 ## Import
@@ -132,3 +133,9 @@ Dynatrace tag rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dynatrace_tag_rules.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Dynatrace.Observability/monitors/monitor1/tagRules/tagRules1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Dynatrace.Observability`: 2023-04-27

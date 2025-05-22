@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "example" {
   purge_protection_enabled = true
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
+resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = azurerm_key_vault.example.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
@@ -92,6 +92,8 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of this AI Foundry Project.
 
+* `primary_user_assigned_identity` - (Optional) The user assigned identity ID that represents the AI Foundry Hub identity. This must be set when enabling encryption with a user assigned identity.
+
 * `friendly_name` - (Optional) The display name of this AI Foundry Project.
 
 * `high_business_impact_enabled` - (Optional) Whether High Business Impact (HBI) should be enabled or not. Enabling this setting will reduce diagnostic data collected by the service. Changing this forces a new AI Foundry Project to be created. Defaults to `false`.
@@ -108,7 +110,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this AI Foundry Project.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -130,7 +132,7 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 hour) Used when creating the AI Foundry Project.
+* `create` - (Defaults to 30 minutes) Used when creating the AI Foundry Project.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AI Foundry Project.
 * `update` - (Defaults to 30 minutes) Used when updating the AI Foundry Project.
 * `delete` - (Defaults to 30 minutes) Used when deleting the AI Foundry Project.
@@ -142,3 +144,9 @@ AI Foundry Projects can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_ai_foundry_project.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/project1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices`: 2024-04-01
