@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/caches"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/storagetargets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

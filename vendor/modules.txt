@@ -1109,6 +1109,13 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageacc
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storagetaskassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/tableservice
 github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/tableserviceproperties
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/ascusages
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/skus
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/usagemodels
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/amlfilesystems
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/ascusages

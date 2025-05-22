@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/caches"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/caches"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,7 +54,7 @@ func resourceHPCCache() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -246,7 +246,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	d.SetId(id.ID())
 
 	// wait for HPC Cache provision state to be succeeded. or further operations with it may fail.
-	cacheClient := meta.(*clients.Client).StorageCache.Caches
+	cacheClient := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	if _, err = resourceHPCCacheWaitForCreating(ctx, cacheClient, id, d); err != nil {
 		return fmt.Errorf("waiting for the HPC Cache provision state %s (Resource Group: %s) : %+v", name, resourceGroup, err)
 	}
@@ -255,7 +255,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -358,7 +358,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceHPCCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

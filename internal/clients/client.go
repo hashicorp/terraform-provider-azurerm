@@ -6,6 +6,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -271,6 +272,7 @@ type Client struct {
 	SignalR                           *signalr.Client
 	Storage                           *storage.Client
 	StorageCache                      *storagecache_2024_07_01.Client
+	StorageCache_2023_05_01           *storagecache_2023_05_01.Client
 	StorageMover                      *storageMover.Client
 	StreamAnalytics                   *streamAnalytics.Client
 	Subscription                      *subscription.Client
@@ -636,6 +638,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.StorageCache, err = storageCache.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Storage Cache: %+v", err)
+	}
+	if client.StorageCache_2023_05_01, err = storageCache.NewClient_2023_05_01(o); err != nil {
+		return fmt.Errorf("building clients for Storage Cache 2023-05-01: %+v", err)
 	}
 	if client.StorageMover, err = storageMover.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for StorageMover: %+v", err)

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/storagetargets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
@@ -81,7 +81,7 @@ func resourceHPCCacheBlobTarget() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,7 +132,7 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceHPCCacheBlobTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -185,7 +185,7 @@ func resourceHPCCacheBlobTargetRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceHPCCacheBlobTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
