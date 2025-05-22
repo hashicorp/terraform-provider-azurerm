@@ -375,7 +375,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
-		"white_listed_ips": {
+		"allowed_ips": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{

@@ -4,9 +4,7 @@ package oracle
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -49,7 +47,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	SubnetId                     string   `tfschema:"subnet_id"`
 	VnetId                       string   `tfschema:"virtual_network_id"`
 	PermissionLevel              string   `tfschema:"permission_level"`
-	WhitelistedIps               []string `tfschema:"whitelisted_ips"`
+	WhitelistedIps               []string `tfschema:"allowed_ips"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -203,10 +201,11 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: commonids.ValidateVirtualNetworkID,
 		},
 
-		"whitelisted_ips": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
+		"allowed_ips": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringLenBetween(1, 1024),
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -292,15 +291,7 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				Properties: properties,
 			}
 
-			// Debug: Log the request payload
-			payloadBytes, _ := json.MarshalIndent(param, "", "  ")
-			log.Printf("[DEBUG] Sending payload to create %s: %s", id, string(payloadBytes))
-
-			// Check if WhitelistedIPs is correctly being sent
-			log.Printf("[DEBUG] WhitelistedIPs: %v", model.WhitelistedIps)
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
-				// Debug: Log any error response
-				log.Printf("[DEBUG] Error creating %s: %+v", id, err)
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 			metadata.SetID(id)

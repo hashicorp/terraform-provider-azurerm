@@ -114,15 +114,14 @@ resource "azurerm_oracle_autonomous_database" "test" {
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = false
+  mtls_connection_required         = true
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.test.id
-  virtual_network_id               = azurerm_virtual_network.test.id
+  whitelisted_ips                  = []
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -147,7 +146,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = true
+  mtls_connection_required         = false
   data_storage_size_in_tbs         = 1
   db_workload                      = "OLTP"
   admin_password                   = "TestPass#2024#"
@@ -155,7 +154,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
   customer_contacts                = ["test@test.com"]
-  whitelisted_ips                  = []
+  subnet_id                        = azurerm_subnet.test.id
+  virtual_network_id               = azurerm_virtual_network.test.id
 }
 `, a.basicTemplate(data), data.RandomInteger, data.Locations.Primary)
 }
