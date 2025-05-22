@@ -683,6 +683,7 @@ resource "azurerm_netapp_volume" "test" {
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
+
 func (NetAppVolumeResource) protocolsEnabled(data acceptance.TestData) string {
 	template := NetAppVolumeResource{}.template(data)
 	return fmt.Sprintf(`
