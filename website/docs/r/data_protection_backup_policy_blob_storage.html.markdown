@@ -61,8 +61,6 @@ A `retention_rule` block supports the following:
 
 * `name` - (Required) The name which should be used for this retention rule. Changing this forces a new Backup Policy Blob Storage to be created.
 
-* `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy Blob Storage to be created.
-
 * `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new Backup Policy Blob Storage to be created.
 
 * `life_cycle` - (Required) A `life_cycle` block as defined below. Changing this forces a new Backup Policy Blob Storage to be created.
