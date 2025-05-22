@@ -123,7 +123,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				ForceNew: true,
 				Optional: true,
-				Computed: true,
 				MinItems: 1,
 				MaxItems: 1,
 				Elem: &pluginsdk.Schema{
@@ -200,7 +199,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							},
 						},
 
-						"protocols": { // protocol or protocols? If only singular probably the former, change type to String?
+						"protocols": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
@@ -410,6 +409,24 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
+			if !features.FivePointOh() {
+				// export_policy_rule.protocols conflicts with export_policy_rule.protocols_enabled
+				// Can't use the sdk's ConflictsWith because the properties are nested under a
+				// TypeList with a MaxItems != 1
+				exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
+				if len(exportPolicyRuleRaw) > 0 {
+					for _, rule := range exportPolicyRuleRaw {
+						exportPolicyRule := rule.(map[string]interface{})
+						protocolsEnabled := exportPolicyRule["protocols_enabled"].([]interface{})
+						protocols := exportPolicyRule["protocols"].([]interface{})
+
+						if len(protocolsEnabled) > 0 && len(protocols) > 0 {
+							return fmt.Errorf("conflicting configuration arguments. export_policy_rule.protocols conflicts with export_policy_rule.protocols_enabled")
+						}
+					}
+				}
+			}
+
 			return nil
 		},
 	}
@@ -431,7 +448,22 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 		}
 
-		//resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols"].ConflictsWith = []string{"export_policy_rule.0.protocols_enabled"}
+		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			ForceNew: true,
+			Optional: true,
+			Computed: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NFSv3",
+					"NFSv4.1",
+					"CIFS",
+				}, false),
+			},
+		}
 	}
 
 	return resource
