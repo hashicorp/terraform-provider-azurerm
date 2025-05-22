@@ -131,6 +131,10 @@ The following arguments are supported:
 
 * `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
 
+* `http_concurrency` - (Optional) The Http concurrency of the instances on which your app runs. The supported value are from `1` to `1000`.
+
+~> **Note:** A value will be assigned by system if `http_concurrency` is not specified.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
