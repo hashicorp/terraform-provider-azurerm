@@ -377,6 +377,28 @@ func TestAccNetworkInterface_pointToGatewayLB(t *testing.T) {
 	})
 }
 
+func TestAccNetworkInterface_tagsOfNicAttachedToPrivateEndpointCanBeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateEndpoint(data, false),
+		},
+		{
+			Config: r.privateEndpointNic(data, ""),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateEndpointNic(data, `
+  tags = {
+   someTagKey = "someTagValue"
+  }`),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseNetworkInterfaceID(state.ID)
 	if err != nil {
@@ -979,6 +1001,80 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r NetworkInterfaceResource) privateEndpoint(data acceptance.TestData, peDependsOnNic bool) string {
+	peDependsOn := ""
+	if peDependsOnNic {
+		// Needed once NIC is imported, so Terraform destroy the private endpoint first
+		peDependsOn = "depends_on = [ azurerm_network_interface.test ]"
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "sa%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctestpe-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  subnet_id                     = azurerm_subnet.test.id
+  custom_network_interface_name = "acctestnic-%[2]d"
+
+  private_service_connection {
+    name                           = "acctestpsc-%[2]d"
+    private_connection_resource_id = azurerm_storage_account.test.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+
+  %[3]s
+}
+
+`, r.template(data), data.RandomInteger, peDependsOn)
+}
+
+func (r NetworkInterfaceResource) privateEndpointNic(data acceptance.TestData, tags string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+import {
+  id = "/subscriptions/%[2]s/resourceGroups/acctestRG-%[3]d/providers/Microsoft.Network/networkInterfaces/acctestnic-%[3]d"
+  to = azurerm_network_interface.test
+}
+
+resource "azurerm_network_interface" "test" {
+  accelerated_networking_enabled = false
+  ip_forwarding_enabled          = false
+  location                       = azurerm_resource_group.test.location
+  name                           = "acctestnic-%[3]d"
+  resource_group_name            = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "test"
+    primary                       = true
+    private_ip_address            = "10.0.2.4"
+    private_ip_address_allocation = "Dynamic"
+    private_ip_address_version    = "IPv4"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  lifecycle {
+    # The real ip_configuration.name is difficult to get, opt-out instead since we only care about tags update
+    ignore_changes = [ip_configuration]
+  }
+
+%[4]s
+}
+`, r.privateEndpoint(data, true), data.Client().SubscriptionID, data.RandomInteger, tags)
 }
 
 func (NetworkInterfaceResource) template(data acceptance.TestData) string {
