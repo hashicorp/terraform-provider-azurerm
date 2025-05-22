@@ -23,6 +23,8 @@ import (
 
 func resourceHPCCacheBlobTarget() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_hpc_cache_blob_target` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.",
+
 		Create: resourceHPCCacheBlobTargetCreateOrUpdate,
 		Update: resourceHPCCacheBlobTargetCreateOrUpdate,
 		Read:   resourceHPCCacheBlobTargetRead,
