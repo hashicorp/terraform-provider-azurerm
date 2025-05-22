@@ -240,6 +240,8 @@ func (a AdbsRegularResource) publicAccess(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 provider "azurerm" {
@@ -264,7 +266,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
-  allowed_ips                 = []
+  allowed_ips                      = []
 }
 `, a.basicTemplate(data), data.RandomInteger, data.Locations.Primary)
 }
