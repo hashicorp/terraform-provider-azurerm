@@ -4,6 +4,10 @@ ENHANCEMENTS:
 
 * dependencies: `azurerm_managed_lustre_file_system` - update to API version `2024-07-01` [GH-29433]
 
+BUG FIXES:
+
+* `azurerm_network_interface` - `tags` can now be updated when NIC is attached to a private endpoint [GH-29319]
+
 ## 4.30.0 (May 22, 2025)
 
 ENHANCEMENTS:
