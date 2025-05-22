@@ -34,6 +34,10 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_datadog_monitor_sso_configuration`
+
+* This deprecated resource has been superseded by the `sso_configuration` block in the`azurerm_datadog_monitor` resource and has been removed from the AzureRM Provider.
+
 ### `azurerm_network_packet_capture`
 
 * This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure Provider.

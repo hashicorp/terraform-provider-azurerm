@@ -10,6 +10,8 @@ description: |-
 
 Manages SingleSignOn on the datadog Monitor.
 
+~> **Note:** The `azurerm_datadog_monitor_sso_configuration` resource is superseded by the `sso_configuration` block in the`azurerm_datadog_monitor` resource and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ### Enabling SSO on monitor
