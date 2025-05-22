@@ -24,11 +24,15 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	oracleClient, err := oracle.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
+
+	if err != nil {
+		return nil, fmt.Errorf("building Oracle client: %+v", err)
+	}
 	oracleClient25, err := oracle25.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("building Database client: %+v", err)
+		return nil, fmt.Errorf("building Database client v2025 : %+v", err)
 	}
 	return &Client{
 		OracleClient:   oracleClient,
