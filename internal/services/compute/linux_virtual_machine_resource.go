@@ -1129,6 +1129,9 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		existing.Model.Identity = identityExpanded
+		// Set nested virtual machine extension resources to nil avoid MismatchingNestedResourceSegments
+		// and NestedProvisioningValidationFailed errors - fixes #29276
+		existing.Model.Resources = nil
 		// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
 		// 1. The go-azure-sdk for resource manager doesn't support at the moment
 		// 2. The expand identity function doesn't behave this way
