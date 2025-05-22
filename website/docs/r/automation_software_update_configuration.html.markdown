@@ -235,3 +235,9 @@ Automations Software Update Configuration can be imported using the `resource id
 ```shell
 terraform import azurerm_automation_software_update_configuration.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/softwareUpdateConfigurations/suc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Automation`: 2019-06-01

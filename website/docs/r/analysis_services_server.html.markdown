@@ -98,3 +98,9 @@ Analysis Services Server can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_analysis_services_server.server /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.AnalysisServices/servers/server1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AnalysisServices`: 2017-08-01

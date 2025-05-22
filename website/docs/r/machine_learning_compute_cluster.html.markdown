@@ -9,7 +9,6 @@ description: |-
 # azurerm_machine_learning_compute_cluster
 
 Manages a Machine Learning Compute Cluster.
-**NOTE:** At this point in time the resource cannot be updated (not supported by the backend Azure Go SDK). Therefore it can only be created and deleted, not updated. At the moment, there is also no possibility to specify ssh User Account Credentials to ssh into the compute cluster.
 
 ## Example Usage
 
@@ -194,3 +193,9 @@ Machine Learning Compute Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_compute_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices`: 2024-04-01

@@ -130,3 +130,9 @@ Custom Domain for a Web PubSub service can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_web_pubsub_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/webpubsub1/customDomains/customDomain1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SignalRService`: 2024-03-01

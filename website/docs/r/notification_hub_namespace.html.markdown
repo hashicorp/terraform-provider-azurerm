@@ -70,3 +70,9 @@ Notification Hub Namespaces can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_notification_hub_namespace.namespace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.NotificationHubs/namespaces/namespace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NotificationHubs`: 2023-09-01

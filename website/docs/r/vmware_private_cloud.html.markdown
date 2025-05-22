@@ -134,3 +134,9 @@ Azure VMware Solution Private Clouds can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_vmware_private_cloud.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/privateClouds/privateCloud1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AVS`: 2022-05-01

@@ -116,3 +116,9 @@ Storage Sync Server Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_storage_sync_server_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StorageSync/storageSyncServices/sync1/syncGroups/syncGroup1/serverEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageSync`: 2020-03-01

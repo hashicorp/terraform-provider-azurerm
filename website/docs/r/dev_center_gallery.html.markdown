@@ -84,3 +84,9 @@ terraform import azurerm_dev_center_gallery.example /subscriptions/{subscription
 * Where `{resourceGroupName}` is the name of Resource Group where this Dev Center Gallery exists. For example `example-resource-group`.
 * Where `{devCenterName}` is the name of the Dev Center. For example `devCenterValue`.
 * Where `{galleryName}` is the name of the Gallery. For example `galleryValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter`: 2025-02-01

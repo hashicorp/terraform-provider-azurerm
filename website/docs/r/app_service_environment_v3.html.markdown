@@ -171,3 +171,11 @@ A 3rd Generation (v3) App Service Environment can be imported using the `resourc
 ```shell
 terraform import azurerm_app_service_environment_v3.myAppServiceEnv /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Web/hostingEnvironments/myAppServiceEnv
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01
+
+* `Microsoft.Web`: 2023-01-01

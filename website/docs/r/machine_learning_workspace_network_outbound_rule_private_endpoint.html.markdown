@@ -125,3 +125,9 @@ Machine Learning Workspace Network Outbound Rule Private Endpoint can be importe
 ```shell
 terraform import azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/outboundRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices`: 2024-04-01

@@ -162,3 +162,9 @@ Subscription Policy Assignments can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_subscription_policy_assignment.example /subscriptions/00000000-0000-0000-000000000000/providers/Microsoft.Authorization/policyAssignments/assignment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2022-06-01

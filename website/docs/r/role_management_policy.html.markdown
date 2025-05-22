@@ -219,3 +219,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
 * `update` - (Defaults to 30 minutes) Used when updating the Role Definition.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Role Definition.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2020-10-01

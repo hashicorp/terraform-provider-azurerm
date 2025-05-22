@@ -74,3 +74,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace.
 * `update` - (Defaults to 5 minutes) Used when updating the Log Analytics Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Workspace.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2022-10-01
