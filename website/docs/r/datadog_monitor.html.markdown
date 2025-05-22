@@ -35,6 +35,10 @@ resource "azurerm_datadog_monitor" "example" {
   identity {
     type = "SystemAssigned"
   }
+  sso_configuration {
+    enterprise_application_id = "XXXX"
+    single_sign_on_enabled    = "Enable"
+  }
 }
 ```
 
@@ -57,6 +61,8 @@ The following arguments are supported:
 * `datadog_organization` - (Required) A `datadog_organization` block as defined below.
 
 * `monitoring_enabled` - (Optional) Is monitoring enabled? Defaults to `true`.
+
+* `sso_configuration` - (Optional) An `sso_configuration` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Datadog Monitor.
 
@@ -86,13 +92,21 @@ An `identity` block supports the following:
 
 ---
 
-An `user` block exports the following:
+A `user` block supports the following:
 
 * `name` - (Required) The name which should be used for this user_info. Changing this forces a new resource to be created.
 
 * `email` - (Required) Email of the user used by Datadog for contacting them if needed. Changing this forces a new Datadog Monitor to be created.
 
 * `phone_number` - (Optional) Phone number of the user used by Datadog for contacting them if needed. Changing this forces a new resource to be created.
+
+---
+
+An `sso_configuration` block supports the following:
+
+* `single_sign_on` - (Required) The state of SingleSignOn configuration. Possible values are `Enable`, `Disable`, `Initial` and `Existing`.
+
+* `enterprise_application_id` - (Required) The application Id to perform SSO operation.
 
 ## Attributes Reference
 
@@ -113,6 +127,12 @@ An `identity` block exports the following:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Datadog Monitor.
 
 -> **Note:** You can access the Principal ID via `${azurerm_datadog_monitor.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_datadog_monitor.example.identity[0].tenant_id}`
+
+---
+
+An `sso_configuration` block exports the following:
+
+* `login_url` - The SingleSignOn URL to login to Datadog org.
 
 ## Role Assignment
 

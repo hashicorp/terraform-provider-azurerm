@@ -4,6 +4,7 @@
 package datadog
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -14,12 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datadog/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDatadogMonitor() *pluginsdk.Resource {
@@ -161,6 +163,32 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"sso_configuration": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enterprise_application_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validate.DatadogEnterpriseApplicationID,
+						},
+
+						"single_sign_on": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(singlesignon.PossibleValuesForSingleSignOnStates(), false),
+						},
+
+						"login_url": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -172,7 +200,10 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := monitorsresource.NewMonitorID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	resourceGroupName := d.Get("resource_group_name").(string)
+	monitorName := d.Get("name").(string)
+
+	id := monitorsresource.NewMonitorID(subscriptionId, resourceGroupName, monitorName)
 
 	existing, err := client.MonitorsGet(ctx, id)
 	if err != nil {
@@ -207,7 +238,40 @@ func resourceDatadogMonitorCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Updating", "Creating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    datadogMonitorRefreshFunc(ctx, client, id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    time.Until(deadline),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
+
+	if _, ok := d.GetOk("sso_configuration"); ok {
+		ssoClient := meta.(*clients.Client).Datadog.SingleSignOn
+		ssoId := singlesignon.NewSingleSignOnConfigurationID(subscriptionId, resourceGroupName, monitorName, "default")
+		ssoExisting, err := ssoClient.ConfigurationsGet(ctx, ssoId)
+		if err != nil {
+			if !response.WasNotFound(ssoExisting.HttpResponse) {
+				return fmt.Errorf("checking for existing %s: %+v", id, err)
+			}
+		}
+
+		ssoPayload := expandSSOConfiguration(d)
+
+		if err := ssoClient.ConfigurationsCreateOrUpdateThenPoll(ctx, ssoId, *ssoPayload); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+	}
+
 	return resourceDatadogMonitorRead(d, meta)
 }
 
@@ -263,6 +327,20 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
+
+		ssoClient := meta.(*clients.Client).Datadog.SingleSignOn
+		ssoId := singlesignon.NewSingleSignOnConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, "default")
+		ssoResp, ssoErr := ssoClient.ConfigurationsGet(ctx, ssoId)
+		if ssoErr != nil {
+			if response.WasNotFound(ssoResp.HttpResponse) {
+				d.Set("sso_configuration", nil)
+				return nil
+			}
+		}
+
+		if ssoModel := ssoResp.Model; ssoModel != nil {
+			d.Set("sso_configuration", flattenSSOConfiguration(ssoModel))
+		}
 	}
 
 	return nil
@@ -300,6 +378,32 @@ func resourceDatadogMonitorUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if err := client.MonitorsUpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Updating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    datadogMonitorRefreshFunc(ctx, client, *id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    time.Until(deadline),
+	}
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+	}
+
+	if d.HasChange("sso_configuration") {
+		ssoConfig := expandSSOConfiguration(d)
+		ssoClient := meta.(*clients.Client).Datadog.SingleSignOn
+		ssoId := singlesignon.NewSingleSignOnConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName, "default")
+
+		if err := ssoClient.ConfigurationsCreateOrUpdateThenPoll(ctx, ssoId, *ssoConfig); err != nil {
+			return fmt.Errorf("creating %s: %+v", id, err)
+		}
+	}
+
 	return resourceDatadogMonitorRead(d, meta)
 }
 
@@ -318,6 +422,71 @@ func resourceDatadogMonitorDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func datadogMonitorRefreshFunc(ctx context.Context, client *monitorsresource.MonitorsResourceClient, id monitorsresource.MonitorId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.MonitorsGet(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("polling for status of %s: %+v", id, err)
+		}
+
+		provisioningState := ""
+		if model := res.Model; model != nil && model.Properties.ProvisioningState != nil {
+			provisioningState = string(*res.Model.Properties.ProvisioningState)
+		}
+		if provisioningState == "" {
+			return nil, "", fmt.Errorf("polling for status of %s: `provisioningState` was nil", id)
+		}
+
+		return res, provisioningState, nil
+	}
+}
+
+func expandSSOConfiguration(d *pluginsdk.ResourceData) *singlesignon.DatadogSingleSignOnResource {
+	v, ok := d.GetOk("sso_configuration")
+	if !ok {
+		return nil
+	}
+
+	ssoConfigurationValues := v.([]interface{})
+	if len(ssoConfigurationValues) > 0 {
+		vals := ssoConfigurationValues[0].(map[string]interface{})
+
+		return &singlesignon.DatadogSingleSignOnResource{
+			Properties: &singlesignon.DatadogSingleSignOnProperties{
+				EnterpriseAppId:   pointer.To(vals["enterprise_application_id"].(string)),
+				SingleSignOnState: pointer.To(singlesignon.SingleSignOnStates(vals["single_sign_on"].(string))),
+			},
+		}
+	}
+	return nil
+}
+
+func flattenSSOConfiguration(input *singlesignon.DatadogSingleSignOnResource) []interface{} {
+	if input == nil || input.Properties == nil {
+		return make([]interface{}, 0)
+	}
+
+	var enterpriseAppId string
+	if input.Properties.EnterpriseAppId != nil {
+		enterpriseAppId = *input.Properties.EnterpriseAppId
+	}
+	var singleSignOnState string
+	if input.Properties.SingleSignOnState != nil {
+		singleSignOnState = string(*input.Properties.SingleSignOnState)
+	}
+	var loginUrl string
+	if input.Properties.SingleSignOnURL != nil {
+		loginUrl = *input.Properties.SingleSignOnURL
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"enterprise_application_id": enterpriseAppId,
+			"single_sign_on":            singleSignOnState,
+			"login_url":                 loginUrl,
+		},
+	}
 }
 
 func SkuNameDiffSuppress(_, old, new string, _ *pluginsdk.ResourceData) bool {
@@ -351,12 +520,12 @@ func expandMonitorOrganizationProperties(input []interface{}) *monitorsresource.
 	}
 	v := input[0].(map[string]interface{})
 	return &monitorsresource.DatadogOrganizationProperties{
-		LinkingAuthCode: utils.String(v["linking_auth_code"].(string)),
-		LinkingClientId: utils.String(v["linking_client_id"].(string)),
-		RedirectUri:     utils.String(v["redirect_uri"].(string)),
-		ApiKey:          utils.String(v["api_key"].(string)),
-		ApplicationKey:  utils.String(v["application_key"].(string)),
-		EnterpriseAppId: utils.String(v["enterprise_app_id"].(string)),
+		LinkingAuthCode: pointer.To(v["linking_auth_code"].(string)),
+		LinkingClientId: pointer.To(v["linking_client_id"].(string)),
+		RedirectUri:     pointer.To(v["redirect_uri"].(string)),
+		ApiKey:          pointer.To(v["api_key"].(string)),
+		ApplicationKey:  pointer.To(v["application_key"].(string)),
+		EnterpriseAppId: pointer.To(v["enterprise_app_id"].(string)),
 	}
 }
 
@@ -366,9 +535,9 @@ func expandMonitorUserInfo(input []interface{}) *monitorsresource.UserInfo {
 	}
 	v := input[0].(map[string]interface{})
 	return &monitorsresource.UserInfo{
-		Name:         utils.String(v["name"].(string)),
-		EmailAddress: utils.String(v["email"].(string)),
-		PhoneNumber:  utils.String(v["phone_number"].(string)),
+		Name:         pointer.To(v["name"].(string)),
+		EmailAddress: pointer.To(v["email"].(string)),
+		PhoneNumber:  pointer.To(v["phone_number"].(string)),
 	}
 }
 
@@ -424,11 +593,11 @@ func flattenMonitorOrganizationProperties(input *monitorsresource.DatadogOrganiz
 	return []interface{}{
 		map[string]interface{}{
 			"name":              name,
-			"api_key":           utils.String(v["api_key"].(string)),
-			"application_key":   utils.String(v["application_key"].(string)),
+			"api_key":           pointer.To(v["api_key"].(string)),
+			"application_key":   pointer.To(v["application_key"].(string)),
 			"enterprise_app_id": enterpriseAppId,
-			"linking_auth_code": utils.String(v["linking_auth_code"].(string)),
-			"linking_client_id": utils.String(v["linking_client_id"].(string)),
+			"linking_auth_code": pointer.To(v["linking_auth_code"].(string)),
+			"linking_client_id": pointer.To(v["linking_client_id"].(string)),
 			"redirect_uri":      redirectUri,
 			"id":                id,
 		},
