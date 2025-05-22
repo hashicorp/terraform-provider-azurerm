@@ -10,13 +10,13 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // getOverriddenTestLocations returns the overridden test locations for the NetApp Volume tests, specifically for CRR
@@ -418,7 +418,7 @@ func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("reading Netapp Volume (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetAppVolumeResource) volEncryptionCmkUserAssigned(data acceptance.TestData, tenantID string) string {
@@ -705,7 +705,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index        = 1
     allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv4.1"]   # This property will be removed in v5.0
+    protocols_enabled = ["NFSv4.1"] # This property will be removed in v5.0
     unix_read_only    = false
     unix_read_write   = true
   }
@@ -764,11 +764,11 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols = ["NFSv4.1"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocols       = ["NFSv4.1"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -915,11 +915,11 @@ resource "azurerm_netapp_volume" "test_primary" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -943,11 +943,11 @@ resource "azurerm_netapp_volume" "test_secondary" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   data_protection_replication {
@@ -984,11 +984,11 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1021,10 +1021,10 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   throughput_in_mibps              = 3.125
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols = ["NFSv3"]
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocols       = ["NFSv3"]
+    unix_read_write = true
   }
 
   tags = {
@@ -1055,11 +1055,11 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_true" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1090,11 +1090,11 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1142,27 +1142,27 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["0.0.0.0/0"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   export_policy_rule {
-    rule_index        = 3
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 3
+    allowed_clients = ["0.0.0.0/0"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1192,27 +1192,27 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 64
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["1.2.5.0"]
-    protocols = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["1.2.5.0"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   export_policy_rule {
-    rule_index        = 3
-    allowed_clients   = ["1.2.6.0/24"]
-    protocols = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 3
+    allowed_clients = ["1.2.6.0/24"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1242,19 +1242,19 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 63
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["1.2.5.0"]
-    protocols = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["1.2.5.0"]
+    protocols       = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1286,7 +1286,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index          = 1
     allowed_clients     = ["1.2.4.0/24", "1.3.4.0"]
-    protocols   = ["NFSv3"]
+    protocols           = ["NFSv3"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
