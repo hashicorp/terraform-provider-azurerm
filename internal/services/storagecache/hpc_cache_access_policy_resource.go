@@ -123,7 +123,7 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -188,7 +188,7 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -254,7 +254,7 @@ func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceHPCCacheAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

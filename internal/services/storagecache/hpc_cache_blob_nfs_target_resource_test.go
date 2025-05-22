@@ -145,7 +145,7 @@ func (HPCCacheBlobNFSTargetResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	resp, err := clients.StorageCache.StorageTargets.Get(ctx, *id)
+	resp, err := clients.StorageCache_2023_05_01.StorageTargets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache Blob Target (%s): %+v", id.String(), err)
 	}

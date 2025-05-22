@@ -83,7 +83,7 @@ func resourceHPCCacheBlobTarget() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,7 +134,7 @@ func resourceHPCCacheBlobTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceHPCCacheBlobTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -187,7 +187,7 @@ func resourceHPCCacheBlobTargetRead(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceHPCCacheBlobTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

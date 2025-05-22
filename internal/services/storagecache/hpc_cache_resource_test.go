@@ -449,7 +449,7 @@ func (HPCCacheResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.StorageCache.Caches.Get(ctx, *id)
+	resp, err := clients.StorageCache_2023_05_01.Caches.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache (%s): %+v", id.String(), err)
 	}

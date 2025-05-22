@@ -1115,6 +1115,16 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/cache
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/usagemodels
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/amlfilesystems
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/ascusages
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjob
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjobs
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/caches
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/importjobs
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/skus
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/storagetargets
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/usagemodels
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions

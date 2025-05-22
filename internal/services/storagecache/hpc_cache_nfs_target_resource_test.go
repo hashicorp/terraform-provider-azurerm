@@ -173,7 +173,7 @@ func (HPCCacheNFSTargetResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, err
 	}
 
-	resp, err := clients.StorageCache.StorageTargets.Get(ctx, *id)
+	resp, err := clients.StorageCache_2023_05_01.StorageTargets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache NFS Target (%s): %+v", id.String(), err)
 	}

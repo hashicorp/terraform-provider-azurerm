@@ -135,7 +135,7 @@ func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -186,7 +186,7 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 }
 
 func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -230,7 +230,7 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.StorageTargets
+	client := meta.(*clients.Client).StorageCache_2023_05_01.StorageTargets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

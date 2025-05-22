@@ -105,7 +105,7 @@ func TestAccHPCCacheAccessPolicy_requiresImport(t *testing.T) {
 }
 
 func (r HPCCacheAccessPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.StorageCache.Caches
+	client := clients.StorageCache_2023_05_01.Caches
 
 	id, err := parse.CacheAccessPolicyID(state.ID)
 	if err != nil {
