@@ -3,9 +3,12 @@
 ENHANCEMENTS:
 
 * dependencies: `azurerm_managed_lustre_file_system` - update to API version `2024-07-01` [GH-29433]
+* dependencies: `azurerm_mssql_server_vulnerability_assessment` - update to API version `2023-08-01-preview/serversecurityalertpolicies` [GH-29373]
+* dependencies: `azurerm_mssql_server_vulnerability_assessment` - update to API version `2023-08-01-preview/servervulnerabilityassessments` [GH-29373]
 
 BUG FIXES:
 
+* `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` or `storage_container_sas_key` property is now a `required` field [GH-29373]
 * `azurerm_network_interface` - `tags` can now be updated when NIC is attached to a private endpoint [GH-29319]
 
 ## 4.30.0 (May 22, 2025)
