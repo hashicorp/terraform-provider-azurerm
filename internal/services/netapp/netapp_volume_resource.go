@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -119,11 +120,11 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			},
 
 			"protocols": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				ForceNew: true,
 				Optional: true,
-				Computed: true,
-				MaxItems: 2,
+				MinItems: 1,
+				MaxItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -198,9 +199,10 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							},
 						},
 
-						"protocols_enabled": {
+						"protocols": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							MinItems: 1,
 							Elem: &pluginsdk.Schema{
@@ -407,8 +409,61 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
+			if !features.FivePointOh() {
+				// export_policy_rule.protocols conflicts with export_policy_rule.protocols_enabled
+				// Can't use the sdk's ConflictsWith because the properties are nested under a
+				// TypeList with a MaxItems != 1
+				exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
+				if len(exportPolicyRuleRaw) > 0 {
+					for _, rule := range exportPolicyRuleRaw {
+						exportPolicyRule := rule.(map[string]interface{})
+						protocolsEnabled := exportPolicyRule["protocols_enabled"].([]interface{})
+						protocols := exportPolicyRule["protocols"].([]interface{})
+
+						if len(protocolsEnabled) > 0 && len(protocols) > 0 {
+							return fmt.Errorf("conflicting configuration arguments. export_policy_rule.protocols conflicts with export_policy_rule.protocols_enabled")
+						}
+					}
+				}
+			}
+
 			return nil
 		},
+	}
+
+	if !features.FivePointOh() {
+		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			MinItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NFSv3",
+					"NFSv4.1",
+					"CIFS",
+				}, false),
+			},
+		}
+
+		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			ForceNew: true,
+			Optional: true,
+			Computed: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NFSv3",
+					"NFSv4.1",
+					"CIFS",
+				}, false),
+			},
+		}
 	}
 
 	return resource
@@ -504,7 +559,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	// Validate applicability of backup policies
 	if dataProtectionReplication != nil && dataProtectionReplication.Backup != nil {
 		// Validate that backup policies are not being enforced in a data protection replication destination volume
-		if strings.EqualFold(volumeType, "dst") && dataProtectionReplication.Backup.PolicyEnforced == utils.Bool(true) {
+		if strings.EqualFold(volumeType, "dst") && dataProtectionReplication.Backup.PolicyEnforced == pointer.To(true) {
 			return fmt.Errorf("backup policy cannot be enforced on a data protection destination volume, NetApp Volume %q (Resource Group %q)", id.VolumeName, id.ResourceGroupName)
 		}
 	}
@@ -595,22 +650,22 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			SecurityStyle:             &securityStyle,
 			UsageThreshold:            storageQuotaInGB,
 			ExportPolicy:              exportPolicyRule,
-			VolumeType:                utils.String(volumeType),
-			SnapshotId:                utils.String(snapshotID),
+			VolumeType:                pointer.To(volumeType),
+			SnapshotId:                pointer.To(snapshotID),
 			DataProtection: &volumes.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 				Backup:      dataProtectionBackupPolicy.Backup,
 			},
 			AvsDataStore:             &avsDataStoreEnabled,
-			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
+			SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
 	}
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
-		parameters.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+		parameters.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
 	}
 
 	if encryptionKeySource, ok := d.GetOk("encryption_key_source"); ok {
@@ -644,7 +699,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, *replVolID, volumesreplication.AuthorizeRequest{
-			RemoteVolumeResourceId: utils.String(id.ID()),
+			RemoteVolumeResourceId: pointer.To(id.ID()),
 		},
 		); err != nil {
 			return fmt.Errorf("cannot authorize volume replication: %v", err)
@@ -688,7 +743,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("storage_quota_in_gb") {
 		storageQuotaInBytes := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
-		update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
+		update.Properties.UsageThreshold = pointer.To(storageQuotaInBytes)
 	}
 
 	if d.HasChange("export_policy_rule") {
@@ -733,7 +788,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("throughput_in_mibps") {
 		throughputMibps := d.Get("throughput_in_mibps")
-		update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+		update.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
@@ -939,7 +994,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 				// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
 				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
 				if _, err = replicationClient.VolumesBreakReplication(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
-					ForceBreakReplication: utils.Bool(true),
+					ForceBreakReplication: pointer.To(true),
 				}); err != nil {
 					return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
 				}
@@ -978,7 +1033,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 					Properties: &volumes.VolumePatchProperties{
 						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
 							Backup: &volumes.VolumeBackupProperties{
-								PolicyEnforced: utils.Bool(false),
+								PolicyEnforced: pointer.To(false),
 							},
 						},
 					},
@@ -1023,7 +1078,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// Deleting volume and waiting for it fo fully complete the operation
 	if err = client.DeleteThenPoll(ctx, *id, volumes.DeleteOperationOptions{
-		ForceDelete: utils.Bool(true),
+		ForceDelete: pointer.To(true),
 	}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -1046,8 +1101,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			cifsEnabled := false
 			nfsv3Enabled := false
 			nfsv41Enabled := false
-
-			if vpe := v["protocols_enabled"]; vpe != nil {
+			if vpe := v["protocols"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
@@ -1059,6 +1113,25 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
+							}
+						}
+					}
+				}
+			}
+			if !features.FivePointOh() {
+				if vpe := v["protocols_enabled"]; vpe != nil {
+					protocolsEnabled := vpe.([]interface{})
+					if len(protocolsEnabled) != 0 {
+						for _, protocol := range protocolsEnabled {
+							if protocol != nil {
+								switch strings.ToLower(protocol.(string)) {
+								case "cifs":
+									cifsEnabled = true
+								case "nfsv3":
+									nfsv3Enabled = true
+								case "nfsv4.1":
+									nfsv41Enabled = true
+								}
 							}
 						}
 					}
@@ -1076,20 +1149,20 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			kerberos5prw := v["kerberos_5p_read_write_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients:      utils.String(allowedClients),
-				Cifs:                utils.Bool(cifsEnabled),
-				Nfsv3:               utils.Bool(nfsv3Enabled),
-				Nfsv41:              utils.Bool(nfsv41Enabled),
-				Kerberos5ReadOnly:   utils.Bool(kerberos5ro),
-				Kerberos5ReadWrite:  utils.Bool(kerberos5rw),
-				Kerberos5iReadOnly:  utils.Bool(kerberos5iro),
-				Kerberos5iReadWrite: utils.Bool(kerberos5irw),
-				Kerberos5pReadOnly:  utils.Bool(kerberos5pro),
-				Kerberos5pReadWrite: utils.Bool(kerberos5prw),
-				RuleIndex:           utils.Int64(ruleIndex),
-				UnixReadOnly:        utils.Bool(unixReadOnly),
-				UnixReadWrite:       utils.Bool(unixReadWrite),
-				HasRootAccess:       utils.Bool(rootAccessEnabled),
+				AllowedClients:      pointer.To(allowedClients),
+				Cifs:                pointer.To(cifsEnabled),
+				Nfsv3:               pointer.To(nfsv3Enabled),
+				Nfsv41:              pointer.To(nfsv41Enabled),
+				Kerberos5ReadOnly:   pointer.To(kerberos5ro),
+				Kerberos5ReadWrite:  pointer.To(kerberos5rw),
+				Kerberos5iReadOnly:  pointer.To(kerberos5iro),
+				Kerberos5iReadWrite: pointer.To(kerberos5irw),
+				Kerberos5pReadOnly:  pointer.To(kerberos5pro),
+				Kerberos5pReadWrite: pointer.To(kerberos5prw),
+				RuleIndex:           pointer.To(ruleIndex),
+				UnixReadOnly:        pointer.To(unixReadOnly),
+				UnixReadWrite:       pointer.To(unixReadWrite),
+				HasRootAccess:       pointer.To(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -1112,8 +1185,7 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			nfsv3Enabled := false
 			nfsv41Enabled := false
 			cifsEnabled := false
-
-			if vpe := v["protocols_enabled"]; vpe != nil {
+			if vpe := v["protocols"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
@@ -1130,20 +1202,39 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 					}
 				}
 			}
+			if !features.FivePointOh() {
+				if vpe := v["protocols_enabled"]; vpe != nil {
+					protocolsEnabled := vpe.([]interface{})
+					if len(protocolsEnabled) != 0 {
+						for _, protocol := range protocolsEnabled {
+							if protocol != nil {
+								switch strings.ToLower(protocol.(string)) {
+								case "cifs":
+									cifsEnabled = true
+								case "nfsv3":
+									nfsv3Enabled = true
+								case "nfsv4.1":
+									nfsv41Enabled = true
+								}
+							}
+						}
+					}
+				}
+			}
 
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients: utils.String(allowedClients),
-				Cifs:           utils.Bool(cifsEnabled),
-				Nfsv3:          utils.Bool(nfsv3Enabled),
-				Nfsv41:         utils.Bool(nfsv41Enabled),
-				RuleIndex:      utils.Int64(ruleIndex),
-				UnixReadOnly:   utils.Bool(unixReadOnly),
-				UnixReadWrite:  utils.Bool(unixReadWrite),
-				HasRootAccess:  utils.Bool(rootAccessEnabled),
+				AllowedClients: pointer.To(allowedClients),
+				Cifs:           pointer.To(cifsEnabled),
+				Nfsv3:          pointer.To(nfsv3Enabled),
+				Nfsv41:         pointer.To(nfsv41Enabled),
+				RuleIndex:      pointer.To(ruleIndex),
+				UnixReadOnly:   pointer.To(unixReadOnly),
+				UnixReadWrite:  pointer.To(unixReadWrite),
+				HasRootAccess:  pointer.To(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -1190,12 +1281,17 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			"kerberos_5i_read_write_enabled": pointer.From(item.Kerberos5iReadWrite),
 			"kerberos_5p_read_only_enabled":  pointer.From(item.Kerberos5pReadOnly),
 			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
-			"protocols_enabled":              utils.FlattenStringSlice(&protocolsEnabled),
+			"protocols":                      utils.FlattenStringSlice(&protocolsEnabled),
 			"root_access_enabled":            pointer.From(item.HasRootAccess),
 			"rule_index":                     ruleIndex,
 			"unix_read_only":                 pointer.From(item.UnixReadOnly),
 			"unix_read_write":                pointer.From(item.UnixReadWrite),
 		}
+
+		if !features.FivePointOh() {
+			result["protocols_enabled"] = utils.FlattenStringSlice(&protocolsEnabled)
+		}
+
 		results = append(results, result)
 	}
 
