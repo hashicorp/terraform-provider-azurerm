@@ -40,21 +40,20 @@ type FunctionAppFlexConsumptionModel struct {
 	Location      string `tfschema:"location"`
 	ServicePlanId string `tfschema:"service_plan_id"`
 
-	Enabled                  bool                       `tfschema:"enabled"`
-	AppSettings              map[string]string          `tfschema:"app_settings"`
-	StickySettings           []helpers.StickySettings   `tfschema:"sticky_settings"`
-	AuthSettings             []helpers.AuthSettings     `tfschema:"auth_settings"`
-	AuthV2Settings           []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
-	ClientCertEnabled        bool                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode           string                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths string                     `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings        []helpers.ConnectionString `tfschema:"connection_string"`
-	PublicNetworkAccess      bool                       `tfschema:"public_network_access_enabled"`
-	HttpsOnly                bool                       `tfschema:"https_only"`
-
-	VirtualNetworkSubnetID           string `tfschema:"virtual_network_subnet_id"`
-	ZipDeployFile                    string `tfschema:"zip_deploy_file"`
-	PublishingDeployBasicAuthEnabled bool   `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	Enabled                          bool                       `tfschema:"enabled"`
+	AppSettings                      map[string]string          `tfschema:"app_settings"`
+	StickySettings                   []helpers.StickySettings   `tfschema:"sticky_settings"`
+	AuthSettings                     []helpers.AuthSettings     `tfschema:"auth_settings"`
+	AuthV2Settings                   []helpers.AuthV2Settings   `tfschema:"auth_settings_v2"`
+	ClientCertEnabled                bool                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                   string                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths         string                     `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                []helpers.ConnectionString `tfschema:"connection_string"`
+	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
+	HttpsOnly                        bool                       `tfschema:"https_only"`
+	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
+	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 
 	StorageContainerType          string                                         `tfschema:"storage_container_type"`
 	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint"`
