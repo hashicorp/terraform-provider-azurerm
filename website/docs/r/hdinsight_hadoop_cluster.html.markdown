@@ -215,7 +215,7 @@ A `storage_account` block supports the following:
 
 * `storage_container_id` - (Required) The ID of the Storage Container. Changing this forces a new resource to be created.
 
--> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+-> **Note:** When the `azurerm_storage_container` resource is created with `storage_account_name`, this can be obtained from the `id` of the `azurerm_storage_container` resource. When the `azurerm_storage_container` resource is created with `storage_account_id`, please use `azurerm_storage_containers` data source to get the `data_plane_id` of the `azurerm_storage_container` resource for this field.
 
 * `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
