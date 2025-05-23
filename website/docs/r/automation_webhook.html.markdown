@@ -100,3 +100,9 @@ Automation Webhooks can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_automation_webhook.TestRunbook_webhook /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/webHooks/TestRunbook_webhook
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Automation`: 2015-10-31

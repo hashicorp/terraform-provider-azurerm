@@ -9,45 +9,47 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type HiveLinkedServiceTypeProperties struct {
-	AllowHostNameCNMismatch   *bool                        `json:"allowHostNameCNMismatch,omitempty"`
-	AllowSelfSignedServerCert *bool                        `json:"allowSelfSignedServerCert,omitempty"`
-	AuthenticationType        HiveAuthenticationType       `json:"authenticationType"`
-	EnableSsl                 *bool                        `json:"enableSsl,omitempty"`
-	EncryptedCredential       *string                      `json:"encryptedCredential,omitempty"`
-	HTTPPath                  *interface{}                 `json:"httpPath,omitempty"`
-	Host                      interface{}                  `json:"host"`
-	Password                  SecretBase                   `json:"password"`
-	Port                      *int64                       `json:"port,omitempty"`
-	ServerType                *HiveServerType              `json:"serverType,omitempty"`
-	ServiceDiscoveryMode      *bool                        `json:"serviceDiscoveryMode,omitempty"`
-	ThriftTransportProtocol   *HiveThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
-	TrustedCertPath           *interface{}                 `json:"trustedCertPath,omitempty"`
-	UseNativeQuery            *bool                        `json:"useNativeQuery,omitempty"`
-	UseSystemTrustStore       *bool                        `json:"useSystemTrustStore,omitempty"`
-	Username                  *interface{}                 `json:"username,omitempty"`
-	ZooKeeperNameSpace        *interface{}                 `json:"zooKeeperNameSpace,omitempty"`
+	AllowHostNameCNMismatch           *bool                        `json:"allowHostNameCNMismatch,omitempty"`
+	AllowSelfSignedServerCert         *bool                        `json:"allowSelfSignedServerCert,omitempty"`
+	AuthenticationType                HiveAuthenticationType       `json:"authenticationType"`
+	EnableServerCertificateValidation *bool                        `json:"enableServerCertificateValidation,omitempty"`
+	EnableSsl                         *bool                        `json:"enableSsl,omitempty"`
+	EncryptedCredential               *string                      `json:"encryptedCredential,omitempty"`
+	HTTPPath                          *interface{}                 `json:"httpPath,omitempty"`
+	Host                              interface{}                  `json:"host"`
+	Password                          SecretBase                   `json:"password"`
+	Port                              *int64                       `json:"port,omitempty"`
+	ServerType                        *HiveServerType              `json:"serverType,omitempty"`
+	ServiceDiscoveryMode              *bool                        `json:"serviceDiscoveryMode,omitempty"`
+	ThriftTransportProtocol           *HiveThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
+	TrustedCertPath                   *interface{}                 `json:"trustedCertPath,omitempty"`
+	UseNativeQuery                    *bool                        `json:"useNativeQuery,omitempty"`
+	UseSystemTrustStore               *bool                        `json:"useSystemTrustStore,omitempty"`
+	Username                          *interface{}                 `json:"username,omitempty"`
+	ZooKeeperNameSpace                *interface{}                 `json:"zooKeeperNameSpace,omitempty"`
 }
 
 var _ json.Unmarshaler = &HiveLinkedServiceTypeProperties{}
 
 func (s *HiveLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AllowHostNameCNMismatch   *bool                        `json:"allowHostNameCNMismatch,omitempty"`
-		AllowSelfSignedServerCert *bool                        `json:"allowSelfSignedServerCert,omitempty"`
-		AuthenticationType        HiveAuthenticationType       `json:"authenticationType"`
-		EnableSsl                 *bool                        `json:"enableSsl,omitempty"`
-		EncryptedCredential       *string                      `json:"encryptedCredential,omitempty"`
-		HTTPPath                  *interface{}                 `json:"httpPath,omitempty"`
-		Host                      interface{}                  `json:"host"`
-		Port                      *int64                       `json:"port,omitempty"`
-		ServerType                *HiveServerType              `json:"serverType,omitempty"`
-		ServiceDiscoveryMode      *bool                        `json:"serviceDiscoveryMode,omitempty"`
-		ThriftTransportProtocol   *HiveThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
-		TrustedCertPath           *interface{}                 `json:"trustedCertPath,omitempty"`
-		UseNativeQuery            *bool                        `json:"useNativeQuery,omitempty"`
-		UseSystemTrustStore       *bool                        `json:"useSystemTrustStore,omitempty"`
-		Username                  *interface{}                 `json:"username,omitempty"`
-		ZooKeeperNameSpace        *interface{}                 `json:"zooKeeperNameSpace,omitempty"`
+		AllowHostNameCNMismatch           *bool                        `json:"allowHostNameCNMismatch,omitempty"`
+		AllowSelfSignedServerCert         *bool                        `json:"allowSelfSignedServerCert,omitempty"`
+		AuthenticationType                HiveAuthenticationType       `json:"authenticationType"`
+		EnableServerCertificateValidation *bool                        `json:"enableServerCertificateValidation,omitempty"`
+		EnableSsl                         *bool                        `json:"enableSsl,omitempty"`
+		EncryptedCredential               *string                      `json:"encryptedCredential,omitempty"`
+		HTTPPath                          *interface{}                 `json:"httpPath,omitempty"`
+		Host                              interface{}                  `json:"host"`
+		Port                              *int64                       `json:"port,omitempty"`
+		ServerType                        *HiveServerType              `json:"serverType,omitempty"`
+		ServiceDiscoveryMode              *bool                        `json:"serviceDiscoveryMode,omitempty"`
+		ThriftTransportProtocol           *HiveThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
+		TrustedCertPath                   *interface{}                 `json:"trustedCertPath,omitempty"`
+		UseNativeQuery                    *bool                        `json:"useNativeQuery,omitempty"`
+		UseSystemTrustStore               *bool                        `json:"useSystemTrustStore,omitempty"`
+		Username                          *interface{}                 `json:"username,omitempty"`
+		ZooKeeperNameSpace                *interface{}                 `json:"zooKeeperNameSpace,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
@@ -56,6 +58,7 @@ func (s *HiveLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	s.AllowHostNameCNMismatch = decoded.AllowHostNameCNMismatch
 	s.AllowSelfSignedServerCert = decoded.AllowSelfSignedServerCert
 	s.AuthenticationType = decoded.AuthenticationType
+	s.EnableServerCertificateValidation = decoded.EnableServerCertificateValidation
 	s.EnableSsl = decoded.EnableSsl
 	s.EncryptedCredential = decoded.EncryptedCredential
 	s.HTTPPath = decoded.HTTPPath

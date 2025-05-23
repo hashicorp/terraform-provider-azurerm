@@ -74,3 +74,9 @@ EventHubs can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_eventhub_namespace_disaster_recovery_config.config1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/disasterRecoveryConfigs/config1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventHub`: 2024-01-01

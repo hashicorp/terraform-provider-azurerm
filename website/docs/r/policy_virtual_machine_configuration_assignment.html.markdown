@@ -174,3 +174,9 @@ Policy Virtual Machine Configuration Assignments can be imported using the `reso
 ```shell
 terraform import azurerm_policy_virtual_machine_configuration_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments/assignment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute`: 2020-06-25

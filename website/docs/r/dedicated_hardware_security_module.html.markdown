@@ -173,3 +173,9 @@ Dedicated Hardware Security Module can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dedicated_hardware_security_module.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/hsm1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.HardwareSecurityModules`: 2021-11-30

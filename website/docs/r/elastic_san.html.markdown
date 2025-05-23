@@ -97,3 +97,9 @@ An existing Elastic SAN can be imported into Terraform using the `resource id`, 
 ```shell
 terraform import azurerm_elastic_san.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ElasticSan/elasticSans/esan1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ElasticSan`: 2023-01-01

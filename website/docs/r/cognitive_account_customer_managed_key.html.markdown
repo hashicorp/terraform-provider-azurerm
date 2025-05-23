@@ -129,3 +129,9 @@ Customer Managed Keys for a Cognitive Account can be imported using the `resourc
 ```shell
 terraform import azurerm_cognitive_account_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices`: 2024-10-01

@@ -101,3 +101,9 @@ Private DNS SRV Records can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_private_dns_srv_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/contoso.com/SRV/test
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-06-01

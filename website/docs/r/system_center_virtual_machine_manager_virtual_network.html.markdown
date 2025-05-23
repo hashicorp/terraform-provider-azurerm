@@ -80,3 +80,9 @@ System Center Virtual Machine Manager Virtual Networks can be imported into Terr
 ```shell
 terraform import azurerm_system_center_virtual_machine_manager_virtual_network.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ScVmm/virtualNetworks/virtualNetwork1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ScVmm`: 2023-10-07

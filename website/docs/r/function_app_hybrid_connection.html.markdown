@@ -128,3 +128,11 @@ a Function App Hybrid Connection can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_function_app_hybrid_connection.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/hybridConnectionNamespaces/hybridConnectionNamespace1/relays/relay1"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Relay`: 2021-11-01
+
+* `Microsoft.Web`: 2023-12-01
