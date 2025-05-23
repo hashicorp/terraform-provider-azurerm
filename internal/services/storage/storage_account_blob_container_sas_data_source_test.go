@@ -132,20 +132,20 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   expiry = "%s"
 
   permissions {
-    read   				 					= true
-    add    				 					= true
-    create 				 					= false
-    write  				 					= false
-    delete 				 					= true
-		delete_version 					= true
-    list   									= true
-		tags   									= true
-		find   									= true
-		move   									= false
-		execute 								= false
-		ownership 							= true
-		permissions 						= true
-		set_immutability_policy = true
+    read                    = true
+    add                     = true
+    create                  = false
+    write                   = false
+    delete                  = true
+    delete_version          = true
+    list                    = true
+    tags                    = true
+    find                    = true
+    move                    = false
+    execute                 = false
+    ownership               = true
+    permissions             = true
+    set_immutability_policy = true
   }
 
   cache_control       = "max-age=5"
@@ -194,12 +194,12 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   expiry = "%s"
 
   permissions {
-    read   				 					= true
-    add    				 					= true
-    create 				 					= false
-    write  				 					= false
-    delete 				 					= true
-    list   									= true
+    read   = true
+    add    = true
+    create = false
+    write  = false
+    delete = true
+    list   = true
   }
 
   cache_control       = "max-age=5"

@@ -78,18 +78,25 @@ output "sas_url_query_string" {
 
 ## Argument Reference
 
-* `connection_string` - The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
+* `connection_string` - (Required) The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
+
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
+
 * `ip_addresses` - (Optional) IP address, or a range of IP addresses, from which to accept requests. When specifying a range, note that the range is inclusive.  
+
 * `signed_version` - (Optional) Specifies the signed storage service version to use to authorize requests made with this account SAS. Defaults to `2022-11-02`.
-* `resource_types` - A `resource_types` block as defined below.
-* `services` - A `services` block as defined below.
-* `start` - The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
-* `expiry` - The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
+
+* `resource_types` - (Required) A `resource_types` block as defined below.
+
+* `services` - (Required) A `services` block as defined below.
+
+* `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
+
+* `expiry` - (Required) The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
 
 -> **NOTE:** The [ISO-8601 Time offset from UTC](https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC) is currently not supported by the service, which will result into 409 error.
 
-* `permissions` - A `permissions` block as defined below.
+* `permissions` - (Required) A `permissions` block as defined below.
 
 ---
 
@@ -99,9 +106,11 @@ larger scope (affecting all sub-resources) than `object`.
 
 A `resource_types` block contains:
 
-* `service` - Should permission be granted to the entire service?
-* `container` - Should permission be granted to the container?
-* `object` - Should permission be granted only to a specific object?
+* `service` - (Required) Should permission be granted to the entire service?
+
+* `container` - (Required) Should permission be granted to the container?
+
+* `object` - (Required) Should permission be granted only to a specific object?
 
 ---
 
@@ -109,24 +118,36 @@ A `resource_types` block contains:
 
 A `services` block contains:
 
-* `blob` - Should permission be granted to `blob` services within this storage account?
-* `queue` - Should permission be granted to `queue` services within this storage account?
-* `table` - Should permission be granted to `table` services within this storage account?
-* `file` - Should permission be granted to `file` services within this storage account?
+* `blob` - (Required) Should permission be granted to `blob` services within this storage account?
+
+* `queue` - (Required) Should permission be granted to `queue` services within this storage account?
+
+* `table` - (Required) Should permission be granted to `table` services within this storage account?
+
+* `file` - (Required) Should permission be granted to `file` services within this storage account?
 
 ---
 
 A `permissions` block contains:
 
 * `read` - (Optional) Should Read permissions be enabled for this SAS?
+
 * `write` - (Optional) Should Write permissions be enabled for this SAS?
+
 * `delete` - (Optional) Should Delete permissions be enabled for this SAS?
+
 * `list` - (Optional) Should List permissions be enabled for this SAS?
+
 * `add` - (Optional) Should Add permissions be enabled for this SAS?
+
 * `create` - (Optional) Should Create permissions be enabled for this SAS?
+
 * `update` - (Optional) Should Update permissions be enabled for this SAS?
+
 * `process` - (Optional) Should Process permissions be enabled for this SAS?
+
 * `tag` - (Optional) Should Get / Set Index Tags permissions be enabled for this SAS?
+
 * `filter` - (Optional) Should Filter by Index Tags permissions be enabled for this SAS?
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/constructing-an-account-sas)

@@ -68,21 +68,21 @@ output "sas_url_query_string" {
 
 ## Argument Reference
 
-* `connection_string` - The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
+* `connection_string` - (Required) The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
 
-* `container_name` - Name of the container.
+* `container_name` - (Required) Name of the container.
 
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
 
 * `ip_address` - (Optional) Single IPv4 address or range (connected with a dash) of IPv4 addresses.
 
-* `start` - The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
+* `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 
-* `expiry` - The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
+* `expiry` - (Required) The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
 
 -> **NOTE:** The [ISO-8601 Time offset from UTC](https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC) is currently not supported by the service, which will result into 409 error.
 
-* `permissions` - A `permissions` block as defined below.
+* `permissions` - (Required) A `permissions` block as defined below.
 
 * `cache_control` - (Optional) The `Cache-Control` response header that is sent when this SAS token is used.
 
@@ -99,18 +99,31 @@ output "sas_url_query_string" {
 A `permissions` block contains:
 
 * `read` - (Optional) Should Read permissions be enabled for this SAS?
+
 * `add` - (Optional) Should Add permissions be enabled for this SAS?
+
 * `create` - (Optional) Should Create permissions be enabled for this SAS?
+
 * `write` - (Optional) Should Write permissions be enabled for this SAS?
+
 * `delete` - (Optional) Should Delete permissions be enabled for this SAS?
+
 * `delete_version` - (Optional) Should Delete version permissions be enabled for this SAS?
+
 * `list` - (Optional) Should List permissions be enabled for this SAS?
+
 * `tags` - (Optional) Should Tags permissions be enabled for this SAS?
+
 * `find` - (Optional) Should Find permissions be enabled for this SAS?
+
 * `move` - (Optional) Should Move permissions be enabled for this SAS?
+
 * `execute` - (Optional) Should Execute permissions be enabled for this SAS?
+
 * `ownership` - (Optional) Should Ownership permissions be enabled for this SAS?
+
 * `permissions` - (Optional) Should Permissions permissions be enabled for this SAS?
+
 * `set_immutability_policy` - (Optional) Should Set Immutability Policy permissions be enabled for this SAS?
 
 
