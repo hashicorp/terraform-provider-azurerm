@@ -19,6 +19,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		AutonomousDatabaseBackupsDataSource{},
 		AutonomousDatabaseCloneFromBackupDataSource{},
 		AutonomousDatabaseCloneFromDatabaseDataSource{},
+		AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{},
 		AutonomousDatabaseRegularDataSource{},
 		CloudVmClusterDataSource{},
 		DBNodesDataSource{},
@@ -35,10 +36,12 @@ func (r Registration) Resources() []sdk.Resource {
 		AutonomousDatabaseBackupResource{},
 		AutonomousDatabaseCloneFromBackupResource{},
 		AutonomousDatabaseCloneFromDatabaseResource{},
+		AutonomousDatabaseCrossRegionDisasterRecoveryResource{},
 		AutonomousDatabaseRegularResource{},
 		CloudVmClusterResource{},
 		ExadataInfraResource{},
 		ExascaleDatabaseStorageVaultResource{},
+		AutonomousDatabaseBackupResource{},
 	}
 }
 
