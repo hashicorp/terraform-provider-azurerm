@@ -68,7 +68,7 @@ The following arguments are supported:
 
 ~> **Note:** `backup_policy_id` is required during initial creation of this resource.
 
-~> **Note:** When `protection_state` is set to `BackupsSuspended` or `ProtectionStopped`, the Azure API does not return `backup_policy_id`. To avoid a perpetual diff, use Terraform's [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes) argument.
+~> **Note:** When `protection_state` is set to `BackupsSuspended` or `ProtectionStopped`, the Azure API may not return `backup_policy_id`. To avoid a perpetual diff, use Terraform's [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes) argument.
 
 * `exclude_disk_luns` - (Optional) A list of Disks' Logical Unit Numbers (LUN) to be excluded for VM Protection.
 
