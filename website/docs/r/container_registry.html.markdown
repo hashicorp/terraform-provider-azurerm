@@ -174,11 +174,11 @@ The following arguments are supported:
 
 * `encryption` - (Optional) An `encryption` block as documented below.
 
-* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? This is only supported on resources with the `Standard` or `Premium` SKU.
+* `anonymous_pull_enabled` - (Optional) Whether to allow anonymous (unauthenticated) pull access to this Container Registry. This is only supported on resources with the `Standard` or `Premium` SKU.
 
 * `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? This is only supported on resources with the `Premium` SKU.
 
-* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
+* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network-restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
 ---
 
@@ -190,7 +190,7 @@ The `georeplications` block supports the following:
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
-~> **Note:** Changing the `zone_redundancy_enabled` forces the a underlying replication to be created.
+~> **Note:** Changing the `zone_redundancy_enabled` forces an underlying replication to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
 
@@ -204,7 +204,7 @@ The `network_rule_set` block supports the following:
 
 ~> **Note:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
-~> **Note:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
+~> **Note:** Azure automatically configures Network Rules - to remove these, you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
 ---
 
