@@ -83,7 +83,7 @@ The `record` block supports:
 
 * `flags` - (Required) Extensible CAA flags, currently only 1 is implemented to set the issuer critical flag.
 
-* `tag` - (Required) A property tag, options are `issue`, `issuewild` and `iodef`.
+* `tag` - (Required) A property tag, options are `issue`, `issuewild`, `iodef`, and `contactemail`.
 
 * `value` - (Required) A property value such as a registrar domain.
 

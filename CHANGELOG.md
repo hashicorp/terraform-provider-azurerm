@@ -1,3 +1,37 @@
+## 4.30.0 (May 22, 2025)
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20250520.1180806` ([#29665](https://github.com/hashicorp/terraform-provider-azurerm/issues/29665))
+* Data Source: `azurerm_managed_disk` - add support for `location` ([#29513](https://github.com/hashicorp/terraform-provider-azurerm/issues/29513))
+* `azurerm_dns_caa_record` - add support for the `contactemail` value in the `tag` property ([#29664](https://github.com/hashicorp/terraform-provider-azurerm/issues/29664))
+* `azurerm_eventhub_namespace_schema_group` - add support for the `Json` value in the `schema_type` property ([#29641](https://github.com/hashicorp/terraform-provider-azurerm/issues/29641))
+* `azurerm_function_app_flex_consumption` - add support for the `always_ready` block ([#29023](https://github.com/hashicorp/terraform-provider-azurerm/issues/29023))
+* `azurerm_security_center_subscription_pricing` - add support for the `AI` value for the `resource_type` property ([#29631](https://github.com/hashicorp/terraform-provider-azurerm/issues/29631))
+
+## 4.29.0 (May 16, 2025)
+
+FEATURES: 
+
+* **New Resource**: `azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent` ([#28953](https://github.com/hashicorp/terraform-provider-azurerm/issues/28953))
+
+ENHANCEMENTS:
+
+* `azurerm_api_management_api` - fix `import` of resources ([#28193](https://github.com/hashicorp/terraform-provider-azurerm/issues/28193))
+* `azurerm_app_configuration` - add support for `developer` tier to the `sku` property ([#29492](https://github.com/hashicorp/terraform-provider-azurerm/issues/29492))
+* `azurerm_app_configuration` - the `sku` property can now be downgraded from `premium` to `standard` without recreating the resource ([#29492](https://github.com/hashicorp/terraform-provider-azurerm/issues/29492))
+* `azurerm_key_vault_managed_hardware_security_module_key` - add support for the `import` value in the `key_opts` property ([#29524](https://github.com/hashicorp/terraform-provider-azurerm/issues/29524))
+* `azurerm_netapp_pool` - add support for `cool_access_enabled` ([#29468](https://github.com/hashicorp/terraform-provider-azurerm/issues/29468))
+* `azurerm_network_manager_deployment` - add support for the `Routing` value in the `scope_access` property ([#29536](https://github.com/hashicorp/terraform-provider-azurerm/issues/29536))
+* `azurerm_private_endpoint_application_security_group_association` - resource is now removed from state if it no longer exist ([#29601](https://github.com/hashicorp/terraform-provider-azurerm/issues/29601))
+* `azurerm_virtual_machine_implicit_data_disk_from_source` - the `disk_size_gb` property can now be increased without recreating the resource ([#29239](https://github.com/hashicorp/terraform-provider-azurerm/issues/29239))
+* `azurerm_web_application_firewall_policy` - add support for the `JSChallenge` in the `action` property ([#29614](https://github.com/hashicorp/terraform-provider-azurerm/issues/29614))
+
+BUG FIXES:
+
+* `azurerm_api_management_api` - no longer returns an error on the  `oauth2_authorization` and `openid_authentication` properties when updating ([#29042](https://github.com/hashicorp/terraform-provider-azurerm/issues/29042))
+* `azurerm_route_map` - the validation for the `name` now allows numbers ([#29519](https://github.com/hashicorp/terraform-provider-azurerm/issues/29519))
+
 ## 4.28.0 (May 09, 2025)
 
 FEATURES:

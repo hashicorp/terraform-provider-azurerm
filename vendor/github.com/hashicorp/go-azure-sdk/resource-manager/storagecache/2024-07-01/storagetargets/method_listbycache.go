@@ -1,4 +1,4 @@
-package dbnodes
+package storagetargets
 
 import (
 	"context"
@@ -12,22 +12,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListByCloudVMClusterOperationResponse struct {
+type ListByCacheOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]DbNode
+	Model        *[]StorageTarget
 }
 
-type ListByCloudVMClusterCompleteResult struct {
+type ListByCacheCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []DbNode
+	Items              []StorageTarget
 }
 
-type ListByCloudVMClusterCustomPager struct {
+type ListByCacheCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *ListByCloudVMClusterCustomPager) NextPageLink() *odata.Link {
+func (p *ListByCacheCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -35,16 +35,16 @@ func (p *ListByCloudVMClusterCustomPager) NextPageLink() *odata.Link {
 	return p.NextLink
 }
 
-// ListByCloudVMCluster ...
-func (c DbNodesClient) ListByCloudVMCluster(ctx context.Context, id CloudVMClusterId) (result ListByCloudVMClusterOperationResponse, err error) {
+// ListByCache ...
+func (c StorageTargetsClient) ListByCache(ctx context.Context, id CacheId) (result ListByCacheOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Pager:      &ListByCloudVMClusterCustomPager{},
-		Path:       fmt.Sprintf("%s/dbNodes", id.ID()),
+		Pager:      &ListByCacheCustomPager{},
+		Path:       fmt.Sprintf("%s/storageTargets", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -63,7 +63,7 @@ func (c DbNodesClient) ListByCloudVMCluster(ctx context.Context, id CloudVMClust
 	}
 
 	var values struct {
-		Values *[]DbNode `json:"value"`
+		Values *[]StorageTarget `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -74,16 +74,16 @@ func (c DbNodesClient) ListByCloudVMCluster(ctx context.Context, id CloudVMClust
 	return
 }
 
-// ListByCloudVMClusterComplete retrieves all the results into a single object
-func (c DbNodesClient) ListByCloudVMClusterComplete(ctx context.Context, id CloudVMClusterId) (ListByCloudVMClusterCompleteResult, error) {
-	return c.ListByCloudVMClusterCompleteMatchingPredicate(ctx, id, DbNodeOperationPredicate{})
+// ListByCacheComplete retrieves all the results into a single object
+func (c StorageTargetsClient) ListByCacheComplete(ctx context.Context, id CacheId) (ListByCacheCompleteResult, error) {
+	return c.ListByCacheCompleteMatchingPredicate(ctx, id, StorageTargetOperationPredicate{})
 }
 
-// ListByCloudVMClusterCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c DbNodesClient) ListByCloudVMClusterCompleteMatchingPredicate(ctx context.Context, id CloudVMClusterId, predicate DbNodeOperationPredicate) (result ListByCloudVMClusterCompleteResult, err error) {
-	items := make([]DbNode, 0)
+// ListByCacheCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c StorageTargetsClient) ListByCacheCompleteMatchingPredicate(ctx context.Context, id CacheId, predicate StorageTargetOperationPredicate) (result ListByCacheCompleteResult, err error) {
+	items := make([]StorageTarget, 0)
 
-	resp, err := c.ListByCloudVMCluster(ctx, id)
+	resp, err := c.ListByCache(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -97,7 +97,7 @@ func (c DbNodesClient) ListByCloudVMClusterCompleteMatchingPredicate(ctx context
 		}
 	}
 
-	result = ListByCloudVMClusterCompleteResult{
+	result = ListByCacheCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}
