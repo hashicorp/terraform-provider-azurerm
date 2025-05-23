@@ -93,6 +93,29 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				},
 			},
 
+			"kafka_configuration": {
+				Type: pluginsdk.TypeList,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"event_streaming_state": {
+							Type: pluginsdk.TypeString,
+						},
+						"event_streaming_type": {
+							Type: pluginsdk.TypeString,
+						},
+						"event_hub_id": {
+							Type: pluginsdk.TypeString,
+						},
+						"event_hub_type": {
+							Type: pluginsdk.TypeString,
+						},
+						"credentials": {
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+
 			"catalog_endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -118,6 +141,11 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"aws_external_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -221,6 +249,10 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				d.Set("catalog_endpoint", endpoints.Catalog)
 				d.Set("guardian_endpoint", endpoints.Guardian)
 				d.Set("scan_endpoint", endpoints.Scan)
+			}
+
+			if props.CloudConnectors != nil {
+				d.Set("aws_external_id", pointer.From(props.CloudConnectors.AwsExternalId))
 			}
 		}
 
