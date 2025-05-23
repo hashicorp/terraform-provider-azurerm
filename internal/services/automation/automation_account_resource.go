@@ -78,6 +78,7 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 
+						// TODO Properly deprecate with a !features.FivePointOh() block
 						"key_source": {
 							Type:       pluginsdk.TypeString,
 							Optional:   true,

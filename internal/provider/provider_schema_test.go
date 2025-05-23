@@ -426,12 +426,12 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 
 	// TODO: 4.0 - work through this list
 	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_automation_account":     {},
-		"azurerm_container_registry":     {},
-		"azurerm_managed_disk":           {},
-		"azurerm_media_services_account": {},
-		"azurerm_snapshot":               {},
-		"azurerm_load_test":              {},
+		"azurerm_automation_account":     {}, // deprecate key_source
+		"azurerm_container_registry":     {}, // make encryption block computed: false
+		"azurerm_managed_disk":           {}, // actually ok? has `encryption_settings`, computed false, but test says it's computed true
+		"azurerm_media_services_account": {}, // removed in 4.0
+		"azurerm_snapshot":               {}, // actually ok? actually ok? has `encryption_settings`, computed false, but test says it's computed true
+		"azurerm_load_test":              {}, // failing for an unknown reason????
 	}
 
 	for _, resourceName := range resourceNames {
