@@ -1253,8 +1253,13 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
+<<<<<<< HEAD
 # github.com/hashicorp/go-azure-sdk/sdk v0.20260114.1164646
 ## explicit; go 1.24.1
+=======
+# github.com/hashicorp/go-azure-sdk/sdk v0.20250520.1180806
+## explicit; go 1.22
+>>>>>>> 6d900f9cbe (rebase on main)
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
 github.com/hashicorp/go-azure-sdk/sdk/claims
