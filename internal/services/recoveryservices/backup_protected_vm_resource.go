@@ -508,12 +508,10 @@ func checkRecoveryServicesVaultIsImmutable(ctx context.Context, client *vaults.V
 		}
 	}
 
-	// Not a pretty condition, but required to check immutability ¯\_(ツ)_/¯
 	if existingVault.Model != nil &&
 		existingVault.Model.Properties != nil &&
 		existingVault.Model.Properties.SecuritySettings != nil &&
 		existingVault.Model.Properties.SecuritySettings.ImmutabilitySettings != nil {
-
 		immutabilityState := pointer.From(existingVault.Model.Properties.SecuritySettings.ImmutabilitySettings.State)
 		if immutabilityState == vaults.ImmutabilityStateDisabled {
 			return errors.New("`protection_state` cannot be set to `BackupsSuspended` while the Recovery Services Vault is not in an immutable (`Locked` / `Unlocked`) state")
