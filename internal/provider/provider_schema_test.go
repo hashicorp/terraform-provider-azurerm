@@ -443,7 +443,6 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
 	resourcesWhichNeedToBeAddressed := map[string]struct{}{}
 
 	if !features.FivePointOh() {

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_automation_account
 
-Manages a Automation Account.
+Manages an Automation Account.
 
 ## Example Usage
 
@@ -42,21 +42,9 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of the account. Possible values are `Basic` and `Free`.
 
----
-
 * `local_authentication_enabled` - (Optional) Whether requests using non-AAD authentication are blocked. Defaults to `true`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the automation account. Defaults to `true`.
-
----
-
-An `encryption` block supports the following:
-
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
-
-* `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
-
----
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -73,6 +61,14 @@ An `identity` block supports the following:
 * `identity_ids` - (Optional) The ID of the User Assigned Identity which should be assigned to this Automation Account.
 
 -> **Note:** `identity_ids` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+An `encryption` block supports the following:
+
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Automation Account.
+
+* `user_assigned_identity_id` - (Optional) The User Assigned Managed Identity ID to be used for accessing the Customer Managed Key for encryption.
 
 ---
 
