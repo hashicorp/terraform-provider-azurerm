@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -443,12 +444,11 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	sort.Strings(resourceNames)
 
 	// TODO: 4.0 - work through this list
-	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_automation_account":     {}, // deprecate key_source
-		"azurerm_container_registry":     {}, // make encryption block computed: false
-		"azurerm_managed_disk":           {}, // actually ok? has `encryption_settings`, computed false, but test says it's computed true
-		"azurerm_media_services_account": {}, // removed in 4.0
-		"azurerm_snapshot":               {}, // actually ok? actually ok? has `encryption_settings`, computed false, but test says it's computed true
+	resourcesWhichNeedToBeAddressed := map[string]struct{}{}
+
+	if !features.FivePointOh() {
+		resourcesWhichNeedToBeAddressed["azurerm_container_registry"] = struct{}{}
+		resourcesWhichNeedToBeAddressed["azurerm_automation_account"] = struct{}{}
 	}
 
 	for _, resourceName := range resourceNames {
