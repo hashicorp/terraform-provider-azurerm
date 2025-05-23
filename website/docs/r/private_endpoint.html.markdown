@@ -228,7 +228,7 @@ A `private_service_connection` block supports the following:
 
 * `is_manual_connection` - (Required) Does the Private Endpoint require Manual Approval from the remote resource owner? Changing this forces a new resource to be created.
 
--> **NOTE:** If you are trying to connect the Private Endpoint to a remote resource without having the correct RBAC permissions on the remote resource set this value to `true`.
+-> **Note:** If you are trying to connect the Private Endpoint to a remote resource without having the correct RBAC permissions on the remote resource set this value to `true`.
 
 * `private_connection_resource_id` - (Optional) The ID of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. One of `private_connection_resource_id` or `private_connection_resource_alias` must be specified. Changing this forces a new resource to be created. For a web app or function app slot, the parent web app should be used in this field instead of a reference to the slot itself.
 
@@ -236,13 +236,13 @@ A `private_service_connection` block supports the following:
 
 * `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Possible values are detailed in the product [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#private-link-resource) in the `Subresources` column. Changing this forces a new resource to be created. 
 
--> **NOTE:** Some resource types (such as Storage Account) only support 1 subresource per private endpoint.
+-> **Note:** Some resource types (such as Storage Account) only support 1 subresource per private endpoint.
 
--> **NOTE:** For most Private Links one or more `subresource_names` will need to be specified, please see the linked documentation for details.
+-> **Note:** For most Private Links one or more `subresource_names` will need to be specified, please see the linked documentation for details.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The provider allows a maximum request message length of `140` characters, however the request message maximum length is dependent on the service the private endpoint is connected to. Only valid if `is_manual_connection` is set to `true`.
 
--> **NOTE:** When connected to an SQL resource the `request_message` maximum length is `128`.
+-> **Note:** When connected to an SQL resource the `request_message` maximum length is `128`.
 
 ---
 
@@ -256,7 +256,7 @@ An `ip_configuration` block supports the following:
 
 * `member_name` - (Optional) Specifies the member name this IP address applies to. If it is not specified, it will use the value of `subresource_name`. Changing this forces a new resource to be created.
 
--> **NOTE:** `member_name` will be required and will not take the value of `subresource_name` in the next major version.
+-> **Note:** `member_name` will be required and will not take the value of `subresource_name` in the next major version.
 
 ## Attributes Reference
 
@@ -294,7 +294,7 @@ A `custom_dns_configs` block exports:
 
 * `ip_addresses` - A list of all IP Addresses that map to the `private_endpoint` fqdn.
 
--> **NOTE:** If a Private DNS Zone Group has been defined and is currently connected correctly this block will be empty.
+-> **Note:** If a Private DNS Zone Group has been defined and is currently connected correctly this block will be empty.
 
 ---
 
@@ -338,7 +338,7 @@ A `record_sets` block exports:
 
 * `ip_addresses` - A list of all IP Addresses that map to the `private_dns_zone` fqdn.
 
--> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attributes will be empty.
+-> **Note:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attributes will be empty.
 
 ---
 
@@ -356,10 +356,10 @@ A `record_sets` block exports:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Private Endpoint.
-* `update` - (Defaults to 60 minutes) Used when updating the Private Endpoint.
+* `create` - (Defaults to 1 hour) Used when creating the Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Endpoint.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Private Endpoint.
+* `update` - (Defaults to 1 hour) Used when updating the Private Endpoint.
+* `delete` - (Defaults to 1 hour) Used when deleting the Private Endpoint.
 
 ## Import
 

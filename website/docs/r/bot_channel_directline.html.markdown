@@ -95,8 +95,8 @@ A `site` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Directline Channel.
-* `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Directline Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Directline Channel.
 
 ## Import

@@ -61,3 +61,9 @@ Application Gateway for Containers Frontend can be imported using the `resource 
 ```shell
 terraform import azurerm_application_load_balancer_frontend.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ServiceNetworking/trafficControllers/alb1/frontends/frontend1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceNetworking`: 2023-11-01

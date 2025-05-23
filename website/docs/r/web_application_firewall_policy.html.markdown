@@ -144,7 +144,7 @@ The `custom_rules` block supports the following:
 
 * `match_conditions` - (Required) One or more `match_conditions` blocks as defined below.
 
-* `action` - (Required) Type of action. Possible values are `Allow`, `Block` and `Log`.
+* `action` - (Required) Type of action. Possible values are `Allow`, `Block`, `JSChallenge` and `Log`.
 
 ~> **Note:** If the `rule_type` is specified as `RateLimitRule`, the `Allow` is not supported.
 
@@ -302,8 +302,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Web Application Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Web Application Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Web Application Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Web Application Firewall Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Web Application Firewall Policy.
 
 ## Import
