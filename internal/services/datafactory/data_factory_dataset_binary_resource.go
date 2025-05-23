@@ -5,7 +5,6 @@ package datafactory
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -224,10 +223,10 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								strings.ToLower(TypeBasicDatasetCompressionTypeBZip2),
-								strings.ToLower(TypeBasicDatasetCompressionTypeDeflate),
-								strings.ToLower(TypeBasicDatasetCompressionTypeGZip),
-								strings.ToLower(TypeBasicDatasetCompressionTypeTar),
+								TypeBasicDatasetCompressionTypeBZip2,
+								TypeBasicDatasetCompressionTypeDeflate,
+								TypeBasicDatasetCompressionTypeGZip,
+								TypeBasicDatasetCompressionTypeTar,
 								TypeBasicDatasetCompressionTypeTarGZip,
 								TypeBasicDatasetCompressionTypeZipDeflate,
 							}, false),

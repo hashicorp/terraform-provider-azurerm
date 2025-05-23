@@ -132,7 +132,7 @@ func TestAccDataFactoryDatasetBinary_compression(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("compression.#").HasValue("1"),
-				check.That(data.ResourceName).Key("compression.0.type").HasValue("gzip"),
+				check.That(data.ResourceName).Key("compression.0.type").HasValue("GZip"),
 				check.That(data.ResourceName).Key("compression.0.level").HasValue("Fastest"),
 			),
 		},
@@ -292,7 +292,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
   }
 
   compression {
-    type  = "gzip"
+    type  = "GZip"
     level = "Optimal"
   }
 }
@@ -379,7 +379,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
   }
 
   compression {
-    type  = "gzip"
+    type  = "GZip"
     level = "Fastest"
   }
 
@@ -489,7 +489,7 @@ resource "azurerm_data_factory_dataset_binary" "test" {
   }
 
   compression {
-    type  = "gzip"
+    type  = "GZip"
     level = "Fastest"
   }
 }
