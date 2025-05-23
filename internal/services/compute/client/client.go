@@ -40,7 +40,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2024-03-01/standbyvirtualmachinepools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
