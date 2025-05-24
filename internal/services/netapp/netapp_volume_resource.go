@@ -404,21 +404,15 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			isLargeVolume := d.Get("is_large_volume").(bool)
 			storageQuotaInGB := d.Get("storage_quota_in_gb").(int)
 
-			if isLargeVolume {
+			if isLargeVolume && storageQuotaInGB < 51200 {
 				// Large volumes must be at least 50 TiB (51,200 GB)
-				if storageQuotaInGB < 51200 {
-					return fmt.Errorf("when is_large_volume is true, storage_quota_in_gb must be at least 51,200 GB (50 TiB)")
-				}
-
+				return fmt.Errorf("when is_large_volume is true, storage_quota_in_gb must be at least 51,200 GB (50 TiB)")
+			} else if storageQuotaInGB > 1048576 {
 				// Still need to validate against the maximum (1 PiB / 1,048,576 GB)
-				if storageQuotaInGB > 1048576 {
-					return fmt.Errorf("storage_quota_in_gb must be at most 1,048,576 GB (1 PiB); larger sizes require requesting special quota")
-				}
-			} else {
+				return fmt.Errorf("storage_quota_in_gb must be at most 1,048,576 GB (1 PiB); larger sizes require requesting special quota")
+			} else if !isLargeVolume && storageQuotaInGB > 102400 {
 				// Non-large volumes cannot be larger than 100 TiB (102,400 GB)
-				if storageQuotaInGB > 102400 {
-					return fmt.Errorf("when is_large_volume is false, storage_quota_in_gb must be at most 102,400 GB (100 TiB); set is_large_volume to true for larger volumes")
-				}
+				return fmt.Errorf("when is_large_volume is false, storage_quota_in_gb must be at most 102,400 GB (100 TiB); set is_large_volume to true for larger volumes")
 			}
 
 			if d.HasChanges("service_level", "pool_name") {
