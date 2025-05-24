@@ -225,6 +225,9 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 							}
 
 							replicaServerId = replicaId.ID()
+						} else {
+							// if the replica server is not found, it may exists in different subscription, read from the metadata
+							replicaServerId = metadata.ResourceData.Get("replica_server_id").(string)
 						}
 					}
 
@@ -371,5 +374,5 @@ func lookupFlexibleServerByName(ctx context.Context, flexibleServerClient *serve
 		}
 	}
 
-	return nil, fmt.Errorf("could not locate postgres replica server with name %s", replicaServerName)
+	return nil, nil
 }
