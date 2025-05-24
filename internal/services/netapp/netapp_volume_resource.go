@@ -167,7 +167,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"storage_quota_in_gb": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(50, 102400),
+				ValidateFunc: validation.IntBetween(50, 1048576),
 			},
 
 			"throughput_in_mibps": {
@@ -391,8 +391,36 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Default:     false,
 				Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
 			},
+
+			"is_large_volume": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Indicates whether the volume is a large volume.",
+			},
 		},
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			// Validate large volume and storage_quota_in_gb based on Azure NetApp Files requirements
+			isLargeVolume := d.Get("is_large_volume").(bool)
+			storageQuotaInGB := d.Get("storage_quota_in_gb").(int)
+
+			if isLargeVolume {
+				// Large volumes must be at least 50 TiB (51,200 GB)
+				if storageQuotaInGB < 51200 {
+					return fmt.Errorf("when is_large_volume is true, storage_quota_in_gb must be at least 51,200 GB (50 TiB)")
+				}
+
+				// Still need to validate against the maximum (1 PiB / 1,048,576 GB)
+				if storageQuotaInGB > 1048576 {
+					return fmt.Errorf("storage_quota_in_gb must be at most 1,048,576 GB (1 PiB); larger sizes require requesting special quota")
+				}
+			} else {
+				// Non-large volumes cannot be larger than 100 TiB (102,400 GB)
+				if storageQuotaInGB > 102400 {
+					return fmt.Errorf("when is_large_volume is false, storage_quota_in_gb must be at most 102,400 GB (100 TiB); set is_large_volume to true for larger volumes")
+				}
+			}
+
 			if d.HasChanges("service_level", "pool_name") {
 				serviceLevelChange := d.HasChange("service_level")
 				poolNameChange := d.HasChange("pool_name")
@@ -579,6 +607,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		avsDataStoreEnabled = volumes.AvsDataStoreEnabled
 	}
 
+	isLargeVolume := d.Get("is_large_volume").(bool)
+
 	parameters := volumes.Volume{
 		Location: location,
 		Properties: volumes.VolumeProperties{
@@ -604,6 +634,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			},
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
+			IsLargeVolume:            &isLargeVolume,
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
@@ -846,6 +877,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
+		d.Set("is_large_volume", props.IsLargeVolume)
 
 		smbNonBrowsable := false
 		if props.SmbNonBrowsable != nil {
