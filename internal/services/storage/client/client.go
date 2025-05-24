@@ -31,7 +31,8 @@ type Client struct {
 	SyncServerEndpointsClient  *serverendpointresource.ServerEndpointResourceClient
 	SyncServiceClient          *storagesyncservicesresource.StorageSyncServicesResourceClient
 
-	authConfigForAzureAD *auth.Credentials
+	authConfigForAzureAD      *auth.Credentials
+	aadAuthResourceIdentifier string
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -95,6 +96,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	if o.StorageUseAzureAD {
 		client.authConfigForAzureAD = o.AuthConfig
+	}
+
+	if o.Features.Storage.DataPlaneAuthAnyScopeEnabled {
+		// See: https://learn.microsoft.com/en-us/azure/storage/blobs/authorize-access-azure-active-directory#microsoft-authentication-library-msal
+		client.aadAuthResourceIdentifier = "https://storage.azure.com"
 	}
 
 	return &client, nil
