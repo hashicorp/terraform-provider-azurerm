@@ -407,8 +407,8 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			if isLargeVolume && storageQuotaInGB < 51200 {
 				// Large volumes must be at least 50 TiB (51,200 GB)
 				return fmt.Errorf("when is_large_volume is true, storage_quota_in_gb must be at least 51,200 GB (50 TiB)")
-			} else if storageQuotaInGB > 1048576 {
-				// Still need to validate against the maximum (1 PiB / 1,048,576 GB)
+			} else if isLargeVolume && storageQuotaInGB > 1048576 {
+				// Validate against the maximum (1 PiB / 1,048,576 GB)
 				return fmt.Errorf("storage_quota_in_gb must be at most 1,048,576 GB (1 PiB); larger sizes require requesting special quota")
 			} else if !isLargeVolume && storageQuotaInGB > 102400 {
 				// Non-large volumes cannot be larger than 100 TiB (102,400 GB)
