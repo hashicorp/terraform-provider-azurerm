@@ -119,6 +119,7 @@ import (
 	privatedns "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/client"
 	dnsresolver "github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver/client"
 	purview "github.com/hashicorp/terraform-provider-azurerm/internal/services/purview/client"
+	qumulo "github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo/client"
 	recoveryServices "github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/client"
 	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
@@ -255,6 +256,7 @@ type Client struct {
 	PrivateDns                        *privatedns.Client
 	PrivateDnsResolver                *dnsresolver.Client
 	Purview                           *purview.Client
+	Qumulo                            *qumulo.Client
 	RecoveryServices                  *recoveryServices.Client
 	RedHatOpenShift                   *redhatopenshift.Client
 	Redis                             *redis.Client
@@ -590,6 +592,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.RecoveryServices, err = recoveryServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RecoveryServices: %+v", err)
+	}
+	if client.Qumulo, err = qumulo.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Qumulo: %+v", err)
 	}
 	if client.RedHatOpenShift, err = redhatopenshift.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RedHatOpenShift: %+v", err)
