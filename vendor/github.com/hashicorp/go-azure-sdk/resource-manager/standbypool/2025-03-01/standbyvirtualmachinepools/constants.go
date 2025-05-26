@@ -60,12 +60,14 @@ type VirtualMachineState string
 
 const (
 	VirtualMachineStateDeallocated VirtualMachineState = "Deallocated"
+	VirtualMachineStateHibernated  VirtualMachineState = "Hibernated"
 	VirtualMachineStateRunning     VirtualMachineState = "Running"
 )
 
 func PossibleValuesForVirtualMachineState() []string {
 	return []string{
 		string(VirtualMachineStateDeallocated),
+		string(VirtualMachineStateHibernated),
 		string(VirtualMachineStateRunning),
 	}
 }
@@ -86,6 +88,7 @@ func (s *VirtualMachineState) UnmarshalJSON(bytes []byte) error {
 func parseVirtualMachineState(input string) (*VirtualMachineState, error) {
 	vals := map[string]VirtualMachineState{
 		"deallocated": VirtualMachineStateDeallocated,
+		"hibernated":  VirtualMachineStateHibernated,
 		"running":     VirtualMachineStateRunning,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
