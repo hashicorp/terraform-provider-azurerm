@@ -125,7 +125,6 @@ func (r StandbyPoolStandbyVirtualMachinePoolResource) template(data acceptance.T
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
-  resource_providers_to_register = ["Microsoft.StandbyPool"]
 }
 
 data "azurerm_subscription" "primary" {}
