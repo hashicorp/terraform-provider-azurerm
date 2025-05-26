@@ -29,6 +29,7 @@ output "example" {
 The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the system shapes in.
+* `zones` - The Cloud Exadata Infrastructure Azure zones.
 
 ## Attributes Reference
 

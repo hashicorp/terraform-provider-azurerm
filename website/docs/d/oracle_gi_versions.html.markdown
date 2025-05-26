@@ -29,6 +29,8 @@ output "example" {
 The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the GI Versions in.
+* `shape` - The model name of the Cloud Exadata Infrastructure resource.
+* `zones` - The Cloud Exadata Infrastructure Azure zones.
 
 ## Attributes Reference
 
