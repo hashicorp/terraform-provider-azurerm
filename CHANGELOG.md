@@ -13,6 +13,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management_api` - add addtional validate to catch when `api_type` is `websocket` but s`ervice_url` is let empty [GH-29624]
 * `azurerm_data_factory_dataset_binary` - fix incorrect casing of the `compression.type` property when sent to the API which caused compression to not be set [GH-29273]
 * `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` or `storage_container_sas_key` property is now a `required` field [GH-29373]
 * `azurerm_network_interface` - `tags` can now be updated when NIC is attached to a private endpoint [GH-29319]
