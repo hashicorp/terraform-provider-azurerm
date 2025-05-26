@@ -8,12 +8,13 @@ ENHANCEMENTS:
 * dependencies: `azurerm_virtual_machine_scale_set_standby_pool` - update to API version `2025-03-01` [GH-29649]
 * dependencies: `compute` - partial update to API version `2024-11-01` [GH-29666]
 * dependencies: `videoindexer` - update to API version `2025-04-01` [GH-29715]
+* `azurerm_backup_protected_vm` - add support for the `BackupsSuspended` value to the `protection_state` property [GH-29710]
 * `azurerm_function_app_flex_consumption` - add support for the `https_only` property [GH-29024]
-* `azurerm_mysql_flexible_server` - add support for the `MO_Standard_E96ads_v5` value for the `sku_name` property [GH-29709]
+* `azurerm_mysql_flexible_server` - add support for the `MO_Standard_E96ads_v5` value to the `sku_name` property [GH-29709]
 
 BUG FIXES:
 
-* `azurerm_api_management_api` - add addtional validate to catch when `api_type` is `websocket` but s`ervice_url` is let empty [GH-29624]
+* `azurerm_api_management_api` - add additional validate to catch when `api_type` is `websocket` but `service_url` is left empty [GH-29624]
 * `azurerm_data_factory_dataset_binary` - fix incorrect casing of the `compression.type` property when sent to the API which caused compression to not be set [GH-29273]
 * `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` or `storage_container_sas_key` property is now a `required` field [GH-29373]
 * `azurerm_network_interface` - `tags` can now be updated when NIC is attached to a private endpoint [GH-29319]
