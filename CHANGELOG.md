@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * dependencies: `compute` - partial update to API version `2024-11-01` [GH-29666]
 * dependencies: `videoindexer` - update to API version `2025-04-01` [GH-29715]
 * `azurerm_function_app_flex_consumption` - add support for the `https_only` property [GH-29024]
+* `azurerm_mysql_flexible_server` - add support for the `MO_Standard_E96ads_v5` value for the `sku_name` property [GH-29709]
 
 BUG FIXES:
 
