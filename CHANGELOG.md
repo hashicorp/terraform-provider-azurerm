@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * dependencies: `azurerm_mssql_server_vulnerability_assessment` - update to API version `2023-08-01-preview/servervulnerabilityassessments` [GH-29373]
 * dependencies: `azurerm_virtual_machine_scale_set_standby_pool` - update to API version `2025-03-01` [GH-29649]
 * dependencies: `compute` - partial update to API version `2024-11-01` [GH-29666]
+* dependencies: `videoindexer` - update to API version `2025-04-01` [GH-29715]
 * `azurerm_function_app_flex_consumption` - add support for the `https_only` property [GH-29024]
 
 BUG FIXES:
