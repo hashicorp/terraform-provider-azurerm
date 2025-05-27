@@ -63,7 +63,6 @@ type Client struct {
 	LongTermRetentionPoliciesClient                    *longtermretentionpolicies.LongTermRetentionPoliciesClient
 	OutboundFirewallRulesClient                        *outboundfirewallrules.OutboundFirewallRulesClient
 	ReplicationLinksClient                             *replicationlinks.ReplicationLinksClient
-	LegacyReplicationLinksClient                       *sql.ReplicationLinksClient
 	RestorableDroppedDatabasesClient                   *restorabledroppeddatabases.RestorableDroppedDatabasesClient
 	ServerAzureADAdministratorsClient                  *serverazureadadministrators.ServerAzureADAdministratorsClient
 	ServerAzureADOnlyAuthenticationsClient             *serverazureadonlyauthentications.ServerAzureADOnlyAuthenticationsClient
@@ -192,10 +191,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(replicationLinksClient.Client, o.Authorizers.ResourceManager)
 
-	// NOTE: Remove once Azure Bug 2805551 ReplicationLink API ListByDatabase missed subsubcriptionId in partnerDatabaseId in response body has been released
-	legacyReplicationLinksClient := sql.NewReplicationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&legacyReplicationLinksClient.Client, o.ResourceManagerAuthorizer)
-
 	restorableDroppedDatabasesClient, err := restorabledroppeddatabases.NewRestorableDroppedDatabasesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Restorable Dropped Databases Client: %+v", err)
@@ -316,7 +311,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 		// Legacy Clients
 		LegacyServerSecurityAlertPoliciesClient: &legacyServerSecurityAlertPoliciesClient,
-		LegacyReplicationLinksClient:            &legacyReplicationLinksClient,
 
 		// 2023-08-01-preview Clients
 		BackupShortTermRetentionPoliciesClient:   backupShortTermRetentionPoliciesClient,

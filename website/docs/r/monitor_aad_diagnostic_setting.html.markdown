@@ -10,7 +10,7 @@ description: |-
 
 Manages an Azure Active Directory Diagnostic Setting for Azure Monitor.
 
-!> **Authentication** The API for this resource does not support service principal authentication. This resource can only be used with Azure CLI authentication.
+!> **Note:** The API for this resource does not support service principal authentication. This resource can only be used with Azure CLI authentication.
 
 ## Example Usage
 
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `eventhub_authorization_rule_id` - (Optional) Specifies the ID of an Event Hub Namespace Authorization Rule used to send Diagnostics Data. Changing this forces a new resource to be created.
 
--> **NOTE:** This can be sourced from [the `azurerm_eventhub_namespace_authorization_rule` resource](eventhub_namespace_authorization_rule.html) and is different from [a `azurerm_eventhub_authorization_rule` resource](eventhub_authorization_rule.html).
+-> **Note:** This can be sourced from [the `azurerm_eventhub_namespace_authorization_rule` resource](eventhub_namespace_authorization_rule.html) and is different from [a `azurerm_eventhub_authorization_rule` resource](eventhub_authorization_rule.html).
 
 * `eventhub_name` - (Optional) Specifies the name of the Event Hub where Diagnostics Data should be sent. If not specified, the default Event Hub will be used. Changing this forces a new resource to be created.
 
@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where logs should be sent. Changing this forces a new resource to be created.
 
--> **NOTE:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
+-> **Note:** One of `eventhub_authorization_rule_id`, `log_analytics_workspace_id` and `storage_account_id` must be specified.
 
 ---
 

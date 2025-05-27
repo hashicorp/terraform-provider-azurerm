@@ -93,7 +93,7 @@ jobs:
       #create a new PR, start with appending the release number and (unreleased)
         if: '!steps.check.outputs.existing'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_TERRAFORM_TOKEN }}
         continue-on-error: true
         run: |
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
