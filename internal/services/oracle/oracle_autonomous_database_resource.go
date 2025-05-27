@@ -175,14 +175,14 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 					"time_of_backup": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsRFC3339Time,
 					},
 					"retention_period_in_days": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntBetween(90, 3650),
+						ValidateFunc: validation.IntBetween(90, 2558),
 					},
-					"is_disabled": {
+					"enabled": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
