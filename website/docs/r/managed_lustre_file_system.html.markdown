@@ -139,3 +139,9 @@ Azure Managed Lustre File Systems can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_managed_lustre_file_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageCache/amlFilesystems/amlFilesystem1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageCache`: 2023-05-01

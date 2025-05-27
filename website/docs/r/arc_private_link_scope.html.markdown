@@ -63,3 +63,9 @@ Azure Arc Private Link Scope can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_arc_private_link_scope.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HybridCompute/privateLinkScopes/privateLinkScope1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.HybridCompute`: 2022-11-10

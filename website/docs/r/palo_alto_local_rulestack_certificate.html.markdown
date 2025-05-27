@@ -73,3 +73,9 @@ Palo Alto Networks Rulestack Certificates can be imported using the `resource id
 ```shell
 terraform import azurerm_palo_alto_local_rulestack_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/localRulestacks/myLocalRulestack/certificates/myCertificate
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw`: 2022-08-29

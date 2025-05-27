@@ -94,3 +94,9 @@ Private DNS Resolver Outbound Endpoint can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_private_dns_resolver_outbound_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/dnsResolvers/dnsResolver1/outboundEndpoints/outboundEndpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2022-07-01

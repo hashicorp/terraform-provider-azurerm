@@ -55,3 +55,9 @@ App Service Source GitHub Tokens can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_source_control_token.example /providers/Microsoft.Web/sourceControls/GitHub
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web`: 2023-01-01

@@ -79,3 +79,9 @@ Attestation Providers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_attestation_provider.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Attestation/attestationProviders/provider1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Attestation`: 2020-10-01

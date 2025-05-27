@@ -75,3 +75,9 @@ An existing Dev Center Dev Box Definition can be imported into Terraform using t
 ```shell
 terraform import azurerm_dev_center_dev_box_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/devCenters/dc1/devBoxDefinitions/et1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter`: 2025-02-01

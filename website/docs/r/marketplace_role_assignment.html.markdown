@@ -110,3 +110,9 @@ terraform import azurerm_marketplace_role_assignment.example /providers/Microsof
 ```text
 /providers/Microsoft.Marketplace/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2022-05-01-preview, 2022-04-01

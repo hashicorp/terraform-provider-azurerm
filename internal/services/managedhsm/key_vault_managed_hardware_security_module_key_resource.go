@@ -122,6 +122,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 					string(keyvault.JSONWebKeyOperationUnwrapKey),
 					string(keyvault.JSONWebKeyOperationVerify),
 					string(keyvault.JSONWebKeyOperationWrapKey),
+					string(keyvault.JSONWebKeyOperationImport),
 				}, false),
 			},
 		},

@@ -888,3 +888,9 @@ Linux Web Apps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_linux_web_app_slot.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web`: 2023-12-01

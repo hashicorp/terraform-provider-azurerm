@@ -80,3 +80,9 @@ System Center Virtual Machine Manager Virtual Machine Templates can be imported 
 ```shell
 terraform import azurerm_system_center_virtual_machine_manager_virtual_machine_template.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ScVmm/virtualMachineTemplates/virtualMachineTemplate1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ScVmm`: 2023-10-07

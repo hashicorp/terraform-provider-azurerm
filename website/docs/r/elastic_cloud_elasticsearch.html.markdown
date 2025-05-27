@@ -109,3 +109,9 @@ Elasticsearch's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_elastic_cloud_elasticsearch.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Elastic/monitors/monitor1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Elastic`: 2023-06-01

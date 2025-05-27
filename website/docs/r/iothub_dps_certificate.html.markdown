@@ -74,3 +74,9 @@ IoTHub Device Provisioning Service Certificates can be imported using the `resou
 ```shell
 terraform import azurerm_iothub_dps_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/example/certificates/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Devices`: 2022-02-05
