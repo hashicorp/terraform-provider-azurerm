@@ -102,10 +102,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  display_name             = "backup%[2]d"
-  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  name             = "backup%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  autonomous_database_name = azurerm_oracle_autonomous_database.test.name
   retention_period_in_days = 120
   backup_type              = "LongTerm"
+  display_name             = "backup-display"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
