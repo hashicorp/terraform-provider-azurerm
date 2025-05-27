@@ -110,8 +110,9 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"vm_size": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C AKS RP provides a new feature that will automatically select an available vm size when it's omitted.
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
