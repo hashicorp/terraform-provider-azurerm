@@ -69,7 +69,7 @@ The following attributes are exported:
 
 * `smb_access_based_enumeration_enabled` - Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share.
 
-* `is_large_volume` - Indicates if the volume is a large volume.
+* `large_volume_enabled` - Indicates if the volume is a large volume.
 
 ---
 

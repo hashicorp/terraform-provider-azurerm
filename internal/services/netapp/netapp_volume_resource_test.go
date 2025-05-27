@@ -266,7 +266,7 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
-				check.That(data.ResourceName).Key("is_large_volume").HasValue("false"),
+				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
@@ -287,7 +287,7 @@ func TestAccNetAppVolume_largeVolume(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("105472"),
-				check.That(data.ResourceName).Key("is_large_volume").HasValue("true"),
+				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1270,18 +1270,19 @@ func (NetAppVolumeResource) largeVolume(data acceptance.TestData) string {
 	template := NetAppVolumeResource{}.templateLargePool(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_netapp_volume" "test" {
-  name                = "acctest-NetAppVolume-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_path         = "my-unique-file-path-%d"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.test.id
-  storage_quota_in_gb = 105472
-  is_large_volume     = true
-  throughput_in_mibps = 1640
+  name                 = "acctest-NetAppVolume-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  account_name         = azurerm_netapp_account.test.name
+  pool_name            = azurerm_netapp_pool.test.name
+  volume_path          = "my-unique-file-path-%d"
+  service_level        = "Standard"
+  subnet_id            = azurerm_subnet.test.id
+  storage_quota_in_gb  = 105472
+  large_volume_enabled = true
+  throughput_in_mibps  = 1640
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
