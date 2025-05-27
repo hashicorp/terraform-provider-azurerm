@@ -1080,6 +1080,15 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		parameters.Properties.StartTask = startTask
 	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
+			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
+			if d.HasChange("data_disks") {
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
+			}
+		}
+	}
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
