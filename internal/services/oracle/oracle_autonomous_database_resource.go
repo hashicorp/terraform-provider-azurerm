@@ -342,7 +342,7 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 					RepeatCadence:         pointer.To(autonomousdatabases.RepeatCadenceType(model.LongTermBackUpSchedule[0].RepeatCadence)),
 					TimeOfBackup:          pointer.To(model.LongTermBackUpSchedule[0].TimeOfBackup),
 					RetentionPeriodInDays: pointer.To(model.LongTermBackUpSchedule[0].RetentionPeriodInDays),
-					IsDisabled:            pointer.To(model.LongTermBackUpSchedule[0].IsDisabled),
+					IsDisabled:            pointer.To(model.LongTermBackUpSchedule[0].Enabled),
 				}
 			}
 

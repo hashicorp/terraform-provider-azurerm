@@ -86,7 +86,7 @@ type LongTermBackUpScheduleDetails struct {
 	RepeatCadence         string `tfschema:"repeat_cadence"`
 	TimeOfBackup          string `tfschema:"time_of_backup"`
 	RetentionPeriodInDays int64  `tfschema:"retention_period_in_days"`
-	IsDisabled            bool   `tfschema:"is_disabled"`
+	Enabled               bool   `tfschema:"enabled"`
 }
 
 func (d AutonomousDatabaseRegularDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -226,7 +226,7 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-					"is_disabled": {
+					"enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
@@ -531,7 +531,7 @@ func FlattenLongTermBackUpScheduleDetails(longTermBackUpScheduleDetails *autonom
 			RepeatCadence:         string(pointer.From(longTermBackUpScheduleDetails.RepeatCadence)),
 			TimeOfBackup:          pointer.From(longTermBackUpScheduleDetails.TimeOfBackup),
 			RetentionPeriodInDays: pointer.From(longTermBackUpScheduleDetails.RetentionPeriodInDays),
-			IsDisabled:            pointer.From(longTermBackUpScheduleDetails.IsDisabled),
+			Enabled:               pointer.From(longTermBackUpScheduleDetails.IsDisabled),
 		})
 	}
 	return output
