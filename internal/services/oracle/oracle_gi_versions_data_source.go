@@ -5,7 +5,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -13,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/giversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type GiVersionsDataSource struct{}
