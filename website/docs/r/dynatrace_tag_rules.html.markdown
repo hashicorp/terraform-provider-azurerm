@@ -101,6 +101,8 @@ The `metric_rule` block supports the following:
 
 * `filtering_tag` - (Optional) Filtering tag for the metric rule. A `filtering_tag` block as defined below.
 
+* `sending_metrics_enabled` - (Optional) If sending metrics is enabled. The default value is `false`.
+
 ---
 
 The `filtering_tag` block supports the following:

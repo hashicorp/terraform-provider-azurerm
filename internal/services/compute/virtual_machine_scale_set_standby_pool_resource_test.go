@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2024-03-01/standbyvirtualmachinepools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -127,6 +127,42 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_role_definition" "vm-contributor" {
+  name = "Virtual Machine Contributor"
+}
+
+data "azurerm_role_definition" "nw-contributor" {
+  name = "Network Contributor"
+}
+
+data "azurerm_role_definition" "mi-contributor" {
+  name = "Managed Identity Contributor"
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "Standby Pool Resource Provider"
+}
+
+resource "azurerm_role_assignment" "vm-contributor" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.vm-contributor.id}"
+  principal_id       = data.azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "nw-contributor" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.nw-contributor.id}"
+  principal_id       = data.azuread_service_principal.test.object_id
+}
+
+resource "azurerm_role_assignment" "mi-contributor" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.mi-contributor.id}"
+  principal_id       = data.azuread_service_principal.test.object_id
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[1]d"
   location = "%[2]s"
@@ -140,6 +176,10 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   platform_fault_domain_count = 1
 
   zones = ["1"]
+
+  depends_on = [
+    azurerm_role_assignment.vm-contributor, azurerm_role_assignment.nw-contributor, azurerm_role_assignment.mi-contributor
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -8,15 +8,17 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strings"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -59,6 +61,7 @@ func resourceRecoveryServicesBackupProtectedVM() *pluginsdk.Resource {
 
 func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
+	vaultClient := meta.(*clients.Client).RecoveryServices.VaultsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,23 +136,30 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	protectionState, ok := d.GetOk("protection_state")
-	protectionStopped := strings.EqualFold(protectionState.(string), string(protecteditems.ProtectionStateProtectionStopped))
-	requireUpdateProtectionState := ok && protectionStopped
-
 	if err := client.CreateOrUpdateThenPoll(ctx, id, item); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	// the protection state will be updated in the additional update.
-	if requireUpdateProtectionState {
-		p := protecteditems.ProtectionState(protectionState.(string))
+	// the protection state cannot be set during initial creation.
+	protectionState := d.Get("protection_state").(string)
+	protectionStateUpdateRequired := slices.Contains([]string{
+		string(protecteditems.ProtectionStateProtectionStopped),
+		string(protecteditems.ProtectionStateBackupsSuspended),
+	}, protectionState)
+
+	if protectionStateUpdateRequired {
+		if protectionState == string(protecteditems.ProtectionStateBackupsSuspended) {
+			if err := checkRecoveryServicesVaultIsImmutable(ctx, vaultClient, vaults.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)); err != nil {
+				return err
+			}
+		}
+
 		updateInput := protecteditems.ProtectedItemResource{
 			Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-				ProtectionState:  &p,
-				SourceResourceId: utils.String(vmId),
+				ProtectionState:  pointer.To(protecteditems.ProtectionState(protectionState)),
+				SourceResourceId: pointer.To(vmId),
 			},
 		}
 
@@ -180,7 +190,7 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	if model := resp.Model; model != nil {
@@ -227,6 +237,7 @@ func resourceRecoveryServicesBackupProtectedVMRead(d *pluginsdk.ResourceData, me
 
 func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
+	vaultClient := meta.(*clients.Client).RecoveryServices.VaultsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -254,47 +265,28 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 
 	model := *existing.Model
 	properties := existing.Model.Properties.(protecteditems.AzureIaaSComputeVMProtectedItem)
-	updateProtectedBackup := false
 
 	if d.HasChange("backup_policy_id") {
 		properties.PolicyId = pointer.To(d.Get("backup_policy_id").(string))
-		updateProtectedBackup = true
 	}
 
 	if d.HasChange("exclude_disk_luns") || d.HasChange("include_disk_luns") {
 		properties.ExtendedProperties = expandDiskExclusion(d)
-		updateProtectedBackup = true
 	}
 
+	if d.HasChange("protection_state") {
+		protectionState := d.Get("protection_state").(string)
+		if protectionState == string(protecteditems.ProtectionStateBackupsSuspended) {
+			if err := checkRecoveryServicesVaultIsImmutable(ctx, vaultClient, vaults.NewVaultID(id.SubscriptionId, id.ResourceGroupName, id.VaultName)); err != nil {
+				return err
+			}
+		}
+		properties.ProtectionState = pointer.To(protecteditems.ProtectionState(protectionState))
+	}
 	model.Properties = properties
 
-	if updateProtectedBackup {
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-	}
-
-	protectionState := string(pointer.From(properties.ProtectionState))
-	protectionStopped := false
-	if d.HasChange("protection_state") {
-		protectionState = d.Get("protection_state").(string)
-		protectionStopped = strings.EqualFold(protectionState, string(protecteditems.ProtectionStateProtectionStopped))
-	}
-
-	// the protection state will be updated in the additional update.
-	if protectionStopped {
-		p := protecteditems.ProtectionState(protectionState)
-		vmId := d.Get("source_vm_id").(string)
-		updateInput := protecteditems.ProtectedItemResource{
-			Properties: &protecteditems.AzureIaaSComputeVMProtectedItem{
-				ProtectionState:  &p,
-				SourceResourceId: utils.String(vmId),
-			},
-		}
-
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
-			return fmt.Errorf("updating %s: %+v", *id, err)
-		}
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceRecoveryServicesBackupProtectedVMRead(d, meta)
@@ -322,7 +314,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 				return nil
 			}
 
-			return fmt.Errorf("making Read request on %s: %+v", id, err)
+			return fmt.Errorf("retrieving %s: %+v", *id, err)
 		}
 
 		desiredState := protecteditems.ProtectionStateProtectionStopped
@@ -341,7 +333,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 					}
 
 					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
-						return fmt.Errorf("setting protection to %s and retaining data for %s: %+v", desiredState, id, err)
+						return fmt.Errorf("setting protection to %s and retaining data for %s: %+v", desiredState, *id, err)
 					}
 
 					return nil
@@ -350,10 +342,10 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	log.Printf("[DEBUG] Deleting %s", id)
+	log.Printf("[DEBUG] Deleting %s", *id)
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
@@ -366,7 +358,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
 				DiskLunList:     utils.ExpandInt64Slice(diskLun),
-				IsInclusionList: utils.Bool(true),
+				IsInclusionList: pointer.To(true),
 			},
 		}
 	}
@@ -377,7 +369,7 @@ func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProp
 		return &protecteditems.ExtendedProperties{
 			DiskExclusionProperties: &protecteditems.DiskExclusionProperties{
 				DiskLunList:     utils.ExpandInt64Slice(diskLun),
-				IsInclusionList: utils.Bool(false),
+				IsInclusionList: pointer.To(false),
 			},
 		}
 	}
@@ -476,15 +468,55 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 		"protection_state": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// Note: O+C because `protection_state` is set by Azure and may not be a persistent value.
 			Computed: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(protecteditems.ProtectedItemStateIRPending),
-				string(protecteditems.ProtectedItemStateProtected),
-				string(protecteditems.ProtectedItemStateProtectionError),
-				string(protecteditems.ProtectedItemStateProtectionStopped),
-				string(protecteditems.ProtectedItemStateProtectionPaused),
-				string(protecteditems.ProtectionStateInvalid),
+				// While not a persistent state, `Protected` is an option to allow a path from `BackupsSuspended`/`ProtectionStopped` to a protected state.
+				string(protecteditems.ProtectionStateProtected),
+				string(protecteditems.ProtectionStateBackupsSuspended),
+				string(protecteditems.ProtectionStateProtectionStopped),
 			}, false),
+			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+				// We suppress the diff if the only change is from "IRPending" or "ProtectionPaused" to "Protected".
+				// These states are not persistent and are set by Azure based on the current protection state.
+				// While `Invalid` and `ProtectionError` are also not configurable, we're opting to output this in the diff
+				// as these states should indicate to the user that there is an error with the backup protected VM resource requiring attention.
+				suppressStates := []string{
+					string(protecteditems.ProtectedItemStateIRPending),
+					string(protecteditems.ProtectedItemStateProtectionPaused),
+				}
+
+				if new == string(protecteditems.ProtectionStateProtected) && slices.Contains(suppressStates, old) {
+					return true
+				}
+
+				return false
+			},
 		},
 	}
+}
+
+func checkRecoveryServicesVaultIsImmutable(ctx context.Context, client *vaults.VaultsClient, vaultId vaults.VaultId) error {
+	// While not ideal, if `protection_state` = `BackupsSuspended`, we get the recovery vault so we can ensure it's in an immutable state
+	// We're doing this here because the error message provided by Azure if it is not in an immutable state is confusing.
+	// Relevant issue: https://github.com/Azure/azure-rest-api-specs/issues/32688
+
+	existingVault, err := client.Get(ctx, vaultId)
+	if err != nil {
+		if !response.WasNotFound(existingVault.HttpResponse) {
+			return fmt.Errorf("checking for presence of Recovery Services Vault %s: %+v", vaultId, err)
+		}
+	}
+
+	if existingVault.Model != nil &&
+		existingVault.Model.Properties != nil &&
+		existingVault.Model.Properties.SecuritySettings != nil &&
+		existingVault.Model.Properties.SecuritySettings.ImmutabilitySettings != nil {
+		immutabilityState := pointer.From(existingVault.Model.Properties.SecuritySettings.ImmutabilitySettings.State)
+		if immutabilityState == vaults.ImmutabilityStateDisabled {
+			return errors.New("`protection_state` cannot be set to `BackupsSuspended` while the Recovery Services Vault is not in an immutable (`Locked` / `Unlocked`) state")
+		}
+	}
+
+	return nil
 }

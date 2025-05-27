@@ -14,12 +14,14 @@ type AllocationStrategy string
 const (
 	AllocationStrategyCapacityOptimized AllocationStrategy = "CapacityOptimized"
 	AllocationStrategyLowestPrice       AllocationStrategy = "LowestPrice"
+	AllocationStrategyPrioritized       AllocationStrategy = "Prioritized"
 )
 
 func PossibleValuesForAllocationStrategy() []string {
 	return []string{
 		string(AllocationStrategyCapacityOptimized),
 		string(AllocationStrategyLowestPrice),
+		string(AllocationStrategyPrioritized),
 	}
 }
 
@@ -40,6 +42,7 @@ func parseAllocationStrategy(input string) (*AllocationStrategy, error) {
 	vals := map[string]AllocationStrategy{
 		"capacityoptimized": AllocationStrategyCapacityOptimized,
 		"lowestprice":       AllocationStrategyLowestPrice,
+		"prioritized":       AllocationStrategyPrioritized,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -642,14 +645,60 @@ func parseMode(input string) (*Mode, error) {
 	return &out, nil
 }
 
+type Modes string
+
+const (
+	ModesAudit    Modes = "Audit"
+	ModesDisabled Modes = "Disabled"
+	ModesEnforce  Modes = "Enforce"
+)
+
+func PossibleValuesForModes() []string {
+	return []string{
+		string(ModesAudit),
+		string(ModesDisabled),
+		string(ModesEnforce),
+	}
+}
+
+func (s *Modes) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseModes(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseModes(input string) (*Modes, error) {
+	vals := map[string]Modes{
+		"audit":    ModesAudit,
+		"disabled": ModesDisabled,
+		"enforce":  ModesEnforce,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Modes(input)
+	return &out, nil
+}
+
 type NetworkApiVersion string
 
 const (
+	NetworkApiVersionTwoZeroTwoTwoNegativeOneOneNegativeZeroOne  NetworkApiVersion = "2022-11-01"
 	NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne NetworkApiVersion = "2020-11-01"
 )
 
 func PossibleValuesForNetworkApiVersion() []string {
 	return []string{
+		string(NetworkApiVersionTwoZeroTwoTwoNegativeOneOneNegativeZeroOne),
 		string(NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne),
 	}
 }
@@ -669,6 +718,7 @@ func (s *NetworkApiVersion) UnmarshalJSON(bytes []byte) error {
 
 func parseNetworkApiVersion(input string) (*NetworkApiVersion, error) {
 	vals := map[string]NetworkApiVersion{
+		"2022-11-01": NetworkApiVersionTwoZeroTwoTwoNegativeOneOneNegativeZeroOne,
 		"2020-11-01": NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -1137,6 +1187,82 @@ func parsePublicIPAddressSkuTier(input string) (*PublicIPAddressSkuTier, error) 
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := PublicIPAddressSkuTier(input)
+	return &out, nil
+}
+
+type RebalanceBehavior string
+
+const (
+	RebalanceBehaviorCreateBeforeDelete RebalanceBehavior = "CreateBeforeDelete"
+)
+
+func PossibleValuesForRebalanceBehavior() []string {
+	return []string{
+		string(RebalanceBehaviorCreateBeforeDelete),
+	}
+}
+
+func (s *RebalanceBehavior) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRebalanceBehavior(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseRebalanceBehavior(input string) (*RebalanceBehavior, error) {
+	vals := map[string]RebalanceBehavior{
+		"createbeforedelete": RebalanceBehaviorCreateBeforeDelete,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := RebalanceBehavior(input)
+	return &out, nil
+}
+
+type RebalanceStrategy string
+
+const (
+	RebalanceStrategyRecreate RebalanceStrategy = "Recreate"
+)
+
+func PossibleValuesForRebalanceStrategy() []string {
+	return []string{
+		string(RebalanceStrategyRecreate),
+	}
+}
+
+func (s *RebalanceStrategy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseRebalanceStrategy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseRebalanceStrategy(input string) (*RebalanceStrategy, error) {
+	vals := map[string]RebalanceStrategy{
+		"recreate": RebalanceStrategyRecreate,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := RebalanceStrategy(input)
 	return &out, nil
 }
 
