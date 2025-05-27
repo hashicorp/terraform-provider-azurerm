@@ -150,7 +150,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `repeat_cadence` -  Specifies the frequency  for automated long-term backups. 
 * `time_of_backup` - The date and time in which the backup should be taken. 
 * `retention_period_in_days` - The retention period in days for Autonomous database backup.
-* `is_disabled` -  A boolean value that indicates if long term backup is enabled/disabled.
+* `enabled` -  A boolean value that indicates if long term backup is enabled/disabled.
 
 * `virtual_network_id` - The ID to an Azure Resource Manager vnet resource.
 
