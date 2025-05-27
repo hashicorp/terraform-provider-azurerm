@@ -199,7 +199,9 @@ The following arguments are supported:
 
 * `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption.
 
-* `is_large_volume` - (Optional) A boolean specifying if the volume is a large volume. Large volumes must be at least 50 TiB in size and can be up to 1,024 TiB (1 PiB). For more information, please refer to [Requirements and considerations for large volumes](https://learn.microsoft.com/en-us/azure/azure-netapp-files/large-volumes-requirements-considerations)
+* `is_large_volume` - (Optional) A boolean specifying if the volume is a large volume. Defaults to `false`.
+
+-> **Note:** Large volumes must be at least 50 TiB in size and can be up to 1,024 TiB (1 PiB). For more information, please refer to [Requirements and considerations for large volumes](https://learn.microsoft.com/en-us/azure/azure-netapp-files/large-volumes-requirements-considerations)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
