@@ -102,10 +102,8 @@ func resourceFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, meta i
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
 				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
-					restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
 					restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
-
-					if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+					if err := meta.(*clients.Client).Postgres.RestartServer(ctx, restartServerId); err != nil {
 						return fmt.Errorf("restarting server %s: %+v", id, err)
 					}
 				}
@@ -204,10 +202,8 @@ func resourceFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta i
 		if isDynamicConfig := props.IsDynamicConfig; isDynamicConfig != nil && !*isDynamicConfig {
 			if isReadOnly := props.IsReadOnly; isReadOnly != nil && !*isReadOnly {
 				if meta.(*clients.Client).Features.PostgresqlFlexibleServer.RestartServerOnConfigurationValueChange {
-					restartClient := meta.(*clients.Client).Postgres.ServerRestartClient
 					restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
-
-					if err = restartClient.ServersRestartThenPoll(ctx, restartServerId, serverrestart.RestartParameter{}); err != nil {
+					if err := meta.(*clients.Client).Postgres.RestartServer(ctx, restartServerId); err != nil {
 						return fmt.Errorf("restarting server %s: %+v", id, err)
 					}
 				}
