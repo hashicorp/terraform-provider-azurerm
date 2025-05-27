@@ -1,5 +1,9 @@
 ## 4.31.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_network_manager_routing_configuration` [GH-29310]
+
 ENHANCEMENTS:
 
 * dependencies: `azurerm_managed_lustre_file_system` - update to API version `2024-07-01` [GH-29433]
