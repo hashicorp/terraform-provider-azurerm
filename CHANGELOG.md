@@ -23,6 +23,7 @@ BUG FIXES:
 * `azurerm_hbase_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
 * `azurerm_interactive_query_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
 * `azurerm_kafka_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
+* `azurerm_linux_virtual_machine` - fix update for `identity` when VM has VMExtensions configured [GH-29717]
 * `azurerm_mongo_cluster` - connection strings conaining a `$` now get exported correctly [GH-29669]
 * `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` or `storage_container_sas_key` property is now a `required` field [GH-29373]
 * `azurerm_network_interface` - `tags` can now be updated when NIC is attached to a private endpoint [GH-29319]
