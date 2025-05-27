@@ -1,0 +1,1263 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Contributor documentation and reference for the Terraform AzureRM Provider">
+      
+      
+      
+      
+        <link rel="prev" href="../guide-state-migrations/">
+      
+      
+        <link rel="next" href="../guide-new-resource-vs-inline/">
+      
+      <link rel="icon" href="../../images/hashicorp-black.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Breaking Changes and Deprecations - Terraform AzureRM Provider - Contributor Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="hashicorp" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#guide-breaking-changes-and-deprecations" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-header__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Terraform AzureRM Provider - Contributor Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Breaking Changes and Deprecations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-nav__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    Terraform AzureRM Provider - Contributor Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Welcome
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="false">
+          Basics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Basics" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Basics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high-level-overview/" class="md-nav__link">
+        Overview of the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-the-provider/" class="md-nav__link">
+        Building the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../debugging-the-provider/" class="md-nav__link">
+        Debugging the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../running-the-tests/" class="md-nav__link">
+        Running Tests
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-opening-a-pr/" class="md-nav__link">
+        Opening a Pull Request
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="true">
+          Guides
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-feature/" class="md-nav__link">
+        Adding a new Feature
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-service-package/" class="md-nav__link">
+        Adding a new Service Package
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-data-source/" class="md-nav__link">
+        Adding a new Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource/" class="md-nav__link">
+        Adding a new Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-data-source/" class="md-nav__link">
+        Adding fields to an existing Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-resource/" class="md-nav__link">
+        Adding fields to an existing Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-state-migrations/" class="md-nav__link">
+        Adding State Migrations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Breaking Changes and Deprecations
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Breaking Changes and Deprecations
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#removing-resources-or-data-sources" class="md-nav__link">
+    Removing Resources or Data Sources
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#breaking-schema-changes-and-deprecations" class="md-nav__link">
+    Breaking Schema Changes and Deprecations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-default-values" class="md-nav__link">
+    Updating Default Values
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-new-property-with-a-default-value" class="md-nav__link">
+    Adding a new property with a default value
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-release-breaking-change-clean-up" class="md-nav__link">
+    Post Release Breaking Change Clean Up
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource-vs-inline/" class="md-nav__link">
+        When to create a new Resource vs Inline Block
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="false">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-acceptance-testing/" class="md-nav__link">
+        Acceptance Testing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-glossary/" class="md-nav__link">
+        Glossary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-naming/" class="md-nav__link">
+        Naming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-documentation-standards/" class="md-nav__link">
+        Provider Documentation Standards
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-resource-ids/" class="md-nav__link">
+        Resource IDs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema-design-considerations/" class="md-nav__link">
+        Schema Design
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-errors/" class="md-nav__link">
+        Working with Errors
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="false">
+          Maintainers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Maintainers" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Maintainers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainer-changelog/" class="md-nav__link">
+        Updates to the Changelog
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frequently-asked-questions/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#removing-resources-or-data-sources" class="md-nav__link">
+    Removing Resources or Data Sources
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#breaking-schema-changes-and-deprecations" class="md-nav__link">
+    Breaking Schema Changes and Deprecations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updating-default-values" class="md-nav__link">
+    Updating Default Values
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-new-property-with-a-default-value" class="md-nav__link">
+    Adding a new property with a default value
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-release-breaking-change-clean-up" class="md-nav__link">
+    Post Release Breaking Change Clean Up
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+<h1 id="guide-breaking-changes-and-deprecations">Guide: Breaking Changes and Deprecations<a class="headerlink" href="#guide-breaking-changes-and-deprecations" title="Permanent link">#</a></h1>
+<p>To keep up with and accommodate the changing pace of Azure, the provider needs to be able to gracefully introduce and handle breaking changes. A "breaking change" within the provider is considered to be anything that requires an end user to modify previously valid terraform configuration after a provider upgrade to either deploy new resources or to maintain existing deployments. Even if a change does not affect the user's current deployment, it is still considered a breaking change if it requires the user to modify their configuration to deploy new resources. </p>
+<p>The <code>azurerm</code> provider attempts to be as "surface stable" as possible during minor and patch releases meaning breaking changes are typically only made during major releases, however exceptions are sometimes made for minor releases when the breaking change is deemed necessary or is unavoidable. Terraform users rely on the stability of Terraform providers as not only can configuration changes be costly to make, test, and deploy they can also affect downstream tooling such as modules. Even as part of a major release, breaking changes that are overly large or have little benefit can delay users upgrading to the next major version.</p>
+<p>Generally we can safely introduce breaking changes into the provider for the major release using a feature flag. For the next major release that would be the <code>features.FivePointOh()</code> flag which is available in the provider today. This guide includes several topics on how to do common deprecations and breaking changes in the provider using this feature flag, as well as additional guidance on how to deal with changing default values in the Azure API. </p>
+<p>Types of breaking changes covered are:</p>
+<ul>
+<li><a href="#removing-resources-or-data-sources">Removing Resources or Data Sources</a></li>
+<li><a href="#breaking-schema-changes-and-deprecations">Breaking Schema Changes</a></li>
+<li><a href="#updating-default-values">Updating Default Values</a></li>
+<li><a href="#post-release-breaking-change-clean-up">Post Release Breaking Change Clean Up</a></li>
+</ul>
+<h2 id="removing-resources-or-data-sources">Removing Resources or Data Sources<a class="headerlink" href="#removing-resources-or-data-sources" title="Permanent link">#</a></h2>
+<p>Resources can be removed for several reasons, the service could be retiring, the API may no longer support creation of that resource or the resource has been renamed or superseded by a new version.</p>
+<p>In all cases the resources cannot be removed from the provider in a minor release but must be deprecated and the registration of the resource made conditional using the major release feature flag.</p>
+<p>The steps outlined below uses an example resource that is deprecated, but the same principles and steps apply for data sources as well.</p>
+<ol>
+<li>Add the appropriate deprecation message to the resource.</li>
+</ol>
+<p>For Typed Resources
+    <div class="highlight"><pre><span></span><code><span class="c1">// For resources that have no replacement</span>
+
+<span class="kd">var</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceWithDeprecationAndNoReplacement</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ResourceWithNoReplacement</span><span class="p">{}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">ResourceWithNoReplacement</span><span class="p">)</span><span class="w"> </span><span class="nx">DeprecationMessage</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;The `azurerm_resource_with_no_replacement` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider&quot;</span>
+<span class="p">}</span>
+
+
+<span class="c1">// For resources that have a replacement</span>
+
+<span class="kd">var</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceWithDeprecationReplacedBy</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ResourceWithReplacement</span><span class="p">{}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">ResourceWithReplacement</span><span class="p">)</span><span class="w"> </span><span class="nx">DeprecatedInFavourOfResource</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;azurerm_new_resource&quot;</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<div class="highlight"><pre><span></span><code>For Untyped Resources
+```go
+func resourceExample() *pluginsdk.Resource {
+    return &amp;pluginsdk.Resource{
+        Create: resourceExampleCreate,
+        Read:   resourceExampleRead,
+        Update: resourceExampleUpdate,
+        Delete: resourceExampleDelete,
+
+        Timeouts: &amp;pluginsdk.ResourceTimeout{
+        Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+        Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+        Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+        Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+        },
+
+        DeprecationMessage: &quot;The `azurerm_example` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider&quot;
+        ...
+    }
+}
+```
+</code></pre></div>
+<ol>
+<li>Conditionally register the resource in the <code>registration.go</code> file of the service package.</li>
+</ol>
+<p>For Typed Resources
+    <div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">Registration</span><span class="p">)</span><span class="w"> </span><span class="nx">Resources</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">resources</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">MySqlFlexibleServerResource</span><span class="p">{},</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">features</span><span class="p">.</span><span class="nx">FivePointOh</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">resources</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">append</span><span class="p">(</span><span class="nx">resources</span><span class="p">,</span><span class="w"> </span><span class="nx">ExampleResource</span><span class="p">{})</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">resources</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<div class="highlight"><pre><span></span><code>For Untyped Resources
+```go
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+    resources := map[string]*pluginsdk.Resource{
+        &quot;azurerm_mysql_flexible_server&quot;: resourceMysqlFlexibleServer(),
+
+    }
+
+    if !features.FivePointOh() {
+        resources[&quot;azurerm_example&quot;] = resourceExample()
+    }
+
+    return resources
+}
+```
+</code></pre></div>
+<ol>
+<li>
+<p>Skip all tests related to the deprecated resource.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">TestAccExample_basic</span><span class="p">(</span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">features</span><span class="p">.</span><span class="nx">FivePointOh</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">t</span><span class="p">.</span><span class="nx">Skipf</span><span class="p">(</span><span class="s">&quot;Skipping since `azurerm_example` is deprecated and will be removed in 5.0&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">BuildTestData</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;azurerm_example&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ExampleResource</span><span class="p">{}</span>
+
+<span class="w">    </span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceTest</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestStep</span><span class="p">{</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Config</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">basic</span><span class="p">(</span><span class="nx">data</span><span class="p">),</span>
+<span class="w">        </span><span class="nx">Check</span><span class="p">:</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">ComposeTestCheckFunc</span><span class="p">(</span>
+<span class="w">            </span><span class="nx">check</span><span class="p">.</span><span class="nx">That</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceName</span><span class="p">).</span><span class="nx">ExistsInAzure</span><span class="p">(</span><span class="nx">r</span><span class="p">),</span>
+<span class="w">        </span><span class="p">),</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">data</span><span class="p">.</span><span class="nx">ImportStep</span><span class="p">()</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">}</span>
+</code></pre></div>
+</li>
+<li>
+<p>Update the upgrade guide under <code>website/docs/5.0-upgrade-guide.markdown</code>.</p>
+</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="gu">## Removed Resources</span>
+
+<span class="gu">### `azurerm_example`</span>
+
+This deprecated resources has been removed from the Azure Provider.
+</code></pre></div>
+<ol>
+<li>Update the resource (or data source) documentation</li>
+</ol>
+<div class="highlight"><pre><span></span><code>~&gt; <span class="gs">**Note:**</span> The <span class="sb">`azurerm_example`</span> resource has been deprecated because [reason here e.g. the service is retiring by 2025-10-10] and will be removed in v5.0 of the AzureRM Provider.
+</code></pre></div>
+<h2 id="breaking-schema-changes-and-deprecations">Breaking Schema Changes and Deprecations<a class="headerlink" href="#breaking-schema-changes-and-deprecations" title="Permanent link">#</a></h2>
+<p>Breaking schema changes can include:
+- Property renames
+- When properties become Required
+- When properties have Computed removed and need to be added to <code>ignore_changes</code> to prevent diffs
+- Changes to the validation e.g. the validation becomes more restrictive
+- Changing the default value
+- Changing the type</p>
+<p>In all cases the deprecation is handled the same way and will be illustrated by the example below.</p>
+<p>The following example follows a fictional resource that will have the following breaking changes made:
+- The property <code>enable_scaling</code> renamed to <code>scaling_enabled</code>
+- The property <code>version</code> has its default changed from <code>1</code> to <code>2</code></p>
+<ol>
+<li>Update the Schema with the target or desired breaking schema change and patch over the breaking schema change with the current behaviour using the major release feature flag.</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">ExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Arguments</span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">   </span><span class="nx">args</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">      </span><span class="s">&quot;scaling_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nx">Type</span><span class="p">:</span><span class="w">     </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">TypeBool</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Optional</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Default</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">      </span><span class="p">},</span><span class="w">      </span>
+<span class="w">      </span><span class="s">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nx">Type</span><span class="p">:</span><span class="w">     </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">TypeString</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Optional</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Default</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">   </span><span class="p">}</span>
+
+<span class="w">   </span><span class="c1">// Regardless of the number of arguments changing, the whole schema definition should be updated like the following rather than inline changes for the current schema definition.</span>
+<span class="w">   </span><span class="c1">// This is to make cleanup easy so we can delete this block when the next major version releases.</span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">features</span><span class="p">.</span><span class="nx">FivePointOh</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nx">args</span><span class="p">[</span><span class="s">&quot;enable_scaling&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">         </span><span class="nx">Type</span><span class="p">:</span><span class="w">          </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">TypeBool</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Optional</span><span class="p">:</span><span class="w">      </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Computed</span><span class="p">:</span><span class="w">      </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Default</span><span class="p">:</span><span class="w">       </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">ConflictsWith</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;scaling_enabled&quot;</span><span class="p">},</span>
+<span class="w">         </span><span class="nx">Deprecated</span><span class="p">:</span><span class="w">    </span><span class="s">&quot;`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v5.0 of the AzureRM Provider&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">      </span><span class="c1">// When renaming a property both properties need to have `Computed` set on them until the old property is removed in the next major release</span>
+<span class="w">      </span><span class="c1">// We also need to remember to set ConflictsWith on both the old and the renamed property to ensure users don&#39;t set both in their config</span>
+<span class="w">      </span><span class="nx">args</span><span class="p">[</span><span class="s">&quot;scaling_enabled&quot;</span><span class="p">]</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">         </span><span class="nx">Type</span><span class="p">:</span><span class="w">          </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">TypeBool</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Optional</span><span class="p">:</span><span class="w">      </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Computed</span><span class="p">:</span><span class="w">      </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">Default</span><span class="p">:</span><span class="w">       </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">         </span><span class="nx">ConflictsWith</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&quot;enable_scaling&quot;</span><span class="p">},</span>
+<span class="w">      </span><span class="p">}</span>
+
+<span class="w">      </span><span class="nx">args</span><span class="p">[</span><span class="s">&quot;version&quot;</span><span class="p">].</span><span class="nx">Default</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">   </span><span class="p">}</span>
+
+<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="nx">args</span>
+<span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.</p>
+</blockquote>
+<ol>
+<li>
+<p>Update the Create/Read/Update methods if necessary.</p>
+</li>
+<li>
+<p>Update the test configurations.</p>
+</li>
+</ol>
+<p>Here are some guidelines on what good testing coverage for renamed properties looks like:
+   * All test configurations that reference the old property should be updated to use the renamed property
+   * One test configuration should continue using the old property to ensure that it still works as expected, but switch to using the renamed property in the major release mode. An example of what that looks like is provided below.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">complete</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestData</span><span class="p">)</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">features</span><span class="p">.</span><span class="nx">FivePointOh</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">`</span>
+<span class="s">provider &quot;azurerm&quot; {</span>
+<span class="s">  features {}</span>
+<span class="s">}</span>
+
+<span class="s">resource &quot;azurerm_resource_group&quot; &quot;test&quot; {</span>
+<span class="s">  name     = &quot;acctestRG-example-%[1]d&quot;</span>
+<span class="s">  location = &quot;%[2]s&quot;</span>
+<span class="s">}</span>
+
+<span class="s">resource &quot;azurerm_example&quot; &quot;test&quot; {</span>
+<span class="s">  name           = &quot;acctestexample%[1]d&quot;</span>
+<span class="s">  enable_scaling = true</span>
+<span class="s">}</span>
+<span class="s">`</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">RandomInteger</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">Locations</span><span class="p">.</span><span class="nx">Primary</span><span class="p">)</span>
+<span class="w">     </span><span class="p">}</span>
+<span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">`</span>
+<span class="s">provider &quot;azurerm&quot; {</span>
+<span class="s">  features {}</span>
+<span class="s">}</span>
+
+<span class="s">resource &quot;azurerm_resource_group&quot; &quot;test&quot; {</span>
+<span class="s">  name     = &quot;acctestRG-example-%[1]d&quot;</span>
+<span class="s">  location = &quot;%[2]s&quot;</span>
+<span class="s">}</span>
+
+<span class="s">resource &quot;azurerm_example&quot; &quot;test&quot; {</span>
+<span class="s">  name            = &quot;acctestexample%[1]d&quot;</span>
+<span class="s">  scaling_enabled = true</span>
+<span class="s">}</span>
+<span class="s">`</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">RandomInteger</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">Locations</span><span class="p">.</span><span class="nx">Primary</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> Wherever possible, only update the test configuration and avoid updating the test case since changes to the test cases are more involved and higher effort to clean up.</p>
+</blockquote>
+<ol>
+<li>Update the upgrade guide under <code>website/docs/5.0-upgrade-guide.markdown</code></li>
+</ol>
+<p>Under the appropriate section of the upgrade guide, add a line for the deprecation
+   <div class="highlight"><pre><span></span><code><span class="gu">## Breaking changes in Resources</span>
+
+<span class="gu">### `azurerm_example_resource`</span>
+
+<span class="k">*</span><span class="w"> </span>The deprecated <span class="sb">`enable_scaling`</span> property has been removed in favour of the <span class="sb">`scaling_enabled`</span> property.
+<span class="k">*</span><span class="w"> </span>The property <span class="sb">`version`</span> now defaults to <span class="sb">`2`</span>.
+</code></pre></div></p>
+<p>The resources/data sources should be added in alphabetical order.</p>
+<ol>
+<li>
+<p>Update the resource documentation</p>
+</li>
+<li>
+<p>The resource documentation should only be updated when a property is undergoing a soft deprecation. In the example above the only update to the resource documentation we need to do is to remove the property <code>enable_scaling</code> and add the property <code>scaling_enabled</code>.</p>
+</li>
+<li>
+<p>Breaking changes such as the default value changing, or other property behaviour changing in a way that will only be active when the major release has gone out <em>should not</em> be added to the documentation since these do not apply yet. Please do not add any <code>**Note:** This property will do x in 5.0</code> notes in the documentation. </p>
+</li>
+</ol>
+<h2 id="updating-default-values">Updating Default Values<a class="headerlink" href="#updating-default-values" title="Permanent link">#</a></h2>
+<p>There are some cases where Azure updates the default value for an attribute when creating a new resource, and we would want to do the same for the provider but this is an easy breaking change to miss.</p>
+<p>We have a property like the following and Azure added a new spark version <code>3.4</code> and said that all new resources being created will be created with <code>3.4</code> as the default. </p>
+<p>In Terraform, we start with:</p>
+<div class="highlight"><pre><span></span><code>    &quot;spark_version&quot;: {
+        Type:     pluginsdk.TypeString,
+        Optional: true,
+        Default:  &quot;2.4&quot;,
+        ValidateFunc: validation.StringInSlice([]string{
+            &quot;2.4&quot;,
+            &quot;3.1&quot;,
+            &quot;3.2&quot;,
+            &quot;3.3&quot;,
+        }, false),
+    },
+</code></pre></div>
+<p>Then we would want to update <code>ValidateFunc</code> to include the new accepted value and update <code>Default</code> to <code>3.4</code> to keep it in line with Azure like so:</p>
+<div class="highlight"><pre><span></span><code>    &quot;spark_version&quot;: {
+        Type:     pluginsdk.TypeString,
+        Optional: true,
+        Default:  &quot;3.4&quot;,
+        ValidateFunc: validation.StringInSlice([]string{
+            &quot;2.4&quot;,
+            &quot;3.1&quot;,
+            &quot;3.2&quot;,
+            &quot;3.3&quot;,
+            &quot;3.4&quot;,
+        }, false),
+    },
+</code></pre></div>
+<p>But if we do that, people who have created that resource without the attribute specified will see a plan diff when upgrading to this version of the provider like so:</p>
+<p>This config does not specify <code>spark_version</code> because we know we can rely on the default to fill it for us</p>
+<div class="highlight"><pre><span></span><code>resource &quot;azurerm_synapse_spark_pool&quot; &quot;example&quot; {
+  name                 = &quot;example&quot;
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  node_size_family     = &quot;MemoryOptimized&quot;
+  node_size            = &quot;Small&quot;
+  node_count           = 3
+}
+</code></pre></div>
+<p>Running <code>terraform show</code> we can see <code>spark_version</code> has been filled in with the default of <code>2.4</code></p>
+<div class="highlight"><pre><span></span><code># azurerm_synapse_spark_pool.example:
+resource &quot;azurerm_synapse_spark_pool&quot; &quot;example&quot; {
+    name                                = &quot;example&quot;
+.
+.
+.
+    spark_version                       = &quot;2.4&quot;
+}
+</code></pre></div>
+<p>When running the version of the provider where the default has changed from <code>2.4</code> to <code>3.4</code>, we'll see the following plan:</p>
+<div class="highlight"><pre><span></span><code>Terraform will perform the following actions:
+
+  # azurerm_synapse_spark_pool.example will be updated in-place
+  ~ resource &quot;azurerm_synapse_spark_pool&quot; &quot;test&quot; {
+        id                                  = &quot;exampleid&quot;
+        name                                = &quot;example&quot;
+      ~ spark_version                       = &quot;2.4&quot; -&gt; &quot;3.4&quot;
+        tags                                = {}
+        # (12 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+</code></pre></div>
+<p>This is a breaking change as Terraform should not trigger a plan between minor version upgrades. Instead, what we can do is use the major release feature flag as shown in the example below or mark the field as Required if that default value is going to continue to change in the future:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">SparkResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Arguments</span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">    </span><span class="nx">args</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;spark_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Type</span><span class="p">:</span><span class="w">     </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">TypeString</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Optional</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Default</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.4&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">ValidateFunc</span><span class="p">:</span><span class="w"> </span><span class="nx">validation</span><span class="p">.</span><span class="nx">StringInSlice</span><span class="p">([]</span><span class="kt">string</span><span class="p">{</span>
+<span class="w">               </span><span class="s">&quot;2.4&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="s">&quot;3.1&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="s">&quot;3.2&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="s">&quot;3.3&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="s">&quot;3.4&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="p">},</span><span class="w"> </span><span class="kc">false</span><span class="p">),</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">features</span><span class="p">.</span><span class="nx">FivePointOh</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">args</span><span class="p">[</span><span class="s">&quot;spark_version&quot;</span><span class="p">].</span><span class="nx">Default</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">&quot;2.4&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">args</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="adding-a-new-property-with-a-default-value">Adding a new property with a default value<a class="headerlink" href="#adding-a-new-property-with-a-default-value" title="Permanent link">#</a></h2>
+<p>When adding a new property with a default value, we can introduce a similar breaking change as the one noted above, but it's even harder to pinpoint. Take for example the following property recently added to <code>azurerm_kusto_account</code>:</p>
+<p>It originally came in like this:</p>
+<div class="highlight"><pre><span></span><code>&quot;auto_stop_enabled&quot;: {
+    Type:     pluginsdk.TypeBool,
+    Optional: true,
+},
+</code></pre></div>
+<p>Our tests were failing because the Azure API was returning this value as true while Terraform does not expect this value to be set because it isn't specified in the config file. To fix this breaking change, we need to add a Default like so:</p>
+<div class="highlight"><pre><span></span><code>&quot;auto_stop_enabled&quot;: {
+    Type:     pluginsdk.TypeBool,
+    Optional: true,
+    Default:  true,
+},
+</code></pre></div>
+<p>There are many ways to accidentally add a breaking change when looking at properties with a Default or lack thereof so extra work needs to be done to confirm what Terraform and the Azure API are returning before deciding how best to incorporate the Default tag.</p>
+<h2 id="post-release-breaking-change-clean-up">Post Release Breaking Change Clean Up<a class="headerlink" href="#post-release-breaking-change-clean-up" title="Permanent link">#</a></h2>
+<p>Once the next major release has happened, all blocks of code that were conditionally included for that version (e.g. <code>if !features.FivePointOh() { ... }</code>) need to be removed. Most should be fine to simply remove, however there are a few things to watch out for:</p>
+<ol>
+<li>For typed resources, if you are removing a property, make sure you also remove it from the model(s). The fields should have a <code>removedInNextMajorVersion</code> tag. </li>
+<li>For typed resources, there may be properties that were only included once the major version was released, make sure you remove the <code>addedInNextMajorVersion</code> tag from these properties in the model(s).</li>
+<li>Confirm the documentation is up-to-date with what is in code, generally this should already be the case, but it's good to double-check.</li>
+</ol>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      HashiCorp
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+    
+  </body>
+</html>

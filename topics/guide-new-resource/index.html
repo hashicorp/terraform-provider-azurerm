@@ -1,0 +1,1853 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Contributor documentation and reference for the Terraform AzureRM Provider">
+      
+      
+      
+      
+        <link rel="prev" href="../guide-new-data-source/">
+      
+      
+        <link rel="next" href="../guide-new-fields-to-data-source/">
+      
+      <link rel="icon" href="../../images/hashicorp-black.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Adding a new Resource - Terraform AzureRM Provider - Contributor Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="hashicorp" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#guide-new-resource" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-header__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Terraform AzureRM Provider - Contributor Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Adding a new Resource
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-nav__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    Terraform AzureRM Provider - Contributor Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Welcome
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="false">
+          Basics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Basics" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Basics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high-level-overview/" class="md-nav__link">
+        Overview of the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-the-provider/" class="md-nav__link">
+        Building the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../debugging-the-provider/" class="md-nav__link">
+        Debugging the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../running-the-tests/" class="md-nav__link">
+        Running Tests
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-opening-a-pr/" class="md-nav__link">
+        Opening a Pull Request
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="true">
+          Guides
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-feature/" class="md-nav__link">
+        Adding a new Feature
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-service-package/" class="md-nav__link">
+        Adding a new Service Package
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-data-source/" class="md-nav__link">
+        Adding a new Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Adding a new Resource
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Adding a new Resource
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#related-topics" class="md-nav__link">
+    Related Topics
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stages" class="md-nav__link">
+    Stages
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-ensure-the-tools-are-installed" class="md-nav__link">
+    Step 1: Ensure the Tools are installed
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-add-an-sdk-client-if-required" class="md-nav__link">
+    Step 2: Add an SDK Client (if required)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-scaffold-an-emptynew-resource" class="md-nav__link">
+    Step 3: Scaffold an empty/new Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-register-the-new-resource" class="md-nav__link">
+    Step 4: Register the new Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-add-acceptance-tests-for-this-resource" class="md-nav__link">
+    Step 5: Add Acceptance Test(s) for this Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-run-the-acceptance-tests" class="md-nav__link">
+    Step 6: Run the Acceptance Test(s)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-add-documentation-for-this-resource" class="md-nav__link">
+    Step 7: Add Documentation for this Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-8-send-the-pull-request" class="md-nav__link">
+    Step 8: Send the Pull Request
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-data-source/" class="md-nav__link">
+        Adding fields to an existing Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-resource/" class="md-nav__link">
+        Adding fields to an existing Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-state-migrations/" class="md-nav__link">
+        Adding State Migrations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-breaking-changes/" class="md-nav__link">
+        Breaking Changes and Deprecations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource-vs-inline/" class="md-nav__link">
+        When to create a new Resource vs Inline Block
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="false">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-acceptance-testing/" class="md-nav__link">
+        Acceptance Testing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-glossary/" class="md-nav__link">
+        Glossary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-naming/" class="md-nav__link">
+        Naming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-documentation-standards/" class="md-nav__link">
+        Provider Documentation Standards
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-resource-ids/" class="md-nav__link">
+        Resource IDs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema-design-considerations/" class="md-nav__link">
+        Schema Design
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-errors/" class="md-nav__link">
+        Working with Errors
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="false">
+          Maintainers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Maintainers" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Maintainers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainer-changelog/" class="md-nav__link">
+        Updates to the Changelog
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frequently-asked-questions/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#related-topics" class="md-nav__link">
+    Related Topics
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stages" class="md-nav__link">
+    Stages
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-ensure-the-tools-are-installed" class="md-nav__link">
+    Step 1: Ensure the Tools are installed
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-add-an-sdk-client-if-required" class="md-nav__link">
+    Step 2: Add an SDK Client (if required)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-scaffold-an-emptynew-resource" class="md-nav__link">
+    Step 3: Scaffold an empty/new Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-register-the-new-resource" class="md-nav__link">
+    Step 4: Register the new Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-add-acceptance-tests-for-this-resource" class="md-nav__link">
+    Step 5: Add Acceptance Test(s) for this Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-run-the-acceptance-tests" class="md-nav__link">
+    Step 6: Run the Acceptance Test(s)
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-add-documentation-for-this-resource" class="md-nav__link">
+    Step 7: Add Documentation for this Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-8-send-the-pull-request" class="md-nav__link">
+    Step 8: Send the Pull Request
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+<h1 id="guide-new-resource">Guide: New Resource<a class="headerlink" href="#guide-new-resource" title="Permanent link">#</a></h1>
+<p>This guide covers adding a new Resource to a Service Package, see <a href="../guide-new-service-package/">adding a New Service Package</a> if the Service Package doesn't exist yet.</p>
+<h3 id="related-topics">Related Topics<a class="headerlink" href="#related-topics" title="Permanent link">#</a></h3>
+<ul>
+<li><a href="../reference-acceptance-testing/">Acceptance Testing</a></li>
+<li><a href="../guide-opening-a-pr/">Our Recommendations for opening a Pull Request</a></li>
+</ul>
+<h3 id="stages">Stages<a class="headerlink" href="#stages" title="Permanent link">#</a></h3>
+<p>At this point in time the AzureRM Provider supports both Typed and Untyped Resources - more information can be found <a href="../high-level-overview/">in the High Level Overview</a>.</p>
+<p>This guide covers adding a new Typed Resource, which makes uses the Typed SDK within this repository, which requires the following steps:</p>
+<ol>
+<li>Ensure all the dependencies are installed (see <a href="../building-the-provider/">Building the Provider</a>).</li>
+<li>Add an SDK Client (if required).</li>
+<li>Define the Resource ID.</li>
+<li>Scaffold an empty/new Resource.</li>
+<li>Register the new Resource.</li>
+<li>Add Acceptance Test(s) for this Resource.</li>
+<li>Run the Acceptance Test(s).</li>
+<li>Add Documentation for this Resource.</li>
+<li>Send the Pull Request.</li>
+</ol>
+<p>We'll go through each of those steps in turn, presuming that we're creating a Resource for a Resource Group.</p>
+<h3 id="step-1-ensure-the-tools-are-installed">Step 1: Ensure the Tools are installed<a class="headerlink" href="#step-1-ensure-the-tools-are-installed" title="Permanent link">#</a></h3>
+<p>See <a href="../building-the-provider/">Building the Provider</a>.</p>
+<h3 id="step-2-add-an-sdk-client-if-required">Step 2: Add an SDK Client (if required)<a class="headerlink" href="#step-2-add-an-sdk-client-if-required" title="Permanent link">#</a></h3>
+<p>This section covers how to add and configure the SDK Client.</p>
+<p>Determining which SDK Client you should be using is a little complicated unfortunately.</p>
+<p>The Client for the Service Package can be found in <code>./internal/services/{name}/client/client.go</code> - and we can add an instance of the SDK Client we want to use (here <code>resources.GroupsClient</code>) and configure it (adding credentials etc):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">client</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/common&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">Client</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">GroupsClient</span><span class="w"> </span><span class="o">*</span><span class="nx">resources</span><span class="p">.</span><span class="nx">GroupsClient</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">NewClient</span><span class="p">(</span><span class="nx">o</span><span class="w"> </span><span class="o">*</span><span class="nx">common</span><span class="p">.</span><span class="nx">ClientOptions</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="nx">Client</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">groupsClient</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">NewResourcesClientWithBaseURI</span><span class="p">(</span><span class="nx">o</span><span class="p">.</span><span class="nx">Environment</span><span class="p">.</span><span class="nx">ResourceManager</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;building Resources Client: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nx">o</span><span class="p">.</span><span class="nx">Configure</span><span class="p">(</span><span class="nx">groupsClient</span><span class="p">.</span><span class="nx">Client</span><span class="p">,</span><span class="w"> </span><span class="nx">o</span><span class="p">.</span><span class="nx">Authorizer</span><span class="p">.</span><span class="nx">ResourceManager</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c1">// ...</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">Client</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">GroupsClient</span><span class="p">:</span><span class="w"> </span><span class="nx">groupsClient</span><span class="p">,</span>
+<span class="w">    </span><span class="p">},</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Things worth noting here:</p>
+<ul>
+<li>The call to <code>o.Configure</code> configures the authorization token which should be used for this SDK Client - in most cases <code>ResourceManager</code> is the authorizer you want to use.</li>
+</ul>
+<p>At this point, this SDK Client should be usable within the Resource via:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.{</span><span class="nx">ServicePackage</span><span class="p">}.{</span><span class="nx">ClientField</span><span class="p">}</span>
+</code></pre></div>
+<p>For example, in this case:</p>
+<div class="highlight"><pre><span></span><code><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+</code></pre></div>
+<h3 id="step-3-scaffold-an-emptynew-resource">Step 3: Scaffold an empty/new Resource<a class="headerlink" href="#step-3-scaffold-an-emptynew-resource" title="Permanent link">#</a></h3>
+<p>Since we're creating a Resource for a Resource Group, which is a part of the Resources API - we'll want to create an empty Go file within the Service Package for Resources, which is located at <code>./internal/services/resource</code>.</p>
+<p>In this case, this'd be a file called <code>resource_group_example_resource.go</code>, which we'll start out with the following:</p>
+<blockquote>
+<p><strong>Note:</strong> We'd normally name this file <code>resource_group_resource.go</code> - but there's an existing Resource for Resource Groups, so we're appending <code>example</code> to the name throughout this guide.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">resource</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/sdk&quot;</span>
+
+<span class="kd">var</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ResourceGroupExampleResource</span><span class="p">{}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">ResourceGroupExampleResource</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{}</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> Your editor may show a suggestion to implement the methods defined in <code>sdk.Resource</code> for the <code>ResourceGroupExampleResource</code> struct - we'd recommend holding off the first time around to explain each of the methods.</p>
+</blockquote>
+<p>In this case the interface <code>sdk.Resource</code> defines all of the methods required for a Resource which the newly created struct for the Resource Group Resource need to implement, which are:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">Resource</span><span class="w"> </span><span class="kd">interface</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Arguments</span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">schema</span><span class="p">.</span><span class="nx">Schema</span>
+<span class="w">    </span><span class="nx">Attributes</span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">schema</span><span class="p">.</span><span class="nx">Schema</span>
+<span class="w">    </span><span class="nx">ModelObject</span><span class="p">()</span><span class="w"> </span><span class="kd">interface</span><span class="p">{}</span>
+<span class="w">    </span><span class="nx">ResourceType</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span>
+<span class="w">    </span><span class="nx">Create</span><span class="p">()</span><span class="w"> </span><span class="nx">ResourceFunc</span>
+<span class="w">    </span><span class="nx">Read</span><span class="p">()</span><span class="w"> </span><span class="nx">ResourceFunc</span>
+<span class="w">    </span><span class="nx">Delete</span><span class="p">()</span><span class="w"> </span><span class="nx">ResourceFunc</span>
+<span class="w">    </span><span class="nx">IDValidationFunc</span><span class="p">()</span><span class="w"> </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">SchemaValidateFunc</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>To go through these in turn:</p>
+<ul>
+<li><code>Arguments</code> returns a list of schema fields which are user-specifiable - either Required or Optional.</li>
+<li><code>Attributes</code> returns a list of schema fields which are Computed (read-only).</li>
+<li><code>ModelObject</code> returns a reference to a Go struct which is used as the Model for this Resource (this can also return <code>nil</code> if there's no model).</li>
+<li><code>ResourceType</code> returns the name of this resource within the Provider (for example <code>azurerm_resource_group_example</code>).</li>
+<li><code>Create</code> returns a function defining both the Timeout and the Create function (which creates this Resource Group using the Azure API) for this Resource.</li>
+<li><code>Read</code> returns a function defining both the Timeout and the Read function (which retrieves information from the Azure API) for this Resource.</li>
+<li><code>Delete</code> returns a function defining both the Timeout and the Delete function (which deletes this Resource Group using the Azure API) for this Resource.</li>
+<li><code>IDValidationFunc</code> returns a function which validates the Resource ID provided during <code>terraform import</code> to ensure it matches what we expect for this Resource.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">ResourceGroupExampleResourceModel</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Name</span><span class="w">     </span><span class="kt">string</span><span class="w">            </span><span class="s">`tfschema:&quot;name&quot;`</span>
+<span class="w">    </span><span class="nx">Location</span><span class="w"> </span><span class="kt">string</span><span class="w">            </span><span class="s">`tfschema:&quot;location&quot;`</span>
+<span class="w">    </span><span class="nx">Tags</span><span class="w">     </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="w"> </span><span class="s">`tfschema:&quot;tags&quot;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Arguments</span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Type</span><span class="p">:</span><span class="w">         </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">TypeString</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Required</span><span class="p">:</span><span class="w">     </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">ValidateFunc</span><span class="p">:</span><span class="w"> </span><span class="nx">validation</span><span class="p">.</span><span class="nx">StringIsNotEmpty</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+
+<span class="w">        </span><span class="s">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">commonschema</span><span class="p">.</span><span class="nx">Location</span><span class="p">(),</span>
+
+<span class="w">        </span><span class="s">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">tags</span><span class="p">.</span><span class="nx">Schema</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Attributes</span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">ModelObject</span><span class="p">()</span><span class="w"> </span><span class="kd">interface</span><span class="p">{}</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">ResourceGroupExampleResourceModel</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">ResourceType</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;azurerm_resource_group_example&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p>In this case we're using the resource type <code>azurerm_resource_group_example</code> as <a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group">an existing Resource for <code>azurerm_resource_group</code> exists</a> and the names need to be unique.</p>
+</blockquote>
+<p>These functions define a Resource called <code>azurerm_resource_group_example</code>, which has two Required arguments (<code>name</code> and <code>location</code>) and one Optional argument (<code>tags</code>). We'll come back to <code>ModelObject</code> later.</p>
+<p>Schema fields should be ordered as follows:</p>
+<ol>
+<li>Any fields that make up the resource's ID, with the last user specified segment (usually the resource's name) first. (e.g. <code>name</code> then <code>resource_group_name</code>, or <code>name</code> then <code>parent_resource_id</code>)</li>
+<li>The <code>location</code> field.</li>
+<li>Required fields, sorted alphabetically.</li>
+<li>Optional fields, sorted alphabetically.</li>
+<li>Computed fields, sorted alphabetically. (Although in a typed resource these are always added within the <code>Attributes</code> method)</li>
+</ol>
+<hr />
+<p>Let's start by implementing the Create function:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Create</span><span class="p">()</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// the Timeout is how long Terraform should wait for this function to run before returning an error</span>
+<span class="w">        </span><span class="c1">// whilst 30 minutes may initially seem excessive, we set this as a default to account for rate</span>
+<span class="w">        </span><span class="c1">// limiting - but having this here means that users can override this in their config as necessary</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>
+
+<span class="w">        </span><span class="c1">// the Func returns a function which retrieves the current state of the Resource Group into the state</span>
+<span class="w">        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+
+<span class="w">            </span><span class="c1">// retrieve the Name for this Resource Group from the Terraform Config</span>
+<span class="w">            </span><span class="c1">// and then create a Resource ID for this Resource Group</span>
+<span class="w">            </span><span class="c1">// using the Subscription ID &amp; name</span>
+<span class="w">            </span><span class="nx">subscriptionId</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Account</span><span class="p">.</span><span class="nx">SubscriptionId</span>
+
+<span class="w">            </span><span class="kd">var</span><span class="w"> </span><span class="nx">config</span><span class="w"> </span><span class="nx">ResourceGroupExampleResourceModel</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Decode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">config</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;decoding: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="nx">id</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">NewResourceGroupID</span><span class="p">(</span><span class="nx">subscriptionId</span><span class="p">,</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+
+<span class="w">            </span><span class="c1">// then we want to check for the presence of an existing resource with the resource&#39;s ID</span>
+<span class="w">            </span><span class="c1">// this is because the Azure API uses the `name` as a unique idenfitier and Upserts</span>
+<span class="w">            </span><span class="c1">// so we don&#39;t want to unintentionally adopt this resource by using the same name</span>
+<span class="w">            </span><span class="nx">existing</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">)</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">!</span><span class="nx">response</span><span class="p">.</span><span class="nx">WasNotFound</span><span class="p">(</span><span class="nx">existing</span><span class="p">.</span><span class="nx">HttpResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;checking for presence of existing %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">response</span><span class="p">.</span><span class="nx">WasNotFound</span><span class="p">(</span><span class="nx">existing</span><span class="p">.</span><span class="nx">HttpResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceRequiresImport</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">ResourceType</span><span class="p">(),</span><span class="w"> </span><span class="nx">id</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// create the Resource Group</span>
+<span class="w">            </span><span class="nx">param</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">Group</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">Location</span><span class="p">:</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">location</span><span class="p">.</span><span class="nx">Normalize</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">Location</span><span class="p">)),</span>
+<span class="w">                </span><span class="nx">Tags</span><span class="p">:</span><span class="w">     </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">Tags</span><span class="p">),</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">CreateOrUpdate</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">param</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;creating %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// set the Resource ID, meaning that we track this resource</span>
+<span class="w">            </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">SetID</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Let's implement the Update function:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Update</span><span class="p">()</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// the Timeout is how long Terraform should wait for this function to run before returning an error</span>
+<span class="w">        </span><span class="c1">// whilst 30 minutes may initially seem excessive, we set this as a default to account for rate</span>
+<span class="w">        </span><span class="c1">// limiting - but having this here means that users can override this in their config as necessary</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>
+
+<span class="w">        </span><span class="c1">// the Func returns a function which retrieves the current state of the Resource Group into the state</span>
+<span class="w">        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+
+<span class="w">            </span><span class="c1">// parse the existing Resource ID from the State</span>
+<span class="w">            </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ParseResourceGroupID</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">.</span><span class="nx">Id</span><span class="p">())</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="kd">var</span><span class="w"> </span><span class="nx">config</span><span class="w"> </span><span class="nx">ResourceGroupExampleResourceModel</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Decode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">config</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;decoding: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="c1">// update the Resource Group</span>
+<span class="w">            </span><span class="c1">// NOTE: for a more complex resource we&#39;d recommend retrieving the existing Resource from the</span>
+<span class="w">            </span><span class="c1">// API and then conditionally updating it when fields in the config have been updated, which</span>
+<span class="w">            </span><span class="c1">// can be determined by using `metadata.ResourceData.HasChange` - for example:</span>
+<span class="w">            </span><span class="c1">//</span>
+<span class="w">            </span><span class="c1">//   existing, err := client.Get(ctx, *id)</span>
+<span class="w">            </span><span class="c1">//   if err != nil {</span>
+<span class="w">            </span><span class="c1">//     return fmt.Errorf(&quot;retrieving %s: %+v&quot;, *id, err)</span>
+<span class="w">            </span><span class="c1">//   }</span>
+<span class="w">            </span><span class="c1">//</span>
+<span class="w">            </span><span class="c1">// Although the SDK will catch and error in cases where Model is nil we should still check for</span>
+<span class="w">            </span><span class="c1">// a non-nil Model and nested Properties object to prevent panics</span>
+<span class="w">            </span><span class="c1">//   if existing.Model == nil {</span>
+<span class="w">            </span><span class="c1">//      return fmt.Errorf(&quot;retrieving %s: `model` was nil&quot;, id)</span>
+<span class="w">            </span><span class="c1">//   }</span>
+<span class="w">            </span><span class="c1">//   if existing.Model.Properties == nil {</span>
+<span class="w">            </span><span class="c1">//      return fmt.Errorf(&quot;retrieving %s: `properties` was nil&quot;, id)</span>
+<span class="w">            </span><span class="c1">//   }</span>
+<span class="w">            </span><span class="c1">//</span>
+<span class="w">            </span><span class="c1">//   if metadata.ResourceData.HasChange(&quot;tags&quot;) {</span>
+<span class="w">            </span><span class="c1">//     existing.Model.Properties.Tags = tags.Expand(config.Tags)</span>
+<span class="w">            </span><span class="c1">//   }</span>
+<span class="w">            </span><span class="c1">//</span>
+<span class="w">            </span><span class="c1">// doing so allows users to take advantage of Terraform&#39;s `ignore_changes` functionality.</span>
+<span class="w">            </span><span class="c1">//</span>
+<span class="w">            </span><span class="c1">// However since a Resource Group only has one field which is updatable (tags) we&#39;ll only</span>
+<span class="w">            </span><span class="c1">// enter the update function if `tags` has been updated.</span>
+<span class="w">            </span><span class="nx">param</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">Group</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">Location</span><span class="p">:</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">location</span><span class="p">.</span><span class="nx">Normalize</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">Location</span><span class="p">)),</span>
+<span class="w">                </span><span class="nx">Tags</span><span class="p">:</span><span class="w">     </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">Tags</span><span class="p">),</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">CreateOrUpdate</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">param</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;updating %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">            </span><span class="c1">// The Update function in **untyped** resources should return `Read()`</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<p>Next up, let's implement the Read function - which retrieves the information about the Resource Group from Azure:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Read</span><span class="p">()</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// the Timeout is how long Terraform should wait for this function to run before returning an error</span>
+<span class="w">        </span><span class="c1">// whilst 5 minutes may initially seem excessive, we set this as a default to account for rate</span>
+<span class="w">        </span><span class="c1">// limiting - but having this here means that users can override this in their config as necessary</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>
+
+<span class="w">        </span><span class="c1">// the Func returns a function which looks up the state of the Resource Group and sets it into the state</span>
+<span class="w">        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+
+<span class="w">            </span><span class="c1">// parse the Resource Group ID from the `id` field</span>
+<span class="w">            </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ParseResourceGroupID</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">.</span><span class="nx">Id</span><span class="p">())</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// then retrieve the Resource Group by its ID</span>
+<span class="w">            </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// if the Resource Group doesn&#39;t exist (e.g. we get a 404 Not Found)</span>
+<span class="w">                </span><span class="c1">// since this is a Resource (e.g. we created it/it was imported into the state)</span>
+<span class="w">                </span><span class="c1">// it previously existed - so we must mark this as &quot;gone&quot; for Terraform</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">WasNotFound</span><span class="p">(</span><span class="nx">resp</span><span class="p">.</span><span class="nx">HttpResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">MarkAsGone</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">                </span><span class="p">}</span>
+
+<span class="w">                </span><span class="c1">// otherwise it&#39;s a genuine error (auth/api error etc) so raise it</span>
+<span class="w">                </span><span class="c1">// there should be enough context for the user to interpret the error</span>
+<span class="w">                </span><span class="c1">// or raise a bug report if there&#39;s something we should handle</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;retrieving %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// at this point we can set information about this Resource Group into the State</span>
+<span class="w">            </span><span class="c1">// identifier fields such as the name, resource group name to name a few need to be sourced</span>
+<span class="w">            </span><span class="c1">// from the Resource ID instead of the API response</span>
+<span class="w">            </span><span class="nx">state</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ResourceGroupExampleResourceModel</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="nx">id</span><span class="p">.</span><span class="nx">ResourceGroupName</span><span class="p">,</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// the SDK will return a Model as well as a nested Properties object for the resource</span>
+<span class="w">            </span><span class="c1">// for readability and consistency we assign the Model to a variable and nil check as shown below.</span>
+<span class="w">            </span><span class="c1">// since the SDK accounts for responses where the Model is nil we do not need to throw an error if</span>
+<span class="w">            </span><span class="c1">// the Model is nil since this will be caught earlier on. We still nil check to prevent the provider from</span>
+<span class="w">            </span><span class="c1">// crashing.</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">model</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resp</span><span class="p">.</span><span class="nx">Model</span><span class="p">;</span><span class="w"> </span><span class="nx">model</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="c1">// the Location field is a little different - and we have a normalization</span>
+<span class="w">                </span><span class="c1">// function for this.</span>
+
+<span class="w">                </span><span class="c1">// whilst this may seem like a weird thing to call out in an example, because these two fields</span>
+<span class="w">                </span><span class="c1">// are present on the majority of resources, we hope it explains why they&#39;re a little different</span>
+
+<span class="w">                </span><span class="c1">// in this case the Location can be returned in various different forms, for example</span>
+<span class="w">                </span><span class="c1">// &quot;West Europe&quot;, &quot;WestEurope&quot; or &quot;westeurope&quot; - as such we normalize these into a</span>
+<span class="w">                </span><span class="c1">// lower-cased singular word with no spaces (e.g. &quot;westeurope&quot;) so this is consistent</span>
+<span class="w">                </span><span class="c1">// for users</span>
+<span class="w">                </span><span class="nx">state</span><span class="p">.</span><span class="nx">Location</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">location</span><span class="p">.</span><span class="nx">NormalizeNilable</span><span class="p">(</span><span class="nx">model</span><span class="p">.</span><span class="nx">Location</span><span class="p">)</span>
+<span class="w">                </span><span class="nx">state</span><span class="p">.</span><span class="nx">Tags</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="nx">model</span><span class="p">.</span><span class="nx">Tags</span><span class="p">)</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="nx">props</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">model</span><span class="p">.</span><span class="nx">Properties</span><span class="p">;</span><span class="w"> </span><span class="nx">props</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="c1">// if there are properties to set into state do that here</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Encode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">state</span><span class="p">)</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<p>Next we can add the Delete function:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Delete</span><span class="p">()</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// the Timeout is how long Terraform should wait for this function to run before returning an error</span>
+<span class="w">        </span><span class="c1">// whilst 30 minutes may initially seem excessive, it can take a while to delete the nested items</span>
+<span class="w">        </span><span class="c1">// particularly if we&#39;re rate-limited - but users can override this in their config as necessary</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>
+
+<span class="w">        </span><span class="c1">// the Func returns a function which deletes the Resource Group</span>
+<span class="w">        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+
+<span class="w">            </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ParseResourceGroupID</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">.</span><span class="nx">Id</span><span class="p">())</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="c1">// trigger the deletion of the Resource Group</span>
+<span class="w">            </span><span class="c1">// Delete calls that require request options can be populated by the `DefaultDeleteOperationOptions()`</span>
+<span class="w">            </span><span class="c1">// method in the SDK</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">DeleteThenPoll</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">DefaultDeleteOperationOptions</span><span class="p">());</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;deleting %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<p>Finally we can add the <code>IDValidationFunc</code> function:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">IDValidationFunc</span><span class="p">()</span><span class="w"> </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">SchemaValidateFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ValidateResourceGroupID</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<p>At this point the finished Resource should look like (including imports):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">resource</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;time&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-09-01/resources&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/go-azure-helpers/resourcemanager/location&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/go-azure-helpers/resourcemanager/tags&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/sdk&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">var</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ResourceGroupExampleResource</span><span class="p">{}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">ResourceGroupExampleResource</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">ResourceGroupExampleResourceModel</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">Name</span><span class="w">     </span><span class="kt">string</span><span class="w">            </span><span class="s">`tfschema:&quot;name&quot;`</span>
+<span class="w">    </span><span class="nx">Location</span><span class="w"> </span><span class="kt">string</span><span class="w">            </span><span class="s">`tfschema:&quot;location&quot;`</span>
+<span class="w">    </span><span class="nx">Tags</span><span class="w">     </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="w"> </span><span class="s">`tfschema:&quot;tags&quot;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Arguments</span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Type</span><span class="p">:</span><span class="w">         </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">TypeString</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">Required</span><span class="p">:</span><span class="w">     </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nx">ValidateFunc</span><span class="p">:</span><span class="w"> </span><span class="nx">validation</span><span class="p">.</span><span class="nx">StringIsNotEmpty</span><span class="p">,</span>
+<span class="w">        </span><span class="p">},</span>
+
+<span class="w">        </span><span class="s">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">commonschema</span><span class="p">.</span><span class="nx">Location</span><span class="p">(),</span>
+
+<span class="w">        </span><span class="s">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">commonschema</span><span class="p">.</span><span class="nx">Tags</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Attributes</span><span class="p">()</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">ModelObject</span><span class="p">()</span><span class="w"> </span><span class="kd">interface</span><span class="p">{}</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">ResourceGroupExampleResourceModel</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">ResourceType</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;azurerm_resource_group_example&quot;</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Create</span><span class="p">()</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+<span class="w">            </span><span class="nx">subscriptionId</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Account</span><span class="p">.</span><span class="nx">SubscriptionId</span>
+
+<span class="w">            </span><span class="kd">var</span><span class="w"> </span><span class="nx">config</span><span class="w"> </span><span class="nx">ResourceGroupExampleResourceModel</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Decode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">config</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;decoding: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="nx">id</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">NewResourceGroupID</span><span class="p">(</span><span class="nx">subscriptionId</span><span class="p">,</span><span class="w"> </span><span class="nx">config</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+
+<span class="w">            </span><span class="nx">existing</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">)</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">!</span><span class="nx">response</span><span class="p">.</span><span class="nx">WasNotFound</span><span class="p">(</span><span class="nx">existing</span><span class="p">.</span><span class="nx">HttpResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;checking for presence of existing %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">response</span><span class="p">.</span><span class="nx">WasNotFound</span><span class="p">(</span><span class="nx">existing</span><span class="p">.</span><span class="nx">HttpResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceRequiresImport</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">ResourceType</span><span class="p">(),</span><span class="w"> </span><span class="nx">id</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="nx">param</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">Group</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">Location</span><span class="p">:</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">location</span><span class="p">.</span><span class="nx">Normalize</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">Location</span><span class="p">)),</span>
+<span class="w">                </span><span class="nx">Tags</span><span class="p">:</span><span class="w">     </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">Tags</span><span class="p">),</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">CreateOrUpdate</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">param</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;creating %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">SetID</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Update</span><span class="p">()</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+
+<span class="w">            </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ParseResourceGroupID</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">.</span><span class="nx">Id</span><span class="p">())</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="kd">var</span><span class="w"> </span><span class="nx">config</span><span class="w"> </span><span class="nx">ResourceGroupExampleResourceModel</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Decode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">config</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;decoding: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="nx">param</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">Group</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">Location</span><span class="p">:</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">location</span><span class="p">.</span><span class="nx">Normalize</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">Location</span><span class="p">)),</span>
+<span class="w">                </span><span class="nx">Tags</span><span class="p">:</span><span class="w">     </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">config</span><span class="p">.</span><span class="nx">Tags</span><span class="p">),</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">CreateOrUpdate</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">param</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;updating %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Read</span><span class="p">()</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+
+<span class="w">            </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ParseResourceGroupID</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">.</span><span class="nx">Id</span><span class="p">())</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">WasNotFound</span><span class="p">(</span><span class="nx">resp</span><span class="p">.</span><span class="nx">HttpResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="k">return</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">MarkAsGone</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">                </span><span class="p">}</span>
+
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;retrieving %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+
+<span class="w">            </span><span class="nx">state</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ResourceGroupExampleResourceModel</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="nx">id</span><span class="p">.</span><span class="nx">ResourceGroupName</span><span class="p">,</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">model</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resp</span><span class="p">.</span><span class="nx">Model</span><span class="p">;</span><span class="w"> </span><span class="nx">model</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">state</span><span class="p">.</span><span class="nx">Location</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">location</span><span class="p">.</span><span class="nx">NormalizeNilable</span><span class="p">(</span><span class="nx">model</span><span class="p">.</span><span class="nx">Location</span><span class="p">)</span>
+<span class="w">                </span><span class="nx">state</span><span class="p">.</span><span class="nx">Tags</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="nx">model</span><span class="p">.</span><span class="nx">Tags</span><span class="p">)</span>
+<span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="nx">props</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">model</span><span class="p">.</span><span class="nx">Properties</span><span class="p">;</span><span class="w"> </span><span class="nx">props</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="c1">// if there are properties to set into state do that here</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Encode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">state</span><span class="p">)</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Delete</span><span class="p">()</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceFunc</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>
+<span class="w">        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span>
+
+<span class="w">            </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ParseResourceGroupID</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">.</span><span class="nx">Id</span><span class="p">())</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">DeleteThenPoll</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">DefaultDeleteOperationOptions</span><span class="p">());</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;deleting %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">IDValidationFunc</span><span class="p">()</span><span class="w"> </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">SchemaValidateFunc</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ValidateResourceGroupID</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>At this point in time this Resource is now code-complete.</p>
+<p>Things worth noting here:</p>
+<ul>
+<li>In addition to the <code>sdk.Resource</code> interface, we also have other interfaces, such as the <code>sdk.ResourceWithUpdate</code> interface, which includes an <code>update</code> method. Since these interfaces inherit from <code>sdk.Resource</code>, you do not need to redefine the <code>sdk.Resource</code> interface when defining them.</li>
+</ul>
+<p>For example, in this case:</p>
+<p>:white_check_mark: <strong>DO</strong></p>
+<div class="highlight"><pre><span></span><code>var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
+</code></pre></div>
+<p>:no_entry: <strong>DO NOT</strong></p>
+<div class="highlight"><pre><span></span><code>var (
+    _ sdk.Resource           = ResourceGroupExampleResource{}
+    _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
+)
+</code></pre></div>
+<ul>
+<li>Sometimes, for complex data types like <code>pluginsdk.TypeList</code>, we need to define <code>expand</code> and <code>flatten</code> methods. When defining such methods, please make sure to define them as global methods.</li>
+</ul>
+<p>For example, in this case:</p>
+<p>:white_check_mark: <strong>DO</strong></p>
+<div class="highlight"><pre><span></span><code>func expandComplexResource(input []ComplexResource) *resource.ComplexResource {
+    ...
+}
+</code></pre></div>
+<p>:no_entry: <strong>DO NOT</strong></p>
+<div class="highlight"><pre><span></span><code>func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResource) *resource.ComplexResource {
+    ...
+}
+</code></pre></div>
+<ul>
+<li>Historically, we used <code>pluginsdk.StateChangeConf</code> to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this <a href="https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go">example</a>.</li>
+</ul>
+<h3 id="step-4-register-the-new-resource">Step 4: Register the new Resource<a class="headerlink" href="#step-4-register-the-new-resource" title="Permanent link">#</a></h3>
+<p>Resources are registered within the <code>registration.go</code> within each Service Package - and should look something like this:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">resource</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/sdk&quot;</span>
+
+<span class="kd">var</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">TypedServiceRegistration</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">Registration</span><span class="p">{}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">Registration</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="c1">// ...</span>
+
+<span class="c1">// Resources returns a list of Resources supported by this Service</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">Registration</span><span class="p">)</span><span class="w"> </span><span class="nx">Resources</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div>
+<hr />
+<blockquote>
+<p><strong>Note:</strong> It's possible that the Service Registration (above) doesn't currently support Typed Resources, in which case you may need to add the following:</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="kd">var</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">TypedServiceRegistration</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">Registration</span><span class="p">{}</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">Registration</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">Registration</span><span class="p">)</span><span class="w"> </span><span class="nx">Name</span><span class="p">()</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;Some Service&quot;</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">Registration</span><span class="p">)</span><span class="w"> </span><span class="nx">DataSources</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">DataSource</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">DataSource</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">Registration</span><span class="p">)</span><span class="w"> </span><span class="nx">Resources</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="p">{}</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">Registration</span><span class="p">)</span><span class="w"> </span><span class="nx">WebsiteCategories</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[]</span><span class="kt">string</span><span class="p">{</span>
+<span class="w">        </span><span class="s">&quot;Some Service&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<blockquote>
+<p>In this case you'll also need to add a line to register this Service Registration <a href="https://github.com/hashicorp/terraform-provider-azurerm/blob/bd7c755b789fa131778ef93824cf3bae5caccf56/internal/provider/services.go#L109">in the list of Typed Service Registrations</a>.</p>
+</blockquote>
+<hr />
+<p>To register the Resource we need to add an instance of the struct used for the Resource to the list of Resources, for example:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Resources returns a list of Resources supported by this Service</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">Registration</span><span class="p">)</span><span class="w"> </span><span class="nx">Resources</span><span class="p">()</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="p">[]</span><span class="nx">sdk</span><span class="p">.</span><span class="nx">Resource</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">ResourceGroupExampleResource</span><span class="p">{},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>At this point the Resource is registered, as when the Azure Provider builds up a list of supported Resources during initialization, it parses each of the Service Registrations to put together a definitive list of the Resources that we support.</p>
+<p>This means that if you <a href="../building-the-provider/">Build the Provider</a>, at this point you should be able to apply the following Resource:</p>
+<div class="highlight"><pre><span></span><code>provider &quot;azurerm&quot; {
+  features {}
+}
+
+resource &quot;azurerm_resource_group_example&quot; &quot;test&quot; {
+  name     = &quot;example-resources&quot;
+  location = &quot;West Europe&quot;
+}
+
+output &quot;id&quot; {
+  value = azurerm_resource_group_example.test.id
+}
+</code></pre></div>
+<h3 id="step-5-add-acceptance-tests-for-this-resource">Step 5: Add Acceptance Test(s) for this Resource<a class="headerlink" href="#step-5-add-acceptance-tests-for-this-resource" title="Permanent link">#</a></h3>
+<p>We're going to test the Resource that we've just built by dynamically provisioning a Resource Group using the new <code>azurerm_resource_group_example</code> Resource.</p>
+<p>In Go tests are expected to be in a file name in the format <code>{original_file_name}_test.go</code> - in our case that'd be <code>resource_group_example_resource_test.go</code>, into which we'll want to add:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">package</span><span class="w"> </span><span class="nx">resource_test</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="s">&quot;context&quot;</span>
+<span class="w">    </span><span class="s">&quot;fmt&quot;</span>
+<span class="w">    </span><span class="s">&quot;testing&quot;</span>
+
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/acceptance&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/clients&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk&quot;</span>
+<span class="w">    </span><span class="s">&quot;github.com/hashicorp/terraform-provider-azurerm/utils&quot;</span>
+<span class="p">)</span>
+
+<span class="kd">type</span><span class="w"> </span><span class="nx">ResourceGroupExampleTestResource</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">TestAccResourceGroupExample_basic</span><span class="p">(</span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">BuildTestData</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;azurerm_resource_group_example&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ResourceGroupExampleTestResource</span><span class="p">{}</span>
+
+<span class="w">    </span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceTest</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestStep</span><span class="p">{</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Config</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">basic</span><span class="p">(</span><span class="nx">data</span><span class="p">),</span>
+<span class="w">            </span><span class="nx">Check</span><span class="p">:</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">ComposeTestCheckFunc</span><span class="p">(</span>
+<span class="w">                </span><span class="nx">check</span><span class="p">.</span><span class="nx">That</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceName</span><span class="p">).</span><span class="nx">ExistsInAzure</span><span class="p">(</span><span class="nx">r</span><span class="p">),</span>
+<span class="w">            </span><span class="p">),</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">data</span><span class="p">.</span><span class="nx">ImportStep</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">TestAccResourceGroupExample_requiresImport</span><span class="p">(</span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">BuildTestData</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;azurerm_resource_group_example&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ResourceGroupExampleTestResource</span><span class="p">{}</span>
+
+<span class="w">    </span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceTest</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestStep</span><span class="p">{</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Config</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">basic</span><span class="p">(</span><span class="nx">data</span><span class="p">),</span>
+<span class="w">            </span><span class="nx">Check</span><span class="p">:</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">ComposeTestCheckFunc</span><span class="p">(</span>
+<span class="w">                </span><span class="nx">check</span><span class="p">.</span><span class="nx">That</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceName</span><span class="p">).</span><span class="nx">ExistsInAzure</span><span class="p">(</span><span class="nx">r</span><span class="p">),</span>
+<span class="w">            </span><span class="p">),</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">data</span><span class="p">.</span><span class="nx">RequiresImportErrorStep</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">requiresImport</span><span class="p">),</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">TestAccResourceGroupExample_complete</span><span class="p">(</span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">BuildTestData</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;azurerm_resource_group_example&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ResourceGroupExampleTestResource</span><span class="p">{}</span>
+
+<span class="w">    </span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceTest</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestStep</span><span class="p">{</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Config</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">complete</span><span class="p">(</span><span class="nx">data</span><span class="p">),</span>
+<span class="w">            </span><span class="nx">Check</span><span class="p">:</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">ComposeTestCheckFunc</span><span class="p">(</span>
+<span class="w">                </span><span class="nx">check</span><span class="p">.</span><span class="nx">That</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceName</span><span class="p">).</span><span class="nx">ExistsInAzure</span><span class="p">(</span><span class="nx">r</span><span class="p">),</span>
+<span class="w">            </span><span class="p">),</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">data</span><span class="p">.</span><span class="nx">ImportStep</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="nx">TestAccResourceGroupExample_update</span><span class="p">(</span><span class="nx">t</span><span class="w"> </span><span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">data</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">BuildTestData</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;azurerm_resource_group_example&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;test&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ResourceGroupExampleTestResource</span><span class="p">{}</span>
+
+<span class="w">    </span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceTest</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">,</span><span class="w"> </span><span class="p">[]</span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestStep</span><span class="p">{</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Config</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">basic</span><span class="p">(</span><span class="nx">data</span><span class="p">),</span>
+<span class="w">            </span><span class="nx">Check</span><span class="p">:</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">ComposeTestCheckFunc</span><span class="p">(</span>
+<span class="w">                </span><span class="nx">check</span><span class="p">.</span><span class="nx">That</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceName</span><span class="p">).</span><span class="nx">ExistsInAzure</span><span class="p">(</span><span class="nx">r</span><span class="p">),</span>
+<span class="w">            </span><span class="p">),</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">data</span><span class="p">.</span><span class="nx">ImportStep</span><span class="p">(),</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">Config</span><span class="p">:</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">complete</span><span class="p">(</span><span class="nx">data</span><span class="p">),</span>
+<span class="w">            </span><span class="nx">Check</span><span class="p">:</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">ComposeTestCheckFunc</span><span class="p">(</span>
+<span class="w">                </span><span class="nx">check</span><span class="p">.</span><span class="nx">That</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceName</span><span class="p">).</span><span class="nx">ExistsInAzure</span><span class="p">(</span><span class="nx">r</span><span class="p">),</span>
+<span class="w">            </span><span class="p">),</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nx">data</span><span class="p">.</span><span class="nx">ImportStep</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">})</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleTestResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Exists</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">client</span><span class="w"> </span><span class="o">*</span><span class="nx">clients</span><span class="p">.</span><span class="nx">Client</span><span class="p">,</span><span class="w"> </span><span class="nx">state</span><span class="w"> </span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">InstanceState</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="kt">bool</span><span class="p">,</span><span class="w"> </span><span class="kt">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resources</span><span class="p">.</span><span class="nx">ParseResourceGroupID</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">Resource</span><span class="p">.</span><span class="nx">GroupsClient</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="kc">nil</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;retrieving %s: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">To</span><span class="p">(</span><span class="nx">resp</span><span class="p">.</span><span class="nx">Model</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="p">),</span><span class="w"> </span><span class="kc">nil</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleTestResource</span><span class="p">)</span><span class="w"> </span><span class="nx">basic</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestData</span><span class="p">)</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">`</span>
+<span class="s">provider &quot;azurerm&quot; {</span>
+<span class="s">  features {}</span>
+<span class="s">}</span>
+
+<span class="s">resource &quot;azurerm_resource_group_example&quot; &quot;test&quot; {</span>
+<span class="s">  name     = &quot;acctestRG-%d&quot;</span>
+<span class="s">  location = &quot;%s&quot;</span>
+<span class="s">}</span>
+<span class="s">`</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">RandomInteger</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">Locations</span><span class="p">.</span><span class="nx">Primary</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">ResourceGroupExampleTestResource</span><span class="p">)</span><span class="w"> </span><span class="nx">requiresImport</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestData</span><span class="p">)</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">`</span>
+<span class="s">%s</span>
+
+<span class="s">resource &quot;azurerm_resource_group_example&quot; &quot;import&quot; {</span>
+<span class="s">  name     = azurerm_resource_group_example.test.name</span>
+<span class="s">  location = azurerm_resource_group_example.test.location</span>
+<span class="s">}</span>
+<span class="s">`</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">basic</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ResourceGroupExampleTestResource</span><span class="p">)</span><span class="w"> </span><span class="nx">complete</span><span class="p">(</span><span class="nx">data</span><span class="w"> </span><span class="nx">acceptance</span><span class="p">.</span><span class="nx">TestData</span><span class="p">)</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">`</span>
+<span class="s">provider &quot;azurerm&quot; {</span>
+<span class="s">  features {}</span>
+<span class="s">}</span>
+
+<span class="s">resource &quot;azurerm_resource_group_example&quot; &quot;test&quot; {</span>
+<span class="s">  name     = &quot;acctestRG-%d&quot;</span>
+<span class="s">  location = &quot;%s&quot;</span>
+
+<span class="s">  tags = {</span>
+<span class="s">    Hello = &quot;World&quot;</span>
+<span class="s">  }</span>
+<span class="s">}</span>
+<span class="s">`</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">RandomInteger</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">Locations</span><span class="p">.</span><span class="nx">Primary</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>There's a more detailed breakdown of how this works <a href="../reference-acceptance-testing/">in the Acceptance Testing reference</a> - but to summarize what's going on here:</p>
+<ol>
+<li>Test Terraform Configurations are defined as methods on the struct <code>ResourceGroupExampleResource</code> so that they're easily accessible (this helps to avoid them being unintentionally used in other resources).</li>
+<li>The <code>acceptance.TestData</code> object contains a number of helpers, including both random integers, strings and the Azure Locations where resources should be provisioned - which are used to ensure when tests are run in parallel that we provision unique resources for testing purposes.</li>
+<li>The <code>ApplyStep</code>'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. <code>terraform apply</code> and then checking that <code>terraform plan</code> shows no changes).</li>
+<li>The <code>ImportStep</code> takes the Resource ID for the Resource and runs <code>terraform import azurerm_resource_group_example.test {resourceId}</code>, checking that the fields defined in the state match the fields returned from the Read function.</li>
+<li>We append <code>_test</code> to the Go package name (e.g. <code>resource_test</code>) since we need to be able to access both the <code>resource</code> package and the <code>acceptance</code> package (which is a circular reference, otherwise).</li>
+</ol>
+<p>At this point we should be able to run this test.</p>
+<h3 id="step-6-run-the-acceptance-tests">Step 6: Run the Acceptance Test(s)<a class="headerlink" href="#step-6-run-the-acceptance-tests" title="Permanent link">#</a></h3>
+<p>Detailed <a href="../running-the-tests/">instructions on Running the Tests can be found in this guide</a> - when a Service Principal is configured you can run the test above using:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>acctests<span class="w"> </span><span class="nv">SERVICE</span><span class="o">=</span><span class="s1">&#39;resource&#39;</span><span class="w"> </span><span class="nv">TESTARGS</span><span class="o">=</span><span class="s1">&#39;-run=TestAccResourceGroupExample_&#39;</span><span class="w"> </span><span class="nv">TESTTIMEOUT</span><span class="o">=</span><span class="s1">&#39;60m&#39;</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Note:</strong> We're using the test prefix <code>TestAccResourceGroupExample_</code> and not the name of an individual test, but you can do that too by specifying <code>"(TestName1|TestName2)"</code> etc</p>
+</blockquote>
+<p>Which should output:</p>
+<div class="highlight"><pre><span></span><code><span class="o">==</span>&gt;<span class="w"> </span>Checking<span class="w"> </span>that<span class="w"> </span>code<span class="w"> </span>complies<span class="w"> </span>with<span class="w"> </span>gofmt<span class="w"> </span>requirements...
+<span class="o">==</span>&gt;<span class="w"> </span>Checking<span class="w"> </span>that<span class="w"> </span>Custom<span class="w"> </span>Timeouts<span class="w"> </span>are<span class="w"> </span>used...
+<span class="o">==</span>&gt;<span class="w"> </span>Checking<span class="w"> </span>that<span class="w"> </span>acceptance<span class="w"> </span><span class="nb">test</span><span class="w"> </span>packages<span class="w"> </span>are<span class="w"> </span>used...
+<span class="nv">TF_ACC</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>go<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-v<span class="w"> </span>./internal/services/resource<span class="w"> </span>-run<span class="o">=</span>TestAccResourceGroupExample_<span class="w"> </span>-timeout<span class="w"> </span>60m<span class="w"> </span>-ldflags<span class="o">=</span><span class="s2">&quot;-X=github.com/hashicorp/terraform-provider-azurerm/version.ProviderVersion=acc&quot;</span>
+<span class="o">===</span><span class="w"> </span>RUN<span class="w">   </span><span class="nv">TestAccResourceGroupExample_basic</span>
+<span class="o">===</span><span class="w"> </span>PAUSE<span class="w"> </span><span class="nv">TestAccResourceGroupExample_basic</span>
+<span class="o">===</span><span class="w"> </span>CONT<span class="w">  </span>TestAccResourceGroupExample_basic
+---<span class="w"> </span>PASS:<span class="w"> </span>TestAccResourceGroupExample_basic<span class="w"> </span><span class="o">(</span><span class="m">88</span>.15s<span class="o">)</span>
+<span class="o">===</span><span class="w"> </span>RUN<span class="w">   </span><span class="nv">TestAccResourceGroupExample_complete</span>
+<span class="o">===</span><span class="w"> </span>PAUSE<span class="w"> </span><span class="nv">TestAccResourceGroupExample_complete</span>
+<span class="o">===</span><span class="w"> </span>CONT<span class="w">  </span>TestAccResourceGroupExample_complete
+---<span class="w"> </span>PASS:<span class="w"> </span>TestAccResourceGroupExample_complete<span class="w"> </span><span class="o">(</span><span class="m">120</span>.23s<span class="o">)</span>
+<span class="o">===</span><span class="w"> </span>RUN<span class="w">   </span><span class="nv">TestAccResourceGroupExample_requiresImport</span>
+<span class="o">===</span><span class="w"> </span>PAUSE<span class="w"> </span><span class="nv">TestAccResourceGroupExample_requiresImport</span>
+<span class="o">===</span><span class="w"> </span>CONT<span class="w">  </span>TestAccResourceGroupExample_requiresImport
+---<span class="w"> </span>PASS:<span class="w"> </span>TestAccResourceGroupExample_requiresImport<span class="w"> </span><span class="o">(</span><span class="m">116</span>.15s<span class="o">)</span>
+PASS
+ok<span class="w">      </span>github.com/hashicorp/terraform-provider-azurerm/internal/services/resource<span class="w">  </span><span class="m">324</span>.753s
+</code></pre></div>
+<h3 id="step-7-add-documentation-for-this-resource">Step 7: Add Documentation for this Resource<a class="headerlink" href="#step-7-add-documentation-for-this-resource" title="Permanent link">#</a></h3>
+<p>At this point in time documentation for each Resource (and Data Source) is written manually, located within the <code>./website</code> folder - in this case this will be located at <code>./website/docs/d/resource_group_example.html.markdown</code>.</p>
+<p>There is a tool within the repository to help scaffold the documentation for a Resource - the documentation for this Resource can be scaffolded via the following command:</p>
+<div class="highlight"><pre><span></span><code>$<span class="w"> </span>make<span class="w"> </span>scaffold-website<span class="w"> </span><span class="nv">BRAND_NAME</span><span class="o">=</span><span class="s2">&quot;Resource Group Example&quot;</span><span class="w"> </span><span class="nv">RESOURCE_NAME</span><span class="o">=</span><span class="s2">&quot;azurerm_resource_group_example&quot;</span><span class="w"> </span><span class="nv">RESOURCE_TYPE</span><span class="o">=</span><span class="s2">&quot;resource&quot;</span><span class="w"> </span><span class="nv">RESOURCE_ID</span><span class="o">=</span><span class="s2">&quot;/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1&quot;</span>
+</code></pre></div>
+<p>The documentation should look something like below - containing both an example usage and the required, optional and computed fields:</p>
+<div class="highlight"><pre><span></span><code>---
+subcategory: &quot;Base&quot;
+layout: &quot;azurerm&quot;
+page_title: &quot;Azure Resource Manager: azurerm_resource_group_example&quot;
+description: |-
+<span class="gu">  Manages a Resource Group.</span>
+<span class="gu">---</span>
+
+<span class="gh"># azurerm_resource_group_example</span>
+
+Manages a Resource Group.
+
+<span class="gu">## Example Usage</span>
+
+<span class="sb">```hcl</span>
+<span class="s">resource &quot;azurerm_resource_group_example&quot; &quot;example&quot; {</span>
+<span class="s">  name     = &quot;example&quot;</span>
+<span class="s">  location = &quot;West Europe&quot;</span>
+<span class="s">}</span>
+<span class="sb">```</span>
+
+<span class="gu">## Arguments Reference</span>
+
+The following arguments are supported:
+
+<span class="k">*</span><span class="w"> </span><span class="sb">`location`</span> - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new Resource Group to be created.
+
+<span class="k">*</span><span class="w"> </span><span class="sb">`name`</span> - (Required) The Name which should be used for this Resource Group. Changing this forces a new Resource Group to be created.
+
+---
+
+<span class="k">*</span><span class="w"> </span><span class="sb">`tags`</span> - (Optional) A mapping of tags which should be assigned to the Resource Group.
+
+<span class="gu">## Attributes Reference</span>
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+<span class="k">*</span><span class="w"> </span><span class="sb">`id`</span> - The ID of the Resource Group.
+
+<span class="gu">## Timeouts</span>
+
+The <span class="sb">`timeouts`</span> block allows you to specify [<span class="nt">timeouts</span>](<span class="na">https://www.terraform.io/language/resources/syntax#operation-timeouts</span>) for certain actions:
+
+<span class="k">*</span><span class="w"> </span><span class="sb">`create`</span> - (Defaults to 30 minutes) Used when creating the Resource Group.
+<span class="k">*</span><span class="w"> </span><span class="sb">`read`</span> - (Defaults to 5 minutes) Used when retrieving the Resource Group.
+<span class="k">*</span><span class="w"> </span><span class="sb">`update`</span> - (Defaults to 30 minutes) Used when updating the Resource Group.
+<span class="k">*</span><span class="w"> </span><span class="sb">`delete`</span> - (Defaults to 30 minutes) Used when deleting the Resource Group.
+
+<span class="gu">## Import</span>
+
+Resource Groups can be imported using the <span class="sb">`resource id`</span>, e.g.
+
+<span class="sb">```shell</span>
+terraform<span class="w"> </span>import<span class="w"> </span>azurerm_resource_group_example.example<span class="w"> </span>/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example
+<span class="sb">```</span>
+</code></pre></div>
+<h3 id="step-8-send-the-pull-request">Step 8: Send the Pull Request<a class="headerlink" href="#step-8-send-the-pull-request" title="Permanent link">#</a></h3>
+<p>See <a href="../guide-opening-a-pr/">our recommendations for opening a Pull Request</a>.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      HashiCorp
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+    
+  </body>
+</html>
