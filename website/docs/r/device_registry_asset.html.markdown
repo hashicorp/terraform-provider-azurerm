@@ -267,5 +267,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Device Registry Assets can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_device_registry_asset.example C:/Program Files/Git/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroupName/providers/Microsoft.DeviceRegistry/assets/assetName
+terraform import azurerm_device_registry_asset.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroupName/providers/Microsoft.DeviceRegistry/assets/assetName
 ```

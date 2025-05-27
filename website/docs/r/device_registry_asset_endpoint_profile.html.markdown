@@ -15,51 +15,63 @@ Manages a Device Registry Asset Endpoint Profile.
 ### Asset Endpoint Profile with Certificate authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  name                                     = "myassetendpointprofile"
-  resource_group_name                      = "my-resource-group"
-  extended_location_name                   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-  extended_location_type                   = "CustomLocation"
-  target_address                           = "opc.tcp://foo"
+  name                  = "example"
+  location              = "West US 2"
   endpoint_profile_type                    = "OpcUa"
-  authentication_method                    = "Certificate"
-  x509_credentials_certificate_secret_name = "mycertificate"
-  discovered_asset_endpoint_profile_ref    = "myDiscoveredAssetEndpointProfile"
+  resource_group_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
+  extended_location_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  target_address                           = "opc.tcp://foo"
+  discovered_asset_endpoint_profile_reference    = "discoveredAssetEndpointProfile123"
   additional_configuration                 = "{\"foo\": \"bar\"}"
-  location                                 = "westus2"
+  authentication {
+    method = "Certificate"
+    x509_credential_certificate_secret_name = "myCertificateRef"
+  }
+  tags = {
+    "sensor" = "temperature,humidity"
+  }
 }
 ```
 
 ### Asset Endpoint Profile with UsernamePassword authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  name                                               = "myassetendpointprofile"
-  resource_group_name                                = "my-resource-group"
-  extended_location_name                             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-  extended_location_type                             = "CustomLocation"
-  target_address                                     = "opc.tcp://foo"
-  endpoint_profile_type                              = "OpcUa"
-  authentication_method                              = "UsernamePassword"
-  username_password_credentials_username_secret_name = "myusername"
-  username_password_credentials_password_secret_name = "mypassword"
-  discovered_asset_endpoint_profile_ref              = "myDiscoveredAssetEndpointProfile"
-  additional_configuration                           = "{\"foo\": \"bar\"}"
-  location                                           = "westus2"
+  name                  = "example"
+  location              = "West US 2"
+  endpoint_profile_type                    = "OpcUa"
+  resource_group_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
+  extended_location_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  target_address                           = "opc.tcp://foo"
+  discovered_asset_endpoint_profile_reference    = "discoveredAssetEndpointProfile123"
+  additional_configuration                 = "{\"foo\": \"bar\"}"
+  authentication {
+    method = "UsernamePassword"
+		username_password_credential_username_secret_name = "myUsernameRef"
+		username_password_credential_password_secret_name = "myPasswordRef"
+  }
+  tags = {
+    "sensor" = "temperature,humidity"
+  }
 }
 ```
 
 ### Asset Endpoint Profile with Anonymous authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  name                                  = "myassetendpointprofile"
-  resource_group_name                   = "my-resource-group"
-  extended_location_name                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-  extended_location_type                = "CustomLocation"
-  target_address                        = "opc.tcp://foo"
-  endpoint_profile_type                 = "OpcUa"
-  authentication_method                 = "Anonymous"
-  discovered_asset_endpoint_profile_ref = "myDiscoveredAssetEndpointProfile"
-  additional_configuration              = "{\"foo\": \"bar\"}"
-  location                              = "westus2"
+  name                  = "example"
+  location              = "West US 2"
+  endpoint_profile_type                    = "OpcUa"
+  resource_group_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
+  extended_location_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  target_address                           = "opc.tcp://foo"
+  discovered_asset_endpoint_profile_reference    = "discoveredAssetEndpointProfile123"
+  additional_configuration                 = "{\"foo\": \"bar\"}"
+  authentication {
+    method = "Anonymous"
+  }
+  tags = {
+    "sensor" = "temperature,humidity"
+  }
 }
 ```
 
@@ -69,15 +81,13 @@ The following arguments are supported:
 
 * `endpoint_profile_type` - (Required) Defines the configuration for the connector type that is being used with the endpoint profile.
 
-* `extended_location_name` - (Required) The extended location name.
+* `extended_location_id` - (Required) The ID of the extended location. Must provide a custom location ID.
 
-* `extended_location_type` - (Required) The extended location type.
+* `location` - (Required) The Azure Region where the Device Registry Asset Endpoint Profile should exist. Changing this forces a new Device Registry Asset Endpoint Profile to be created.
 
-* `location` - (Required) The Azure Region where the Asset Endpoint Profile should exist. Changing this forces a new Asset Endpoint Profile to be created.
+* `name` - (Required) The name which should be used for this Device Registry Asset Endpoint Profile. Changing this forces a new Device Registry Asset Endpoint Profile to be created.
 
-* `name` - (Required) The name which should be used for this Asset Endpoint Profile.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Asset Endpoint Profile should exist. Changing this forces a new Asset Endpoint Profile to be created.
+* `resource_group_id` - (Required) The ID of the Resource Group where the Device Registry Asset Endpoint Profile should exist.
 
 * `target_address` - (Required) The local valid URI specifying the network address/DNS name of a southbound device. The scheme part of the targetAddress URI specifies the type of the device. The additionalConfiguration field holds further connector type specific configuration.
 
@@ -85,31 +95,43 @@ The following arguments are supported:
 
 * `additional_configuration` - (Optional) Stringified JSON that contains connectivity type specific further configuration (e.g. OPC UA, Modbus, ONVIF).
 
-* `authentication_method` - (Optional) Defines the method to authenticate the user of the client at the server. Defaults to `Certificate`.
+* `authentication` - (Optional) A `authentication` block as defined below. Defines the client authentication mechanism to the server.
 
-* `discovered_asset_endpoint_profile_ref` - (Optional) Reference to a discovered asset endpoint profile. Populated only if the asset endpoint profile has been created from discovery flow. Discovered asset endpoint profile name must be provided.
+* `discovered_asset_endpoint_profile_reference` - (Optional) Reference to a discovered asset endpoint profile. Populated only if the asset endpoint profile has been created from discovery flow. Discovered asset endpoint profile name must be provided.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Asset Endpoint Profile.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Device Registry Asset Endpoint Profile.
 
-* `username_password_credentials_password_secret_name` - (Optional) The name of the secret containing the password for authentication mode UsernamePassword.
+---
 
-* `username_password_credentials_username_secret_name` - (Optional) The name of the secret containing the username for authentication mode UsernamePassword.
+A `authentication` block supports the following:
 
-* `x509_credentials_certificate_secret_name` - (Optional) The name of the secret containing the certificate and private key (e.g. stored as .der/.pem or .der/.pfx) for authentication mode Certificate.
+* `method` - (Required) Defines the method to authenticate the user of the client at the server. Possible values are `Certificate`, `UsernamePassword`, and `Anonymous`.
+
+* `username_password_credential_password_secret_name` - (Optional) The name of the secret containing the password for authentication mode UsernamePassword.
+
+* `username_password_credential_username_secret_name` - (Optional) The name of the secret containing the username for authentication mode UsernamePassword.
+
+* `x509_credential_certificate_secret_name` - (Optional) The name of the secret containing the certificate and private key (e.g. stored as .der/.pem or .der/.pfx) for authentication mode Certificate.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported: 
+
+* `id` - The ID of the Device Registry Asset Endpoint Profile.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Asset Endpoint Profile.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Asset Endpoint Profile.
-* `update` - (Defaults to 30 minutes) Used when updating the Asset Endpoint Profile.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Asset Endpoint Profile.
+* `create` - (Defaults to 30 minutes) Used when creating the Device Registry Asset Endpoint Profile.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Device Registry Asset Endpoint Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the Device Registry Asset Endpoint Profile.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Device Registry Asset Endpoint Profile.
 
 ## Import
 
-Asset Endpoint Profile can be imported using the `resource id`, e.g.
+Device Registry Asset Endpoint Profiles can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_device_registry_asset_endpoint_profile.example C:/Program Files/Git/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/adr-terraform-rg/providers/Microsoft.DeviceRegistry/assetendpointprofiles/test-asset-endpoint-profile
+terraform import azurerm_device_registry_asset_endpoint_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroupName/providers/Microsoft.DeviceRegistry/assetEndpointProfiles/assetEndpointProfileName
 ```
