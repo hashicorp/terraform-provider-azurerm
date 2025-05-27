@@ -165,7 +165,7 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -265,7 +265,7 @@ A `private_link_service_connection` block supports the following:
 
 A `worker_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 * `username` - (Required) The Username of the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -291,7 +291,7 @@ A `worker_node` block supports the following:
 
 A `zookeeper_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 * `username` - (Required) The Username of the local administrator for the Zookeeper Nodes. Changing this forces a new resource to be created.
 
