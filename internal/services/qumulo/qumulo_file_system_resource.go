@@ -75,7 +75,7 @@ func (r FileSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.Email,
 		},
 
 		"storage_sku": {
