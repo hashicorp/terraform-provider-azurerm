@@ -124,7 +124,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				ForceNew: true,
 				Optional: true,
 				Computed: true,
-				MinItems: 1,
 				MaxItems: 2,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,

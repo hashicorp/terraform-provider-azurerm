@@ -229,7 +229,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_netapp_volume`
 
-* The deprecated `export_policy_rule.protocols_enabled` property has been removed in favour of the `export_policy_rule.protocols` property.
+* The deprecated `export_policy_rule.protocols_enabled` property has been removed in favour of the `export_policy_rule.protocol` property.
 
 ### `azurerm_network_watcher_flow_log`
 
