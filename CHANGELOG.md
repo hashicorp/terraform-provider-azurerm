@@ -15,6 +15,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management_product` - allow setting the `subscriptions_limit` property to `0` [GH-28133]
 * `azurerm_api_management_api` - add additional validation to catch when `api_type` is `websocket` but `service_url` is left empty [GH-29624]
 * `azurerm_batch_pool` - the `data_disks` property will now be correctly updated [GH-29377]
 * `azurerm_data_factory_dataset_binary` - fix incorrect casing of the `compression.type` property when sent to the API which caused compression to not be set [GH-29273]
