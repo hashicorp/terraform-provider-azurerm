@@ -438,15 +438,18 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 			}
 		}
 	}
-	return []interface{}{
+	flattened := []interface{}{
 		map[string]interface{}{
 			"key_vault_key_id":          keyVaultKeyId,
 			"user_assigned_identity_id": userAssignedIdentityId,
-
-			// TODO: remove this field in 5.x
-			"key_source": "",
 		},
 	}
+
+	if !features.FivePointOh() {
+		flattened[0].(map[string]interface{})["key_source"] = ""
+	}
+
+	return flattened
 }
 
 func flattenPrivateEndpointConnections(input *[]automationaccount.PrivateEndpointConnection) []interface{} {
