@@ -15,16 +15,16 @@ Manages a Device Registry Asset Endpoint Profile.
 ### Asset Endpoint Profile with Certificate authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  name                  = "example"
-  location              = "West US 2"
-  endpoint_profile_type                    = "OpcUa"
-  resource_group_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
-  extended_location_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-  target_address                           = "opc.tcp://foo"
-  discovered_asset_endpoint_profile_reference    = "discoveredAssetEndpointProfile123"
-  additional_configuration                 = "{\"foo\": \"bar\"}"
+  name                                        = "example"
+  location                                    = "West US 2"
+  endpoint_profile_type                       = "OpcUa"
+  resource_group_id                           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
+  extended_location_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  target_address                              = "opc.tcp://foo"
+  discovered_asset_endpoint_profile_reference = "discoveredAssetEndpointProfile123"
+  additional_configuration                    = "{\"foo\": \"bar\"}"
   authentication {
-    method = "Certificate"
+    method                                  = "Certificate"
     x509_credential_certificate_secret_name = "myCertificateRef"
   }
   tags = {
@@ -36,18 +36,18 @@ resource "azurerm_device_registry_asset_endpoint_profile" "example" {
 ### Asset Endpoint Profile with UsernamePassword authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  name                  = "example"
-  location              = "West US 2"
-  endpoint_profile_type                    = "OpcUa"
-  resource_group_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
-  extended_location_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-  target_address                           = "opc.tcp://foo"
-  discovered_asset_endpoint_profile_reference    = "discoveredAssetEndpointProfile123"
-  additional_configuration                 = "{\"foo\": \"bar\"}"
+  name                                        = "example"
+  location                                    = "West US 2"
+  endpoint_profile_type                       = "OpcUa"
+  resource_group_id                           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
+  extended_location_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  target_address                              = "opc.tcp://foo"
+  discovered_asset_endpoint_profile_reference = "discoveredAssetEndpointProfile123"
+  additional_configuration                    = "{\"foo\": \"bar\"}"
   authentication {
-    method = "UsernamePassword"
-		username_password_credential_username_secret_name = "myUsernameRef"
-		username_password_credential_password_secret_name = "myPasswordRef"
+    method                                            = "UsernamePassword"
+    username_password_credential_username_secret_name = "myUsernameRef"
+    username_password_credential_password_secret_name = "myPasswordRef"
   }
   tags = {
     "sensor" = "temperature,humidity"
@@ -58,14 +58,14 @@ resource "azurerm_device_registry_asset_endpoint_profile" "example" {
 ### Asset Endpoint Profile with Anonymous authentication
 ```hcl
 resource "azurerm_device_registry_asset_endpoint_profile" "example" {
-  name                  = "example"
-  location              = "West US 2"
-  endpoint_profile_type                    = "OpcUa"
-  resource_group_id                = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
-  extended_location_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
-  target_address                           = "opc.tcp://foo"
-  discovered_asset_endpoint_profile_reference    = "discoveredAssetEndpointProfile123"
-  additional_configuration                 = "{\"foo\": \"bar\"}"
+  name                                        = "example"
+  location                                    = "West US 2"
+  endpoint_profile_type                       = "OpcUa"
+  resource_group_id                           = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group"
+  extended_location_id                        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-resource-group/providers/Microsoft.ExtendedLocation/customLocations/my-custom-location"
+  target_address                              = "opc.tcp://foo"
+  discovered_asset_endpoint_profile_reference = "discoveredAssetEndpointProfile123"
+  additional_configuration                    = "{\"foo\": \"bar\"}"
   authentication {
     method = "Anonymous"
   }
