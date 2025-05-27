@@ -46,7 +46,6 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "example" {
   private_link_resource_id     = azurerm_monitor_workspace.example.id
   group_ids                    = ["prometheusMetrics"]
   private_link_resource_region = azurerm_dashboard_grafana.example.location
-  private_link_service_url     = "sub.mydomain.com"
 }
 ```
 
