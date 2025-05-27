@@ -210,7 +210,7 @@ An `export_policy_rule` block supports the following:
 
 * `allowed_clients` - (Required) A list of allowed clients IPv4 addresses.
 
-* `protocols` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
+* `protocol` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
 
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
@@ -282,10 +282,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the NetApp Volume.
-* `update` - (Defaults to 60 minutes) Used when updating the NetApp Volume.
+* `create` - (Defaults to 1 hour) Used when creating the NetApp Volume.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Volume.
-* `delete` - (Defaults to 60 minutes) Used when deleting the NetApp Volume.
+* `update` - (Defaults to 1 hour) Used when updating the NetApp Volume.
+* `delete` - (Defaults to 1 hour) Used when deleting the NetApp Volume.
 
 ## Import
 

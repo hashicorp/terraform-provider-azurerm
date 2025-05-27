@@ -767,7 +767,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["1.2.3.0/24"]
-    protocols       = ["NFSv4.1"]
+    protocol        = ["NFSv4.1"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -918,7 +918,7 @@ resource "azurerm_netapp_volume" "test_primary" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["0.0.0.0/0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -946,7 +946,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["0.0.0.0/0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -987,7 +987,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["0.0.0.0/0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -1024,7 +1024,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["0.0.0.0/0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_write = true
   }
 
@@ -1058,7 +1058,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_true" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["1.2.3.0/24"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -1093,7 +1093,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["1.2.3.0/24"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -1145,7 +1145,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["0.0.0.0/0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -1153,7 +1153,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 2
     allowed_clients = ["0.0.0.0/0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = true
     unix_read_write = false
   }
@@ -1161,7 +1161,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 3
     allowed_clients = ["0.0.0.0/0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = true
     unix_read_write = false
   }
@@ -1195,7 +1195,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["1.2.3.0/24"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -1203,7 +1203,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 2
     allowed_clients = ["1.2.5.0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = true
     unix_read_write = false
   }
@@ -1211,7 +1211,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 3
     allowed_clients = ["1.2.6.0/24"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = true
     unix_read_write = false
   }
@@ -1245,7 +1245,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["1.2.3.0/24"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = false
     unix_read_write = true
   }
@@ -1253,7 +1253,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 2
     allowed_clients = ["1.2.5.0"]
-    protocols       = ["NFSv3"]
+    protocol        = ["NFSv3"]
     unix_read_only  = true
     unix_read_write = false
   }
