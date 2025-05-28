@@ -31,13 +31,13 @@ func (r DevCenterResource) ModelObject() interface{} {
 }
 
 type DevCenterResourceSchema struct {
-	DevCenterUri                           string                                     `tfschema:"dev_center_uri"`
-	Identity                               []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Location                               string                                     `tfschema:"location"`
-	Name                                   string                                     `tfschema:"name"`
-	ResourceGroupName                      string                                     `tfschema:"resource_group_name"`
-	DevCenterProjectCatalogItemSyncEnabled bool                                       `tfschema:"dev_center_project_catalog_item_sync_enabled"`
-	Tags                                   map[string]interface{}                     `tfschema:"tags"`
+	DevCenterUri                  string                                     `tfschema:"dev_center_uri"`
+	Identity                      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Location                      string                                     `tfschema:"location"`
+	Name                          string                                     `tfschema:"name"`
+	ResourceGroupName             string                                     `tfschema:"resource_group_name"`
+	ProjectCatalogItemSyncEnabled bool                                       `tfschema:"project_catalog_item_sync_enabled"`
+	Tags                          map[string]interface{}                     `tfschema:"tags"`
 }
 
 func (r DevCenterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -57,7 +57,7 @@ func (r DevCenterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"dev_center_project_catalog_item_sync_enabled": {
+		"project_catalog_item_sync_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -221,7 +221,7 @@ func (r DevCenterResource) mapDevCenterResourceSchemaToDevCenter(input DevCenter
 	}
 
 	catalogItemSyncEnableStatus := devcenters.CatalogItemSyncEnableStatusDisabled
-	if input.DevCenterProjectCatalogItemSyncEnabled {
+	if input.ProjectCatalogItemSyncEnabled {
 		catalogItemSyncEnableStatus = devcenters.CatalogItemSyncEnableStatusEnabled
 	}
 	output.Properties.ProjectCatalogSettings = &devcenters.DevCenterProjectCatalogSettings{
@@ -248,7 +248,7 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 	output.DevCenterUri = pointer.From(input.Properties.DevCenterUri)
 
 	if v := input.Properties.ProjectCatalogSettings; v != nil && v.CatalogItemSyncEnableStatus != nil {
-		output.DevCenterProjectCatalogItemSyncEnabled = pointer.From(input.Properties.ProjectCatalogSettings.CatalogItemSyncEnableStatus) == devcenters.CatalogItemSyncEnableStatusEnabled
+		output.ProjectCatalogItemSyncEnabled = pointer.From(input.Properties.ProjectCatalogSettings.CatalogItemSyncEnableStatus) == devcenters.CatalogItemSyncEnableStatusEnabled
 	}
 
 	return nil
