@@ -28,7 +28,7 @@ resource "azurerm_mysql_flexible_server" "example" {
   location               = azurerm_resource_group.example.location
   administrator_login    = "mysqladminun"
   administrator_password = "H@Sh1CoR3!"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
 }
 
 resource "azurerm_mysql_flexible_database" "example" {
@@ -64,9 +64,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the MySQL Database.
+* `create` - (Defaults to 1 hour) Used when creating the MySQL Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Database.
-* `delete` - (Defaults to 60 minutes) Used when deleting the MySQL Database.
+* `delete` - (Defaults to 1 hour) Used when deleting the MySQL Database.
 
 ## Import
 

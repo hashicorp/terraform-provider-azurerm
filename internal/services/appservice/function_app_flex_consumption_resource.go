@@ -25,6 +25,7 @@ import (
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
@@ -56,6 +57,7 @@ type FunctionAppFlexConsumptionModel struct {
 	ClientCertExclusionPaths         string                     `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings                []helpers.ConnectionString `tfschema:"connection_string"`
 	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
+	HttpsOnly                        bool                       `tfschema:"https_only"`
 	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
@@ -70,6 +72,7 @@ type FunctionAppFlexConsumptionModel struct {
 	RuntimeVersion                string                                         `tfschema:"runtime_version"`
 	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
 	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
+	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
 	Tags                          map[string]string                              `tfschema:"tags"`
@@ -84,6 +87,11 @@ type FunctionAppFlexConsumptionModel struct {
 	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
+}
+
+type FunctionAppAlwaysReady struct {
+	Name          string `tfschema:"name"`
+	InstanceCount int64  `tfschema:"instance_count"`
 }
 
 var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
@@ -245,6 +253,28 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.IntBetween(40, 1000),
 		},
 
+		// the name is always being lower-cased by the api: https://github.com/Azure/azure-rest-api-specs/issues/33095
+		"always_ready": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:             pluginsdk.TypeString,
+						Required:         true,
+						ValidateFunc:     validation.StringIsNotEmpty,
+						DiffSuppressFunc: suppress.CaseDifference,
+					},
+
+					"instance_count": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 1000),
+					},
+				},
+			},
+		},
+
 		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
 
 		"sticky_settings": helpers.StickySettingsSchema(),
@@ -302,6 +332,13 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
+		},
+
+		"https_only": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Can the Function App only be accessed via HTTPS?",
 		},
 
 		"webdeploy_publish_basic_authentication_enabled": {
@@ -498,7 +535,13 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				Version: &functionAppFlexConsumption.RuntimeVersion,
 			}
 
+			alwaysReady, err := ExpandAlwaysReadyConfiguration(functionAppFlexConsumption.AlwaysReady, functionAppFlexConsumption.MaximumInstanceCount)
+			if err != nil {
+				return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
+			}
+
 			scaleAndConcurrencyConfig := webapps.FunctionsScaleAndConcurrency{
+				AlwaysReady:          alwaysReady,
 				InstanceMemoryMB:     &functionAppFlexConsumption.InstanceMemoryInMB,
 				MaximumInstanceCount: &functionAppFlexConsumption.MaximumInstanceCount,
 			}
@@ -525,6 +568,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					ServerFarmId:      pointer.To(functionAppFlexConsumption.ServicePlanId),
 					Enabled:           pointer.To(functionAppFlexConsumption.Enabled),
 					SiteConfig:        siteConfig,
+					HTTPSOnly:         pointer.To(functionAppFlexConsumption.HttpsOnly),
 					FunctionAppConfig: flexFunctionAppConfig,
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
 					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
@@ -745,6 +789,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					}
 
 					if faConfigScale := functionAppConfig.ScaleAndConcurrency; faConfigScale != nil {
+						state.AlwaysReady = FlattenAlwaysReadyConfiguration(faConfigScale.AlwaysReady)
 						state.InstanceMemoryInMB = pointer.From(faConfigScale.InstanceMemoryMB)
 						state.MaximumInstanceCount = pointer.From(faConfigScale.MaximumInstanceCount)
 					}
@@ -753,6 +798,8 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
 
 				state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
+
+				state.HttpsOnly = pointer.From(props.HTTPSOnly)
 
 				if props.VirtualNetworkSubnetId != nil && pointer.From(props.VirtualNetworkSubnetId) != "" {
 					subnetId, err := commonids.ParseSubnetID(*props.VirtualNetworkSubnetId)
@@ -943,6 +990,14 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
+			if metadata.ResourceData.HasChange("always_ready") {
+				arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
+				if err != nil {
+					return fmt.Errorf("expanding `always_ready` for %s: %+v", id, err)
+				}
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.AlwaysReady = arc
+			}
+
 			if metadata.ResourceData.HasChange("runtime_name") {
 				runtimeName := webapps.RuntimeName(state.RuntimeName)
 				model.Properties.FunctionAppConfig.Runtime.Name = pointer.To(runtimeName)
@@ -967,6 +1022,10 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
 				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
+			}
+
+			if metadata.ResourceData.HasChange("https_only") {
+				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
@@ -1106,4 +1165,42 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 		}
 	}
 	m.AppSettings = appSettings
+}
+
+func ExpandAlwaysReadyConfiguration(input []FunctionAppAlwaysReady, maximumInstanceCount int64) (*[]webapps.FunctionsAlwaysReadyConfig, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+	var totalInstanceCount int64
+	arList := make([]webapps.FunctionsAlwaysReadyConfig, 0)
+	for _, v := range input {
+		totalInstanceCount += v.InstanceCount
+		arList = append(arList, webapps.FunctionsAlwaysReadyConfig{
+			Name:          pointer.To(v.Name),
+			InstanceCount: pointer.To(v.InstanceCount),
+		})
+	}
+
+	if totalInstanceCount > maximumInstanceCount {
+		return nil, fmt.Errorf("the total number of always-ready instances should not exceed the maximum scale out limit")
+	}
+
+	return &arList, nil
+}
+
+func FlattenAlwaysReadyConfiguration(alwaysReady *[]webapps.FunctionsAlwaysReadyConfig) []FunctionAppAlwaysReady {
+	if alwaysReady == nil || len(*alwaysReady) == 0 {
+		return []FunctionAppAlwaysReady{}
+	}
+
+	alwaysReadyList := make([]FunctionAppAlwaysReady, 0)
+
+	for _, v := range *alwaysReady {
+		alwaysReadyList = append(alwaysReadyList, FunctionAppAlwaysReady{
+			Name:          pointer.From(v.Name),
+			InstanceCount: pointer.From(v.InstanceCount),
+		})
+	}
+
+	return alwaysReadyList
 }

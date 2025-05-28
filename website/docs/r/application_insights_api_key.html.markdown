@@ -106,3 +106,9 @@ terraform import azurerm_application_insights_api_key.my_key /subscriptions/0000
 ```
 
 -> **Note:** The secret `api_key` cannot be retrieved during an import. You will need to edit the state by hand to set the secret value if you happen to have it backed up somewhere.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights`: 2015-05-01
