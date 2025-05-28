@@ -81,9 +81,9 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     data_disk {
-      create_option   = "Empty"
-      disk_size_in_gb = 10
-      lun             = 0
+      create_option    = "Empty"
+      disk_size_in_gib = 10
+      lun              = 0
     }
 
     os_profile {
@@ -128,9 +128,9 @@ resource "azurerm_compute_fleet" "test" {
       }
 
       data_disk {
-        create_option   = "Empty"
-        disk_size_in_gb = 10
-        lun             = 0
+        create_option    = "Empty"
+        disk_size_in_gib = 10
+        lun              = 0
       }
 
       os_profile {
@@ -199,7 +199,7 @@ resource "azurerm_compute_fleet" "test" {
 
     data_disk {
       create_option             = "Empty"
-      disk_size_in_gb           = 10
+      disk_size_in_gib          = 10
       lun                       = 0
       caching                   = "ReadOnly"
       delete_option             = "Delete"
@@ -250,7 +250,7 @@ resource "azurerm_compute_fleet" "test" {
 
       data_disk {
         create_option             = "Empty"
-        disk_size_in_gb           = 10
+        disk_size_in_gib          = 10
         lun                       = 0
         caching                   = "ReadOnly"
         delete_option             = "Delete"

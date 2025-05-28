@@ -21,24 +21,23 @@ import (
 )
 
 type ComputeFleetResourceModel struct {
-	Name                                     string                                     `tfschema:"name"`
-	ResourceGroupName                        string                                     `tfschema:"resource_group_name"`
-	Identity                                 []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Location                                 string                                     `tfschema:"location"`
-	Plan                                     []PlanModel                                `tfschema:"plan"`
-	AdditionalLocationProfile                []AdditionalLocationProfileModel           `tfschema:"additional_location_profile"`
-	AdditionalCapabilitiesUltraSSDEnabled    bool                                       `tfschema:"additional_capabilities_ultra_ssd_enabled"`
-	AdditionalCapabilitiesHibernationEnabled bool                                       `tfschema:"additional_capabilities_hibernation_enabled"`
-	VirtualMachineProfile                    []VirtualMachineProfileModel               `tfschema:"virtual_machine_profile"`
-	ComputeApiVersion                        string                                     `tfschema:"compute_api_version"`
-	PlatformFaultDomainCount                 int64                                      `tfschema:"platform_fault_domain_count"`
-	RegularPriorityProfile                   []RegularPriorityProfileModel              `tfschema:"regular_priority_profile"`
-	SpotPriorityProfile                      []SpotPriorityProfileModel                 `tfschema:"spot_priority_profile"`
-	UniqueId                                 string                                     `tfschema:"unique_id"`
-	VMAttributes                             []VMAttributesModel                        `tfschema:"vm_attributes"`
-	VMSizesProfile                           []VMSizeProfileModel                       `tfschema:"vm_sizes_profile"`
-	Tags                                     map[string]string                          `tfschema:"tags"`
-	Zones                                    []string                                   `tfschema:"zones"`
+	Name                      string                                     `tfschema:"name"`
+	ResourceGroupName         string                                     `tfschema:"resource_group_name"`
+	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Location                  string                                     `tfschema:"location"`
+	Plan                      []PlanModel                                `tfschema:"plan"`
+	AdditionalLocationProfile []AdditionalLocationProfileModel           `tfschema:"additional_location_profile"`
+	AdditionalCapabilities    []AdditionalCapabilitiesModel              `tfschema:"additional_capabilities"`
+	VirtualMachineProfile     []VirtualMachineProfileModel               `tfschema:"virtual_machine_profile"`
+	ComputeApiVersion         string                                     `tfschema:"compute_api_version"`
+	PlatformFaultDomainCount  int64                                      `tfschema:"platform_fault_domain_count"`
+	RegularPriorityProfile    []RegularPriorityProfileModel              `tfschema:"regular_priority_profile"`
+	SpotPriorityProfile       []SpotPriorityProfileModel                 `tfschema:"spot_priority_profile"`
+	UniqueId                  string                                     `tfschema:"unique_id"`
+	VMAttributes              []VMAttributesModel                        `tfschema:"vm_attributes"`
+	VMSizesProfile            []VMSizeProfileModel                       `tfschema:"vm_sizes_profile"`
+	Tags                      map[string]string                          `tfschema:"tags"`
+	Zones                     []string                                   `tfschema:"zones"`
 }
 
 type AdditionalLocationProfileModel struct {
@@ -46,28 +45,32 @@ type AdditionalLocationProfileModel struct {
 	VirtualMachineProfileOverride []VirtualMachineProfileModel `tfschema:"virtual_machine_profile_override"`
 }
 
+type AdditionalCapabilitiesModel struct {
+	UltraSsdEnabled    bool `tfschema:"ultra_ssd_enabled"`
+	HibernationEnabled bool `tfschema:"hibernation_enabled"`
+}
 type VirtualMachineProfileModel struct {
-	GalleryApplicationProfile            []GalleryApplicationModel   `tfschema:"gallery_application"`
-	CapacityReservationGroupId           string                      `tfschema:"capacity_reservation_group_id"`
-	BootDiagnosticEnabled                bool                        `tfschema:"boot_diagnostic_enabled"`
-	BootDiagnosticStorageAccountEndpoint string                      `tfschema:"boot_diagnostic_storage_account_endpoint"`
-	Extension                            []ExtensionModel            `tfschema:"extension"`
-	ExtensionsTimeBudget                 string                      `tfschema:"extensions_time_budget"`
-	ExtensionOperationsEnabled           bool                        `tfschema:"extension_operations_enabled"`
-	LicenseType                          string                      `tfschema:"license_type"`
-	NetworkInterface                     []NetworkInterfaceModel     `tfschema:"network_interface"`
-	OsProfile                            []OSProfileModel            `tfschema:"os_profile"`
-	ScheduledEventTerminationTimeout     string                      `tfschema:"scheduled_event_termination_timeout"`
-	ScheduledEventOsImageTimeout         string                      `tfschema:"scheduled_event_os_image_timeout"`
-	EncryptionAtHostEnabled              bool                        `tfschema:"encryption_at_host_enabled"`
-	SecureBootEnabled                    bool                        `tfschema:"secure_boot_enabled"`
-	VTpmEnabled                          bool                        `tfschema:"vtpm_enabled"`
-	DataDisks                            []DataDiskModel             `tfschema:"data_disk"`
-	OsDisk                               []OSDiskModel               `tfschema:"os_disk"`
-	SourceImageReference                 []SourceImageReferenceModel `tfschema:"source_image_reference"`
-	SourceImageId                        string                      `tfschema:"source_image_id"`
-	UserDataBase64                       string                      `tfschema:"user_data_base64"`
-	NetworkApiVersion                    string                      `tfschema:"network_api_version"`
+	GalleryApplicationProfile                []GalleryApplicationModel   `tfschema:"gallery_application"`
+	CapacityReservationGroupId               string                      `tfschema:"capacity_reservation_group_id"`
+	BootDiagnosticEnabled                    bool                        `tfschema:"boot_diagnostic_enabled"`
+	BootDiagnosticStorageAccountEndpoint     string                      `tfschema:"boot_diagnostic_storage_account_endpoint"`
+	Extension                                []ExtensionModel            `tfschema:"extension"`
+	ExtensionsTimeBudgetDuration             string                      `tfschema:"extensions_time_budget_duration"`
+	ExtensionOperationsEnabled               bool                        `tfschema:"extension_operations_enabled"`
+	LicenseType                              string                      `tfschema:"license_type"`
+	NetworkInterface                         []NetworkInterfaceModel     `tfschema:"network_interface"`
+	OsProfile                                []OSProfileModel            `tfschema:"os_profile"`
+	ScheduledEventTerminationTimeoutDuration string                      `tfschema:"scheduled_event_termination_timeout_duration"`
+	ScheduledEventOsImageTimeoutDuration     string                      `tfschema:"scheduled_event_os_image_timeout_duration"`
+	EncryptionAtHostEnabled                  bool                        `tfschema:"encryption_at_host_enabled"`
+	SecureBootEnabled                        bool                        `tfschema:"secure_boot_enabled"`
+	VTpmEnabled                              bool                        `tfschema:"vtpm_enabled"`
+	DataDisks                                []DataDiskModel             `tfschema:"data_disk"`
+	OsDisk                                   []OSDiskModel               `tfschema:"os_disk"`
+	SourceImageReference                     []SourceImageReferenceModel `tfschema:"source_image_reference"`
+	SourceImageId                            string                      `tfschema:"source_image_id"`
+	UserDataBase64                           string                      `tfschema:"user_data_base64"`
+	NetworkApiVersion                        string                      `tfschema:"network_api_version"`
 }
 
 type GalleryApplicationModel struct {
@@ -156,7 +159,7 @@ type LinuxConfigurationModel struct {
 	PatchAssessmentMode               string             `tfschema:"patch_assessment_mode"`
 	PatchMode                         string             `tfschema:"patch_mode"`
 	BypassPlatformSafetyChecksEnabled bool               `tfschema:"bypass_platform_safety_checks_enabled"`
-	RebootSetting                     string             `tfschema:"reboot_setting"`
+	PatchRebooting                    string             `tfschema:"patch_rebooting"`
 	ProvisionVMAgentEnabled           bool               `tfschema:"provision_vm_agent_enabled"`
 	AdminSSHKeys                      []string           `tfschema:"admin_ssh_keys"`
 }
@@ -191,7 +194,7 @@ type WindowsConfigurationModel struct {
 	PatchAssessmentMode               string                           `tfschema:"patch_assessment_mode"`
 	PatchMode                         string                           `tfschema:"patch_mode"`
 	BypassPlatformSafetyChecksEnabled bool                             `tfschema:"bypass_platform_safety_checks_enabled"`
-	RebootSetting                     string                           `tfschema:"reboot_setting"`
+	PatchRebooting                    string                           `tfschema:"patch_rebooting"`
 	HotPatchingEnabled                bool                             `tfschema:"hot_patching_enabled"`
 	ProvisionVMAgentEnabled           bool                             `tfschema:"provision_vm_agent_enabled"`
 	TimeZone                          string                           `tfschema:"time_zone"`
@@ -199,7 +202,7 @@ type WindowsConfigurationModel struct {
 }
 
 type AdditionalUnattendContentModel struct {
-	Content string `tfschema:"content"`
+	Xml     string `tfschema:"xml"`
 	Setting string `tfschema:"setting"`
 }
 
@@ -212,7 +215,7 @@ type DataDiskModel struct {
 	Caching                 string `tfschema:"caching"`
 	CreateOption            string `tfschema:"create_option"`
 	DeleteOption            string `tfschema:"delete_option"`
-	DiskSizeInGB            int64  `tfschema:"disk_size_in_gb"`
+	DiskSizeInGiB           int64  `tfschema:"disk_size_in_gib"`
 	DiskEncryptionSetId     string `tfschema:"disk_encryption_set_id"`
 	StorageAccountType      string `tfschema:"storage_account_type"`
 	Lun                     int64  `tfschema:"lun"`
@@ -231,7 +234,7 @@ type OSDiskModel struct {
 	DeleteOption            string `tfschema:"delete_option"`
 	DiffDiskOption          string `tfschema:"diff_disk_option"`
 	DiffDiskPlacement       string `tfschema:"diff_disk_placement"`
-	DiskSizeInGB            int64  `tfschema:"disk_size_in_gb"`
+	DiskSizeInGiB           int64  `tfschema:"disk_size_in_gib"`
 	DiskEncryptionSetId     string `tfschema:"disk_encryption_set_id"`
 	SecurityEncryptionType  string `tfschema:"security_encryption_type"`
 	StorageAccountType      string `tfschema:"storage_account_type"`
@@ -334,19 +337,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"virtual_machine_profile": virtualMachineProfileSchema(),
 
-		"additional_capabilities_hibernation_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
-		},
-
-		"additional_capabilities_ultra_ssd_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-			Default:  false,
-		},
+		"additional_capabilities": virtualMachineAdditionalCapabilitiesSchema(),
 
 		"additional_location_profile": {
 			Type:     pluginsdk.TypeList,
@@ -717,6 +708,31 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
+func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"ultra_ssd_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+					Default:  false,
+				},
+
+				"hibernation_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					ForceNew: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
 func vmAttributesMaxMinIntegerSchema(parent string) map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"max": {
@@ -816,12 +832,11 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 			}
 			properties.Properties.AdditionalLocationsProfile = additionalLocationsProfileValue
 
+			additionalCapabilities := expandAdditionalCapabilities(model.AdditionalCapabilities)
+
 			computeProfile := fleets.ComputeProfile{
-				AdditionalVirtualMachineCapabilities: &fleets.AdditionalCapabilities{
-					HibernationEnabled: pointer.To(model.AdditionalCapabilitiesHibernationEnabled),
-					UltraSSDEnabled:    pointer.To(model.AdditionalCapabilitiesUltraSSDEnabled),
-				},
-				PlatformFaultDomainCount: pointer.To(model.PlatformFaultDomainCount),
+				AdditionalVirtualMachineCapabilities: additionalCapabilities,
+				PlatformFaultDomainCount:             pointer.To(model.PlatformFaultDomainCount),
 			}
 			if model.ComputeApiVersion != "" {
 				computeProfile.ComputeApiVersion = pointer.To(model.ComputeApiVersion)
@@ -994,10 +1009,7 @@ func (r ComputeFleetResource) Read() sdk.ResourceFunc {
 					}
 					state.AdditionalLocationProfile = additionalLocationsProfileValue
 
-					if v := props.ComputeProfile.AdditionalVirtualMachineCapabilities; v != nil {
-						state.AdditionalCapabilitiesHibernationEnabled = pointer.From(v.HibernationEnabled)
-						state.AdditionalCapabilitiesUltraSSDEnabled = pointer.From(v.UltraSSDEnabled)
-					}
+					state.AdditionalCapabilities = flattenAdditionalCapabilities(props.ComputeProfile.AdditionalVirtualMachineCapabilities)
 
 					baseVirtualMachineProfileValue, err := flattenVirtualMachineProfileModel(&props.ComputeProfile.BaseVirtualMachineProfile, metadata, false, -1)
 					if err != nil {
@@ -1256,15 +1268,18 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if v := state.VirtualMachineProfile[0].DataDisks; len(v) > 0 {
 				storageAccountType := v[0].StorageAccountType
-				ultraSSDEnabled := state.AdditionalCapabilitiesUltraSSDEnabled
+				ultraSSDEnabled := false
+				if ac := state.AdditionalCapabilities; len(ac) > 0 {
+					ultraSSDEnabled = ac[0].UltraSsdEnabled
+				}
 
 				if !ultraSSDEnabled && storageAccountType == string(fleets.StorageAccountTypesUltraSSDLRS) {
-					return fmt.Errorf("`UltraSSD_LRS` storage account type can be used only when `additional_capabilities_ultra_ssd_enabled` is enalbed")
+					return fmt.Errorf("`UltraSSD_LRS` storage account type can be used only when `ultra_ssd_enabled` is enalbed")
 				}
 
 				if v[0].CreateOption == string(fleets.DiskCreateOptionTypesEmpty) {
-					if v[0].DiskSizeInGB == 0 {
-						return fmt.Errorf("`disk_size_in_gb` is required when`create_option` is `Empty`")
+					if v[0].DiskSizeInGiB == 0 {
+						return fmt.Errorf("`disk_size_in_gib` is required when`create_option` is `Empty`")
 					}
 
 					lunExist := metadata.ResourceDiff.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["data_disk"].AsValueSlice()[0].AsValueMap()["lun"]
@@ -1299,8 +1314,8 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 					dataDisks := virtualMachineProfileOverride[0].DataDisks
 					if len(dataDisks) > 0 {
 						if dataDisks[0].CreateOption == string(fleets.DiskCreateOptionTypesEmpty) {
-							if dataDisks[0].DiskSizeInGB == 0 {
-								return fmt.Errorf("`disk_size_in_gb` is required when`create_option` is `Empty`")
+							if dataDisks[0].DiskSizeInGiB == 0 {
+								return fmt.Errorf("`disk_size_in_gib` is required when`create_option` is `Empty`")
 							}
 							lunExist := metadata.ResourceDiff.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[i].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["data_disk"].AsValueSlice()[0].AsValueMap()["lun"]
 							if lunExist.IsNull() {
@@ -1597,6 +1612,19 @@ func expandAdditionalLocationProfileModel(inputList []AdditionalLocationProfileM
 	return &output, nil
 }
 
+func expandAdditionalCapabilities(inputList []AdditionalCapabilitiesModel) *fleets.AdditionalCapabilities {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	capabilities := fleets.AdditionalCapabilities{
+		UltraSSDEnabled:    pointer.To(inputList[0].UltraSsdEnabled),
+		HibernationEnabled: pointer.To(inputList[0].HibernationEnabled),
+	}
+
+	return &capabilities
+}
+
 func flattenPlanModel(input *fleets.Plan) []PlanModel {
 	outputList := make([]PlanModel, 0)
 	if input == nil {
@@ -1607,6 +1635,19 @@ func flattenPlanModel(input *fleets.Plan) []PlanModel {
 		Product:       input.Product,
 		Publisher:     input.Publisher,
 		PromotionCode: pointer.From(input.PromotionCode),
+	}
+
+	return append(outputList, output)
+}
+
+func flattenAdditionalCapabilities(input *fleets.AdditionalCapabilities) []AdditionalCapabilitiesModel {
+	outputList := make([]AdditionalCapabilitiesModel, 0)
+	if input == nil {
+		return outputList
+	}
+	output := AdditionalCapabilitiesModel{
+		UltraSsdEnabled:    pointer.From(input.UltraSSDEnabled),
+		HibernationEnabled: pointer.From(input.HibernationEnabled),
 	}
 
 	return append(outputList, output)

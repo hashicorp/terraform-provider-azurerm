@@ -173,7 +173,7 @@ A `virtual_machine_profile` block supports the following:
 
 * `extension_operations_enabled` - (Optional) Whether to enable extension operations on the Compute Fleet.  Defaults to `true`. Changing this forces a new resource to be created.
 
-* `extensions_time_budget` - (Optional) Specifies the time alloted for all extensions to start. Changing this forces a new resource to be created.
+* `extensions_time_budget_duration` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Changing this forces a new resource to be created.
 
 * `gallery_application` - (Optional) One or more `gallery_application` blocks as defined above. Changing this forces a new resource to be created.
 
@@ -181,9 +181,9 @@ A `virtual_machine_profile` block supports the following:
 
 * `os_disk` - (Optional) A `os_disk` block as defined above. Changing this forces a new resource to be created.
 
-* `scheduled_event_os_image_timeout` - (Optional) Specifies the length of time a virtual machine being deleted will have to potentially approve the terminate scheduled event before the event is auto approved (timed out). The configuration must be specified in ISO 8601 format. The only possible value is `PT15M`. Changing this forces a new resource to be created.
+* `scheduled_event_os_image_timeout_duration` - (Optional) Specifies the length of time a virtual machine being deleted will have to potentially approve the terminate scheduled event before the event is auto approved (timed out). The configuration must be specified in ISO 8601 format. The only possible value is `PT15M`. Changing this forces a new resource to be created.
 
-* `scheduled_event_termination_timeout` - (Optional) Specifies the length of time a virtual machine being reimaged or having its OS upgraded will have to potentially approve the OS image scheduled event before the event is auto approved (timed out). The configuration is specified in ISO 8601 format. Possible values are `PT5M` and `PT15M`. Changing this forces a new resource to be created.
+* `scheduled_event_termination_timeout_duration` - (Optional) Specifies the length of time a virtual machine being reimaged or having its OS upgraded will have to potentially approve the OS image scheduled event before the event is auto approved (timed out). The configuration is specified in ISO 8601 format. Possible values are `PT5M` and `PT15M`. Changing this forces a new resource to be created.
 
 * `secure_boot_enabled` - (Optional) Whether to enable the secure boot on the virtual machine. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -249,7 +249,7 @@ A `additional_location_profile` block supports the following:
 
 A `additional_unattend_content` block supports the following:
 
-* `content` - (Required) Specifies the XML formatted content that is added to the unattend.xml file for the specified path and component. Changing this forces a new resource to be created.
+* `xml` - (Required) Specifies the XML formatted content that is added to the unattend.xml file for the specified path and component. Changing this forces a new resource to be created.
 
 * `setting` - (Required) Specifies the name of the setting to which the content applies. Possible values are `AutoLogon` and `FirstLogonCommands`. Changing this forces a new resource to be created.
 
@@ -281,7 +281,7 @@ A `data_disk` block supports the following:
 
 * `disk_encryption_set_id` - (Optional) The ID of the disk encryption set which should be used to encrypt the data disk. Changing this forces a new resource to be created.
 
-* `disk_size_in_gb` - (Optional) The size of the data disk which should be created.  Changing this forces a new resource to be created.
+* `disk_size_in_gib` - (Optional) The size of the data disk which should be created.  Changing this forces a new resource to be created.
 
 -> **Note:** Required if `create_option` is specified as `Empty`.
 
@@ -472,7 +472,7 @@ A `os_disk` block supports the following:
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt the OS Disk. Changing this forces a new resource to be created.
 
-* `disk_size_in_gb` - (Optional) The size of the internal OS Disk in GB, if you wish to vary from the size used in the image the Compute Fleet is sourced from. Changing this forces a new resource to be created.
+* `disk_size_in_gib` - (Optional) The size of the internal OS Disk in GiB, if you wish to vary from the size used in the image the Compute Fleet is sourced from. Changing this forces a new resource to be created.
 
 * `security_encryption_type` - (Optional) Specifies the encryption type of the OS Disk. Possible values are `DiskWithVMGuestState`, `NonPersistedTPM` and `VMGuestStateOnly`. Changing this forces a new resource to be created.
 
@@ -616,9 +616,7 @@ A `vm_attributes` block supports the following:
 
 -> **Note:** Once the `burstable_support` has been specified, removing it forces a new resource to be created.
 
-* `cpu_manufacturers` - (Optional) Specifies a list of the virtual machine CPU manufacturers. Possible values are `AMD`, `Ampere`, `Intel` and `Microsoft`.
-
--> **Note:** Once the `cpu_manufacturers` has been specified, removing it forces a new resource to be created.
+* `cpu_manufacturers` - (Optional) Specifies a list of the virtual machine CPU manufacturers. Possible values are `AMD`, `Ampere`, `Intel` and `Microsoft`. Once specified changing this value forces a new resource to be created.
 
 * `data_disk_count` - (Optional) A `data_disk_count` block as defined above.
 

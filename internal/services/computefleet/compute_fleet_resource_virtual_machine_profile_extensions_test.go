@@ -280,7 +280,7 @@ resource "azurerm_compute_fleet" "test" {
         "managedIdentity" = {}
       })
     }
-    extensions_time_budget = "PT30M"
+    extensions_time_budget_duration = "PT30M"
   }
 
   additional_location_profile {
@@ -360,7 +360,7 @@ resource "azurerm_compute_fleet" "test" {
           "managedIdentity" = {}
         })
       }
-      extensions_time_budget = "PT30M"
+      extensions_time_budget_duration = "PT30M"
     }
   }
 }
