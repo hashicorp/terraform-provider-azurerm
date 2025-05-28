@@ -99,7 +99,7 @@ resource "azurerm_netapp_volume" "example" {
   security_style             = "unix"
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
-  large_volume_enabled            = false
+  large_volume_enabled       = false
 
   # When creating volume from a snapshot
   create_from_snapshot_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/volume1/snapshots/snapshot1"
