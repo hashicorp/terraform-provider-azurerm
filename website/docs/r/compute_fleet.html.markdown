@@ -121,9 +121,7 @@ The following arguments are supported:
 
 * `virtual_machine_profile` - (Required) A `virtual_machine_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `additional_capabilities_hibernation_enabled` - (Optional) Whether to enable the hibernation capability on the Compute Fleet.  Defaults to `false`. Changing this forces a new resource to be created.
-
-* `additional_capabilities_ultra_ssd_enabled` - (Optional) Whether to enable Data Disks of the `UltraSSD_LRS` storage account type on this Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
+* `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below. Changing this forces a new resource to be created.
 
 * `additional_location_profile` - (Optional) One or more `additional_location_profile` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -244,6 +242,14 @@ A `additional_location_profile` block supports the following:
 * `location` - (Required) The Azure Region where the Compute Fleet should exist. Changing this forces a new resource to be created.
 
 * `virtual_machine_profile_override` - (Required) The definition of the `virtual_machine_profile_override` block is the same as the `virtual_machine_profile` block. A `virtual_machine_profile` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `additional_capabilities` block supports the following:
+
+* `hibernation_enabled` - (Optional) Whether to enable the hibernation capability on the Compute Fleet.  Defaults to `false`. Changing this forces a new resource to be created.
+
+* `ultra_ssd_enabled` - (Optional) Whether to enable Data Disks of the `UltraSSD_LRS` storage account type on this Compute Fleet. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
