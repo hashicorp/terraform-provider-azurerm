@@ -847,8 +847,8 @@ resource "azurerm_compute_fleet" "test" {
       }
     }
 
-    scheduled_event_termination_timeout = "PT5M"
-    scheduled_event_os_image_timeout    = "PT15M"
+    scheduled_event_termination_timeout_duration = "PT5M"
+    scheduled_event_os_image_timeout_duration    = "PT15M"
   }
 
   additional_location_profile {
@@ -891,8 +891,8 @@ resource "azurerm_compute_fleet" "test" {
         }
       }
 
-      scheduled_event_termination_timeout = "PT5M"
-      scheduled_event_os_image_timeout    = "PT15M"
+      scheduled_event_termination_timeout_duration = "PT5M"
+      scheduled_event_os_image_timeout_duration    = "PT15M"
     }
   }
 }
@@ -1010,11 +1010,14 @@ func (r ComputeFleetTestResource) additionalCapabilitiesUltraSSD(data acceptance
 %[1]s
 
 resource "azurerm_compute_fleet" "test" {
-  name                                      = "acctest-fleet-%[2]d"
-  resource_group_name                       = azurerm_resource_group.test.name
-  location                                  = "%[3]s"
-  additional_capabilities_ultra_ssd_enabled = true
-  zones                                     = ["1", "2", "3"]
+  name                = "acctest-fleet-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  zones               = ["1", "2", "3"]
+
+  additional_capabilities {
+    ultra_ssd_enabled = true
+  }
 
   spot_priority_profile {
     min_capacity     = 1
@@ -1087,10 +1090,13 @@ func (r ComputeFleetTestResource) additionalCapabilitiesHibernation(data accepta
 %[1]s
 
 resource "azurerm_compute_fleet" "test" {
-  name                                        = "acctest-fleet-%[2]d"
-  resource_group_name                         = azurerm_resource_group.test.name
-  location                                    = "%[3]s"
-  additional_capabilities_hibernation_enabled = true
+  name                = "acctest-fleet-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+
+  additional_capabilities {
+    hibernation_enabled = true
+  }
 
   regular_priority_profile {
     allocation_strategy = "LowestPrice"

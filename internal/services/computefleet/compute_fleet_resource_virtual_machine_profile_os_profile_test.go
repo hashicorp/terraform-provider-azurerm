@@ -76,10 +76,10 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_windowsComplete(t *testi
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password",
 			"virtual_machine_profile.0.os_profile.0.custom_data_base64",
-			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.additional_unattend_content.0.content",
+			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.additional_unattend_content.0.xml",
 			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.admin_password",
 			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.custom_data_base64",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.additional_unattend_content.0.content"),
+			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.additional_unattend_content.0.xml"),
 	})
 }
 
@@ -194,7 +194,7 @@ resource "azurerm_compute_fleet" "test" {
         admin_password       = local.admin_password
         additional_unattend_content {
           setting = "FirstLogonCommands"
-          content = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
+          xml     = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
         }
         automatic_updates_enabled         = true
         vm_agent_platform_updates_enabled = true
@@ -203,7 +203,7 @@ resource "azurerm_compute_fleet" "test" {
         patch_assessment_mode                 = "ImageDefault"
         hot_patching_enabled                  = true
         bypass_platform_safety_checks_enabled = false
-        reboot_setting                        = "Always"
+        patch_rebooting                       = "Always"
         provision_vm_agent_enabled            = true
         secret {
           key_vault_id = azurerm_key_vault.test.id
@@ -275,7 +275,7 @@ resource "azurerm_compute_fleet" "test" {
           admin_password       = local.admin_password
           additional_unattend_content {
             setting = "FirstLogonCommands"
-            content = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
+            xml     = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
           }
           automatic_updates_enabled         = true
           vm_agent_platform_updates_enabled = true
@@ -284,7 +284,7 @@ resource "azurerm_compute_fleet" "test" {
           patch_assessment_mode                 = "ImageDefault"
           hot_patching_enabled                  = true
           bypass_platform_safety_checks_enabled = false
-          reboot_setting                        = "Always"
+          patch_rebooting                       = "Always"
           provision_vm_agent_enabled            = true
           secret {
             key_vault_id = azurerm_key_vault.windows_test.id
@@ -455,7 +455,7 @@ resource "azurerm_compute_fleet" "test" {
         patch_mode                            = "AutomaticByPlatform"
         patch_assessment_mode                 = "ImageDefault"
         bypass_platform_safety_checks_enabled = true
-        reboot_setting                        = "Always"
+        patch_rebooting                       = "Always"
         secret {
           key_vault_id = azurerm_key_vault.test.id
           certificate {
@@ -520,7 +520,7 @@ resource "azurerm_compute_fleet" "test" {
           patch_mode                            = "AutomaticByPlatform"
           patch_assessment_mode                 = "ImageDefault"
           bypass_platform_safety_checks_enabled = true
-          reboot_setting                        = "Always"
+          patch_rebooting                       = "Always"
           secret {
             key_vault_id = azurerm_key_vault.linux_test.id
             certificate {

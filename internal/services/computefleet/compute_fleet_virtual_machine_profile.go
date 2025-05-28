@@ -83,7 +83,7 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 					Default:  true,
 				},
 
-				"extensions_time_budget": {
+				"extensions_time_budget_duration": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -106,7 +106,7 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 
 				"os_disk": storageProfileOsDiskSchema(),
 
-				"scheduled_event_os_image_timeout": {
+				"scheduled_event_os_image_timeout_duration": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ForceNew: true,
@@ -115,7 +115,7 @@ func virtualMachineProfileSchema() *pluginsdk.Schema {
 					}, false),
 				},
 
-				"scheduled_event_termination_timeout": {
+				"scheduled_event_termination_timeout_duration": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
@@ -669,7 +669,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								Default:  true,
 							},
 
-							"reboot_setting": {
+							"patch_rebooting": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
@@ -751,7 +751,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								ForceNew: true,
 								Elem: &pluginsdk.Resource{
 									Schema: map[string]*pluginsdk.Schema{
-										"content": {
+										"xml": {
 											Type:      pluginsdk.TypeString,
 											Required:  true,
 											ForceNew:  true,
@@ -810,7 +810,7 @@ func osProfileSchema() *pluginsdk.Schema {
 								Default:  true,
 							},
 
-							"reboot_setting": {
+							"patch_rebooting": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
 								ForceNew:     true,
@@ -936,7 +936,7 @@ func storageProfileDataDiskSchema() *pluginsdk.Schema {
 					ValidateFunc: computeValidate.DiskEncryptionSetID,
 				},
 
-				"disk_size_in_gb": {
+				"disk_size_in_gib": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
@@ -1016,7 +1016,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					ValidateFunc: computeValidate.DiskEncryptionSetID,
 				},
 
-				"disk_size_in_gb": {
+				"disk_size_in_gib": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
@@ -1121,22 +1121,22 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 		},
 	}
 
-	if input.ScheduledEventTerminationTimeout != "" {
+	if input.ScheduledEventTerminationTimeoutDuration != "" {
 		output.ScheduledEventsProfile = &fleets.ScheduledEventsProfile{
 			TerminateNotificationProfile: &fleets.TerminateNotificationProfile{
 				Enable:           pointer.To(true),
-				NotBeforeTimeout: pointer.To(input.ScheduledEventTerminationTimeout),
+				NotBeforeTimeout: pointer.To(input.ScheduledEventTerminationTimeoutDuration),
 			},
 		}
 	}
 
-	if input.ScheduledEventOsImageTimeout != "" {
+	if input.ScheduledEventOsImageTimeoutDuration != "" {
 		if output.ScheduledEventsProfile == nil {
 			output.ScheduledEventsProfile = &fleets.ScheduledEventsProfile{}
 		}
 		output.ScheduledEventsProfile.OsImageNotificationProfile = &fleets.OSImageNotificationProfile{
 			Enable:           pointer.To(true),
-			NotBeforeTimeout: pointer.To(input.ScheduledEventOsImageTimeout),
+			NotBeforeTimeout: pointer.To(input.ScheduledEventOsImageTimeoutDuration),
 		}
 	}
 
@@ -1197,7 +1197,7 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 		}
 	}
 
-	extensionProfileValue, err := expandExtensionModel(input.Extension, input.ExtensionsTimeBudget)
+	extensionProfileValue, err := expandExtensionModel(input.Extension, input.ExtensionsTimeBudgetDuration)
 	if err != nil {
 		return nil, err
 	}
@@ -1499,8 +1499,8 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 				BypassPlatformSafetyChecksOnUserSchedule: pointer.To(lConfig[0].BypassPlatformSafetyChecksEnabled),
 			}
 
-			if lConfig[0].RebootSetting != "" {
-				linuxConfig.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(fleets.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(lConfig[0].RebootSetting))
+			if lConfig[0].PatchRebooting != "" {
+				linuxConfig.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(fleets.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(lConfig[0].PatchRebooting))
 			}
 		}
 		if lConfig[0].PatchAssessmentMode != "" {
@@ -1584,8 +1584,8 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 				BypassPlatformSafetyChecksOnUserSchedule: pointer.To(winConfig[0].BypassPlatformSafetyChecksEnabled),
 			}
 
-			if winConfig[0].RebootSetting != "" {
-				windowsConfig.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(fleets.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(winConfig[0].RebootSetting))
+			if winConfig[0].PatchRebooting != "" {
+				windowsConfig.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(fleets.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(winConfig[0].PatchRebooting))
 			}
 		}
 		if winConfig[0].PatchAssessmentMode != "" {
@@ -1617,14 +1617,14 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 		hotPatchingEnabled := v[0].HotPatchingEnabled
 		provisionVMAgentEnabled := v[0].ProvisionVMAgentEnabled
 
-		rebootSetting := v[0].RebootSetting
+		rebootSetting := v[0].PatchRebooting
 		bypassPlatformSafetyChecksEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["windows_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
 		if isAdditional && len(d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()) > index {
 			bypassPlatformSafetyChecksEnabledExist = d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[index].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["windows_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
 		}
 		if !bypassPlatformSafetyChecksEnabledExist.IsNull() || rebootSetting != "" {
 			if patchMode != string(fleets.WindowsVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`bypass_platform_safety_checks_enabled` and `reboot_setting` cannot be set if the `PatchMode` is not `AutomaticByPlatform`")
+				return fmt.Errorf("`bypass_platform_safety_checks_enabled` and `patch_rebooting` cannot be set if the `PatchMode` is not `AutomaticByPlatform`")
 			}
 		}
 
@@ -1707,14 +1707,14 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 		patchAssessmentMode := v[0].PatchAssessmentMode
 		provisionVMAgentEnabled := v[0].ProvisionVMAgentEnabled
 
-		rebootSetting := v[0].RebootSetting
+		rebootSetting := v[0].PatchRebooting
 		bypassPlatformSafetyChecksEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["linux_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
 		if isAdditional && len(d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()) > index {
 			bypassPlatformSafetyChecksEnabledExist = d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[index].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["linux_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
 		}
 		if !bypassPlatformSafetyChecksEnabledExist.IsNull() || rebootSetting != "" {
 			if patchMode != string(fleets.LinuxVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`bypass_platform_safety_checks_enabled` and `reboot_setting` cannot be set if the `PatchMode` is not `AutomaticByPlatform`")
+				return fmt.Errorf("`bypass_platform_safety_checks_enabled` and `patch_rebooting` cannot be set if the `PatchMode` is not `AutomaticByPlatform`")
 			}
 		}
 
@@ -1833,7 +1833,7 @@ func expandAdditionalUnAttendContentModel(inputList []AdditionalUnattendContentM
 	for _, input := range inputList {
 		output := fleets.AdditionalUnattendContent{
 			SettingName: pointer.To(fleets.SettingNames(input.Setting)),
-			Content:     pointer.To(input.Content),
+			Content:     pointer.To(input.Xml),
 			// no other possible values
 			ComponentName: pointer.To(fleets.ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 			PassName:      pointer.To(fleets.PassNameOobeSystem),
@@ -1856,8 +1856,8 @@ func expandDataDiskModel(inputList []DataDiskModel) *[]fleets.VirtualMachineScal
 			output.DeleteOption = pointer.To(fleets.DiskDeleteOptionTypes(input.DeleteOption))
 		}
 
-		if input.DiskSizeInGB > 0 {
-			output.DiskSizeGB = pointer.To(input.DiskSizeInGB)
+		if input.DiskSizeInGiB > 0 {
+			output.DiskSizeGB = pointer.To(input.DiskSizeInGiB)
 		}
 
 		caching := string(fleets.CachingTypesNone)
@@ -1970,8 +1970,8 @@ func expandOSDiskModel(input *VirtualMachineProfileModel, withVMAttributes bool,
 		}
 	}
 
-	if inputOsDisk.DiskSizeInGB > 0 {
-		output.DiskSizeGB = pointer.To(inputOsDisk.DiskSizeInGB)
+	if inputOsDisk.DiskSizeInGiB > 0 {
+		output.DiskSizeGB = pointer.To(inputOsDisk.DiskSizeInGiB)
 	}
 
 	caching := fleets.CachingTypesNone
@@ -2047,10 +2047,10 @@ func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, 
 
 	if se := input.ScheduledEventsProfile; se != nil {
 		if v := se.TerminateNotificationProfile; v != nil {
-			output.ScheduledEventTerminationTimeout = pointer.From(v.NotBeforeTimeout)
+			output.ScheduledEventTerminationTimeoutDuration = pointer.From(v.NotBeforeTimeout)
 		}
 		if v := se.OsImageNotificationProfile; v != nil {
-			output.ScheduledEventOsImageTimeout = pointer.From(v.NotBeforeTimeout)
+			output.ScheduledEventOsImageTimeoutDuration = pointer.From(v.NotBeforeTimeout)
 		}
 	}
 
@@ -2074,7 +2074,7 @@ func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, 
 	output.Extension = extensionProfileValue
 
 	if input.ExtensionProfile != nil {
-		output.ExtensionsTimeBudget = pointer.From(input.ExtensionProfile.ExtensionsTimeBudget)
+		output.ExtensionsTimeBudgetDuration = pointer.From(input.ExtensionProfile.ExtensionsTimeBudget)
 	}
 
 	licenseType := ""
@@ -2268,7 +2268,7 @@ func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *sch
 			windowsConfig.PatchAssessmentMode = string(pointer.From(p.AssessmentMode))
 			if a := p.AutomaticByPlatformSettings; a != nil {
 				windowsConfig.BypassPlatformSafetyChecksEnabled = pointer.From(a.BypassPlatformSafetyChecksOnUserSchedule)
-				windowsConfig.RebootSetting = string(pointer.From(a.RebootSetting))
+				windowsConfig.PatchRebooting = string(pointer.From(a.RebootSetting))
 			}
 			windowsConfig.HotPatchingEnabled = pointer.From(p.EnableHotpatching)
 		}
@@ -2298,7 +2298,7 @@ func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *sch
 			linuxConfig.PatchMode = string(pointer.From(p.PatchMode))
 			if a := p.AutomaticByPlatformSettings; a != nil {
 				linuxConfig.BypassPlatformSafetyChecksEnabled = pointer.From(a.BypassPlatformSafetyChecksOnUserSchedule)
-				linuxConfig.RebootSetting = string(pointer.From(a.RebootSetting))
+				linuxConfig.PatchRebooting = string(pointer.From(a.RebootSetting))
 			}
 		}
 
@@ -2373,13 +2373,13 @@ func flattenAdditionalUnAttendContentModel(inputList *[]fleets.AdditionalUnatten
 			existingVal := existing[i]
 			existingRaw, ok := existingVal.(map[string]interface{})
 			if ok {
-				contentRaw, ok := existingRaw["content"]
+				contentRaw, ok := existingRaw["xml"]
 				if ok {
 					content = contentRaw.(string)
 				}
 			}
 		}
-		output.Content = content
+		output.Xml = content
 
 		outputList = append(outputList, output)
 	}
@@ -2414,7 +2414,7 @@ func flattenDataDiskModel(inputList *[]fleets.VirtualMachineScaleSetDataDisk) []
 			CreateOption:            string(input.CreateOption),
 			Lun:                     input.Lun,
 			DeleteOption:            string(pointer.From(input.DeleteOption)),
-			DiskSizeInGB:            pointer.From(input.DiskSizeGB),
+			DiskSizeInGiB:           pointer.From(input.DiskSizeGB),
 			WriteAcceleratorEnabled: pointer.From(input.WriteAcceleratorEnabled),
 		}
 
@@ -2475,7 +2475,7 @@ func flattenOSDiskModel(input *fleets.VirtualMachineScaleSetOSDisk) []OSDiskMode
 	output.Caching = caching
 
 	if input.DiskSizeGB != nil {
-		output.DiskSizeInGB = pointer.From(input.DiskSizeGB)
+		output.DiskSizeInGiB = pointer.From(input.DiskSizeGB)
 	}
 
 	if md := input.ManagedDisk; md != nil {

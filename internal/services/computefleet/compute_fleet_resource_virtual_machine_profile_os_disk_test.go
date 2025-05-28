@@ -208,7 +208,7 @@ resource "azurerm_compute_fleet" "test" {
       delete_option             = "Delete"
       diff_disk_option          = "Local"
       diff_disk_placement       = "ResourceDisk"
-      disk_size_in_gb           = 30
+      disk_size_in_gib          = 30
       storage_account_type      = "Premium_LRS"
       security_encryption_type  = "DiskWithVMGuestState"
       disk_encryption_set_id    = azurerm_disk_encryption_set.test.id
@@ -262,7 +262,7 @@ resource "azurerm_compute_fleet" "test" {
         delete_option             = "Delete"
         diff_disk_option          = "Local"
         diff_disk_placement       = "ResourceDisk"
-        disk_size_in_gb           = 30
+        disk_size_in_gib          = 30
         storage_account_type      = "Premium_LRS"
         security_encryption_type  = "DiskWithVMGuestState"
         disk_encryption_set_id    = azurerm_disk_encryption_set.linux_test.id

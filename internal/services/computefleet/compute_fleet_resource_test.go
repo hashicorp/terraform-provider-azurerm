@@ -450,7 +450,7 @@ resource "azurerm_compute_fleet" "test" {
       }
     }
   }
-  # ignore_changes os_disk as os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gb and storage_account_type
+  # ignore_changes os_disk as os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
   # ignore_changes compute_api_version as the default value returned by API will be the latest supported computeApiVersion if it is not specified
   lifecycle {
     ignore_changes = [compute_api_version, virtual_machine_profile.0.os_disk]
@@ -511,7 +511,7 @@ resource "azurerm_compute_fleet" "import" {
       }
     }
   }
-  # ignore_changes os_disk as os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gb and storage_account_type
+  # ignore_changes os_disk as os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
   # ignore_changes compute_api_version as the default value returned by API will be the latest supported computeApiVersion if it is not specified
   lifecycle {
     ignore_changes = [compute_api_version, virtual_machine_profile.0.os_disk]
@@ -881,7 +881,7 @@ virtual_machine_profile {
 		}
 	}
 }
-# ignore_changes as when os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gb and storage_account_type
+# ignore_changes as when os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
 lifecycle {
 	ignore_changes = [virtual_machine_profile.0.os_disk, additional_location_profile.0.virtual_machine_profile_override.0.os_disk]
 }
@@ -922,7 +922,7 @@ virtual_machine_profile {
 		}
 	}
 }
-# ignore_changes as when os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gb and storage_account_type
+# ignore_changes as when os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
 lifecycle {
 	ignore_changes = [virtual_machine_profile.0.os_disk, additional_location_profile[0].virtual_machine_profile_override.0.os_disk]
 }
