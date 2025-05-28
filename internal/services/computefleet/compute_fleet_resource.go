@@ -712,17 +712,17 @@ func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"ultra_ssd_enabled": {
+				"hibernation_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					ForceNew: true,
 					Default:  false,
 				},
-
-				"hibernation_enabled": {
+				"ultra_ssd_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					ForceNew: true,
