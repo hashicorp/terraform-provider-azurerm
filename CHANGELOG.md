@@ -16,7 +16,7 @@ ENHANCEMENTS:
 * `azurerm_dashboard_grafana_managed_private_endpoint` - add support for the `privatelink_service_url` property [GH-29466]
 * `azurerm_dynatrace_tag_rules` - add support for the `sending_metrics_enabled` property [GH-29499]
 * `azurerm_function_app_flex_consumption` - add support for the `https_only` property [GH-29024]
-* `azurerm_metric_diagnostic_setting` - deprecate `metric` in favor of `enabled_metric` [GH-29406]
+* `azurerm_monitor_diagnostic_setting` - deprecate `metric` in favor of `enabled_metric` [GH-29406]
 * `azurerm_mysql_flexible_server` - add support for the `MO_Standard_E96ads_v5` value to the `sku_name` property [GH-29709]
 * `azurerm_postgresql_flexible_server` - lock the source server when creating a replica server [GH-29337]
 
