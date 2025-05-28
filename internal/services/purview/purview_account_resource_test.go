@@ -80,6 +80,13 @@ func testAccPurviewAccount_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -161,10 +168,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_purview_account" "test" {
-  name                   = "acctestpurview%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  public_network_enabled = false
+  name                      = "acctestpurview%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  public_network_enabled    = false
+  managed_event_hub_enabled = false
 
   identity {
     type = "SystemAssigned"
