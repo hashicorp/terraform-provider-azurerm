@@ -505,7 +505,7 @@ func (p *Provider) ImportStateWithIdentity(
 		if err != nil {
 			return nil, err // this should not happen, as we checked above
 		}
-		identityData.raw = identity // is this too hacky / unexpected?
+		identityData.raw = identity
 	} else if identity != nil {
 		return nil, fmt.Errorf("resource %s doesn't support identity import", info.Type)
 	}

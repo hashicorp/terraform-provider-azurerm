@@ -576,6 +576,16 @@ type TestStep struct {
 	// otherwise an error will be returned.
 	ConfigFile config.TestStepConfigFunc
 
+	// ImportStateConfigExact indicates that the test framework should use the exact
+	// content of the Config, ConfigFile, or ConfigDirectory inputs and should
+	// not modify it at test run time.
+	//
+	// The default is false. At test run time, the test framework will generate
+	// specific kinds of configuration, such as import blocks, and append them
+	// to the given Config, ConfigFile, or ConfigDirectory inputs. Using this
+	// default improves test readability and removes duplication of setup.
+	ImportStateConfigExact bool
+
 	// ConfigVariables is a map defining variables for use in conjunction
 	// with Terraform configuration. If this map is populated then it
 	// will be used to assemble an *.auto.tfvars.json which will be
@@ -870,11 +880,6 @@ func ParallelTest(t testing.T, c TestCase) {
 // Tests are not run unless an environmental variable "TF_ACC" is
 // set to some non-empty value. This is to avoid test cases surprising
 // a user by creating real resources.
-//
-// Tests will fail unless the verbose flag (`go test -v`, or explicitly
-// the "-test.v" flag) is set. Because some acceptance tests take quite
-// long, we require the verbose flag so users are able to see progress
-// output.
 //
 // Use the ParallelTest() function to automatically set (*testing.T).Parallel()
 // to enable testing concurrency. Use the UnitTest() function to automatically

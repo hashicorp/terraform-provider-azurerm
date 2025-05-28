@@ -99,12 +99,18 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 	var priorIdentityValues map[string]any
 
 	if kind.plannable() && kind.resourceIdentity() {
-		priorIdentityValues = identityValuesFromState(stateJSON, resourceName)
+		priorIdentityValues = identityValuesFromStateValues(stateJSON.Values, resourceName)
 		if len(priorIdentityValues) == 0 {
 			return fmt.Errorf("importing resource %s: expected prior state to have resource identity values, got none", resourceName)
 		}
 	}
 
+	var inlineConfig string
+	if step.Config != "" {
+		inlineConfig = step.Config
+	} else {
+		inlineConfig = cfgRaw
+	}
 	testStepConfigRequest := config.TestStepConfigRequest{
 		StepNumber: stepNumber,
 		TestName:   t.Name(),
@@ -112,27 +118,23 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 	testStepConfig := teststep.Configuration(teststep.PrepareConfigurationRequest{
 		Directory:             step.ConfigDirectory,
 		File:                  step.ConfigFile,
-		Raw:                   step.Config,
+		Raw:                   inlineConfig,
 		TestStepConfigRequest: testStepConfigRequest,
 	}.Exec())
 
+	switch {
+	case step.ImportStateConfigExact:
+		break
+
+	case kind.plannable() && kind.resourceIdentity():
+		testStepConfig = appendImportBlockWithIdentity(testStepConfig, resourceName, priorIdentityValues)
+
+	case kind.plannable():
+		testStepConfig = appendImportBlock(testStepConfig, resourceName, importId)
+	}
+
 	if testStepConfig == nil {
-		logging.HelperResourceTrace(ctx, "Using prior TestStep Config for import")
-		importConfig := cfgRaw
-
-		if kind.plannable() && kind.resourceIdentity() {
-			importConfig = appendImportBlockWithIdentity(importConfig, resourceName, priorIdentityValues)
-		} else if kind.plannable() {
-			importConfig = appendImportBlock(importConfig, resourceName, importId)
-		}
-
-		testStepConfig = teststep.Configuration(teststep.PrepareConfigurationRequest{
-			Raw:                   importConfig,
-			TestStepConfigRequest: testStepConfigRequest,
-		}.Exec())
-		if testStepConfig == nil {
-			t.Fatal("Cannot import state with no specified config")
-		}
+		t.Fatal("Cannot import state with no specified config")
 	}
 
 	var workingDir *plugintest.WorkingDir
@@ -229,29 +231,12 @@ func testImportBlock(ctx context.Context, t testing.T, workingDir *plugintest.Wo
 	}
 
 	if kind.resourceIdentity() {
-		if err := verifyIdentityValues(ctx, t, workingDir, providers, resourceName, priorIdentityValues); err != nil {
-			return err
+		newIdentityValues := identityValuesFromStateValues(plan.PlannedValues, resourceName)
+		if !cmp.Equal(priorIdentityValues, newIdentityValues) {
+			return fmt.Errorf("importing resource %s: expected identity values %v, got %v", resourceName, priorIdentityValues, newIdentityValues)
 		}
 	}
 
-	return nil
-}
-
-func verifyIdentityValues(ctx context.Context, t testing.T, workingDir *plugintest.WorkingDir, providers *providerFactories, resourceName string, priorIdentityValues map[string]any) error {
-	err := runProviderCommandApply(ctx, t, workingDir, providers)
-	if err != nil {
-		return fmt.Errorf("applying plan with import config: %s", err)
-	}
-
-	newStateJSON, err := runProviderCommandGetStateJSON(ctx, t, workingDir, providers)
-	if err != nil {
-		return fmt.Errorf("getting state after applying plan with import config: %s", err)
-	}
-
-	newIdentityValues := identityValuesFromState(newStateJSON, resourceName)
-	if !cmp.Equal(priorIdentityValues, newIdentityValues) {
-		return fmt.Errorf("importing resource %s: expected identity values %v, got %v", resourceName, priorIdentityValues, newIdentityValues)
-	}
 	return nil
 }
 
@@ -424,51 +409,56 @@ func testImportCommand(ctx context.Context, t testing.T, workingDir *plugintest.
 	return nil
 }
 
-func appendImportBlock(config string, resourceName string, importID string) string {
-	return config + fmt.Sprintf(``+"\n"+
-		`import {`+"\n"+
-		`	to = %s`+"\n"+
-		`	id = %q`+"\n"+
-		`}`,
-		resourceName, importID)
+func appendImportBlock(config teststep.Config, resourceName string, importID string) teststep.Config {
+	return config.Append(
+		fmt.Sprintf(``+"\n"+
+			`import {`+"\n"+
+			`	to = %s`+"\n"+
+			`	id = %q`+"\n"+
+			`}`,
+			resourceName, importID))
 }
 
-func appendImportBlockWithIdentity(config string, resourceName string, identityValues map[string]any) string {
-	configBuilder := config
-	configBuilder += fmt.Sprintf(``+"\n"+
+func appendImportBlockWithIdentity(config teststep.Config, resourceName string, identityValues map[string]any) teststep.Config {
+	configBuilder := strings.Builder{}
+	configBuilder.WriteString(fmt.Sprintf(``+"\n"+
 		`import {`+"\n"+
 		`	to = %s`+"\n"+
 		`	identity = {`+"\n",
-		resourceName)
+		resourceName))
 
 	for k, v := range identityValues {
+		// It's valid for identity attributes to be null, we can just omit it from config
+		if v == nil {
+			continue
+		}
+
 		switch v := v.(type) {
 		case bool:
-			configBuilder += fmt.Sprintf(`		%q = %t`+"\n", k, v)
+			configBuilder.WriteString(fmt.Sprintf(`		%q = %t`+"\n", k, v))
 
 		case []any:
 			var quotedV []string
 			for _, v := range v {
 				quotedV = append(quotedV, fmt.Sprintf(`%q`, v))
 			}
-			configBuilder += fmt.Sprintf(`		%q = [%s]`+"\n", k, strings.Join(quotedV, ", "))
+			configBuilder.WriteString(fmt.Sprintf(`		%q = [%s]`+"\n", k, strings.Join(quotedV, ", ")))
 
 		case json.Number:
-			configBuilder += fmt.Sprintf(`		%q = %s`+"\n", k, v)
+			configBuilder.WriteString(fmt.Sprintf(`		%q = %s`+"\n", k, v))
 
 		case string:
-			configBuilder += fmt.Sprintf(`		%q = %q`+"\n", k, v)
+			configBuilder.WriteString(fmt.Sprintf(`		%q = %q`+"\n", k, v))
 
 		default:
 			panic(fmt.Sprintf("unexpected type %T for identity value %q", v, k))
 		}
 	}
 
-	configBuilder += `` +
-		`	}` + "\n" +
-		`}` + "\n"
+	configBuilder.WriteString(`	}` + "\n")
+	configBuilder.WriteString(`}` + "\n")
 
-	return configBuilder
+	return config.Append(configBuilder.String())
 }
 
 func importStatePreconditions(t testing.T, helper *plugintest.Helper, step TestStep) error {
@@ -508,8 +498,7 @@ func importStatePreconditions(t testing.T, helper *plugintest.Helper, step TestS
 	return nil
 }
 
-func resourcesFromState(state *tfjson.State) []*tfjson.StateResource {
-	stateValues := state.Values
+func resourcesFromState(stateValues *tfjson.StateValues) []*tfjson.StateResource {
 	if stateValues == nil || stateValues.RootModule == nil {
 		return []*tfjson.StateResource{}
 	}
@@ -517,9 +506,9 @@ func resourcesFromState(state *tfjson.State) []*tfjson.StateResource {
 	return stateValues.RootModule.Resources
 }
 
-func identityValuesFromState(state *tfjson.State, resourceName string) map[string]any {
+func identityValuesFromStateValues(stateValues *tfjson.StateValues, resourceName string) map[string]any {
 	var resource *tfjson.StateResource
-	resources := resourcesFromState(state)
+	resources := resourcesFromState(stateValues)
 
 	for _, r := range resources {
 		if r.Address == resourceName {

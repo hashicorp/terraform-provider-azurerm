@@ -25,7 +25,7 @@ var SDKVersion = "2.37.0"
 //
 // Deprecated: Use Go standard library [runtime/debug] package build information
 // instead.
-var SDKPrerelease = "beta.1"
+var SDKPrerelease = ""
 
 // SemVer is an instance of version.Version. This has the secondary
 // benefit of verifying during tests and init time that our version is a

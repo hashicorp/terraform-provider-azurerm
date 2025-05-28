@@ -36,7 +36,7 @@ const (
 	SkuPremiumPlan        = "P1v2"
 )
 
-func TestAccLinuxFunctionApp_resourceIdentity(t *testing.T) {
+func TestAccLinuxFunctionApp_resourceIdentityd(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app", "test")
 	r := LinuxFunctionAppResource{}
 

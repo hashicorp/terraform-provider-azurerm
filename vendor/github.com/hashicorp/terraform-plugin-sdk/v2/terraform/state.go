@@ -30,6 +30,13 @@ const (
 	stateVersion = 3
 )
 
+// ImportBeforeReadMetaKey is an internal private field used to indicate that the current resource state and identity
+// were provided most recently by the ImportResourceState RPC. This indicates that the state is an import stub and identity
+// has not been stored in state yet.
+//
+// When detected, this key should be cleared before returning from the ReadResource RPC.
+var ImportBeforeReadMetaKey = ".import_before_read"
+
 // rootModulePath is the path of the root module
 var rootModulePath = []string{"root"}
 

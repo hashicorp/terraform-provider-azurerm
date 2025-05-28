@@ -1,6 +1,8 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "site_name:name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary,kind:functionapp;linux"
+
 package appservice
 
 import (

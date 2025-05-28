@@ -114,15 +114,6 @@ type providerFactories struct {
 	protov6 protov6ProviderFactories
 }
 
-func runProviderCommandApply(ctx context.Context, t testing.T, wd *plugintest.WorkingDir, factories *providerFactories) error {
-	t.Helper()
-
-	fn := func() error {
-		return wd.Apply(ctx)
-	}
-	return runProviderCommand(ctx, t, wd, factories, fn)
-}
-
 func runProviderCommandCreatePlan(ctx context.Context, t testing.T, wd *plugintest.WorkingDir, factories *providerFactories) error {
 	t.Helper()
 
@@ -130,23 +121,6 @@ func runProviderCommandCreatePlan(ctx context.Context, t testing.T, wd *pluginte
 		return wd.CreatePlan(ctx)
 	}
 	return runProviderCommand(ctx, t, wd, factories, fn)
-}
-
-func runProviderCommandGetStateJSON(ctx context.Context, t testing.T, wd *plugintest.WorkingDir, factories *providerFactories) (*tfjson.State, error) {
-	t.Helper()
-
-	var stateJSON *tfjson.State
-	fn := func() error {
-		var err error
-		stateJSON, err = wd.State(ctx)
-		return err
-	}
-	err := runProviderCommand(ctx, t, wd, factories, fn)
-	if err != nil {
-		return nil, err
-	}
-
-	return stateJSON, nil
 }
 
 func runProviderCommandSavedPlan(ctx context.Context, t testing.T, wd *plugintest.WorkingDir, factories *providerFactories) (*tfjson.Plan, error) {

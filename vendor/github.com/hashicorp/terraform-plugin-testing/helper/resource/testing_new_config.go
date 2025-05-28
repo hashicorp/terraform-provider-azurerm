@@ -108,8 +108,13 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 				opts = append(opts, tfexec.Destroy(true))
 			}
 
-			if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
-				opts = append(opts, tfexec.AllowDeferral(true))
+			if c.AdditionalCLIOptions != nil {
+				if c.AdditionalCLIOptions.Plan.AllowDeferral {
+					opts = append(opts, tfexec.AllowDeferral(true))
+				}
+				if c.AdditionalCLIOptions.Plan.NoRefresh {
+					opts = append(opts, tfexec.Refresh(false))
+				}
 			}
 
 			return wd.CreatePlan(ctx, opts...)
@@ -250,8 +255,13 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			opts = append(opts, tfexec.Destroy(true))
 		}
 
-		if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
-			opts = append(opts, tfexec.AllowDeferral(true))
+		if c.AdditionalCLIOptions != nil {
+			if c.AdditionalCLIOptions.Plan.AllowDeferral {
+				opts = append(opts, tfexec.AllowDeferral(true))
+			}
+			if c.AdditionalCLIOptions.Plan.NoRefresh {
+				opts = append(opts, tfexec.Refresh(false))
+			}
 		}
 
 		return wd.CreatePlan(ctx, opts...)
@@ -319,8 +329,13 @@ func testStepNewConfig(ctx context.Context, t testing.T, c TestCase, wd *plugint
 			}
 		}
 
-		if c.AdditionalCLIOptions != nil && c.AdditionalCLIOptions.Plan.AllowDeferral {
-			opts = append(opts, tfexec.AllowDeferral(true))
+		if c.AdditionalCLIOptions != nil {
+			if c.AdditionalCLIOptions.Plan.AllowDeferral {
+				opts = append(opts, tfexec.AllowDeferral(true))
+			}
+			if c.AdditionalCLIOptions.Plan.NoRefresh {
+				opts = append(opts, tfexec.Refresh(false))
+			}
 		}
 
 		return wd.CreatePlan(ctx, opts...)
