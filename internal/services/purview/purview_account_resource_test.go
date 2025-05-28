@@ -201,10 +201,6 @@ resource "azurerm_purview_account" "test" {
     purpose     = "AcceptanceTests"
   }
 }
-
-output "aws_external_id" {
-  value = azurerm_purview_account.test.aws_external_id
-}
 `, r.template(data), data.RandomInteger)
 }
 
