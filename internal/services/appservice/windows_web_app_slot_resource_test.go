@@ -982,6 +982,21 @@ func TestAccWindowsWebAppSlot_withJava8Embedded(t *testing.T) {
 	})
 }
 
+func TestAccWindowsWebAppSlot_alwaysOnFalse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
+	r := WindowsWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.alwaysOnFalse(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccWindowsWebAppSlot_withJava11Embedded(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_web_app_slot", "test")
 	r := WindowsWebAppSlotResource{}
@@ -2984,4 +2999,32 @@ resource "azurerm_windows_web_app_slot" "test" {
   site_config {}
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r WindowsWebAppSlotResource) alwaysOnFalse(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_windows_web_app.test.id
+
+  site_config {
+    always_on           = false
+    minimum_tls_version = "1.2"
+    ftps_state          = "FtpsOnly"
+    http2_enabled       = true
+    use_32_bit_worker   = false
+
+    application_stack {
+      current_stack  = "dotnet"
+      dotnet_version = "v6.0"
+    }
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger)
 }

@@ -10,9 +10,9 @@ description: |-
 
 Manages attaching a Disk to a Virtual Machine.
 
-~> **NOTE:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
+~> **Note:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
--> **Please Note:** only Managed Disks are supported via this separate resource, Unmanaged Disks can be attached using the `storage_data_disk` block in the `azurerm_virtual_machine` resource.
+-> **Note:** only Managed Disks are supported via this separate resource, Unmanaged Disks can be attached using the `storage_data_disk` block in the `azurerm_virtual_machine` resource.
 
 ## Example Usage
 
@@ -132,8 +132,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Data Disk Attachment.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Data Disk Attachment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Data Disk Attachment.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Data Disk Attachment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Data Disk Attachment.
 
 ## Import
@@ -144,4 +144,4 @@ Virtual Machines Data Disk Attachments can be imported using the `resource id`, 
 terraform import azurerm_virtual_machine_data_disk_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1/dataDisks/disk1
 ```
 
--> **Please Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`
+-> **Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`
