@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
 type DevCenterDataSource struct{}
@@ -19,7 +20,11 @@ func TestAccDevCenterDataSource_basic(t *testing.T) {
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check:  acceptance.ComposeTestCheckFunc(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+			),
 		},
 	})
 }
