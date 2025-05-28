@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_dev_center` [GH-29716]
 * **New Resource**: `azurerm_network_manager_routing_configuration` [GH-29310]
 
 ENHANCEMENTS:
