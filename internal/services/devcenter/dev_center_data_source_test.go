@@ -24,6 +24,7 @@ func TestAccDevCenterDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("dev_center_uri").Exists(),
 			),
 		},
 	})
