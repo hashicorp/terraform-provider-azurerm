@@ -13,9 +13,11 @@ ENHANCEMENTS:
 * dependencies: `compute` - partial update to API version `2024-11-01` [GH-29666]
 * dependencies: `videoindexer` - update to API version `2025-04-01` [GH-29715]
 * `azurerm_backup_protected_vm` - add support for the `BackupsSuspended` value to the `protection_state` property [GH-29710]
+* `azurerm_dashboard_grafana_managed_private_endpoint` - add support for the `privatelink_service_url` property [GH-29466]
 * `azurerm_dynatrace_tag_rules` - support for the `sending_metrics_enabled` property [GH-29499]
 * `azurerm_function_app_flex_consumption` - add support for the `https_only` property [GH-29024]
 * `azurerm_mysql_flexible_server` - add support for the `MO_Standard_E96ads_v5` value to the `sku_name` property [GH-29709]
+
 
 BUG FIXES:
 
