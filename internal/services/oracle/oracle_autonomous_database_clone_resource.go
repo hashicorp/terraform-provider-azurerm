@@ -5,6 +5,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -323,7 +324,7 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 					ComputeCount:                   pointer.To(model.ComputeCount),
 					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
 					CustomerContacts:               pointer.To(expandAdbsCustomerContacts(model.CustomerContacts)),
-					DataBaseType:                   "Clone",
+					DataBaseType:                   autonomousdatabases.DataBaseTypeClone,
 					DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
 					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
 					DbVersion:                      pointer.To(model.DbVersion),
@@ -342,9 +343,29 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 				param.Properties.(*autonomousdatabases.AutonomousDatabaseCloneProperties).RefreshableModel = pointer.To(autonomousdatabases.RefreshableModelType(model.RefreshableModel))
 			}
 
+			log.Printf("[DEBUG] ===== FINAL PARAM STRUCTURE =====")
+			log.Printf("[DEBUG] param.Name: %v", pointer.From(param.Name))
+			log.Printf("[DEBUG] param.Location: %v", param.Location)
+			log.Printf("[DEBUG] param.Tags: %+v", pointer.From(param.Tags))
+
+			if cloneProps, ok := param.Properties.(*autonomousdatabases.AutonomousDatabaseCloneProperties); ok {
+				log.Printf("[DEBUG] Properties type: AutonomousDatabaseCloneProperties")
+				log.Printf("[DEBUG] CloneType: %v", cloneProps.CloneType)
+				log.Printf("[DEBUG] SourceId: %v", cloneProps.SourceId)
+				log.Printf("[DEBUG] Source: %v", pointer.From(cloneProps.Source))
+				log.Printf("[DEBUG] DataBaseType: %v", cloneProps.DataBaseType)
+				log.Printf("[DEBUG] DisplayName: %v", pointer.From(cloneProps.DisplayName))
+			} else {
+				log.Printf("[DEBUG] CloneType: %v", cloneProps.CloneType)
+			}
+			log.Printf("[DEBUG] ===== SENDING REQUEST TO API =====")
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
+
+			log.Printf("[DEBUG] ===== CLONE CREATION SUCCESSFUL =====")
+			log.Printf("[DEBUG] Created clone resource ID: %s", id.ID())
 
 			metadata.SetID(id)
 			return nil
