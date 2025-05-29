@@ -436,6 +436,27 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			}
 
 			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			oldIdentityRaw, newIdentityRaw := diff.GetChange("identity")
+			oldIdentity := oldIdentityRaw.([]interface{})
+			oldIdentityType := string(identity.TypeNone)
+			if len(oldIdentity) > 0 {
+				oldIdentityBlock := oldIdentity[0].(map[string]interface{})
+				oldIdentityType = oldIdentityBlock["type"].(string)
+			}
+
+			newIdentity := newIdentityRaw.([]interface{})
+			newIdentityType := string(identity.TypeNone)
+			if len(newIdentity) > 0 {
+				newIdentityBlock := newIdentity[0].(map[string]interface{})
+				newIdentityType = newIdentityBlock["type"].(string)
+			}
+
+			if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
+				diff.ForceNew("identity.0.type")
+			}
+
+			return nil
 		},
 		),
 	}
