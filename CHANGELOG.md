@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_api_management_api` - add additional validation to catch when `api_type` is `websocket` but `service_url` is left empty [GH-29624]
 * `azurerm_batch_pool` - the `data_disks` property will now be correctly updated [GH-29377]
 * `azurerm_data_factory_dataset_binary` - fix incorrect casing of the `compression.type` property when sent to the API which caused compression to not be set [GH-29273]
+* `azurerm_cdn_frontdoor_rule - fix shared schema validation of the `operator` property and use the correct package for validations [GH-29482]
 * `azurerm_hdinsight_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
 * `azurerm_hbase_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
 * `azurerm_interactive_query_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
