@@ -1162,12 +1162,12 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			BackupPolicy:                       backup,
 			EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
 			EnableBurstCapacity:                pointer.To(d.Get("burst_capacity_enabled").(bool)),
+			DisableLocalAuth:                   existing.Model.Properties.DisableLocalAuth,
 		},
 		Tags: t,
 	}
 
 	if d.HasChange("local_authentication_enabled") {
-		// what will the value of account.Properties.DisableLocalAuth be when not changed in config? default boolean value?
 		account.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
 	}
 
