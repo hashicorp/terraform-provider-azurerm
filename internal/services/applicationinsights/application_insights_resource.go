@@ -215,11 +215,6 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		ForceCustomerStorageForProfiler: pointer.To(d.Get("force_customer_storage_for_profiler").(bool)),
 	}
 
-	oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
-	if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
-		return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value.")
-	}
-
 	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
 		workspaceID, err := workspaces.ParseWorkspaceID(workspaceRaw.(string))
 		if err != nil {
@@ -249,7 +244,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if read.Model == nil && read.Model.Id == nil {
+	if read.Model == nil || read.Model.Id == nil {
 		return fmt.Errorf("cannot read %s", id)
 	}
 
@@ -424,6 +419,11 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		ApplicationType: components.ApplicationType(d.Get("application_type").(string)),
 	}
 
+	oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
+	if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
+		return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value.")
+	}
+
 	if d.HasChange("sampling_percentage") {
 		applicationInsightsComponentProperties.SamplingPercentage = pointer.To(d.Get("sampling_percentage").(float64))
 	}
@@ -464,15 +464,14 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		applicationInsightsComponentProperties.WorkspaceResourceId = pointer.To(workspaceID.ID())
 	}
 
-	// use hasChange for retention_in_days
 	if d.HasChange("retention_in_days") {
 		applicationInsightsComponentProperties.RetentionInDays = pointer.To(int64(d.Get("retention_in_days").(int)))
 	}
 
 	insightProperties := components.ApplicationInsightsComponent{
 		Name:       pointer.To(id.ComponentName),
-		Location:   location.Normalize(d.Get("location").(string)), // location is forceNew
-		Kind:       d.Get("application_type").(string),             // app_type is forceNew
+		Location:   location.Normalize(d.Get("location").(string)),
+		Kind:       d.Get("application_type").(string),
 		Properties: &applicationInsightsComponentProperties,
 	}
 
@@ -480,7 +479,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		insightProperties.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	_, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties) // no dedicated update method
+	_, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -489,7 +488,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if read.Model == nil && read.Model.Id == nil {
+	if read.Model == nil || read.Model.Id == nil {
 		return fmt.Errorf("cannot read %s", id)
 	}
 
