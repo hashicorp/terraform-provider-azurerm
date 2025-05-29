@@ -492,10 +492,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"local_authentication_disabled": {
+			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"mongo_server_version": {
@@ -783,6 +783,21 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			Default:      string(cosmosdb.MinimalTlsVersionTlsOneTwo),
 			ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForMinimalTlsVersion(), false),
 		}
+
+		resource.Schema["local_authentication_disabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"local_authentication_enabled"},
+			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["local_authentication_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"local_authentication_disabled"},
+		}
 	}
 
 	return resource
@@ -827,7 +842,6 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	partitionMergeEnabled := d.Get("partition_merge_enabled").(bool)
 	burstCapacityEnabled := d.Get("burst_capacity_enabled").(bool)
 	enableAnalyticalStorage := d.Get("analytical_storage_enabled").(bool)
-	disableLocalAuthentication := d.Get("local_authentication_disabled").(bool)
 
 	r, err := databaseClient.CheckNameExists(ctx, id.DatabaseAccountName)
 	if err != nil {
@@ -869,26 +883,34 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(offerType),
 			IPRules:                            ipRangeFilter,
-			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
-			EnableFreeTier:                     utils.Bool(enableFreeTier),
-			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
+			IsVirtualNetworkFilterEnabled:      pointer.To(isVirtualNetworkFilterEnabled),
+			EnableFreeTier:                     pointer.To(enableFreeTier),
+			EnableAutomaticFailover:            pointer.To(enableAutomaticFailover),
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                          geoLocations,
 			Capabilities:                       capabilities,
 			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
-			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
+			EnableMultipleWriteLocations:       pointer.To(enableMultipleWriteLocations),
 			EnablePartitionMerge:               pointer.To(partitionMergeEnabled),
 			EnableBurstCapacity:                pointer.To(burstCapacityEnabled),
 			PublicNetworkAccess:                pointer.To(publicNetworkAccess),
-			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
+			EnableAnalyticalStorage:            pointer.To(enableAnalyticalStorage),
 			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
-			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
+			DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkAclBypass:                   pointer.To(networkByPass),
 			NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
-			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
 		},
 		Tags: tags.Expand(t),
+	}
+	if v, ok := d.GetOk("local_authentication_enabled"); ok {
+		account.Properties.DisableLocalAuth = pointer.To(!v.(bool))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("local_authentication_disabled"); ok {
+			account.Properties.DisableLocalAuth = pointer.To(v.(bool))
+		}
 	}
 
 	// These values may not have changed but they need to be in the update params...
@@ -1054,7 +1076,6 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		kind := cosmosdb.DatabaseAccountKind(d.Get("kind").(string))
 		isVirtualNetworkFilterEnabled := pointer.To(d.Get("is_virtual_network_filter_enabled").(bool))
 		enableAnalyticalStorage := pointer.To(d.Get("analytical_storage_enabled").(bool))
-		disableLocalAuthentication := pointer.To(d.Get("local_authentication_disabled").(bool))
 		enableAutomaticFailover := pointer.To(d.Get("automatic_failover_enabled").(bool))
 
 		networkByPass := cosmosdb.NetworkAclBypassNone
@@ -1074,12 +1095,20 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// are included in the 'DatabaseAccountCreateUpdateParameters'
 		// later, however we need to know if they changed or not...
 		// TODO Post 4.0 remove `enable_automatic_failover` from this list
-		if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
+		fieldsToCheck := []string{
+			"consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 			"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
 			"capacity", "create_mode", "restore", "key_vault_key_id", "managed_hsm_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 			"kind", "tags", "enable_automatic_failover", "automatic_failover_enabled", "analytical_storage_enabled",
-			"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled") {
+			"local_authentication_enabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled",
+		}
+
+		if !features.FivePointOh() {
+			fieldsToCheck = append(fieldsToCheck, "local_authentication_disabled")
+		}
+
+		if d.HasChanges(fieldsToCheck...) {
 			updateRequired = true
 		}
 
@@ -1125,12 +1154,22 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
 				NetworkAclBypass:                   pointer.To(networkByPass),
 				NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
-				DisableLocalAuth:                   disableLocalAuthentication,
 				BackupPolicy:                       backup,
 				EnablePartitionMerge:               pointer.To(d.Get("partition_merge_enabled").(bool)),
 				EnableBurstCapacity:                pointer.To(d.Get("burst_capacity_enabled").(bool)),
 			},
 			Tags: t,
+		}
+
+		if d.HasChange("local_authentication_enabled") {
+			// what will the value of account.Properties.DisableLocalAuth be when not changed in config? default boolean value?
+			account.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
+		}
+
+		if !features.FivePointOh() {
+			if d.HasChange("local_authentication_disabled") {
+				account.Properties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
+			}
 		}
 
 		if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, apiEnvs.KeyVault, apiEnvs.ManagedHSM); err != nil {
@@ -1475,8 +1514,12 @@ func resourceCosmosDbAccountRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("network_acl_bypass_for_azure_services", pointer.From(props.NetworkAclBypass) == cosmosdb.NetworkAclBypassAzureServices)
 		d.Set("network_acl_bypass_ids", utils.FlattenStringSlice(props.NetworkAclBypassResourceIds))
 
-		if v := existing.Model.Properties.DisableLocalAuth; v != nil {
-			d.Set("local_authentication_disabled", props.DisableLocalAuth)
+		if v := props.DisableLocalAuth; v != nil {
+			d.Set("local_authentication_enabled", pointer.To(!pointer.From(props.DisableLocalAuth)))
+
+			if !features.FivePointOh() {
+				d.Set("local_authentication_disabled", props.DisableLocalAuth)
+			}
 		}
 
 		policy, err := flattenCosmosdbAccountBackup(props.BackupPolicy)
@@ -1729,7 +1772,7 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *pluginsdk.ResourceData) *c
 		if maxInterval == 0 {
 			maxInterval = 5
 		}
-		policy.MaxIntervalInSeconds = utils.Int64(int64(maxInterval))
+		policy.MaxIntervalInSeconds = pointer.To(int64(maxInterval))
 	}
 
 	return &policy
@@ -1742,7 +1785,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 
 		location := cosmosdb.Location{
 			LocationName:     pointer.To(azure.NormalizeLocation(data["location"].(string))),
-			FailoverPriority: utils.Int64(int64(data["failover_priority"].(int))),
+			FailoverPriority: pointer.To(int64(data["failover_priority"].(int))),
 			IsZoneRedundant:  pointer.FromBool(data["zone_redundant"].(bool)),
 		}
 
@@ -1988,8 +2031,8 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 		// Mirror the behavior of the old SDK...
 		periodicModeBackupPolicy := cosmosdb.PeriodicModeBackupPolicy{
 			PeriodicModeProperties: &cosmosdb.PeriodicModeProperties{
-				BackupIntervalInMinutes:        utils.Int64(int64(attr["interval_in_minutes"].(int))),
-				BackupRetentionIntervalInHours: utils.Int64(int64(attr["retention_in_hours"].(int))),
+				BackupIntervalInMinutes:        pointer.To(int64(attr["interval_in_minutes"].(int))),
+				BackupRetentionIntervalInHours: pointer.To(int64(attr["retention_in_hours"].(int))),
 			},
 		}
 
@@ -2071,7 +2114,7 @@ func expandCosmosDBAccountCapacity(input []interface{}) *cosmosdb.Capacity {
 	v := input[0].(map[string]interface{})
 
 	return &cosmosdb.Capacity{
-		TotalThroughputLimit: utils.Int64(int64(v["total_throughput_limit"].(int))),
+		TotalThroughputLimit: pointer.To(int64(v["total_throughput_limit"].(int))),
 	}
 }
 
