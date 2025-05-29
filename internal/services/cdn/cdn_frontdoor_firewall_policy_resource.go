@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2024-02-01/webapplicationfirewallpolicies"
+	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -83,6 +83,13 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
 			// and is not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(5, 1440),
+			},
+
+			"captcha_cookie_expiration_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
 				Computed:     true,
@@ -550,15 +557,20 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				return nil
 			}),
 
-			// Verify that the Standard SKU is not using the JSChallenge Action type for custom rules...
+			// Verify that the Standard SKU is not using the JSChallenge or CAPTCHA Action type for custom rules...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				sku := diff.Get("sku_name").(string)
 				customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
 
 				if sku == string(waf.SkuNameStandardAzureFrontDoor) && customRules != nil {
+					supportedSku := string(waf.SkuNamePremiumAzureFrontDoor)
+
 					for _, v := range *customRules.Rules {
-						if v.Action == waf.ActionTypeJSChallenge {
-							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", waf.SkuNamePremiumAzureFrontDoor, waf.ActionTypeJSChallenge, *v.Name, sku)
+						switch v.Action {
+						case waf.ActionTypeJSChallenge:
+							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", supportedSku, waf.ActionTypeJSChallenge, *v.Name, sku)
+						case waf.ActionTypeCAPTCHA:
+							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'CAPTCHA' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", supportedSku, waf.ActionTypeCAPTCHA, *v.Name, sku)
 						}
 					}
 				}
