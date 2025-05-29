@@ -4,6 +4,11 @@ ENHANCEMENTS:
 
 * dependencies: `go-azure-sdk` - update to `v0.20250526.1224007` [GH-29745]
 
+BUG FIXES:
+
+* keyvault: fix locking around the keyvault cache [GH-28330]
+
+
 ## 4.31.0 (May 29, 2025)
 
 FEATURES:
