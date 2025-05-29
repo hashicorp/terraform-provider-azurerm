@@ -47,6 +47,8 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 		},
 
 		Schema: resourcePolicySetDefinitionSchema(),
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(policyParamtersCustomizeDiff),
 	}
 }
 
