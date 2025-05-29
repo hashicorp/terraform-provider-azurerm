@@ -215,7 +215,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		ForceCustomerStorageForProfiler: pointer.To(d.Get("force_customer_storage_for_profiler").(bool)),
 	}
 
-	if workspaceRaw, hasWorkspaceId := d.GetOk("workspace_id"); hasWorkspaceId {
+	if workspaceRaw, ok := d.GetOk("workspace_id"); ok {
 		workspaceID, err := workspaces.ParseWorkspaceID(workspaceRaw.(string))
 		if err != nil {
 			return err
