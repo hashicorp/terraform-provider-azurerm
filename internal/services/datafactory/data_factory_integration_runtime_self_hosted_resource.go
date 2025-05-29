@@ -289,7 +289,6 @@ func resourceDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash(v inte
 			} else {
 				buf.WriteString(fmt.Sprintf("%s-", v.(string)))
 			}
-
 		}
 	}
 
