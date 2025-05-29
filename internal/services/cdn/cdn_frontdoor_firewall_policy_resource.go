@@ -79,7 +79,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			// NOTE: Through local testing, the new API js challenge expiration is always
+			// NOTE: 'js challenge expiration' is always
 			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
 			// and is not supported in Standard_AzureFrontDoor...
 			"js_challenge_cookie_expiration_in_minutes": {
@@ -89,6 +89,9 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				ValidateFunc: validation.IntBetween(5, 1440),
 			},
 
+			// NOTE: 'captcha expiration' is always
+			// enabled no matter what and cannot be disabled for Premium_AzureFrontDoor
+			// and is not supported in Standard_AzureFrontDoor...
 			"captcha_cookie_expiration_in_minutes": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -180,6 +183,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 								string(waf.ActionTypeLog),
 								string(waf.ActionTypeRedirect),
 								string(waf.ActionTypeJSChallenge),
+								string(waf.ActionTypeCAPTCHA),
 							}, false),
 						},
 
@@ -663,18 +667,24 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	// NOTE: JS Challenge Expiration policy is enabled by default on Premium SKU's with a default of
+	// NOTE: CAPTCHA and JS Challenge Expiration policy is enabled by default on Premium SKU's with a default of
 	// 30 minutes, if it is not in the config set the default and include it in the policy settings
 	// payload block...
 	if sku == string(waf.SkuNamePremiumAzureFrontDoor) {
-		// Set the Default value...
+		// Set the Default values...
 		jsChallengeExpirationInMinutes := 30
+		captchaExpirationInMinutes := 30
 
 		if v, ok := d.GetOk("js_challenge_cookie_expiration_in_minutes"); ok {
 			jsChallengeExpirationInMinutes = v.(int)
 		}
 
+		if v, ok := d.GetOk("captcha_cookie_expiration_in_minutes"); ok {
+			captchaExpirationInMinutes = v.(int)
+		}
+
 		payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.FromInt64(int64(jsChallengeExpirationInMinutes))
+		payload.Properties.PolicySettings.CaptchaExpirationInMinutes = pointer.FromInt64(int64(captchaExpirationInMinutes))
 	}
 
 	if managedRules != nil {
@@ -733,7 +743,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	props := *model.Properties
 
-	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes", "log_scrubbing") {
+	if d.HasChanges("custom_block_response_body", "custom_block_response_status_code", "enabled", "mode", "redirect_url", "request_body_check_enabled", "js_challenge_cookie_expiration_in_minutes", "captcha_cookie_expiration_in_minutes", "log_scrubbing") {
 		enabled := waf.PolicyEnabledStateDisabled
 		if d.Get("enabled").(bool) {
 			enabled = waf.PolicyEnabledStateEnabled
@@ -750,17 +760,23 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 			RequestBodyCheck: pointer.To(requestBodyCheck),
 		}
 
-		// NOTE: js_challenge_cookie_expiration_in_minutes is only valid for
-		// Premium_AzureFrontDoor skus...
+		// NOTE: 'captcha_cookie_expiration_in_minutes' and 'js_challenge_cookie_expiration_in_minutes'
+		// is only valid for 'Premium_AzureFrontDoor' skus...
 		if model.Sku != nil && *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
 			// Set the Default value...
 			jsChallengeExpirationInMinutes := 30
+			captchaExpirationInMinutes := 30
 
 			if v, ok := d.GetOk("js_challenge_cookie_expiration_in_minutes"); ok {
 				jsChallengeExpirationInMinutes = v.(int)
 			}
 
+			if v, ok := d.GetOk("captcha_cookie_expiration_in_minutes"); ok {
+				captchaExpirationInMinutes = v.(int)
+			}
+
 			props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.FromInt64(int64(jsChallengeExpirationInMinutes))
+			props.PolicySettings.CaptchaExpirationInMinutes = pointer.FromInt64(int64(captchaExpirationInMinutes))
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {
@@ -872,6 +888,10 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 				// for Premium_AzureFrontDoor skus, else it will be 'nil'...
 				if policy.JavascriptChallengeExpirationInMinutes != nil {
 					d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
+				}
+
+				if policy.CaptchaExpirationInMinutes != nil {
+					d.Set("captcha_cookie_expiration_in_minutes", int(pointer.From(policy.CaptchaExpirationInMinutes)))
 				}
 
 				if err := d.Set("log_scrubbing", flattenCdnFrontDoorFirewallLogScrubbingPolicy(policy.LogScrubbing)); err != nil {
