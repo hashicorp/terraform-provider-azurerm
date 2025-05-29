@@ -307,7 +307,7 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	if d.HasChange("power_bi_service_enabled") {
+	if d.Get("power_bi_service_enabled") != nil {
 		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
 			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
 				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
