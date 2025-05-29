@@ -537,13 +537,20 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				return nil
 			}),
 
-			// Verify that the Standard SKU is not setting the JSChallenge policy...
+			// Verify that the Standard SKU is not setting the JSChallenge or Captcha policy...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				sku := diff.Get("sku_name").(string)
-				policyInMinutes := diff.Get("js_challenge_cookie_expiration_in_minutes").(int)
 
-				if sku == string(waf.SkuNameStandardAzureFrontDoor) && policyInMinutes > 0 {
-					return fmt.Errorf("the 'js_challenge_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", waf.SkuNamePremiumAzureFrontDoor, sku)
+				if sku == string(waf.SkuNameStandardAzureFrontDoor) {
+					supportedSku := string(waf.SkuNamePremiumAzureFrontDoor)
+
+					if v := diff.Get("js_challenge_cookie_expiration_in_minutes").(int); v > 0 {
+						return fmt.Errorf("'js_challenge_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", supportedSku, sku)
+					}
+
+					if v := diff.Get("captcha_cookie_expiration_in_minutes").(int); v > 0 {
+						return fmt.Errorf("'captcha_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", supportedSku, sku)
+					}
 				}
 
 				return nil

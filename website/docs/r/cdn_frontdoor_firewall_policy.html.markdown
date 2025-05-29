@@ -111,7 +111,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_rule {
     name     = "CustomCaptchaChallenge"
     enabled  = true
-    priority = 50
+    priority = 150
     type     = "MatchRule"
     action   = "CAPTCHA"
 
