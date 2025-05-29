@@ -111,6 +111,8 @@ The following arguments are supported:
 
 ~> **Note:** The `compute_isolation_enabled` is only available with the XXXLarge (80 vCPU / 504 GB) node size and only available in the following regions: East US, West US 2, South Central US, US Gov Arizona, US Gov Virginia. See [Isolated Compute](https://docs.microsoft.com/azure/synapse-analytics/spark/apache-spark-pool-configurations#isolated-compute) for more information.
 
+* `custom_library` - (Optional) `custom_library` blocks as defined below.
+
 * `dynamic_executor_allocation_enabled` - (Optional) Indicates whether Dynamic Executor Allocation is enabled or not. Defaults to `false`.
 
 * `min_executors` - (Optional) The minimum number of executors allocated only when `dynamic_executor_allocation_enabled` set to `true`.
@@ -145,7 +147,19 @@ An `auto_scale` block supports the following:
 
 ---
 
-An `library_requirement` block supports the following:
+A `custom_library` block supports the following:
+
+* `name` - (Required) The name of the custom library.
+
+* `type` - (Required) The type of the custom library.
+
+* `path` - (Required) The path of the custom library.
+
+* `contianer_name` - (Required) The container name where the custom library is stored.
+
+---
+
+A `library_requirement` block supports the following:
 
 * `content` - (Required) The content of library requirements.
 

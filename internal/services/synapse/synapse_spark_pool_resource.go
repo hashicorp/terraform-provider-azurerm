@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
@@ -212,6 +213,34 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 				},
 			},
 
+			"custom_library": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"path": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+
+						"container_name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"spark_version": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -296,6 +325,7 @@ func resourceSynapseSparkPoolCreate(d *pluginsdk.ResourceData, meta interface{})
 	d.SetId(id.ID())
 
 	// Library Requirements can't be specified on Create so we'll call update after we've confirmed the Spark Pool has been created.
+	// Custom Library cannot be specified on Create either. Error message: `Synapse Spark pool must be created before libraries are installed.`
 	return resourceSynapseSparkPoolUpdate(d, meta)
 }
 
@@ -333,6 +363,7 @@ func resourceSynapseSparkPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `library_requirement`: %+v", err)
 		}
 		d.Set("cache_size", props.CacheSize)
+		d.Set("custom_library", flattenSParkPoolCustomLibraries(props.CustomLibraries))
 		d.Set("compute_isolation_enabled", props.IsComputeIsolationEnabled)
 
 		dynamicExecutorAllocationEnabled := false
@@ -384,6 +415,7 @@ func resourceSynapseSparkPoolUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AutoPause:                 expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
 			AutoScale:                 autoScale,
 			CacheSize:                 utils.Int32(int32(d.Get("cache_size").(int))),
+			CustomLibraries:           pointer.To(expandSparkPoolCustomLibaries(d.Get("custom_library").([]interface{}))),
 			IsComputeIsolationEnabled: utils.Bool(d.Get("compute_isolation_enabled").(bool)),
 			DynamicExecutorAllocation: &synapse.DynamicExecutorAllocation{
 				Enabled:      utils.Bool(d.Get("dynamic_executor_allocation_enabled").(bool)),
@@ -489,6 +521,26 @@ func expandSparkPoolSparkConfig(input []interface{}) *synapse.SparkConfigPropert
 	}
 }
 
+func expandSparkPoolCustomLibaries(inputs []interface{}) []synapse.LibraryInfo {
+	result := make([]synapse.LibraryInfo, 0)
+
+	if len(inputs) == 0 {
+		return result
+	}
+
+	for _, input := range inputs {
+		value := input.(map[string]interface{})
+		result = append(result, synapse.LibraryInfo{
+			Name:          pointer.To(value["name"].(string)),
+			Path:          pointer.To(value["path"].(string)),
+			ContainerName: pointer.To(value["container_name"].(string)),
+			Type:          pointer.To(value["type"].(string)),
+		})
+	}
+
+	return result
+}
+
 func flattenArmSparkPoolAutoPauseProperties(input *synapse.AutoPauseProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -584,4 +636,22 @@ func flattenSparkPoolSparkConfig(input *synapse.SparkConfigProperties) []interfa
 			"filename": filename,
 		},
 	}
+}
+
+func flattenSParkPoolCustomLibraries(inputs *[]synapse.LibraryInfo) []interface{} {
+	result := make([]interface{}, 0)
+	if inputs == nil || len(*inputs) == 0 {
+		return make([]interface{}, 0)
+	}
+
+	for _, input := range *inputs {
+		result = append(result, map[string]interface{}{
+			"name":           pointer.From(input.Name),
+			"path":           pointer.From(input.Path),
+			"container_name": pointer.From(input.ContainerName),
+			"type":           pointer.From(input.Type),
+		})
+	}
+
+	return result
 }

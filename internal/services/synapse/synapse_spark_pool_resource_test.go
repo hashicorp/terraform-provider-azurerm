@@ -284,6 +284,13 @@ EOF
     filename = "requirements.txt"
   }
 
+  custom_library {
+    name           = "connector"
+    path           = "test/connector.jar"
+    container_name = "test"
+    type           = "jar"
+  }
+
   spark_config {
     content  = <<EOF
 spark.shuffle.spill                true
