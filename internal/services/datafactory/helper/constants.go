@@ -17,6 +17,14 @@ const (
 	CustomSetupTypeEnvironmentVariableSetup CustomSetupType = "EnvironmentVariableSetup"
 )
 
+type DataFlowType string
+
+const (
+	DataFlowTypeFlowlet           = "Flowlet"
+	DataFlowTypeMappingDataFlow   = "MappingDataFlow"
+	DataFlowTypeWranglingDataFlow = "WranglingDataFlow"
+)
+
 type SecretType string
 
 const (
