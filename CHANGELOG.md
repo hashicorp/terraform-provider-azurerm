@@ -3,10 +3,11 @@
 ENHANCEMENTS:
 
 * dependencies: `go-azure-sdk` - update to `v0.20250526.1224007` [GH-29745]
+* `azurerm_postgresql_flexible_server` - add support for versionless key vault key IDs to the `customer_managed_key.key_vault_key_id` property [GH-29741]
 
 BUG FIXES:
 
-* keyvault: fix locking around the keyvault cache [GH-28330]
+* `keyvault` - fix locking around the keyvault cache [GH-28330]
 
 
 ## 4.31.0 (May 29, 2025)
