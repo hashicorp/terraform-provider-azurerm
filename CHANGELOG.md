@@ -1,3 +1,9 @@
+## 4.32.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20250526.1224007` [GH-29745]
+
 ## 4.31.0 (May 29, 2025)
 
 FEATURES:
