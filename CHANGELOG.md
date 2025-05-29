@@ -1,45 +1,44 @@
-## 4.31.0 (Unreleased)
+## 4.31.0 (May 29, 2025)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_dev_center` [GH-29716]
-* **New Resource**: `azurerm_network_manager_routing_configuration` [GH-29310]
+* **New Data Source**: `azurerm_dev_center` ([#29716](https://github.com/hashicorp/terraform-provider-azurerm/issues/29716))
+* **New Resource**: `azurerm_network_manager_routing_configuration` ([#29310](https://github.com/hashicorp/terraform-provider-azurerm/issues/29310))
 
 ENHANCEMENTS:
 
-* dependencies: `azurerm_managed_lustre_file_system` - update to API version `2024-07-01` [GH-29433]
-* dependencies: `azurerm_mssql_server_vulnerability_assessment` - update to API version `2023-08-01-preview` [GH-29373]
-* dependencies: `azurerm_virtual_machine_scale_set_standby_pool` - update to API version `2025-03-01` [GH-29649]
-* dependencies: `compute` - partial update to API version `2024-11-01` [GH-29666]
-* dependencies: `videoindexer` - update to API version `2025-04-01` [GH-29715]
-* `azurerm_backup_protected_vm` - add support for the `BackupsSuspended` value to the `protection_state` property [GH-29710]
-* `azurerm_dashboard_grafana_managed_private_endpoint` - add support for the `privatelink_service_url` property [GH-29466]
-* `azurerm_dynatrace_tag_rules` - add support for the `sending_metrics_enabled` property [GH-29499]
-* `azurerm_function_app_flex_consumption` - add support for the `https_only` property [GH-29024]
-* `azurerm_monitor_diagnostic_setting` - deprecate `metric` in favor of `enabled_metric` [GH-29406]
-* `azurerm_mysql_flexible_server` - add support for the `MO_Standard_E96ads_v5` value to the `sku_name` property [GH-29709]
-* `azurerm_postgresql_flexible_server` - lock the source server when creating a replica server [GH-29337]
+* dependencies: `azurerm_managed_lustre_file_system` - update to API version `2024-07-01` ([#29433](https://github.com/hashicorp/terraform-provider-azurerm/issues/29433))
+* dependencies: `azurerm_mssql_server_vulnerability_assessment` - update to API version `2023-08-01-preview` ([#29373](https://github.com/hashicorp/terraform-provider-azurerm/issues/29373))
+* dependencies: `azurerm_virtual_machine_scale_set_standby_pool` - update to API version `2025-03-01` ([#29649](https://github.com/hashicorp/terraform-provider-azurerm/issues/29649))
+* dependencies: `compute` - partial update to API version `2024-11-01` ([#29666](https://github.com/hashicorp/terraform-provider-azurerm/issues/29666))
+* dependencies: `videoindexer` - update to API version `2025-04-01` ([#29715](https://github.com/hashicorp/terraform-provider-azurerm/issues/29715))
+* `azurerm_backup_protected_vm` - add support for the `BackupsSuspended` value to the `protection_state` property ([#29710](https://github.com/hashicorp/terraform-provider-azurerm/issues/29710))
+* `azurerm_dashboard_grafana_managed_private_endpoint` - add support for the `privatelink_service_url` property ([#29466](https://github.com/hashicorp/terraform-provider-azurerm/issues/29466))
+* `azurerm_dynatrace_tag_rules` - add support for the `sending_metrics_enabled` property ([#29499](https://github.com/hashicorp/terraform-provider-azurerm/issues/29499))
+* `azurerm_function_app_flex_consumption` - add support for the `https_only` property ([#29024](https://github.com/hashicorp/terraform-provider-azurerm/issues/29024))
+* `azurerm_mysql_flexible_server` - add support for the `MO_Standard_E96ads_v5` value to the `sku_name` property ([#29709](https://github.com/hashicorp/terraform-provider-azurerm/issues/29709))
+* `azurerm_postgresql_flexible_server` - lock the source server when creating a replica server ([#29337](https://github.com/hashicorp/terraform-provider-azurerm/issues/29337))
 
 BUG FIXES:
 
-* `azurerm_api_management_product` - allow setting the `subscriptions_limit` property to `0` [GH-28133]
-* `azurerm_api_management_api` - add additional validation to catch when `api_type` is `websocket` but `service_url` is left empty [GH-29624]
-* `azurerm_batch_pool` - the `data_disks` property will now be correctly updated [GH-29377]
-* `azurerm_data_factory_dataset_binary` - fix incorrect casing of the `compression.type` property when sent to the API which caused compression to not be set [GH-29273]
-* `azurerm_cdn_frontdoor_rule - fix shared schema validation of the `operator` property and use the correct package for validations [GH-29482]
-* `azurerm_hdinsight_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
-* `azurerm_hbase_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
-* `azurerm_interactive_query_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
-* `azurerm_kafka_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
-* `azurerm_linux_virtual_machine` - fix update for `identity` when VM has VMExtensions configured [GH-29717]
-* `azurerm_mongo_cluster` - connection strings conaining a `$` now get exported correctly [GH-29669]
-* `azurerm_mssql_virtual_machine` - `auto_patching` is now disabled when the block is not specified [GH-29723]
-* `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` or `storage_container_sas_key` property is now a `required` field [GH-29373]
-* `azurerm_network_interface` - `tags` can now be updated when NIC is attached to a private endpoint [GH-29319]
-* `azurerm_postgresql_flexible_server_configuration` - now checks the server state before restarting it [GH-29221]
-* `azurerm_search_service` - prevent a bug that cleared the `network_rule_bypass_option` property when only updating the `allowed_ips` property [GH-29246]
-* `azurerm_service_fabric_managed_cluster` - support for the `subnet_id` property [GH-29216]
-* `azurerm_spark_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update [GH-28262]
+* `azurerm_api_management_product` - allow setting the `subscriptions_limit` property to `0` ([#28133](https://github.com/hashicorp/terraform-provider-azurerm/issues/28133))
+* `azurerm_api_management_api` - add additional validation to catch when `api_type` is `websocket` but `service_url` is left empty ([#29624](https://github.com/hashicorp/terraform-provider-azurerm/issues/29624))
+* `azurerm_batch_pool` - the `data_disks` property will now be correctly updated ([#29377](https://github.com/hashicorp/terraform-provider-azurerm/issues/29377))
+* `azurerm_data_factory_dataset_binary` - fix incorrect casing of the `compression.type` property when sent to the API which caused compression to not be set ([#29273](https://github.com/hashicorp/terraform-provider-azurerm/issues/29273))
+* `azurerm_cdn_frontdoor_rule` - fix shared schema validation of the `operator` property and use the correct package for validations ([#29482](https://github.com/hashicorp/terraform-provider-azurerm/issues/29482))
+* `azurerm_hdinsight_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update ([#28262](https://github.com/hashicorp/terraform-provider-azurerm/issues/28262))
+* `azurerm_hbase_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update ([#28262](https://github.com/hashicorp/terraform-provider-azurerm/issues/28262))
+* `azurerm_interactive_query_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update ([#28262](https://github.com/hashicorp/terraform-provider-azurerm/issues/28262))
+* `azurerm_kafka_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update ([#28262](https://github.com/hashicorp/terraform-provider-azurerm/issues/28262))
+* `azurerm_linux_virtual_machine` - fix update for `identity` when VM has VMExtensions configured ([#29717](https://github.com/hashicorp/terraform-provider-azurerm/issues/29717))
+* `azurerm_mongo_cluster` - connection strings conaining a `$` now get exported correctly ([#29669](https://github.com/hashicorp/terraform-provider-azurerm/issues/29669))
+* `azurerm_mssql_virtual_machine` - `auto_patching` is now disabled when the block is not specified ([#29723](https://github.com/hashicorp/terraform-provider-azurerm/issues/29723))
+* `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` or `storage_container_sas_key` property is now a `required` field ([#29373](https://github.com/hashicorp/terraform-provider-azurerm/issues/29373))
+* `azurerm_network_interface` - `tags` can now be updated when NIC is attached to a private endpoint ([#29319](https://github.com/hashicorp/terraform-provider-azurerm/issues/29319))
+* `azurerm_postgresql_flexible_server_configuration` - now checks the server state before restarting it ([#29221](https://github.com/hashicorp/terraform-provider-azurerm/issues/29221))
+* `azurerm_search_service` - prevent a bug that cleared the `network_rule_bypass_option` property when only updating the `allowed_ips` property ([#29246](https://github.com/hashicorp/terraform-provider-azurerm/issues/29246))
+* `azurerm_service_fabric_managed_cluster` - support for the `subnet_id` property ([#29216](https://github.com/hashicorp/terraform-provider-azurerm/issues/29216))
+* `azurerm_spark_hadoop_cluster` - changing the `script_action` property now forces a new resource to be created instead of silenty failing to update ([#28262](https://github.com/hashicorp/terraform-provider-azurerm/issues/28262))
 
 ## 4.30.0 (May 22, 2025)
 
