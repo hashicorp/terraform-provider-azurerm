@@ -155,7 +155,7 @@ A `custom_library` block supports the following:
 
 * `path` - (Required) The path of the custom library.
 
-* `contianer_name` - (Required) The container name where the custom library is stored.
+* `container_name` - (Required) The container name where the custom library is stored.
 
 ---
 
