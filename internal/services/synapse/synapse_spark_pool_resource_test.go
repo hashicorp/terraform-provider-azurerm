@@ -179,6 +179,22 @@ func TestAccSynapseSpark3Pool_update(t *testing.T) {
 	})
 }
 
+func TestAccSynapseSparkPool_customLibrary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
+	r := SynapseSparkPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customLibrary(data, "3.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// not returned by service
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
+	})
+}
+
 func (r SynapseSparkPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SparkPoolID(state.ID)
 	if err != nil {
@@ -276,13 +292,6 @@ EOF
     filename = "requirements.txt"
   }
 
-  custom_library {
-    name           = "connector"
-    path           = "test/connector.jar"
-    container_name = "test"
-    type           = "jar"
-  }
-
   spark_config {
     content  = <<EOF
 spark.shuffle.spill                true
@@ -316,6 +325,63 @@ resource "azurerm_synapse_spark_pool" "test" {
   spark_version             = "3.4"
 }
 `, template, data.RandomString)
+}
+
+func (r SynapseSparkPoolResource) customLibrary(data acceptance.TestData, sparkVersion string) string {
+	template := r.template(data, data.Locations.Primary)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_synapse_spark_pool" "test" {
+  name                                = "acctestSSP%s"
+  synapse_workspace_id                = azurerm_synapse_workspace.test.id
+  node_size_family                    = "MemoryOptimized"
+  node_size                           = "Medium"
+  dynamic_executor_allocation_enabled = true
+  min_executors                       = 1
+  max_executors                       = 3
+  session_level_packages_enabled      = true
+  cache_size                          = 100
+  auto_pause {
+    delay_in_minutes = 15
+  }
+
+  auto_scale {
+    max_node_count = 50
+    min_node_count = 3
+  }
+
+  library_requirement {
+    content  = <<EOF
+appnope==0.1.0
+beautifulsoup4==4.6.3
+EOF
+    filename = "requirements.txt"
+  }
+
+  custom_library {
+    name           = "connector"
+    path           = "test/connector.jar"
+    container_name = "test"
+    type           = "jar"
+  }
+
+  spark_config {
+    content  = <<EOF
+spark.shuffle.spill                true
+EOF
+    filename = "config.txt"
+  }
+
+  spark_log_folder    = "/logs"
+  spark_events_folder = "/events"
+  spark_version       = "%s"
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomString, sparkVersion)
 }
 
 func (r SynapseSparkPoolResource) template(data acceptance.TestData, location string) string {
