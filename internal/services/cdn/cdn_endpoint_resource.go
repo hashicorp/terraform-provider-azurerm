@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -203,6 +204,29 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			retired, err := azure.IsRetired(2025, time.October, 1)
+			if err != nil {
+				return err
+			}
+
+			if retired {
+				// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+				// the re-create would fail with the create error from the service API...
+				if old, new := d.GetChange("name"); old.(string) != new.(string) {
+					return fmt.Errorf(deprecationMessage, "October 1, 2025")
+				}
+				if old, new := d.GetChange("profile_name"); old.(string) != new.(string) {
+					return fmt.Errorf(deprecationMessage, "October 1, 2025")
+				}
+				if old, new := d.GetChange("origin"); old.(string) != new.(string) {
+					return fmt.Errorf(deprecationMessage, "October 1, 2025")
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
