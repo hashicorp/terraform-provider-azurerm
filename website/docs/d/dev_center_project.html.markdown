@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `description` - The description of the Dev Center Project.
 
-* `dev_center_id` - The ID of an associated DevCenter.
+* `dev_center_id` - The ID of the associated Dev Center.
 
 * `dev_center_uri` - The URI of the Dev Center.
 
@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Dev Center Project exists.
 
-* `maximum_dev_boxes_per_user` - When specified, limits the maximum number of Dev Boxes a single user can create across all pools in the project.
+* `maximum_dev_boxes_per_user` - The maximum number of Dev Boxes a single user can create across all pools in the project.
 
 * `tags` - A mapping of tags assigned to the Dev Center Project.
 
