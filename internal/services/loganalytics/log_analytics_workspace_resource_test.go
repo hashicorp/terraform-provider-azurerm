@@ -257,19 +257,19 @@ func TestAccLogAnalyticsWorkspace_ToggleDisableLocalAuth(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withDisableLocalAuth(data, true),
+			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.withDisableLocalAuth(data, false),
+			Config: r.localAuthEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.withDisableLocalAuth(data, true),
+			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -789,7 +789,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, useResourceOnlyPermission)
 }
 
-func (LogAnalyticsWorkspaceResource) withDisableLocalAuth(data acceptance.TestData, disableLocalAuth bool) string {
+func (LogAnalyticsWorkspaceResource) localAuthEnabled(data acceptance.TestData, localAuthEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -801,14 +801,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                          = "acctestLAW-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  sku                           = "PerGB2018"
-  retention_in_days             = 30
-  local_authentication_disabled = %[4]t
+  name                         = "acctestLAW-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "PerGB2018"
+  retention_in_days            = 30
+  local_authentication_enabled = %[4]t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, disableLocalAuth)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, localAuthEnabled)
 }
 
 func (LogAnalyticsWorkspaceResource) withDataCollectionRule(data acceptance.TestData) string {
