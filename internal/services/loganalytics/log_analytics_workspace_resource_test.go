@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -790,6 +791,27 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 func (LogAnalyticsWorkspaceResource) localAuthEnabled(data acceptance.TestData, localAuthEnabled bool) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                          = "acctestLAW-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  sku                           = "PerGB2018"
+  retention_in_days             = 30
+  local_authentication_disabled = %[4]t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !localAuthEnabled)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
