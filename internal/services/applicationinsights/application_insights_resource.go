@@ -235,8 +235,7 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	_, err = client.ComponentsCreateOrUpdate(ctx, id, insightProperties)
-	if err != nil {
+	if _, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
