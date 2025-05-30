@@ -186,7 +186,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Computed:      true,
-			Default:       true,
 			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
 			ConflictsWith: []string{"local_authentication_enabled"},
 		}
@@ -195,7 +194,6 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Computed:      true,
-			Default:       true,
 			ConflictsWith: []string{"local_authentication_disabled"},
 		}
 	}
