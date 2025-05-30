@@ -281,6 +281,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `plan_id` property now defaults to `panw-cngfw-payg`.
 
+### `azurerm_postgresql_server`
+
+* The deprecated `ssl_enforcement_enabled` property has been removed.
+* The property `ssl_minimal_tls_version_enforced` property no longer accepts `TLSEnforcementDisabled`, `TLS1_0` or `TLS1_1` as a value.
+
 ### `azurerm_redis_cache`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
