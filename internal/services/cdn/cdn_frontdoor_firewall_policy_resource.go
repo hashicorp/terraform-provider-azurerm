@@ -524,65 +524,45 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				oSku, nSku := diff.GetChange("sku_name")
+				currentSku := diff.Get("sku_name").(string)
+				standardSku := string(waf.SkuNameStandardAzureFrontDoor)
+				oldSku, _ := diff.GetChange("sku_name")
 
-				if oSku != "" {
-					if oSku.(string) == string(waf.SkuNamePremiumAzureFrontDoor) && nSku.(string) == string(waf.SkuNameStandardAzureFrontDoor) {
-						return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", waf.SkuNamePremiumAzureFrontDoor, waf.SkuNameStandardAzureFrontDoor, nSku.(string))
+				if currentSku == standardSku {
+					premiumSku := string(waf.SkuNamePremiumAzureFrontDoor)
+					managedRules := diff.Get("managed_rule").([]interface{})
+					customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
+
+					// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
+					if oldSku != "" {
+						if oldSku.(string) == premiumSku {
+							return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", premiumSku, standardSku, currentSku)
+						}
 					}
-				}
 
-				return nil
-			}),
-
-			// Verify that the Standard SKU is not setting the JSChallenge or Captcha policy...
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				sku := diff.Get("sku_name").(string)
-
-				if sku == string(waf.SkuNameStandardAzureFrontDoor) {
-					supportedSku := string(waf.SkuNamePremiumAzureFrontDoor)
-
+					// Verify that the Standard SKU is not setting the JSChallenge or Captcha policy...
 					if v := diff.Get("js_challenge_cookie_expiration_in_minutes").(int); v > 0 {
-						return fmt.Errorf("'js_challenge_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", supportedSku, sku)
+						return fmt.Errorf("'js_challenge_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", premiumSku, currentSku)
 					}
 
 					if v := diff.Get("captcha_cookie_expiration_in_minutes").(int); v > 0 {
-						return fmt.Errorf("'captcha_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", supportedSku, sku)
+						return fmt.Errorf("'captcha_cookie_expiration_in_minutes' field is only supported with the %q sku, got %q", premiumSku, currentSku)
 					}
-				}
 
-				return nil
-			}),
-
-			// Verify that the Standard SKU is not using managed rules...
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				sku := diff.Get("sku_name").(string)
-				managedRules := diff.Get("managed_rule").([]interface{})
-
-				if sku == string(waf.SkuNameStandardAzureFrontDoor) && len(managedRules) > 0 {
-					return fmt.Errorf("the 'managed_rule' code block is only supported with the %q sku, got %q", waf.SkuNamePremiumAzureFrontDoor, sku)
-				}
-
-				return nil
-			}),
-
-			// Verify that the Standard SKU is not using the JSChallenge or CAPTCHA Action type for custom rules...
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				sku := diff.Get("sku_name").(string)
-				customRules := expandCdnFrontDoorFirewallCustomRules(diff.Get("custom_rule").([]interface{}))
-
-				if sku == string(waf.SkuNameStandardAzureFrontDoor) && customRules != nil {
-					supportedSku := string(waf.SkuNamePremiumAzureFrontDoor)
-
+					// Verify that the Standard SKU is not using the JSChallenge or CAPTCHA Action type for custom rules...
 					for _, v := range *customRules.Rules {
 						switch v.Action {
 						case waf.ActionTypeJSChallenge:
-							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", supportedSku, waf.ActionTypeJSChallenge, *v.Name, sku)
+							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeJSChallenge, *v.Name, currentSku)
 						case waf.ActionTypeCAPTCHA:
-							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'CAPTCHA' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", supportedSku, waf.ActionTypeCAPTCHA, *v.Name, sku)
+							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'CAPTCHA' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeCAPTCHA, *v.Name, currentSku)
 						}
+					}
+
+					// Verify that the Standard SKU is not using managed rules...
+					if len(managedRules) > 0 {
+						return fmt.Errorf("'managed_rule' code block is only supported with the %q sku, got %q", premiumSku, currentSku)
 					}
 				}
 
