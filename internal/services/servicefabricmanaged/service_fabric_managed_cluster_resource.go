@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/managedcluster"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicefabricmanagedcluster/2024-04-01/nodetype"
@@ -120,6 +121,7 @@ type ClusterResourceModel struct {
 	LBRules              []LBRule                             `tfschema:"lb_rule"`
 	NodeTypes            []NodeType                           `tfschema:"node_type"`
 	Sku                  managedcluster.SkuName               `tfschema:"sku"`
+	SubnetId             string                               `tfschema:"subnet_id"`
 	Tags                 map[string]interface{}               `tfschema:"tags"`
 	UpgradeWave          managedcluster.ClusterUpgradeCadence `tfschema:"upgrade_wave"`
 }
@@ -213,7 +215,8 @@ func (k ClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				string(managedcluster.SkuNameStandard),
 			}, false),
 		},
-		"tags": tags.Schema(),
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
+		"tags":      tags.Schema(),
 		"upgrade_wave": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -569,6 +572,7 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 	}
 
 	model.DNSName = properties.DnsName
+	model.SubnetId = pointer.From(properties.SubnetId)
 
 	if features := properties.AddonFeatures; features != nil {
 		for _, feature := range *features {
@@ -755,6 +759,10 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	out.DnsName = model.Name
 	if model.DNSName != "" && model.DNSName != model.Name {
 		out.DnsName = model.DNSName
+	}
+
+	if v := model.SubnetId; v != "" {
+		out.SubnetId = pointer.To(v)
 	}
 
 	if auth := model.Authentication; len(auth) > 0 {

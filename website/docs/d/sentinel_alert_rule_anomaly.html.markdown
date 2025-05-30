@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) The display name of this Sentinel Alert Rule Template. Either `display_name` or `name` have to be specified.
 
-~> **NOTE** One of `name` or `display_name` must be specified.
+~> **Note:** One of `name` or `display_name` must be specified.
 
 ## Attributes Reference
 

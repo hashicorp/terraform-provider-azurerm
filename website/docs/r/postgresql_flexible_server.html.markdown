@@ -85,7 +85,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this PostgreSQL Flexible Server. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-~> **Note** This must be unique across the entire Azure service, not just within the resource group.
+~> **Note:** This must be unique across the entire Azure service, not just within the resource group.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the PostgreSQL Flexible Server should exist. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -185,7 +185,7 @@ An `authentication` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The versioned ID of the Key Vault Key.
+* `key_vault_key_id` - (Required) The versioned/versionless ID of the Key Vault Key.
 
 * `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Must be added to `identity.identity_ids`.
 
@@ -207,7 +207,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this PostgreSQL Flexible Server. Required if used together with `customer_managed_key` block.
 
-~> **Note**: `identity_ids` is required when `type` is set to `UserAssigned`.
+~> **Note:** `identity_ids` is required when `type` is set to `UserAssigned`.
 
 ---
 
@@ -290,3 +290,9 @@ PostgreSQL Flexible Servers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_postgresql_flexible_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DBforPostgreSQL/flexibleServers/server1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2024-08-01

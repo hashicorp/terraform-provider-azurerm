@@ -10,15 +10,15 @@ description: |-
 
 Manages an IotHub
 
-~> **NOTE:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_*` resources - but the two ways of defining the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_*` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
+~> **Note:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_*` resources - but the two ways of defining the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_*` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
 
-~> **NOTE:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
+~> **Note:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
-~> **NOTE:** Enrichments can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_enrichment` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
+~> **Note:** Enrichments can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_enrichment` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
-~> **NOTE:** Fallback route can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_fallback_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
+~> **Note:** Fallback route can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_fallback_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
-~> **NOTE:** File upload can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_file_upload` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
+~> **Note:** File upload can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_file_upload` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
 ## Example Usage
 
@@ -153,7 +153,7 @@ The following arguments are supported:
 
 * `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
 
-~> **NOTE:** If `fallback_route` isn't explicitly specified, the fallback route wouldn't be enabled by default.
+~> **Note:** If `fallback_route` isn't explicitly specified, the fallback route wouldn't be enabled by default.
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
 
@@ -179,11 +179,11 @@ A `sku` block supports the following:
 
 * `name` - (Required) The name of the sku. Possible values are `B1`, `B2`, `B3`, `F1`, `S1`, `S2`, and `S3`.
 
-~> **NOTE:** The `F1` sku is on `Free` tier.
+~> **Note:** The `F1` sku is on `Free` tier.
 
 * `capacity` - (Required) The number of provisioned IoT Hub units.
 
-~> **NOTE:** Only one IotHub can be on the `Free` tier per subscription.
+~> **Note:** Only one IotHub can be on the `Free` tier per subscription.
 
 ---
 
@@ -197,9 +197,9 @@ An `endpoint` block supports the following:
 
 * `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the endpoint.
 
--> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the IoT Hub. If `identity_id` is omitted when `authentication_type` is `identityBased`, then the System-Assigned Managed Identity of the IoT Hub will be used.
+-> **Note:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the IoT Hub. If `identity_id` is omitted when `authentication_type` is `identityBased`, then the System-Assigned Managed Identity of the IoT Hub will be used.
 
-~> **NOTE:** An IoT Hub can only be updated to use the System-Assigned Managed Identity for `endpoint` since it is not possible to grant access to the endpoint until after creation. The extracted resources `azurerm_iothub_endpoint_*` can be used to configure Endpoints with the IoT Hub's System-Assigned Managed Identity without the need for an update.
+~> **Note:** An IoT Hub can only be updated to use the System-Assigned Managed Identity for `endpoint` since it is not possible to grant access to the endpoint until after creation. The extracted resources `azurerm_iothub_endpoint_*` can be used to configure Endpoints with the IoT Hub's System-Assigned Managed Identity without the need for an update.
 
 * `endpoint_uri` - (Optional) URI of the Service Bus or Event Hubs Namespace endpoint. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased` for endpoint type `AzureIotHub.ServiceBusQueue`, `AzureIotHub.ServiceBusTopic` or `AzureIotHub.EventHub`.
 
@@ -227,7 +227,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this IoT Hub.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -293,9 +293,9 @@ A `file_upload` block supports the following:
 
 * `identity_id` - (Optional) The ID of the User Managed Identity used to authenticate against the storage account.
 
--> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the IoT Hub. If `identity_id` is omitted when `authentication_type` is `identityBased`, then the System-Assigned Managed Identity of the IoT Hub will be used.
+-> **Note:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the IoT Hub. If `identity_id` is omitted when `authentication_type` is `identityBased`, then the System-Assigned Managed Identity of the IoT Hub will be used.
 
-~> **NOTE:** An IoT Hub can only be updated to use the System-Assigned Managed Identity for `file_upload` since it is not possible to grant access to the endpoint until after creation.
+~> **Note:** An IoT Hub can only be updated to use the System-Assigned Managed Identity for `file_upload` since it is not possible to grant access to the endpoint until after creation.
 
 * `connection_string` - (Required) The connection string for the Azure Storage account to which files are uploaded.
 
@@ -343,7 +343,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `event_hub_operations_endpoint` - The EventHub compatible endpoint for operational data
 * `event_hub_operations_path` - The EventHub compatible path for operational data
 
--> **NOTE:** These fields can be used in conjunction with the `shared_access_policy` block to build a connection string
+-> **Note:** These fields can be used in conjunction with the `shared_access_policy` block to build a connection string
 
 * `hostname` - The hostname of the IotHub Resource.
 
@@ -376,8 +376,8 @@ A `shared_access_policy` block contains the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub.
 
 ## Import

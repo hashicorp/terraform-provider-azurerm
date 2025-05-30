@@ -10,7 +10,7 @@ description: |-
 
 Manages a Table within an Azure Storage Account.
 
-~> **Note on Authentication** Shared Key authentication will always be used for this resource, as AzureAD authentication is not supported when setting or retrieving ACLs for Tables.
+~> **Note:** Shared Key authentication will always be used for this resource, as AzureAD authentication is not supported when setting or retrieving ACLs for Tables.
 
 ## Example Usage
 
@@ -75,8 +75,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Table.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Table.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Table.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Table.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Table.
 
 ## Import

@@ -89,3 +89,9 @@ A PostgreSQL Flexible Server Active Directory Administrator can be imported usin
 ```shell
 terraform import azurerm_postgresql_flexible_server_active_directory_administrator.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/flexibleServers/myserver/administrators/objectId
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2024-08-01

@@ -115,6 +115,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
+* `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
+
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
@@ -127,6 +129,8 @@ The following arguments are supported:
 
 ~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
+* `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
+
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
 * `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
@@ -135,7 +139,7 @@ The following arguments are supported:
 
 * `virtual_network_subnet_id` - (Optional) The subnet id which will be used by this Function App for [regional virtual network integration](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#regional-virtual-network-integration).
 
-~> **Note on regional virtual network integration:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [azurerm_app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
+~> **Note:** The AzureRM Terraform provider provides regional virtual network integration via the standalone resource [azurerm_app_service_virtual_network_swift_connection](app_service_virtual_network_swift_connection.html) and in-line within this resource using the `virtual_network_subnet_id` property. You cannot use both methods simultaneously. If the virtual network is set via the resource `app_service_virtual_network_swift_connection` then `ignore_changes` should be used in the function app configuration.
 
 ~> **Note:** Assigning the `virtual_network_subnet_id` property requires [RBAC permissions on the subnet](https://docs.microsoft.com/en-us/azure/app-service/overview-vnet-integration#permissions)
 
@@ -146,6 +150,14 @@ The following arguments are supported:
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+
+---
+
+An `always_ready` block supports the following:
+
+* `name`  - (Required) The name of the `always_ready` of the Function App.
+
+* `instance_count` - (Required) The instance count of the `always_ready` of the  Function App. The minimum number is `0`. The total number of `instance_count` should not exceed the `maximum_instance_count`.
 
 ---
 
@@ -727,3 +739,9 @@ The Function Apps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_function_app_flex_consumption.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web`: 2023-12-01, 2023-01-01

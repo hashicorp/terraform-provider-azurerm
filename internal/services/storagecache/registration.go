@@ -4,6 +4,7 @@
 package storagecache
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -35,13 +36,17 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_hpc_cache":                 resourceHPCCache(),
-		"azurerm_hpc_cache_access_policy":   resourceHPCCacheAccessPolicy(),
-		"azurerm_hpc_cache_blob_target":     resourceHPCCacheBlobTarget(),
-		"azurerm_hpc_cache_blob_nfs_target": resourceHPCCacheBlobNFSTarget(),
-		"azurerm_hpc_cache_nfs_target":      resourceHPCCacheNFSTarget(),
+	if !features.FivePointOh() {
+		return map[string]*pluginsdk.Resource{
+			"azurerm_hpc_cache":                 resourceHPCCache(),
+			"azurerm_hpc_cache_access_policy":   resourceHPCCacheAccessPolicy(),
+			"azurerm_hpc_cache_blob_target":     resourceHPCCacheBlobTarget(),
+			"azurerm_hpc_cache_blob_nfs_target": resourceHPCCacheBlobNFSTarget(),
+			"azurerm_hpc_cache_nfs_target":      resourceHPCCacheNFSTarget(),
+		}
 	}
+
+	return map[string]*pluginsdk.Resource{}
 }
 
 // DataSources returns a list of Data Sources supported by this Service
