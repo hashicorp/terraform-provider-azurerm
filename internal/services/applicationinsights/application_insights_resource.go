@@ -412,7 +412,10 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id, err := components.ParseComponentID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	applicationInsightsComponentProperties := components.ApplicationInsightsComponentProperties{
 		ApplicationId:   pointer.To(id.ComponentName),
@@ -502,7 +505,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if billingRead.Model == nil {
-		return fmt.Errorf("model is nil for billing features")
+		return fmt.Errorf("retrieving Billing Features for %s: `model` was nil")
 	}
 
 	if billingRead.Model.DataVolumeCap == nil {
@@ -523,10 +526,9 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, applicationInsightsComponentBillingFeatures); err != nil {
-		return fmt.Errorf("update Billing Feature for %s: %+v", id, err)
+		return fmt.Errorf("updating Billing Features for %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 
 	return resourceApplicationInsightsRead(d, meta)
 }
