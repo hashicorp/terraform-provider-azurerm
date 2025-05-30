@@ -420,10 +420,20 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	applicationInsightsComponentProperties := components.ApplicationInsightsComponentProperties{
-		ApplicationId:   pointer.To(id.ComponentName),
-		ApplicationType: components.ApplicationType(d.Get("application_type").(string)),
+	existing, err := client.ComponentsGet(ctx, *id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
+		}
 	}
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	componentProps := existing.Model.Properties
 
 	oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
 	if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
@@ -431,35 +441,35 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("sampling_percentage") {
-		applicationInsightsComponentProperties.SamplingPercentage = pointer.To(d.Get("sampling_percentage").(float64))
+		componentProps.SamplingPercentage = pointer.To(d.Get("sampling_percentage").(float64))
 	}
 
 	if d.HasChange("disable_ip_masking") {
-		applicationInsightsComponentProperties.DisableIPMasking = pointer.To(d.Get("disable_ip_masking").(bool))
+		componentProps.DisableIPMasking = pointer.To(d.Get("disable_ip_masking").(bool))
 	}
 
 	if d.HasChange("local_authentication_disabled") {
-		applicationInsightsComponentProperties.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
+		componentProps.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
 	}
 
 	if d.HasChange("internet_ingestion_enabled") {
 		if d.Get("internet_ingestion_enabled").(bool) {
-			applicationInsightsComponentProperties.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeEnabled)
+			componentProps.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeEnabled)
 		} else {
-			applicationInsightsComponentProperties.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeDisabled)
+			componentProps.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeDisabled)
 		}
 	}
 
 	if d.HasChange("internet_query_enabled") {
 		if d.Get("internet_query_enabled").(bool) {
-			applicationInsightsComponentProperties.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeEnabled)
+			componentProps.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeEnabled)
 		} else {
-			applicationInsightsComponentProperties.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeDisabled)
+			componentProps.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeDisabled)
 		}
 	}
 
 	if d.HasChange("force_customer_storage_for_profiler") {
-		applicationInsightsComponentProperties.ForceCustomerStorageForProfiler = pointer.To(d.Get("force_customer_storage_for_profiler").(bool))
+		componentProps.ForceCustomerStorageForProfiler = pointer.To(d.Get("force_customer_storage_for_profiler").(bool))
 	}
 
 	if d.HasChange("workspace_id") {
@@ -467,18 +477,18 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			return err
 		}
-		applicationInsightsComponentProperties.WorkspaceResourceId = pointer.To(workspaceID.ID())
+		componentProps.WorkspaceResourceId = pointer.To(workspaceID.ID())
 	}
 
 	if d.HasChange("retention_in_days") {
-		applicationInsightsComponentProperties.RetentionInDays = pointer.To(int64(d.Get("retention_in_days").(int)))
+		componentProps.RetentionInDays = pointer.To(int64(d.Get("retention_in_days").(int)))
 	}
 
 	insightProperties := components.ApplicationInsightsComponent{
 		Name:       pointer.To(id.ComponentName),
 		Location:   location.Normalize(d.Get("location").(string)),
 		Kind:       d.Get("application_type").(string),
-		Properties: &applicationInsightsComponentProperties,
+		Properties: componentProps,
 	}
 
 	if d.HasChange("tags") {
@@ -505,33 +515,30 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	billingRead, err := billingClient.ComponentCurrentBillingFeaturesGet(ctx, *billingId)
+	billingExisting, err := billingClient.ComponentCurrentBillingFeaturesGet(ctx, *billingId)
 	if err != nil {
 		return fmt.Errorf("retrieving Billing Features for %s: %+v", id, err)
 	}
 
-	if billingRead.Model == nil {
+	if billingExisting.Model == nil {
 		return fmt.Errorf("retrieving Billing Features for %s: `model` was nil", id)
 	}
 
-	if billingRead.Model.DataVolumeCap == nil {
-		billingRead.Model.DataVolumeCap = &billing.ApplicationInsightsComponentDataVolumeCap{}
-	}
+	billingProps := billingExisting.Model
 
-	applicationInsightsComponentBillingFeatures := billing.ApplicationInsightsComponentBillingFeatures{
-		CurrentBillingFeatures: billingRead.Model.CurrentBillingFeatures,
-		DataVolumeCap:          billingRead.Model.DataVolumeCap,
+	if billingProps.DataVolumeCap == nil {
+		billingProps.DataVolumeCap = &billing.ApplicationInsightsComponentDataVolumeCap{}
 	}
 
 	if d.HasChange("daily_data_cap_in_gb") {
-		applicationInsightsComponentBillingFeatures.DataVolumeCap.Cap = pointer.To(d.Get(("daily_data_cap_in_gb")).(float64))
+		billingProps.DataVolumeCap.Cap = pointer.To(d.Get(("daily_data_cap_in_gb")).(float64))
 	}
 
 	if d.HasChange("daily_data_cap_notifications_disabled") {
-		applicationInsightsComponentBillingFeatures.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(d.Get("daily_data_cap_notifications_disabled").(bool))
+		billingProps.DataVolumeCap.StopSendNotificationWhenHitCap = pointer.To(d.Get("daily_data_cap_notifications_disabled").(bool))
 	}
 
-	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, applicationInsightsComponentBillingFeatures); err != nil {
+	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, *billingProps); err != nil {
 		return fmt.Errorf("updating Billing Features for %s: %+v", id, err)
 	}
 
