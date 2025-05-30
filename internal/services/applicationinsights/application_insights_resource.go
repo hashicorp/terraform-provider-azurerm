@@ -244,8 +244,12 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if read.Model == nil || read.Model.Id == nil {
-		return fmt.Errorf("cannot read %s", id)
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if read.Model.Id == nil {
+		return fmt.Errorf("retrieving %s: `id` was nil", id)
 	}
 
 	billingId, err := billing.ParseComponentID(id.ID())
@@ -408,7 +412,6 @@ func resourceApplicationInsightsRead(d *pluginsdk.ResourceData, meta interface{}
 func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -482,19 +485,22 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		insightProperties.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	_, err := client.ComponentsCreateOrUpdate(ctx, id, insightProperties)
+	_, err = client.ComponentsCreateOrUpdate(ctx, *id, insightProperties)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	read, err := client.ComponentsGet(ctx, id)
+	read, err := client.ComponentsGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if read.Model == nil || read.Model.Id == nil {
-		return fmt.Errorf("cannot read %s", id)
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
+	if read.Model.Id == nil {
+		return fmt.Errorf("retrieving %s: `id` was nil", id)
+	}
 	billingId, err := billing.ParseComponentID(id.ID())
 	if err != nil {
 		return err
@@ -505,7 +511,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if billingRead.Model == nil {
-		return fmt.Errorf("retrieving Billing Features for %s: `model` was nil")
+		return fmt.Errorf("retrieving Billing Features for %s: `model` was nil", id)
 	}
 
 	if billingRead.Model.DataVolumeCap == nil {
@@ -528,7 +534,6 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	if _, err = billingClient.ComponentCurrentBillingFeaturesUpdate(ctx, *billingId, applicationInsightsComponentBillingFeatures); err != nil {
 		return fmt.Errorf("updating Billing Features for %s: %+v", id, err)
 	}
-
 
 	return resourceApplicationInsightsRead(d, meta)
 }
