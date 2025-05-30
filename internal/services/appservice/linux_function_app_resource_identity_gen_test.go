@@ -27,10 +27,8 @@ func TestAccLinuxFunctionApp_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data, "B1"),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentity("azurerm_linux_function_app.test", map[string]knownvalue.Check{
-						"kind":            knownvalue.StringExact("functionapp,linux"),
-						"subscription_id": knownvalue.StringExact(data.Subscriptions.Primary), // The identity has 4 properties, but we can't check them all here. statechecks for paths are not knownvalue.Checks?
-					}),
+					statecheck.ExpectIdentityValue("azurerm_linux_function_app.test", tfjsonpath.New("kind"), knownvalue.StringExact("functionapp,linux")),
+					statecheck.ExpectIdentityValue("azurerm_linux_function_app.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_linux_function_app.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_linux_function_app.test", tfjsonpath.New("site_name"), tfjsonpath.New("name")),
 				},

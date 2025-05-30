@@ -32,16 +32,12 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				{{- end }}
 				ConfigStateChecks: []statecheck.StateCheck{
-					{{- if (gt (.KnownValueMap | len) 0) }}
-					statecheck.ExpectIdentity("azurerm_{{ ToSnake $resourceName }}.test", map[string]knownvalue.Check{
-						{{- range $name, $val := .KnownValueMap }}
-							{{- if (eq $name "subscription_id") }}
-							"{{ $name }}": knownvalue.StringExact({{ $val }}),
-							{{- else }}
-							"{{ $name }}": knownvalue.StringExact("{{ $val }}"),
-							{{- end }}
-						{{- end }}
-					}),
+					{{- range $name, $val := .KnownValueMap }}
+					    {{- if (eq $name "subscription_id") }}
+					    statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact({{ $val }})),
+					    {{- else }}
+					    statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact("{{ $val }}")),
+					    {{- end }}
 					{{- end }}
 
 					{{- range $idName, $schemaName := .PropertyNameMap }}
