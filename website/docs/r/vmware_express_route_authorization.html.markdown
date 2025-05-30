@@ -78,3 +78,9 @@ Azure VMware Solution ExpressRoute Circuit Authorizations can be imported using 
 ```shell
 terraform import azurerm_vmware_express_route_authorization.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.AVS/privateClouds/privateCloud1/authorizations/authorization1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AVS`: 2022-05-01

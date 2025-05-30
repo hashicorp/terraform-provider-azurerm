@@ -109,3 +109,9 @@ Azure Stack HCI Marketplace Gallery Images can be imported using the `resource i
 ```shell
 terraform import azurerm_stack_hci_marketplace_gallery_image.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.AzureStackHCI/marketplaceGalleryImages/image1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AzureStackHCI`: 2024-01-01

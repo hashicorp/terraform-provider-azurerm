@@ -121,3 +121,9 @@ Storage Mover Job Definition can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_storage_mover_job_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageMover/storageMovers/storageMover1/projects/project1/jobDefinitions/jobDefinition1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageMover`: 2023-03-01

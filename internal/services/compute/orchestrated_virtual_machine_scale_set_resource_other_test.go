@@ -266,6 +266,63 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherUltraSsd(t *testing.T) {
 	})
 }
 
+func TestAccOrchestratedVirtualMachineScaleSet_otherUpgradePolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherUpgradePolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+		{
+			Config: r.otherUpgradePolicyUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_otherRollingUpgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherRollingUpgrade(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_otherUpgradePolicyErrorValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.otherRollingWithoutHealthExtension(data),
+			ExpectError: regexp.MustCompile("a health extension must be specified when `upgrade_mode` is set to `Rolling`"),
+		},
+		{
+			Config:      r.otherManualWithUpgradePolicy(data),
+			ExpectError: regexp.MustCompile("a `rolling_upgrade_policy` block cannot be specified"),
+		},
+		{
+			Config:      r.otherRollingWithoutUpgradePolicy(data),
+			ExpectError: regexp.MustCompile("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set"),
+		},
+	})
+}
+
 func TestAccOrchestratedVirtualMachineScaleSet_otherCapacityReservationGroupId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -1512,6 +1569,457 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data), data.RandomString, userData)
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) otherUpgradePolicy(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                        = "acctestOVMSS-%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  sku_name                    = "Standard_D1_v2"
+  instances                   = 2
+  platform_fault_domain_count = 1
+  upgrade_mode                = "Automatic"
+  zones                       = ["1"]
+
+  rolling_upgrade_policy {
+    cross_zone_upgrades_enabled             = true
+    max_batch_instance_percent              = 10
+    max_unhealthy_instance_percent          = 10
+    max_unhealthy_upgraded_instance_percent = 10
+    pause_time_between_batches              = "PT0S"
+    prioritize_unhealthy_instances_enabled  = true
+    maximum_surge_instances_enabled         = false
+  }
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix            = "testvm-%[1]d"
+      admin_username                  = "myadmin"
+      admin_password                  = "Passwword1234"
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) otherUpgradePolicyUpdate(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                        = "acctestOVMSS-%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  sku_name                    = "Standard_D1_v2"
+  instances                   = 2
+  platform_fault_domain_count = 1
+  upgrade_mode                = "Automatic"
+  zones                       = ["1"]
+
+  rolling_upgrade_policy {
+    cross_zone_upgrades_enabled             = false
+    max_batch_instance_percent              = 20
+    max_unhealthy_instance_percent          = 20
+    max_unhealthy_upgraded_instance_percent = 20
+    pause_time_between_batches              = "PT1S"
+    prioritize_unhealthy_instances_enabled  = false
+    maximum_surge_instances_enabled         = true
+  }
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix            = "testvm-%[1]d"
+      admin_username                  = "myadmin"
+      admin_password                  = "Passwword1234"
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) otherRollingUpgrade(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                        = "acctestOVMSS-%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  sku_name                    = "Standard_D1_v2"
+  instances                   = 2
+  platform_fault_domain_count = 1
+  upgrade_mode                = "Rolling"
+  zones                       = ["1"]
+
+  rolling_upgrade_policy {
+    cross_zone_upgrades_enabled             = true
+    max_batch_instance_percent              = 10
+    max_unhealthy_instance_percent          = 10
+    max_unhealthy_upgraded_instance_percent = 10
+    pause_time_between_batches              = "PT0S"
+    prioritize_unhealthy_instances_enabled  = true
+    maximum_surge_instances_enabled         = false
+  }
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix            = "testvm-%[1]d"
+      admin_username                  = "myadmin"
+      admin_password                  = "Passwword1234"
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  extension {
+    name                 = "HealthExtension"
+    publisher            = "Microsoft.ManagedServices"
+    type                 = "ApplicationHealthLinux"
+    type_handler_version = "1.0"
+    settings = jsonencode({
+      protocol = "https"
+      port     = 443
+    })
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) otherRollingWithoutHealthExtension(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                        = "acctestOVMSS-%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  sku_name                    = "Standard_D1_v2"
+  instances                   = 2
+  platform_fault_domain_count = 1
+  upgrade_mode                = "Rolling"
+  zones                       = ["1"]
+
+  rolling_upgrade_policy {
+    cross_zone_upgrades_enabled             = true
+    max_batch_instance_percent              = 10
+    max_unhealthy_instance_percent          = 10
+    max_unhealthy_upgraded_instance_percent = 10
+    pause_time_between_batches              = "PT0S"
+    prioritize_unhealthy_instances_enabled  = true
+    maximum_surge_instances_enabled         = false
+  }
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix            = "testvm-%[1]d"
+      admin_username                  = "myadmin"
+      admin_password                  = "Passwword1234"
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) otherManualWithUpgradePolicy(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                        = "acctestOVMSS-%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  sku_name                    = "Standard_D1_v2"
+  instances                   = 2
+  platform_fault_domain_count = 1
+  upgrade_mode                = "Manual"
+  zones                       = ["1"]
+
+  rolling_upgrade_policy {
+    cross_zone_upgrades_enabled             = true
+    max_batch_instance_percent              = 10
+    max_unhealthy_instance_percent          = 10
+    max_unhealthy_upgraded_instance_percent = 10
+    pause_time_between_batches              = "PT0S"
+    prioritize_unhealthy_instances_enabled  = true
+    maximum_surge_instances_enabled         = false
+  }
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix            = "testvm-%[1]d"
+      admin_username                  = "myadmin"
+      admin_password                  = "Passwword1234"
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) otherRollingWithoutUpgradePolicy(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                        = "acctestOVMSS-%[1]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  sku_name                    = "Standard_D1_v2"
+  instances                   = 2
+  platform_fault_domain_count = 1
+  upgrade_mode                = "Rolling"
+  zones                       = ["1"]
+
+  os_profile {
+    linux_configuration {
+      computer_name_prefix            = "testvm-%[1]d"
+      admin_username                  = "myadmin"
+      admin_password                  = "Passwword1234"
+      disable_password_authentication = false
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) otherCapacityReservationGroupId(data acceptance.TestData) string {

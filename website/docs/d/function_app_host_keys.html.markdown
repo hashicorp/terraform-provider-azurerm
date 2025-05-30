@@ -46,3 +46,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 - `webpubsub_extension_key` - Function App resource's Web PubSub Extension system key.
 
 - `blobs_extension_key` - Function App resource's Blobs Extension system key.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Function App Host Keys

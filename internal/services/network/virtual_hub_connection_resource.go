@@ -141,6 +141,12 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 							}, false),
 						},
 
+						"static_vnet_propagate_static_routes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
 						// lintignore:XS003
 						"static_vnet_route": {
 							Type:     pluginsdk.TypeList,
@@ -321,6 +327,7 @@ func expandVirtualHubConnectionRouting(input []interface{}) *virtualwans.Routing
 		VnetRoutes: &virtualwans.VnetRoute{
 			StaticRoutes: expandVirtualHubConnectionVnetStaticRoute(v["static_vnet_route"].([]interface{})),
 			StaticRoutesConfig: &virtualwans.StaticRoutesConfig{
+				PropagateStaticRoutes:          pointer.To(v["static_vnet_propagate_static_routes_enabled"].(bool)),
 				VnetLocalRouteOverrideCriteria: pointer.To(virtualwans.VnetLocalRouteOverrideCriteria(v["static_vnet_local_route_override_criteria"].(string))),
 			},
 		},
@@ -442,14 +449,20 @@ func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration)
 		staticVnetLocalRouteOverrideCriteria = string(*input.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria)
 	}
 
+	staticVnetPropagateStaticRoutes := true
+	if input.VnetRoutes != nil && input.VnetRoutes.StaticRoutesConfig != nil {
+		staticVnetPropagateStaticRoutes = pointer.From(input.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"associated_route_table_id":                 associatedRouteTableId,
-			"inbound_route_map_id":                      inboundRouteMapId,
-			"outbound_route_map_id":                     outboundRouteMapId,
-			"propagated_route_table":                    flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
-			"static_vnet_route":                         flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
-			"static_vnet_local_route_override_criteria": staticVnetLocalRouteOverrideCriteria,
+			"associated_route_table_id":                   associatedRouteTableId,
+			"inbound_route_map_id":                        inboundRouteMapId,
+			"outbound_route_map_id":                       outboundRouteMapId,
+			"propagated_route_table":                      flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"static_vnet_route":                           flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
+			"static_vnet_local_route_override_criteria":   staticVnetLocalRouteOverrideCriteria,
+			"static_vnet_propagate_static_routes_enabled": staticVnetPropagateStaticRoutes,
 		},
 	}
 }

@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `source_storage_account_id` - (Required) Specifies the ID of the storage account of the file share to backup. Changing this forces a new resource to be created.
 
--> **NOTE** The storage account must already be registered with the recovery vault in order to backup shares within the account. You can use the `azurerm_backup_container_storage_account` resource or the [Register-AzRecoveryServicesBackupContainer PowerShell cmdlet](https://docs.microsoft.com/powershell/module/az.recoveryservices/register-azrecoveryservicesbackupcontainer?view=azps-3.2.0) to register a storage account with a vault. When using the `azurerm_backup_container_storage_account` resource to register, you can use `depends_on` to explicitly declare the dependency. It will make sure that the registration is completed before creating the `azurerm_backup_protected_file_share` resource.
+-> **Note:** The storage account must already be registered with the recovery vault in order to backup shares within the account. You can use the `azurerm_backup_container_storage_account` resource or the [Register-AzRecoveryServicesBackupContainer PowerShell cmdlet](https://docs.microsoft.com/powershell/module/az.recoveryservices/register-azrecoveryservicesbackupcontainer?view=azps-3.2.0) to register a storage account with a vault. When using the `azurerm_backup_container_storage_account` resource to register, you can use `depends_on` to explicitly declare the dependency. It will make sure that the registration is completed before creating the `azurerm_backup_protected_file_share` resource.
 
 * `source_file_share_name` - (Required) Specifies the name of the file share to backup. Changing this forces a new resource to be created.
 
@@ -96,8 +96,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 80 minutes) Used when creating the Backup File Share.
-* `update` - (Defaults to 80 minutes) Used when updating the Backup File Share.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup File Share.
+* `update` - (Defaults to 80 minutes) Used when updating the Backup File Share.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Backup File Share.
 
 ## Import
@@ -108,4 +108,4 @@ Azure Backup Protected File Shares can be imported using the `resource id`, e.g.
 terraform import azurerm_backup_protected_file_share.item1 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupFabrics/Azure/protectionContainers/StorageContainer;storage;group2;example-storage-account/protectedItems/AzureFileShare;3f6e3108a45793581bcbd1c61c87a3b2ceeb4ff4bc02a95ce9d1022b23722935"
 ```
 
--> **NOTE** The ID requires quoting as there are semicolons. This user unfriendly ID can be found in the Deployments of the used resourcegroup, look for an Deployment which starts with `ConfigureAFSProtection-`, click then `Go to resource`.
+-> **Note:** The ID requires quoting as there are semicolons. This user unfriendly ID can be found in the Deployments of the used resourcegroup, look for an Deployment which starts with `ConfigureAFSProtection-`, click then `Go to resource`.

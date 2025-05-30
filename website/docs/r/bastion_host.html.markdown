@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
-~> **Note** Downgrading the SKU will force a new resource to be created.
+~> **Note:** Downgrading the SKU will force a new resource to be created.
 
 * `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
@@ -133,8 +133,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Bastion Host.
-* `update` - (Defaults to 30 minutes) Used when updating the Bastion Host.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Bastion Host.
+* `update` - (Defaults to 30 minutes) Used when updating the Bastion Host.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Bastion Host.
 
 ## Import

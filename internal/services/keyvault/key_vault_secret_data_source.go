@@ -109,17 +109,17 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	// the version may have changed, so parse the updated id
-	respID, err := parse.ParseNestedItemID(*resp.ID)
+	secretId, err := parse.ParseNestedItemID(*resp.ID)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(secretId.ID())
 
-	d.Set("name", respID.Name)
+	d.Set("name", secretId.Name)
 	d.Set("key_vault_id", keyVaultId.ID())
 	d.Set("value", resp.Value)
-	d.Set("version", respID.Version)
+	d.Set("version", secretId.Version)
 	d.Set("content_type", resp.ContentType)
 	if attributes := resp.Attributes; attributes != nil {
 		if notBefore := attributes.NotBefore; notBefore != nil {
@@ -129,10 +129,10 @@ func dataSourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("expiration_date", time.Time(*expires).Format(time.RFC3339))
 		}
 	}
-	d.Set("versionless_id", respID.VersionlessID())
+	d.Set("versionless_id", secretId.VersionlessID())
 
-	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, respID.Name, respID.Version).ID())
-	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, respID.Name).ID())
+	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, secretId.Name, secretId.Version).ID())
+	d.Set("resource_versionless_id", parse.NewSecretVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, secretId.Name).ID())
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

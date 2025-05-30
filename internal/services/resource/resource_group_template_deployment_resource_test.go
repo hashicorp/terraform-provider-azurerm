@@ -320,7 +320,7 @@ func (t ResourceGroupTemplateDeploymentResource) Exists(ctx context.Context, cli
 		return nil, err
 	}
 
-	resp, err := clients.Resource.DeploymentsClient.Get(ctx, id.ResourceGroup, id.DeploymentName)
+	resp, err := clients.Resource.LegacyDeploymentsClient.Get(ctx, id.ResourceGroup, id.DeploymentName)
 	if err != nil {
 		return nil, fmt.Errorf("reading Management Lock (%s): %+v", id, err)
 	}
