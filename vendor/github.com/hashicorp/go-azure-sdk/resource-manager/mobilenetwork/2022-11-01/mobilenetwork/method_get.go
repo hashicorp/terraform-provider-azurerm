@@ -45,7 +45,6 @@ func (c MobileNetworkClient) Get(ctx context.Context, id MobileNetworkId) (resul
 
 	var model MobileNetwork
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

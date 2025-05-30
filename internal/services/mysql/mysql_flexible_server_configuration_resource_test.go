@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/configurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -280,7 +280,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
   zone                   = "1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

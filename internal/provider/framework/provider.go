@@ -9,15 +9,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
+
+	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
 
 type azureRmFrameworkProvider struct {
@@ -28,6 +32,8 @@ type azureRmFrameworkProvider struct {
 var _ provider.Provider = &azureRmFrameworkProvider{}
 
 var _ provider.ProviderWithFunctions = &azureRmFrameworkProvider{}
+
+var _ provider.ProviderWithEphemeralResources = &azureRmFrameworkProvider{}
 
 func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{
@@ -120,11 +126,17 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Description: "The path to a file containing the Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
-			// OIDC specifc fields
+			"ado_pipeline_service_connection_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "The Azure DevOps Pipeline Service Connection ID.",
+			},
+
+			// OIDC specific fields
 			"oidc_request_token": schema.StringAttribute{
 				Optional:    true,
 				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
 			},
+
 			"oidc_request_url": schema.StringAttribute{
 				Optional:    true,
 				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
@@ -358,9 +370,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"delete_os_disk_on_deletion": schema.BoolAttribute{
 										Optional: true,
 									},
-									"graceful_shutdown": schema.BoolAttribute{
-										Optional: true,
-									},
 									"skip_shutdown_and_force_delete": schema.BoolAttribute{
 										Optional: true,
 									},
@@ -406,6 +415,15 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"storage": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"data_plane_available": schema.BoolAttribute{
+										Optional: true,
+									},
+								},
+							},
+						},
 						"subscription": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
@@ -439,6 +457,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"vm_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
+									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
 									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
@@ -454,10 +475,41 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"netapp": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"delete_backups_on_backup_vault_destroy": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+									},
+									"prevent_volume_destruction": schema.BoolAttribute{
+										Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+										Optional:    true,
+									},
+								},
+							},
+						},
+						"databricks_workspace": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"force_delete": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["virtual_machine"].(schema.ListNestedBlock).NestedObject.Attributes["graceful_shutdown"] = schema.BoolAttribute{
+			Optional:           true,
+			DeprecationMessage: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
 	}
 }
 
@@ -474,6 +526,7 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 
 		response.ResourceData = v
 		response.DataSourceData = v
+		response.EphemeralResourceData = v
 	} else {
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 
@@ -483,11 +536,31 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 }
 
 func (p *azureRmFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	// We do not currently support any Native framework Data Sources
-	return nil
+	var output []func() datasource.DataSource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.FrameworkDataSources()...)
+	}
+
+	return output
 }
 
 func (p *azureRmFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
-	// We do not currently support any Native framework Resources
-	return nil
+	var output []func() resource.Resource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.FrameworkResources()...)
+	}
+
+	return output
+}
+
+func (p *azureRmFrameworkProvider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
+	var output []func() ephemeral.EphemeralResource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.EphemeralResources()...)
+	}
+
+	return output
 }

@@ -83,7 +83,7 @@ resource "azurerm_container_app" "example" {
 }
 
 resource "azurerm_container_app_custom_domain" "example" {
-  name                                     = trimprefix(azurerm_dns_txt_record.example.fqdn, "asuid.")
+  name                                     = trimsuffix(trimprefix(azurerm_dns_txt_record.api.fqdn, "asuid."), ".")
   container_app_id                         = azurerm_container_app.example.id
   container_app_environment_certificate_id = azurerm_container_app_environment_certificate.example.id
   certificate_binding_type                 = "SniEnabled"
@@ -95,7 +95,7 @@ resource "azurerm_container_app_custom_domain" "example" {
 
 ```hcl
 resource "azurerm_container_app_custom_domain" "example" {
-  name             = trimprefix(azurerm_dns_txt_record.example.fqdn, "asuid.")
+  name             = trimsuffix(trimprefix(azurerm_dns_txt_record.api.fqdn, "asuid."), ".")
   container_app_id = azurerm_container_app.example.id
 
   lifecycle {
@@ -106,7 +106,6 @@ resource "azurerm_container_app_custom_domain" "example" {
 
 ```
 
-
 ## Arguments Reference
 
 The following arguments are supported:
@@ -115,22 +114,27 @@ The following arguments are supported:
 
 ~> **Note:** The Custom Domain verification TXT record requires a prefix of `asuid.`, however, this must be trimmed from the `name` property here. See the [official docs](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-certificates) for more information.
 
-* `container_app_id` - (Required) The ID of the Container App to which this Custom Domain should be bound. Changing this forces a new resource to be created. 
+* `container_app_id` - (Required) The ID of the Container App to which this Custom Domain should be bound. Changing this forces a new resource to be created.
 
 * `container_app_environment_certificate_id` - (Optional) The ID of the Container App Environment Certificate to use. Changing this forces a new resource to be created.
 
--> **NOTE:** Omit this value if you wish to use an Azure Managed certificate. You must create the relevant DNS verification steps before this process will be successful.
+-> **Note:** Omit this value if you wish to use an Azure Managed certificate. You must create the relevant DNS verification steps before this process will be successful.
 
 * `certificate_binding_type` - (Optional) The Certificate Binding type. Possible values include `Disabled` and `SniEnabled`.  Required with `container_app_environment_certificate_id`. Changing this forces a new resource to be created.
 
-!> **NOTE:** If using an Azure Managed Certificate `container_app_environment_certificate_id` and `certificate_binding_type` should be added to `ignore_changes` to prevent resource recreation due to these values being modified asynchronously outside of Terraform.
+!> **Note:** If using an Azure Managed Certificate `container_app_environment_certificate_id` and `certificate_binding_type` should be added to `ignore_changes` to prevent resource recreation due to these values being modified asynchronously outside of Terraform.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `container_app_environment_managed_certificate_id` - The ID of the Container App Environment Managed Certificate to use.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App.
 
@@ -141,3 +145,9 @@ A Container App Custom Domain can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_app_custom_domain.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/containerApps/myContainerApp/customDomainName/mycustomdomain.example.com"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App`: 2025-01-01

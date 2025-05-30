@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices` Documentation
 
-The `communicationservices` SDK allows for interaction with the Azure Resource Manager Service `communication` (API Version `2023-03-31`).
+The `communicationservices` SDK allows for interaction with Azure Resource Manager `communication` (API Version `2023-03-31`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceValue")
+id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceName")
 
 payload := communicationservices.CommunicationServiceResource{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceValue")
+id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -75,7 +75,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceValue")
+id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -91,7 +91,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceValue")
+id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceName")
 
 payload := communicationservices.LinkNotificationHubParameters{
 	// ...
@@ -146,7 +146,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceValue")
+id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceName")
 
 read, err := client.ListKeys(ctx, id)
 if err != nil {
@@ -162,7 +162,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceValue")
+id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceName")
 
 payload := communicationservices.RegenerateKeyParameters{
 	// ...
@@ -183,7 +183,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceValue")
+id := communicationservices.NewCommunicationServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "communicationServiceName")
 
 payload := communicationservices.CommunicationServiceResourceUpdate{
 	// ...

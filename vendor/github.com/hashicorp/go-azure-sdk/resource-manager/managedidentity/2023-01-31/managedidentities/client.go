@@ -15,7 +15,7 @@ type ManagedIdentitiesClient struct {
 }
 
 func NewManagedIdentitiesClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedIdentitiesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedidentities", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedidentities", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedIdentitiesClient: %+v", err)
 	}

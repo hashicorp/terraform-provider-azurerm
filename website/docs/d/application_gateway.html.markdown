@@ -507,8 +507,6 @@ A `waf_configuration` block exports the following:
 
 * `request_body_check` - Is Request Body Inspection enabled?
 
-* `request_body_enforcement` - Is Request Body limit enabled?
-
 * `max_request_body_size_kb` - The Maximum Request Body Size in KB.
 
 * `exclusion` - One or more `exclusion` blocks as defined below.
@@ -638,3 +636,9 @@ A `url` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

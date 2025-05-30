@@ -5,7 +5,7 @@ package tasks
 
 type SourceProperties struct {
 	Branch                      *string           `json:"branch,omitempty"`
-	RepositoryUrl               string            `json:"repositoryUrl"`
+	RepositoryURL               string            `json:"repositoryUrl"`
 	SourceControlAuthProperties *AuthInfo         `json:"sourceControlAuthProperties,omitempty"`
 	SourceControlType           SourceControlType `json:"sourceControlType"`
 }

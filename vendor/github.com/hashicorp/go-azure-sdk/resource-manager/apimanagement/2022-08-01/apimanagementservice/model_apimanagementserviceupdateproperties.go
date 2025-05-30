@@ -15,18 +15,18 @@ type ApiManagementServiceUpdateProperties struct {
 	Certificates                *[]CertificateConfiguration               `json:"certificates,omitempty"`
 	CreatedAtUtc                *string                                   `json:"createdAtUtc,omitempty"`
 	CustomProperties            *map[string]string                        `json:"customProperties,omitempty"`
-	DeveloperPortalUrl          *string                                   `json:"developerPortalUrl,omitempty"`
+	DeveloperPortalURL          *string                                   `json:"developerPortalUrl,omitempty"`
 	DisableGateway              *bool                                     `json:"disableGateway,omitempty"`
 	EnableClientCertificate     *bool                                     `json:"enableClientCertificate,omitempty"`
-	GatewayRegionalUrl          *string                                   `json:"gatewayRegionalUrl,omitempty"`
-	GatewayUrl                  *string                                   `json:"gatewayUrl,omitempty"`
+	GatewayRegionalURL          *string                                   `json:"gatewayRegionalUrl,omitempty"`
+	GatewayURL                  *string                                   `json:"gatewayUrl,omitempty"`
 	HostnameConfigurations      *[]HostnameConfiguration                  `json:"hostnameConfigurations,omitempty"`
-	ManagementApiUrl            *string                                   `json:"managementApiUrl,omitempty"`
+	ManagementApiURL            *string                                   `json:"managementApiUrl,omitempty"`
 	NatGatewayState             *NatGatewayState                          `json:"natGatewayState,omitempty"`
 	NotificationSenderEmail     *string                                   `json:"notificationSenderEmail,omitempty"`
 	OutboundPublicIPAddresses   *[]string                                 `json:"outboundPublicIPAddresses,omitempty"`
 	PlatformVersion             *PlatformVersion                          `json:"platformVersion,omitempty"`
-	PortalUrl                   *string                                   `json:"portalUrl,omitempty"`
+	PortalURL                   *string                                   `json:"portalUrl,omitempty"`
 	PrivateEndpointConnections  *[]RemotePrivateEndpointConnectionWrapper `json:"privateEndpointConnections,omitempty"`
 	PrivateIPAddresses          *[]string                                 `json:"privateIPAddresses,omitempty"`
 	ProvisioningState           *string                                   `json:"provisioningState,omitempty"`
@@ -36,7 +36,7 @@ type ApiManagementServiceUpdateProperties struct {
 	PublisherEmail              *string                                   `json:"publisherEmail,omitempty"`
 	PublisherName               *string                                   `json:"publisherName,omitempty"`
 	Restore                     *bool                                     `json:"restore,omitempty"`
-	ScmUrl                      *string                                   `json:"scmUrl,omitempty"`
+	ScmURL                      *string                                   `json:"scmUrl,omitempty"`
 	TargetProvisioningState     *string                                   `json:"targetProvisioningState,omitempty"`
 	VirtualNetworkConfiguration *VirtualNetworkConfiguration              `json:"virtualNetworkConfiguration,omitempty"`
 	VirtualNetworkType          *VirtualNetworkType                       `json:"virtualNetworkType,omitempty"`

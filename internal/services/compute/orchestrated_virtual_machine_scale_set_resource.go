@@ -4,6 +4,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -21,18 +22,21 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+const (
+	SkuNameMix = "Mix"
 )
 
 func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -92,6 +96,35 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				ValidateFunc: computeValidate.OrchestratedVirtualMachineScaleSetSku,
 			},
 
+			"sku_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"allocation_strategy": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice(
+								virtualmachinescalesets.PossibleValuesForAllocationStrategy(),
+								false,
+							),
+						},
+
+						"vm_sizes": {
+							Type:     pluginsdk.TypeSet,
+							Required: true,
+							MinItems: 1,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
+
 			"os_profile": OrchestratedVirtualMachineScaleSetOSProfileSchema(),
 
 			// Optional
@@ -135,17 +168,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"extension_operations_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default: func() interface{} {
-					if !features.FourPointOhBeta() {
-						return nil
-					}
-					return true
-				}(),
-				Computed: !features.FourPointOhBeta(),
+				Default:  true,
 				ForceNew: true,
 			},
 
-			// Due to bug in RP extensions cannot curretntly be supported in Terraform ETA for full support is mid Jan 2022
+			// Due to bug in RP extensions cannot currently be supported in Terraform ETA for full support is mid Jan 2022
 			"extension": OrchestratedVirtualMachineScaleSetExtensionsSchema(),
 
 			"extensions_time_budget": {
@@ -213,6 +240,8 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				},
 			},
 
+			"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
+
 			// NOTE: single_placement_group is now supported in orchestrated VMSS
 			// Since null is now a valid value for this field there is no default
 			// for this bool
@@ -250,7 +279,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"termination_notification": OrchestratedVirtualMachineScaleSetTerminationNotificationSchema(),
 
-			"zones": commonschema.ZonesMultipleOptionalForceNew(),
+			"zones": commonschema.ZonesMultipleOptional(),
 
 			"tags": commonschema.Tags(),
 
@@ -258,6 +287,18 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"unique_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
+			},
+
+			"upgrade_mode": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(virtualmachinescalesets.UpgradeModeManual),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(virtualmachinescalesets.UpgradeModeAutomatic),
+					string(virtualmachinescalesets.UpgradeModeManual),
+					string(virtualmachinescalesets.UpgradeModeRolling),
+				}, false),
 			},
 
 			"user_data_base64": {
@@ -269,6 +310,58 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Removing existing zones is currently not supported for Virtual Machine Scale Sets
+			pluginsdk.ForceNewIfChange("zones", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldZones := zones.ExpandUntyped(old.(*schema.Set).List())
+				newZones := zones.ExpandUntyped(new.(*schema.Set).List())
+
+				for _, ov := range oldZones {
+					found := false
+					for _, nv := range newZones {
+						if ov == nv {
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						return true
+					}
+				}
+
+				return false
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				skuName, hasSkuName := diff.GetOk("sku_name")
+				_, hasSkuProfile := diff.GetOk("sku_profile")
+
+				if hasSkuProfile {
+					if !hasSkuName || skuName != SkuNameMix {
+						return fmt.Errorf("`sku_profile` can only be set when `sku_name` is set to `Mix`")
+					}
+				} else {
+					if hasSkuName && skuName == SkuNameMix {
+						return fmt.Errorf("`sku_profile` must be set when `sku_name` is set to `Mix`")
+					}
+				}
+
+				upgradeMode := virtualmachinescalesets.UpgradeMode(diff.Get("upgrade_mode").(string))
+				rollingUpgradePolicyRaw := diff.Get("rolling_upgrade_policy").([]interface{})
+
+				if upgradeMode == virtualmachinescalesets.UpgradeModeManual && len(rollingUpgradePolicyRaw) > 0 {
+					return fmt.Errorf("a `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to `%s`", string(upgradeMode))
+				}
+
+				if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && len(rollingUpgradePolicyRaw) == 0 {
+					return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to `%s`", string(upgradeMode))
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
@@ -322,6 +415,17 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.Zones = &zones
 	}
 
+	upgradeMode := virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string))
+	rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(d.Get("rolling_upgrade_policy").([]interface{}), len(zones) > 0, false)
+	if err != nil {
+		return fmt.Errorf("expanding `rolling_upgrade_policy`: %+v", err)
+	}
+
+	props.Properties.UpgradePolicy = &virtualmachinescalesets.UpgradePolicy{
+		Mode:                 pointer.To(upgradeMode),
+		RollingUpgradePolicy: rollingUpgradePolicy,
+	}
+
 	virtualMachineProfile := virtualmachinescalesets.VirtualMachineScaleSetVMProfile{
 		StorageProfile: &virtualmachinescalesets.VirtualMachineScaleSetStorageProfile{},
 	}
@@ -351,6 +455,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		props.Sku = sku
 	}
 
+	if v, ok := d.GetOk("sku_profile"); ok {
+		props.Properties.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
 		if d.Get("single_placement_group").(bool) {
 			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
@@ -377,6 +485,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if hasHealthExtension {
 		log.Printf("[DEBUG] Orchestrated %s has a Health Extension defined", id)
+	}
+
+	// Virtual Machine Scale Set with Flexible Orchestration Mode and 'Rolling' upgradeMode must have Health Extension Present
+	if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && !hasHealthExtension {
+		return fmt.Errorf("a health extension must be specified when `upgrade_mode` is set to `Rolling`")
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -469,12 +582,12 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 					}
 
 					if !hasHealthExtension {
-						return fmt.Errorf("when 'patch_mode' is set to %q then the 'extension' field must always always contain a 'application health extension'", patchMode)
+						return fmt.Errorf("when 'patch_mode' is set to %q then the 'extension' field must always contain a 'application health extension'", patchMode)
 					}
 				}
 
 				if hotpatchingEnabled {
-					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch' or '2022-datacenter-azure-edition-hotpatch-smalldisk'")
+					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch', '2022-datacenter-azure-edition-hotpatch-smalldisk', '2025-datacenter-azure-edition', '2025-datacenter-azure-edition-smalldisk', '2025-datacenter-azure-edition-core' or '2025-datacenter-azure-edition-core-smalldisk'")
 				}
 			}
 		}
@@ -522,19 +635,10 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 		virtualMachineProfile.OsProfile = vmssOsProfile
 	}
 
-	if !features.FourPointOhBeta() {
-		if !pluginsdk.IsExplicitlyNullInConfig(d, "extension_operations_enabled") {
-			if virtualMachineProfile.OsProfile == nil {
-				virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-			}
-			virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
-		}
-	} else {
-		if virtualMachineProfile.OsProfile == nil {
-			virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
-		}
-		virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
+	if virtualMachineProfile.OsProfile == nil {
+		virtualMachineProfile.OsProfile = &virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
 	}
+	virtualMachineProfile.OsProfile.AllowExtensionOperations = pointer.To(extensionOperationsEnabled)
 
 	if v, ok := d.GetOk("boot_diagnostics"); ok {
 		virtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsVMSS(v.([]interface{}))
@@ -730,6 +834,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 				updateProps.SinglePlacementGroup = pointer.To(singlePlacementGroup)
 			}
+		}
+
+		if d.HasChange("sku_profile") {
+			updateInstances = true
+			updateProps.SkuProfile = expandOrchestratedVirtualMachineScaleSetSkuProfile(d.Get("sku_profile").([]interface{}))
 		}
 
 		if d.HasChange("max_bid_price") {
@@ -1072,6 +1181,29 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		}
 	}
 
+	if d.HasChange("zones") {
+		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
+	}
+
+	if d.HasChange("rolling_upgrade_policy") {
+		upgradePolicy := virtualmachinescalesets.UpgradePolicy{}
+
+		if existing.Model.Properties.UpgradePolicy != nil {
+			upgradePolicy = *existing.Model.Properties.UpgradePolicy
+		}
+
+		upgradePolicy.Mode = pointer.To(virtualmachinescalesets.UpgradeMode(d.Get("upgrade_mode").(string)))
+
+		rollingRaw := d.Get("rolling_upgrade_policy").([]interface{})
+		rollingUpgradePolicy, err := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingRaw, len(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())) > 0, false)
+		if err != nil {
+			return fmt.Errorf("expanding `rolling_upgrade_policy`: %+v", err)
+		}
+
+		upgradePolicy.RollingUpgradePolicy = rollingUpgradePolicy
+		updateProps.UpgradePolicy = &upgradePolicy
+	}
+
 	// Only two fields that can change in legacy mode
 	if d.HasChange("proximity_placement_group_id") {
 		if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -1194,10 +1326,17 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			if props.SinglePlacementGroup != nil {
 				d.Set("single_placement_group", props.SinglePlacementGroup)
 			}
+
+			if err := d.Set("sku_profile", flattenOrchestratedVirtualMachineScaleSetSkuProfile(props.SkuProfile)); err != nil {
+				return fmt.Errorf("setting `sku_profile`: %+v", err)
+			}
+
 			d.Set("unique_id", props.UniqueId)
 			d.Set("zone_balance", props.ZoneBalance)
 
 			extensionOperationsEnabled := true
+			// if `VirtualMachineProfile` is nil, `UpgradeMode` will not exist in the response
+			upgradeMode := string(virtualmachinescalesets.UpgradeModeManual)
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if err := d.Set("boot_diagnostics", flattenBootDiagnosticsVMSS(profile.DiagnosticsProfile)); err != nil {
 					return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
@@ -1294,6 +1433,14 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				}
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 				d.Set("user_data_base64", profile.UserData)
+
+				if policy := props.UpgradePolicy; policy != nil {
+					upgradeMode = string(pointer.From(policy.Mode))
+					flattenedRolling := FlattenVirtualMachineScaleSetRollingUpgradePolicy(policy.RollingUpgradePolicy)
+					if err := d.Set("rolling_upgrade_policy", flattenedRolling); err != nil {
+						return fmt.Errorf("setting `rolling_upgrade_policy`: %+v", err)
+					}
+				}
 			}
 
 			if priorityMixPolicy := props.PriorityMixPolicy; priorityMixPolicy != nil {
@@ -1303,6 +1450,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 			}
 
 			d.Set("extension_operations_enabled", extensionOperationsEnabled)
+			d.Set("upgrade_mode", upgradeMode)
 		}
 		return tags.FlattenAndSet(d, model.Tags)
 	}
@@ -1361,17 +1509,60 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	return nil
 }
 
+func expandOrchestratedVirtualMachineScaleSetSkuProfile(input []interface{}) *virtualmachinescalesets.SkuProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	vmSizesRaw := v["vm_sizes"].(*pluginsdk.Set).List()
+	vmSizes := make([]virtualmachinescalesets.SkuProfileVMSize, 0)
+	for _, vmSize := range vmSizesRaw {
+		vmSizes = append(vmSizes, virtualmachinescalesets.SkuProfileVMSize{
+			Name: pointer.To(vmSize.(string)),
+		})
+	}
+
+	return &virtualmachinescalesets.SkuProfile{
+		AllocationStrategy: pointer.To((virtualmachinescalesets.AllocationStrategy)(v["allocation_strategy"].(string))),
+		VMSizes:            pointer.To(vmSizes),
+	}
+}
+
+func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinescalesets.SkuProfile) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	vmSizes := make([]string, 0)
+	if input.VMSizes != nil {
+		for _, vmSize := range *input.VMSizes {
+			vmSizes = append(vmSizes, *vmSize.Name)
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"allocation_strategy": string(pointer.From(input.AllocationStrategy)),
+			"vm_sizes":            vmSizes,
+		},
+	}
+}
+
 func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*virtualmachinescalesets.Sku, error) {
 	skuParts := strings.Split(input, "_")
 
-	if len(skuParts) < 2 || strings.Contains(input, "__") || strings.Contains(input, " ") {
+	if (input != SkuNameMix && len(skuParts) < 2) || strings.Contains(input, "__") || strings.Contains(input, " ") {
 		return nil, fmt.Errorf("'sku_name'(%q) is not formatted properly", input)
 	}
 
 	sku := &virtualmachinescalesets.Sku{
 		Name:     pointer.To(input),
 		Capacity: utils.Int64(int64(capacity)),
-		Tier:     pointer.To("Standard"),
+	}
+
+	if input != SkuNameMix {
+		sku.Tier = pointer.To("Standard")
 	}
 
 	return sku, nil
@@ -1380,7 +1571,7 @@ func expandOrchestratedVirtualMachineScaleSetSku(input string, capacity int) (*v
 func flattenOrchestratedVirtualMachineScaleSetSku(input *virtualmachinescalesets.Sku) (*string, error) {
 	var skuName string
 	if input != nil && input.Name != nil {
-		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") {
+		if strings.HasPrefix(strings.ToLower(*input.Name), "standard") || *input.Name == SkuNameMix {
 			skuName = *input.Name
 		} else {
 			skuName = fmt.Sprintf("Standard_%s", *input.Name)

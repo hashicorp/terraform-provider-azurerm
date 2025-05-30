@@ -6,5 +6,5 @@ package apitagdescription
 type TagDescriptionBaseProperties struct {
 	Description             *string `json:"description,omitempty"`
 	ExternalDocsDescription *string `json:"externalDocsDescription,omitempty"`
-	ExternalDocsUrl         *string `json:"externalDocsUrl,omitempty"`
+	ExternalDocsURL         *string `json:"externalDocsUrl,omitempty"`
 }

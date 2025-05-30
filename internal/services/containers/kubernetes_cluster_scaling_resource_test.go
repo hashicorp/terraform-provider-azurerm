@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -81,7 +81,7 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
@@ -97,7 +97,6 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempAndDefault(t *test
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 	})
-
 }
 
 func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *testing.T) {
@@ -140,11 +139,11 @@ func TestAccKubernetesCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *
 					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
-					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 						return fmt.Errorf("creating %s: %+v", tempNodePoolId, err)
 					}
 
-					if err := client.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
+					if err := client.DeleteThenPoll(ctx, defaultNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 						return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 					}
 
@@ -206,14 +205,14 @@ func TestAccKubernetesCluster_cycleSystemNodePoolFipsEnabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.enableFips(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.enableFips(data),
+			Config: r.enableFips(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -304,7 +303,7 @@ func TestAccKubernetesCluster_autoScalingError(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("cannot change `node_count` when `enable_auto_scaling` is set to `true`"),
+			ExpectError: regexp.MustCompile("cannot change `node_count` when `auto_scaling_enabled` is set to `true`"),
 		},
 	})
 }
@@ -319,7 +318,7 @@ func TestAccKubernetesCluster_autoScalingErrorMax(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("`node_count`\\(11\\) must be equal to or less than `max_count`\\(10\\) when `enable_auto_scaling` is set to `true`"),
+			ExpectError: regexp.MustCompile("`node_count`\\(11\\) must be equal to or less than `max_count`\\(10\\) when `auto_scaling_enabled` is set to `true`"),
 		},
 	})
 }
@@ -349,7 +348,7 @@ func TestAccKubernetesCluster_autoScalingErrorMin(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-			ExpectError: regexp.MustCompile("`node_count`\\(1\\) must be equal to or greater than `min_count`\\(2\\) when `enable_auto_scaling` is set to `true`"),
+			ExpectError: regexp.MustCompile("`node_count`\\(1\\) must be equal to or greater than `min_count`\\(2\\) when `auto_scaling_enabled` is set to `true`"),
 		},
 	})
 }
@@ -365,7 +364,7 @@ func TestAccKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("default_node_pool.0.min_count").HasValue("2"),
 				check.That(data.ResourceName).Key("default_node_pool.0.max_count").HasValue("4"),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.auto_scaling_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_graceful_termination_sec").HasValue("600"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.new_pod_scale_up_delay").HasValue("0s"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.scale_down_delay_after_add").HasValue("10m"),
@@ -393,7 +392,7 @@ func TestAccKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T) {
 				check.That(data.ResourceName).Key("default_node_pool.0.type").HasValue("VirtualMachineScaleSets"),
 				check.That(data.ResourceName).Key("default_node_pool.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("default_node_pool.0.max_count").HasValue("2"),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.auto_scaling_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -424,7 +423,7 @@ func TestAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 			Config: r.autoScalingProfileConfigMinimal(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.auto_scaling_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.expander").HasValue("random"),
 			),
 		},
@@ -433,7 +432,7 @@ func TestAccKubernetesCluster_autoScalingProfile(t *testing.T) {
 			Config: r.autoScalingProfileConfigComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("default_node_pool.0.auto_scaling_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.expander").HasValue("least-waste"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_graceful_termination_sec").HasValue("15"),
 				check.That(data.ResourceName).Key("auto_scaler_profile.0.max_node_provisioning_time").HasValue("10m"),
@@ -512,10 +511,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -632,7 +631,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     temporary_name_for_rotation = "temp"
     node_count                  = 1
     vm_size                     = "%s"
-    enable_host_encryption      = false
+    host_encryption_enabled     = false
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -673,7 +672,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count                   = 1
     vm_size                      = "%s"
     zones                        = %s
-    enable_node_public_ip        = true
+    node_public_ip_enabled       = true
     max_pods                     = 60
     only_critical_addons_enabled = true
 
@@ -725,7 +724,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     temporary_name_for_rotation  = "temp"
     node_count                   = 1
     vm_size                      = "Standard_D2ads_v5"
-    enable_node_public_ip        = true
+    node_public_ip_enabled       = true
     max_pods                     = 60
     only_critical_addons_enabled = true
 
@@ -756,7 +755,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesClusterResource) enableFips(data acceptance.TestData) string {
+func (KubernetesClusterResource) enableFips(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -774,10 +773,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    fips_enabled = true
-    name         = "default"
-    node_count   = 1
-    vm_size      = "Standard_DS2_v2"
+    fips_enabled                = %t
+    name                        = "default"
+    node_count                  = 1
+    temporary_name_for_rotation = "temp"
+    vm_size                     = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -792,7 +792,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
 func (KubernetesClusterResource) updateOsDisk(data acceptance.TestData, osDiskType string, osDiskSize int) string {
@@ -974,11 +974,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                = "default"
-    enable_auto_scaling = true
-    min_count           = 2
-    max_count           = 4
-    vm_size             = "Standard_DS2_v2"
+    name                 = "default"
+    auto_scaling_enabled = true
+    min_count            = 2
+    max_count            = 4
+    vm_size              = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1009,11 +1009,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name                = "pool1"
-    min_count           = 1
-    max_count           = 2
-    enable_auto_scaling = true
-    vm_size             = "Standard_DS2_v2"
+    name                 = "pool1"
+    min_count            = 1
+    max_count            = 2
+    auto_scaling_enabled = true
+    vm_size              = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1045,12 +1045,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = "%s"
 
   default_node_pool {
-    name                = "pool1"
-    min_count           = 1
-    max_count           = 2
-    enable_auto_scaling = true
-    vm_size             = "Standard_DS2_v2"
-    zones               = ["1", "2"]
+    name                 = "pool1"
+    min_count            = 1
+    max_count            = 2
+    auto_scaling_enabled = true
+    vm_size              = "Standard_DS2_v2"
+    zones                = ["1", "2"]
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1067,6 +1067,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, olderKubernetesVersion)
 }
+
 func (KubernetesClusterResource) autoScalingProfileConfigMinimal(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1086,11 +1087,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = "%s"
 
   default_node_pool {
-    name                = "default"
-    enable_auto_scaling = true
-    min_count           = 2
-    max_count           = 4
-    vm_size             = "Standard_DS2_v2"
+    name                 = "default"
+    auto_scaling_enabled = true
+    min_count            = 2
+    max_count            = 4
+    vm_size              = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1126,34 +1127,37 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = "%s"
 
   default_node_pool {
-    name                = "default"
-    enable_auto_scaling = true
-    min_count           = 2
-    max_count           = 4
-    vm_size             = "Standard_DS2_v2"
+    name                 = "default"
+    auto_scaling_enabled = true
+    min_count            = 2
+    max_count            = 4
+    vm_size              = "Standard_DS2_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
   }
 
   auto_scaler_profile {
-    balance_similar_node_groups      = true
-    expander                         = "least-waste"
-    max_graceful_termination_sec     = 15
-    max_node_provisioning_time       = "10m"
-    max_unready_nodes                = 5
-    max_unready_percentage           = 50
-    new_pod_scale_up_delay           = "10s"
-    scan_interval                    = "10s"
-    scale_down_delay_after_add       = "10m"
-    scale_down_delay_after_delete    = "10s"
-    scale_down_delay_after_failure   = "15m"
-    scale_down_unneeded              = "15m"
-    scale_down_unready               = "15m"
-    scale_down_utilization_threshold = "0.5"
-    empty_bulk_delete_max            = "50"
-    skip_nodes_with_local_storage    = false
-    skip_nodes_with_system_pods      = false
+    balance_similar_node_groups                   = true
+    daemonset_eviction_for_empty_nodes_enabled    = true
+    daemonset_eviction_for_occupied_nodes_enabled = false
+    expander                                      = "least-waste"
+    ignore_daemonsets_utilization_enabled         = true
+    max_graceful_termination_sec                  = 15
+    max_node_provisioning_time                    = "10m"
+    max_unready_nodes                             = 5
+    max_unready_percentage                        = 50
+    new_pod_scale_up_delay                        = "10s"
+    scan_interval                                 = "10s"
+    scale_down_delay_after_add                    = "10m"
+    scale_down_delay_after_delete                 = "10s"
+    scale_down_delay_after_failure                = "15m"
+    scale_down_unneeded                           = "15m"
+    scale_down_unready                            = "15m"
+    scale_down_utilization_threshold              = "0.5"
+    empty_bulk_delete_max                         = "50"
+    skip_nodes_with_local_storage                 = false
+    skip_nodes_with_system_pods                   = false
   }
 
   identity {

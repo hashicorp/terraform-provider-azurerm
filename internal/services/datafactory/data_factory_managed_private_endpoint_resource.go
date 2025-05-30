@@ -234,7 +234,6 @@ func getManagedPrivateEndpoint(ctx context.Context, client *managedprivateendpoi
 		if item.Name != nil && *item.Name == privateEndpointName {
 			return &item, nil
 		}
-
 	}
 	return nil, nil
 }

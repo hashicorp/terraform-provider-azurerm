@@ -34,6 +34,7 @@ func (o GetLogsDefaultOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetLogsDefaultOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -74,7 +75,6 @@ func (c DeploymentScriptsClient) GetLogsDefault(ctx context.Context, id Deployme
 
 	var model ScriptLog
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

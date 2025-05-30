@@ -45,7 +45,6 @@ func (c DicomServicesClient) Get(ctx context.Context, id DicomServiceId) (result
 
 	var model DicomService
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

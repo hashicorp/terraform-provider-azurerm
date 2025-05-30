@@ -10,18 +10,37 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type RestoreTargetInfoBase interface {
+	RestoreTargetInfoBase() BaseRestoreTargetInfoBaseImpl
 }
 
-// RawRestoreTargetInfoBaseImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ RestoreTargetInfoBase = BaseRestoreTargetInfoBaseImpl{}
+
+type BaseRestoreTargetInfoBaseImpl struct {
+	ObjectType      string         `json:"objectType"`
+	RecoveryOption  RecoveryOption `json:"recoveryOption"`
+	RestoreLocation *string        `json:"restoreLocation,omitempty"`
+}
+
+func (s BaseRestoreTargetInfoBaseImpl) RestoreTargetInfoBase() BaseRestoreTargetInfoBaseImpl {
+	return s
+}
+
+var _ RestoreTargetInfoBase = RawRestoreTargetInfoBaseImpl{}
+
+// RawRestoreTargetInfoBaseImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawRestoreTargetInfoBaseImpl struct {
-	Type   string
-	Values map[string]interface{}
+	restoreTargetInfoBase BaseRestoreTargetInfoBaseImpl
+	Type                  string
+	Values                map[string]interface{}
 }
 
-func unmarshalRestoreTargetInfoBaseImplementation(input []byte) (RestoreTargetInfoBase, error) {
+func (s RawRestoreTargetInfoBaseImpl) RestoreTargetInfoBase() BaseRestoreTargetInfoBaseImpl {
+	return s.restoreTargetInfoBase
+}
+
+func UnmarshalRestoreTargetInfoBaseImplementation(input []byte) (RestoreTargetInfoBase, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +50,9 @@ func unmarshalRestoreTargetInfoBaseImplementation(input []byte) (RestoreTargetIn
 		return nil, fmt.Errorf("unmarshaling RestoreTargetInfoBase into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["objectType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["objectType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "ItemLevelRestoreTargetInfo") {
@@ -60,10 +79,15 @@ func unmarshalRestoreTargetInfoBaseImplementation(input []byte) (RestoreTargetIn
 		return out, nil
 	}
 
-	out := RawRestoreTargetInfoBaseImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseRestoreTargetInfoBaseImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseRestoreTargetInfoBaseImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawRestoreTargetInfoBaseImpl{
+		restoreTargetInfoBase: parent,
+		Type:                  value,
+		Values:                temp,
+	}, nil
 
 }

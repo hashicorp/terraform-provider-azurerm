@@ -49,6 +49,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `workload_profile_name` - The name of the Workload Profile in the Container App Environment in which this Container App is running.
 
+* `max_inactive_revisions` - The max inactive revisions for this Container App.
+
 * `tags` - A mapping of tags to assign to the Container App.
 
 ---
@@ -77,6 +79,8 @@ A `template` block supports the following:
 
 * `revision_suffix` - The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
+* `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+
 * `volume` - A `volume` block as detailed below.
 
 ---
@@ -88,6 +92,8 @@ A `volume` block supports the following:
 * `storage_name` - The name of the `AzureFile` storage.
 
 * `storage_type` - The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
+
+* `mount_options` - Mount options used while mounting the AzureFile.
 
 ---
 
@@ -149,15 +155,13 @@ A `liveness_probe` block supports the following:
 
 * `host` - The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
 
-* `initial_delay` - The time in seconds to wait after the container has started before the probe is started.
+* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `1` seconds.
 
 * `interval_seconds` - How often, in seconds, the probe should run. Possible values are in the range `1` - `240`. Defaults to `10`.
 
 * `path` - The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
 * `port` - The port number on which to connect. Possible values are between `1` and `65535`.
-
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -185,11 +189,13 @@ An `env` block supports the following:
 
 A `readiness_probe` block supports the following:
 
-* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
 * `header` - A `header` block as detailed below.
 
 * `host` - The probe hostname. Defaults to the pod IP address. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
+
+* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.
 
 * `interval_seconds` - How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
@@ -215,19 +221,19 @@ A `header` block supports the following:
 
 A `startup_probe` block supports the following:
 
-* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
+* `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
 * `header` - A `header` block as detailed below.
 
 * `host` - The value for the host header which should be sent with this probe. If unspecified, the IP Address of the Pod is used as the host header. Setting a value for `Host` in `headers` can be used to override this for `HTTP` and `HTTPS` type probes.
+
+* `initial_delay` - The number of seconds elapsed after the container has started before the probe is initiated. Possible values are between `0` and `60`. Defaults to `0` seconds.
 
 * `interval_seconds` - How often, in seconds, the probe should run. Possible values are between `1` and `240`. Defaults to `10`
 
 * `path` - The URI to use with the `host` for http type probes. Not valid for `TCP` type probes. Defaults to `/`.
 
 * `port` - The port number on which to connect. Possible values are between `1` and `65535`.
-
-* `termination_grace_period_seconds` -  The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `timeout` - Time in seconds after which the probe times out. Possible values are in the range `1` - `240`. Defaults to `1`.
 
@@ -249,6 +255,7 @@ A `volume_mounts` block supports the following:
 
 * `path` - The path in the container at which to mount this volume.
 
+* `sub_path` - The sub path of the volume to be mounted in the container.
 ---
 
 An `identity` block supports the following:
@@ -262,6 +269,8 @@ An `identity` block supports the following:
 An `ingress` block supports the following:
 
 * `allow_insecure_connections` - Should this ingress allow insecure connections?
+
+* `client_certificate_mode` - The client certificate mode for the Ingress.
 
 * `custom_domain` - One or more `custom_domain` block as detailed below.
 
@@ -338,3 +347,9 @@ A `registry` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.App`: 2025-01-01

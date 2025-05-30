@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2022-07-01/tagrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,6 +21,8 @@ import (
 type NewRelicTagRuleResource struct{}
 
 func TestAccNewRelicTagRule_basic(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "27362230-e2d8-4c73-9ee3-fdef83459ca3@example.com"
@@ -36,6 +38,8 @@ func TestAccNewRelicTagRule_basic(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_requiresImport(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "85b5febd-127d-4633-9c25-bcfea555af46@example.com"
@@ -54,6 +58,8 @@ func TestAccNewRelicTagRule_requiresImport(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_complete(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "672d9312-65a7-484c-870d-94584850a423@example.com"
@@ -69,6 +75,8 @@ func TestAccNewRelicTagRule_complete(t *testing.T) {
 }
 
 func TestAccNewRelicTagRule_update(t *testing.T) {
+	t.Skip("skipping as they fail intermittently and New Relic support is needed to clean them up")
+
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_tag_rule", "test")
 	r := NewRelicTagRuleResource{}
 	email := "f0ff47c3-3aed-45b0-b239-260d9625045a@example.com"
@@ -131,6 +139,10 @@ resource "azurerm_new_relic_monitor" "test" {
     first_name   = "first"
     last_name    = "last"
     phone_number = "123456"
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, effectiveDate, email)

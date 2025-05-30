@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,7 +29,7 @@ func (k KustoCosmosDBDataConnectionResource) Exists(ctx context.Context, clients
 	}
 
 	if resp.Model != nil {
-		value, ok := (*resp.Model).(dataconnections.CosmosDbDataConnection)
+		value, ok := resp.Model.(dataconnections.CosmosDbDataConnection)
 		if !ok {
 			return nil, fmt.Errorf("%s is not an CosmosDB Data Connection", id.String())
 		}

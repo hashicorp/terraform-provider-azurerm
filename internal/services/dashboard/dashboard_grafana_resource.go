@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -190,9 +189,8 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 		"grafana_major_version": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				"9", "10",
+				"10", "11",
 			}, false),
 		},
 
@@ -215,18 +213,6 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  false,
 		},
-	}
-
-	if !features.FourPointOhBeta() {
-		arguments["grafana_major_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "9",
-			ValidateFunc: validation.StringInSlice([]string{
-				"9", "10",
-			}, false),
-		}
 	}
 
 	return arguments
@@ -393,6 +379,10 @@ func (r DashboardGrafanaResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("smtp") {
 				properties.Properties.GrafanaConfigurations = expandSMTPConfigurationModel(model.SMTP)
+			}
+
+			if metadata.ResourceData.HasChange("grafana_major_version") {
+				properties.Properties.GrafanaMajorVersion = &model.GrafanaMajorVersion
 			}
 
 			if err := client.GrafanaCreateThenPoll(ctx, *id, *properties); err != nil {
@@ -570,7 +560,7 @@ func expandGrafanaIntegrationsModel(inputList []AzureMonitorWorkspaceIntegration
 }
 
 func expandAzureMonitorWorkspaceIntegrationModelArray(inputList []AzureMonitorWorkspaceIntegrationModel) *[]grafanaresource.AzureMonitorWorkspaceIntegration {
-	var outputList []grafanaresource.AzureMonitorWorkspaceIntegration
+	outputList := make([]grafanaresource.AzureMonitorWorkspaceIntegration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := grafanaresource.AzureMonitorWorkspaceIntegration{
@@ -635,17 +625,15 @@ func flattenSMTPConfigurationModel(input *grafanaresource.Smtp, data *schema.Res
 
 	output.Password = data.Get("smtp.0.password").(string)
 
-	outputList = append(outputList, output)
-
-	return outputList
+	return append(outputList, output)
 }
 
 func flattenAzureMonitorWorkspaceIntegrationModelArray(inputList *[]grafanaresource.AzureMonitorWorkspaceIntegration) []AzureMonitorWorkspaceIntegrationModel {
-	var outputList []AzureMonitorWorkspaceIntegrationModel
 	if inputList == nil {
-		return outputList
+		return []AzureMonitorWorkspaceIntegrationModel{}
 	}
 
+	outputList := make([]AzureMonitorWorkspaceIntegrationModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := AzureMonitorWorkspaceIntegrationModel{}
 

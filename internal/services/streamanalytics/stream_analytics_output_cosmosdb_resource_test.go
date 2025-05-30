@@ -84,6 +84,7 @@ func TestAccStreamAnalyticsOutputCosmosDB_requiresImport(t *testing.T) {
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
+
 func (r StreamAnalyticsOutputCosmosDBResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := outputs.ParseOutputID(state.ID)
 	if err != nil {
@@ -158,6 +159,7 @@ resource "azurerm_stream_analytics_output_cosmosdb" "test" {
   container_name           = azurerm_cosmosdb_sql_container.test.name
   document_id              = "exampledocumentid"
   partition_key            = "examplekey"
+  authentication_mode      = "Msi"
 }
 `, template, data.RandomString, data.RandomInteger)
 }

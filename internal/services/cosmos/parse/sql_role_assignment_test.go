@@ -27,7 +27,6 @@ func TestSqlRoleAssignmentID(t *testing.T) {
 		Error    bool
 		Expected *SqlRoleAssignmentId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -15,7 +15,7 @@ type CreatorsClient struct {
 }
 
 func NewCreatorsClientWithBaseURI(sdkApi sdkEnv.Api) (*CreatorsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "creators", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "creators", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CreatorsClient: %+v", err)
 	}

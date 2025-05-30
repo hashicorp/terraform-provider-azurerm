@@ -71,7 +71,9 @@ The following arguments are supported:
 
 * `partition_key_kind` - (Optional) Define a partition key kind. Possible values are `Hash` and `MultiHash`. Defaults to `Hash`. Changing this forces a new resource to be created.
 
-* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
+* `partition_key_version` - (Optional) Define a partition key version. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
+
+-> **Note:** If `partition_key_version` is not specified when creating a new resource, you can update `partition_key_version` to `1`, updating to `2` forces a new resource to be created.
 
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -172,8 +174,8 @@ A `spatial_index` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB SQL Container.
-* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Container.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB SQL Container.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Container.
 * `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB SQL Container.
 
 ## Import

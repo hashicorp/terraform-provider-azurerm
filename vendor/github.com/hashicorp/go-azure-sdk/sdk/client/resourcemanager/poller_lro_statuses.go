@@ -25,6 +25,9 @@ var longRunningOperationCustomStatuses = map[status]pollers.PollingStatus{
 	// NetAppVolumeReplication @ 2023-05-01 returns `AuthorizeReplication` during authorizing replication
 	"AuthorizeReplication": pollers.PollingStatusInProgress,
 
+	// VMWare @ 2022-05-01 returns `Building` rather than `InProgress` during creation
+	"Building": pollers.PollingStatusInProgress,
+
 	// NetAppVolumeReplication @ 2023-05-01 returns `BreakReplication` during breaking replication
 	"BreakReplication": pollers.PollingStatusInProgress,
 
@@ -85,6 +88,9 @@ var longRunningOperationCustomStatuses = map[status]pollers.PollingStatus{
 
 	// AnalysisServices @ 2017-08-01 (Servers Resume) returns `Resuming` during Update
 	"Resuming": pollers.PollingStatusInProgress,
+
+	// HealthcareApis @ 2022-12-01 returns `Requested` during Creation
+	"Requested": pollers.PollingStatusInProgress,
 
 	// SignalR@2022-02-01 returns `Running` rather than `InProgress` during creation
 	"Running": pollers.PollingStatusInProgress,

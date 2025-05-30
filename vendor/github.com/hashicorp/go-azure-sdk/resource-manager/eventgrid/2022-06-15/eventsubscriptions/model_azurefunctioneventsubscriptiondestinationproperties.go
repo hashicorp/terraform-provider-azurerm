@@ -18,10 +18,13 @@ type AzureFunctionEventSubscriptionDestinationProperties struct {
 var _ json.Unmarshaler = &AzureFunctionEventSubscriptionDestinationProperties{}
 
 func (s *AzureFunctionEventSubscriptionDestinationProperties) UnmarshalJSON(bytes []byte) error {
-	type alias AzureFunctionEventSubscriptionDestinationProperties
-	var decoded alias
+	var decoded struct {
+		MaxEventsPerBatch             *int64  `json:"maxEventsPerBatch,omitempty"`
+		PreferredBatchSizeInKilobytes *int64  `json:"preferredBatchSizeInKilobytes,omitempty"`
+		ResourceId                    *string `json:"resourceId,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into AzureFunctionEventSubscriptionDestinationProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.MaxEventsPerBatch = decoded.MaxEventsPerBatch
@@ -41,7 +44,7 @@ func (s *AzureFunctionEventSubscriptionDestinationProperties) UnmarshalJSON(byte
 
 		output := make([]DeliveryAttributeMapping, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalDeliveryAttributeMappingImplementation(val)
+			impl, err := UnmarshalDeliveryAttributeMappingImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'DeliveryAttributeMappings' for 'AzureFunctionEventSubscriptionDestinationProperties': %+v", i, err)
 			}
@@ -49,5 +52,6 @@ func (s *AzureFunctionEventSubscriptionDestinationProperties) UnmarshalJSON(byte
 		}
 		s.DeliveryAttributeMappings = &output
 	}
+
 	return nil
 }

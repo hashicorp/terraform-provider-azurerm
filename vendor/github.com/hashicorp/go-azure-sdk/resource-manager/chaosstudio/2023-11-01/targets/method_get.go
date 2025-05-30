@@ -46,7 +46,6 @@ func (c TargetsClient) Get(ctx context.Context, id commonids.ChaosStudioTargetId
 
 	var model Target
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

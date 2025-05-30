@@ -38,7 +38,7 @@ func ParseApplicationIdID(input string) (*ApplicationIdId, error) {
 	}
 
 	id := ApplicationIdId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func ParseApplicationIdIDInsensitively(input string) (*ApplicationIdId, error) {
 	}
 
 	id := ApplicationIdId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -96,7 +96,7 @@ func (id ApplicationIdId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Application Id ID
 func (id ApplicationIdId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.UserSpecifiedSegment("applicationId", "applicationIdValue"),
+		resourceids.UserSpecifiedSegment("applicationId", "applicationId"),
 	}
 }
 

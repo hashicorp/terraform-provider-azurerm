@@ -27,7 +27,6 @@ func TestManagedPrivateEndpointID(t *testing.T) {
 		Error    bool
 		Expected *ManagedPrivateEndpointId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -525,8 +525,7 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-pubip-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -545,8 +544,8 @@ resource "azurerm_application_gateway" "test" {
   location            = "${azurerm_resource_group.test.location}"
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
@@ -586,6 +585,7 @@ resource "azurerm_application_gateway" "test" {
 
   request_routing_rule {
     name                       = "${local.request_routing_rule_name}"
+    priority                   = 9
     rule_type                  = "Basic"
     http_listener_name         = "${local.listener_name}"
     backend_address_pool_name  = "${local.backend_address_pool_name}"
@@ -1675,7 +1675,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 }
 
 // skipped
-// nolint:unused
+//
+//nolint:unused
 func (r LinuxVirtualMachineScaleSetResource) networkPublicIPVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

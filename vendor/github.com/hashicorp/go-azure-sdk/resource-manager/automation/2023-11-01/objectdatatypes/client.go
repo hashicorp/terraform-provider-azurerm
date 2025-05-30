@@ -15,7 +15,7 @@ type ObjectDataTypesClient struct {
 }
 
 func NewObjectDataTypesClientWithBaseURI(sdkApi sdkEnv.Api) (*ObjectDataTypesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "objectdatatypes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "objectdatatypes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ObjectDataTypesClient: %+v", err)
 	}

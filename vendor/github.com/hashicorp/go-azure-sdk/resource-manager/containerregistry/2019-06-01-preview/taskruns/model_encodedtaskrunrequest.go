@@ -21,9 +21,20 @@ type EncodedTaskRunRequest struct {
 	Values               *[]SetValue        `json:"values,omitempty"`
 
 	// Fields inherited from RunRequest
+
 	AgentPoolName    *string `json:"agentPoolName,omitempty"`
 	IsArchiveEnabled *bool   `json:"isArchiveEnabled,omitempty"`
 	LogTemplate      *string `json:"logTemplate,omitempty"`
+	Type             string  `json:"type"`
+}
+
+func (s EncodedTaskRunRequest) RunRequest() BaseRunRequestImpl {
+	return BaseRunRequestImpl{
+		AgentPoolName:    s.AgentPoolName,
+		IsArchiveEnabled: s.IsArchiveEnabled,
+		LogTemplate:      s.LogTemplate,
+		Type:             s.Type,
+	}
 }
 
 var _ json.Marshaler = EncodedTaskRunRequest{}
@@ -37,9 +48,10 @@ func (s EncodedTaskRunRequest) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EncodedTaskRunRequest: %+v", err)
 	}
+
 	decoded["type"] = "EncodedTaskRunRequest"
 
 	encoded, err = json.Marshal(decoded)

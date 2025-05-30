@@ -15,7 +15,7 @@ type EdgeDevicesClient struct {
 }
 
 func NewEdgeDevicesClientWithBaseURI(sdkApi sdkEnv.Api) (*EdgeDevicesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "edgedevices", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "edgedevices", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating EdgeDevicesClient: %+v", err)
 	}

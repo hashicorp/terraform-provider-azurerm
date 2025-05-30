@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/amlfilesystems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/amlfilesystems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -147,7 +147,7 @@ resource "azurerm_managed_lustre_file_system" "test" {
   sku_name               = "AMLFS-Durable-Premium-250"
   subnet_id              = azurerm_subnet.test.id
   storage_capacity_in_tb = 8
-  zones                  = ["2"]
+  zones                  = ["1"]
 
   maintenance_window {
     day_of_week        = "Friday"
@@ -278,7 +278,7 @@ resource "azurerm_managed_lustre_file_system" "test" {
   sku_name               = "AMLFS-Durable-Premium-250"
   subnet_id              = azurerm_subnet.test.id
   storage_capacity_in_tb = 8
-  zones                  = ["2"]
+  zones                  = ["1"]
 
   maintenance_window {
     day_of_week        = "Friday"
@@ -362,7 +362,7 @@ resource "azurerm_managed_lustre_file_system" "test" {
   sku_name               = "AMLFS-Durable-Premium-250"
   subnet_id              = azurerm_subnet.test.id
   storage_capacity_in_tb = 8
-  zones                  = ["2"]
+  zones                  = ["1"]
 
   maintenance_window {
     day_of_week        = "Thursday"

@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -179,6 +178,7 @@ func resourceContainerGroup() *pluginsdk.Resource {
 
 			"dns_name_label_reuse_policy": {
 				Type:     pluginsdk.TypeString,
+				ForceNew: true,
 				Optional: true,
 				Default:  string(containerinstance.DnsNameLabelReusePolicyUnsecure),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -520,66 +520,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["container"].Elem.(*pluginsdk.Resource).Schema["gpu"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			MaxItems:   1,
-			ForceNew:   true,
-			Deprecated: "The `gpu` block has been deprecated since K80 and P100 GPU Skus have been retired and remaining GPU resources are not fully supported and not appropriate for production workloads. This block will be removed in v4.0 of the AzureRM provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"count": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.IntInSlice([]int{
-							1,
-							2,
-							4,
-						}),
-					},
-
-					"sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ForceNew: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"K80",
-							"P100",
-							"V100",
-						}, false),
-					},
-				},
-			},
-		}
-		resource.Schema["container"].Elem.(*pluginsdk.Resource).Schema["gpu_limit"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			MaxItems:   1,
-			Deprecated: "The `gpu_limit` block has been deprecated since K80 and P100 GPU Skus have been retired and remaining GPU resources are not fully supported and not appropriate for production workloads. This block will be removed in v4.0 of the AzureRM provider.",
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"count": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-
-					"sku": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"K80",
-							"P100",
-							"V100",
-						}, false),
-					},
-				},
-			},
-		}
-	}
-
 	return resource
 }
 
@@ -750,7 +690,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	containerGroup := containerinstance.ContainerGroup{
-		Name:     pointer.FromString(id.ContainerGroupName),
+		Name:     pointer.To(id.ContainerGroupName),
 		Location: &location,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: containerinstance.ContainerGroupPropertiesProperties{
@@ -794,7 +734,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 		}
 		containerGroup.Properties.EncryptionProperties = &containerinstance.EncryptionProperties{
-			VaultBaseUrl: keyId.KeyVaultBaseUrl,
+			VaultBaseURL: keyId.KeyVaultBaseUrl,
 			KeyName:      keyId.Name,
 			KeyVersion:   keyId.Version,
 		}
@@ -874,6 +814,11 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			containerGroupVolumes = append(containerGroupVolumes, containerVolumes...)
 		}
 		model.Properties.Volumes = pointer.To(containerGroupVolumes)
+
+		// As API doesn't return the value of WorkspaceKey, so it has to get the value from tf config and set it to request payload. Otherwise, the Update API call would fail
+		if diagnostics := expandContainerGroupDiagnostics(d.Get("diagnostics").([]interface{})); diagnostics != nil && diagnostics.LogAnalytics != nil {
+			model.Properties.Diagnostics.LogAnalytics.WorkspaceKey = diagnostics.LogAnalytics.WorkspaceKey
+		}
 
 		// As Update API doesn't support to update identity, so it has to use CreateOrUpdate API to update identity
 		if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, *id, model); err != nil {
@@ -978,7 +923,7 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 				d.Set("dns_name_label_reuse_policy", containerinstance.DnsNameLabelReusePolicyUnsecure)
 			}
 		} else {
-			d.Set("dns_name_label_reuse_policy", pointer.FromString(string(containerinstance.DnsNameLabelReusePolicyUnsecure)))
+			d.Set("dns_name_label_reuse_policy", pointer.To(string(containerinstance.DnsNameLabelReusePolicyUnsecure)))
 		}
 
 		restartPolicy := ""
@@ -1004,8 +949,8 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		if kvProps := props.EncryptionProperties; kvProps != nil {
 			var keyVaultUri, keyName, keyVersion string
-			if kvProps.VaultBaseUrl != "" {
-				keyVaultUri = kvProps.VaultBaseUrl
+			if kvProps.VaultBaseURL != "" {
+				keyVaultUri = kvProps.VaultBaseURL
 			} else {
 				return fmt.Errorf("empty value returned for Key Vault URI")
 			}
@@ -1111,7 +1056,7 @@ func expandContainerGroupInitContainers(d *pluginsdk.ResourceData, addedEmptyDir
 		container := containerinstance.InitContainerDefinition{
 			Name: name,
 			Properties: containerinstance.InitContainerPropertiesDefinition{
-				Image:           pointer.FromString(image),
+				Image:           pointer.To(image),
 				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
 			},
 		}
@@ -1239,43 +1184,6 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 			}
 
 			container.Properties.Resources.Limits = limits
-		}
-
-		if !features.FourPointOhBeta() {
-			if v, ok := data["gpu"]; ok {
-				gpus := v.([]interface{})
-				for _, gpuRaw := range gpus {
-					if gpuRaw == nil {
-						continue
-					}
-					v := gpuRaw.(map[string]interface{})
-					gpuCount := int32(v["count"].(int))
-					gpuSku := containerinstance.GpuSku(v["sku"].(string))
-
-					gpus := containerinstance.GpuResource{
-						Count: int64(gpuCount),
-						Sku:   gpuSku,
-					}
-					container.Properties.Resources.Requests.Gpu = &gpus
-				}
-			}
-
-			gpuLimit, ok := data["gpu_limit"].([]interface{})
-			if ok && len(gpuLimit) == 1 && gpuLimit[0] != nil {
-				if container.Properties.Resources.Limits == nil {
-					container.Properties.Resources.Limits = &containerinstance.ResourceLimits{}
-				}
-
-				v := gpuLimit[0].(map[string]interface{})
-				container.Properties.Resources.Limits.Gpu = &containerinstance.GpuResource{}
-				if v := int64(v["count"].(int)); v != 0 {
-					container.Properties.Resources.Limits.Gpu.Count = v
-				}
-				if v := containerinstance.GpuSku(v["sku"].(string)); v != "" {
-					container.Properties.Resources.Limits.Gpu.Sku = v
-				}
-
-			}
 		}
 
 		if v, ok := data["ports"].(*pluginsdk.Set); ok && len(v.List()) > 0 {
@@ -1426,7 +1334,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:        k,
-				SecureValue: pointer.FromString(v.(string)),
+				SecureValue: pointer.To(v.(string)),
 			}
 
 			output = append(output, ev)
@@ -1435,7 +1343,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:  k,
-				Value: pointer.FromString(v.(string)),
+				Value: pointer.To(v.(string)),
 			}
 
 			output = append(output, ev)
@@ -1460,13 +1368,13 @@ func expandContainerImageRegistryCredentials(d *pluginsdk.ResourceData) *[]conta
 			imageRegistryCredential.Server = v.(string)
 		}
 		if v := credConfig["username"]; v != nil && v != "" {
-			imageRegistryCredential.Username = pointer.FromString(v.(string))
+			imageRegistryCredential.Username = pointer.To(v.(string))
 		}
 		if v := credConfig["password"]; v != nil && v != "" {
-			imageRegistryCredential.Password = pointer.FromString(v.(string))
+			imageRegistryCredential.Password = pointer.To(v.(string))
 		}
 		if v := credConfig["user_assigned_identity_id"]; v != nil && v != "" {
-			imageRegistryCredential.Identity = pointer.FromString(v.(string))
+			imageRegistryCredential.Identity = pointer.To(v.(string))
 		}
 
 		output = append(output, imageRegistryCredential)
@@ -1539,7 +1447,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 				ShareName:          shareName,
 				ReadOnly:           pointer.FromBool(readOnly),
 				StorageAccountName: storageAccountName,
-				StorageAccountKey:  pointer.FromString(storageAccountKey),
+				StorageAccountKey:  pointer.To(storageAccountKey),
 			}
 		}
 
@@ -1558,10 +1466,10 @@ func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
 		Repository: v["url"].(string),
 	}
 	if directory := v["directory"].(string); directory != "" {
-		gitRepoVolume.Directory = pointer.FromString(directory)
+		gitRepoVolume.Directory = pointer.To(directory)
 	}
 	if revision := v["revision"].(string); revision != "" {
-		gitRepoVolume.Revision = pointer.FromString(revision)
+		gitRepoVolume.Revision = pointer.To(revision)
 	}
 	return gitRepoVolume
 }
@@ -1636,7 +1544,7 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 				httpGetScheme := containerinstance.Scheme(scheme)
 
 				probe.HTTPGet = &containerinstance.ContainerHTTPGet{
-					Path:        pointer.FromString(path),
+					Path:        pointer.To(path),
 					Port:        int64(port),
 					Scheme:      &httpGetScheme,
 					HTTPHeaders: expandContainerProbeHttpHeaders(x["http_headers"].(map[string]interface{})),
@@ -1655,8 +1563,8 @@ func expandContainerProbeHttpHeaders(input map[string]interface{}) *[]containeri
 	headers := []containerinstance.HTTPHeader{}
 	for k, v := range input {
 		header := containerinstance.HTTPHeader{
-			Name:  pointer.FromString(k),
-			Value: pointer.FromString(v.(string)),
+			Name:  pointer.To(k),
+			Value: pointer.To(v.(string)),
 		}
 		headers = append(headers, header)
 	}
@@ -1787,34 +1695,12 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 		containerConfig["cpu"] = resourceRequests.Cpu
 		containerConfig["memory"] = resourceRequests.MemoryInGB
 
-		if !features.FourPointOhBeta() {
-			gpus := make([]interface{}, 0)
-			if v := resourceRequests.Gpu; v != nil {
-				gpu := make(map[string]interface{})
-				gpu["count"] = v.Count
-				gpu["sku"] = string(v.Sku)
-				gpus = append(gpus, gpu)
-			}
-			containerConfig["gpu"] = gpus
-		}
-
 		if resourceLimits := resources.Limits; resourceLimits != nil {
 			if v := resourceLimits.Cpu; v != nil {
 				containerConfig["cpu_limit"] = *v
 			}
 			if v := resourceLimits.MemoryInGB; v != nil {
 				containerConfig["memory_limit"] = *v
-			}
-
-			if !features.FourPointOhBeta() {
-				gpus := make([]interface{}, 0)
-				if v := resourceLimits.Gpu; v != nil {
-					gpu := make(map[string]interface{})
-					gpu["count"] = v.Count
-					gpu["sku"] = string(v.Sku)
-					gpus = append(gpus, gpu)
-				}
-				containerConfig["gpu_limit"] = gpus
 			}
 		}
 
@@ -1940,6 +1826,7 @@ func flattenContainerSecureEnvironmentVariables(input *[]containerinstance.Envir
 
 	return output
 }
+
 func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
 	output := make(map[string]interface{})
 
@@ -2165,8 +2052,8 @@ func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DnsConf
 		}
 
 		return &containerinstance.DnsConfiguration{
-			Options:       pointer.FromString(strings.Join(options, " ")),
-			SearchDomains: pointer.FromString(strings.Join(searchDomains, " ")),
+			Options:       pointer.To(strings.Join(options, " ")),
+			SearchDomains: pointer.To(strings.Join(searchDomains, " ")),
 			NameServers:   nameservers,
 		}
 	}

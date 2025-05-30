@@ -105,10 +105,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Backup Instance PostgreSQL Flexible Server.
+* `create` - (Defaults to 1 hour) Used when creating the Backup Instance PostgreSQL Flexible Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Instance PostgreSQL Flexible Server.
-* `update` - (Defaults to 60 minutes) Used when updating the Backup Instance PostgreSQL Flexible Server.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Backup Instance PostgreSQL Flexible Server.
+* `update` - (Defaults to 1 hour) Used when updating the Backup Instance PostgreSQL Flexible Server.
+* `delete` - (Defaults to 1 hour) Used when deleting the Backup Instance PostgreSQL Flexible Server.
 
 ## Import
 
@@ -117,3 +117,9 @@ Backup Instance PostgreSQL Flexible Servers can be imported using the `resource 
 ```shell
 terraform import azurerm_data_protection_backup_instance_postgresql_flexible_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataProtection/backupVaults/vault1/backupInstances/backupInstance1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataProtection`: 2024-04-01

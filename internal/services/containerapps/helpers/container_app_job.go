@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -115,7 +115,7 @@ func ExpandContainerAppJobSecrets(input []Secret) *[]jobs.Secret {
 	for _, v := range input {
 		result = append(result, jobs.Secret{
 			Identity:    pointer.To(v.Identity),
-			KeyVaultUrl: pointer.To(v.KeyVaultSecretId),
+			KeyVaultURL: pointer.To(v.KeyVaultSecretId),
 			Name:        pointer.To(v.Name),
 			Value:       pointer.To(v.Value),
 		})
@@ -439,7 +439,7 @@ func flattenInitContainerAppJobContainers(input *[]jobs.BaseContainer) []BaseCon
 
 func expandContainerJobEnvVar(input Container) *[]jobs.EnvironmentVar {
 	envs := make([]jobs.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -461,7 +461,7 @@ func expandContainerJobEnvVar(input Container) *[]jobs.EnvironmentVar {
 
 func expandInitContainerJobEnvVar(input BaseContainer) *[]jobs.EnvironmentVar {
 	envs := make([]jobs.EnvironmentVar, 0)
-	if input.Env == nil || len(input.Env) == 0 {
+	if len(input.Env) == 0 {
 		return &envs
 	}
 
@@ -498,6 +498,9 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 		if v.StorageType != "" {
 			storageType := jobs.StorageType(v.StorageType)
 			volume.StorageType = &storageType
+		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
 		}
 		volumes = append(volumes, volume)
 	}
@@ -839,6 +842,9 @@ func flattenContainerAppJobVolumes(input *[]jobs.Volume) []ContainerVolume {
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
 		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
+		}
 
 		result = append(result, containerVolume)
 	}
@@ -1008,10 +1014,10 @@ func FlattenContainerAppJobSecrets(input *jobs.JobSecretsCollection) []Secret {
 	for _, v := range input.Value {
 		secret := Secret{
 			Identity:         pointer.From(v.Identity),
-			KeyVaultSecretId: pointer.From(v.KeyVaultUrl),
+			KeyVaultSecretId: pointer.From(v.KeyVaultURL),
 			Name:             pointer.From(v.Name),
 		}
-		if v.KeyVaultUrl == nil {
+		if v.KeyVaultURL == nil {
 			secret.Value = pointer.From(v.Value)
 		}
 		result = append(result, secret)

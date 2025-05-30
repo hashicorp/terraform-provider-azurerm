@@ -10,6 +10,8 @@ description: |-
 
 Associates a [Spring Cloud Application](spring_cloud_app.html) with a [MySQL Database](mysql_database.html).
 
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_mysql_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
+
 ## Example Usage
 
 ```hcl
@@ -30,26 +32,20 @@ resource "azurerm_spring_cloud_app" "example" {
   service_name        = azurerm_spring_cloud_service.example.name
 }
 
-resource "azurerm_mysql_server" "example" {
-  name                = "example-mysqlserver"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  administrator_login          = "mysqladminun"
-  administrator_login_password = "H@Sh1CoR3!"
-
-  sku_name   = "B_Gen5_2"
-  storage_mb = 5120
-  version    = "5.7"
-
-  ssl_enforcement_enabled          = true
-  ssl_minimal_tls_version_enforced = "TLS1_2"
+resource "azurerm_mysql_flexible_server" "example" {
+  name                   = "example-fsserver"
+  resource_group_name    = azurerm_resource_group.example.name
+  location               = azurerm_resource_group.example.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 }
 
-resource "azurerm_mysql_database" "example" {
+resource "azurerm_mysql_flexible_database" "example" {
   name                = "exampledb"
   resource_group_name = azurerm_resource_group.example.name
-  server_name         = azurerm_mysql_server.example.name
+  server_name         = azurerm_mysql_flexible_server.example.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
@@ -57,10 +53,10 @@ resource "azurerm_mysql_database" "example" {
 resource "azurerm_spring_cloud_app_mysql_association" "example" {
   name                = "example-bind"
   spring_cloud_app_id = azurerm_spring_cloud_app.example.id
-  mysql_server_id     = azurerm_mysql_server.example.id
-  database_name       = azurerm_mysql_database.example.name
-  username            = azurerm_mysql_server.example.administrator_login
-  password            = azurerm_mysql_server.example.administrator_login_password
+  mysql_server_id     = azurerm_mysql_flexible_server.example.id
+  database_name       = azurerm_mysql_flexible_database.example.name
+  username            = azurerm_mysql_flexible_server.example.administrator_login
+  password            = azurerm_mysql_flexible_server.example.administrator_login_password
 }
 ```
 

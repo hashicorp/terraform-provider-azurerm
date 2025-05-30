@@ -46,7 +46,6 @@ func (c VirtualWANsClient) P2sVpnGatewaysGet(ctx context.Context, id commonids.V
 
 	var model P2SVpnGateway
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

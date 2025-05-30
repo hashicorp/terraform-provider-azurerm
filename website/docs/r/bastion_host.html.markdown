@@ -70,37 +70,43 @@ The following arguments are supported:
 
 * `file_copy_enabled` - (Optional) Is File Copy feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `file_copy_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `file_copy_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
-* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic` and `Standard`. Defaults to `Basic`.
+* `sku` - (Optional) The SKU of the Bastion Host. Accepted values are `Developer`, `Basic`, `Standard` and `Premium`. Defaults to `Basic`.
 
-~> **Note** Downgrading the SKU will force a new resource to be created.
+~> **Note:** Downgrading the SKU will force a new resource to be created.
 
 * `ip_configuration` - (Optional) A `ip_configuration` block as defined below. Changing this forces a new resource to be created.
 
 * `ip_connect_enabled` - (Optional) Is IP Connect feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `ip_connect_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `ip_connect_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
 * `kerberos_enabled` - (Optional) Is Kerberos authentication feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `kerberos_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `kerberos_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
 * `scale_units` - (Optional) The number of scale units with which to provision the Bastion Host. Possible values are between `2` and `50`. Defaults to `2`.
 
-~> **Note:** `scale_units` only can be changed when `sku` is `Standard`. `scale_units` is always `2` when `sku` is `Basic`.
+~> **Note:** `scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`.
 
 * `shareable_link_enabled` - (Optional) Is Shareable Link feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `shareable_link_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `shareable_link_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
 * `tunneling_enabled` - (Optional) Is Tunneling feature enabled for the Bastion Host. Defaults to `false`.
 
-~> **Note:** `tunneling_enabled` is only supported when `sku` is `Standard`.
+~> **Note:** `tunneling_enabled` is only supported when `sku` is `Standard` or `Premium`.
+
+* `session_recording_enabled` - (Optional) Is Session Recording feature enabled for the Bastion Host. Defaults to `false`.
+
+~> **Note:** `session_recording_enabled` is only supported when `sku` is `Premium`.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network for the Developer Bastion Host. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Public Bastion Host should be located. Changing this forces a new resource to be created.
 
 ---
 
@@ -127,8 +133,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Bastion Host.
-* `update` - (Defaults to 30 minutes) Used when updating the Bastion Host.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Bastion Host.
+* `update` - (Defaults to 30 minutes) Used when updating the Bastion Host.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Bastion Host.
 
 ## Import

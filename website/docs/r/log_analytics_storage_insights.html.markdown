@@ -84,3 +84,9 @@ Log Analytics Storage Insight Configs can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_log_analytics_storage_insights.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2020-08-01

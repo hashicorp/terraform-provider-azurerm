@@ -7,28 +7,28 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
+	"github.com/hashicorp/terraform-plugin-framework/function"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
+	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatorfuncerr"
 )
 
 var _ validator.List = sizeAtMostValidator{}
+var _ function.ListParameterValidator = sizeAtMostValidator{}
 
-// sizeAtMostValidator validates that list contains at most max elements.
 type sizeAtMostValidator struct {
 	max int
 }
 
-// Description describes the validation in plain text formatting.
 func (v sizeAtMostValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("list must contain at most %d elements", v.max)
 }
 
-// MarkdownDescription describes the validation in Markdown formatting.
 func (v sizeAtMostValidator) MarkdownDescription(ctx context.Context) string {
 	return v.Description(ctx)
 }
 
-// Validate performs the validation.
 func (v sizeAtMostValidator) ValidateList(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -45,15 +45,31 @@ func (v sizeAtMostValidator) ValidateList(ctx context.Context, req validator.Lis
 	}
 }
 
+func (v sizeAtMostValidator) ValidateParameterList(ctx context.Context, req function.ListParameterValidatorRequest, resp *function.ListParameterValidatorResponse) {
+	if req.Value.IsNull() || req.Value.IsUnknown() {
+		return
+	}
+
+	elems := req.Value.Elements()
+
+	if len(elems) > v.max {
+		resp.Error = validatorfuncerr.InvalidParameterValueFuncError(
+			req.ArgumentPosition,
+			v.Description(ctx),
+			fmt.Sprintf("%d", len(elems)),
+		)
+	}
+}
+
 // SizeAtMost returns an AttributeValidator which ensures that any configured
-// attribute value:
+// attribute or function parameter value:
 //
 //   - Is a List.
 //   - Contains at most max elements.
 //
 // Null (unconfigured) and unknown (known after apply) values are skipped.
-func SizeAtMost(max int) validator.List {
+func SizeAtMost(maxVal int) sizeAtMostValidator {
 	return sizeAtMostValidator{
-		max: max,
+		max: maxVal,
 	}
 }

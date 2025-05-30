@@ -17,10 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/accounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -133,16 +131,6 @@ func resourceMapsAccount() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["location"] = &pluginsdk.Schema{
-			Type:             schema.TypeString,
-			Optional:         true,
-			Computed:         true,
-			ForceNew:         true,
-			StateFunc:        location.StateFunc,
-			DiffSuppressFunc: location.DiffSuppressFunc,
-		}
-	}
 	return resource
 }
 

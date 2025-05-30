@@ -11,9 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/attacheddatabaseconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -24,7 +25,7 @@ import (
 )
 
 func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
 		Read:   resourceKustoAttachedDatabaseConfigurationRead,
 		Update: resourceKustoAttachedDatabaseConfigurationCreateUpdate,
@@ -73,8 +74,7 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				ValidateFunc: validation.Any(validate.DatabaseName, validation.StringInSlice([]string{"*"}, false)),
 			},
 
-			// TODO: this should become `cluster_id` in 4.0
-			"cluster_resource_id": {
+			"cluster_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -154,6 +154,26 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["cluster_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
+			ValidateFunc: commonids.ValidateKustoClusterID,
+		}
+		resource.Schema["cluster_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateKustoClusterID,
+			Deprecated:   "`cluster_resource_id` has been deprecated in favour of the `cluster_id` property and will be removed in v5.0 of the AzureRM Provider.",
+			ExactlyOneOf: []string{"cluster_id", "cluster_resource_id"},
+		}
+	}
+
+	return resource
 }
 
 func resourceKustoAttachedDatabaseConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -223,11 +243,15 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 			if parseErr != nil {
 				return parseErr
 			}
-			d.Set("cluster_resource_id", clusterResourceId.ID())
+			d.Set("cluster_id", clusterResourceId.ID())
 			d.Set("database_name", props.DatabaseName)
 			d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 			d.Set("attached_database_names", props.AttachedDatabaseNames)
 			d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
+
+			if !features.FivePointOh() {
+				d.Set("cluster_resource_id", clusterResourceId.ID())
+			}
 		}
 	}
 
@@ -259,8 +283,13 @@ func resourceKustoAttachedDatabaseConfigurationDelete(d *pluginsdk.ResourceData,
 func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceData) *attacheddatabaseconfigurations.AttachedDatabaseConfigurationProperties {
 	AttachedDatabaseConfigurationProperties := &attacheddatabaseconfigurations.AttachedDatabaseConfigurationProperties{}
 
-	if clusterResourceID, ok := d.GetOk("cluster_resource_id"); ok {
+	if clusterResourceID, ok := d.GetOk("cluster_id"); ok {
 		AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
+	}
+	if !features.FivePointOh() {
+		if clusterResourceID, ok := d.GetOk("cluster_resource_id"); ok {
+			AttachedDatabaseConfigurationProperties.ClusterResourceId = clusterResourceID.(string)
+		}
 	}
 
 	if databaseName, ok := d.GetOk("database_name"); ok {

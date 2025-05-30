@@ -4,13 +4,17 @@
 package function
 
 import (
+	"context"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwfunction"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
 var _ Parameter = DynamicParameter{}
 var _ ParameterWithDynamicValidators = DynamicParameter{}
+var _ fwfunction.ParameterWithValidateImplementation = DynamicParameter{}
 
 // DynamicParameter represents a function parameter that is a dynamic, rather
 // than a static type. Static types are always preferable over dynamic
@@ -109,4 +113,10 @@ func (p DynamicParameter) GetType() attr.Type {
 	}
 
 	return basetypes.DynamicType{}
+}
+
+func (p DynamicParameter) ValidateImplementation(ctx context.Context, req fwfunction.ValidateParameterImplementationRequest, resp *fwfunction.ValidateParameterImplementationResponse) {
+	if p.GetName() == "" {
+		resp.Diagnostics.Append(fwfunction.MissingParameterNameDiag(req.FunctionName, req.ParameterPosition))
+	}
 }

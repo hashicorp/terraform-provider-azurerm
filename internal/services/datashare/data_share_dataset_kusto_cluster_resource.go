@@ -133,8 +133,7 @@ func resourceDataShareDataSetKustoClusterRead(d *pluginsdk.ResourceData, meta in
 	d.Set("share_id", shareId.ID())
 
 	if model := resp.Model; model != nil {
-		m := *model
-		if ds, ok := m.(dataset.KustoClusterDataSet); ok {
+		if ds, ok := model.(dataset.KustoClusterDataSet); ok {
 			props := ds.Properties
 			// TODO parse kusto id
 			d.Set("kusto_cluster_id", props.KustoClusterResourceId)

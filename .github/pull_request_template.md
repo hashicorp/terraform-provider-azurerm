@@ -30,7 +30,7 @@ For example: “`resource_name_here` - description of change e.g. adding propert
 ## Changes to existing Resource / Data Source
 
 - [ ] I have added an explanation of what my changes do and why I'd like you to include them (This may be covered by linking to an issue above, but may benefit from additional explanation).
-- [ ] I have written new tests for my resource or datasource changes & updated any relevent documentation.
+- [ ] I have written new tests for my resource or datasource changes & updated any relevant documentation.
 - [ ] I have successfully run tests with my changes locally. If not, please provide details on testing challenges that prevented you running the tests.
 - [ ] (For changes that include a **state migration only**). I have manually tested the migration path between relevant versions of the provider.
 
@@ -65,6 +65,15 @@ This is a (please select all that apply):
 ## Related Issue(s)
 Fixes #0000
 
+<!-- heimdall_github_prtemplate:grc-pci_dss-2024-01-05 -->
+
+## Rollback Plan
+
+If a change needs to be reverted, we will publish an updated version of the provider.
+
+## Changes to Security Controls
+
+Are there any changes to security controls (access controls, encryption, logging) in this pull request? If so, explain.
 
 > [!NOTE] 
 > If this PR changes meaningfully during the course of review please update the title and description as required.

@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/notificationhubs/2023-09-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/notificationhub/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -75,14 +74,14 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 			"enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				ForceNew: features.FourPointOhBeta(),
+				ForceNew: true,
 				Default:  true,
 			},
 
 			"namespace_type": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: features.FourPointOhBeta(),
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(namespaces.NamespaceTypeMessaging),
 					string(namespaces.NamespaceTypeNotificationHub),

@@ -51,13 +51,13 @@ func TestAccSecurityCenterStorageDefender_basic(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterStorageDefender_update(t *testing.T) {
+func TestAccSecurityCenterStorageDefender_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_storage_defender", "test")
 	r := SecurityCenterStorageDefenderResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -66,7 +66,7 @@ func TestAccSecurityCenterStorageDefender_update(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterStorageDefender_complete(t *testing.T) {
+func TestAccSecurityCenterStorageDefender_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_storage_defender", "test")
 	r := SecurityCenterStorageDefenderResource{}
 
@@ -143,6 +143,10 @@ func TestAccSecurityCenterStorageDefender_eventGrid(t *testing.T) {
 
 func (r SecurityCenterStorageDefenderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%[1]d"
   location = "%[2]s"

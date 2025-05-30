@@ -10,18 +10,38 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type DataSet interface {
+	DataSet() BaseDataSetImpl
 }
 
-// RawDataSetImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ DataSet = BaseDataSetImpl{}
+
+type BaseDataSetImpl struct {
+	Id   *string     `json:"id,omitempty"`
+	Kind DataSetKind `json:"kind"`
+	Name *string     `json:"name,omitempty"`
+	Type *string     `json:"type,omitempty"`
+}
+
+func (s BaseDataSetImpl) DataSet() BaseDataSetImpl {
+	return s
+}
+
+var _ DataSet = RawDataSetImpl{}
+
+// RawDataSetImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawDataSetImpl struct {
-	Type   string
-	Values map[string]interface{}
+	dataSet BaseDataSetImpl
+	Type    string
+	Values  map[string]interface{}
 }
 
-func unmarshalDataSetImplementation(input []byte) (DataSet, error) {
+func (s RawDataSetImpl) DataSet() BaseDataSetImpl {
+	return s.dataSet
+}
+
+func UnmarshalDataSetImplementation(input []byte) (DataSet, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +51,9 @@ func unmarshalDataSetImplementation(input []byte) (DataSet, error) {
 		return nil, fmt.Errorf("unmarshaling DataSet into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["kind"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["kind"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AdlsGen1File") {
@@ -132,10 +152,15 @@ func unmarshalDataSetImplementation(input []byte) (DataSet, error) {
 		return out, nil
 	}
 
-	out := RawDataSetImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseDataSetImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseDataSetImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawDataSetImpl{
+		dataSet: parent,
+		Type:    value,
+		Values:  temp,
+	}, nil
 
 }

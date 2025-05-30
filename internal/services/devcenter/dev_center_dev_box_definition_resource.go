@@ -12,16 +12,18 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/devboxdefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/images"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/devboxdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = DevCenterDevBoxDefinitionResource{}
-var _ sdk.ResourceWithUpdate = DevCenterDevBoxDefinitionResource{}
+var (
+	_ sdk.Resource           = DevCenterDevBoxDefinitionResource{}
+	_ sdk.ResourceWithUpdate = DevCenterDevBoxDefinitionResource{}
+)
 
 type DevCenterDevBoxDefinitionResource struct{}
 
@@ -59,7 +61,7 @@ func (r DevCenterDevBoxDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 
 		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}),
 
-		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.ImageId{}),
+		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.GalleryImageId{}),
 
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
@@ -79,7 +81,7 @@ func (r DevCenterDevBoxDefinitionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.DevBoxDefinitions
+			client := metadata.Client.DevCenter.V20250201.DevBoxDefinitions
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model DevCenterDevBoxDefinitionResourceModel
@@ -130,7 +132,7 @@ func (r DevCenterDevBoxDefinitionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.DevBoxDefinitions
+			client := metadata.Client.DevCenter.V20250201.DevBoxDefinitions
 
 			id, err := devboxdefinitions.ParseDevCenterDevBoxDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -174,7 +176,7 @@ func (r DevCenterDevBoxDefinitionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.DevBoxDefinitions
+			client := metadata.Client.DevCenter.V20250201.DevBoxDefinitions
 
 			id, err := devboxdefinitions.ParseDevCenterDevBoxDefinitionID(metadata.ResourceData.Id())
 			if err != nil {
@@ -194,7 +196,7 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.DevBoxDefinitions
+			client := metadata.Client.DevCenter.V20250201.DevBoxDefinitions
 
 			id, err := devboxdefinitions.ParseDevCenterDevBoxDefinitionID(metadata.ResourceData.Id())
 			if err != nil {

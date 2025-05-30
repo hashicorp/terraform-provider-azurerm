@@ -141,7 +141,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "10"
+  grafana_major_version = "11"
 }
 `, template, data.RandomInteger)
 }
@@ -171,7 +171,7 @@ resource "azurerm_dashboard_grafana" "import" {
   name                  = azurerm_dashboard_grafana.test.name
   resource_group_name   = azurerm_dashboard_grafana.test.resource_group_name
   location              = azurerm_dashboard_grafana.test.location
-  grafana_major_version = "10"
+  grafana_major_version = "11"
 }
 `, config)
 }
@@ -235,7 +235,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "10"
+  grafana_major_version = "11"
 
   identity {
     type = "SystemAssigned"

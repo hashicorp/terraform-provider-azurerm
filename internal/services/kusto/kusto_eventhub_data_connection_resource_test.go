@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -135,7 +135,7 @@ func (KustoEventHubDataConnectionResource) Exists(ctx context.Context, clients *
 	}
 
 	if resp.Model != nil {
-		value, ok := (*resp.Model).(dataconnections.EventHubDataConnection)
+		value, ok := resp.Model.(dataconnections.EventHubDataConnection)
 		if !ok {
 			return nil, fmt.Errorf("%s is not an EventHubDataConnection", id.String())
 		}

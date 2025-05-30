@@ -6,9 +6,10 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/netappaccounts"
 )
 
+// ValidateNetAppAccountID validates the NetApp Account ID
 func ValidateNetAppAccountID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {

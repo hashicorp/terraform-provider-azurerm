@@ -12,10 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -108,14 +107,6 @@ func EventHubNamespaceDataSource() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "The `zone_redundant` property has been deprecated and will be removed in v4.0 of the provider.",
-		}
-	}
-
 	return resource
 }
 
@@ -153,10 +144,6 @@ func EventHubNamespaceDataSourceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("kafka_enabled", props.KafkaEnabled)
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
-
-			if !features.FourPointOhBeta() {
-				d.Set("zone_redundant", props.ZoneRedundant)
-			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {

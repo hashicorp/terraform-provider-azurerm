@@ -4,28 +4,31 @@
 package cdn
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+// Fix for issue: #29415, the 'rules.PossibleValuesForQueryStringOperator()' contains the
+// standard 10 operators...
 func schemaCdnFrontDoorOperator() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Required: true,
-		ValidateFunc: validation.StringInSlice([]string{
-			string(cdn.OperatorAny),
-			string(cdn.OperatorEqual),
-			string(cdn.OperatorContains),
-			string(cdn.OperatorBeginsWith),
-			string(cdn.OperatorEndsWith),
-			string(cdn.OperatorLessThan),
-			string(cdn.OperatorLessThanOrEqual),
-			string(cdn.OperatorGreaterThan),
-			string(cdn.OperatorGreaterThanOrEqual),
-			string(cdn.OperatorRegEx),
-		}, false),
+		ValidateFunc: validation.StringInSlice(rules.PossibleValuesForQueryStringOperator(),
+			false),
+	}
+}
+
+// Fix for issue: #29415, the 'rules.PossibleValuesForURLPathOperator()' contains the
+// standard 10 operator plus the additional 'Wildcard' operator...
+func schemaCdnFrontDoorUrlPathOperator() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Required: true,
+		ValidateFunc: validation.StringInSlice(rules.PossibleValuesForURLPathOperator(),
+			false),
 	}
 }
 
@@ -33,10 +36,9 @@ func schemaCdnFrontDoorOperatorEqualOnly() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(cdn.OperatorEqual),
-		ValidateFunc: validation.StringInSlice([]string{
-			string(cdn.OperatorEqual),
-		}, false),
+		Default:  string(rules.OperatorEqual),
+		ValidateFunc: validation.StringInSlice(rules.PossibleValuesForOperator(),
+			false),
 	}
 }
 
@@ -44,12 +46,9 @@ func schemaCdnFrontDoorOperatorRemoteAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(cdn.OperatorIPMatch),
-		ValidateFunc: validation.StringInSlice([]string{
-			string(cdn.OperatorAny),
-			string(cdn.OperatorIPMatch),
-			string(cdn.OperatorGeoMatch),
-		}, false),
+		Default:  string(rules.RemoteAddressOperatorIPMatch),
+		ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRemoteAddressOperator(),
+			false),
 	}
 }
 
@@ -57,11 +56,9 @@ func schemaCdnFrontDoorOperatorSocketAddress() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,
 		Optional: true,
-		Default:  string(cdn.OperatorIPMatch),
-		ValidateFunc: validation.StringInSlice([]string{
-			string(cdn.OperatorAny),
-			string(cdn.OperatorIPMatch),
-		}, false),
+		Default:  string(rules.SocketAddrOperatorIPMatch),
+		ValidateFunc: validation.StringInSlice(rules.PossibleValuesForSocketAddrOperator(),
+			false),
 	}
 }
 
@@ -110,11 +107,8 @@ func schemaCdnFrontDoorSslProtocolMatchValues() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.SslProtocolTLSv1),
-				string(cdn.SslProtocolTLSv11),
-				string(cdn.SslProtocolTLSv12),
-			}, false),
+			ValidateFunc: validation.StringInSlice(rules.PossibleValuesForSslProtocol(),
+				false),
 		},
 	}
 }
@@ -153,15 +147,8 @@ func schemaCdnFrontDoorRequestMethodMatchValues() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				"GET",
-				"POST",
-				"PUT",
-				"DELETE",
-				"HEAD",
-				"OPTIONS",
-				"TRACE",
-			}, false),
+			ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestMethodMatchValue(),
+				false),
 		},
 	}
 }
@@ -174,11 +161,9 @@ func schemaCdnFrontDoorProtocolMatchValues() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type:    pluginsdk.TypeString,
-			Default: "HTTP",
-			ValidateFunc: validation.StringInSlice([]string{
-				"HTTP",
-				"HTTPS",
-			}, false),
+			Default: rules.RequestSchemeMatchValueHTTP,
+			ValidateFunc: validation.StringInSlice(rules.PossibleValuesForRequestSchemeMatchValue(),
+				false),
 		},
 	}
 }
@@ -191,10 +176,8 @@ func schemaCdnFrontDoorIsDeviceMatchValues() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Mobile",
-				"Desktop",
-			}, false),
+			ValidateFunc: validation.StringInSlice(rules.PossibleValuesForIsDeviceMatchValue(),
+				false),
 		},
 	}
 }
@@ -225,14 +208,8 @@ func schemaCdnFrontDoorRuleTransforms() *pluginsdk.Schema {
 
 		Elem: &pluginsdk.Schema{
 			Type: pluginsdk.TypeString,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.TransformLowercase),
-				string(cdn.TransformRemoveNulls),
-				string(cdn.TransformTrim),
-				string(cdn.TransformUppercase),
-				string(cdn.TransformURLDecode),
-				string(cdn.TransformURLEncode),
-			}, false),
+			ValidateFunc: validation.StringInSlice(rules.PossibleValuesForTransform(),
+				false),
 		},
 	}
 }

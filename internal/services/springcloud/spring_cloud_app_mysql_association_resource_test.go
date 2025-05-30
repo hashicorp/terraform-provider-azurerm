@@ -166,8 +166,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 }
 
 resource "azurerm_mysql_flexible_database" "test" {

@@ -27,7 +27,6 @@ func TestSpringCloudGatewayID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudGatewayId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestSpringCloudGatewayIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudGatewayId
 	}{
-
 		{
 			// empty
 			Input: "",

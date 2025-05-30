@@ -204,3 +204,9 @@ Arc Kubernetes Flux Configuration can be imported using the `resource id` for di
 ```shell
 terraform import azurerm_arc_kubernetes_flux_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Kubernetes/connectedClusters/cluster1/providers/Microsoft.KubernetesConfiguration/fluxConfigurations/fluxConfiguration1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KubernetesConfiguration`: 2023-05-01

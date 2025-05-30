@@ -112,7 +112,7 @@ A `notification` block supports the following:
 
 * `contact_emails` - (Required) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 
-* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`.
 
 * `enabled` - (Optional) Should the notification be enabled? Defaults to `true`.
 
@@ -168,3 +168,9 @@ Management Group Consumption Budgets can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_consumption_budget_management_group.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/budget1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Consumption`: 2019-10-01

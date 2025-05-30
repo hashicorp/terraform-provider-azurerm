@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -35,39 +34,6 @@ func TestAccSiteRecoveryVaultResourceGuardAssociation_basic(t *testing.T) {
 }
 
 func (VaultResourceGuardAssociationResource) basic(data acceptance.TestData) string {
-	if !features.FourPointOhBeta() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%[1]d"
-  location = "%s"
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-vault-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-
-  soft_delete_enabled = false
-}
-
-resource "azurerm_data_protection_resource_guard" "test" {
-  name                = "acctest-dprg-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_recovery_services_vault_resource_guard_association" "test" {
-  name              = "VaultProxy"
-  vault_id          = azurerm_recovery_services_vault.test.id
-  resource_guard_id = azurerm_data_protection_resource_guard.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

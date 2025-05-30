@@ -16,6 +16,14 @@ type WeeklyMaintenanceScheduleConfiguration struct {
 	Hour     int64   `json:"hour"`
 
 	// Fields inherited from MaintenanceScheduleConfiguration
+
+	Frequency Frequency `json:"frequency"`
+}
+
+func (s WeeklyMaintenanceScheduleConfiguration) MaintenanceScheduleConfiguration() BaseMaintenanceScheduleConfigurationImpl {
+	return BaseMaintenanceScheduleConfigurationImpl{
+		Frequency: s.Frequency,
+	}
 }
 
 var _ json.Marshaler = WeeklyMaintenanceScheduleConfiguration{}
@@ -29,9 +37,10 @@ func (s WeeklyMaintenanceScheduleConfiguration) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling WeeklyMaintenanceScheduleConfiguration: %+v", err)
 	}
+
 	decoded["frequency"] = "Weekly"
 
 	encoded, err = json.Marshal(decoded)

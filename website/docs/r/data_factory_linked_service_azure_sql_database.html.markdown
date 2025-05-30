@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `key_vault_password` - (Optional) A `key_vault_password` block as defined below. Use this argument to store SQL Server password in an existing Key Vault. It needs an existing Key Vault Data Factory Linked Service.
 
+* `credential_name` - (Optional) The name of a User-assigned Managed Identity. Use this argument to authenticate against the linked resource using a User-assigned Managed Identity.
+
 ---
 
 A `key_vault_connection_string` block supports the following:
@@ -94,8 +96,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Azure SQL Database Linked Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Azure SQL Database Linked Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Azure SQL Database Linked Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Azure SQL Database Linked Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Azure SQL Database Linked Service.
 
 ## Import

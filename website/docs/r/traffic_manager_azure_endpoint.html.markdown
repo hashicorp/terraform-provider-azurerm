@@ -72,8 +72,6 @@ The following arguments are supported:
 
 * `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`. Defaults to `1`.
 
----
-
 * `always_serve_enabled` - (Optional) If Always Serve is enabled, probing for endpoint health will be disabled and endpoints will be included in the traffic routing method. Defaults to `false`.
 
 * `custom_header` - (Optional) One or more `custom_header` blocks as defined below.
@@ -82,7 +80,7 @@ The following arguments are supported:
 
 * `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/rest/api/trafficmanager/geographichierarchies/getdefault).
 
-* `priority` - (Optional) Specifies the priority of this Endpoint, this must be specified for Profiles using the `Priority` traffic routing method. Supports values between 1 and 1000, with no Endpoints sharing the same value. If omitted the value will be computed in order of creation. Defaults to `1`.
+* `priority` - (Optional) Specifies the priority of this Endpoint, this must be specified for Profiles using the `Priority` traffic routing method. Supports values between 1 and 1000, with no Endpoints sharing the same value. If omitted the value will be computed in order of creation.
 
 * `subnet` - (Optional) One or more `subnet` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -115,8 +113,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the Azure Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the Azure Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure Endpoint.
 
 ## Import
@@ -126,3 +124,9 @@ Azure Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_traffic_manager_azure_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.Network/trafficManagerProfiles/example-profile/AzureEndpoints/example-endpoint
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2022-04-01

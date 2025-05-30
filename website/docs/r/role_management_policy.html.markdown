@@ -26,7 +26,7 @@ data "azurerm_role_definition" "rg_contributor" {
 }
 
 data "azuread_group" "approvers" {
-  name = "Example Approver Group"
+  display_name = "Example Approver Group"
 }
 
 resource "azurerm_role_management_policy" "example" {
@@ -119,7 +119,7 @@ resource "azurerm_role_management_policy" "example" {
 * `eligible_assignment_rules` - (Optional) An `eligible_assignment_rules` block as defined below.
 * `notification_rules` - (Optional) A `notification_rules` block as defined below.
 * `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy will apply. Changing this forces a new resource to be created.
-* `scope` - (Required) The scope to which this Role Management Policy will apply. Can refer to a management group, a subscription or a resource group. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope to which this Role Management Policy will apply. Can refer to a management group, a subscription, a resource group or a resource. Changing this forces a new resource to be created.
 
 ---
 
@@ -216,6 +216,12 @@ terraform import azurerm_role_management_policy.example "/subscriptions/00000000
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
-* `update` - (Defaults to 30 minutes) Used when updating the Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Role Definition.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Role Definition.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2020-10-01

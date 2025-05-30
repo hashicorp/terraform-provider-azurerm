@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -188,11 +187,6 @@ func obtainImage(client *galleryimageversions.GalleryImageVersionsClient, ctx co
 				if len(errs) > 0 {
 					return nil, fmt.Errorf("parsing version(s): %v", errs)
 				}
-			}
-
-			if !features.FourPointOhBeta() {
-				image := images[len(images)-1]
-				return &image, nil
 			}
 
 			for i := len(images) - 1; i >= 0; i-- {

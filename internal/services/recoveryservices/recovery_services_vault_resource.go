@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupprotecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/backupresourcevaultconfigs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protecteditems"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationvaultsetting"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationvaultsetting"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -298,7 +298,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		if err != nil {
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
-
 	}
 	// an update on the vault will reset the vault config to default, so we handle it at last.
 	enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
@@ -594,7 +593,6 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if prop := model.Properties; prop != nil {
-
 			immutability := vaults.ImmutabilityStateDisabled
 			if prop.SecuritySettings != nil && prop.SecuritySettings.ImmutabilitySettings != nil {
 				immutability = pointer.From(prop.SecuritySettings.ImmutabilitySettings.State)
@@ -666,7 +664,6 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	protectedItemsClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
 	protectedItemClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
-	opResultClient := meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -694,20 +691,8 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 
 				log.Printf("[DEBUG] Purging %s from %s", protectedItemId, id)
 
-				resp, err := protectedItemClient.Delete(ctx, *protectedItemId)
-				if err != nil {
-					if !response.WasNotFound(resp.HttpResponse) {
-						return fmt.Errorf("issuing delete request for %s: %+v", protectedItemId, err)
-					}
-				}
-
-				operationId, err := parseBackupOperationId(resp.HttpResponse)
-				if err != nil {
-					return fmt.Errorf("purging %s from %s: %+v", protectedItemId, id, err)
-				}
-
-				if err = resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, protectedItemClient, opResultClient, *protectedItemId, operationId); err != nil {
-					return fmt.Errorf("waiting for %s to be purged from %s: %+v", protectedItemId, id, err)
+				if err := protectedItemClient.DeleteThenPoll(ctx, *protectedItemId); err != nil {
+					return fmt.Errorf("deleting %s: %+v", protectedItemId, err)
 				}
 			}
 		}

@@ -40,6 +40,7 @@ func (o ListGlobalBySubscriptionForTopicTypeOperationOptions) ToHeaders() *clien
 
 func (o ListGlobalBySubscriptionForTopicTypeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 

@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networksecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -133,7 +133,6 @@ func (NetworkInterfaceNetworkSecurityGroupAssociationResource) destroy(ctx conte
 
 	if err := client.Network.NetworkInterfaces.CreateOrUpdateThenPoll(ctx2, *id.First, *read.Model); err != nil {
 		return fmt.Errorf("removing Network Security Group Association for %s: %+v", id.First, err)
-
 	}
 
 	return nil

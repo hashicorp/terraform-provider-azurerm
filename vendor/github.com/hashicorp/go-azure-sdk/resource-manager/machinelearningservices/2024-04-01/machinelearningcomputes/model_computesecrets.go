@@ -10,18 +10,35 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ComputeSecrets interface {
+	ComputeSecrets() BaseComputeSecretsImpl
 }
 
-// RawComputeSecretsImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ ComputeSecrets = BaseComputeSecretsImpl{}
+
+type BaseComputeSecretsImpl struct {
+	ComputeType ComputeType `json:"computeType"`
+}
+
+func (s BaseComputeSecretsImpl) ComputeSecrets() BaseComputeSecretsImpl {
+	return s
+}
+
+var _ ComputeSecrets = RawComputeSecretsImpl{}
+
+// RawComputeSecretsImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawComputeSecretsImpl struct {
-	Type   string
-	Values map[string]interface{}
+	computeSecrets BaseComputeSecretsImpl
+	Type           string
+	Values         map[string]interface{}
 }
 
-func unmarshalComputeSecretsImplementation(input []byte) (ComputeSecrets, error) {
+func (s RawComputeSecretsImpl) ComputeSecrets() BaseComputeSecretsImpl {
+	return s.computeSecrets
+}
+
+func UnmarshalComputeSecretsImplementation(input []byte) (ComputeSecrets, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +48,9 @@ func unmarshalComputeSecretsImplementation(input []byte) (ComputeSecrets, error)
 		return nil, fmt.Errorf("unmarshaling ComputeSecrets into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["computeType"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["computeType"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "AKS") {
@@ -60,10 +77,15 @@ func unmarshalComputeSecretsImplementation(input []byte) (ComputeSecrets, error)
 		return out, nil
 	}
 
-	out := RawComputeSecretsImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseComputeSecretsImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseComputeSecretsImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawComputeSecretsImpl{
+		computeSecrets: parent,
+		Type:           value,
+		Values:         temp,
+	}, nil
 
 }

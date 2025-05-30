@@ -5,6 +5,7 @@ package sdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -79,18 +80,18 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		},
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			fn := rw.resource.IDValidationFunc()
-			warnings, errors := fn(id, "id")
+			warnings, errs := fn(id, "id")
 			if len(warnings) > 0 {
 				for _, warning := range warnings {
 					rw.logger.Warn(warning)
 				}
 			}
-			if len(errors) > 0 {
+			if len(errs) > 0 {
 				out := ""
-				for _, err := range errors {
+				for _, err := range errs {
 					out += err.Error()
 				}
-				return fmt.Errorf(out)
+				return errors.New(out)
 			}
 
 			return nil
@@ -147,12 +148,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	if v, ok := rw.resource.(ResourceWithDeprecationAndNoReplacement); ok {
-		message := v.DeprecationMessage()
-		if message == "" {
-			return nil, fmt.Errorf("Resource %q must return a non-empty DeprecationMessage if implementing ResourceWithDeprecationAndNoReplacement", rw.resource.ResourceType())
-		}
-
-		resource.DeprecationMessage = message
+		resource.DeprecationMessage = v.DeprecationMessage()
 	}
 	if v, ok := rw.resource.(ResourceWithDeprecationReplacedBy); ok {
 		if resource.DeprecationMessage != "" {

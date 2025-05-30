@@ -13,6 +13,14 @@ var _ Action = RemoveAllActionGroups{}
 type RemoveAllActionGroups struct {
 
 	// Fields inherited from Action
+
+	ActionType ActionType `json:"actionType"`
+}
+
+func (s RemoveAllActionGroups) Action() BaseActionImpl {
+	return BaseActionImpl{
+		ActionType: s.ActionType,
+	}
 }
 
 var _ json.Marshaler = RemoveAllActionGroups{}
@@ -26,9 +34,10 @@ func (s RemoveAllActionGroups) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling RemoveAllActionGroups: %+v", err)
 	}
+
 	decoded["actionType"] = "RemoveAllActionGroups"
 
 	encoded, err = json.Marshal(decoded)

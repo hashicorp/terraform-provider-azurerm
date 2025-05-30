@@ -15,7 +15,7 @@ type NamedValueClient struct {
 }
 
 func NewNamedValueClientWithBaseURI(sdkApi sdkEnv.Api) (*NamedValueClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "namedvalue", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "namedvalue", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating NamedValueClient: %+v", err)
 	}

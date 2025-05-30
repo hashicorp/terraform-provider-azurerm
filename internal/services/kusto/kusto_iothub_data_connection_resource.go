@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -129,20 +129,8 @@ func resourceKustoIotHubDataConnection() *pluginsdk.Resource {
 				Optional: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						"message-id",
-						"sequence-number",
-						"to",
-						"absolute-expiry-time",
-						"iothub-enqueuedtime",
-						"correlation-id",
-						"user-id",
-						"iothub-ack",
-						"iothub-connection-device-id",
-						"iothub-connection-auth-generation-id",
-						"iothub-connection-auth-method",
-					}, false),
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
@@ -215,7 +203,7 @@ func resourceKustoIotHubDataConnectionRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("database_name", id.DatabaseName)
 
 	if resp.Model != nil {
-		if dataConnection, ok := (*resp.Model).(dataconnections.IotHubDataConnection); ok {
+		if dataConnection, ok := resp.Model.(dataconnections.IotHubDataConnection); ok {
 			d.Set("location", location.NormalizeNilable(dataConnection.Location))
 			if props := dataConnection.Properties; props != nil {
 				iotHubId := ""

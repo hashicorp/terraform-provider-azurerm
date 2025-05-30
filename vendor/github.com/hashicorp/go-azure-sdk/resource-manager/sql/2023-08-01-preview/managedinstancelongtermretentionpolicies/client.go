@@ -15,7 +15,7 @@ type ManagedInstanceLongTermRetentionPoliciesClient struct {
 }
 
 func NewManagedInstanceLongTermRetentionPoliciesClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedInstanceLongTermRetentionPoliciesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedinstancelongtermretentionpolicies", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedinstancelongtermretentionpolicies", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedInstanceLongTermRetentionPoliciesClient: %+v", err)
 	}

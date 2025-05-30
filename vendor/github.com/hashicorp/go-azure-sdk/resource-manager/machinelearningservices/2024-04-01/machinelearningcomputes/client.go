@@ -15,7 +15,7 @@ type MachineLearningComputesClient struct {
 }
 
 func NewMachineLearningComputesClientWithBaseURI(sdkApi sdkEnv.Api) (*MachineLearningComputesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "machinelearningcomputes", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "machinelearningcomputes", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MachineLearningComputesClient: %+v", err)
 	}

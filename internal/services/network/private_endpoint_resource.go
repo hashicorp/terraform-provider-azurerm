@@ -19,12 +19,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privatednszonegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privatednszonegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privateendpoints"
 	postgresqlServers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -545,9 +545,19 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 		newDnsZoneGroups := d.Get("private_dns_zone_group").([]interface{})
 		newDnsZoneName := ""
+		idHasBeenChanged := false
 		if len(newDnsZoneGroups) > 0 {
 			groupRaw := newDnsZoneGroups[0].(map[string]interface{})
 			newDnsZoneName = groupRaw["name"].(string)
+
+			// it is possible to add or remove a private_dns_zone_id, but if an id is added at the same time as one as been removed and the name has not been changed
+			// an existing entry is updated, which is not allowed, so we need to delete the existing private dns zone groups
+			if d.HasChange("private_dns_zone_group.0.private_dns_zone_ids") {
+				o, n := d.GetChange("private_dns_zone_group.0.private_dns_zone_ids")
+				if len(o.([]interface{})) == len(n.([]interface{})) {
+					idHasBeenChanged = true
+				}
+			}
 		}
 
 		needToRemove := newDnsZoneName == ""
@@ -564,7 +574,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		if needToRemove || nameHasChanged {
+		if needToRemove || nameHasChanged || idHasBeenChanged {
 			log.Printf("[DEBUG] Deleting the Existing Private DNS Zone Group associated with %s..", id)
 			if err := deletePrivateDnsZoneGroupForPrivateEndpoint(ctx, dnsClient, *id); err != nil {
 				return err
@@ -665,7 +675,7 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 			for _, dnsZoneId := range *privateDnsZoneIds {
 				flattened, err := retrieveAndFlattenPrivateDnsZone(ctx, dnsClient, dnsZoneId)
 				if err != nil {
-					return nil
+					return fmt.Errorf("reading %s for %s: %+v", dnsZoneId, id, err)
 				}
 
 				// an exceptional case but no harm in handling

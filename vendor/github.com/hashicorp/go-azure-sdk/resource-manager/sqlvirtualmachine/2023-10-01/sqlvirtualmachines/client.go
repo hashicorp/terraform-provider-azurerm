@@ -15,7 +15,7 @@ type SqlVirtualMachinesClient struct {
 }
 
 func NewSqlVirtualMachinesClientWithBaseURI(sdkApi sdkEnv.Api) (*SqlVirtualMachinesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sqlvirtualmachines", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sqlvirtualmachines", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SqlVirtualMachinesClient: %+v", err)
 	}

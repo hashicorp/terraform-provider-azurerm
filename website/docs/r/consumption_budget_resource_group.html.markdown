@@ -120,7 +120,7 @@ A `notification` block supports the following:
 
 * `threshold` - (Required) Threshold value associated with a notification. Notification is sent when the cost exceeded the threshold. It is always percent and has to be between 0 and 1000.
 
-* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`. Changing this forces a new resource to be created.
+* `threshold_type` - (Optional) The type of threshold for the notification. This determines whether the notification is triggered by forecasted costs or actual costs. The allowed values are `Actual` and `Forecasted`. Default is `Actual`.
 
 * `contact_emails` - (Optional) Specifies a list of email addresses to send the budget notification to when the threshold is exceeded.
 
@@ -130,7 +130,7 @@ A `notification` block supports the following:
 
 * `enabled` - (Optional) Should the notification be enabled? Defaults to `true`.
 
-~> **NOTE:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
+~> **Note:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
 
 ---
 
@@ -184,3 +184,9 @@ Resource Group Consumption Budgets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_consumption_budget_resource_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Consumption/budgets/resourceGroup1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Consumption`: 2019-10-01

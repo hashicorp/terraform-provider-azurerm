@@ -51,7 +51,7 @@ data "azurerm_role_management_policy" "example" {
 ## Argument Reference
 
 * `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy applies.
-* `scope` - (Required) The scope to which this Role Management Policy applies. Can refer to a management group, a subscription or a resource group.
+* `scope` - (Required) The scope to which this Role Management Policy applies. Can refer to a management group, a subscription, a resource group or a resource.
 
 ## Attributes Reference
 
@@ -136,3 +136,9 @@ A `primary_approver` block returns the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2020-10-01

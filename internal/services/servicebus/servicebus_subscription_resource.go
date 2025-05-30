@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -60,7 +59,7 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.SubscriptionName(),
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"topic_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -100,13 +99,6 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 		"batched_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: !features.FourPointOhBeta(),
-			ConflictsWith: func() []string {
-				if !features.FourPointOhBeta() {
-					return []string{"enable_batched_operations"}
-				}
-				return []string{}
-			}(),
 		},
 
 		"max_delivery_count": {
@@ -175,35 +167,6 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-
-		schema["auto_delete_on_idle"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-		}
-
-		schema["default_message_ttl"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-		}
-
-		schema["lock_duration"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-		}
-
-		schema["enable_batched_operations"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"batched_operations_enabled"},
-			Deprecated:    "`enable_batched_operations` will be removed in favour of the property `batched_operations_enabled` in version 4.0 of the AzureRM Provider.",
-		}
-	}
-
 	return schema
 }
 
@@ -251,12 +214,6 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
-	if !features.FourPointOhBeta() {
-
-		if v := d.GetRawConfig().AsValueMap()["enable_batched_operations"]; !v.IsNull() {
-			enableBatchedOperations = d.Get("enable_batched_operations").(bool)
-		}
-	}
 
 	status := subscriptions.EntityStatus(d.Get("status").(string))
 	parameters := subscriptions.SBSubscription{
@@ -342,11 +299,7 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 			d.Set("status", utils.String(string(*props.Status)))
 			d.Set("client_scoped_subscription_enabled", props.IsClientAffine)
-
 			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
-			if !features.FourPointOhBeta() {
-				d.Set("enable_batched_operations", props.EnableBatchedOperations)
-			}
 
 			if count := props.MaxDeliveryCount; count != nil {
 				d.Set("max_delivery_count", int(*count))

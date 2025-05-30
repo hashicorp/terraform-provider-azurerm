@@ -83,7 +83,6 @@ func (w WrappedListValidator) ValidateList(ctx context.Context, request validato
 	default:
 		response.Diagnostics.AddError(fmt.Sprintf("unsupported list validation wrapper type for %s", path), fmt.Sprintf("%+v", request.ConfigValue))
 	}
-
 }
 
 var _ validator.List = &WrappedListValidator{}

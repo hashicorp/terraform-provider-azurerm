@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -38,9 +38,7 @@ type CustomIpPrefixModel struct {
 	Zones                       []string               `tfschema:"zones"`
 }
 
-var (
-	_ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
-)
+var _ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
 
 type CustomIpPrefixResource struct {
 	client *customipprefixes.CustomIPPrefixesClient
@@ -57,6 +55,7 @@ func (CustomIpPrefixResource) ModelObject() interface{} {
 func (CustomIpPrefixResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return customipprefixes.ValidateCustomIPPrefixID
 }
+
 func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -521,7 +520,6 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		for startingState, path := range plan {
 			// Look for a plan that works from our lastKnownState
 			if *lastKnownState == startingState || transitioningStatesFor(startingState).contains(*lastKnownState) {
-
 				// If we're currently transitioning to the startingState for this plan, wait for this to complete before proceeding
 				if lastKnownState, err = r.waitForCommissionedState(ctx, id, transitioningStatesFor(startingState), commissionedStates{startingState}); err != nil {
 					return lastKnownState, err

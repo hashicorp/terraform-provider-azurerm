@@ -39,7 +39,7 @@ resource "azurerm_route_table" "azurt" {
   name                          = "AzfwRouteTable"
   resource_group_name           = azurerm_resource_group.azurg.name
   location                      = azurerm_resource_group.azurg.location
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
 
   route {
     name                   = "AzfwDefaultRoute"

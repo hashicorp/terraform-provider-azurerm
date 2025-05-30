@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2023-11-01/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -44,7 +44,7 @@ func TestAccSearchService_freeSku(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, "free"),
+			Config: r.semanticSearchBasic(data, "free"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("semantic_search_sku").HasValue(""),
@@ -204,6 +204,42 @@ func TestAccSearchService_ipRules(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.ipRulesUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSearchService_bypassServices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.bypassServices(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data, "standard"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -227,6 +263,79 @@ func TestAccSearchService_identity(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSearchService_identityUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSearchService_identitySystemAndUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identitySystemAndUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSearchService_identityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "standard"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identityUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAndUserAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -276,9 +385,28 @@ func TestAccSearchService_partitionCountInvalidBySku(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.partitionCount(data, "basic", 3),
+			Config:      r.partitionCount(data, "basic", 4),
 			Check:       acceptance.ComposeTestCheckFunc(),
-			ExpectError: regexp.MustCompile("values greater than 1 cannot be set"),
+			ExpectError: regexp.MustCompile("values greater than 3 cannot be set"),
+		},
+	})
+}
+
+func TestAccSearchService_partitionCountvalidBySkuBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+	r := SearchServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.partitionCount(data, "basic", 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.partitionCount(data, "basic", 4),
+			ExpectError: regexp.MustCompile("values greater than 3 cannot be set"),
 		},
 	})
 }
@@ -337,6 +465,7 @@ func TestAccSearchService_customerManagedKeyEnforcement(t *testing.T) {
 			Config: r.customerManagedKeyEnforcement(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("customer_managed_key_encryption_compliance_status").HasValue("Compliant"),
 			),
 		},
 		data.ImportStep(),
@@ -588,6 +717,44 @@ resource "azurerm_search_service" "test" {
 }
 
 func (r SearchServiceResource) ipRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                       = "acctestsearchservice%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "standard"
+  allowed_ips                = ["168.1.5.65", "1.2.3.0/24"]
+  network_rule_bypass_option = "AzureServices"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SearchServiceResource) ipRulesUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_search_service" "test" {
+  name                       = "acctestsearchservice%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "standard"
+  allowed_ips                = ["168.1.5.65", "168.1.5.66", "1.2.3.0/24"]
+  network_rule_bypass_option = "AzureServices"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SearchServiceResource) bypassServices(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -597,11 +764,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_search_service" "test" {
-  name                = "acctestsearchservice%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
-  allowed_ips         = ["168.1.5.65", "1.2.3.0/24"]
+  name                       = "acctestsearchservice%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku                        = "standard"
+  network_rule_bypass_option = "AzureServices"
 }
 `, template, data.RandomInteger)
 }
@@ -623,6 +790,68 @@ resource "azurerm_search_service" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SearchServiceResource) identityUserAssigned(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r SearchServiceResource) identitySystemAndUserAssigned(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
   }
 }
 `, template, data.RandomInteger)

@@ -45,7 +45,6 @@ func (c HealthbotsClient) BotsGet(ctx context.Context, id HealthBotId) (result B
 
 	var model HealthBot
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

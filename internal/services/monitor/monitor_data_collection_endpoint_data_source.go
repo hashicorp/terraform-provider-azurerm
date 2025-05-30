@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -60,6 +60,12 @@ func (d DataCollectionEndpointDataSource) Attributes() map[string]*pluginsdk.Sch
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"metrics_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -100,8 +106,8 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var enablePublicNetWorkAccess bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
+			var publicNetWorkAccessEnabled bool
+			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, metricsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
@@ -110,7 +116,7 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				if prop := model.Properties; prop != nil {
 					description = flattenDataCollectionEndpointDescription(prop.Description)
 					if networkAcls := prop.NetworkAcls; networkAcls != nil {
-						enablePublicNetWorkAccess = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
+						publicNetWorkAccessEnabled = flattenDataCollectionEndpointPublicNetworkAccess(networkAcls.PublicNetworkAccess)
 					}
 
 					if prop.ConfigurationAccess != nil && prop.ConfigurationAccess.Endpoint != nil {
@@ -119,6 +125,10 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 
 					if prop.LogsIngestion != nil && prop.LogsIngestion.Endpoint != nil {
 						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
+					}
+
+					if prop.MetricsIngestion != nil && prop.MetricsIngestion.Endpoint != nil {
+						metricsIngestionEndpoint = *prop.MetricsIngestion.Endpoint
 					}
 
 					if prop.ImmutableId != nil {
@@ -136,8 +146,9 @@ func (d DataCollectionEndpointDataSource) Read() sdk.ResourceFunc {
 				ImmutableId:                 immutableId,
 				Location:                    location,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
+				MetricsIngestionEndpoint:    metricsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
-				EnablePublicNetworkAccess:   enablePublicNetWorkAccess,
+				PublicNetworkAccessEnabled:  publicNetWorkAccessEnabled,
 				ResourceGroupName:           id.ResourceGroupName,
 				Tags:                        tag,
 			})

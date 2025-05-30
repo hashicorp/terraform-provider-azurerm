@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
@@ -138,7 +138,7 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 						"min_number_of_workers": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
-							Default:      "1",
+							Default:      1,
 							ValidateFunc: validation.IntBetween(1, 25000),
 						},
 						"max_number_of_workers": {

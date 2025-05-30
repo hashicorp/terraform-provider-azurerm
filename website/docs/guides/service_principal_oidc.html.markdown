@@ -42,7 +42,7 @@ At the top of this page, you'll need to take note of the "Application (client) I
 
 An application will need a federated credential specified for each GitHub Environment, Branch Name, Pull Request, or Tag based on your use case. For this example, we'll give permission to `main` branch workflow runs.
 
--> **Tip:** You can also configure the Application using the [azuread_application](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application) and [azuread_application_federated_identity_credential](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application_federated_identity_credential) resources in the AzureAD Terraform Provider.
+-> **Note:** You can also configure the Application using the [azuread_application](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application) and [azuread_application_federated_identity_credential](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application_federated_identity_credential) resources in the AzureAD Terraform Provider.
 
 #### Via the Portal
 
@@ -144,46 +144,33 @@ For more information about OIDC in GitHub Actions, see [official documentation](
 
 **Azure DevOps Pipelines**
 
-Use the `TerraformTaskV4@4` task to easily connect Terraform to Azure using your workload identity. 
+When running Terraform in Azure DevOps Pipelines, the provider use `ARM_OIDC_REQUEST_TOKEN` and `ARM_OIDC_REQUEST_URL` environment variables, if these are absent, it will attempt to fall back on `SYSTEM_ACCESSTOKEN` and `SYSTEM_OIDCREQUESTURI` environment variables respectively.
 
-Alternatively, using the `AzureCLI@2` task, you can expose the OIDC token to `idToken` variable by setting `addSpnToEnvironment: true`:
+The ADO service connection ID is required in combination with these and can be specified via environment variable `ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID`, or in the provider configuration directly via `ado_pipeline_service_connection_id`. For users of the AzAPI provider AzureRM will also fall back on `ARM_OIDC_AZURE_SERVICE_CONNECTION_ID` for compatibility.
+
+~> **Note:** If the `ado_pipeline_service_connection_id` value is not set, either directly via config or by environment variable, the presence of the remaining OIDC configuration will result in the provider falling back on the GitHub OIDC authoriser instead.
+
+For Azure DevOps Pipelines, at least one task in the pipeline has Service Connection support and has your service connection specified. Without this, the agent will fail to load the Service Connection and results in a `No service connection found with identifier "..."`  error.
+
+It is recommend to use the `AzureCLI@2` task as below (note the `azureSubscription` input parameter):
+
 ```yaml
 - task: AzureCLI@2
-  name: set_variables
-  displayName: set terraform credentials
   inputs:
-    azureSubscription: 'service-connection-name'
-    addSpnToEnvironment: true
-    scriptType: pscore
-    scriptLocation: inlineScript
+    azureSubscription: $(SERVICE_CONNECTION_ID)
+    scriptType: bash
+    scriptLocation: "inlineScript"
     inlineScript: |
-      Write-Host "##vso[task.setvariable variable=ARM_USE_OIDC]true"
-      Write-Host "##vso[task.setvariable variable=ARM_OIDC_TOKEN]$env:idToken"
-      Write-Host "##vso[task.setvariable variable=ARM_CLIENT_ID]$env:servicePrincipalId"
-      Write-Host "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$(az account show --query id -o tsv)"
-      Write-Host "##vso[task.setvariable variable=ARM_TENANT_ID]$env:tenantId"
+      # Terraform commands
+  env:
+    #...
+    ARM_USE_OIDC: true
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    SYSTEM_OIDCREQUESTURI: $(System.OidcRequestUri)
+    ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID: $(SERVICE_CONNECTION_ID)
 ```
 
-The following Terraform and Provider blocks can be specified - where `3.7.0` is the version of the Azure Provider that you'd like to use:
-
-```hcl
-# We strongly recommend using the required_providers block to set the
-# Azure Provider source and version being used
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "=3.7.0"
-    }
-  }
-}
-
-# Configure the Microsoft Azure Provider
-provider "azurerm" {
-  use_oidc = true
-  features {}
-}
-```
+---
 
 -> **Note:** Support for OpenID Connect was added in version 3.7.0 of the Terraform AzureRM provider.
 
@@ -191,19 +178,20 @@ provider "azurerm" {
 
 More information on [the fields supported in the Provider block can be found here](../index.html#argument-reference).
 
-At this point running either `terraform plan` or `terraform apply` should allow Terraform to run using the Service Principal to authenticate.
-
 ---
 
-It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_token`, `oidc_token_file_path`, or `oidc_request_token` and `oidc_request_url` are in this example), like so:
+At this point running either `terraform plan` or `terraform apply` should allow Terraform to run using the Service Principal to authenticate.
 
-~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
+It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_token`, `oidc_token_file_path`, or `oidc_request_token`, `oidc_request_url` and `ado_pipeline_service_connection_id` are in this example), like so:
+
+~> **Note:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
 variable "oidc_token" {}
 variable "oidc_token_file_path" {}
 variable "oidc_request_token" {}
 variable "oidc_request_url" {}
+variable "ado_pipeline_service_connection_id" {}
 
 # We strongly recommend using the required_providers block to set the
 # Azure Provider source and version being used
@@ -211,7 +199,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.7.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -224,9 +212,12 @@ provider "azurerm" {
   client_id       = "00000000-0000-0000-0000-000000000000"
   use_oidc        = true
 
-  # for GitHub Actions
+  # for GitHub Actions or Azure DevOps Pipelines
   oidc_request_token = var.oidc_request_token
   oidc_request_url   = var.oidc_request_url
+
+  # for Azure DevOps Pipelines
+  ado_pipeline_service_connection_id = var.ado_pipeline_service_connection_id
 
   # for other generic OIDC providers, providing token directly
   oidc_token = var.oidc_token
