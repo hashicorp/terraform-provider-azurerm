@@ -5,7 +5,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -32,9 +31,10 @@ type AutonomousDatabaseCloneResourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Required for Clone
-	Source    string `tfschema:"source"`
-	SourceId  string `tfschema:"source_id"`
-	CloneType string `tfschema:"clone_type"`
+	Source       string `tfschema:"source"`
+	SourceId     string `tfschema:"source_id"`
+	CloneType    string `tfschema:"clone_type"`
+	DataBaseType string `tfschema:"data_base_type"`
 
 	// Required (inherited from base)
 	AdminPassword                string  `tfschema:"admin_password"`
@@ -79,31 +79,33 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		"source": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabases.SourceTypeBackupFromTimestamp),
 				string(autonomousdatabases.SourceTypeBackupFromId),
 				string(autonomousdatabases.SourceTypeDatabase),
 				string(autonomousdatabases.SourceTypeCloneToRefreshable),
-				string(autonomousdatabases.SourceTypeCrossRegionDataguard),
-				string(autonomousdatabases.SourceTypeCrossRegionDisasterRecovery),
 				string(autonomousdatabases.SourceTypeNone),
 			}, false),
 		},
 		"source_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: autonomousdatabases.ValidateAutonomousDatabaseID,
 		},
 
 		"clone_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabases.CloneTypeFull),
 				string(autonomousdatabases.CloneTypeMetadata),
+			}, false),
+		},
+		"data_base_type": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(autonomousdatabases.DataBaseTypeClone),
 			}, false),
 		},
 
@@ -112,14 +114,12 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
 		"backup_retention_period_in_days": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1, 60),
 		},
 
@@ -169,7 +169,6 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
@@ -235,19 +234,16 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		"is_reconnect_clone_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 
 		"is_refreshable_clone": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 		},
 
 		"refreshable_model": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabases.RefreshableModelTypeAutomatic),
 				string(autonomousdatabases.RefreshableModelTypeManual),
@@ -257,7 +253,6 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		"time_until_reconnect_clone_enabled": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
@@ -308,9 +303,10 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(model.Tags),
 				Properties: &autonomousdatabases.AutonomousDatabaseCloneProperties{
 					// Clone-specific properties
-					CloneType: autonomousdatabases.CloneType(model.CloneType),
-					SourceId:  model.SourceId,
-					Source:    pointer.To(autonomousdatabases.SourceType(model.Source)),
+					CloneType:    autonomousdatabases.CloneType(model.CloneType),
+					SourceId:     model.SourceId,
+					Source:       pointer.To(autonomousdatabases.SourceType(model.Source)),
+					DataBaseType: autonomousdatabases.DataBaseType(model.DataBaseType),
 
 					// Optional clone properties
 					IsReconnectCloneEnabled:        pointer.To(model.IsReconnectCloneEnabled),
@@ -324,7 +320,6 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 					ComputeCount:                   pointer.To(model.ComputeCount),
 					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
 					CustomerContacts:               pointer.To(expandAdbsCustomerContacts(model.CustomerContacts)),
-					DataBaseType:                   autonomousdatabases.DataBaseTypeClone,
 					DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
 					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
 					DbVersion:                      pointer.To(model.DbVersion),
@@ -342,30 +337,9 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 			if model.RefreshableModel != "" {
 				param.Properties.(*autonomousdatabases.AutonomousDatabaseCloneProperties).RefreshableModel = pointer.To(autonomousdatabases.RefreshableModelType(model.RefreshableModel))
 			}
-
-			log.Printf("[DEBUG] ===== FINAL PARAM STRUCTURE =====")
-			log.Printf("[DEBUG] param.Name: %v", pointer.From(param.Name))
-			log.Printf("[DEBUG] param.Location: %v", param.Location)
-			log.Printf("[DEBUG] param.Tags: %+v", pointer.From(param.Tags))
-
-			if cloneProps, ok := param.Properties.(*autonomousdatabases.AutonomousDatabaseCloneProperties); ok {
-				log.Printf("[DEBUG] Properties type: AutonomousDatabaseCloneProperties")
-				log.Printf("[DEBUG] CloneType: %v", cloneProps.CloneType)
-				log.Printf("[DEBUG] SourceId: %v", cloneProps.SourceId)
-				log.Printf("[DEBUG] Source: %v", pointer.From(cloneProps.Source))
-				log.Printf("[DEBUG] DataBaseType: %v", cloneProps.DataBaseType)
-				log.Printf("[DEBUG] DisplayName: %v", pointer.From(cloneProps.DisplayName))
-			} else {
-				log.Printf("[DEBUG] CloneType: %v", cloneProps.CloneType)
-			}
-			log.Printf("[DEBUG] ===== SENDING REQUEST TO API =====")
-
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
-			log.Printf("[DEBUG] ===== CLONE CREATION SUCCESSFUL =====")
-			log.Printf("[DEBUG] Created clone resource ID: %s", id.ID())
 
 			metadata.SetID(id)
 			return nil
@@ -445,43 +419,32 @@ func (AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 				ResourceGroupName: id.ResourceGroupName,
 			}
 			if model := result.Model; model != nil {
-				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseCloneProperties)
+				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseBaseProperties)
 				if !ok {
 					return fmt.Errorf("%s was not of type `Clone`", id)
 				}
 
-				// Clone-specific properties
-				state.CloneType = string(props.CloneType)
-				state.SourceId = props.SourceId
-				state.Source = string(*props.Source)
-				state.IsReconnectCloneEnabled = pointer.From(props.IsReconnectCloneEnabled)
-				state.IsRefreshableClone = pointer.From(props.IsRefreshableClone)
-				state.TimeUntilReconnectCloneEnabled = pointer.From(props.TimeUntilReconnectCloneEnabled)
-
-				if props.RefreshableModel != nil {
-					state.RefreshableModel = string(*props.RefreshableModel)
-				}
-
 				// Base properties
 				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
-				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
-				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
-				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
-				state.CharacterSet = pointer.From(props.CharacterSet)
-				state.ComputeCount = pointer.From(props.ComputeCount)
-				state.ComputeModel = string(pointer.From(props.ComputeModel))
-				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
-				state.DbWorkload = string(pointer.From(props.DbWorkload))
-				state.DbVersion = pointer.From(props.DbVersion)
-				state.DisplayName = pointer.From(props.DisplayName)
-				state.LicenseModel = string(pointer.From(props.LicenseModel))
+				state.AutoScalingEnabled = pointer.From(props.AutonomousDatabaseBaseProperties().IsAutoScalingEnabled)
+				state.BackupRetentionPeriodInDays = pointer.From(props.AutonomousDatabaseBaseProperties().BackupRetentionPeriodInDays)
+				state.AutoScalingForStorageEnabled = pointer.From(props.AutonomousDatabaseBaseProperties().IsAutoScalingForStorageEnabled)
+				state.CharacterSet = pointer.From(props.AutonomousDatabaseBaseProperties().CharacterSet)
+				state.ComputeCount = pointer.From(props.AutonomousDatabaseBaseProperties().ComputeCount)
+				state.ComputeModel = string(pointer.From(props.AutonomousDatabaseBaseProperties().ComputeModel))
+				state.CustomerContacts = flattenAdbsCustomerContacts(props.AutonomousDatabaseBaseProperties().CustomerContacts)
+				state.DataStorageSizeInTbs = pointer.From(props.AutonomousDatabaseBaseProperties().DataStorageSizeInTbs)
+				state.DbWorkload = string(pointer.From(props.AutonomousDatabaseBaseProperties().DbWorkload))
+				state.DataBaseType = string(props.AutonomousDatabaseBaseProperties().DataBaseType)
+				state.DbVersion = pointer.From(props.AutonomousDatabaseBaseProperties().DbVersion)
+				state.DisplayName = pointer.From(props.AutonomousDatabaseBaseProperties().DisplayName)
+				state.LicenseModel = string(pointer.From(props.AutonomousDatabaseBaseProperties().LicenseModel))
 				state.Location = result.Model.Location
 				state.Name = pointer.ToString(result.Model.Name)
-				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
-				state.SubnetId = pointer.From(props.SubnetId)
+				state.NationalCharacterSet = pointer.From(props.AutonomousDatabaseBaseProperties().NcharacterSet)
+				state.SubnetId = pointer.From(props.AutonomousDatabaseBaseProperties().SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
-				state.VnetId = pointer.From(props.VnetId)
+				state.VnetId = pointer.From(props.AutonomousDatabaseBaseProperties().VnetId)
 			}
 			return metadata.Encode(&state)
 		},

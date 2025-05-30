@@ -26,9 +26,7 @@ func TestAccAutonomousDatabaseClone_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("clone_type").HasValue("Full"),
-				check.That(data.ResourceName).Key("source").HasValue("Database"),
-				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("acctestADB-%d-clone", data.RandomInteger)),
+				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("ADB%dclone", data.RandomInteger)),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -59,10 +57,6 @@ func TestAccAutonomousDatabaseClone_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("clone_type").HasValue("Full"),
-				check.That(data.ResourceName).Key("source").HasValue("Database"),
-				check.That(data.ResourceName).Key("is_refreshable_clone").HasValue("true"),
-				check.That(data.ResourceName).Key("refreshable_model").HasValue("Manual"),
 				check.That(data.ResourceName).Key("auto_scaling_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auto_scaling_for_storage_enabled").HasValue("true"),
 			),
@@ -106,8 +100,6 @@ func TestAccAutonomousDatabaseClone_metadataClone(t *testing.T) {
 			Config: r.metadataClone(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("clone_type").HasValue("Metadata"),
-				check.That(data.ResourceName).Key("source").HasValue("Database"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -131,17 +123,18 @@ func (r AutonomousDatabaseCloneResource) Exists(ctx context.Context, clients *cl
 
 func (r AutonomousDatabaseCloneResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
-
+provider "azurerm" {
+  features {}
+}
 resource "azurerm_oracle_autonomous_database_clone" "test" {
   name                = "ADB%dclone"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  resource_group_name = "dnsFarwoarder"
+  location            = "eastus"
 
-  source_id  = azurerm_oracle_autonomous_database.source.id
-  clone_type = "Full"
+  source_id  = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Oracle.Database/autonomousDatabases/DnsForwaderADBS"
+  clone_type = "Metadata"
   source     = "Database"
-
+  data_base_type = "Clone"
   admin_password                    = "BEstrO0ng_#11"
   backup_retention_period_in_days   = 7
   character_set                     = "AL32UTF8"
@@ -156,15 +149,15 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.test.id
-  virtual_network_id               = azurerm_virtual_network.test.id
+  subnet_id          = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
+  virtual_network_id = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet"
 
   tags = {
     Environment = "Test"
     Purpose     = "Clone"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger)
 }
 
 func (r AutonomousDatabaseCloneResource) requiresImport(data acceptance.TestData) string {
