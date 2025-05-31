@@ -1761,7 +1761,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
 }
 
 func (NetAppVolumeGroupOracleResource) crossZoneReplicationAZ(data acceptance.TestData) string {
-	template := NetAppVolumeGroupOracleResource{}.templateForCrossZoneReplicationOracleAZ(data)
+	template := NetAppVolumeGroupOracleResource{}.templateAvailabilityZoneOracle(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1920,12 +1920,5 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     azurerm_netapp_volume_group_oracle.test_primary
   ]
 }
-`, template, data.RandomInteger)
-}
-
-func (r NetAppVolumeGroupOracleResource) templateForCrossZoneReplicationOracleAZ(data acceptance.TestData) string {
-	template := NetAppVolumeGroupOracleResource{}.templateAvailabilityZoneOracle(data)
-	return fmt.Sprintf(`
-%[1]s
 `, template, data.RandomInteger)
 }
