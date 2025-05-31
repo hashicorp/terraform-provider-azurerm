@@ -175,6 +175,21 @@ func TestAccNetAppVolumeGroupOracle_crossRegionReplicationAZ(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolumeGroupOracle_crossZoneReplicationAZ(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume_group_oracle", "test_secondary")
+	r := NetAppVolumeGroupOracleResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossZoneReplicationAZ(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppVolumeGroupOracleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := volumegroups.ParseVolumeGroupID(state.ID)
 	if err != nil {
@@ -1185,16 +1200,6 @@ resource "azurerm_resource_group" "test_secondary" {
   }
 }
 
-resource "azurerm_user_assigned_identity" "test_secondary" {
-  name                = "user-assigned-identity-secondary-%[2]d"
-  location            = azurerm_resource_group.test_secondary.location
-  resource_group_name = azurerm_resource_group.test_secondary.name
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
-}
-
 resource "azurerm_virtual_network" "test_secondary" {
   name                = "acctest-VirtualNetwork-secondary-%[2]d"
   location            = azurerm_resource_group.test_secondary.location
@@ -1227,10 +1232,6 @@ resource "azurerm_netapp_account" "test_secondary" {
   name                = "acctest-NetAppAccount-secondary-%[2]d"
   location            = azurerm_resource_group.test_secondary.location
   resource_group_name = azurerm_resource_group.test_secondary.name
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test_secondary.id]
-  }
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1269,16 +1270,6 @@ resource "azurerm_resource_group" "test_secondary" {
   }
 }
 
-resource "azurerm_user_assigned_identity" "test_secondary" {
-  name                = "user-assigned-identity-secondary-%[2]d"
-  location            = azurerm_resource_group.test_secondary.location
-  resource_group_name = azurerm_resource_group.test_secondary.name
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
-  }
-}
-
 resource "azurerm_virtual_network" "test_secondary" {
   name                = "acctest-VirtualNetwork-secondary-%[2]d"
   location            = azurerm_resource_group.test_secondary.location
@@ -1311,10 +1302,6 @@ resource "azurerm_netapp_account" "test_secondary" {
   name                = "acctest-NetAppAccount-secondary-%[2]d"
   location            = azurerm_resource_group.test_secondary.location
   resource_group_name = azurerm_resource_group.test_secondary.name
-  identity {
-    type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test_secondary.id]
-  }
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1352,27 +1339,12 @@ provider "azurerm" {
   }
 }
 
-locals {
-  admin_username = "testadmin%[1]d"
-  admin_password = "Password1234!%[1]d"
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%[1]d"
   location = "%[2]s"
 
   tags = {
     "SkipNRMSNSG" = "true"
-  }
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "user-assigned-identity-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
   }
 }
 
@@ -1449,7 +1421,7 @@ resource "azurerm_netapp_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_netapp_account.test.name
   service_level       = "Standard"
-  size_in_tb          = 4
+  size_in_tb          = 8
   qos_type            = "Manual"
 
   tags = {
@@ -1713,7 +1685,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test_secondary.id
     subnet_id                  = azurerm_subnet.test_secondary.id
-    zone                       = "1"
+    zone                       = "2"
     volume_spec_name           = "ora-data1"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
@@ -1750,6 +1722,93 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test_secondary.id
     subnet_id                  = azurerm_subnet.test_secondary.id
+    zone                       = "2"
+    volume_spec_name           = "ora-log"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_netapp_volume_group_oracle.test_primary.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_oracle.test_primary.volume[1].id
+      replication_frequency     = "10minutes"
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  depends_on = [
+    azurerm_netapp_volume_group_oracle.test_primary
+  ]
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeGroupOracleResource) crossZoneReplicationAZ(data acceptance.TestData) string {
+	template := NetAppVolumeGroupOracleResource{}.templateForCrossZoneReplicationOracleAZ(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume_group_oracle" "test_primary" {
+  name                   = "acctest-NetAppVolumeGroup-Primary-%[2]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  account_name           = azurerm_netapp_account.test.name
+  group_description      = "Test Oracle volume group primary"
+  application_identifier = "TST"
+
+  volume {
+    name                       = "acctest-NetAppVolume-ora1-Primary-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-Primary-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                       = "acctest-NetAppVolume-oraLog-Primary-%[2]d"
+    volume_path                = "my-unique-file-oralog-path-Primary-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
     zone                       = "1"
     volume_spec_name           = "ora-log"
     storage_quota_in_gb        = 1024
@@ -1773,10 +1832,100 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
       "SkipASMAzSecPack" = "true"
     }
   }
+}
+
+resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
+  name                   = "acctest-NetAppVolumeGroup-Secondary-%[2]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  account_name           = azurerm_netapp_account.test.name
+  group_description      = "Test Oracle volume group secondary"
+  application_identifier = "TST"
+
+  volume {
+    name                       = "acctest-NetAppVolume-ora1-Secondary-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-Secondary-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "2"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_netapp_volume_group_oracle.test_primary.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_oracle.test_primary.volume[0].id
+      replication_frequency     = "10minutes"
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
+
+  volume {
+    name                       = "acctest-NetAppVolume-oraLog-Secondary-%[2]d"
+    volume_path                = "my-unique-file-oralog-path-Secondary-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "2"
+    volume_spec_name           = "ora-log"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_netapp_volume_group_oracle.test_primary.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_oracle.test_primary.volume[1].id
+      replication_frequency     = "10minutes"
+    }
+
+    tags = {
+      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "SkipASMAzSecPack" = "true"
+    }
+  }
 
   depends_on = [
     azurerm_netapp_volume_group_oracle.test_primary
   ]
 }
+`, template, data.RandomInteger)
+}
+
+func (r NetAppVolumeGroupOracleResource) templateForCrossZoneReplicationOracleAZ(data acceptance.TestData) string {
+	template := NetAppVolumeGroupOracleResource{}.templateAvailabilityZoneOracle(data)
+	return fmt.Sprintf(`
+%[1]s
 `, template, data.RandomInteger)
 }
