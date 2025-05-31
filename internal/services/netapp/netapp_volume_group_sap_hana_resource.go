@@ -333,15 +333,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 			}
 
 			// Parse volume list to set secondary volumes for CRR
-			for i, volumeCrr := range pointer.From(volumeList) {
-				if volumeCrr.Properties.DataProtection != nil &&
-					volumeCrr.Properties.DataProtection.Replication != nil &&
-					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-					// Modify volumeType as data protection type on main volumeList
-					// so it gets created correctly as data protection volume
-					(pointer.From(volumeList))[i].Properties.VolumeType = utils.String("DataProtection")
-				}
-			}
+			setVolumeListSecondaryVolumesType(volumeList)
 
 			parameters := volumegroups.VolumeGroupDetails{
 				Location: utils.String(location.Normalize(model.Location)),
@@ -365,35 +357,20 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 			}
 
 			// CRR - Authorizing secondaries from primary volumes
+			if err := authorizeVolumeReplication(ctx, volumeList, replicationClient, subscriptionId, model.ResourceGroupName, model.AccountName, id); err != nil {
+				return err
+			}
+
+			// Wait for volume replication authorization to complete for all volumes
 			for _, volumeCrr := range pointer.From(volumeList) {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
 					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-					capacityPoolId, err := capacitypools.ParseCapacityPoolID(pointer.From(volumeCrr.Properties.CapacityPoolResourceId))
-					if err != nil {
-						return err
-					}
 
-					// Getting secondary volume resource id
-					secondaryId := volumes.NewVolumeID(subscriptionId,
-						model.ResourceGroupName,
-						model.AccountName,
-						capacityPoolId.CapacityPoolName,
-						getUserDefinedVolumeName(volumeCrr.Name),
-					)
-
-					// Getting primary resource id
+					// Getting primary resource id for waiting
 					primaryId, err := volumesreplication.ParseVolumeID(pointer.From(volumeCrr.Properties.DataProtection.Replication.RemoteVolumeResourceId))
 					if err != nil {
 						return err
-					}
-
-					// Authorizing
-					if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
-						RemoteVolumeResourceId: utils.String(secondaryId.ID()),
-					},
-					); err != nil {
-						return fmt.Errorf("cannot authorize volume replication: %v", err)
 					}
 
 					// Wait for volume replication authorization to complete

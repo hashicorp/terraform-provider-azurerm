@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
@@ -180,7 +181,8 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
-					Snapshot: expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy).Snapshot,
+					Replication: expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication).Replication,
+					Snapshot:    expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy).Snapshot,
 				},
 			},
 			Tags: &item.Tags,
@@ -519,6 +521,10 @@ func flattenNetAppVolumeGroupOracleVolumes(ctx context.Context, input *[]volumeg
 		standaloneVol, err := volumeClient.Get(ctx, pointer.From(id))
 		if err != nil {
 			return []netAppModels.NetAppVolumeGroupOracleVolume{}, fmt.Errorf("retrieving %s: %v", id, err)
+		}
+
+		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Replication != nil {
+			volumeGroupVolume.DataProtectionReplication = flattenNetAppVolumeGroupVolumesDPReplication(standaloneVol.Model.Properties.DataProtection.Replication)
 		}
 
 		if standaloneVol.Model.Properties.DataProtection != nil && standaloneVol.Model.Properties.DataProtection.Snapshot != nil {
@@ -1049,4 +1055,67 @@ func translateSDKSchedule(scheduleName string) string {
 	}
 
 	return scheduleName
+}
+
+// setVolumeListSecondaryVolumesType sets VolumeType to "DataProtection" for secondary volumes in CRR
+func setVolumeListSecondaryVolumesType(volumeList *[]volumegroups.VolumeGroupVolumeProperties) {
+	if volumeList == nil {
+		return
+	}
+
+	for i := range *volumeList {
+		volume := &(*volumeList)[i]
+		if volume.Properties.DataProtection != nil && volume.Properties.DataProtection.Replication != nil {
+			replication := volume.Properties.DataProtection.Replication
+			if replication.EndpointType != nil &&
+				strings.EqualFold(string(pointer.From(replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+				volume.Properties.VolumeType = utils.String("DataProtection")
+			}
+		}
+	}
+}
+
+// authorizeVolumeReplication handles CRR authorization for secondary volumes from primary volumes
+func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.VolumeGroupVolumeProperties, replicationClient *volumesreplication.VolumesReplicationClient, subscriptionId, resourceGroupName, accountName string, volumeGroupId volumegroups.VolumeGroupId) error {
+	if volumeList == nil || replicationClient == nil {
+		return nil
+	}
+
+	for _, volume := range *volumeList {
+		if volume.Properties.DataProtection != nil && volume.Properties.DataProtection.Replication != nil {
+			replication := volume.Properties.DataProtection.Replication
+			if replication.EndpointType != nil &&
+				strings.EqualFold(string(pointer.From(replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+
+				// Get the capacity pool for this volume
+				capacityPoolId, err := capacitypools.ParseCapacityPoolID(*volume.Properties.CapacityPoolResourceId)
+				if err != nil {
+					return fmt.Errorf("parsing capacity pool ID %q: %+v", *volume.Properties.CapacityPoolResourceId, err)
+				}
+
+				// This is a secondary volume, create its ID
+				secondaryId := volumes.NewVolumeID(subscriptionId,
+					resourceGroupName,
+					accountName,
+					capacityPoolId.CapacityPoolName,
+					getUserDefinedVolumeName(volume.Name),
+				)
+
+				// Getting primary resource id
+				primaryId, err := volumesreplication.ParseVolumeID(pointer.From(replication.RemoteVolumeResourceId))
+				if err != nil {
+					return fmt.Errorf("parsing primary volume ID %q: %+v", pointer.From(replication.RemoteVolumeResourceId), err)
+				}
+
+				// Authorizing
+				if err := replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, pointer.From(primaryId), volumesreplication.AuthorizeRequest{
+					RemoteVolumeResourceId: utils.String(secondaryId.ID()),
+				}); err != nil {
+					return fmt.Errorf("authorizing volume replication for volume %q: %+v", secondaryId.ID(), err)
+				}
+			}
+		}
+	}
+
+	return nil
 }

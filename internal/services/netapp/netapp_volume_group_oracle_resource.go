@@ -6,6 +6,8 @@ package netapp
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -245,6 +248,37 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 						},
 					},
 
+					"data_protection_replication": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						ForceNew: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"endpoint_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      string(volumegroups.EndpointTypeDst),
+									ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEndpointType(), false),
+								},
+
+								"remote_volume_location": commonschema.LocationWithoutForceNew(),
+
+								"remote_volume_resource_id": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
+
+								"replication_frequency": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(netAppModels.PossibleValuesForReplicationSchedule(), false),
+								},
+							},
+						},
+					},
+
 					"data_protection_snapshot_policy": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -291,6 +325,7 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
+			replicationClient := metadata.Client.NetApp.VolumeReplicationClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model netAppModels.NetAppVolumeGroupOracleModel
@@ -320,6 +355,9 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
+			// Parse volume list to set secondary volumes for CRR
+			setVolumeListSecondaryVolumesType(volumeList)
+
 			parameters := volumegroups.VolumeGroupDetails{
 				Location: utils.String(location.Normalize(model.Location)),
 				Properties: &volumegroups.VolumeGroupProperties{
@@ -339,6 +377,31 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 			// Waiting for volume group be completely provisioned
 			if err := waitForVolumeGroupCreateOrUpdate(ctx, client, id); err != nil {
 				return fmt.Errorf("waiting creation %s: %+v", id, err)
+			}
+
+			// CRR - Authorizing secondaries from primary volumes
+			if err := authorizeVolumeReplication(ctx, volumeList, replicationClient, subscriptionId, model.ResourceGroupName, model.AccountName, id); err != nil {
+				return err
+			}
+
+			// Wait for volume replication authorization to complete for all volumes
+			for _, volumeCrr := range pointer.From(volumeList) {
+				if volumeCrr.Properties.DataProtection != nil &&
+					volumeCrr.Properties.DataProtection.Replication != nil &&
+					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+
+					// Getting primary resource id for waiting
+					primaryId, err := volumesreplication.ParseVolumeID(pointer.From(volumeCrr.Properties.DataProtection.Replication.RemoteVolumeResourceId))
+					if err != nil {
+						return err
+					}
+
+					// Wait for volume replication authorization to complete
+					log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", id)
+					if err := waitForReplAuthorization(ctx, replicationClient, pointer.From(primaryId)); err != nil {
+						return err
+					}
+				}
 			}
 
 			metadata.SetID(id)
@@ -422,6 +485,17 @@ func (r NetAppVolumeGroupOracleResource) Update() sdk.ResourceFunc {
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)) {
+							// Validating that snapshot policies are not being created in a data protection volume
+							dataProtectionReplicationRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_replication", volumeItem)).([]interface{})
+							dataProtectionReplication := expandNetAppVolumeDataProtectionReplication(dataProtectionReplicationRaw)
+
+							if dataProtectionReplication != nil &&
+								dataProtectionReplication.Replication != nil &&
+								dataProtectionReplication.Replication.EndpointType != nil &&
+								strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+								return fmt.Errorf("snapshot policy cannot be enabled on a data protection volume, %s", volumeId)
+							}
+
 							dataProtectionSnapshotPolicyRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)).([]interface{})
 							dataProtectionSnapshotPolicy := expandNetAppVolumeDataProtectionSnapshotPolicyPatch(dataProtectionSnapshotPolicyRaw)
 							update.Properties.DataProtection = dataProtectionSnapshotPolicy
