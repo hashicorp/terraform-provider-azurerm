@@ -1076,7 +1076,7 @@ func setVolumeListSecondaryVolumesType(volumeList *[]volumegroups.VolumeGroupVol
 }
 
 // authorizeVolumeReplication handles CRR authorization for secondary volumes from primary volumes
-func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.VolumeGroupVolumeProperties, replicationClient *volumesreplication.VolumesReplicationClient, subscriptionId, resourceGroupName, accountName string, volumeGroupId volumegroups.VolumeGroupId) error {
+func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.VolumeGroupVolumeProperties, replicationClient *volumesreplication.VolumesReplicationClient, subscriptionId, resourceGroupName, accountName string) error {
 	if volumeList == nil || replicationClient == nil {
 		return nil
 	}
@@ -1086,7 +1086,6 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 			replication := volume.Properties.DataProtection.Replication
 			if replication.EndpointType != nil &&
 				strings.EqualFold(string(pointer.From(replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 				// Get the capacity pool for this volume
 				capacityPoolId, err := capacitypools.ParseCapacityPoolID(*volume.Properties.CapacityPoolResourceId)
 				if err != nil {

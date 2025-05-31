@@ -357,7 +357,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 			}
 
 			// CRR - Authorizing secondaries from primary volumes
-			if err := authorizeVolumeReplication(ctx, volumeList, replicationClient, subscriptionId, model.ResourceGroupName, model.AccountName, id); err != nil {
+			if err := authorizeVolumeReplication(ctx, volumeList, replicationClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
 				return err
 			}
 
@@ -366,7 +366,6 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 				if volumeCrr.Properties.DataProtection != nil &&
 					volumeCrr.Properties.DataProtection.Replication != nil &&
 					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-
 					// Getting primary resource id for waiting
 					primaryId, err := volumesreplication.ParseVolumeID(pointer.From(volumeCrr.Properties.DataProtection.Replication.RemoteVolumeResourceId))
 					if err != nil {
