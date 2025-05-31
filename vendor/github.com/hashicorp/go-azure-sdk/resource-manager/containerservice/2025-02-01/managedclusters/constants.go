@@ -91,6 +91,47 @@ func parseAgentPoolType(input string) (*AgentPoolType, error) {
 	return &out, nil
 }
 
+type ArtifactSource string
+
+const (
+	ArtifactSourceCache  ArtifactSource = "Cache"
+	ArtifactSourceDirect ArtifactSource = "Direct"
+)
+
+func PossibleValuesForArtifactSource() []string {
+	return []string{
+		string(ArtifactSourceCache),
+		string(ArtifactSourceDirect),
+	}
+}
+
+func (s *ArtifactSource) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseArtifactSource(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseArtifactSource(input string) (*ArtifactSource, error) {
+	vals := map[string]ArtifactSource{
+		"cache":  ArtifactSourceCache,
+		"direct": ArtifactSourceDirect,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ArtifactSource(input)
+	return &out, nil
+}
+
 type BackendPoolType string
 
 const (
@@ -258,6 +299,47 @@ func parseFormat(input string) (*Format, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := Format(input)
+	return &out, nil
+}
+
+type GPUDriver string
+
+const (
+	GPUDriverInstall GPUDriver = "Install"
+	GPUDriverNone    GPUDriver = "None"
+)
+
+func PossibleValuesForGPUDriver() []string {
+	return []string{
+		string(GPUDriverInstall),
+		string(GPUDriverNone),
+	}
+}
+
+func (s *GPUDriver) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseGPUDriver(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseGPUDriver(input string) (*GPUDriver, error) {
+	vals := map[string]GPUDriver{
+		"install": GPUDriverInstall,
+		"none":    GPUDriverNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := GPUDriver(input)
 	return &out, nil
 }
 
@@ -944,6 +1026,53 @@ func parseNetworkPolicy(input string) (*NetworkPolicy, error) {
 	return &out, nil
 }
 
+type NginxIngressControllerType string
+
+const (
+	NginxIngressControllerTypeAnnotationControlled NginxIngressControllerType = "AnnotationControlled"
+	NginxIngressControllerTypeExternal             NginxIngressControllerType = "External"
+	NginxIngressControllerTypeInternal             NginxIngressControllerType = "Internal"
+	NginxIngressControllerTypeNone                 NginxIngressControllerType = "None"
+)
+
+func PossibleValuesForNginxIngressControllerType() []string {
+	return []string{
+		string(NginxIngressControllerTypeAnnotationControlled),
+		string(NginxIngressControllerTypeExternal),
+		string(NginxIngressControllerTypeInternal),
+		string(NginxIngressControllerTypeNone),
+	}
+}
+
+func (s *NginxIngressControllerType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNginxIngressControllerType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseNginxIngressControllerType(input string) (*NginxIngressControllerType, error) {
+	vals := map[string]NginxIngressControllerType{
+		"annotationcontrolled": NginxIngressControllerTypeAnnotationControlled,
+		"external":             NginxIngressControllerTypeExternal,
+		"internal":             NginxIngressControllerTypeInternal,
+		"none":                 NginxIngressControllerTypeNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := NginxIngressControllerType(input)
+	return &out, nil
+}
+
 type NodeOSUpgradeChannel string
 
 const (
@@ -1128,6 +1257,7 @@ type OutboundType string
 const (
 	OutboundTypeLoadBalancer           OutboundType = "loadBalancer"
 	OutboundTypeManagedNATGateway      OutboundType = "managedNATGateway"
+	OutboundTypeNone                   OutboundType = "none"
 	OutboundTypeUserAssignedNATGateway OutboundType = "userAssignedNATGateway"
 	OutboundTypeUserDefinedRouting     OutboundType = "userDefinedRouting"
 )
@@ -1136,6 +1266,7 @@ func PossibleValuesForOutboundType() []string {
 	return []string{
 		string(OutboundTypeLoadBalancer),
 		string(OutboundTypeManagedNATGateway),
+		string(OutboundTypeNone),
 		string(OutboundTypeUserAssignedNATGateway),
 		string(OutboundTypeUserDefinedRouting),
 	}
@@ -1158,6 +1289,7 @@ func parseOutboundType(input string) (*OutboundType, error) {
 	vals := map[string]OutboundType{
 		"loadbalancer":           OutboundTypeLoadBalancer,
 		"managednatgateway":      OutboundTypeManagedNATGateway,
+		"none":                   OutboundTypeNone,
 		"userassignednatgateway": OutboundTypeUserAssignedNATGateway,
 		"userdefinedrouting":     OutboundTypeUserDefinedRouting,
 	}
