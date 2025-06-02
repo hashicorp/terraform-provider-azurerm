@@ -10,12 +10,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // getOverriddenTestLocations returns the overridden test locations for the NetApp Volume tests, specifically for CRR
@@ -132,6 +132,21 @@ func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_createFromSnapshotInAnotherPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.snapshot(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("create_from_snapshot_resource_id"),
 	})
 }
 
@@ -417,7 +432,7 @@ func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("reading Netapp Volume (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetAppVolumeResource) volEncryptionCmkUserAssigned(data acceptance.TestData, tenantID string) string {
@@ -769,6 +784,63 @@ resource "azurerm_netapp_volume" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) snapshot(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_original" {
+  name                = "acctest-NetAppVolume-WithSnapshotPolicy-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+}
+
+resource "azurerm_netapp_snapshot" "test_original" {
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-NetAppVolume-Snapshot-%[2]d"
+  pool_name           = azurerm_netapp_pool.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  volume_name         = azurerm_netapp_volume.test_original.name
+}
+
+resource "azurerm_netapp_pool" "test_secondary" {
+  name                = "acctest-NetAppPool-secondary-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                             = "acctest-NetAppVolume-WithSnapshotPolicy-%[2]d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  account_name                     = azurerm_netapp_account.test.name
+  pool_name                        = azurerm_netapp_pool.test_secondary.name
+  volume_path                      = "my-unique-file-path-%[2]d-test"
+  service_level                    = "Standard"
+  subnet_id                        = azurerm_subnet.test.id
+  protocols                        = ["NFSv3"]
+  security_style                   = "unix"
+  storage_quota_in_gb              = 100
+  throughput_in_mibps              = 1.562
+  create_from_snapshot_resource_id = azurerm_netapp_snapshot.test_original.id
+}
+`, template, data.RandomInteger)
 }
 
 func (NetAppVolumeResource) snapshotPolicy(data acceptance.TestData) string {
