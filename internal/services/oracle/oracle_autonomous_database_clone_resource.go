@@ -91,6 +91,10 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 				string(autonomousdatabases.SourceTypeCloneToRefreshable),
 				string(autonomousdatabases.SourceTypeNone),
 			}, false),
+			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+				// Source is create-only and not returned by Azure API
+				return old != ""
+			},
 		},
 		"source_id": {
 			Type:         pluginsdk.TypeString,

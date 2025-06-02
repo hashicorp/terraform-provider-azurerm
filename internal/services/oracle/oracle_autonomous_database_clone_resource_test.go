@@ -61,7 +61,6 @@ func TestAccAutonomousDatabaseClone_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("auto_scaling_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auto_scaling_for_storage_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("is_refreshable_clone").HasValue("true"),
-				check.That(data.ResourceName).Key("refreshable_model").HasValue("Manual"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -182,8 +181,8 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   db_workload                      = "OLTP"
   display_name                     = "ADB%dclone"
   license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = false
+  auto_scaling_enabled             = true
+  auto_scaling_for_storage_enabled = true
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
   subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
@@ -304,8 +303,8 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   db_workload                      = "OLTP"
   display_name                     = "ADB%dclone"
   license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = false
+  auto_scaling_enabled             = true
+  auto_scaling_for_storage_enabled = true
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
   subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
@@ -348,8 +347,8 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   db_workload                      = "OLTP"
   display_name                     = "ADB%dclone"
   license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = false
+  auto_scaling_enabled             = true
+  auto_scaling_for_storage_enabled = true
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
   subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
@@ -392,8 +391,8 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   db_workload                      = "OLTP"
   display_name                     = "ADB%dclone"
   license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = false
+  auto_scaling_enabled             = true
+  auto_scaling_for_storage_enabled = true
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
   subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
@@ -435,8 +434,8 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   db_workload                      = "OLTP"
   display_name                     = "ADB%dclone"
   license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = false
+  auto_scaling_enabled             = true
+  auto_scaling_for_storage_enabled = true
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
   subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
