@@ -7,6 +7,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `go-azure-sdk` - update to `v0.20250526.1224007` [GH-29745]
+* Data Source: `azurerm_netapp_volume` - export the `large_volume_enabled` property [GH-29712]
 * Data Source: `azurerm_vpn_gateway` - export the `ip_configuration` block [GH-29186]
 * `azurerm_netapp_volume` - allow volumes-from-snapshots to have a different pool than original volume [GH-29425]
 * `azurerm_netapp_volume` - add support for the `large_volume_enabled` property [GH-29712]
