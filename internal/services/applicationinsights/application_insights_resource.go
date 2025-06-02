@@ -494,7 +494,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 		insightProperties.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err = client.ComponentsCreateOrUpdate(ctx, *id, insightProperties) err != nil {
+	if _, err = client.ComponentsCreateOrUpdate(ctx, *id, insightProperties); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
