@@ -112,12 +112,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_chaos_studio_capability" "another" {
-  chaos_studio_target_id = azurerm_storage_account.test.id
+  chaos_studio_target_id = azurerm_chaos_studio_target.test.id
   capability_type        = "NetworkChaos-2.0"
 }
 
 resource "azurerm_chaos_studio_capability" "test" {
-  chaos_studio_target_id = azurerm_storage_account.test.id
+  chaos_studio_target_id = azurerm_chaos_studio_target.test.id
   capability_type        = "PodChaos-2.1"
 }
 `, r.template(data))

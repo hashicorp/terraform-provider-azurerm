@@ -98,7 +98,7 @@ func (r KubernetesFleetManagerTestResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.ContainerService.V20231015.Fleets.Get(ctx, *id)
+	resp, err := clients.ContainerService.V20240401.Fleets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}

@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1380,9 +1380,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -1715,9 +1716,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -1809,9 +1811,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -1935,9 +1938,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -2060,9 +2064,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 2
@@ -2168,9 +2173,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     max_replicas = 4
@@ -2289,9 +2295,10 @@ resource "azurerm_container_app" "test" {
     }
 
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
 
     min_replicas = 1
@@ -2906,7 +2913,7 @@ func (r ContainerAppResource) latestRevisionFalseRevisionSuffixEmpty() string {
 	return `
 traffic_weight {
   latest_revision = false
-  percentage = 100
+  percentage      = 100
 }
 `
 }

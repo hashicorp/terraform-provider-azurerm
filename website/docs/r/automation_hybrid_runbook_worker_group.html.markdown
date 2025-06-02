@@ -68,3 +68,9 @@ Automations can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_automation_hybrid_runbook_worker_group.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/hybridRunbookWorkerGroups/grp1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Automation`: 2023-11-01

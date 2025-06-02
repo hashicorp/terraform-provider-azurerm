@@ -10,6 +10,8 @@ description: |-
 
 Get information about an Azure Spatial Anchors Account.
 
+~> **Note:** The `azurerm_spatial_anchors_account` data source has been deprecated because the service is retiring from 2024-11-20 and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl
@@ -48,3 +50,9 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spatial Anchors Account.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.MixedReality`: 2021-01-01

@@ -93,6 +93,8 @@ A `volume` block supports the following:
 
 * `storage_type` - The type of storage volume. Possible values include `AzureFile` and `EmptyDir`. Defaults to `EmptyDir`.
 
+* `mount_options` - Mount options used while mounting the AzureFile.
+
 ---
 
 A `init_container` block supports the following:
@@ -268,6 +270,8 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - Should this ingress allow insecure connections?
 
+* `client_certificate_mode` - The client certificate mode for the Ingress.
+
 * `custom_domain` - One or more `custom_domain` block as detailed below.
 
 * `fqdn` -  The FQDN of the ingress.
@@ -343,3 +347,9 @@ A `registry` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.App`: 2025-01-01
