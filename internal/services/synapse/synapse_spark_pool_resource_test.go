@@ -332,6 +332,20 @@ func (r SynapseSparkPoolResource) customLibrary(data acceptance.TestData, sparkV
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "spark-mssql-connector.jar"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source                 = "testdata/spark-mssql-connector.jar"
+}
+
 resource "azurerm_synapse_spark_pool" "test" {
   name                                = "acctestSSP%s"
   synapse_workspace_id                = azurerm_synapse_workspace.test.id
@@ -360,9 +374,9 @@ EOF
   }
 
   custom_library {
-    name           = "connector"
-    path           = "test/connector.jar"
-    container_name = "test"
+    name           = "mssql-connector"
+    path           = azurerm_storage_blob.test.name
+    container_name = azurerm_storage_container.test.name
     type           = "jar"
   }
 
@@ -380,6 +394,8 @@ EOF
   tags = {
     ENV = "Test"
   }
+
+  depends_on = [azurerm_storage_blob.test]
 }
 `, template, data.RandomString, sparkVersion)
 }
