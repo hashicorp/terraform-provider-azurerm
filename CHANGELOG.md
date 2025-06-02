@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * dependencies: `go-azure-sdk` - update to `v0.20250526.1224007` [GH-29745]
 * Data Source: `azurerm_vpn_gateway` - export the `ip_configuration` block [GH-29186]
+* `azurerm_netapp_volume` - allow volumes-from-snapshots to have a different pool than original volume [GH-29425]
 * `azurerm_postgresql_flexible_server` - add support for versionless key vault key IDs to the `customer_managed_key.key_vault_key_id` property [GH-29741]
 * `azurerm_vpn_gateway` - export the `ip_configuration` block [GH-29186]
 
