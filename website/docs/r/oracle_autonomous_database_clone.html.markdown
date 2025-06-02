@@ -13,73 +13,28 @@ Manages an Oracle Autonomous Database Clone.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "East US"
-}
-
-resource "azurerm_virtual_network" "example" {
-  name                = "example-vnet"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
-
-  delegation {
-    name = "Oracle.Database.networkAttachments"
-
-    service_delegation {
-      name    = "Oracle.Database/networkAttachments"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
-}
-
-resource "azurerm_oracle_autonomous_database" "source" {
-  name                = "example-source-db"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-
-  admin_password                    = "BEstrO0ng_#11"
-  backup_retention_period_in_days   = 7
-  character_set                     = "AL32UTF8"
-  compute_count                     = 2.0
-  compute_model                     = "ECPU"
-  data_storage_size_in_tbs         = 1
-  db_version                       = "19c"
-  db_workload                      = "OLTP"
-  display_name                     = "Example Source Database"
-  license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = false
-  mtls_connection_required         = false
-  national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.example.id
-  virtual_network_id               = azurerm_virtual_network.example.id
-}
-
 resource "azurerm_oracle_autonomous_database_clone" "example" {
   name                = "example-clone-db"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  resource_group_name = "example-rg"
+  location            = "East US"
 
   # Clone-specific configuration
-  source_id  = azurerm_oracle_autonomous_database.source.id
-  clone_type = "Full"
-  source     = "Database"
+  source_id      = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Oracle.Database/autonomousDatabases/source-db"
+  clone_type     = "Full"
+  source         = "Database"
+  data_base_type = "Clone"
+
+  # Optional clone features
+  is_refreshable_clone = true
+  refreshable_model    = "Manual"
+  customer_contacts    = ["admin@example.com"]
 
   # Database configuration
-  admin_password                    = "BEstrO0ng_#11"
-  backup_retention_period_in_days   = 7
-  character_set                     = "AL32UTF8"
-  compute_count                     = 2.0
-  compute_model                     = "ECPU"
+  admin_password                   = "BEstrO0ng_#11"
+  backup_retention_period_in_days  = 7
+  character_set                    = "AL32UTF8"
+  compute_count                    = 2.0
+  compute_model                    = "ECPU"
   data_storage_size_in_tbs         = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
@@ -89,48 +44,49 @@ resource "azurerm_oracle_autonomous_database_clone" "example" {
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.example.id
-  virtual_network_id               = azurerm_virtual_network.example.id
+  subnet_id                        = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.Network/virtualNetworks/example-vnet/subnets/oracle-subnet"
+  virtual_network_id               = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.Network/virtualNetworks/example-vnet"
 
   tags = {
     Environment = "Development"
     Purpose     = "Clone"
   }
 }
-```
 
-## Example Usage - Refreshable Clone
-
-```hcl
-resource "azurerm_oracle_autonomous_database_clone" "refreshable" {
-  name                = "example-refreshable-clone"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-
-  # Clone-specific configuration
-  source_id            = azurerm_oracle_autonomous_database.source.id
-  clone_type           = "Full"
-  source               = "Database"
-  is_refreshable_clone = true
-  refreshable_model    = "Manual"
-
-  # Database configuration
-  admin_password                    = "BEstrO0ng_#11"
-  backup_retention_period_in_days   = 7
-  character_set                     = "AL32UTF8"
-  compute_count                     = 2.0
-  compute_model                     = "ECPU"
+### Clone from Specific Backup Timestamp
+resource "azurerm_oracle_autonomous_database_clone" "specific_backup_clone" {
+  name                = "example-specific-backup-clone"
+  resource_group_name = "example-rg"
+  location            = "East US"
+  # Backup timestamp clone configuration
+  source_id      = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Oracle.Database/autonomousDatabases/source-db"
+  clone_type     = "Full"
+  source         = "BackupFromTimestamp"
+  data_base_type = "CloneFromBackupTimestamp"
+  # Specific timestamp for point-in-time recovery
+  # or set  use_latest_available_backup_time_stamp = true to clone from the latest backup
+  timestamp = "2024-12-01T12:00:00Z"
+  # Database configuration (all required fields)
+  admin_password                   = "BEstrO0ng_#11"
+  backup_retention_period_in_days  = 7
+  character_set                    = "AL32UTF8"
+  compute_count                    = 2.0
+  compute_model                    = "ECPU"
   data_storage_size_in_tbs         = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
-  display_name                     = "Example Refreshable Clone"
+  display_name                     = "Point-in-time Clone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_subnet.example.id
-  virtual_network_id               = azurerm_virtual_network.example.id
+  subnet_id                        = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.Network/virtualNetworks/example-vnet/subnets/oracle-subnet"
+  virtual_network_id               = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.Network/virtualNetworks/example-vnet"
+  tags = {
+    Environment = "Production"
+    Purpose     = "BackupRestore"
+  }
 }
 ```
 
@@ -144,7 +100,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Autonomous Database Clone should exist. Changing this forces a new Autonomous Database Clone to be created.
 
-### Clone-Specific Arguments
+### Clone  Specific Arguments
 
 * `source_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new Autonomous Database Clone to be created.
 
@@ -152,13 +108,23 @@ The following arguments are supported:
 
 * `source` - (Required) The source of the clone. Possible values are `None`, `Database`, `BackupFromId`, `BackupFromTimestamp`, `CloneToRefreshable`, `CrossRegionDataguard`, and `CrossRegionDisasterRecovery`. Changing this forces a new Autonomous Database Clone to be created.
 
-* `is_refreshable_clone` - (Optional) Indicates whether the clone is a refreshable clone. Changing this forces a new Autonomous Database Clone to be created.
+* `data_base_type` - (Required) The database type for the clone. Possible values are `Clone` and `CloneFromBackupTimestamp`. Changing this forces a new Autonomous Database Clone to be created.
 
-* `refreshable_model` - (Optional) The refreshable model for the clone. Possible values are `Automatic` and `Manual`. Changing this forces a new Autonomous Database Clone to be created.
+### Clone from database Configuration (Optional)
 
-* `is_reconnect_clone_enabled` - (Optional) Indicates whether reconnect clone is enabled. Changing this forces a new Autonomous Database Clone to be created.
+* `is_refreshable_clone` - (Optional) Indicates whether the clone is a refreshable clone. Only applicable when `data_base_type` is `Clone`. Changing this forces a new Autonomous Database Clone to be created.
 
-* `time_until_reconnect_clone_enabled` - (Optional) The time until reconnect clone is enabled. Must be in RFC3339 format. Changing this forces a new Autonomous Database Clone to be created.
+* `refreshable_model` - (Optional) The refreshable model for the clone. Possible values are `Automatic` and `Manual`. Only applicable when `is_refreshable_clone` is `true`. Changing this forces a new Autonomous Database Clone to be created.
+
+* `is_reconnect_clone_enabled` - (Optional) Indicates whether reconnect clone is enabled. Only applicable when `data_base_type` is `Clone`. Changing this forces a new Autonomous Database Clone to be created.
+
+* `time_until_reconnect_clone_enabled` - (Optional) (Updatable) The time until reconnect clone is enabled. Must be in RFC3339 format. Only applicable when `is_reconnect_clone_enabled` is `true`. Changing this forces a new Autonomous Database Clone to be created.
+
+### Backup Timestamp Clone Configuration (Optional)
+
+* `timestamp` - (Optional) The timestamp specified for the point-in-time clone of the source Autonomous Database. The timestamp must be in the past and in RFC3339 format. Only applicable when `data_base_type` is `CloneFromBackupTimestamp`. Changing this forces a new Autonomous Database Clone to be created.
+
+* `use_latest_available_backup_time_stamp` - (Optional) Clone from latest available backup timestamp. Only applicable when `data_base_type` is `CloneFromBackupTimestamp`. Changing this forces a new Autonomous Database Clone to be created.
 
 ### Database Configuration Arguments
 
@@ -210,7 +176,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 120 minutes) Used when creating the Autonomous Database Clone.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database Clone.
-* `update` - (Defaults to 30 minutes) Used when updating the Autonomous Database Clone.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Autonomous Database Clone.
 
 ## Import
@@ -225,4 +190,4 @@ terraform import azurerm_oracle_autonomous_database_clone.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Oracle.Database`: 2024-06-01
+* `Oracle.Database`: 2025-03-01

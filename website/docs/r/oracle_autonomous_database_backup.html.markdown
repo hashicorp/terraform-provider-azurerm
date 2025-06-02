@@ -33,7 +33,7 @@ resource "azurerm_oracle_autonomous_database_backup" "example" {
   backup_type              = "Full"
 
   # Optional: specify a custom display name
-  display_name             = "My Database Backup"
+  display_name = "My Database Backup"
 }
 
 ```
