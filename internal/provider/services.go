@@ -187,6 +187,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		loadbalancer.Registration{},
 		loadtestservice.Registration{},
 		loganalytics.Registration{},
+		logic.Registration{},
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedhsm.Registration{},
