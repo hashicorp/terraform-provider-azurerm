@@ -812,6 +812,10 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 
 			existing.Model.Properties = pointer.To(siteEnvelope)
 
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Model.Tags = pointer.To(data.Tags)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -1497,11 +1501,11 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
 	}
 
-	if metadata.ResourceData.HasChanges("site_config.0.cors") {
+	if metadata.ResourceData.HasChange("site_config.0.cors") {
 		siteConfig.Cors = helpers.ExpandCorsSettings(config.Cors)
 	}
 
-	if metadata.ResourceData.HasChanges("site_config.0.ip_restriction") {
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
 		ipr, err := helpers.ExpandIpRestrictions(config.IpRestriction)
 		if err != nil {
 			return nil, err
@@ -1509,7 +1513,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.IPSecurityRestrictions = ipr
 	}
 
-	if metadata.ResourceData.HasChanges("site_config.0.scm_ip_restriction") {
+	if metadata.ResourceData.HasChange("site_config.0.scm_ip_restriction") {
 		ipr, err := helpers.ExpandIpRestrictions(config.SCMIPRestriction)
 		if err != nil {
 			return nil, err
@@ -1517,19 +1521,19 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.ScmIPSecurityRestrictions = ipr
 	}
 
-	if metadata.ResourceData.HasChanges("site_config.0.min_scm_tls_version") {
+	if metadata.ResourceData.HasChange("site_config.0.scm_min_tls_version") {
 		siteConfig.ScmMinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](config.SCMMinTLSVersion)
 	}
 
-	if metadata.ResourceData.HasChanges("site_config.0.scm_type") {
+	if metadata.ResourceData.HasChange("site_config.0.scm_type") {
 		siteConfig.ScmType = pointer.ToEnum[webapps.ScmType](config.SCMType)
 	}
 
-	if metadata.ResourceData.HasChanges("site_config.0.min_tls_version") {
+	if metadata.ResourceData.HasChange("site_config.0.min_tls_version") {
 		siteConfig.MinTlsVersion = pointer.ToEnum[webapps.SupportedTlsVersions](config.MinTLSVersion)
 	}
 
-	if metadata.ResourceData.HasChanges("site_config.0.ftps_state") {
+	if metadata.ResourceData.HasChange("site_config.0.ftps_state") {
 		siteConfig.FtpsState = pointer.ToEnum[webapps.FtpsState](config.FTPSState)
 	}
 
@@ -1549,7 +1553,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.FunctionAppScaleLimit = pointer.To(config.AppScaleLimit)
 	}
 
-	if metadata.ResourceData.HasChanges("site_config.0.dotnet_framework_version") {
+	if metadata.ResourceData.HasChange("site_config.0.dotnet_framework_version") {
 		siteConfig.NetFrameworkVersion = pointer.To(config.DotnetFrameworkVersion)
 	}
 
@@ -1646,6 +1650,10 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 			break
 		}
 
+		addOrUpdate[k] = v
+	}
+
+	for k, v := range cMap {
 		addOrUpdate[k] = v
 	}
 
