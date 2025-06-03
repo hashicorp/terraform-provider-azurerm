@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source**: `azurerm_dev_center_project` [GH-29747]
+* **New Data Source**: `azurerm_dev_center_project_environment_type` [GH-29762]
 
 ENHANCEMENTS:
 
