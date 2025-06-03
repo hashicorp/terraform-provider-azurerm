@@ -41,6 +41,43 @@ func TestAccLogicAppStandard_basic(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_completeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_publishBasicAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -1098,6 +1135,265 @@ resource "azurerm_logic_app_standard" "test" {
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                                     = "acctest-%[2]d-func"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  app_service_plan_id                      = azurerm_app_service_plan.test.id
+  storage_account_name                     = azurerm_storage_account.test.name
+  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle                     = true
+  bundle_version                           = "[1.31.12]"
+  // client_affinity_enabled                  = true
+  client_certificate_mode                  = "Required"
+  enabled                                  = false
+  https_only                               = true
+  ftp_publish_basic_authentication_enabled = false
+  scm_publish_basic_authentication_enabled = false
+  public_network_access                    = "Enabled"
+  version                                  = "~4"
+  vnet_content_share_enabled               = true
+  virtual_network_subnet_id                = azurerm_subnet.test1.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  app_settings = {
+    "hello"                          = "world"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
+  }
+
+  site_config {
+    always_on 			= true
+    min_tls_version     = 1.2
+    scm_min_tls_version = 1.2
+
+	cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+        "contoso.com",
+        "http://localhost:4201",
+      ]
+
+      support_credentials = true
+    }
+
+    ftps_state = "FtpsOnly"
+    http2_enabled = true
+	pre_warmed_instance_count = 2
+    scm_use_main_ip_restriction = true
+    scm_type = "GitHub"
+    use_32_bit_worker_process = false
+    websockets_enabled = true
+    health_check_path = "/health"
+	elastic_instance_minimum = 1
+    app_scale_limit = 10
+    runtime_scale_monitoring_enabled = true
+    dotnet_framework_version = "v6.0"
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+  }
+
+  connection_string {
+    name  = "Example"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  tags = {
+	environment = "AccTest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "subnet1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acct2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                                     = "acctest-%[2]d-func"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  app_service_plan_id                      = azurerm_app_service_plan.test.id
+  storage_account_name                     = azurerm_storage_account.test.name
+  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle                     = true
+  bundle_version                           = "[1.31.13]"
+  // client_affinity_enabled                  = true
+  client_certificate_mode                  = "Required"
+  enabled                                  = false
+  https_only                               = true
+  ftp_publish_basic_authentication_enabled = false
+  scm_publish_basic_authentication_enabled = false
+  public_network_access                    = "Enabled"
+  version                                  = "~4"
+  vnet_content_share_enabled               = true
+  virtual_network_subnet_id                = azurerm_subnet.test1.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.test2.id]
+  }
+
+  app_settings = {
+    "hello"                          = "goodbye"
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
+  }
+
+  site_config {
+    always_on 			= true
+    min_tls_version     = 1.3
+    scm_min_tls_version = 1.3
+
+	cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+        "contoso.com",
+        "http://localhost:4201",
+      ]
+
+      support_credentials = true
+    }
+
+    ftps_state = "Disabled"
+    http2_enabled = false
+	pre_warmed_instance_count = 3
+    scm_use_main_ip_restriction = false
+    scm_type = "ExternalGit"
+    use_32_bit_worker_process = true
+    websockets_enabled = false
+    health_check_path = "/"
+	elastic_instance_minimum = 0
+    app_scale_limit = 12
+    runtime_scale_monitoring_enabled = false
+    dotnet_framework_version = "v8.0"
+
+    ip_restriction {
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+    ip_restriction {
+      ip_address = "10.10.10.12/32"
+      name       = "test-restriction2"
+      priority   = 125
+      action     = "Allow"
+      headers {
+        x_azure_fdid      = ["55ce4ed1-4b06-4bf1-b40e-4638452104da"]
+        x_fd_health_probe = ["1"]
+        x_forwarded_for   = ["9.9.9.9/32", "2002::1234:abcd:ffff:c0a8:101/64"]
+        x_forwarded_host  = ["example.com"]
+      }
+    }
+  }
+
+  connection_string {
+    name  = "Example"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
+  }
+
+  connection_string {
+    name  = "Example2"
+    value = "some-postgresql-connection-string2"
+    type  = "PostgreSQL"
+  }
+
+  tags = {
+	environment = "AccTestUpdated"
+    foo = "bar"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
