@@ -29,6 +29,7 @@ func TestAccVPNGatewayDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("bgp_settings.0.instance_1_bgp_peering_address.0.tunnel_ips.0").Exists(),
 				check.That(data.ResourceName).Key("bgp_settings.0.instance_1_bgp_peering_address.0.default_ips.0").Exists(),
 				check.That(data.ResourceName).Key("bgp_settings.0.instance_1_bgp_peering_address.0.ip_configuration_id").Exists(),
+				check.That(data.ResourceName).Key("ip_configuration.#").HasValue("2"),
 			),
 		},
 	})
