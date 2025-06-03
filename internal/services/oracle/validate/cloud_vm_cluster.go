@@ -115,3 +115,33 @@ func SystemVersion(i interface{}, k string) (warnings []string, errors []error) 
 
 	return
 }
+
+func DatabaseServerType(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if len(v) < 1 || len(v) > 255 {
+		errors = append(errors, fmt.Errorf("databse_server_type must be %d to %d characters", 1, 255))
+		return
+	}
+
+	return
+}
+
+func StorageServerType(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if len(v) < 1 || len(v) > 255 {
+		errors = append(errors, fmt.Errorf("storage_server_type must be %d to %d characters", 1, 255))
+		return
+	}
+
+	return
+}
