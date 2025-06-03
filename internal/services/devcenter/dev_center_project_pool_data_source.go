@@ -42,7 +42,7 @@ func (DevCenterProjectPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DevCenterProjectPoolName,
 		},
 
-		"dev_center_project_id": commonschema.ResourceIDReferenceRequiredForceNew(&pools.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&pools.ProjectId{}),
 	}
 }
 
