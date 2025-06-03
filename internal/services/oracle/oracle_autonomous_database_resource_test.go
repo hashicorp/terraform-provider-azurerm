@@ -196,7 +196,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
     repeat_cadence           = "Monthly"
     time_of_backup           = "2025-04-03T09:00:00Z"
     retention_period_in_days = 323
-    is_disabled              = false
+    enabled              = false
   }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
