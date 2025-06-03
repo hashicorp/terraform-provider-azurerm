@@ -1669,8 +1669,8 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 }
 
 func reconcilePNA(d sdk.ResourceMetaData) string {
-	pna := ""
-	scPNASet := true
+	pna := helpers.PublicNetworkAccessEnabled
+	scPNASet := false
 	d.ResourceData.GetRawConfig().AsValueMap()["public_network_access"].IsNull()
 	if !d.ResourceData.GetRawConfig().AsValueMap()["public_network_access"].IsNull() { // is top level set, takes precedence
 		pna = d.ResourceData.Get("public_network_access").(string)
