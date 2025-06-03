@@ -445,7 +445,7 @@ func expandCorsPolicy(inputList []CorsPolicy) *containerapps.CorsPolicy {
 	return &result
 }
 
-func FlattenCorsPolicy(input *containerapps.CorsPolicy) []CorsPolicy {
+func flattenCorsPolicy(input *containerapps.CorsPolicy) []CorsPolicy {
 	outputList := make([]CorsPolicy, 0)
 	if input == nil {
 		return outputList
@@ -489,7 +489,7 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 	}
 
 	if ingress.CorsPolicy != nil {
-		result.CorsPolicy = FlattenCorsPolicy(ingress.CorsPolicy)
+		result.CorsPolicy = flattenCorsPolicy(ingress.CorsPolicy)
 	}
 
 	return []Ingress{result}
