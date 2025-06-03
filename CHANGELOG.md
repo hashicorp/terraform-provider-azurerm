@@ -11,6 +11,8 @@ ENHANCEMENTS:
 * dependencies: `go-azure-sdk` - update to `v0.20250526.1224007` [GH-29745]
 * Data Source: `azurerm_netapp_volume` - export the `large_volume_enabled` property [GH-29712]
 * Data Source: `azurerm_vpn_gateway` - export the `ip_configuration` block [GH-29186]
+* `azurerm_kubernetes_cluster` - the `vm_size` property is optional [GH-29612]
+* `azurerm_kubernetes_cluster_node_pool` - the `vm_size` property is optional [GH-29612]
 * `azurerm_netapp_volume` - allow volumes-from-snapshots to have a different pool than original volume [GH-29425]
 * `azurerm_netapp_volume` - add support for the `large_volume_enabled` property [GH-29712]
 * `azurerm_postgresql_flexible_server` - add support for versionless key vault key IDs to the `customer_managed_key.key_vault_key_id` property [GH-29741]
