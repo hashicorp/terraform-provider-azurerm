@@ -159,6 +159,16 @@ type Ingress struct {
 	Transport              string                  `tfschema:"transport"`
 	IpSecurityRestrictions []IpSecurityRestriction `tfschema:"ip_security_restriction"`
 	ClientCertificateMode  string                  `tfschema:"client_certificate_mode"`
+	CorsPolicy             []CorsPolicy            `tfschema:"cors_policy"`
+}
+
+type CorsPolicy struct {
+	AllowCredentialsEnabled bool     `tfschema:"allow_credentials_enabled"`
+	AllowedHeaders          []string `tfschema:"allowed_headers"`
+	AllowedMethods          []string `tfschema:"allowed_methods"`
+	AllowedOrigins          []string `tfschema:"allowed_origins"`
+	ExposeHeaders           []string `tfschema:"expose_headers"`
+	MaxAgeInSeconds         int64    `tfschema:"max_age_in_seconds"`
 }
 
 func ContainerAppIngressSchema() *pluginsdk.Schema {
@@ -183,6 +193,54 @@ func ContainerAppIngressSchema() *pluginsdk.Schema {
 				},
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
+
+				"cors_policy": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"allowed_origins": {
+								Type:     pluginsdk.TypeList,
+								Required: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allow_credentials_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Optional: true,
+								Default:  false,
+							},
+							"allowed_headers": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allowed_methods": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"expose_headers": {
+								Type:     pluginsdk.TypeList,
+								Optional: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"max_age_in_seconds": {
+								Type:     pluginsdk.TypeInt,
+								Optional: true,
+							},
+						},
+					},
+				},
 
 				"fqdn": {
 					Type:        pluginsdk.TypeString,
@@ -304,6 +362,7 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		ExposedPort:            pointer.To(ingress.ExposedPort),
 		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
 		IPSecurityRestrictions: expandIpSecurityRestrictions(ingress.IpSecurityRestrictions),
+		CorsPolicy:             expandCorsPolicy(ingress.CorsPolicy),
 	}
 	transport := containerapps.IngressTransportMethod(ingress.Transport)
 	result.Transport = &transport
@@ -313,6 +372,49 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 	}
 
 	return result
+}
+
+func expandCorsPolicy(inputList []CorsPolicy) *containerapps.CorsPolicy {
+	if len(inputList) == 0 {
+		return nil
+	}
+
+	input := &inputList[0]
+	result := containerapps.CorsPolicy{
+		AllowCredentials: pointer.To(input.AllowCredentialsEnabled),
+		AllowedOrigins:   input.AllowedOrigins,
+		MaxAge:           pointer.To(input.MaxAgeInSeconds),
+	}
+
+	if len(input.AllowedHeaders) > 0 {
+		result.AllowedHeaders = pointer.To(input.AllowedHeaders)
+	}
+	if len(input.AllowedMethods) > 0 {
+		result.AllowedMethods = pointer.To(input.AllowedMethods)
+	}
+	if len(input.ExposeHeaders) > 0 {
+		result.ExposeHeaders = pointer.To(input.ExposeHeaders)
+	}
+
+	return &result
+}
+
+func FlattenCorsPolicy(input *containerapps.CorsPolicy) []CorsPolicy {
+	outputList := make([]CorsPolicy, 0)
+	if input == nil {
+		return outputList
+	}
+
+	output := CorsPolicy{
+		AllowCredentialsEnabled: pointer.From(input.AllowCredentials),
+		AllowedHeaders:          pointer.From(input.AllowedHeaders),
+		AllowedMethods:          pointer.From(input.AllowedMethods),
+		AllowedOrigins:          input.AllowedOrigins,
+		ExposeHeaders:           pointer.From(input.ExposeHeaders),
+		MaxAgeInSeconds:         pointer.From(input.MaxAge),
+	}
+
+	return append(outputList, output)
 }
 
 func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []Ingress {
@@ -330,6 +432,7 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 		ExposedPort:            pointer.From(ingress.ExposedPort),
 		TrafficWeights:         flattenContainerAppIngressTraffic(ingress.Traffic, appName),
 		IpSecurityRestrictions: flattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
+		CorsPolicy:             FlattenCorsPolicy(ingress.CorsPolicy),
 	}
 
 	if ingress.Transport != nil {
