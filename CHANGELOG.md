@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source**: `azurerm_dev_center_project` [GH-29747]
 * **New Data Source**: `azurerm_dev_center_project_environment_type` [GH-29762]
+* **New Resource**: `azurerm_qumulo_file_system` [GH-28704]
 
 ENHANCEMENTS:
 
