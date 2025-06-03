@@ -303,6 +303,52 @@ func ContainerAppIngressSchemaComputed() *pluginsdk.Schema {
 
 				"custom_domain": ContainerAppIngressCustomDomainSchemaComputed(),
 
+				"cors_policy": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"allowed_origins": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allow_credentials_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Computed: true,
+							},
+							"allowed_headers": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"allowed_methods": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							"expose_headers": {
+								Type:     pluginsdk.TypeList,
+								Computed: true,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+							"max_age_in_seconds": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
+						},
+					},
+				},
+
 				"external_enabled": {
 					Type:        pluginsdk.TypeBool,
 					Computed:    true,
@@ -432,7 +478,6 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 		ExposedPort:            pointer.From(ingress.ExposedPort),
 		TrafficWeights:         flattenContainerAppIngressTraffic(ingress.Traffic, appName),
 		IpSecurityRestrictions: flattenContainerAppIngressIpSecurityRestrictions(ingress.IPSecurityRestrictions),
-		CorsPolicy:             FlattenCorsPolicy(ingress.CorsPolicy),
 	}
 
 	if ingress.Transport != nil {
@@ -441,6 +486,10 @@ func FlattenContainerAppIngress(input *containerapps.Ingress, appName string) []
 
 	if ingress.ClientCertificateMode != nil {
 		result.ClientCertificateMode = string(*ingress.ClientCertificateMode)
+	}
+
+	if ingress.CorsPolicy != nil {
+		result.CorsPolicy = FlattenCorsPolicy(ingress.CorsPolicy)
 	}
 
 	return []Ingress{result}
