@@ -94,3 +94,9 @@ Custom Provider can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_custom_provider.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.CustomProviders/resourceProviders/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CustomProviders`: 2018-09-01-preview

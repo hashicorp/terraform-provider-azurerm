@@ -105,3 +105,9 @@ Fluid Relay Servers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_fluid_relay_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.FluidRelay/fluidRelayServers/server1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.FluidRelay`: 2022-05-26

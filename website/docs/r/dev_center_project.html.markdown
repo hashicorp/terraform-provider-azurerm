@@ -101,3 +101,9 @@ terraform import azurerm_dev_center_project.example /subscriptions/{subscription
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Dev Center Project exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this Dev Center Project exists. For example `example-resource-group`.
 * Where `{projectName}` is the name of the Project. For example `projectValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter`: 2025-02-01

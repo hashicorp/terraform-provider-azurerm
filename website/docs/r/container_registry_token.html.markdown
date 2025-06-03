@@ -11,6 +11,8 @@ description: |-
 
 Manages an Azure Container Registry token associated to a scope map. For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-repository-scoped-permissions).
 
+## Example Usage
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resource-group"
@@ -88,3 +90,9 @@ Container Registries can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry_token.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/tokens/token1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry`: 2023-11-01-preview

@@ -69,3 +69,9 @@ Coordinator Configurations on Azure Cosmos DB for PostgreSQL Clusters can be imp
 ```shell
 terraform import azurerm_cosmosdb_postgresql_coordinator_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/serverGroupsv2/cluster1/coordinatorConfigurations/array_nulls
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2022-11-08

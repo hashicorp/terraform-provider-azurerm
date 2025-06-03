@@ -116,3 +116,9 @@ An existing Dev Center Project Environment Type can be imported into Terraform u
 ```shell
 terraform import azurerm_dev_center_project_environment_type.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/projects/project1/environmentTypes/et1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter`: 2025-02-01

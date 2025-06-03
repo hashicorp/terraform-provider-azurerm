@@ -106,3 +106,9 @@ A Stream Analytics Output to an Azure Synapse Analytics Workspace can be importe
 ```shell
 terraform import azurerm_stream_analytics_output_synapse.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/outputs/output1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StreamAnalytics`: 2021-10-01-preview

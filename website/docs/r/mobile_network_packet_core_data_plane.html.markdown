@@ -110,3 +110,9 @@ Mobile Network Packet Core Data Plane can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_mobile_network_packet_core_data_plane.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.MobileNetwork/packetCoreControlPlanes/packetCoreControlPlane1/packetCoreDataPlanes/packetCoreDataPlane1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork`: 2022-11-01

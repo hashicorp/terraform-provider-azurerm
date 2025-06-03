@@ -103,3 +103,9 @@ Redis can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_redis_linked_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redis/cache1/linkedServers/cache2
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cache`: 2024-11-01

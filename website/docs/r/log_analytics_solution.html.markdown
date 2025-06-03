@@ -92,3 +92,9 @@ Log Analytics Solutions can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_log_analytics_solution.solution1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationsManagement/solutions/solution1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationsManagement`: 2015-11-01-preview

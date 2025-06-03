@@ -101,6 +101,8 @@ The `metric_rule` block supports the following:
 
 * `filtering_tag` - (Optional) Filtering tag for the metric rule. A `filtering_tag` block as defined below.
 
+* `sending_metrics_enabled` - (Optional) If sending metrics is enabled. The default value is `false`.
+
 ---
 
 The `filtering_tag` block supports the following:
@@ -133,3 +135,9 @@ Dynatrace tag rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dynatrace_tag_rules.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Dynatrace.Observability/monitors/monitor1/tagRules/tagRules1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Dynatrace.Observability`: 2023-04-27

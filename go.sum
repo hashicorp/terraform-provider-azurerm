@@ -92,10 +92,10 @@ github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-azure-helpers v0.72.0 h1:eOCpXBkDYYMESkOBC0LgPMNUdiLPtQxv7sCW/hHdUbw=
 github.com/hashicorp/go-azure-helpers v0.72.0/go.mod h1:Omirva2gGNrhN4pigurl5RN7u3BoaN0bco8ZSbdaNy8=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20250409.1192141 h1:Pcg1YL7B6iWG9UWKgvd3v2d7K9Zp43bNePmRP52HYB4=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20250409.1192141/go.mod h1:MZGY8UAS8jtXSqZSDF7O6QTsAe09N21AAdQbUREKeX4=
-github.com/hashicorp/go-azure-sdk/sdk v0.20250409.1192141 h1:t8kLm2lV5I7RQ0RpnQ8hxSfsLWUo/xpq1nBpSdxIguQ=
-github.com/hashicorp/go-azure-sdk/sdk v0.20250409.1192141/go.mod h1:/LiVkre6Py4M8+xkSHgJieWkHWv03USdwg5x/zeX9Rc=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20250526.1224007 h1:f6lHHLKKpP9UvqBJgTj9KYc151pl4Hejn+JPJc3tBaw=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20250526.1224007/go.mod h1:ODGrAh7XT0ZdevtTJmR+vQ7AlYUzsxDjPMMgRXa6KYo=
+github.com/hashicorp/go-azure-sdk/sdk v0.20250526.1224007 h1:r12QJswIykg3Ofqby1WJi1NnR42Qmnaij6/1kBCLLEg=
+github.com/hashicorp/go-azure-sdk/sdk v0.20250526.1224007/go.mod h1:/LiVkre6Py4M8+xkSHgJieWkHWv03USdwg5x/zeX9Rc=
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=
@@ -255,8 +255,8 @@ golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2/go.mod h1:9nx3DQGgdP8bBQD5qx
 golang.org/x/net v0.0.0-20220722155237-a158d28d115b/go.mod h1:XRhObCWvk6IyKnWLug+ECip1KBveYUHfp+8e9klMJ9c=
 golang.org/x/net v0.6.0/go.mod h1:2Tu9+aMcznHK/AK1HMvgo6xiTLG5rD5rZLDS+rp2Bjs=
 golang.org/x/net v0.10.0/go.mod h1:0qNGK6F8kojg2nk9dLZ2mShWaEBan6FAoqfSigmmuDg=
-golang.org/x/net v0.37.0 h1:1zLorHbz+LYj7MQlSf1+2tPIIgibq2eL5xkrGk6f+2c=
-golang.org/x/net v0.37.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
+golang.org/x/net v0.38.0 h1:vRMAPTMaeGqVhG5QyLJHqNDwecKTomGeqbnfZyKlBI8=
+golang.org/x/net v0.38.0/go.mod h1:ivrbrMbzFq5J41QOQh0siUuly180yBYtLp+CKbEaFx8=
 golang.org/x/oauth2 v0.23.0 h1:PbgcYx2W7i4LvjJWEbf0ngHV6qJYr86PkAV3bXdLEbs=
 golang.org/x/oauth2 v0.23.0/go.mod h1:XYTD2NtWslqkgxebSiOHnXEap4TF09sJSc7H1sXbhtI=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
