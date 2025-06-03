@@ -1347,7 +1347,7 @@ resource "azurerm_logic_app_standard" "test" {
     use_32_bit_worker_process = true
     websockets_enabled = false
     health_check_path = "/"
-	elastic_instance_minimum = 0
+	elastic_instance_minimum = 1
     app_scale_limit = 12
     runtime_scale_monitoring_enabled = false
     dotnet_framework_version = "v8.0"
