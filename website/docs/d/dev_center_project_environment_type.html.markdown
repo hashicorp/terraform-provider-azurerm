@@ -37,17 +37,17 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Dev Center Project Environment Type.
 
-* `location` - The Azure Region where the Dev Center Project Environment Type should exist.
+* `location` - The Azure Region where the Dev Center Project Environment Type exists.
 
-* `deployment_target_id` - The ID of the subscription that the Environment Type will be mapped to.
+* `deployment_target_id` - The ID of the subscription that the Environment Type is mapped to.
 
 * `identity` - An `identity` block as defined below.
 
-* `creator_role_assignment_roles` - A list of roles to assign to the environment creator.
+* `creator_role_assignment_roles` - A list of roles assigned to the environment creator.
 
 * `user_role_assignment` - A `user_role_assignment` block as defined below.
 
-* `tags` - A mapping of tags which should be assigned to the Dev Center Project Environment Type.
+* `tags` - A mapping of tags assigned to the Dev Center Project Environment Type.
 
 ---
 

@@ -137,7 +137,7 @@ func (r DevCenterProjectEnvironmentTypeDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Name = id.EnvironmentTypeName
 				state.DevCenterProjectId = projects.NewProjectID(id.SubscriptionId, id.ResourceGroupName, id.ProjectName).ID()
-				state.Location = location.Normalize(pointer.From(model.Location))
+				state.Location = location.NormalizeNilable(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
 				identity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
