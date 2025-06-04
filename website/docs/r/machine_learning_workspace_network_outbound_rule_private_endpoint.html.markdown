@@ -92,7 +92,7 @@ The following arguments are supported:
 
 ~> **Note** Supported service resources: **Key Vault**, **Storage Account**, **Machine Learning Workspace**, **Redis**.
 
-* `sub_resource_target` - (Required) Specifies the Sub Resource of the service resource to connect to. Possible values are `vault`,`amlworkspace`,`blob`,`table`,`queue`,`file`,`web`,`dfs`, `redisCache`. Changing this forces a new resource to be created.
+* `sub_resource_target` - (Required) Specifies the Sub Resource of the service resource to connect to. Possible values are `vault`,`amlworkspace`,`blob`,`table`,`queue`,`file`,`web`,`dfs`, `redisCache` and `account`. Changing this forces a new resource to be created.
 
   | Service                    | Sub Resource Type                         |
   |----------------------------|-------------------------------------------|
