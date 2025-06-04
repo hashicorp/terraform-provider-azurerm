@@ -151,6 +151,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4193280, 4194304, 8388608, 16777216, 33553408}),
 			},
 
+			"storage_type": {
+				Type:         pluginsdk.TypeString,
+				Description:  "The type of storage disk",
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForStorageType(), false),
+			},
+
 			"storage_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1048,6 +1056,10 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 
 	if v, ok := d.GetOk("storage_tier"); ok {
 		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
+	}
+
+	if v, ok := d.GetOk("storage_type"); ok {
+		storage.Type = pointer.To(servers.StorageType(v.(string)))
 	}
 
 	return &storage

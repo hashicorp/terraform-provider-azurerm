@@ -518,6 +518,17 @@ func TestAccPostgresqlFlexibleServer_invalidStorageTier(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_invalidStorageType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidStorageType(data),
+			ExpectError: regexp.MustCompile("invalid 'storage_type'"),
+		},
+	})
+}
+
 func TestAccPostgresqlFlexibleServer_invalidStorageTierScalingStorageMb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -1533,6 +1544,25 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   storage_mb             = 65536
   storage_tier           = "P4"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) invalidStorageType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  storage_type           = "SSD"
   version                = "12"
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
