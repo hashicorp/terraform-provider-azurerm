@@ -54,6 +54,11 @@ func dataSourceKubernetesClusterNodePool() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"gpu_profile": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"max_count": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -207,6 +212,12 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 			evictionPolicy = string(*props.ScaleSetEvictionPolicy)
 		}
 		d.Set("eviction_policy", evictionPolicy)
+
+		gpuProfile := ""
+		if props.GpuProfile != nil && *props.GpuProfile.Driver != "" {
+			gpuProfile = string(*props.GpuProfile.Driver)
+		}
+		d.Set("gpu_profile", gpuProfile)
 
 		maxCount := 0
 		if props.MaxCount != nil {
