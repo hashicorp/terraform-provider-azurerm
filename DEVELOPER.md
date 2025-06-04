@@ -78,17 +78,34 @@ make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='6
 
 The following Environment Variables must be set in your shell prior to running acceptance tests:
 
-- `ARM_CLIENT_ID`
-- `ARM_CLIENT_SECRET`
-- `ARM_SUBSCRIPTION_ID`
-- `ARM_TENANT_ID`
-- `ARM_ENVIRONMENT`
-- `ARM_METADATA_HOSTNAME`
-- `ARM_TEST_LOCATION`
-- `ARM_TEST_LOCATION_ALT`
-- `ARM_TEST_LOCATION_ALT2`
+* `ARM_CLIENT_ID`: See note below on setting up `ARM_CLIENT_ID`
+* `ARM_CLIENT_SECRET`: See note below on setting up `ARM_CLIENT_SECRET`
+* `ARM_SUBSCRIPTION_ID`: The Azure subscription id, can be obtained from portal
+* `ARM_TENANT_ID`: The Azure tenant id, can be obtained from portal
+* `ARM_ENVIRONMENT`: Default is `public`. See [from_name.go](https://github.com/hashicorp/go-azure-sdk/blob/e69969765468264aac1f33333f6d93887c816327/sdk/environments/from_name.go) for other possible values.
+* `ARM_TEST_LOCATION`: Location where test resources are created, use `az account list-locations` CLI command to see list of available locations.
+* `ARM_TEST_LOCATION_ALT`: Similar as above. Some acctest creates resource in multiple locations.
+* `ARM_TEST_LOCATION_ALT2`: Similar as above. Some acctest creates resource in multiple locations.
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
+
+There are two set of steps to setup `ARM_CLIENT_ID` and `ARM_CLIENT_SECRET`. First create a new 'App registration':
+
+1. From Azure portal, go to 'Microsoft Entra ID'
+2. Go to 'App registrations' -> 'New registration'
+3. Provide a descriptive name such as `yourusername-azurerm-acctest`, leave 'Supported account types' to the default option, and hit 'Register'
+4. On the App registration details -> 'Overview', note down the 'Application (client) ID', this is your `ARM_CLIENT_ID`
+5. On the 'Manage' -> 'Certificate & secrets', add a new client secret using the 'New client secret' button
+6. Note down the 'Value', this is your `ARM_CLIENT_SECRET`
+
+Next, you need to assign 'Contributor' role to your app for the subscription:
+
+1. Go to 'Subscriptions', choose the subscription you will use for acctest
+2. Go to 'Access control (IAM)' -> 'Role assignments' -> 'Add role assignment'
+3. From 'Privileged administrator roles', choose 'Contributor', hit 'Next'
+4. On the 'Members' tab, choose 'Assign access to' to 'User group, or service principal'
+5. Hit '+ Select members' and search the app you just created by its name
+6. Hit 'Review + assign'
 
 ---
 
