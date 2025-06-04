@@ -44,6 +44,8 @@ output "databricks_workspace_id" {
 
 * `storage_account_identity` - A `storage_account_identity` block as documented below.
 
+* `enhanced_security_compliance` - An `enhanced_security_compliance` block as documented below.
+
 * `tags` - A mapping of tags to assign to the Databricks Workspace.
 
 ---
@@ -66,8 +68,26 @@ A `storage_account_identity` block exports the following:
 
 * `type` - The type of the internal databricks storage account.
 
+---
+
+An `enhanced_security_compliance` block exports the following:
+
+* `automatic_cluster_update_enabled` - Whether automatic cluster updates for this workspace is enabled.
+
+* `compliance_security_profile_enabled` - Whether compliance security profile for this workspace is enabled.
+
+* `compliance_security_profile_standards` - A list of standards enforced on this workspace.
+
+* `enhanced_security_monitoring_enabled` - Whether enhanced security monitoring for this workspace is enabled.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Databricks`: 2024-05-01

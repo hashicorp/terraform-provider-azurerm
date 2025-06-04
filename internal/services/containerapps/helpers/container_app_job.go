@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -499,6 +499,9 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 			storageType := jobs.StorageType(v.StorageType)
 			volume.StorageType = &storageType
 		}
+		if v.MountOptions != "" {
+			volume.MountOptions = pointer.To(v.MountOptions)
+		}
 		volumes = append(volumes, volume)
 	}
 
@@ -838,6 +841,9 @@ func flattenContainerAppJobVolumes(input *[]jobs.Volume) []ContainerVolume {
 		}
 		if v.StorageType != nil {
 			containerVolume.StorageType = string(*v.StorageType)
+		}
+		if v.MountOptions != nil {
+			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
 
 		result = append(result, containerVolume)

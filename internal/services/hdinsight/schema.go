@@ -344,6 +344,7 @@ func SchemaHDInsightsScriptActions() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ForceNew: true,
 		MinItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -1157,8 +1158,6 @@ type HDInsightNodeDefinition struct {
 	FixedTargetInstanceCount *int64
 	CanAutoScaleByCapacity   bool
 	CanAutoScaleOnSchedule   bool
-	// todo remove in 4.0
-	CanAutoScaleByCapacityDeprecated4PointOh bool
 }
 
 func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *pluginsdk.Schema {
@@ -1255,37 +1254,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 					}
 				}
 			}
-			// managing `azurerm_hdinsight_interactive_query_cluster` autoscaling through `capacity` doesn't work so we'll deprecate this portion of the schema for 4.0
-			if definition.CanAutoScaleByCapacityDeprecated4PointOh {
-				autoScales["capacity"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					},
-					Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"min_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-							"max_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-						},
-					},
-				}
-				if definition.CanAutoScaleOnSchedule {
-					autoScales["capacity"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					}
-				}
-			}
+
 			if definition.CanAutoScaleOnSchedule {
 				autoScales["recurrence"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,
@@ -1472,37 +1441,7 @@ func SchemaHDInsightNodeDefinitionKafka(schemaLocation string, definition HDInsi
 					}
 				}
 			}
-			// managing `azurerm_hdinsight_interactive_query_cluster` autoscaling through `capacity` doesn't work so we'll deprecate this portion of the schema for 4.0
-			if definition.CanAutoScaleByCapacityDeprecated4PointOh {
-				autoScales["capacity"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					},
-					Deprecated: "HDInsight interactive query clusters can no longer be configured through `autoscale.0.capacity`. Use `autoscale.0.recurrence` instead.",
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"min_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-							"max_instance_count": {
-								Type:         pluginsdk.TypeInt,
-								Required:     true,
-								ValidateFunc: countValidation,
-							},
-						},
-					},
-				}
-				if definition.CanAutoScaleOnSchedule {
-					autoScales["capacity"].ConflictsWith = []string{
-						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
-					}
-				}
-			}
+
 			if definition.CanAutoScaleOnSchedule {
 				autoScales["recurrence"] = &pluginsdk.Schema{
 					Type:     pluginsdk.TypeList,

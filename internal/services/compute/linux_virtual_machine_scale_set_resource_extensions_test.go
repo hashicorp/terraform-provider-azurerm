@@ -420,10 +420,6 @@ func (r LinuxVirtualMachineScaleSetResource) extensionOnlySettings(data acceptan
 	return fmt.Sprintf(`
 %[1]s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -481,10 +477,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) extensionBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -548,10 +540,6 @@ func (r LinuxVirtualMachineScaleSetResource) extensionForceUpdateTag(data accept
 	return fmt.Sprintf(`
 %[1]s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -613,10 +601,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) extensionMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -694,10 +678,6 @@ func (r LinuxVirtualMachineScaleSetResource) extensionUpdate(data acceptance.Tes
 	return fmt.Sprintf(`
 %[1]s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -754,9 +734,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) extensionsRollingUpgradeWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-provider "azurerm" {
-  features {}
-}
+
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%d"
   resource_group_name             = azurerm_resource_group.test.name
@@ -813,9 +791,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) extensionsWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-provider "azurerm" {
-  features {}
-}
+
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%d"
   resource_group_name             = azurerm_resource_group.test.name
@@ -867,9 +843,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-provider "azurerm" {
-  features {}
-}
+
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%d"
   resource_group_name             = azurerm_resource_group.test.name
@@ -932,10 +906,6 @@ func (r LinuxVirtualMachineScaleSetResource) extensionWithTimeBudget(data accept
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -996,10 +966,6 @@ func (r LinuxVirtualMachineScaleSetResource) extensionTimeBudgetWithoutExtension
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1044,10 +1010,6 @@ func (r LinuxVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithServi
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_service_fabric_cluster" "test" {
   name                = "acctest-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1055,7 +1017,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Linux"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = "3341DB6CF2AF72C611DF3BE3721A653AF1D43ECD50F584F828793DBE9103C3EE"
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "backend"
@@ -1137,10 +1104,6 @@ func (r LinuxVirtualMachineScaleSetResource) extensionAutomaticUpgradeEnabled(da
 	return fmt.Sprintf(`
 %[1]s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1194,10 +1157,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) extensionOperationsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -1262,10 +1221,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) extensionOperationsDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -1411,5 +1366,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomString, index)
+`, r.templateWithOutProvider(data), data.RandomInteger, data.RandomString, index)
 }

@@ -77,6 +77,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 			// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 			ValidateFunc: validation.StringInSlice([]string{
 				string(keyvault.JSONWebKeyTypeECHSM),
+				string(keyvault.JSONWebKeyTypeOctHSM),
 				string(keyvault.JSONWebKeyTypeRSAHSM),
 			}, false),
 		},
@@ -121,6 +122,7 @@ func (r KeyVaultMHSMKeyResource) Arguments() map[string]*pluginsdk.Schema {
 					string(keyvault.JSONWebKeyOperationUnwrapKey),
 					string(keyvault.JSONWebKeyOperationVerify),
 					string(keyvault.JSONWebKeyOperationWrapKey),
+					string(keyvault.JSONWebKeyOperationImport),
 				}, false),
 			},
 		},

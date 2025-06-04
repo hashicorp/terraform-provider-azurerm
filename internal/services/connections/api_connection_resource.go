@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -20,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceConnection() *pluginsdk.Resource {
@@ -62,26 +62,17 @@ func resourceConnection() *pluginsdk.Resource {
 			"display_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  "Service Bus",
-				// @tombuildsstuff: this can't be patched in API version 2016-06-01 and there isn't Swagger for
-				// API version 2018-07-01-preview, so I guess this is ForceNew for now
-				//
-				// > Status=400 Code="PatchApiConnectionPropertiesNotSupported"
-				// > Message="The request to patch API connection 'acctestconn-220307135205093274' is not supported.
-				// > None of the fields inside the properties object can be patched."
-				ForceNew: true,
+				// Note: O+C because Azure sets a default when `display_name` is not defined but the value depends on which managed API is provided.
+				// For example:
+				//   - Managed API `servicebus` defaults to `Service Bus`
+				//   - Managed API `sftpwithssh` defaults to `SFTP - SSH`
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"parameter_values": {
 				Type:     pluginsdk.TypeMap,
 				Optional: true,
-				// @tombuildsstuff: this can't be patched in API version 2016-06-01 and there isn't Swagger for
-				// API version 2018-07-01-preview, so I guess this is ForceNew for now
-				//
-				// > Status=400 Code="PatchApiConnectionPropertiesNotSupported"
-				// > Message="The request to patch API connection 'acctestconn-220307135205093274' is not supported.
-				// > None of the fields inside the properties object can be patched."
-				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -116,20 +107,19 @@ func resourceConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("parsing `managed_app_id`: %+v", err)
 	}
 	location := location.Normalize(managedAppId.LocationName)
-	parameterValues := expandConnectionParameterValues(d.Get("parameter_values").(map[string]interface{}))
 	model := connections.ApiConnectionDefinition{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &connections.ApiConnectionDefinitionProperties{
 			Api: &connections.ApiReference{
-				Id: utils.String(managedAppId.ID()),
+				Id: pointer.To(managedAppId.ID()),
 			},
-			DisplayName:     utils.String(d.Get("display_name").(string)),
-			ParameterValues: parameterValues,
+			DisplayName:     pointer.To(d.Get("display_name").(string)),
+			ParameterValues: pointer.To(d.Get("parameter_values").(map[string]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if v := d.Get("display_name").(string); v != "" {
-		model.Properties.DisplayName = utils.String(v)
+		model.Properties.DisplayName = pointer.To(v)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
@@ -172,8 +162,9 @@ func resourceConnectionRead(d *schema.ResourceData, meta interface{}) error {
 			}
 			d.Set("managed_api_id", apiId)
 
-			parameterValues := flattenConnectionParameterValues(props.ParameterValues)
-			if err := d.Set("parameter_values", parameterValues); err != nil {
+			// In version 2016-06-01 the API doesn't return `ParameterValues`.
+			// The non-secret parameters are returned in `NonSecretParameterValues` instead.
+			if err := d.Set("parameter_values", flattenParameterValues(pointer.From(props.NonSecretParameterValues))); err != nil {
 				return fmt.Errorf("setting `parameter_values`: %+v", err)
 			}
 		}
@@ -196,17 +187,37 @@ func resourceConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	model := connections.ApiConnectionDefinition{
-		// @tombuildsstuff: this can't be patched in API version 2016-06-01 and there isn't Swagger for
-		// API version 2018-07-01-preview, so I guess this is ForceNew for now. The following error is returned
-		// for both CreateOrUpdate and Update:
-		//
-		// > Status=400 Code="PatchApiConnectionPropertiesNotSupported"
-		// > Message="The request to patch API connection 'acctestconn-220307135205093274' is not supported.
-		// > None of the fields inside the properties object can be patched."
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if _, err := client.Update(ctx, *id, model); err != nil {
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
+	}
+	props := existing.Model.Properties
+
+	if d.HasChange("display_name") {
+		props.DisplayName = pointer.To(d.Get("display_name").(string))
+	}
+
+	// The GET operation returns `NonSecretParameterValues` but we're making updates through `ParameterValues`
+	// so we remove `NonSecretParameterValues` from the request to avoid conflicting parameters.
+	// this is fixed in later (preview) versions of the API but these don't have an API spec available.
+	props.NonSecretParameterValues = nil
+	if d.HasChange("parameter_values") {
+		props.ParameterValues = pointer.To(d.Get("parameter_values").(map[string]interface{}))
+	}
+
+	if d.HasChange("tags") {
+		existing.Model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -230,20 +241,14 @@ func resourceConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandConnectionParameterValues(input map[string]interface{}) *map[string]string {
-	parameterValues := make(map[string]string)
-	for k, v := range input {
-		parameterValues[k] = v.(string)
-	}
-	return &parameterValues
-}
+// Because this API may return other primitive types for `parameter_values`
+// we need to ensure each value in the map is a string to prevent panics when setting this into state.
+func flattenParameterValues(input map[string]interface{}) map[string]string {
+	output := make(map[string]string)
 
-func flattenConnectionParameterValues(input *map[string]string) map[string]interface{} {
-	parameterValues := make(map[string]interface{})
-	if input != nil {
-		for k, v := range *input {
-			parameterValues[k] = v
-		}
+	for k, v := range input {
+		output[k] = fmt.Sprintf("%v", v)
 	}
-	return parameterValues
+
+	return output
 }

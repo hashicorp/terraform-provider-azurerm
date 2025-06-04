@@ -33,7 +33,7 @@ output "servicebus_subscription" {
 
 * `max_delivery_count` - The maximum number of deliveries.
 
-* `auto_delete_on_idle` - The idle interval after which the topic is automatically deleted.
+* `auto_delete_on_idle` - The idle interval after which the Subscription is automatically deleted.
 
 * `default_message_ttl` - The Default message timespan to live. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 
@@ -43,9 +43,9 @@ output "servicebus_subscription" {
 
 * `dead_lettering_on_filter_evaluation_error` - Does the ServiceBus Subscription have dead letter support on filter evaluation exceptions?
 
-* `enable_batched_operations` - Are batched operations enabled on this ServiceBus Subscription?
+* `batched_operations_enabled` - Whether batched operations are enabled.
 
-* `requires_session` - Whether or not this ServiceBus Subscription supports session.
+* `requires_session` - Whether this ServiceBus Subscription supports session.
 
 * `forward_to` - The name of a ServiceBus Queue or ServiceBus Topic where messages are automatically forwarded.
 
@@ -68,3 +68,9 @@ output "servicebus_subscription" {
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus`: 2021-06-01-preview

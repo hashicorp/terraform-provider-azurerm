@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -324,11 +324,11 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if v, ok := d.GetOk("allowed_fqdns"); ok {
-		clusterProperties.AllowedFqdnList, _ = expandKustoListString(v.([]interface{}))
+		clusterProperties.AllowedFqdnList = expandKustoListString(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("allowed_ip_ranges"); ok {
-		clusterProperties.AllowedIPRangeList, _ = expandKustoListString(v.([]interface{}))
+		clusterProperties.AllowedIPRangeList = expandKustoListString(v.([]interface{}))
 	}
 
 	restrictOutboundNetworkAccess := clusters.ClusterNetworkAccessFlagDisabled
@@ -441,17 +441,11 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("allowed_fqdns") {
-		props.AllowedFqdnList, err = expandKustoListString(d.Get("allowed_fqdns").([]interface{}))
-		if err != nil {
-			return err
-		}
+		props.AllowedFqdnList = expandKustoListString(d.Get("allowed_fqdns").([]interface{}))
 	}
 
 	if d.HasChange("allowed_ip_ranges") {
-		props.AllowedIPRangeList, err = expandKustoListString(d.Get("allowed_ip_ranges").([]interface{}))
-		if err != nil {
-			return err
-		}
+		props.AllowedIPRangeList = expandKustoListString(d.Get("allowed_ip_ranges").([]interface{}))
 	}
 
 	if d.HasChange("auto_stop_enabled") {
@@ -661,18 +655,14 @@ func flattenOptimizedAutoScale(optimizedAutoScale *clusters.OptimizedAutoscale) 
 	}
 }
 
-func expandKustoListString(input []interface{}) (*[]string, error) {
-	if len(input) == 0 {
-		return nil, fmt.Errorf("list of string is empty")
-	}
-
+func expandKustoListString(input []interface{}) *[]string {
 	result := make([]string, 0)
 
 	for _, v := range input {
 		result = append(result, v.(string))
 	}
 
-	return &result, nil
+	return &result
 }
 
 func expandKustoClusterSku(input []interface{}) (*clusters.AzureSku, error) {

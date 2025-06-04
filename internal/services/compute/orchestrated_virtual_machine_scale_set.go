@@ -11,13 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -192,7 +191,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 }
 
 func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -268,15 +267,6 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		schema.Elem.(*pluginsdk.Resource).Schema["failure_suppression_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		}
-	}
-
-	return schema
 }
 
 func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
@@ -1436,11 +1426,10 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		autoUpgradeMinorVersion, _ := extensionRaw["auto_upgrade_minor_version_enabled"].(bool)
 
 		extensionProps := virtualmachinescalesets.VirtualMachineScaleSetExtensionProperties{
-			Publisher:                pointer.To(extensionRaw["publisher"].(string)),
-			Type:                     &extensionType,
-			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
-			AutoUpgradeMinorVersion:  pointer.To(autoUpgradeMinorVersion),
-			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
+			Publisher:               pointer.To(extensionRaw["publisher"].(string)),
+			Type:                    &extensionType,
+			TypeHandlerVersion:      pointer.To(extensionRaw["type_handler_version"].(string)),
+			AutoUpgradeMinorVersion: pointer.To(autoUpgradeMinorVersion),
 		}
 
 		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
@@ -1462,6 +1451,10 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 				return nil, false, fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			extensionProps.Settings = pointer.To(result)
+		}
+
+		if val, ok := extensionRaw["extensions_to_provision_after_vm_creation"]; ok && val != nil {
+			extensionProps.ProvisionAfterExtensions = utils.ExpandStringSlice(val.([]interface{}))
 		}
 
 		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))

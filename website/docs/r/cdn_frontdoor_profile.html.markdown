@@ -39,9 +39,22 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU for this Front Door Profile. Possible values include `Standard_AzureFrontDoor` and `Premium_AzureFrontDoor`. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `response_timeout_seconds` - (Optional) Specifies the maximum response timeout in seconds. Possible values are between `16` and `240` seconds (inclusive). Defaults to `120` seconds.
 
 * `tags` - (Optional) Specifies a mapping of tags to assign to the resource.
+
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of managed identity to assign. Possible values are `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
 
 ## Attributes Reference
 
@@ -56,8 +69,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Profile.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Profile.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Profile.
 
 ## Import

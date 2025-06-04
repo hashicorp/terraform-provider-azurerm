@@ -4,6 +4,7 @@
 package securitycenter
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -49,9 +50,12 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_security_center_subscription_pricing":                            resourceSecurityCenterSubscriptionPricing(),
 		"azurerm_security_center_workspace":                                       resourceSecurityCenterWorkspace(),
 		"azurerm_security_center_automation":                                      resourceSecurityCenterAutomation(),
-		"azurerm_security_center_auto_provisioning":                               resourceSecurityCenterAutoProvisioning(),
 		"azurerm_security_center_server_vulnerability_assessments_setting":        resourceSecurityCenterServerVulnerabilityAssessmentsSetting(),
 		"azurerm_security_center_server_vulnerability_assessment_virtual_machine": resourceServerVulnerabilityAssessmentVirtualMachine(),
+	}
+
+	if !features.FivePointOh() {
+		resources["azurerm_security_center_auto_provisioning"] = resourceSecurityCenterAutoProvisioning()
 	}
 
 	return resources

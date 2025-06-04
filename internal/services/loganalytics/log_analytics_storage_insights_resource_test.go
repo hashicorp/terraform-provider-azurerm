@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsStorageInsightsResource struct{}
@@ -117,10 +117,10 @@ func (t LogAnalyticsStorageInsightsResource) Exists(ctx context.Context, clients
 
 	resp, err := clients.LogAnalytics.StorageInsightsClient.StorageInsightConfigsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("readingLog Analytics Storage Insights (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving Log Analytics Storage Insights (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (LogAnalyticsStorageInsightsResource) template(data acceptance.TestData) string {
@@ -188,7 +188,7 @@ func (r LogAnalyticsStorageInsightsResource) complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_log_analytics_storage_insights" "test" {
-  name                = "acctest-LA-%d"
+  name                = "acctest-la-%d"
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_log_analytics_workspace.test.id
 

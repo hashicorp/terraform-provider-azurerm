@@ -41,6 +41,7 @@ func (r Registration) Resources() []sdk.Resource {
 		AppServiceEnvironmentV3Resource{},
 		AppServiceSourceControlTokenResource{},
 		FunctionAppActiveSlotResource{},
+		FunctionAppFlexConsumptionResource{},
 		FunctionAppFunctionResource{},
 		FunctionAppHybridConnectionResource{},
 		LinuxFunctionAppResource{},

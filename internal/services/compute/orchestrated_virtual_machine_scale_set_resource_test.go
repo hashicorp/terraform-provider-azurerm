@@ -11,11 +11,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -2216,11 +2215,7 @@ resource "azurerm_application_gateway" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) natgateway_template(data acceptance.TestData) string {
-	// NOTE: In v4.0 the 'azurerm_public_ip' resources 'sku' field will default to 'Standard' instead of 'Basic'...
 	publicIpSku := "Standard"
-	if !features.FourPointOhBeta() {
-		publicIpSku = "Basic"
-	}
 
 	return fmt.Sprintf(`
 resource "azurerm_public_ip" "test" {

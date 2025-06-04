@@ -112,6 +112,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `scan_listener_port_tcp_ssl` - The TCPS Single Client Access Name (SCAN) port. The default port is 2484.
 
+* `system_version` - (Optional) Operating system version of the Exadata image.
+
 * `shape` - The model name of the Exadata hardware running the Cloud VM Cluster.
 
 * `ssh_public_keys` - The public key portion of one or more key pairs used for SSH access to the Cloud VM Cluster.
@@ -173,3 +175,9 @@ A `iorm_config_cache` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cloud VM Cluster.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database`: 2024-06-01

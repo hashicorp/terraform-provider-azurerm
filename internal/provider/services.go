@@ -55,6 +55,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/extendedlocation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fabric"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
@@ -103,6 +104,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
@@ -167,11 +169,14 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		dataprotection.Registration{},
 		desktopvirtualization.Registration{},
 		digitaltwins.Registration{},
+		dns.Registration{},
 		domainservices.Registration{},
-		elasticsan.Registration{},
 		dynatrace.Registration{},
+		elasticsan.Registration{},
+		eventgrid.Registration{},
 		eventhub.Registration{},
 		extendedlocation.Registration{},
+		fabric.Registration{},
 		fluidrelay.Registration{},
 		graphservices.Registration{},
 		hybridcompute.Registration{},
@@ -202,6 +207,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		policy.Registration{},
 		postgres.Registration{},
 		privatednsresolver.Registration{},
+		qumulo.Registration{},
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
@@ -209,6 +215,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		search.Registration{},
 		securitycenter.Registration{},
 		sentinel.Registration{},
+		servicebus.Registration{},
 		serviceconnector.Registration{},
 		servicefabricmanaged.Registration{},
 		servicenetworking.Registration{},
@@ -337,6 +344,7 @@ func SupportedFrameworkServices() []sdk.FrameworkTypedServiceRegistration {
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		keyvault.Registration{},
 	}
 
 	return services

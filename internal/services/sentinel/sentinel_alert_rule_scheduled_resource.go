@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -301,7 +301,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			"entity_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 5,
+				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"entity_type": {
@@ -334,7 +334,7 @@ func resourceSentinelAlertRuleScheduled() *pluginsdk.Resource {
 			"sentinel_entity_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				MaxItems: 5,
+				MaxItems: 10,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"column_name": {
@@ -426,7 +426,7 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		param.Properties.TemplateVersion = utils.String(v.(string))
 	}
 	if v, ok := d.GetOk("event_grouping"); ok {
-		param.Properties.EventGroupingSettings = expandAlertRuleScheduledEventGroupingSetting(v.([]interface{}))
+		param.Properties.EventGroupingSettings = expandAlertRuleEventGroupingSetting(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("alert_details_override"); ok {
 		param.Properties.AlertDetailsOverride = expandAlertRuleAlertDetailsOverride(v.([]interface{}))
@@ -446,9 +446,9 @@ func resourceSentinelAlertRuleScheduledCreateUpdate(d *pluginsdk.ResourceData, m
 		sentinelEntityMappingCount = len(*param.Properties.SentinelEntitiesMappings)
 	}
 
-	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 5
-	if entityMappingCount+sentinelEntityMappingCount > 5 {
-		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 5")
+	// the max number of `sentinel_entity_mapping` and `entity_mapping` together is 10
+	if entityMappingCount+sentinelEntityMappingCount > 10 {
+		return fmt.Errorf("`entity_mapping` and `sentinel_entity_mapping` together can't exceed 10")
 	}
 
 	if !d.IsNewResource() {
@@ -529,7 +529,7 @@ func resourceSentinelAlertRuleScheduledRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
 				d.Set("alert_rule_template_version", prop.TemplateVersion)
 
-				if err := d.Set("event_grouping", flattenAlertRuleScheduledEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
+				if err := d.Set("event_grouping", flattenAlertRuleEventGroupingSetting(prop.EventGroupingSettings)); err != nil {
 					return fmt.Errorf("setting `event_grouping`: %+v", err)
 				}
 				if err := d.Set("alert_details_override", flattenAlertRuleAlertDetailsOverride(prop.AlertDetailsOverride)); err != nil {
@@ -566,37 +566,4 @@ func resourceSentinelAlertRuleScheduledDelete(d *pluginsdk.ResourceData, meta in
 	}
 
 	return nil
-}
-
-func expandAlertRuleScheduledEventGroupingSetting(input []interface{}) *alertrules.EventGroupingSettings {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	result := alertrules.EventGroupingSettings{}
-
-	if aggregationKind := v["aggregation_method"].(string); aggregationKind != "" {
-		kind := alertrules.EventGroupingAggregationKind(aggregationKind)
-		result.AggregationKind = &kind
-	}
-
-	return &result
-}
-
-func flattenAlertRuleScheduledEventGroupingSetting(input *alertrules.EventGroupingSettings) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	var aggregationKind string
-	if input.AggregationKind != nil {
-		aggregationKind = string(*input.AggregationKind)
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"aggregation_method": aggregationKind,
-		},
-	}
 }

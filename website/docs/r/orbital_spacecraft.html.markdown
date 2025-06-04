@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spacecraft.
 
+~> **Note:** The `azurerm_orbital_spacecraft` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl
@@ -101,3 +103,9 @@ Spacecraft can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_orbital_spacecraft.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Orbital/spacecrafts/spacecraft1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Orbital`: 2022-11-01

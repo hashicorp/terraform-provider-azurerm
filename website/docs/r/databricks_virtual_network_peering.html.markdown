@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `remote_virtual_network_id` - (Required) The ID of the remote virtual network. Changing this forces a new resource to be created.
 
-~> **NOTE:** The remote virtual network should be in the same region as the databricks workspace. Please see the [product documentation](https://learn.microsoft.com/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering) for more information.
+~> **Note:** The remote virtual network should be in the same region as the databricks workspace. Please see the [product documentation](https://learn.microsoft.com/azure/databricks/administration-guide/cloud-configurations/azure/vnet-peering) for more information.
 
 * `allow_virtual_network_access` - (Optional) Can the VMs in the local virtual network space access the VMs in the remote virtual network space? Defaults to `true`.
 
@@ -77,11 +77,11 @@ The following arguments are supported:
 
 * `use_remote_gateways` - (Optional) Can remote gateways be used on the Databricks virtual network? Defaults to `false`.
 
-~> **NOTE:** If the `use_remote_gateways` is set to `true`, and `allow_gateway_transit` on the remote peering is also `true`, the virtual network will use the gateways of the remote virtual network for transit. Only one peering can have this flag set to `true`. `use_remote_gateways` cannot be set if the virtual network already has a gateway.
+~> **Note:** If the `use_remote_gateways` is set to `true`, and `allow_gateway_transit` on the remote peering is also `true`, the virtual network will use the gateways of the remote virtual network for transit. Only one peering can have this flag set to `true`. `use_remote_gateways` cannot be set if the virtual network already has a gateway.
 
 * `virtual_network_id` - The ID of the internal Virtual Network used by the DataBricks Workspace.
 
-~> **NOTE:** The `virtual_network_id` field is the value you must supply to the `azurerm_virtual_network_peering` resources `remote_virtual_network_id` field to successfully peer the Databricks Virtual Network with the remote virtual network.
+~> **Note:** The `virtual_network_id` field is the value you must supply to the `azurerm_virtual_network_peering` resources `remote_virtual_network_id` field to successfully peer the Databricks Virtual Network with the remote virtual network.
 
 ## Attributes Reference
 
@@ -94,8 +94,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databricks Virtual Network Peering.
-* `update` - (Defaults to 30 minutes) Used when updating the Databricks Virtual Network Peering.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Virtual Network Peering.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Virtual Network Peering.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Virtual Network Peering.
 
 ## Import

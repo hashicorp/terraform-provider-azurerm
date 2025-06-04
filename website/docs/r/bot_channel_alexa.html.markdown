@@ -10,7 +10,7 @@ description: |-
 
 Manages an Alexa integration for a Bot Channel
 
-~> **Note** A bot can only have a single Alexa Channel associated with it.
+~> **Note:** A bot can only have a single Alexa Channel associated with it.
 
 ## Example Usage
 
@@ -61,8 +61,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Alexa Integration for a Bot Channel.
-* `update` - (Defaults to 30 minutes) Used when updating the Alexa Integration for a Bot Channel.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Alexa Integration for a Bot Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Alexa Integration for a Bot Channel.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Alexa Integration for a Bot Channel.
 
 ## Import

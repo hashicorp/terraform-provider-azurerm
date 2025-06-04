@@ -11,12 +11,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachineScaleSet_otherBootDiagnostics(t *testing.T) {
@@ -432,26 +431,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherVMAgentDisabledWithExtensionDisable
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_otherScaleInPolicy(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skipped the 'scale_in_policy' property has been deprecated in the 4.0 provider.")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherScaleInPolicy(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scale_in_policy").HasValue("Default"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_otherScaleIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -502,38 +481,6 @@ func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotification(t *testing.
 		},
 		data.ImportStep("admin_password"),
 		// turn termination notification on again
-		{
-			Config: r.otherTerminationNotification(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("termination_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("termination_notification.0.enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-// TODO remove TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration in 4.0
-func TestAccLinuxVirtualMachineScaleSet_otherTerminationNotificationMigration(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skip("removing in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		// old: terminate_notification
-		{
-			Config: r.otherTerminateNotification(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("terminate_notification.#").HasValue("1"),
-				check.That(data.ResourceName).Key("terminate_notification.0.enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep("admin_password"),
-		// new: termination_notification
 		{
 			Config: r.otherTerminationNotification(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -801,7 +748,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T)
 						return err
 					}
 
-					ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+					ctx2, cancel := context.WithTimeout(ctx, 60*time.Minute)
 					defer cancel()
 					options := virtualmachinescalesets.DefaultGetOperationOptions()
 					options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
@@ -1232,6 +1179,10 @@ func (r LinuxVirtualMachineScaleSetResource) otherEdgeZone(data acceptance.TestD
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[3]d"
   location = "%[2]s"
@@ -1342,7 +1293,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateWithOutProvider(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherPrioritySpot(data acceptance.TestData, evictionPolicy string) string {
@@ -2110,50 +2061,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherScaleInPolicy(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    disk_size_gb         = 30
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  scale_in_policy = "Default"
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r LinuxVirtualMachineScaleSetResource) otherScaleInDefault(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -2244,53 +2151,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-}
-
-// TODO remove otherTerminateNotification in 4.0
-func (r LinuxVirtualMachineScaleSetResource) otherTerminateNotification(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = false
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    disk_size_gb         = 30
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  terminate_notification {
-    enabled = %t
-  }
-}
-`, r.template(data), data.RandomInteger, enabled)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherTerminationNotification(data acceptance.TestData, enabled bool) string {
@@ -2567,6 +2427,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Dynamic"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 4
 }
 resource "azurerm_lb" "test" {
@@ -2704,10 +2565,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) otherEncryptionAtHost(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -3142,10 +2999,6 @@ func (r LinuxVirtualMachineScaleSetResource) otherSecureBootEnabled(data accepta
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -3188,10 +3041,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 func (r LinuxVirtualMachineScaleSetResource) otherVTpmEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -3445,5 +3294,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger, sku)
+`, r.templateWithOutProvider(data), data.RandomInteger, sku)
 }

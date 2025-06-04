@@ -72,15 +72,15 @@ The following arguments are supported:
 * `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Optional) One or more (static) `criteria` blocks as defined below.
 
--> **NOTE** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
+-> **Note:** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
 
 * `dynamic_criteria` - (Optional) A `dynamic_criteria` block as defined below.
 
--> **NOTE** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
+-> **Note:** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
 
 * `application_insights_web_test_location_availability_criteria` - (Optional) A `application_insights_web_test_location_availability_criteria` block as defined below.
 
--> **NOTE** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
+-> **Note:** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
 
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Metric Alert be enabled? Defaults to `true`.
@@ -90,11 +90,11 @@ The following arguments are supported:
 * `severity` - (Optional) The severity of this Metric Alert. Possible values are `0`, `1`, `2`, `3` and `4`. Defaults to `3`.
 * `target_resource_type` - (Optional) The resource type (e.g. `Microsoft.Compute/virtualMachines`) of the target resource.
 
--> This is Required when using a Subscription as scope, a Resource Group as scope or Multiple Scopes.
+-> **Note:** This is Required when using a Subscription as scope, a Resource Group as scope or Multiple Scopes.
 
 * `target_resource_location` - (Optional) The location of the target resource.
 
--> This is Required when using a Subscription as scope, a Resource Group as scope or Multiple Scopes.
+-> **Note:** This is Required when using a Subscription as scope, a Resource Group as scope or Multiple Scopes.
 
 * `window_size` - (Optional) The period of time that is used to monitor alert activity, represented in ISO 8601 duration format. This value must be greater than `frequency`. Possible values are `PT1M`, `PT5M`, `PT15M`, `PT30M`, `PT1H`, `PT6H`, `PT12H` and `P1D`. Defaults to `PT5M`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -160,8 +160,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Metric Alert.
-* `update` - (Defaults to 30 minutes) Used when updating the Metric Alert.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Metric Alert.
+* `update` - (Defaults to 30 minutes) Used when updating the Metric Alert.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Metric Alert.
 
 ## Import
