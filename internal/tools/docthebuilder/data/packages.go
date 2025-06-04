@@ -118,15 +118,7 @@ func findRegistrationFuncs(pkg *packages.Package, fn *types.Func, registrationFu
 			return true
 		case *ast.ExprStmt:
 			return true
-		case *ast.AssignStmt: // if feature flagged
-			/* assuming 5.0 deprecation guidelines are followed:
-			- We should see an AssignStmt for the non-deprecated Resources, which should be a new var, we can use`token.DEFINE` to skip this one
-			- The next AssignStmt should live inside a conditional, and be of type `token.ASSIGN`, which is what we're interested in
-			*/
-			if n.Tok == token.DEFINE {
-				return false
-			}
-
+		case *ast.AssignStmt:
 			if len(n.Lhs) != 1 || len(n.Rhs) != 1 {
 				return true
 			}

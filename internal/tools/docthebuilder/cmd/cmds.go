@@ -57,7 +57,7 @@ var (
 				if resourceWithErrCount > 1 {
 					resourceStr += "s"
 				}
-				
+
 				fmt.Printf(util.Red("Found %d %s in %d %s\n"), errCount, errStr, resourceWithErrCount, resourceStr)
 				os.Exit(1)
 			}
