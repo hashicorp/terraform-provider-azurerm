@@ -461,9 +461,9 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 									state.ActivationRules[0].RequireApproval = pointer.From(settings.IsApprovalRequired)
 									if settings.ApprovalStages != nil {
 										approvalStages := *settings.ApprovalStages
-										state.ActivationRules[0].ApprovalStages = make([]RoleManagementPolicyApprovalStage, 1)
 										approvalStage := approvalStages[0]
 										if primaryApprovers := approvalStage.PrimaryApprovers; primaryApprovers != nil && len(*primaryApprovers) > 0 {
+											state.ActivationRules[0].ApprovalStages = make([]RoleManagementPolicyApprovalStage, 1)
 											state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers = make([]RoleManagementPolicyApprover, len(*primaryApprovers))
 											for ia, pa := range *primaryApprovers {
 												state.ActivationRules[0].ApprovalStages[0].PrimaryApprovers[ia] = RoleManagementPolicyApprover{
