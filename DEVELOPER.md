@@ -92,24 +92,6 @@ For more information on the environment variables above, see [Azure Provider: Au
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
 
-There are two set of steps to setup `ARM_CLIENT_ID` and `ARM_CLIENT_SECRET`. First create a new 'App registration':
-
-1. From Azure portal, go to 'Microsoft Entra ID'
-2. Go to 'App registrations' -> 'New registration'
-3. Provide a descriptive name such as `yourusername-azurerm-acctest`, leave 'Supported account types' to the default option, and hit 'Register'
-4. On the App registration details -> 'Overview', note down the 'Application (client) ID', this is your `ARM_CLIENT_ID`
-5. On the 'Manage' -> 'Certificate & secrets', add a new client secret using the 'New client secret' button
-6. Note down the 'Value', this is your `ARM_CLIENT_SECRET`
-
-Next, you need to assign 'Contributor' role to your app for the subscription:
-
-1. Go to 'Subscriptions', choose the subscription you will use for acctest
-2. Go to 'Access control (IAM)' -> 'Role assignments' -> 'Add role assignment'
-3. From 'Privileged administrator roles', choose 'Contributor', hit 'Next'
-4. On the 'Members' tab, choose 'Assign access to' to 'User group, or service principal'
-5. Hit '+ Select members' and search the app you just created by its name
-6. Hit 'Review + assign'
-
 ---
 
 ## Developer: Using the locally compiled Azure Provider binary
