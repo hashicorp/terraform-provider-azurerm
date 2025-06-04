@@ -123,6 +123,14 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
 
+		dataProtection := &volumegroups.VolumePropertiesDataProtection{}
+		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+			dataProtection.Replication = dataProtectionReplication.Replication
+		}
+		if dataProtectionSnapshotPolicy != nil && dataProtectionSnapshotPolicy.Snapshot != nil {
+			dataProtection.Snapshot = dataProtectionSnapshotPolicy.Snapshot
+		}
+
 		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
 			Name: utils.String(name),
 			Properties: volumegroups.VolumeProperties{
@@ -137,10 +145,7 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 				SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
-				DataProtection: &volumegroups.VolumePropertiesDataProtection{
-					Replication: dataProtectionReplication.Replication,
-					Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
-				},
+				DataProtection:           dataProtection,
 			},
 			Tags: &item.Tags,
 		}
@@ -175,6 +180,14 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
 
+		dataProtection := &volumegroups.VolumePropertiesDataProtection{}
+		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil {
+			dataProtection.Replication = dataProtectionReplication.Replication
+		}
+		if dataProtectionSnapshotPolicy != nil && dataProtectionSnapshotPolicy.Snapshot != nil {
+			dataProtection.Snapshot = dataProtectionSnapshotPolicy.Snapshot
+		}
+
 		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
 			Name: pointer.To(item.Name),
 			Properties: volumegroups.VolumeProperties{
@@ -190,10 +203,7 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 				ThroughputMibps:          utils.Float(item.ThroughputInMibps),
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
-				DataProtection: &volumegroups.VolumePropertiesDataProtection{
-					Replication: dataProtectionReplication.Replication,
-					Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
-				},
+				DataProtection:           dataProtection,
 			},
 			Tags: &item.Tags,
 		}
