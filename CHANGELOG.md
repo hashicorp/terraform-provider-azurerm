@@ -21,6 +21,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_lb_backend_address_pool` - the `inbound_nat_rule_port_mapping.frontend_port` and `inbound_nat_rule_port_mapping.backend_port` are now set correctly [GH-29791]
 * `keyvault` - fix locking around the keyvault cache [GH-28330]
 
 
