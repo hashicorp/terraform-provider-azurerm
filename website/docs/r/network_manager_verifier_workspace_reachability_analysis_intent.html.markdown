@@ -97,7 +97,7 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
     source_ips        = ["10.0.2.1"]
     source_ports      = ["80"]
     destination_ips   = ["10.0.2.2"]
-    destination_ports = ["60"]
+    destination_ports = ["*"]
     protocols         = ["Any"]
   }
 }

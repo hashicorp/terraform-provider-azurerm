@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/reachabilityanalysisintent"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/reachabilityanalysisintents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -70,8 +71,8 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Arguments() ma
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.Any(
-				commonids.ValidateSubnetID,
 				commonids.ValidatePublicIPAddressID,
+				commonids.ValidateSubnetID,
 				commonids.ValidateVirtualMachineID,
 			),
 		},
@@ -81,11 +82,11 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Arguments() ma
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.Any(
-				commonids.ValidateSubnetID,
 				commonids.ValidatePublicIPAddressID,
-				commonids.ValidateVirtualMachineID,
 				commonids.ValidateSqlServerID,
 				commonids.ValidateStorageAccountID,
+				commonids.ValidateSubnetID,
+				commonids.ValidateVirtualMachineID,
 				cosmosdb.ValidateDatabaseAccountID,
 			),
 		},
@@ -94,6 +95,7 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Arguments() ma
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"destination_ips": {
@@ -114,7 +116,7 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Arguments() ma
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.IpTrafficPort,
 						},
 					},
 					"source_ips": {
@@ -135,7 +137,7 @@ func (ManagerVerifierWorkspaceReachabilityAnalysisIntentResource) Arguments() ma
 						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validate.IpTrafficPort,
 						},
 					},
 					"protocols": {

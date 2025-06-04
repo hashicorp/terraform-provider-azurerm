@@ -90,7 +90,7 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
   ip_traffic {
     source_ips        = ["10.0.2.0"]
     source_ports      = ["80"]
-    destination_ips   = ["10.0.2.0"]
+    destination_ips   = ["10.0.3.0"]
     destination_ports = ["*"]
     protocols         = ["Any"]
   }
@@ -110,7 +110,7 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
   ip_traffic {
     source_ips        = ["10.0.2.0"]
     source_ports      = ["80"]
-    destination_ips   = ["10.0.2.0"]
+    destination_ips   = ["10.0.3.0"]
     destination_ports = ["*"]
     protocols         = ["Any"]
   }
@@ -134,7 +134,7 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
   description             = "test"
   ip_traffic {
     source_ips        = ["10.0.2.1", "10.0.2.3"]
-    source_ports      = ["80", "88"]
+    source_ports      = ["80", "88", "100-120"]
     destination_ips   = ["10.0.2.2", "10.0.2.5"]
     destination_ports = ["60", "89"]
     protocols         = ["UDP", "ICMP"]
