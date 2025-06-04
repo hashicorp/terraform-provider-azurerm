@@ -149,6 +149,13 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
 		}
 
+		if dataProtectionReplication != nil &&
+			dataProtectionReplication.Replication != nil &&
+			dataProtectionReplication.Replication.EndpointType != nil &&
+			strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+			volumeProperties.Properties.VolumeType = utils.String("DataProtection")
+		}
+
 		results = append(results, *volumeProperties)
 	}
 
@@ -164,6 +171,9 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 
 	for _, item := range input {
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
+
+		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
+		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
 
 		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
 			Name: pointer.To(item.Name),
@@ -181,8 +191,8 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 				VolumeSpecName:           utils.String(item.VolumeSpecName),
 				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
 				DataProtection: &volumegroups.VolumePropertiesDataProtection{
-					Replication: expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication).Replication,
-					Snapshot:    expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy).Snapshot,
+					Replication: dataProtectionReplication.Replication,
+					Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 				},
 			},
 			Tags: &item.Tags,
@@ -202,6 +212,12 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 
 		if v := item.KeyVaultPrivateEndpointId; v != "" {
 			volumeProperties.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(v)
+		}
+
+		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil &&
+			dataProtectionReplication.Replication.EndpointType != nil &&
+			strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+			volumeProperties.Properties.VolumeType = utils.String("DataProtection")
 		}
 
 		results = append(results, *volumeProperties)
@@ -1057,31 +1073,12 @@ func translateSDKSchedule(scheduleName string) string {
 	return scheduleName
 }
 
-// setVolumeListSecondaryVolumesType sets VolumeType to "DataProtection" for secondary volumes in CRR
-func setVolumeListSecondaryVolumesType(volumeList *[]volumegroups.VolumeGroupVolumeProperties) {
-	if volumeList == nil {
-		return
-	}
-
-	for i := range *volumeList {
-		volume := &(*volumeList)[i]
-		if volume.Properties.DataProtection != nil && volume.Properties.DataProtection.Replication != nil {
-			replication := volume.Properties.DataProtection.Replication
-			if replication.EndpointType != nil &&
-				strings.EqualFold(string(pointer.From(replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-				volume.Properties.VolumeType = utils.String("DataProtection")
-			}
-		}
-	}
-}
-
-// authorizeVolumeReplication handles CRR authorization for secondary volumes from primary volumes
 func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.VolumeGroupVolumeProperties, replicationClient *volumesreplication.VolumesReplicationClient, subscriptionId, resourceGroupName, accountName string) error {
 	if volumeList == nil || replicationClient == nil {
 		return nil
 	}
 
-	for _, volume := range *volumeList {
+	for _, volume := range pointer.From(volumeList) {
 		if volume.Properties.DataProtection != nil && volume.Properties.DataProtection.Replication != nil {
 			replication := volume.Properties.DataProtection.Replication
 			if replication.EndpointType != nil &&
@@ -1112,6 +1109,24 @@ func authorizeVolumeReplication(ctx context.Context, volumeList *[]volumegroups.
 				}); err != nil {
 					return fmt.Errorf("authorizing volume replication for volume %q: %+v", secondaryId.ID(), err)
 				}
+			}
+		}
+	}
+
+	// Wait for volume replication authorization to complete for all volumes based on primary volume status
+	for _, volume := range pointer.From(volumeList) {
+		if volume.Properties.DataProtection != nil && volume.Properties.DataProtection.Replication != nil &&
+			strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
+			// Getting primary resource id for waiting
+			primaryId, err := volumesreplication.ParseVolumeID(pointer.From(volume.Properties.DataProtection.Replication.RemoteVolumeResourceId))
+			if err != nil {
+				return err
+			}
+
+			// Wait for volume replication authorization to complete
+			log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", primaryId.ID())
+			if err := waitForReplAuthorization(ctx, replicationClient, pointer.From(primaryId)); err != nil {
+				return err
 			}
 		}
 	}

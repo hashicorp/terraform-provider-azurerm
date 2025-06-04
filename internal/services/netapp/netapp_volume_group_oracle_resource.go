@@ -6,7 +6,6 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -18,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -259,6 +257,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									Default:      string(volumegroups.EndpointTypeDst),
+									ForceNew:     true,
 									ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForEndpointType(), false),
 								},
 
@@ -267,12 +266,14 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 								"remote_volume_resource_id": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
+									ForceNew:     true,
 									ValidateFunc: azure.ValidateResourceID,
 								},
 
 								"replication_frequency": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
+									ForceNew:     true,
 									ValidateFunc: validation.StringInSlice(netAppModels.PossibleValuesForReplicationSchedule(), false),
 								},
 							},
@@ -355,9 +356,6 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("one or more issues found while performing deeper validations for %s:\n%+v", id, errorList)
 			}
 
-			// Parse volume list to set secondary volumes for CRR
-			setVolumeListSecondaryVolumesType(volumeList)
-
 			parameters := volumegroups.VolumeGroupDetails{
 				Location: utils.String(location.Normalize(model.Location)),
 				Properties: &volumegroups.VolumeGroupProperties{
@@ -382,25 +380,6 @@ func (r NetAppVolumeGroupOracleResource) Create() sdk.ResourceFunc {
 			// CRR - Authorizing secondaries from primary volumes
 			if err := authorizeVolumeReplication(ctx, volumeList, replicationClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
 				return err
-			}
-
-			// Wait for volume replication authorization to complete for all volumes
-			for _, volumeCrr := range pointer.From(volumeList) {
-				if volumeCrr.Properties.DataProtection != nil &&
-					volumeCrr.Properties.DataProtection.Replication != nil &&
-					strings.EqualFold(string(pointer.From(volumeCrr.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-					// Getting primary resource id for waiting
-					primaryId, err := volumesreplication.ParseVolumeID(pointer.From(volumeCrr.Properties.DataProtection.Replication.RemoteVolumeResourceId))
-					if err != nil {
-						return err
-					}
-
-					// Wait for volume replication authorization to complete
-					log.Printf("[DEBUG] Waiting for replication authorization on %s to complete", id)
-					if err := waitForReplAuthorization(ctx, replicationClient, pointer.From(primaryId)); err != nil {
-						return err
-					}
-				}
 			}
 
 			metadata.SetID(id)
