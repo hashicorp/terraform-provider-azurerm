@@ -609,3 +609,9 @@ AutoScale Setting can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/autoScaleSettings/setting1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights`: 2022-10-01
