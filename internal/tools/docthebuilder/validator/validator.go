@@ -11,8 +11,8 @@ import (
 type Validator struct{}
 
 func (v Validator) Run(rules []string, data *data.ResourceData, fix bool) {
-	for _, name := range rules {
-		if r := rule.GetRule(name); r != nil {
+	for _, id := range rules {
+		if r := rule.GetRule(id); r != nil {
 			errs := r.Run(data, fix)
 			if len(errs) > 0 {
 				data.Errors = append(data.Errors, errs...)

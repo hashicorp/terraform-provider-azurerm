@@ -16,10 +16,10 @@ var serviceDirPattern = "%s/internal/services/%s"
 type Service struct {
 	Name           string
 	Path           string
-	APIsbyResource map[string][]API
+	APIsByResource map[string][]API
 }
 
-func NewService(fs afero.Fs, providerDir string, service any, serviceName string) (*Service, error) {
+func NewService(fs afero.Fs, providerDir string, providerServiceRegistration any, serviceName string) (*Service, error) {
 	labelFunc := func(s string) string {
 		return strings.ReplaceAll(strings.TrimPrefix(s, "service/"), "-", "")
 	}
@@ -35,15 +35,13 @@ func NewService(fs afero.Fs, providerDir string, service any, serviceName string
 	}
 
 	// Check if serviceName exists in ServiceFolderWorkaround
-	if n, ok := ServiceFolderWorkaround[serviceName]; ok {
+	if n, ok := WorkaroundServiceNameToDirectory[serviceName]; ok {
 		serviceName = n
 	}
 	names := make([]string, 0)
 
-	// ideally all service registrations have `AssociatedGitHubLabel` or some other function that tracks the service folder/internal name
-	// e.g. "mssql" rather than the return of `Name()`: `Microsoft SQL Server / Azure SQL`
-	// but for now this works
-	switch s := service.(type) {
+	// TODO: Add a method to the service registrations (untyped, typed, framework) that returns the service directory name
+	switch s := providerServiceRegistration.(type) {
 	case sdk.UntypedServiceRegistrationWithAGitHubLabel:
 		names = append(names, nameFunc(serviceName), labelFunc(s.AssociatedGitHubLabel()))
 	case sdk.TypedServiceRegistrationWithAGitHubLabel:

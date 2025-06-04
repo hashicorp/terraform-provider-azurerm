@@ -90,9 +90,3 @@ func methodsToAPIs(methods []sdkMethod) []API {
 
 	return result
 }
-
-func getResourceAPIData(d *ResourceData, s *Service) {
-	if v, ok := s.APIsbyResource[d.Path]; ok {
-		d.APIs = v
-	}
-}
