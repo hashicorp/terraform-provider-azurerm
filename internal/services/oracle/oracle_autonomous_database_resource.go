@@ -47,7 +47,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	SubnetId                     string   `tfschema:"subnet_id"`
 	VnetId                       string   `tfschema:"virtual_network_id"`
 	PermissionLevel              string   `tfschema:"permission_level"`
-	WhitelistedIps               []string `tfschema:"allowed_ips"`
+	AllowedIps                   []string `tfschema:"allowed_ips"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -265,11 +265,11 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
 				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
-				WhitelistedIPs:                 pointer.To(model.WhitelistedIps),
+				WhitelistedIPs:                 pointer.To(model.AllowedIps),
 			}
 
-			if len(model.WhitelistedIps) > 0 {
-				if err := validate.ValidateAllowedIPsList(model.WhitelistedIps); err != nil {
+			if len(model.AllowedIps) > 0 {
+				if err := validate.ValidateAllowedIPsList(model.AllowedIps); err != nil {
 					return err
 				}
 			}
@@ -400,7 +400,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
-				state.WhitelistedIps = pointer.From(props.WhitelistedIPs)
+				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 				state.PermissionLevel = string(pointer.From(props.PermissionLevel))
 			}
 			return metadata.Encode(&state)
