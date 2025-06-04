@@ -15,7 +15,7 @@ var Exceptions = map[string]map[string]struct{}{
 	},
 }
 
-func ShouldSkipRule(resourceType data.ResourceType, resourceName string, ruleName string) bool {
+func SkipRule(resourceType data.ResourceType, resourceName string, ruleName string) bool {
 	prefix := ""
 	switch resourceType {
 	case data.ResourceTypeData:

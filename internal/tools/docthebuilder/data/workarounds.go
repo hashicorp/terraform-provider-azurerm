@@ -5,8 +5,8 @@ workarounds.go should only contain code that provides workarounds for data that 
 e.g. service folder that we can't get based on `(Registration).Name()` or `(Registration).AssociatedGitHubLabel()`
 */
 
-// ServiceFolderWorkaround provides a mapping from `(Registration).Name()` to the service directory
-var ServiceFolderWorkaround = map[string]string{
+// WorkaroundServiceNameToDirectory provides a mapping from `(Registration).Name()` to the service directory
+var WorkaroundServiceNameToDirectory = map[string]string{
 	"Cognitive Services":              "cognitive",
 	"CosmosDB":                        "cosmos",
 	"Trusted Signing":                 "codesigning",

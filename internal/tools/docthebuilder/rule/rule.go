@@ -5,7 +5,9 @@ import (
 )
 
 type Rule interface {
-	// Name returns the name of the rule, e.g. `G002`.
+	// ID returns the ID of the rule, e.g. `G001`.
+	ID() string
+	// Name returns a friendly name of the rule, e.g. `Validate API Section`.
 	Name() string
 	// Description returns an explanation of what this rule is validating.
 	Description() string
@@ -23,13 +25,13 @@ func GetRule(name string) Rule {
 
 // Registration for rules
 // G<number> -- global/section agnostic rules, e.g. note formatting
-// b S<number> -- section specific rules, e.g. API section validation
+// S<number> -- section specific rules, e.g. API section validation
 var Registration = map[string]Rule{
 	// global
-	G001{}.Name(): G001{},
-	G002{}.Name(): G002{},
+	G001{}.ID(): G001{},
+	G002{}.ID(): G002{},
 
 	// section
-	S001{}.Name(): S001{},
-	S002{}.Name(): S002{},
+	S001{}.ID(): S001{},
+	S002{}.ID(): S002{},
 }

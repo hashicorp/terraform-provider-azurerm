@@ -32,29 +32,6 @@ type ResourceData struct {
 	Errors []error // errors found in this resource
 }
 
-func (rd ResourceData) PrintErrors() {
-	l := len(rd.Errors)
-	sep := "---\n\n"
-
-	err := "errors"
-	if l == 1 {
-		err = "error"
-	}
-
-	b := strings.Builder{}
-	b.WriteString(util.RedBold(fmt.Sprintf("%s `%s` contains %d %s:\n", rd.Type, rd.Name, l, err)))
-	b.WriteString(sep)
-
-	for _, v := range rd.Errors {
-		b.WriteString(fmt.Sprintln(v.Error()))
-	}
-
-	b.WriteString("\n")
-	b.WriteString(sep)
-
-	fmt.Print(b.String())
-}
-
 func newDataObject(fs afero.Fs, providerDir string, service Service, name string, resourceType ResourceType, source any) (*ResourceData, error) {
 	providerName, _, _ := strings.Cut(name, "_")
 
@@ -120,7 +97,7 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 			}
 		}
 
-		service.APIsbyResource = findAPIsForTypedResources(*pkgData, service)
+		service.APIsByResource = findAPIsForTypedResources(*pkgData, service)
 
 		for _, r := range s.DataSources() {
 			name := r.ResourceType()
@@ -132,17 +109,17 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 				}
 			}
 
-			res, err := newDataObject(fs, providerDir, *service, name, ResourceTypeData, r)
+			rd, err := newDataObject(fs, providerDir, *service, name, ResourceTypeData, r)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 
-			getResourceAPIData(res, service)
-			getTimeouts(res)
-			getDocumentData(fs, res)
+			rd.populateAPIData()
+			rd.populateTimeouts()
+			rd.populateDocumentData(fs)
 
-			result = append(result, res)
+			result = append(result, rd)
 		}
 
 		for _, r := range s.Resources() {
@@ -155,17 +132,17 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 				}
 			}
 
-			res, err := newDataObject(fs, providerDir, *service, name, ResourceTypeResource, r)
+			rd, err := newDataObject(fs, providerDir, *service, name, ResourceTypeResource, r)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 
-			getResourceAPIData(res, service)
-			getTimeouts(res)
-			getDocumentData(fs, res)
+			rd.populateAPIData()
+			rd.populateTimeouts()
+			rd.populateDocumentData(fs)
 
-			result = append(result, res)
+			result = append(result, rd)
 		}
 	}
 	for _, s := range provider.SupportedUntypedServices() {
@@ -185,10 +162,10 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 			}
 		}
 
-		service.APIsbyResource = findAPIsForUntypedResources(*pkgData, service)
+		service.APIsByResource = findAPIsForUntypedResources(*pkgData, service)
 
 		for name, r := range s.SupportedDataSources() {
-			res, err := newDataObject(fs, providerDir, *service, name, ResourceTypeData, r)
+			rd, err := newDataObject(fs, providerDir, *service, name, ResourceTypeData, r)
 			if err != nil {
 				log.Error(err)
 				continue
@@ -201,15 +178,15 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 				}
 			}
 
-			getResourceAPIData(res, service)
-			getTimeouts(res)
-			getDocumentData(fs, res)
+			rd.populateAPIData()
+			rd.populateTimeouts()
+			rd.populateDocumentData(fs)
 
-			result = append(result, res)
+			result = append(result, rd)
 		}
 
 		for name, r := range s.SupportedResources() {
-			res, err := newDataObject(fs, providerDir, *service, name, ResourceTypeResource, r)
+			rd, err := newDataObject(fs, providerDir, *service, name, ResourceTypeResource, r)
 			if err != nil {
 				log.Error(err)
 				continue
@@ -222,11 +199,11 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 				}
 			}
 
-			getResourceAPIData(res, service)
-			getTimeouts(res)
-			getDocumentData(fs, res)
+			rd.populateAPIData()
+			rd.populateTimeouts()
+			rd.populateDocumentData(fs)
 
-			result = append(result, res)
+			result = append(result, rd)
 		}
 	}
 
@@ -236,4 +213,56 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 	// }
 
 	return result
+}
+
+func (rd *ResourceData) populateAPIData() {
+	if v, ok := rd.Service.APIsByResource[rd.Path]; ok {
+		rd.APIs = v
+	}
+}
+
+func (rd *ResourceData) populateDocumentData(fs afero.Fs) {
+	rd.Document.Exists = util.FileExists(fs, rd.Document.Path)
+
+	if rd.Document.Exists {
+		if err := rd.Document.Parse(fs); err != nil {
+			rd.Errors = append(rd.Errors, fmt.Errorf("failed to parse documentation: %+v", err)) // Output error instead?
+		}
+	}
+}
+
+func (rd *ResourceData) populateTimeouts() {
+	if t := rd.Resource.Timeouts; t != nil {
+		if t.Create != nil {
+			rd.Timeouts = append(rd.Timeouts, Timeout{
+				Type:     TimeoutTypeCreate,
+				Duration: int(t.Create.Minutes()),
+				Name:     "<Azure Brand Name>",
+			})
+		}
+
+		if t.Read != nil {
+			rd.Timeouts = append(rd.Timeouts, Timeout{
+				Type:     TimeoutTypeRead,
+				Duration: int(t.Read.Minutes()),
+				Name:     "<Azure Brand Name>",
+			})
+		}
+
+		if t.Update != nil {
+			rd.Timeouts = append(rd.Timeouts, Timeout{
+				Type:     TimeoutTypeUpdate,
+				Duration: int(t.Update.Minutes()),
+				Name:     "<Azure Brand Name>",
+			})
+		}
+
+		if t.Delete != nil {
+			rd.Timeouts = append(rd.Timeouts, Timeout{
+				Type:     TimeoutTypeDelete,
+				Duration: int(t.Delete.Minutes()),
+				Name:     "<Azure Brand Name>",
+			})
+		}
+	}
 }
