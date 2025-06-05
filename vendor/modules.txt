@@ -339,6 +339,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiv
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists
 github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/commitmentplans
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices

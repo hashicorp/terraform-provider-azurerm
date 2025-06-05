@@ -58,5 +58,6 @@ func (r Registration) Resources() []sdk.Resource {
 		CognitiveAccountRaiPolicyResource{},
 		CognitiveDeploymentResource{},
 		CognitiveRaiBlocklistResource{},
+		CognitiveCommitmentPlanResource{},
 	}
 }
