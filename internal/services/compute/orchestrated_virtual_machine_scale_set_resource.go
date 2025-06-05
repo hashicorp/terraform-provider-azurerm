@@ -517,7 +517,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	extensionOperationsEnabled := d.Get("extension_operations_enabled").(bool)
 	osProfileRaw := d.Get("os_profile").([]interface{})
 
-	if len(osProfileRaw) > 0 {
+	if len(osProfileRaw) > 0 && osProfileRaw[0] != nil {
 		osProfile := osProfileRaw[0].(map[string]interface{})
 		winConfigRaw = osProfile["windows_configuration"].([]interface{})
 		linConfigRaw = osProfile["linux_configuration"].([]interface{})
@@ -857,7 +857,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 		windowsConfig.PatchSettings = &virtualmachinescalesets.PatchSettings{}
 		linuxConfig := virtualmachinescalesets.LinuxConfiguration{}
 
-		if len(osProfileRaw) > 0 {
+		if len(osProfileRaw) > 0 && osProfileRaw[0] != nil {
 			osProfile := osProfileRaw[0].(map[string]interface{})
 			winConfigRaw := osProfile["windows_configuration"].([]interface{})
 			linConfigRaw := osProfile["linux_configuration"].([]interface{})
@@ -870,7 +870,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				vmssOsProfile.CustomData = pointer.To(osProfile["custom_data"].(string))
 			}
 
-			if len(winConfigRaw) > 0 {
+			if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
 				winConfig := winConfigRaw[0].(map[string]interface{})
 				provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 				patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
@@ -948,7 +948,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				vmssOsProfile.WindowsConfiguration = &windowsConfig
 			}
 
-			if len(linConfigRaw) > 0 {
+			if len(linConfigRaw) > 0 && linConfigRaw[0] != nil {
 				osType = virtualmachinescalesets.OperatingSystemTypesLinux
 				linConfig := linConfigRaw[0].(map[string]interface{})
 				provisionVMAgent := linConfig["provision_vm_agent"].(bool)
