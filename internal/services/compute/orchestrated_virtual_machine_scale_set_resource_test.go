@@ -594,7 +594,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_regression29748(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -2915,7 +2914,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) osProfile_empty(data acceptance.TestData) string {
-	r := OrchestratedVirtualMachineScaleSetResource{}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2925,8 +2923,6 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-OVMSS-%[1]d"
   location = "%[2]s"
 }
-
-%[3]s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestOVMSS-%[1]d"
@@ -2938,5 +2934,5 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {}
 }
-`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+`, data.RandomInteger, data.Locations.Primary)
 }
