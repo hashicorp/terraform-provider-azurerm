@@ -117,7 +117,7 @@ func TestAccComputeInstance_withWorkspaceManagedNetworkAndNoSubnet(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(r.requiresImport),
+		data.ImportStep(),
 	})
 }
 
@@ -447,8 +447,8 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
   managed_network {
-    # Ensure the compute instance can be created without public IP and without subnet as long as its parent workspace
-    # is using a managed network
+    # Ensure the compute instance can be created without public IP and without subnet
+    # as long as its parent workspace is using a managed network
     isolation_mode = "AllowInternetOutbound"
   }
 }
@@ -459,6 +459,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   virtual_machine_size          = "STANDARD_DS2_V2"
   local_auth_enabled            = false
   node_public_ip_enabled        = false
+  subnet_resource_id            = null
 }
 `, data.RandomIntOfLength(8), data.Locations.Primary)
 }
