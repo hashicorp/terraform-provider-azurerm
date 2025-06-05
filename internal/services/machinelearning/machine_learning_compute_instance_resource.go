@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceComputeInstance() *pluginsdk.Resource {
@@ -194,10 +193,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
-	}
-
 	// NOTE: The 'ComputeResource' struct contains the information
 	// which is related to the parent resource of the instance that is
 	// to be deployed (e.g., the workspace), which is why we need to
@@ -218,6 +213,16 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("machine learning %s Workspace: model `Location` is nil", id)
 	}
 
+	if model.Properties == nil {
+		return fmt.Errorf("machine learning %s Workspace: model `Properties` is nil", id)
+	}
+	if model.Properties.ManagedNetwork == nil {
+		return fmt.Errorf("machine learning %s Workspace: model `Properties.ManagedNetwork` is nil", id)
+	}
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && pointer.From(workspace.Model.Properties.ManagedNetwork.IsolationMode) == workspaces.IsolationModeDisabled {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` and the workspace is not using a managed network (isolation_mode = \"Disabled\")")
+	}
+
 	parameters := machinelearningcomputes.ComputeResource{
 		Identity: identity,
 		Location: pointer.To(azure.NormalizeLocation(*model.Location)),
@@ -227,14 +232,14 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// NOTE: In 4.0 the 'location' field will be deprecated...
 	props := machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
-			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
+			VMSize:                          pointer.To(d.Get("virtual_machine_size").(string)),
 			Subnet:                          subnet,
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
 			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
 		},
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		Description:      pointer.To(d.Get("description").(string)),
+		DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	// NOTE: The 'location' field is not supported for instances, "Compute clusters can be created in
@@ -317,8 +322,43 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 
 		if props.Properties.Subnet != nil {
-			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+			// Only save the subnet to state if the workspace is NOT using managed networking (i.e. isolation_mode = "Disabled")
+			workspace, err := meta.(*clients.Client).MachineLearning.Workspaces.Get(ctx, workspaceId)
+			if err != nil {
+				return err
+			}
+			if workspace.Model == nil {
+				return fmt.Errorf("machine learning %s Workspace: model is nil", id)
+			}
+			if workspace.Model.Location == nil {
+				return fmt.Errorf("machine learning %s Workspace: model `Location` is nil", id)
+			}
+			if workspace.Model.Properties == nil {
+				return fmt.Errorf("machine learning %s Workspace: model `Properties` is nil", id)
+			}
+			if workspace.Model.Properties.ManagedNetwork == nil {
+				return fmt.Errorf("machine learning %s Workspace: model `Properties.ManagedNetwork` is nil", id)
+			}
+			if pointer.From(workspace.Model.Properties.ManagedNetwork.IsolationMode) == workspaces.IsolationModeDisabled {
+				d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+			}
 		}
+
+		// i created two instances in portal for a workspace WITHOUT managed networking
+		// one with virtual network enabled, one with virtual network disabled
+		// Both had properties.connectivityendpoints.publicipaddresses (auto assigned?),
+		// and neither had an enableNodePublicIp property (maybe that's why here it's using
+		// the connectivity endpoint prop instead?)
+		//
+		// What about instances in WSs with managed networking? do they have publicipaddresses?
+		// It has enabledNodePublicIp property, it is `false`
+		// It has connecticvityendpoints.publicipaddress = null
+		//
+		// Therefore, it almost seems like there should be no argument called `enablePublicIp`.
+		// or rather public_ip_enabled is always the opposite of whether a managed network is used on the WS
+		// and there should just be an attribute called `publicIpAddress`.
+		// Is it possible to have a non-managed-network WS instance with public_ip disabled?
+		//
 
 		enableNodePublicIP := true
 		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
@@ -375,7 +415,7 @@ func expandComputeSSHSetting(input []interface{}) *machinelearningcomputes.Compu
 	value := input[0].(map[string]interface{})
 	return &machinelearningcomputes.ComputeInstanceSshSettings{
 		SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessEnabled),
-		AdminPublicKey:  utils.String(value["public_key"].(string)),
+		AdminPublicKey:  pointer.To(value["public_key"].(string)),
 	}
 }
 

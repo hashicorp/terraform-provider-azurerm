@@ -118,7 +118,9 @@ The following arguments are supported:
 
 * `subnet_resource_id` - (Optional) Virtual network subnet resource ID the compute nodes belong to. Changing this forces a new Machine Learning Compute Instance to be created.
 
-* `node_public_ip_enabled` - (Optional) Whether the compute instance will have a public ip. To set this to false a `subnet_resource_id` needs to be set. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `node_public_ip_enabled` - (Optional) Whether the compute instance will have a public ip. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+-> **Note:** if `node_public_ip_enabled` is set to `false`, and the instance's parent workspace is not using a managed network (i.e. the workspace's outbound isolation mode is `Disabled`), then `subnet_resource_id` must be set.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Instance. Changing this forces a new Machine Learning Compute Instance to be created.
 
