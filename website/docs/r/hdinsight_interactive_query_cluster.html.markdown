@@ -165,7 +165,7 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -217,7 +217,7 @@ A `storage_account` block supports the following:
 
 * `storage_container_id` - (Required) The ID of the Storage Container. Changing this forces a new resource to be created.
 
--> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+-> **Note:** When the `azurerm_storage_container` resource is created with `storage_account_name`, this can be obtained from the `id` of the `azurerm_storage_container` resource. When the `azurerm_storage_container` resource is created with `storage_account_id`, please use `azurerm_storage_containers` data source to get the `data_plane_id` of the `azurerm_storage_container` resource for this field.
 
 * `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
@@ -265,7 +265,7 @@ A `private_link_service_connection` block supports the following:
 
 A `worker_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 * `username` - (Required) The Username of the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -305,7 +305,7 @@ A `disk_encryption` block supports the following:
 
 A `zookeeper_node` block supports the following:
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 * `username` - (Required) The Username of the local administrator for the Zookeeper Nodes. Changing this forces a new resource to be created.
 
