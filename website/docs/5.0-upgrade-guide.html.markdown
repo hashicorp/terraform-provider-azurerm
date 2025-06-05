@@ -74,6 +74,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_postgresql_server`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -96,6 +100,10 @@ This deprecated data source has been superseded/retired and has been removed fro
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+### `azurerm_postgresql_server`
+
+* This deprecated data source has been retired and has been removed from the Azure Provider.
 
 ### `azurerm_spatial_anchors_account`
 

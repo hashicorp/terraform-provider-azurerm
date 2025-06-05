@@ -4,6 +4,7 @@
 package postgres
 
 import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -33,19 +34,23 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_postgresql_server":          dataSourcePostgreSqlServer(),
+	dataSources := map[string]*pluginsdk.Resource{
 		"azurerm_postgresql_flexible_server": dataSourcePostgresqlFlexibleServer(),
 	}
+
+	if !features.FivePointOh() {
+		dataSources["azurerm_postgresql_server"] = dataSourcePostgreSqlServer()
+	}
+
+	return dataSources
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+	resources := map[string]*pluginsdk.Resource{
 		"azurerm_postgresql_configuration":                                  resourcePostgreSQLConfiguration(),
 		"azurerm_postgresql_database":                                       resourcePostgreSQLDatabase(),
 		"azurerm_postgresql_firewall_rule":                                  resourcePostgreSQLFirewallRule(),
-		"azurerm_postgresql_server":                                         resourcePostgreSQLServer(),
 		"azurerm_postgresql_server_key":                                     resourcePostgreSQLServerKey(),
 		"azurerm_postgresql_virtual_network_rule":                           resourcePostgreSQLVirtualNetworkRule(),
 		"azurerm_postgresql_active_directory_administrator":                 resourcePostgreSQLAdministrator(),
@@ -55,6 +60,12 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_postgresql_flexible_server_database":                       resourcePostgresqlFlexibleServerDatabase(),
 		"azurerm_postgresql_flexible_server_active_directory_administrator": resourcePostgresqlFlexibleServerAdministrator(),
 	}
+
+	if !features.FivePointOh() {
+		resources["azurerm_postgresql_server"] = resourcePostgreSQLServer()
+	}
+
+	return resources
 }
 
 func (r Registration) Resources() []sdk.Resource {
