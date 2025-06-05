@@ -187,7 +187,5 @@ terraform import azurerm_oracle_autonomous_database_clone.example /subscriptions
 ```
 
 ## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This data source uses the following Azure API Providers:
 
 * `Oracle.Database`: 2025-03-01

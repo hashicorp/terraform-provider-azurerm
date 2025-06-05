@@ -59,6 +59,7 @@ type AutonomousDatabaseCloneResourceModel struct {
 	IsReconnectCloneEnabled        bool     `tfschema:"is_reconnect_clone_enabled"`
 	IsRefreshableClone             bool     `tfschema:"is_refreshable_clone"`
 	RefreshableModel               string   `tfschema:"refreshable_model"`
+	RefreshableStatus              string   `tfschema:"refreshable_status"`
 	TimeUntilReconnectCloneEnabled string   `tfschema:"time_until_reconnect_clone_enabled"`
 
 	// optional for clone from backup timestamp
@@ -93,7 +94,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			}, false),
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				// Source is create-only and not returned by Azure API
-				return old != ""
+				return old != "" && new == ""
 			},
 		},
 		"source_id": {
@@ -122,12 +123,60 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			}, false),
 		},
 
+		//optional
+		"refreshable_model": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(autonomousdatabases.RefreshableModelTypeAutomatic),
+				string(autonomousdatabases.RefreshableModelTypeManual),
+			}, false),
+		},
+
+		"time_until_reconnect_clone_enabled": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+
+		//optional for clone from backup time stamp
+		"use_latest_available_backup_time_stamp": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+		"timestamp": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+
+		// computed
+		"is_reconnect_clone_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"is_refreshable_clone": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		"refreshable_status": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+
 		// Required (inherited from base)
 		"admin_password": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
@@ -246,47 +295,6 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			},
 		},
 
-		"is_reconnect_clone_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-
-		"is_refreshable_clone": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-
-		"refreshable_model": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.RefreshableModelTypeAutomatic),
-				string(autonomousdatabases.RefreshableModelTypeManual),
-			}, false),
-		},
-
-		"time_until_reconnect_clone_enabled": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.IsRFC3339Time,
-		},
-
-		//optional for clone from backup time stamp
-		"use_latest_available_backup_time_stamp": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"timestamp": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsRFC3339Time,
-		},
-
 		"tags": commonschema.Tags(),
 	}
 }
@@ -343,8 +351,6 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 					Source:       autonomousdatabases.Source(autonomousdatabases.SourceTypeBackupFromTimestamp),
 					DataBaseType: autonomousdatabases.DataBaseTypeCloneFromBackupTimestamp,
 
-					// Clone From backup properties
-					Timestamp:                         pointer.To(model.Timestamp),
 					UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimeStamp),
 
 					// Base properties
@@ -366,6 +372,11 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 					SubnetId:                       pointer.To(model.SubnetId),
 					VnetId:                         pointer.To(model.VnetId),
 				}
+				cloneBackup := param.Properties.(*autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
+				if model.Timestamp != "" {
+					cloneBackup.Timestamp = pointer.To(model.Timestamp)
+				}
+
 			} else {
 				// Regular clone
 				param.Properties = &autonomousdatabases.AutonomousDatabaseCloneProperties{
@@ -439,6 +450,10 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 			state.Name = id.AutonomousDatabaseName
 			state.ResourceGroupName = id.ResourceGroupName
 
+			if val, ok := metadata.ResourceData.GetOk("source"); ok {
+				state.Source = val.(string)
+			}
+
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
@@ -451,10 +466,8 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 					state.IsReconnectCloneEnabled = pointer.From(cloneProps.IsReconnectCloneEnabled)
 					state.IsRefreshableClone = pointer.From(cloneProps.IsRefreshableClone)
 					state.TimeUntilReconnectCloneEnabled = pointer.From(cloneProps.TimeUntilReconnectCloneEnabled)
+					state.RefreshableStatus = string(pointer.From(cloneProps.RefreshableStatus))
 
-					if cloneProps.Source != nil {
-						state.Source = string(*cloneProps.Source)
-					}
 					if cloneProps.RefreshableModel != nil {
 						state.RefreshableModel = string(*cloneProps.RefreshableModel)
 					}
@@ -491,7 +504,6 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 					state.CloneType = string(backupProps.CloneType)
 					state.SourceId = backupProps.SourceId
 					state.DataBaseType = string(backupProps.DataBaseType)
-					state.Source = string(backupProps.Source)
 					state.Timestamp = pointer.From(backupProps.Timestamp)
 					state.UseLatestAvailableBackupTimeStamp = pointer.From(backupProps.UseLatestAvailableBackupTimeStamp)
 
