@@ -583,6 +583,21 @@ func TestAccOrchestratedVirtualMachineScaleSet_updatePriorityMixPolicy(t *testin
 // 	})
 // }
 
+func TestAccOrchestratedVirtualMachineScaleSet_regression29748(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osProfile_empty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
@@ -2895,6 +2910,33 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     base_regular_count            = 1
     regular_percentage_above_base = 50
   }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) osProfile_empty(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+  zones                       = ["1"]
+
+  os_profile {}
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
