@@ -1089,6 +1089,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(managedclusters.OutboundTypeUserDefinedRouting),
 								string(managedclusters.OutboundTypeManagedNATGateway),
 								string(managedclusters.OutboundTypeUserAssignedNATGateway),
+								string(managedclusters.OutboundTypeNone),
 							}, false),
 						},
 
@@ -3290,6 +3291,10 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
+	if v, ok := profile["outbound_type"].(string); ok && v != "" {
+		networkProfile.OutboundType = pointer.To(managedclusters.OutboundType(v))
+	}
+	
 	return &networkProfile, nil
 }
 
@@ -3463,7 +3468,8 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	if profile.OutboundType != nil {
 		outboundType = string(*profile.OutboundType)
 	}
-
+	m["outbound_type"] = outboundType
+	
 	lbProfiles := make([]interface{}, 0)
 	if lbp := profile.LoadBalancerProfile; lbp != nil {
 		lb := make(map[string]interface{})
