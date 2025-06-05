@@ -139,3 +139,9 @@ Virtual Machine Scale Set Extensions can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_virtual_machine_scale_set_extension.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1/extensions/extension1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute`: 2024-11-01, 2024-03-01
