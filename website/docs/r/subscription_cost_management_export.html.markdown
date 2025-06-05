@@ -116,3 +116,9 @@ Subscription Cost Management Exports can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_subscription_cost_management_export.example /subscriptions/12345678-1234-9876-4563-123456789012/providers/Microsoft.CostManagement/exports/export1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CostManagement`: 2023-08-01

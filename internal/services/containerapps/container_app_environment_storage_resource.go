@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -27,6 +27,7 @@ type ContainerAppEnvironmentStorageModel struct {
 	AccessKey                 string `tfschema:"access_key"`
 	ShareName                 string `tfschema:"share_name"`
 	AccessMode                string `tfschema:"access_mode"`
+	NfsServer                 string `tfschema:"nfs_server_url"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentStorageResource{}
@@ -62,27 +63,29 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 		},
 
 		"account_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageAccountName,
-			Description:  "The Azure Storage Account in which the Share to be used is located.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  storageValidate.StorageAccountName,
+			RequiredWith:  []string{"access_key"},
+			ConflictsWith: []string{"nfs_server_url"},
+			Description:   "The Azure Storage Account in which the Share to be used is located.",
 		},
 
 		"access_key": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"account_name"},
 			Description:  "The Storage Account Access Key.",
 		},
 
 		"share_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: storageValidate.StorageShareName,
-			Description:  "The name of the Azure Storage Share to use.",
+			Type:        pluginsdk.TypeString,
+			Required:    true,
+			ForceNew:    true,
+			Description: "The name of the Azure Storage Share to use.",
 		},
 
 		"access_mode": {
@@ -94,6 +97,14 @@ func (r ContainerAppEnvironmentStorageResource) Arguments() map[string]*pluginsd
 				string(managedenvironmentsstorages.AccessModeReadWrite),
 			}, false),
 			Description: "The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`.",
+		},
+
+		"nfs_server_url": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"account_name"},
 		},
 	}
 }
@@ -132,16 +143,27 @@ func (r ContainerAppEnvironmentStorageResource) Create() sdk.ResourceFunc {
 			}
 
 			accessMode := managedenvironmentsstorages.AccessMode(storage.AccessMode)
+			managedEnvironmentStorage := managedenvironmentsstorages.ManagedEnvironmentStorage{}
 
-			managedEnvironmentStorage := managedenvironmentsstorages.ManagedEnvironmentStorage{
-				Properties: &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
+			if storage.NfsServer != "" {
+				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
+					NfsAzureFile: &managedenvironmentsstorages.NfsAzureFileProperties{
+						AccessMode: &accessMode,
+						Server:     pointer.To(storage.NfsServer),
+						ShareName:  pointer.To(storage.ShareName),
+					},
+				}
+				managedEnvironmentStorage.Properties = props
+			} else {
+				props := &managedenvironmentsstorages.ManagedEnvironmentStorageProperties{
 					AzureFile: &managedenvironmentsstorages.AzureFileProperties{
 						AccessMode:  &accessMode,
 						AccountKey:  pointer.To(storage.AccessKey),
 						AccountName: pointer.To(storage.AccountName),
 						ShareName:   pointer.To(storage.ShareName),
 					},
-				},
+				}
+				managedEnvironmentStorage.Properties = props
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, managedEnvironmentStorage); err != nil {
@@ -187,6 +209,12 @@ func (r ContainerAppEnvironmentStorageResource) Read() sdk.ResourceFunc {
 							state.AccessMode = string(*azureFile.AccessMode)
 						}
 						state.ShareName = pointer.From(azureFile.ShareName)
+					} else if nfsAzureFile := props.NfsAzureFile; nfsAzureFile != nil {
+						state.NfsServer = pointer.From(nfsAzureFile.Server)
+						if nfsAzureFile.AccessMode != nil {
+							state.AccessMode = string(*nfsAzureFile.AccessMode)
+						}
+						state.ShareName = pointer.From(nfsAzureFile.ShareName)
 					}
 				}
 			}

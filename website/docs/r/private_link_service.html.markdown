@@ -10,7 +10,7 @@ description: |-
 
 Manages a Private Link Service.
 
--> **NOTE** Private Link is now in [GA](https://docs.microsoft.com/en-gb/azure/private-link/).
+-> **Note:** Private Link is now in [GA](https://docs.microsoft.com/en-gb/azure/private-link/).
 
 ## Example Usage
 
@@ -108,7 +108,7 @@ The following arguments are supported:
 
 * `visibility_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be able to see this Private Link Service.
 
--> **NOTE:** If no Subscription IDs are specified then Azure allows every Subscription to see this Private Link Service.
+-> **Note:** If no Subscription IDs are specified then Azure allows every Subscription to see this Private Link Service.
 
 ---
 
@@ -118,7 +118,7 @@ The `nat_ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) Specifies the ID of the Subnet which should be used for the Private Link Service.
 
--> **NOTE:** Verify that the Subnet's `enforce_private_link_service_network_policies` attribute is set to `true`.
+-> **Note:** Verify that the Subnet's `enforce_private_link_service_network_policies` attribute is set to `true`.
 
 * `primary` - (Required) Is this is the Primary IP Configuration? Changing this forces a new resource to be created.
 
@@ -136,10 +136,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Private Link Service.
-* `update` - (Defaults to 60 minutes) Used when updating the Private Link Service.
+* `create` - (Defaults to 1 hour) Used when creating the Private Link Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Service.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Private Link Service.
+* `update` - (Defaults to 1 hour) Used when updating the Private Link Service.
+* `delete` - (Defaults to 1 hour) Used when deleting the Private Link Service.
 
 ## Import
 

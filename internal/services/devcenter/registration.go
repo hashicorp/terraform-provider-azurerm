@@ -26,7 +26,11 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		DevCenterDataSource{},
+		DevCenterProjectDataSource{},
+		DevCenterProjectEnvironmentTypeDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {

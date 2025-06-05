@@ -1128,13 +1128,18 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("updating identity for Linux %s: `model` was nil", id)
 		}
 
-		existing.Model.Identity = identityExpanded
+		identityUpdate := *existing.Model
+
+		identityUpdate.Identity = identityExpanded
+		identityUpdate.Resources = nil // Resources are subject to a validation error for some VM Extensions. Since we don't want to change these here, we send a nil to perform a no-op in the API
+
 		// Removing a user-assigned identity using PATCH requires setting it to `null` in the payload which
 		// 1. The go-azure-sdk for resource manager doesn't support at the moment
 		// 2. The expand identity function doesn't behave this way
 		// For the moment updating the identity with the PUT circumvents this API behaviour
 		// See https://github.com/hashicorp/terraform-provider-azurerm/issues/25058 for more details
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, identityUpdate, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating identity for Linux %s: %+v", id, err)
 		}
 	}
@@ -1680,29 +1685,6 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 		}
 
 		return fmt.Errorf("retrieving Linux %s: %+v", id, err)
-	}
-
-	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		// If the VM was in a Failed state we can skip powering off, since that'll fail
-		if model := existing.Model; model != nil && model.Properties != nil && model.Properties.ProvisioningState != nil {
-			if strings.EqualFold(*existing.Model.Properties.ProvisioningState, "failed") {
-				log.Printf("[DEBUG] Powering Off Linux Virtual Machine was skipped because the VM was in %q state %s", *model.Properties.ProvisioningState, id)
-			} else {
-				// ISSUE: 4920
-				// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
-				// thus this can be a large cost-saving when deleting larger instances
-				// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-				log.Printf("[DEBUG] Powering Off Linux %s", id)
-				skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-				options := virtualmachines.PowerOffOperationOptions{
-					SkipShutdown: pointer.To(skipShutdown),
-				}
-				if err := client.PowerOffThenPoll(ctx, *id, options); err != nil {
-					return fmt.Errorf("powering off Linux %s: %+v", id, err)
-				}
-				log.Printf("[DEBUG] Powered Off Linux %s", id)
-			}
-		}
 	}
 
 	log.Printf("[DEBUG] Deleting Linux %s", id)

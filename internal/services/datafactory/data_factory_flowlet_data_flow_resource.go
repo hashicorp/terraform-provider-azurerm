@@ -7,15 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryFlowletDataFlow() *pluginsdk.Resource {
@@ -26,7 +28,7 @@ func resourceDataFactoryFlowletDataFlow() *pluginsdk.Resource {
 		Delete: resourceDataFactoryFlowletDataFlowDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.DataFlowID(id)
+			_, err := dataflows.ParseDataflowID(id)
 			return err
 		}),
 
@@ -99,7 +101,6 @@ func resourceDataFactoryFlowletDataFlow() *pluginsdk.Resource {
 
 func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DataFlowClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -108,29 +109,29 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 		return err
 	}
 
-	id := parse.NewDataFlowID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := dataflows.NewDataflowID(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+		existing, err := client.Get(ctx, id, dataflows.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_data_factory_flowlet_data_flow", id.ID())
 		}
 	}
 
-	flowLet := datafactory.Flowlet{
-		FlowletTypeProperties: &datafactory.FlowletTypeProperties{
-			Script:          utils.String(d.Get("script").(string)),
+	flowLet := dataflows.Flowlet{
+		TypeProperties: &dataflows.FlowletTypeProperties{
+			Script:          pointer.To(d.Get("script").(string)),
 			Sinks:           expandDataFactoryDataFlowSink(d.Get("sink").([]interface{})),
 			Sources:         expandDataFactoryDataFlowSource(d.Get("source").([]interface{})),
 			Transformations: expandDataFactoryDataFlowTransformation(d.Get("transformation").([]interface{})),
 		},
-		Description: utils.String(d.Get("description").(string)),
-		Type:        datafactory.TypeBasicDataFlowTypeFlowlet,
+		Description: pointer.To(d.Get("description").(string)),
+		Type:        helper.DataFlowTypeFlowlet,
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -139,20 +140,20 @@ func resourceDataFactoryFlowletDataFlowCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
-		flowLet.Folder = &datafactory.DataFlowFolder{
-			Name: utils.String(v.(string)),
+		flowLet.Folder = &dataflows.DataFlowFolder{
+			Name: pointer.To(v.(string)),
 		}
 	}
 
 	if v, ok := d.GetOk("script_lines"); ok {
-		flowLet.ScriptLines = utils.ExpandStringSlice(v.([]interface{}))
+		flowLet.TypeProperties.ScriptLines = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
-	dataFlow := datafactory.DataFlowResource{
+	dataFlow := dataflows.DataFlowResource{
 		Properties: &flowLet,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, dataFlow, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, dataFlow, dataflows.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -166,14 +167,14 @@ func resourceDataFactoryFlowletDataFlowRead(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataFlowID(d.Id())
+	id, err := dataflows.ParseDataflowID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	resp, err := client.Get(ctx, *id, dataflows.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -181,37 +182,39 @@ func resourceDataFactoryFlowletDataFlowRead(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	flowLet, ok := resp.Properties.AsFlowlet()
-	if !ok {
-		return fmt.Errorf("classifying type of %s: Expected: %q", id, datafactory.TypeBasicDataFlowTypeFlowlet)
-	}
-
-	d.Set("name", id.Name)
-	d.Set("data_factory_id", factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName).ID())
-	d.Set("description", flowLet.Description)
-
-	if err := d.Set("annotations", flattenDataFactoryAnnotations(flowLet.Annotations)); err != nil {
-		return fmt.Errorf("setting `annotations`: %+v", err)
-	}
-
-	folder := ""
-	if flowLet.Folder != nil && flowLet.Folder.Name != nil {
-		folder = *flowLet.Folder.Name
-	}
-	d.Set("folder", folder)
-
-	if prop := flowLet.FlowletTypeProperties; prop != nil {
-		d.Set("script", prop.Script)
-		d.Set("script_lines", prop.ScriptLines)
-
-		if err := d.Set("source", flattenDataFactoryDataFlowSource(prop.Sources)); err != nil {
-			return fmt.Errorf("setting `source`: %+v", err)
+	if model := resp.Model; model != nil {
+		flowLet, ok := model.Properties.(dataflows.Flowlet)
+		if !ok {
+			return fmt.Errorf("classifying type of %s: Expected: %q", id, helper.DataFlowTypeFlowlet)
 		}
-		if err := d.Set("sink", flattenDataFactoryDataFlowSink(prop.Sinks)); err != nil {
-			return fmt.Errorf("setting `sink`: %+v", err)
+
+		d.Set("name", id.DataflowName)
+		d.Set("data_factory_id", factories.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID())
+		d.Set("description", flowLet.Description)
+
+		if err := d.Set("annotations", flattenDataFactoryAnnotations(flowLet.Annotations)); err != nil {
+			return fmt.Errorf("setting `annotations`: %+v", err)
 		}
-		if err := d.Set("transformation", flattenDataFactoryDataFlowTransformation(prop.Transformations)); err != nil {
-			return fmt.Errorf("setting `transformation`: %+v", err)
+
+		folder := ""
+		if flowLet.Folder != nil {
+			folder = pointer.From(flowLet.Folder.Name)
+		}
+		d.Set("folder", folder)
+
+		if prop := flowLet.TypeProperties; prop != nil {
+			d.Set("script", prop.Script)
+			d.Set("script_lines", prop.ScriptLines)
+
+			if err := d.Set("source", flattenDataFactoryDataFlowSource(prop.Sources)); err != nil {
+				return fmt.Errorf("setting `source`: %+v", err)
+			}
+			if err := d.Set("sink", flattenDataFactoryDataFlowSink(prop.Sinks)); err != nil {
+				return fmt.Errorf("setting `sink`: %+v", err)
+			}
+			if err := d.Set("transformation", flattenDataFactoryDataFlowTransformation(prop.Transformations)); err != nil {
+				return fmt.Errorf("setting `transformation`: %+v", err)
+			}
 		}
 	}
 
@@ -223,12 +226,12 @@ func resourceDataFactoryFlowletDataFlowDelete(d *pluginsdk.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataFlowID(d.Id())
+	id, err := dataflows.ParseDataflowID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name); err != nil {
+	if _, err := client.Delete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
