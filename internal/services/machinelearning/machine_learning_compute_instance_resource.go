@@ -344,22 +344,6 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		// i created two instances in portal for a workspace WITHOUT managed networking
-		// one with virtual network enabled, one with virtual network disabled
-		// Both had properties.connectivityendpoints.publicipaddresses (auto assigned?),
-		// and neither had an enableNodePublicIp property (maybe that's why here it's using
-		// the connectivity endpoint prop instead?)
-		//
-		// What about instances in WSs with managed networking? do they have publicipaddresses?
-		// It has enabledNodePublicIp property, it is `false`
-		// It has connecticvityendpoints.publicipaddress = null
-		//
-		// Therefore, it almost seems like there should be no argument called `enablePublicIp`.
-		// or rather public_ip_enabled is always the opposite of whether a managed network is used on the WS
-		// and there should just be an attribute called `publicIpAddress`.
-		// Is it possible to have a non-managed-network WS instance with public_ip disabled?
-		//
-
 		enableNodePublicIP := true
 		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
 			enableNodePublicIP = false
