@@ -1,6 +1,7 @@
 ## 4.33.0 (Unreleased)
 
 ENHANCEMENTS:
+* Testing Changelog automation, creation and labeling [GH-29803]
 
 FEATURES:
 
