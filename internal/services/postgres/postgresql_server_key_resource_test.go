@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,10 @@ import (
 type PostgreSQLServerKeyResource struct{}
 
 func TestAccPostgreSQLServerKey_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server_key` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
 	r := PostgreSQLServerKeyResource{}
 
@@ -34,6 +39,10 @@ func TestAccPostgreSQLServerKey_basic(t *testing.T) {
 }
 
 func TestAccPostgreSQLServerKey_updateKey(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server_key` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
 	r := PostgreSQLServerKeyResource{}
 
@@ -56,6 +65,10 @@ func TestAccPostgreSQLServerKey_updateKey(t *testing.T) {
 }
 
 func TestAccPostgreSQLServerKey_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server_key` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
 	r := PostgreSQLServerKeyResource{}
 
@@ -71,6 +84,10 @@ func TestAccPostgreSQLServerKey_requiresImport(t *testing.T) {
 }
 
 func TestAccPostgreSQLServerKey_replica(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server_key` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server_key", "test")
 	r := PostgreSQLServerKeyResource{}
 

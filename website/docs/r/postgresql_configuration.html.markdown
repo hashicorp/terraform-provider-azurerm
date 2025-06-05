@@ -10,6 +10,8 @@ description: |-
 
 Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 
+~> **Note:** Azure Database for PostgreSQL Single Server and its sub resources are scheduled for retirement by 2025-03-28 and will migrate to using Azure Database for PostgreSQL Flexible Server: https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783. The `azurerm_postgresql_configuration` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `azurerm_postgresql_flexible_server_configuration` resource instead.
+
 ## Disclaimers
 
 ~> **Note:** Since this resource is provisioned by default, the Azure Provider will not check for the presence of an existing resource prior to attempting to create it.

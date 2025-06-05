@@ -10,6 +10,8 @@ description: |-
 
 Manages a PostgreSQL Database within a PostgreSQL Server
 
+~> **Note:** Azure Database for PostgreSQL Single Server and its sub resources are scheduled for retirement by 2025-03-28 and will migrate to using Azure Database for PostgreSQL Flexible Server: https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783. The `azurerm_postgresql_database` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `azurerm_postgresql_flexible_server_database` resource instead.
+
 !> **Note:** To mitigate the possibility of accidental data loss it is highly recommended that you use the `prevent_destroy` lifecycle argument in your configuration file for this resource. For more information on the `prevent_destroy` lifecycle argument please see the [terraform documentation](https://developer.hashicorp.com/terraform/tutorials/state/resource-lifecycle#prevent-resource-deletion).
 
 ## Example Usage

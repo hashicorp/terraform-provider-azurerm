@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -20,6 +21,10 @@ import (
 type PostgreSQLVirtualNetworkRuleResource struct{}
 
 func TestAccPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_virtual_network_rule` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -34,6 +39,10 @@ func TestAccPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccPostgreSQLVirtualNetworkRule_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_virtual_network_rule` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +57,10 @@ func TestAccPostgreSQLVirtualNetworkRule_requiresImport(t *testing.T) {
 }
 
 func TestAccPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_virtual_network_rule` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
 
@@ -74,6 +87,10 @@ func TestAccPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 }
 
 func TestAccPostgreSQLVirtualNetworkRule_disappears(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_virtual_network_rule` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -85,6 +102,10 @@ func TestAccPostgreSQLVirtualNetworkRule_disappears(t *testing.T) {
 }
 
 func TestAccPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_virtual_network_rule` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "rule1")
 	r := PostgreSQLVirtualNetworkRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -98,6 +119,10 @@ func TestAccPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 }
 
 func TestAccPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_virtual_network_rule` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	r := PostgreSQLVirtualNetworkRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

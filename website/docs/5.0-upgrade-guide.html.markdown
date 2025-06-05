@@ -78,6 +78,30 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_postgresql_active_directory_administrator`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_configuration`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_database`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_firewall_rule`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_server_key`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_virtual_network_rule`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
