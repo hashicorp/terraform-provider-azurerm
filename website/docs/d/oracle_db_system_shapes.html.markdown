@@ -17,6 +17,7 @@ Gets a list of the shapes that can be used to launch a new DB system. The shape 
 ```hcl
 data "azurerm_oracle_db_system_shapes" "example" {
   location = "West Europe"
+  zone = "2"
 }
 
 output "example" {
@@ -29,6 +30,8 @@ output "example" {
 The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the system shapes in.
+
+* `zone` -  (Optional) The Cloud Exadata Infrastructure Azure zones.
 
 ## Attributes Reference
 
@@ -90,4 +93,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Oracle.Database`: 2024-06-01
+* `Oracle.Database`: 2025-03-01
