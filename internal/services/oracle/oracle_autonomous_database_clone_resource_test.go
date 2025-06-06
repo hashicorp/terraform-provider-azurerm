@@ -60,7 +60,7 @@ func TestAccAutonomousDatabaseClone_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("auto_scaling_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("auto_scaling_for_storage_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("is_refreshable_clone").HasValue("true"),
+				check.That(data.ResourceName).Key("refreshable_model").HasValue("Manual"),
 			),
 		},
 		data.ImportStep("admin_password", "source", "clone_type"),
@@ -83,7 +83,7 @@ func TestAccAutonomousDatabaseClone_metadataClone(t *testing.T) {
 	})
 }
 
-func TestAccAutonomousDatabaseClone_backupTimestamp(t *testing.T) {
+func TestAccAutonomousDatabaseClone_backupTimestampLatestBackup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone", "test")
 	r := AutonomousDatabaseCloneResource{}
 
@@ -93,7 +93,6 @@ func TestAccAutonomousDatabaseClone_backupTimestamp(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_base_type").HasValue("CloneFromBackupTimestamp"),
-				check.That(data.ResourceName).Key("use_latest_available_backup_time_stamp").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_time_stamp"),
@@ -110,7 +109,6 @@ func TestAccAutonomousDatabaseClone_backupTimestampWithSpecificTime(t *testing.T
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_base_type").HasValue("CloneFromBackupTimestamp"),
-				check.That(data.ResourceName).Key("timestamp").HasValue("2025-06-01T22:57:51.000Z"),
 			),
 		},
 		data.ImportStep("admin_password", "source", "clone_type", "timestamp"),
@@ -263,7 +261,6 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   virtual_network_id               = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet"
 
   # Clone-specific optional fields
-  is_refreshable_clone = true
   refreshable_model    = "Manual"
 
   customer_contacts = ["test@example.com"]

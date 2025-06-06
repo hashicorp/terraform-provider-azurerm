@@ -154,13 +154,6 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
-		// computed
-		"is_reconnect_clone_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		},
-
 		// Required (inherited from base)
 		"admin_password": {
 			Type:         pluginsdk.TypeString,
@@ -290,6 +283,10 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 
 func (AutonomousDatabaseCloneResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"is_reconnect_clone_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 		"is_refreshable_clone": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
@@ -452,6 +449,12 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 			if val, ok := metadata.ResourceData.GetOk("source"); ok {
 				state.Source = val.(string)
 			}
+			if v, ok := metadata.ResourceData.GetOk("use_latest_available_backup_time_stamp"); ok {
+				state.UseLatestAvailableBackupTimeStamp = v.(bool)
+			}
+			if v, ok := metadata.ResourceData.GetOk("timestamp"); ok {
+				state.Timestamp = v.(string)
+			}
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
@@ -503,8 +506,6 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 					state.CloneType = string(backupProps.CloneType)
 					state.SourceId = backupProps.SourceId
 					state.DataBaseType = string(backupProps.DataBaseType)
-					state.Timestamp = pointer.From(backupProps.Timestamp)
-					state.UseLatestAvailableBackupTimeStamp = pointer.From(backupProps.UseLatestAvailableBackupTimeStamp)
 
 					// Base properties
 					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
