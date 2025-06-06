@@ -58,39 +58,35 @@ var windowsApplicationStackConstraint = []string{
 }
 
 func windowsApplicationStackSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"dotnet_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{ // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
-						"v2.0",
-						"v3.0",
-						"v4.0",
-						"v5.0",
-						"v6.0",
-						"v7.0",
-						"v8.0",
-						"v9.0",
-					}, false),
-					AtLeastOneOf: windowsApplicationStackConstraint,
-				},
+	r := &pluginsdk.Resource{
+		Schema: map[string]*pluginsdk.Schema{
+			"dotnet_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{ // Note: DotNet versions are abstracted between API and Portal displayed values, so do not match 1:1. A table of the converted values is provided in the resource doc.
+					"v2.0",
+					"v3.0",
+					"v4.0",
+					"v5.0",
+					"v6.0",
+					"v7.0",
+					"v8.0",
+          "v9.0",
+        }, false),
+				AtLeastOneOf: windowsApplicationStackConstraint,
+			},
 
-				"dotnet_core_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"v4.0",
-					}, false),
-					AtLeastOneOf: windowsApplicationStackConstraint,
-					Description:  "The version of DotNetCore to use.",
-				},
+			"dotnet_core_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"v4.0",
+				}, false),
+				AtLeastOneOf: windowsApplicationStackConstraint,
+				Description:  "The version of DotNetCore to use.",
+				Deprecated:   "This property has been deprecated in favour of `dotnet_version`.",
+			},
 
 				"php_version": {
 					Type:     pluginsdk.TypeString,
