@@ -30,7 +30,7 @@ func TestAccAutonomousDatabaseClone_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("data_base_type").HasValue("Clone"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "source", "clone_type"),
 	})
 }
 
@@ -63,7 +63,7 @@ func TestAccAutonomousDatabaseClone_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("is_refreshable_clone").HasValue("true"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "source", "clone_type"),
 	})
 }
 
@@ -79,7 +79,7 @@ func TestAccAutonomousDatabaseClone_metadataClone(t *testing.T) {
 				check.That(data.ResourceName).Key("clone_type").HasValue("Metadata"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "source", "clone_type"),
 	})
 }
 
@@ -96,7 +96,7 @@ func TestAccAutonomousDatabaseClone_backupTimestamp(t *testing.T) {
 				check.That(data.ResourceName).Key("use_latest_available_backup_time_stamp").HasValue("true"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_time_stamp"),
 	})
 }
 
@@ -113,7 +113,7 @@ func TestAccAutonomousDatabaseClone_backupTimestampWithSpecificTime(t *testing.T
 				check.That(data.ResourceName).Key("timestamp").HasValue("2025-06-01T22:57:51.000Z"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "source", "clone_type", "timestamp"),
 	})
 }
 
@@ -128,7 +128,7 @@ func TestAccAutonomousDatabaseClone_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "source", "clone_type"),
 		{
 			Config: r.updateTimeUntilReconnect(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -136,7 +136,7 @@ func TestAccAutonomousDatabaseClone_update(t *testing.T) {
 				check.That(data.ResourceName).Key("time_until_reconnect_clone_enabled").HasValue("2025-12-01T12:00:00Z"),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep("admin_password", "source", "clone_type"),
 	})
 }
 

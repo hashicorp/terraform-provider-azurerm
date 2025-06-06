@@ -137,6 +137,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		"time_until_reconnect_clone_enabled": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
@@ -156,18 +157,6 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		// computed
 		"is_reconnect_clone_enabled": {
 			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		},
-
-		"is_refreshable_clone": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-		},
-
-		"refreshable_status": {
-			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 		},
@@ -300,7 +289,17 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 }
 
 func (AutonomousDatabaseCloneResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"is_refreshable_clone": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"refreshable_status": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (AutonomousDatabaseCloneResource) ModelObject() interface{} {
