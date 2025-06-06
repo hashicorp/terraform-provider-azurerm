@@ -12,6 +12,7 @@ type ManagedClusterProperties struct {
 	AutoUpgradeProfile        *ManagedClusterAutoUpgradeProfile          `json:"autoUpgradeProfile,omitempty"`
 	AzureMonitorProfile       *ManagedClusterAzureMonitorProfile         `json:"azureMonitorProfile,omitempty"`
 	AzurePortalFQDN           *string                                    `json:"azurePortalFQDN,omitempty"`
+	BootstrapProfile          *ManagedClusterBootstrapProfile            `json:"bootstrapProfile,omitempty"`
 	CurrentKubernetesVersion  *string                                    `json:"currentKubernetesVersion,omitempty"`
 	DisableLocalAccounts      *bool                                      `json:"disableLocalAccounts,omitempty"`
 	DiskEncryptionSetID       *string                                    `json:"diskEncryptionSetID,omitempty"`
