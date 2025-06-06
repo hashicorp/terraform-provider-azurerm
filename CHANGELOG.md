@@ -5,6 +5,7 @@ ENHANCEMENTS:
 `azurerm_postgresql_flexible_server` - the `create_mode` property now supports the `ReviveDropped` value  [GH-29814]
 
 FEATURES:
+* **New Data Source**: `azurerm_dev_center_network_connection` [GH-29792]
 
 BUG FIXES:
 
