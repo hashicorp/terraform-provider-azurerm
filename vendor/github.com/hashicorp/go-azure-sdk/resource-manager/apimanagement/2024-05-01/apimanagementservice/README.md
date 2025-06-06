@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice` Documentation
 
-The `apimanagementservice` SDK allows for interaction with Azure Resource Manager `apimanagement` (API Version `2022-08-01`).
+The `apimanagementservice` SDK allows for interaction with Azure Resource Manager `apimanagement` (API Version `2024-05-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 ```
 
 
@@ -193,7 +193,12 @@ for _, item := range items {
 ctx := context.TODO()
 id := apimanagementservice.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
-if err := client.MigrateToStv2ThenPoll(ctx, id); err != nil {
+payload := apimanagementservice.MigrateToStv2Contract{
+	// ...
+}
+
+
+if err := client.MigrateToStv2ThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```
