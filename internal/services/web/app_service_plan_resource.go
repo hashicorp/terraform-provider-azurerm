@@ -4,6 +4,8 @@
 package web
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -142,12 +145,44 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
-				ForceNew: true,
 				Optional: true,
 			},
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				if d.Get("zone_redundant").(bool) {
+					skuConfig := d.Get("sku").([]interface{})
+					if len(skuConfig) > 0 {
+						sku := skuConfig[0].(map[string]interface{})
+						if tier, ok := sku["tier"]; ok {
+							if !strings.Contains(tier.(string), "Premium") {
+								return errors.New("`zone_redundant` cannot be enabled when `sku.0.tier` is not `Premium`")
+							}
+						}
+					}
+				}
+				return nil
+			}),
+
+			pluginsdk.ForceNewIf("zone_redundant", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				if d.Get("zone_redundant").(bool) {
+					skuConfig := d.Get("sku").([]interface{})
+					if len(skuConfig) > 0 {
+						sku := skuConfig[0].(map[string]interface{})
+						if capacity, ok := sku["capacity"]; ok {
+							if capacity.(int) >= 2 {
+								return false
+							}
+						}
+
+					}
+				}
+				return true
+			}),
+		),
 	}
 }
 

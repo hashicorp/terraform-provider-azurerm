@@ -227,7 +227,29 @@ func TestAccAppServicePlan_zoneRedundant(t *testing.T) {
 			Config: r.zoneRedundant(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("PremiumV2"),
+				check.That(data.ResourceName).Key("sku.0.size").HasValue("P1v2"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.zoneRedundantUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("PremiumV2"),
+				check.That(data.ResourceName).Key("sku.0.size").HasValue("P1v2"),
+				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.zoneRedundant(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
 				check.That(data.ResourceName).Key("sku.0.tier").HasValue("PremiumV2"),
 				check.That(data.ResourceName).Key("sku.0.size").HasValue("P1v2"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("3"),
@@ -616,7 +638,34 @@ resource "azurerm_app_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   kind                = "Windows"
 
-  zone_redundant = true
+  zone_redundant      = false
+
+  sku {
+    tier     = "PremiumV2"
+    size     = "P1v2"
+    capacity = 3
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r AppServicePlanResource) zoneRedundantUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "Windows"
+  zone_redundant      = true
 
   sku {
     tier     = "PremiumV2"
