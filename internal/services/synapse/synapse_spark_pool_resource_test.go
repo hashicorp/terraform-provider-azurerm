@@ -100,14 +100,6 @@ func TestAccSynapseSparkPool_sparkVersion(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sparkVersion(data, "3.2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// not returned by service
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-		{
 			Config: r.sparkVersion(data, "3.3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -183,6 +175,22 @@ func TestAccSynapseSpark3Pool_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("spark_events_folder", "spark_log_folder"),
+	})
+}
+
+func TestAccSynapseSparkPool_customLibrary(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
+	r := SynapseSparkPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customLibrary(data, "3.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		// not returned by service
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
 	})
 }
@@ -317,6 +325,79 @@ resource "azurerm_synapse_spark_pool" "test" {
   spark_version             = "3.4"
 }
 `, template, data.RandomString)
+}
+
+func (r SynapseSparkPoolResource) customLibrary(data acceptance.TestData, sparkVersion string) string {
+	template := r.template(data, data.Locations.Primary)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "spark-mssql-connector.jar"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source                 = "testdata/spark-mssql-connector.jar"
+}
+
+resource "azurerm_synapse_spark_pool" "test" {
+  name                                = "acctestSSP%s"
+  synapse_workspace_id                = azurerm_synapse_workspace.test.id
+  node_size_family                    = "MemoryOptimized"
+  node_size                           = "Medium"
+  dynamic_executor_allocation_enabled = true
+  min_executors                       = 1
+  max_executors                       = 3
+  session_level_packages_enabled      = true
+  cache_size                          = 100
+  auto_pause {
+    delay_in_minutes = 15
+  }
+
+  auto_scale {
+    max_node_count = 50
+    min_node_count = 3
+  }
+
+  library_requirement {
+    content  = <<EOF
+appnope==0.1.0
+beautifulsoup4==4.6.3
+EOF
+    filename = "requirements.txt"
+  }
+
+  custom_library {
+    name           = "mssql-connector"
+    path           = azurerm_storage_blob.test.name
+    container_name = azurerm_storage_container.test.name
+    type           = "jar"
+  }
+
+  spark_config {
+    content  = <<EOF
+spark.shuffle.spill                true
+EOF
+    filename = "config.txt"
+  }
+
+  spark_log_folder    = "/logs"
+  spark_events_folder = "/events"
+  spark_version       = "%s"
+
+  tags = {
+    ENV = "Test"
+  }
+
+  depends_on = [azurerm_storage_blob.test]
+}
+`, template, data.RandomString, sparkVersion)
 }
 
 func (r SynapseSparkPoolResource) template(data acceptance.TestData, location string) string {
