@@ -53,6 +53,9 @@ func TestExaInfra_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("shape").HasValue("Exadata.X11M"),
+				check.That(data.ResourceName).Key("database_server_type").HasValue("X11M"),
+				check.That(data.ResourceName).Key("storage_server_type").HasValue("X11M-HC"),
 			),
 		},
 		data.ImportStep(),
@@ -129,10 +132,13 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   resource_group_name = azurerm_resource_group.test.name
   compute_count       = "2"
   display_name        = "OFakeacctest%[2]d"
-  shape               = "Exadata.X9M"
+  shape               = "Exadata.X11M"
   storage_count       = "3"
   zones               = ["3"]
   customer_contacts   = ["test@test.com"]
+
+  database_server_type = "X11M"
+  storage_server_type = "X11M-HC"
 
   maintenance_window {
     days_of_week       = ["Monday"]
