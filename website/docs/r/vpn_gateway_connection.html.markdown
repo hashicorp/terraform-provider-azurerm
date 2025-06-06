@@ -115,6 +115,8 @@ A `vpn_link` block supports the following:
 
 * `name` - (Required) The name which should be used for this VPN Link Connection.
 
+* `dpd_timeout_seconds` - (Optional) The dead peer detection timeout of this connection in seconds. Possible values are between `9` and `3600`.
+
 * `egress_nat_rule_ids` - (Optional) A list of the egress NAT Rule Ids.
 
 * `ingress_nat_rule_ids` - (Optional) A list of the ingress NAT Rule Ids.
