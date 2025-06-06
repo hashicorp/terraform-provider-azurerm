@@ -424,15 +424,15 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfileErrorConfiguration(t *t
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.skuProfileWithoutSkuName(data),
-			ExpectError: regexp.MustCompile("`sku_profile` can only be set when `sku_name` is set to `Mix`"),
+			ExpectError: regexp.MustCompile("'sku_profile' can only be configured when 'sku_name' is set to 'Mix'"),
 		},
 		{
 			Config:      r.skuProfileSkuNameIsNotMix(data),
-			ExpectError: regexp.MustCompile("`sku_profile` can only be set when `sku_name` is set to `Mix`"),
+			ExpectError: regexp.MustCompile("'sku_profile' can only be configured when 'sku_name' is set to 'Mix'"),
 		},
 		{
 			Config:      r.skuProfileNotExist(data),
-			ExpectError: regexp.MustCompile("`sku_profile` must be set when `sku_name` is set to `Mix`"),
+			ExpectError: regexp.MustCompile("'sku_profile' must be configured when 'sku_name' is set to 'Mix'"),
 		},
 	})
 }

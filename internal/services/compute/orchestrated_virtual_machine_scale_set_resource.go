@@ -340,11 +340,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				if hasSkuProfile {
 					if !hasSkuName || skuName != SkuNameMix {
-						return fmt.Errorf("`sku_profile` can only be set when `sku_name` is set to `Mix`")
+						return fmt.Errorf("'sku_profile' can only be configured when 'sku_name' is set to 'Mix'")
 					}
 				} else {
 					if hasSkuName && skuName == SkuNameMix {
-						return fmt.Errorf("`sku_profile` must be set when `sku_name` is set to `Mix`")
+						return fmt.Errorf("'sku_profile' must be configured when 'sku_name' is set to 'Mix'")
 					}
 				}
 
@@ -352,11 +352,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				rollingUpgradePolicyRaw := diff.Get("rolling_upgrade_policy").([]interface{})
 
 				if upgradeMode == virtualmachinescalesets.UpgradeModeManual && len(rollingUpgradePolicyRaw) > 0 {
-					return fmt.Errorf("a `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to `%s`", string(upgradeMode))
+					return fmt.Errorf("'rolling_upgrade_policy' cannot be specified when 'upgrade_mode' is set to %q", string(upgradeMode))
 				}
 
 				if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && len(rollingUpgradePolicyRaw) == 0 {
-					return fmt.Errorf("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to `%s`", string(upgradeMode))
+					return fmt.Errorf("'rolling_upgrade_policy' is required when 'upgrade_mode' is set to %q", string(upgradeMode))
 				}
 
 				return nil
@@ -461,7 +461,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if v, ok := d.GetOk("capacity_reservation_group_id"); ok {
 		if d.Get("single_placement_group").(bool) {
-			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
+			return fmt.Errorf("'single_placement_group' must be set to 'false' when 'capacity_reservation_group_id' is specified")
 		}
 
 		virtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
@@ -489,7 +489,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	// Virtual Machine Scale Set with Flexible Orchestration Mode and 'Rolling' upgradeMode must have Health Extension Present
 	if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && !hasHealthExtension {
-		return fmt.Errorf("a health extension must be specified when `upgrade_mode` is set to `Rolling`")
+		return fmt.Errorf("a health extension is required when 'upgrade_mode' is set to %q", string(upgradeMode))
 	}
 
 	if v, ok := d.GetOk("extensions_time_budget"); ok {
@@ -545,11 +545,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 
 			if extensionOperationsEnabled && !provisionVMAgent {
-				return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+				return fmt.Errorf("'extension_operations_enabled' cannot be set to 'true' when 'provision_vm_agent' is set to 'false'")
 			}
 
 			if patchAssessmentMode == string(virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
-				return fmt.Errorf("when the 'patch_assessment_mode' field is set to %q the 'provision_vm_agent' must always be set to 'true'", virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform)
+				return fmt.Errorf("when 'patch_assessment_mode' is set to %q, 'provision_vm_agent' must be set to 'true'", virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform)
 			}
 
 			// Validate patch mode and hotpatching configuration
@@ -560,34 +560,34 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			if isHotpatchEnabledImage {
 				// it is a hotpatching enabled image, validate hotpatching enabled settings
 				if patchMode != string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform) {
-					return fmt.Errorf("when referencing a hotpatching enabled image the 'patch_mode' field must always be set to %q", virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform)
+					return fmt.Errorf("when using a hotpatching enabled image, 'patch_mode' must be set to %q", virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform)
 				}
 
 				if !provisionVMAgent {
-					return fmt.Errorf("when referencing a hotpatching enabled image the 'provision_vm_agent' field must always be set to 'true'")
+					return fmt.Errorf("when using a hotpatching enabled image, 'provision_vm_agent' must be set to 'true'")
 				}
 
 				if !hasHealthExtension {
-					return fmt.Errorf("when referencing a hotpatching enabled image the 'extension' field must always contain a 'application health extension'")
+					return fmt.Errorf("when using a hotpatching enabled image, an application health extension must be configured")
 				}
 
 				if !hotpatchingEnabled {
-					return fmt.Errorf("when referencing a hotpatching enabled image the 'hotpatching_enabled' field must always be set to 'true'")
+					return fmt.Errorf("when using a hotpatching enabled image, 'hotpatching_enabled' must be set to 'true'")
 				}
 			} else {
 				// not a hotpatching enabled image verify Automatic VM Guest Patching settings
 				if patchMode == string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform) {
 					if !provisionVMAgent {
-						return fmt.Errorf("when 'patch_mode' is set to %q then 'provision_vm_agent' must be set to 'true'", patchMode)
+						return fmt.Errorf("when 'patch_mode' is set to %q, 'provision_vm_agent' must be set to 'true'", patchMode)
 					}
 
 					if !hasHealthExtension {
-						return fmt.Errorf("when 'patch_mode' is set to %q then the 'extension' field must always contain a 'application health extension'", patchMode)
+						return fmt.Errorf("when 'patch_mode' is set to %q, an application health extension must be configured", patchMode)
 					}
 				}
 
 				if hotpatchingEnabled {
-					return fmt.Errorf("'hotpatching_enabled' field is not supported unless you are using one of the following hotpatching enable images, '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch', '2022-datacenter-azure-edition-hotpatch-smalldisk', '2025-datacenter-azure-edition', '2025-datacenter-azure-edition-smalldisk', '2025-datacenter-azure-edition-core' or '2025-datacenter-azure-edition-core-smalldisk'")
+					return fmt.Errorf("'hotpatching_enabled' can only be used with supported Windows Server images: '2022-datacenter-azure-edition', '2022-datacenter-azure-edition-core-smalldisk', '2022-datacenter-azure-edition-hotpatch', '2022-datacenter-azure-edition-hotpatch-smalldisk', '2025-datacenter-azure-edition', '2025-datacenter-azure-edition-smalldisk', '2025-datacenter-azure-edition-core', or '2025-datacenter-azure-edition-core-smalldisk'")
 				}
 			}
 		}
@@ -611,11 +611,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 
 			if extensionOperationsEnabled && !provisionVMAgent {
-				return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+				return fmt.Errorf("'extension_operations_enabled' cannot be set to true when 'provision_vm_agent' is set to false")
 			}
 
 			if patchAssessmentMode == string(virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
-				return fmt.Errorf("when the 'patch_assessment_mode' field is set to %q the 'provision_vm_agent' must always be set to 'true'", virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform)
+				return fmt.Errorf("when 'patch_assessment_mode' is set to %q, 'provision_vm_agent' must be set to 'true'", virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform)
 			}
 
 			// Validate Automatic VM Guest Patching Settings
@@ -623,11 +623,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 			if patchMode == string(virtualmachinescalesets.LinuxVMGuestPatchModeAutomaticByPlatform) {
 				if !provisionVMAgent {
-					return fmt.Errorf("when the 'patch_mode' field is set to %q the 'provision_vm_agent' field must always be set to 'true', got %q", patchMode, strconv.FormatBool(provisionVMAgent))
+					return fmt.Errorf("when 'patch_mode' is set to %q, 'provision_vm_agent' must be set to 'true', got %q", patchMode, strconv.FormatBool(provisionVMAgent))
 				}
 
 				if !hasHealthExtension {
-					return fmt.Errorf("when the 'patch_mode' field is set to %q the 'extension' field must contain at least one 'application health extension', got 0", patchMode)
+					return fmt.Errorf("when 'patch_mode' is set to %q, at least one application health extension must be configured, got 0", patchMode)
 				}
 			}
 		}
@@ -677,7 +677,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
 		if *virtualMachineProfile.Priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+			return fmt.Errorf("'max_bid_price' can only be configured when 'priority' is set to %q", string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot))
 		}
 
 		virtualMachineProfile.BillingProfile = &virtualmachinescalesets.BillingProfile{
@@ -693,11 +693,11 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 	if v, ok := d.GetOk("eviction_policy"); ok {
 		if *virtualMachineProfile.Priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-			return fmt.Errorf("an `eviction_policy` can only be specified when `priority` is set to `Spot`")
+			return fmt.Errorf("'eviction_policy' can only be specified when 'priority' is set to %q", string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot))
 		}
 		virtualMachineProfile.EvictionPolicy = pointer.To(virtualmachinescalesets.VirtualMachineEvictionPolicyTypes(v.(string)))
 	} else if *virtualMachineProfile.Priority == virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-		return fmt.Errorf("an `eviction_policy` must be specified when `priority` is set to `Spot`")
+		return fmt.Errorf("'eviction_policy' is required when 'priority' is set to %q", string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot))
 	}
 
 	if v, ok := d.GetOk("license_type"); ok {
@@ -724,7 +724,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		if v, ok := d.GetOk("automatic_instance_repair"); ok {
 			if !hasHealthExtension {
-				return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension defined")
+				return fmt.Errorf("'automatic_instance_repair' can only be enabled when an application health extension is configured")
 			}
 
 			props.Properties.AutomaticRepairsPolicy = ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(v.([]interface{}))
@@ -732,7 +732,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		if v, ok := d.GetOk("zone_balance"); ok && v.(bool) {
 			if props.Zones == nil || len(*props.Zones) == 0 {
-				return fmt.Errorf("`zone_balance` can only be set to `true` when zones are specified")
+				return fmt.Errorf("'zone_balance' can only be set to 'true' when availability zones are specified")
 			}
 
 			props.Properties.ZoneBalance = pointer.To(v.(bool))
@@ -740,7 +740,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 
 		if v, ok := d.GetOk("priority_mix"); ok {
 			if *virtualMachineProfile.Priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-				return fmt.Errorf("a `priority_mix` can only be specified when `priority` is set to `Spot`")
+				return fmt.Errorf("'priority_mix' can only be specified when 'priority' is set to %q", string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot))
 			}
 			props.Properties.PriorityMixPolicy = ExpandOrchestratedVirtualMachineScaleSetPriorityMixPolicy(v.([]interface{}))
 		}
@@ -830,7 +830,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			if !pluginsdk.IsExplicitlyNullInConfig(d, "single_placement_group") {
 				singlePlacementGroup := d.Get("single_placement_group").(bool)
 				if singlePlacementGroup {
-					return fmt.Errorf("'single_placement_group' can not be set to 'true' once it has been set to 'false'")
+					return fmt.Errorf("'single_placement_group' cannot be changed from 'false' to 'true'")
 				}
 				updateProps.SinglePlacementGroup = pointer.To(singlePlacementGroup)
 			}
@@ -843,7 +843,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 		if d.HasChange("max_bid_price") {
 			if priority != virtualmachinescalesets.VirtualMachinePriorityTypesSpot {
-				return fmt.Errorf("`max_bid_price` can only be configured when `priority` is set to `Spot`")
+				return fmt.Errorf("'max_bid_price' can only be configured when 'priority' is set to %q", string(virtualmachinescalesets.VirtualMachinePriorityTypesSpot))
 			}
 
 			updateProps.VirtualMachineProfile.BillingProfile = &virtualmachinescalesets.BillingProfile{
@@ -903,21 +903,21 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 
 				if d.HasChange("os_profile.0.windows_configuration.0.provision_vm_agent") {
 					if isHotpatchEnabledImage && !provisionVMAgent {
-						return fmt.Errorf("when referencing a hotpatching enabled image the 'provision_vm_agent' field must always be set to 'true', got %q", strconv.FormatBool(provisionVMAgent))
+						return fmt.Errorf("when using a hotpatching enabled image, 'provision_vm_agent' must be set to 'true', got %q", strconv.FormatBool(provisionVMAgent))
 					}
 					windowsConfig.ProvisionVMAgent = pointer.To(provisionVMAgent)
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.patch_assessment_mode") {
 					if !provisionVMAgent && (patchAssessmentMode == string(virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform)) {
-						return fmt.Errorf("when the 'patch_assessment_mode' field is set to %q the 'provision_vm_agent' must always be set to 'true'", virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform)
+						return fmt.Errorf("when 'patch_assessment_mode' is set to %q, 'provision_vm_agent' must be set to 'true'", virtualmachinescalesets.WindowsPatchAssessmentModeAutomaticByPlatform)
 					}
 					windowsConfig.PatchSettings.AssessmentMode = pointer.To(virtualmachinescalesets.WindowsPatchAssessmentMode(patchAssessmentMode))
 				}
 
 				if d.HasChange("os_profile.0.windows_configuration.0.patch_mode") {
 					if isHotpatchEnabledImage && (patchMode != string(virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform)) {
-						return fmt.Errorf("when referencing a hotpatching enabled image the 'patch_mode' field must always be set to %q, got %q", virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform, patchMode)
+						return fmt.Errorf("when using a hotpatching enabled image, 'patch_mode' must be set to %q, got %q", virtualmachinescalesets.WindowsVMGuestPatchModeAutomaticByPlatform, patchMode)
 					}
 					windowsConfig.PatchSettings.PatchMode = pointer.To(virtualmachinescalesets.WindowsVMGuestPatchMode(patchMode))
 				}
@@ -927,7 +927,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				// support hotpatching to always be enabled and cannot be set to false, ever.
 				if d.HasChange("os_profile.0.windows_configuration.0.hotpatching_enabled") {
 					if isHotpatchEnabledImage && !hotpatchingEnabled {
-						return fmt.Errorf("when referencing a hotpatching enabled image the 'hotpatching_enabled' field must always be set to 'true', got %q", strconv.FormatBool(hotpatchingEnabled))
+						return fmt.Errorf("when using a hotpatching enabled image, 'hotpatching_enabled' must be set to 'true', got %q", strconv.FormatBool(hotpatchingEnabled))
 					}
 					windowsConfig.PatchSettings.EnableHotpatching = pointer.To(hotpatchingEnabled)
 				}
@@ -1112,7 +1112,7 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 				}
 
 				if !hasHealthExtension {
-					return fmt.Errorf("`automatic_instance_repair` can only be set if there is an application Health extension defined")
+					return fmt.Errorf("'automatic_instance_repair' can only be enabled when an application health extension is configured")
 				}
 			}
 			updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
@@ -1169,11 +1169,11 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 
 			if isHotpatchEnabledImage && !hasHealthExtension {
-				return fmt.Errorf("when referencing a hotpatching enabled image the 'extension' field must always contain a 'application health extension'")
+				return fmt.Errorf("when using a hotpatching enabled image, an application health extension must be configured")
 			}
 
 			if linuxAutomaticVMGuestPatchingEnabled && !hasHealthExtension {
-				return fmt.Errorf("when the 'patch_mode' field is set to %q the 'extension' field must contain at least one 'application health extension', got 0", virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform)
+				return fmt.Errorf("when 'patch_mode' is set to %q, at least one application health extension must be configured, got 0", virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform)
 			}
 
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
