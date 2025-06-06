@@ -528,7 +528,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			customData = v.(string)
 		}
 
-		if len(winConfigRaw) > 0 {
+		if len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
 			winConfig := winConfigRaw[0].(map[string]interface{})
 			provisionVMAgent := winConfig["provision_vm_agent"].(bool)
 			patchAssessmentMode := winConfig["patch_assessment_mode"].(string)
@@ -592,7 +592,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 		}
 
-		if len(linConfigRaw) > 0 {
+		if len(linConfigRaw) > 0 && linConfigRaw[0] != nil {
 			osType = virtualmachinescalesets.OperatingSystemTypesLinux
 			linConfig := linConfigRaw[0].(map[string]interface{})
 			provisionVMAgent := linConfig["provision_vm_agent"].(bool)
@@ -1483,7 +1483,7 @@ func resourceOrchestratedVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData,
 	// Original Error: Code="InUseSubnetCannotBeDeleted" Message="Subnet internal is in use by
 	// /{nicResourceID}/|providers|Microsoft.Compute|virtualMachineScaleSets|acctestvmss-190923101253410278|virtualMachines|0|networkInterfaces|example/ipConfigurations/internal and cannot be deleted.
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
-	if resp.Model.Sku != nil {
+	if resp.Model != nil && resp.Model.Sku != nil {
 		resp.Model.Sku.Capacity = utils.Int64(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")
