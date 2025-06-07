@@ -2414,8 +2414,8 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 	v := input[0].(map[string]interface{})
 
 	if expandedIdentity.Type == identity.TypeUserAssigned {
-		if userAssignedIdentityID, ok := v["user_assigned_identity_id"]; ok && userAssignedIdentityID == "" {
-			return nil, fmt.Errorf("user_assigned_identity_id is required when using a UserAssigned identity")
+		if userAssignedIdentityID, ok := v["user_assigned_identity_id"]; !ok || userAssignedIdentityID == "" {
+			return nil, fmt.Errorf("`user_assigned_identity_id` must be specified when using a UserAssigned identity")
 		}
 	}
 
