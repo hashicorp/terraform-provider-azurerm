@@ -198,6 +198,8 @@ A `git_repository` block supports the following:
 
 * `local_auth_reference` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets. It must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.
 
+* `provider` - (Optional) Specifies the OIDC provider used for workload identity federation authentication against Azure DevOps git repositories. Possible values are `azure`, `generic`. Defaults to `generic` which indicates local secret based authentication used.
+
 * `ssh_private_key_base64` - (Optional) Specifies the Base64-encoded SSH private key in PEM format.
 
 * `ssh_known_hosts_base64` - (Optional) Specifies the Base64-encoded known_hosts value containing public SSH keys required to access private git repositories over SSH.
