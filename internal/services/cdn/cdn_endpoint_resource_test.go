@@ -7,7 +7,9 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,6 +21,10 @@ import (
 type CdnEndpointResource struct{}
 
 func TestAccCdnEndpoint_basic(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -34,6 +40,10 @@ func TestAccCdnEndpoint_basic(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_requiresImport(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -49,6 +59,10 @@ func TestAccCdnEndpoint_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_disappears(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -61,6 +75,10 @@ func TestAccCdnEndpoint_disappears(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_updateHostHeader(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -83,6 +101,10 @@ func TestAccCdnEndpoint_updateHostHeader(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_withTags(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -105,6 +127,10 @@ func TestAccCdnEndpoint_withTags(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_withoutCompression(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -120,6 +146,10 @@ func TestAccCdnEndpoint_withoutCompression(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_optimized(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -135,6 +165,10 @@ func TestAccCdnEndpoint_optimized(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -157,6 +191,10 @@ func TestAccCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_globalDeliveryRule(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -186,6 +224,10 @@ func TestAccCdnEndpoint_globalDeliveryRule(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_deliveryRule(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -222,6 +264,10 @@ func TestAccCdnEndpoint_deliveryRule(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_dnsAlias(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -237,6 +283,10 @@ func TestAccCdnEndpoint_dnsAlias(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_deliveryRuleOptionalMatchValue(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -253,6 +303,10 @@ func TestAccCdnEndpoint_deliveryRuleOptionalMatchValue(t *testing.T) {
 
 // Covers https://github.com/hashicorp/terraform-provider-azurerm/issue/21450
 func TestAccCdnEndpoint_longQueryString(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -269,6 +323,10 @@ func TestAccCdnEndpoint_longQueryString(t *testing.T) {
 
 // Covers https://github.com/hashicorp/terraform-provider-azurerm/issues/22326
 func TestAccCdnEndpoint_compressionUpdate(t *testing.T) {
+	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
+		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 

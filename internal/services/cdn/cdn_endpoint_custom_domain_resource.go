@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -133,6 +134,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 			Default: string(cdn.MinimumTLSVersionTLS12),
 		}
 	}
+
 	return &pluginsdk.Resource{
 		Create: resourceArmCdnEndpointCustomDomainCreate,
 		Read:   resourceArmCdnEndpointCustomDomainRead,
@@ -152,6 +154,29 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		},
 
 		Schema: schema,
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			retired, err := azure.IsRetired(2025, time.October, 1)
+			if err != nil {
+				return err
+			}
+
+			if retired {
+				// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+				// the re-create would fail with the create error from the service API...
+				if old, new := d.GetChange("name"); old.(string) != new.(string) {
+					return fmt.Errorf(deprecationMessage, "October 1, 2025")
+				}
+				if old, new := d.GetChange("cdn_endpoint_id"); old.(string) != new.(string) {
+					return fmt.Errorf(deprecationMessage, "October 1, 2025")
+				}
+				if old, new := d.GetChange("host_name"); old.(string) != new.(string) {
+					return fmt.Errorf(deprecationMessage, "October 1, 2025")
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 
