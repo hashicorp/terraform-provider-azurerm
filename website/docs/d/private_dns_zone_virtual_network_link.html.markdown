@@ -40,6 +40,8 @@ output "private_dns_a_record_id" {
 
 * `registration_enabled` - Whether the auto-registration of virtual machine records in the virtual network in the Private DNS zone is enabled or not.
 
+* `resolution_policy` - Specifies the policy for handling DNS resolution. If set to `NxDomainRedirect`, the DNS resolution will fall back to internet recursion when an authoritative NXDOMAIN response is received for a Private Link zone.
+
 * `tags` - A mapping of tags to assign to the resource.
 
 ## Timeouts
