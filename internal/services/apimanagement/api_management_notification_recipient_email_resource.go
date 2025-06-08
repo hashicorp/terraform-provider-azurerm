@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/notificationrecipientemail"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/notificationrecipientemail"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
