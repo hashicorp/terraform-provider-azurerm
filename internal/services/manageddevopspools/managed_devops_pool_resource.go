@@ -33,9 +33,9 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
 			),
 		},
-		"resource_group_name":            commonschema.ResourceGroupName(),
-		"location":                       commonschema.Location(),
-		"agent_profile":                  {
+		"resource_group_name": commonschema.ResourceGroupName(),
+		"location":            commonschema.Location(),
+		"agent_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -65,7 +65,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
-		"fabric_profile":                 {
+		"fabric_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -186,8 +186,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
-		"identity":             commonschema.SystemAssignedUserAssignedIdentityOptional(),
-		"tags":                 commonschema.Tags(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+		"tags":     commonschema.Tags(),
 	}
 }
 
