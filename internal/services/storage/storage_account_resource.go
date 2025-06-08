@@ -1442,7 +1442,12 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 
 	// Validate required fields before expanding customer_managed_key
-	identityType := d.Get("identity").(string)
+	identityRaw := d.Get("identity").([]interface{})
+	identityType := ""
+	if len(identityRaw) > 0 {
+		identityMap := identityRaw[0].(map[string]interface{})
+		identityType = identityMap["type"].(string)
+	}
 	cmkCount := d.Get("customer_managed_key.#").(int)
 
 	// If the identity is "UserAssigned" and customer_managed_key is defined,
@@ -2407,8 +2412,8 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
 	}
 
-	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned {
-		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
+	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned && expandedIdentity.Type != identity.TypeSystemAssigned {
+		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
 	}
 
 	v := input[0].(map[string]interface{})
