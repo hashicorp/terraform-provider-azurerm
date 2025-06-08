@@ -35,14 +35,157 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 		"resource_group_name":            commonschema.ResourceGroupName(),
 		"location":                       commonschema.Location(),
-		"agent_profile":                  AgentProfileSchema(),
+		"agent_profile":                  {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"kind": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string("Stateless"),
+							string("Stateful"),
+						}, false),
+					},
+					"grace_period_time_span": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"max_agent_lifetime": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"resource_predictions":         ResourcePredictionsSchema(),
+					"resource_predictions_profile": ResourcePredictionsProfileSchema(),
+				},
+			},
+		},
 		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
-		"fabric_profile":                 FabricProfileSchema(),
+		"fabric_profile":                 {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"images": ImagesSchema(),
+					"kind": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string("Vmss"),
+						}, false),
+					},
+					"network_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^/subscriptions/[0-9a-fA-F-]{36}/resourceGroups/[-\w._()]+/providers/Microsoft\.Network/virtualNetworks/[-\w._()]+/subnets/[-\w._()]+$`),
+										"Subnet ID must match the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}'.",
+									),
+								},
+							},
+						},
+					},
+					"os_profile": OsProfileSchema(),
+					"sku": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+							},
+						},
+					},
+					"storage_profile": StorageProfileSchema(),
+				},
+			},
+		},
 		"maximum_concurrency": {
 			Type:     pluginsdk.TypeInt,
 			Required: true,
 		},
-		"organization_profile": OrganizationProfileSchema(),
+		"organization_profile": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"kind": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string("AzureDevOps"),
+						}, false),
+					},
+					"organizations": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"parallelism": {
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
+								},
+								"projects": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"url": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.IsURLWithHTTPS,
+								},
+							},
+						},
+					},
+					"permission_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"groups": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"kind": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
+								},
+								"users": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		"identity":             commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"tags":                 commonschema.Tags(),
 	}

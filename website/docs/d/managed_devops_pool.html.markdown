@@ -63,9 +63,9 @@ An `agent_profile` block supports the following:
 
 * `kind` - Defines the type of agent profile. Possible values are: `Stateful` and `Stateless`.
 
-* `grace_period_time_span` - How long should the machine be kept around after it ran a workload when there are no stand-by agents. The maximum is one week. This is needed when kind is `Stateful`.
+* `grace_period_time_span` - Configures the amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete. The format for Grace Period is `dd.hh:mm:ss` and the default is no grace period.
 
-* `max_agent_lifetime` - How long should stateful machines be kept around. The maximum is one week. This is needed when kind is `Stateful`.
+* `max_agent_lifetime` - Configures the maximum duration an agent in a `stateful` pool can run before it is shut down and discarded. The format for Max time to live for standby agents is `dd.hh:mm:ss`. The default value of Max time to live for standby agents is set to the maximum allowed duration of seven days (7.00:00:00).
 
 * `resource_predictions` - A `resource_predictions` block as defined below.
 
