@@ -2521,8 +2521,8 @@ func expandAccountCustomerManagedKey(d *pluginsdk.ResourceData, ctx context.Cont
 		return nil, fmt.Errorf("customer managed key can only be used with account kind `StorageV2` or account tier `Premium`")
 	}
 
-	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned {
-		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
+	if expandedIdentity.Type != identity.TypeUserAssigned && expandedIdentity.Type != identity.TypeSystemAssignedUserAssigned && expandedIdentity.Type != identity.TypeSystemAssigned {
+		return nil, fmt.Errorf("customer managed key can only be configured when the storage account uses a `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned` managed identity but got %q", string(expandedIdentity.Type))
 	}
 
 	v := input[0].(map[string]interface{})
