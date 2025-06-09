@@ -68,3 +68,9 @@ the CIDR value (`/` characters have to be replaced by `_`), e.g.
 ```shell
 terraform import azurerm_ip_group_cidr.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.Network/ipGroups/test-ipgroup/cidrs/10.1.0.0_24
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

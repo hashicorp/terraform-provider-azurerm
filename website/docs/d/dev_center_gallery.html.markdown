@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Dev Center Gallery.
 
-* `dev_center_id` - (Required) The ID of the Dev Center within which this Dev Center Gallery should exist.
+* `dev_center_id` - (Required) The ID of the Dev Center which contains the Dev Center Gallery.
 
 ## Attributes Reference
 
@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Dev Center Gallery.
 
-* `shared_gallery_id` - The ID of the Shared Gallery which should be connected to the Dev Center Gallery.
+* `shared_gallery_id` - The ID of the Shared Gallery connected to the Dev Center Gallery.
 
 ## Timeouts
 

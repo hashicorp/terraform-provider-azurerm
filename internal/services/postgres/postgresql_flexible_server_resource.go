@@ -186,6 +186,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeReviveDropped),
 					string(servers.CreateModeGeoRestore),
 					string(servers.CreateModeUpdate),
 				}, false),
