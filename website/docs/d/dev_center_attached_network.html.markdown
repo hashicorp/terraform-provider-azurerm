@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Dev Center Attached Network.
 
-* `network_connection_id` - The ID of the Dev Center Network Connection you want to attach.
+* `network_connection_id` - The ID of the attached Dev Center Network Connection.
 
 ## Timeouts
 
