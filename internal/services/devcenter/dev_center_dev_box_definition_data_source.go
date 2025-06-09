@@ -113,7 +113,7 @@ func (r DevCenterDevBoxDefinitionDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if v := props.Sku; v != nil {
-						state.SkuName = flattenDevCenterDevBoxDefinitionForDataSource(props.Sku)
+						state.SkuName = v.Name
 					}
 				}
 			}
@@ -121,15 +121,4 @@ func (r DevCenterDevBoxDefinitionDataSource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
-}
-
-func flattenDevCenterDevBoxDefinitionForDataSource(input *devboxdefinitions.Sku) string {
-	var skuName string
-	if input == nil {
-		return skuName
-	}
-
-	skuName = pointer.From(input).Name
-
-	return skuName
 }
