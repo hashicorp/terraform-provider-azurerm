@@ -56,7 +56,7 @@ type AutonomousDatabaseCloneResourceModel struct {
 
 	// Optional for Clone
 	CustomerContacts               []string `tfschema:"customer_contacts"`
-	IsReconnectCloneEnabled        bool     `tfschema:"is_reconnect_clone_enabled"`
+	ReconnectCloneEnabled          bool     `tfschema:"reconnect_clone_enabled"`
 	IsRefreshableClone             bool     `tfschema:"is_refreshable_clone"`
 	RefreshableModel               string   `tfschema:"refreshable_model"`
 	RefreshableStatus              string   `tfschema:"refreshable_status"`
@@ -383,7 +383,7 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 					DataBaseType: autonomousdatabases.DataBaseTypeClone,
 
 					// Optional clone properties
-					IsReconnectCloneEnabled:        pointer.To(model.IsReconnectCloneEnabled),
+					IsReconnectCloneEnabled:        pointer.To(model.ReconnectCloneEnabled),
 					IsRefreshableClone:             pointer.To(model.IsRefreshableClone),
 					TimeUntilReconnectCloneEnabled: pointer.To(model.TimeUntilReconnectCloneEnabled),
 
@@ -456,6 +456,10 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 				state.Timestamp = v.(string)
 			}
 
+			if v, ok := metadata.ResourceData.GetOk("refreshable_model"); ok {
+				state.RefreshableModel = v.(string)
+			}
+
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
@@ -465,14 +469,10 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 					state.CloneType = string(cloneProps.CloneType)
 					state.SourceId = cloneProps.SourceId
 					state.DataBaseType = string(cloneProps.DataBaseType)
-					state.IsReconnectCloneEnabled = pointer.From(cloneProps.IsReconnectCloneEnabled)
+					state.ReconnectCloneEnabled = pointer.From(cloneProps.IsReconnectCloneEnabled)
 					state.IsRefreshableClone = pointer.From(cloneProps.IsRefreshableClone)
 					state.TimeUntilReconnectCloneEnabled = pointer.From(cloneProps.TimeUntilReconnectCloneEnabled)
 					state.RefreshableStatus = string(pointer.From(cloneProps.RefreshableStatus))
-
-					if cloneProps.RefreshableModel != nil {
-						state.RefreshableModel = string(*cloneProps.RefreshableModel)
-					}
 
 					// Base properties
 					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
@@ -568,46 +568,7 @@ func (r AutonomousDatabaseCloneResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient25.AutonomousDatabases
-			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var model AutonomousDatabaseCloneResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s for update: %+v", *id, err)
-			}
-
-			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-			param := autonomousdatabases.AutonomousDatabase{
-				Location: resp.Model.Location,
-				Tags:     resp.Model.Tags,
-			}
-			if cloneProps, ok := resp.Model.Properties.(autonomousdatabases.AutonomousDatabaseCloneProperties); ok {
-				updatedCloneProps := cloneProps
-				if model.TimeUntilReconnectCloneEnabled != "" {
-					updatedCloneProps.TimeUntilReconnectCloneEnabled = pointer.To(model.TimeUntilReconnectCloneEnabled)
-				}
-				param.Properties = updatedCloneProps
-			} else if _, ok := resp.Model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties); ok {
-				// CloneFromBackupTimestamp: no fields are updatable
-				// All properties are create-only or read-only according to Azure API definition
-				return fmt.Errorf("clone from backup timestamp resources do not support updates after creation")
-			} else {
-				return fmt.Errorf("unexpected property type for clone resource %s", *id)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, param); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
+			// nothing to update
 			return nil
 		},
 	}

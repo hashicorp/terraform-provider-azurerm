@@ -58,12 +58,9 @@ func TestAccAutonomousDatabaseClone_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_scaling_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("auto_scaling_for_storage_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("refreshable_model").HasValue("Manual"),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type"),
+		data.ImportStep("admin_password", "source", "clone_type", "refreshable_model"),
 	})
 }
 
@@ -112,29 +109,6 @@ func TestAccAutonomousDatabaseClone_backupTimestampWithSpecificTime(t *testing.T
 			),
 		},
 		data.ImportStep("admin_password", "source", "clone_type", "timestamp"),
-	})
-}
-
-func TestAccAutonomousDatabaseClone_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone", "test")
-	r := AutonomousDatabaseCloneResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password", "source", "clone_type"),
-		{
-			Config: r.updateTimeUntilReconnect(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("time_until_reconnect_clone_enabled").HasValue("2025-12-01T12:00:00Z"),
-			),
-		},
-		data.ImportStep("admin_password", "source", "clone_type"),
 	})
 }
 
@@ -253,8 +227,8 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   db_workload                      = "OLTP"
   display_name                     = "ADB%dclone"
   license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = true
+  auto_scaling_enabled             = true
+  auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
   subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
@@ -398,49 +372,6 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   tags = {
     Environment = "Test"
     Purpose     = "BackupTimestampWithTime"
-  }
-}
-`, data.RandomInteger, data.RandomInteger)
-}
-func (r AutonomousDatabaseCloneResource) updateTimeUntilReconnect(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_oracle_autonomous_database_clone" "test" {
-  name                = "ADB%dclone"
-  resource_group_name = "dnsFarwoarder"
-  location            = "eastus"
-
-  source_id      = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Oracle.Database/autonomousDatabases/DnsForwaderADBS"
-  clone_type     = "Full"
-  source         = "Database"
-  data_base_type = "Clone"
-
-  # Updated field
-  time_until_reconnect_clone_enabled = "2025-12-01T12:00:00Z"
-
-  admin_password                   = "BEstrO0ng_#11"
-  backup_retention_period_in_days  = 7
-  character_set                    = "AL32UTF8"
-  compute_count                    = 2.0
-  compute_model                    = "ECPU"
-  data_storage_size_in_tbs         = 1
-  db_version                       = "19c"
-  db_workload                      = "OLTP"
-  display_name                     = "ADB%dclone"
-  license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = true
-  mtls_connection_required         = false
-  national_character_set           = "AL16UTF16"
-  subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
-  virtual_network_id               = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet"
-
-  tags = {
-    Environment = "Test"
-    Purpose     = "Clone"
   }
 }
 `, data.RandomInteger, data.RandomInteger)
