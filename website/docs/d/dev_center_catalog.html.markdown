@@ -14,9 +14,8 @@ Use this data source to access information about an existing Dev Center Catalog.
 
 ```hcl
 data "azurerm_dev_center_catalog" "example" {
-  name                = azurerm_dev_center_catalog.example.name
-  resource_group_name = azurerm_dev_center_catalog.example.resource_group_name
-  dev_center_id       = azurerm_dev_center_catalog.example.dev_center_id
+  name          = azurerm_dev_center_catalog.example.name
+  dev_center_id = azurerm_dev_center_catalog.example.dev_center_id
 }
 
 output "id" {
@@ -29,8 +28,6 @@ output "id" {
 The following arguments are supported:
 
 * `name` - (Required) The name of this Dev Center Catalog.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Dev Center Catalog exists.
 
 * `dev_center_id` - (Required) Specifies the Dev Center Id within which this Dev Center Catalog should exist.
 

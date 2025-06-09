@@ -23,11 +23,10 @@ var _ sdk.DataSource = DevCenterCatalogDataSource{}
 type DevCenterCatalogDataSource struct{}
 
 type DevCenterCatalogDataSourceModel struct {
-	Name              string                             `tfschema:"name"`
-	ResourceGroupName string                             `tfschema:"resource_group_name"`
-	DevCenterID       string                             `tfschema:"dev_center_id"`
-	CatalogGitHub     []CatalogPropertiesDataSourceModel `tfschema:"catalog_github"`
-	CatalogAdoGit     []CatalogPropertiesDataSourceModel `tfschema:"catalog_adogit"`
+	Name          string                             `tfschema:"name"`
+	DevCenterID   string                             `tfschema:"dev_center_id"`
+	CatalogGitHub []CatalogPropertiesDataSourceModel `tfschema:"catalog_github"`
+	CatalogAdoGit []CatalogPropertiesDataSourceModel `tfschema:"catalog_adogit"`
 }
 
 type CatalogPropertiesDataSourceModel struct {
@@ -44,8 +43,6 @@ func (DevCenterCatalogDataSource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
 		"dev_center_id": commonschema.ResourceIDReferenceRequired(&devcenters.DevCenterId{}),
 	}
@@ -83,9 +80,8 @@ func (r DevCenterCatalogDataSource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			devCenterName := devCenterId.DevCenterName
 
-			id := catalogs.NewDevCenterCatalogID(subscriptionId, state.ResourceGroupName, devCenterName, state.Name)
+			id := catalogs.NewDevCenterCatalogID(subscriptionId, devCenterId.ResourceGroupName, devCenterId.DevCenterName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -99,7 +95,6 @@ func (r DevCenterCatalogDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			state.Name = id.CatalogName
-			state.ResourceGroupName = id.ResourceGroupName
 			state.DevCenterID = catalogs.NewDevCenterID(id.SubscriptionId, id.ResourceGroupName, id.DevCenterName).ID()
 
 			if model := resp.Model; model != nil {

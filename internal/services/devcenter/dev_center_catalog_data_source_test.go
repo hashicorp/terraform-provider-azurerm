@@ -22,7 +22,6 @@ func TestAccDevCenterCatalogDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("dev_center_id").Exists(),
 				check.That(data.ResourceName).Key("catalog_github.#").Exists(),
 			),
@@ -35,9 +34,8 @@ func (d DevCenterCatalogDataSource) basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_dev_center_catalog" "test" {
-  name                = azurerm_dev_center_catalog.test.name
-  resource_group_name = azurerm_dev_center_catalog.test.resource_group_name
-  dev_center_id       = azurerm_dev_center_catalog.test.dev_center_id
+  name          = azurerm_dev_center_catalog.test.name
+  dev_center_id = azurerm_dev_center_catalog.test.dev_center_id
 }
 `, DevCenterCatalogsResource{}.basic(data))
 }
