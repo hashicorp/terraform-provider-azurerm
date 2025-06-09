@@ -81,7 +81,7 @@ func (r DevCenterCatalogDataSource) Read() sdk.ResourceFunc {
 
 			devCenterId, err := catalogs.ParseDevCenterID(state.DevCenterID)
 			if err != nil {
-				return fmt.Errorf("parsing dev center id: %+v", err)
+				return err
 			}
 			devCenterName := devCenterId.DevCenterName
 

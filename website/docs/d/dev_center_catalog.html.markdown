@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-The `catalog_github` block supports the following:
+The `catalog_github` block exports the following:
 
 * `branch` - The Git branch of the Dev Center Catalog.
 
@@ -58,7 +58,7 @@ The `catalog_github` block supports the following:
 
 ---
 
-The `catalog_adogit` block supports the following:
+The `catalog_adogit` block exports the following:
 
 * `branch` - The Git branch of the Dev Center Catalog.
 
