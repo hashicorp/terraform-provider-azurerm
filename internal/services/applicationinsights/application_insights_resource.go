@@ -421,9 +421,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 
 	existing, err := client.ComponentsGet(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
-		}
+	return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
@@ -452,18 +450,16 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("internet_ingestion_enabled") {
+		componentProps.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeDisabled)
 		if d.Get("internet_ingestion_enabled").(bool) {
 			componentProps.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeEnabled)
-		} else {
-			componentProps.PublicNetworkAccessForIngestion = pointer.To(components.PublicNetworkAccessTypeDisabled)
 		}
 	}
 
 	if d.HasChange("internet_query_enabled") {
+		componentProps.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeDisabled)
 		if d.Get("internet_query_enabled").(bool) {
 			componentProps.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeEnabled)
-		} else {
-			componentProps.PublicNetworkAccessForQuery = pointer.To(components.PublicNetworkAccessTypeDisabled)
 		}
 	}
 
