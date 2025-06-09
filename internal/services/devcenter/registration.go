@@ -29,6 +29,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		DevCenterDataSource{},
 		DevCenterDevBoxDefinitionDataSource{},
+		DevCenterNetworkConnectionDataSource{},
 		DevCenterProjectDataSource{},
 		DevCenterProjectEnvironmentTypeDataSource{},
 	}
