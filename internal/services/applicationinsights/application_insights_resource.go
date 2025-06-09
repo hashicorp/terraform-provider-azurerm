@@ -421,7 +421,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 
 	existing, err := client.ComponentsGet(ctx, *id)
 	if err != nil {
-	return fmt.Errorf("retrieving %s: %v", id, err)
+		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 	if existing.Model == nil {
 		return fmt.Errorf("retrieving %s: `model` was nil", id)
