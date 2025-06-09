@@ -185,12 +185,11 @@ func resourceApplicationInsightsCreate(d *pluginsdk.ResourceData, meta interface
 	id := components.NewComponentID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.ComponentsGet(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		if err != nil {
 			return fmt.Errorf("checking for presence of existing %s: %v", id, err)
 		}
-	}
-	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_application_insights", id.ID())
 	}
 
