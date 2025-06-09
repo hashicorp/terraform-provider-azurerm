@@ -239,11 +239,11 @@ func flattenArmLoadBalancerBackendAddresses(input *[]loadbalancers.LoadBalancerB
 						rulePortMapping["inbound_nat_rule_name"] = pointer.From(rule.InboundNatRuleName)
 					}
 					if rule.FrontendPort != nil {
-						rulePortMapping["frontendPort"] = *rule.FrontendPort
+						rulePortMapping["frontend_port"] = *rule.FrontendPort
 					}
 
 					if rule.BackendPort != nil {
-						rulePortMapping["backendPort"] = *rule.BackendPort
+						rulePortMapping["backend_port"] = *rule.BackendPort
 					}
 					inboundNATRulePortMappingList = append(inboundNATRulePortMappingList, rulePortMapping)
 				}
