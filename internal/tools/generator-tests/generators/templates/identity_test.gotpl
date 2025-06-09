@@ -4,13 +4,18 @@ import (
 	"context"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	{{- if (gt (.KnownValueMap | len) 0) }}
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	{{- end }}
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	{{- if (gt (.CompareValueMap | len) 0) }}
+    customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
+    {{- end }}
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -28,7 +33,7 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 			{
 				{{- if (gt (.TestParams | len) 0) }}
 				Config: r.basic(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
-					{{- else }}
+				    {{- else }}
 				Config: r.basic(data),
 				{{- end }}
 				ConfigStateChecks: []statecheck.StateCheck{
@@ -42,6 +47,10 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 
 					{{- range $idName, $schemaName := .PropertyNameMap }}
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_{{ ToSnake $resourceName }}.test", tfjsonpath.New("{{ $idName }}"), tfjsonpath.New("{{ $schemaName }}")),
+					{{- end }}
+
+					{{- range $idName, $schemaName := .CompareValueMap }}
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_{{ ToSnake $resourceName}}.test", tfjsonpath.New("{{ $idName }}"), tfjsonpath.New("{{ $schemaName }}")),
 					{{- end }}
 				},
 			},

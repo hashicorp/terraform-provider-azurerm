@@ -26,7 +26,7 @@ import (
 
 type GalleryApplicationResource struct{}
 
-func TestAccGalleryApplication_resourceIdentity(t *testing.T) {
+func TestAccGalleryApplication_resourceIdentityd(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application", "test")
 	r := GalleryApplicationResource{}
 

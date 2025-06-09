@@ -29,6 +29,8 @@ type resourceIdentityData struct {
 	TestParams         []string
 	KnownValues        string
 	KnownValueMap      map[string]string
+	CompareValues      string
+	CompareValueMap    map[string]string
 }
 
 var _ cli.Command = &ResourceIdentityCommand{}
@@ -51,9 +53,11 @@ Optional args:
 	- known-values [string]
 		'known-values' specifies discriminated values that are not exposed in the schema. This is used to differentiate between resources that use the same ID type, but are discrete resources in the provider. e.g. azurerm_windows_web_app and azurerm_linux_web_app
 		If the value for a 'known-value' is a CSV, replace the comma with a semi-colon to allow the parser to replace it for you. (see below for a full example)
+	- compare-values [string]
+		'compare-values' specifies resource identity values that do not have a one to one relationship with any values in the schema or state (i.e. the schema references a parent resource id but the resource identity includes the pieces of that parent resource id).
 
 Example:
-generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "subscription_id:data.Subscriptions.Primary,kind:someApp;linux"
+generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "subscription_id:data.Subscriptions.Primary,kind:someApp;linux" -compare-values "parent_resource_name:parent_resource_id,resource_group_name:parent_resource_id"
 
 Caveats and TODOs:
 requires that the basic test for the resource is already present and has the name 'basic' for the config. TODO - Can be extended to make this configurable.
@@ -94,6 +98,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.ServicePackageName, "service-package-name", "", "(Required) the path to the directory containing the service package to write the generated test to.")
 	argSet.StringVar(&d.BasicTestParams, "test-params", "", "(Optional) comma separated list of additional properties that need to be passed to the basic test config for this resource.")
 	argSet.StringVar(&d.KnownValues, "known-values", "", "(Optional) comma separated list of known (aka discriminated) value names and their values for this resource type, formatted as [attribute_name]:[attribute value]. e.g. `kind:linux;functionapp,foo:bar`")
+	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)
@@ -144,6 +149,20 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 				return
 			}
 			d.KnownValueMap[vParts[0]] = strings.ReplaceAll(vParts[1], ";", ",")
+		}
+	}
+
+	if len(d.CompareValues) > 0 {
+		d.CompareValueMap = make(map[string]string)
+		kv := strings.Split(d.CompareValues, ",")
+
+		for _, v := range kv {
+			vParts := strings.Split(v, ":")
+			if len(vParts) != 2 {
+				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))
+				return
+			}
+			d.CompareValueMap[vParts[0]] = strings.ReplaceAll(vParts[1], ";", ",")
 		}
 	}
 

@@ -25,7 +25,7 @@ import (
 
 type VirtualNetworkResource struct{}
 
-func TestAccVirtualNetwork_resourceIdentity(t *testing.T) {
+func TestAccVirtualNetwork_resourceIdentityd(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
 
