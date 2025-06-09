@@ -91,3 +91,9 @@ VPN Server Configuration Policy Groups can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_vpn_server_configuration_policy_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/vpnServerConfigurations/serverConfiguration1/configurationPolicyGroups/configurationPolicyGroup1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01
