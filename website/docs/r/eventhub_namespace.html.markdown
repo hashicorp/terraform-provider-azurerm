@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
+* `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `40`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -117,3 +117,31 @@ func TestNormalizeJSON(t *testing.T) {
 		}
 	}
 }
+
+func TestExpandCompressionType(t *testing.T) {
+	cases := []struct {
+		input          string
+		expectedOutput string
+	}{
+		{
+			input:          "Gzip",
+			expectedOutput: "gzip",
+		},
+		{
+			input:          "gzip",
+			expectedOutput: "gzip",
+		},
+		{
+			input:          "TarGZip",
+			expectedOutput: "TarGZip",
+		},
+	}
+
+	for _, tc := range cases {
+		output := expandCompressionType(tc.input)
+
+		if output != tc.expectedOutput {
+			t.Fatalf("Expected expandCompressionType to be '%s' for '%s' - got '%s'", tc.expectedOutput, tc.input, output)
+		}
+	}
+}

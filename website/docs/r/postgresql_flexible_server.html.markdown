@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Is Geo-Redundant backup enabled on the PostgreSQL Flexible Server. Defaults to `false`. Changing this forces a new PostgreSQL Flexible Server to be created.
 
-* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica` and `Update`.
+* `create_mode` - (Optional) The creation mode which can be used to restore or replicate existing servers. Possible values are `Default`, `GeoRestore`, `PointInTimeRestore`, `Replica`, `ReviveDropped` and `Update`.
 
 * `delegated_subnet_id` - (Optional) The ID of the virtual network subnet to create the PostgreSQL Flexible Server. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new PostgreSQL Flexible Server to be created.
 
@@ -185,7 +185,7 @@ An `authentication` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The versioned ID of the Key Vault Key.
+* `key_vault_key_id` - (Required) The versioned/versionless ID of the Key Vault Key.
 
 * `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Must be added to `identity.identity_ids`.
 

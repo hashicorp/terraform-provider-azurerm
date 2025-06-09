@@ -491,9 +491,10 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("allowed_ips") {
 		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 
-		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
-			IPRules: expandSearchServiceIPRules(ipRulesRaw),
+		if model.Properties.NetworkRuleSet == nil {
+			model.Properties.NetworkRuleSet = &services.NetworkRuleSet{}
 		}
+		model.Properties.NetworkRuleSet.IPRules = expandSearchServiceIPRules(ipRulesRaw)
 	}
 
 	if d.HasChange("network_rule_bypass_option") {

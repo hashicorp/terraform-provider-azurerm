@@ -99,6 +99,7 @@ resource "azurerm_netapp_volume" "example" {
   security_style             = "unix"
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
+  large_volume_enabled       = false
 
   # When creating volume from a snapshot
   create_from_snapshot_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/volume1/snapshots/snapshot1"
@@ -170,7 +171,7 @@ The following arguments are supported:
 
 * `snapshot_directory_visible` - (Optional) Specifies whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible. Defaults to `true`.
 
-* `create_from_snapshot_resource_id` - (Optional) Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name`, `account_name` and `pool_name`. Changing this forces a new resource to be created.
+* `create_from_snapshot_resource_id` - (Optional) Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name` and `account_name`. Changing this forces a new resource to be created.
 
 * `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below. Changing this forces a new resource to be created.
 
@@ -197,6 +198,10 @@ The following arguments are supported:
 * `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability. Changing this forces a new resource to be created.
 
 * `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption. Changing this forces a new resource to be created.
+
+* `large_volume_enabled` - (Optional) A boolean specifying if the volume is a large volume. Defaults to `false`.
+
+-> **Note:** Large volumes must be at least 50 TiB in size and can be up to 1,024 TiB (1 PiB). For more information, please refer to [Requirements and considerations for large volumes](https://learn.microsoft.com/en-us/azure/azure-netapp-files/large-volumes-requirements-considerations)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
