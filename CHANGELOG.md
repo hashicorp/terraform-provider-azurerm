@@ -1,12 +1,13 @@
 ## 4.33.0 (Unreleased)
 
-ENHANCEMENTS:
-
-`azurerm_postgresql_flexible_server` - the `create_mode` property now supports the `ReviveDropped` value  [GH-29814]
-
 FEATURES:
 * **New Data Source**: `azurerm_dev_center_gallery` [GH-29795]
 * **New Data Source**: `azurerm_dev_center_network_connection` [GH-29792]
+
+ENHANCEMENTS:
+
+* `azurerm_postgresql_flexible_server` - the `create_mode` property now supports the `ReviveDropped` value  [GH-29814]
+* `azurerm_postgresql_flexible_server` - add support for `SystemAssigned, UserAssigned` to the `identity.type` property [GH-29320]
 
 BUG FIXES:
 
