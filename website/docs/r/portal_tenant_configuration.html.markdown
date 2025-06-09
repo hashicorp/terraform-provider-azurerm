@@ -56,3 +56,9 @@ Portal Tenant Configurations can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_portal_tenant_configuration.example /providers/Microsoft.Portal/tenantConfigurations/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Portal`: 2019-01-01-preview

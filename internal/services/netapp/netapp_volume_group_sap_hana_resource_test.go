@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppVolumeGroupSAPHanaResource struct{}
@@ -134,12 +134,12 @@ func (t NetAppVolumeGroupSAPHanaResource) Exists(ctx context.Context, clients *c
 	resp, err := clients.NetApp.VolumeGroupClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (NetAppVolumeGroupSAPHanaResource) basic(data acceptance.TestData) string {
@@ -914,9 +914,20 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_primary" {
   ]
 }
 
+locals {
+  pairs = tomap({
+    # This map must be manually kept up-to-date
+    # https://learn.microsoft.com/en-us/azure/azure-netapp-files/cross-region-replication-introduction
+    "eastus" : "westus",
+    "eastus2" : "centralus",
+    "westus2" : "eastus",
+  })
+  location_pair = lookup(local.pairs, azurerm_resource_group.test.location, null)
+}
+
 resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
   name                   = "acctest-NetAppVolumeGroup-Secondary-%[2]d"
-  location               = "%[3]s"
+  location               = local.location_pair
   resource_group_name    = azurerm_resource_group.test.name
   account_name           = azurerm_netapp_account.test_secondary.name
   group_description      = "Test volume group"
@@ -950,7 +961,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
       remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[0].id
-      replication_frequency     = "10minutes"
+      replication_frequency     = "daily"
     }
 
     tags = {
@@ -1017,7 +1028,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
       endpoint_type             = "dst"
       remote_volume_location    = azurerm_netapp_volume_group_sap_hana.test_primary.location
       remote_volume_resource_id = azurerm_netapp_volume_group_sap_hana.test_primary.volume[2].id
-      replication_frequency     = "10minutes"
+      replication_frequency     = "daily"
     }
 
     tags = {
@@ -1033,7 +1044,7 @@ resource "azurerm_netapp_volume_group_sap_hana" "test_secondary" {
 }
 
 
-`, template, data.RandomInteger, data.Locations.Secondary)
+`, template, data.RandomInteger)
 }
 
 func (r NetAppVolumeGroupSAPHanaResource) templateForAvgCrossRegionReplication(data acceptance.TestData) string {
