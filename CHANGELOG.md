@@ -1,6 +1,7 @@
 ## 4.33.0 (Unreleased)
 
 FEATURES:
+* **New Data Source**: `azurerm_dev_center_catalog` [GH-29794]
 * **New Data Source**: `azurerm_dev_center_gallery` [GH-29795]
 * **New Data Source**: `azurerm_dev_center_network_connection` [GH-29792]
 
