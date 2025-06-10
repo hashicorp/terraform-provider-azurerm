@@ -40,6 +40,7 @@ type LogicAppResourceModel struct {
 	UseExtensionBundle         bool                                       `tfschema:"use_extension_bundle"`
 	BundleVersion              string                                     `tfschema:"bundle_version"`
 	ClientAffinityEnabled      bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertificateEnabled   bool                                       `tfschema:"client_certificate_enabled"`
 	ClientCertificateMode      string                                     `tfschema:"client_certificate_mode"`
 	Enabled                    bool                                       `tfschema:"enabled"`
 	FtpPublishBasicAuthEnabled bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
@@ -80,7 +81,7 @@ var (
 )
 
 func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -124,9 +125,17 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"client_certificate_enabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Should the logic app use Client Certificates",
+		},
+
 		"client_certificate_mode": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Default:      webapps.ClientCertModeRequired,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
 		},
 
@@ -245,6 +254,12 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		s["client_certificate_mode"].Default = nil
+	}
+
+	return s
 }
 
 func (r LogicAppResource) Attributes() map[string]*pluginsdk.Schema {
@@ -386,7 +401,10 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
-			clientCertEnabled := data.ClientCertificateMode != ""
+			clientCertEnabled := data.ClientCertificateEnabled
+			if !features.FivePointOh() {
+				clientCertEnabled = data.ClientCertificateMode != "" || data.ClientCertificateEnabled
+			}
 
 			basicAppSettings, err := getBasicLogicAppSettings(data, *storageAccountDomainSuffix)
 			if err != nil {
@@ -455,7 +473,7 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(data.VirtualNetworkSubnetId)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
+			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -547,7 +565,13 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
-					state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+					if !features.FivePointOh() { // Maintaining the bugged implementation for compatibility until 5.0
+						if pointer.From(props.ClientCertEnabled) {
+							state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+						}
+					} else {
+						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+					}
 				}
 			}
 
@@ -1430,7 +1454,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.LinuxFxVersion = pointer.To(config.LinuxFxVersion)
 	}
 
-	if config.Cors != nil && len(config.Cors) > 0 {
+	if len(config.Cors) > 0 {
 		siteConfig.Cors = helpers.ExpandCorsSettings(config.Cors)
 	}
 

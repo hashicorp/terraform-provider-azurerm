@@ -360,6 +360,7 @@ func TestAccLogicAppStandard_updateVersion(t *testing.T) {
 				check.That(data.ResourceName).Key("version").HasValue("~1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.version(data, "~2"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -367,6 +368,7 @@ func TestAccLogicAppStandard_updateVersion(t *testing.T) {
 				check.That(data.ResourceName).Key("version").HasValue("~2"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -379,9 +381,9 @@ func TestAccLogicAppStandard_3264bit(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.app64bit(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -389,6 +391,7 @@ func TestAccLogicAppStandard_3264bit(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.use_32_bit_worker_process").HasValue("false"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -401,9 +404,9 @@ func TestAccLogicAppStandard_httpsOnly(t *testing.T) {
 			Config: r.httpsOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("https_only").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -416,12 +419,9 @@ func TestAccLogicAppStandard_createIdentity(t *testing.T) {
 			Config: r.basicIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -434,19 +434,16 @@ func TestAccLogicAppStandard_updateIdentity(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.basicIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
-				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
-				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -459,10 +456,9 @@ func TestAccLogicAppStandard_userAssignedIdentity(t *testing.T) {
 			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -475,9 +471,6 @@ func TestAccLogicAppStandard_corsSettings(t *testing.T) {
 			Config: r.corsSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("1"),
-				check.That(data.ResourceName).Key("site_config.0.cors.0.support_credentials").HasValue("true"),
-				check.That(data.ResourceName).Key("site_config.0.cors.0.allowed_origins.#").HasValue("4"),
 			),
 		},
 		data.ImportStep(),
@@ -493,7 +486,6 @@ func TestAccLogicAppStandard_enableHttp2(t *testing.T) {
 			Config: r.enableHttp2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.http2_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -509,7 +501,6 @@ func TestAccLogicAppStandard_minTlsVersion(t *testing.T) {
 			Config: r.minTlsVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.min_tls_version").HasValue("1.2"),
 			),
 		},
 		data.ImportStep(),
@@ -525,7 +516,6 @@ func TestAccLogicAppStandard_ftpsState(t *testing.T) {
 			Config: r.ftpsState(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ftps_state").HasValue("AllAllowed"),
 			),
 		},
 		data.ImportStep(),
@@ -541,7 +531,6 @@ func TestAccLogicAppStandard_preWarmedInstanceCount(t *testing.T) {
 			Config: r.preWarmedInstanceCount(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -557,7 +546,6 @@ func TestAccLogicAppStandard_computedPreWarmedInstanceCount(t *testing.T) {
 			Config: r.computedPreWarmedInstanceCount(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.pre_warmed_instance_count").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -573,7 +561,6 @@ func TestAccLogicAppStandard_oneIpRestriction(t *testing.T) {
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
 		},
 		data.ImportStep(),
@@ -589,7 +576,6 @@ func TestAccLogicAppStandard_oneServiceTagIpRestriction(t *testing.T) {
 			Config: r.oneServiceTagIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.service_tag").HasValue("AzureEventGrid"),
 			),
 		},
 		data.ImportStep(),
@@ -605,16 +591,16 @@ func TestAccLogicAppStandard_changeIpToServiceTagIpRestriction(t *testing.T) {
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.oneServiceTagIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.service_tag").HasValue("AzureEventGrid"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -622,6 +608,7 @@ func TestAccLogicAppStandard_changeIpToServiceTagIpRestriction(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.0.ip_address").HasValue("10.10.10.10/32"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -650,17 +637,17 @@ func TestAccLogicAppStandard_ipRestrictionRemoved(t *testing.T) {
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			// This configuration has no site_config blocks at all.
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
 			Config: r.ipRestrictionRemoved(data),
@@ -669,6 +656,7 @@ func TestAccLogicAppStandard_ipRestrictionRemoved(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -682,17 +670,17 @@ func TestAccLogicAppStandard_scmIpRestrictionRemoved(t *testing.T) {
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			// This configuration has no site_config blocks at all.
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("1"),
 			),
 		},
+		data.ImportStep(),
 		{
 			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
 			Config: r.ipRestrictionRemoved(data),
@@ -701,6 +689,7 @@ func TestAccLogicAppStandard_scmIpRestrictionRemoved(t *testing.T) {
 				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -824,28 +813,34 @@ func TestAccLogicAppStandard_clientCertMode(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_certificate_mode").HasValue(""),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.clientCertMode(data, "Required"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Required"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.clientCertMode(data, "Optional"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_certificate_mode").HasValue("Optional"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.clientCertMode(data, "OptionalInteractiveUser"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("client_certificate_mode").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -861,7 +856,6 @@ func TestAccLogicAppStandard_elasticInstanceMinimum(t *testing.T) {
 			Config: r.elasticInstanceMinimum(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -877,7 +871,6 @@ func TestAccLogicAppStandard_appScaleLimit(t *testing.T) {
 			Config: r.appScaleLimit(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.app_scale_limit").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -893,7 +886,6 @@ func TestAccLogicAppStandard_runtimeScaleMonitoringEnabled(t *testing.T) {
 			Config: r.runtimeScaleMonitoringEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.runtime_scale_monitoring_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -909,7 +901,6 @@ func TestAccLogicAppStandard_dotnetVersion4(t *testing.T) {
 			Config: r.dotnetVersion(data, "~1", "v4.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v4.0"),
 			),
 		},
 		data.ImportStep(),
@@ -925,7 +916,6 @@ func TestAccLogicAppStandard_dotnetVersion5(t *testing.T) {
 			Config: r.dotnetVersion(data, "~4", "v5.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v5.0"),
 			),
 		},
 		data.ImportStep(),
@@ -941,7 +931,6 @@ func TestAccLogicAppStandard_dotnetVersion6(t *testing.T) {
 			Config: r.dotnetVersion(data, "~4", "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v6.0"),
 			),
 		},
 		data.ImportStep(),
@@ -957,7 +946,6 @@ func TestAccLogicAppStandard_dotnetVersion8(t *testing.T) {
 			Config: r.dotnetVersion(data, "~4", "v8.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.dotnet_framework_version").HasValue("v8.0"),
 			),
 		},
 		data.ImportStep(),
@@ -1060,7 +1048,6 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 			Config: r.vnetContentShareEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vnet_content_share_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -1068,7 +1055,6 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 			Config: r.vnetContentShareEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vnet_content_share_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -1076,7 +1062,6 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 			Config: r.vnetContentShareEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vnet_content_share_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
