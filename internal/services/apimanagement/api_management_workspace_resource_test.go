@@ -82,7 +82,7 @@ func (r ApiManagementWorkspaceResource) Exists(ctx context.Context, client *clie
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ApiManagementWorkspaceResource) basic(data acceptance.TestData) string {
