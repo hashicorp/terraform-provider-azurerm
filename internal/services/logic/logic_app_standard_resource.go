@@ -1561,7 +1561,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.FtpsState = pointer.ToEnum[webapps.FtpsState](config.FTPSState)
 	}
 
-	if metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()[0].AsValueMap()["pre_warmed_instance_count"].IsKnown() {
+	if len(metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()) > 0 && metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()[0].AsValueMap()["pre_warmed_instance_count"].IsKnown() {
 		siteConfig.PreWarmedInstanceCount = pointer.To(config.PreWarmedInstanceCount)
 	}
 
@@ -1569,11 +1569,11 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.HealthCheckPath = pointer.To(config.HealthCheckPath)
 	}
 
-	if metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()[0].AsValueMap()["elastic_instance_minimum"].IsKnown() {
+	if len(metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()) > 0 && metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()[0].AsValueMap()["elastic_instance_minimum"].IsKnown() {
 		siteConfig.MinimumElasticInstanceCount = pointer.To(config.ElasticInstanceMinimum)
 	}
 
-	if metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()[0].AsValueMap()["app_scale_limit"].IsKnown() {
+	if len(metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()) > 0 && metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()[0].AsValueMap()["app_scale_limit"].IsKnown() {
 		siteConfig.FunctionAppScaleLimit = pointer.To(config.AppScaleLimit)
 	}
 
