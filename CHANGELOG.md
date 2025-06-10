@@ -12,6 +12,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` and `storage_container_sas_key` are no longer required to be set [GH-29789]
+
 ## 4.32.0 (June 05, 2025)
 
 FEATURES:
