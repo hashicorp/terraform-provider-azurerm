@@ -615,7 +615,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 			}
 
 			if extensionOperationsEnabled && !provisionVMAgent {
-				return fmt.Errorf("`extension_operations_enabled` cannot be set to true when `provision_vm_agent` is set to `false`")
+				return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 			}
 
 			if patchAssessmentMode == string(virtualmachinescalesets.LinuxPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgent {
@@ -1312,7 +1312,7 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("additional_capabilities", FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
-				return fmt.Errorf("setting `additional_capabilities`: %w", props.AdditionalCapabilities)
+				return fmt.Errorf("setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
 			}
 
 			if err := d.Set("automatic_instance_repair", FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
