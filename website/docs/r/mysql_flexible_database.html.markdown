@@ -75,3 +75,9 @@ MySQL Database's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mysql_flexible_database.database1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DBforMySQL/flexibleServers/flexibleserver1/databases/database1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforMySQL`: 2023-12-30
