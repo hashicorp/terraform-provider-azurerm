@@ -311,7 +311,7 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			// Set the `log_analytics_workspace_id` during creation, in case the workspcae is created on another subscription.
+			// Set the `log_analytics_workspace_id` during creation, in case the workspace is created on another subscription.
 			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
 				metadata.ResourceData.Set("log_analytics_workspace_id", containerAppEnvironment.LogAnalyticsWorkspaceId)
 			}
@@ -491,7 +491,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 								SharedKey:  sharedKey,
 							},
 						}
-						// Set the `log_analytics_workspace_id` during creation, in case the workspcae is created on another subscription.
+						// Set the `log_analytics_workspace_id` during creation, in case the workspace is created on another subscription.
 						if state.LogAnalyticsWorkspaceId != "" {
 							metadata.ResourceData.Set("log_analytics_workspace_id", state.LogAnalyticsWorkspaceId)
 						}
