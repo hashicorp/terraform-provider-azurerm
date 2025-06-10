@@ -111,7 +111,7 @@ The following arguments are supported:
 
 * `address_prefix_ipv6` - (Optional) The IPv6 address space from which to allocate customer addresses for global reach.
 
--> **NOTE:** `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
+-> **Note:** `address_prefix_ipv6` cannot be set when ExpressRoute Circuit Connection with ExpressRoute Circuit based on ExpressRoute Port.
 
 ## Attributes Reference
 
@@ -135,3 +135,9 @@ Express Route Circuit Connections can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_express_route_circuit_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/expressRouteCircuits/circuit1/peerings/peering1/connections/connection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

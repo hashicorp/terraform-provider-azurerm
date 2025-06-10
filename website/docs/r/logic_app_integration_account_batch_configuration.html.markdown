@@ -123,3 +123,9 @@ Logic App Integration Account Batch Configurations can be imported using the `re
 ```shell
 terraform import azurerm_logic_app_integration_account_batch_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1/batchConfigurations/batchConfiguration1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Logic`: 2019-05-01

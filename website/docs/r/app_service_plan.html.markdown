@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service Plan component.
 
-!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_service_plan`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) resource instead.
+!> **Note:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_service_plan`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/service_plan) resource instead.
 
 ## Example Usage (Dedicated)
 
@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption), `xenon` and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
 
-~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`, and when creating a `Windows`/`app` App Service Plan the `reserved` field must be set to `false`.
+~> **Note:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`, and when creating a `Windows`/`app` App Service Plan the `reserved` field must be set to `false`.
 
 * `maximum_elastic_worker_count` - (Optional) The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
 
@@ -117,7 +117,7 @@ The following arguments are supported:
 
 * `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
 
-~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
+~> **Note:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
 
 * `reserved` - (Optional) Is this App Service Plan `Reserved`.
 
@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `zone_redundant` - (Optional) Specifies if the App Service Plan should be Zone Redundant. Changing this forces a new resource to be created.
 
-~> **NOTE:** Requires either `PremiumV2` or `PremiumV3` SKU and that at least 3 instances. For more information, please see the [App Service Team Blog](https://azure.github.io/AppService/2021/08/25/App-service-support-for-availability-zones.html).
+~> **Note:** Requires either `PremiumV2` or `PremiumV3` SKU and that at least 3 instances. For more information, please see the [App Service Team Blog](https://azure.github.io/AppService/2021/08/25/App-service-support-for-availability-zones.html).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -152,10 +152,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the App Service Plan.
-* `update` - (Defaults to 60 minutes) Used when updating the App Service Plan.
+* `create` - (Defaults to 1 hour) Used when creating the App Service Plan.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Plan.
-* `delete` - (Defaults to 60 minutes) Used when deleting the App Service Plan.
+* `update` - (Defaults to 1 hour) Used when updating the App Service Plan.
+* `delete` - (Defaults to 1 hour) Used when deleting the App Service Plan.
 
 ## Import
 
