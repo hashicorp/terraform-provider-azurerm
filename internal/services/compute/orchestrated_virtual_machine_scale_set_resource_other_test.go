@@ -310,15 +310,15 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherUpgradePolicyErrorValidation
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.otherRollingWithoutHealthExtension(data),
-			ExpectError: regexp.MustCompile("a health extension must be specified when `upgrade_mode` is set to `Rolling`"),
+			ExpectError: regexp.MustCompile("health extension is required when `upgrade_mode` is set"),
 		},
 		{
 			Config:      r.otherManualWithUpgradePolicy(data),
-			ExpectError: regexp.MustCompile("a `rolling_upgrade_policy` block cannot be specified"),
+			ExpectError: regexp.MustCompile("`rolling_upgrade_policy` cannot be specified when `upgrade_mode` is set"),
 		},
 		{
 			Config:      r.otherRollingWithoutUpgradePolicy(data),
-			ExpectError: regexp.MustCompile("a `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set"),
+			ExpectError: regexp.MustCompile("`rolling_upgrade_policy` is required when `upgrade_mode` is set"),
 		},
 	})
 }
