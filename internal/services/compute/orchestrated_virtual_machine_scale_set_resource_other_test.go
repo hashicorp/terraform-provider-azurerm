@@ -414,7 +414,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_otherSinglePlacementGroupInvalid(
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.otherSinglePlacementGroup(data, "true"),
-			ExpectError: regexp.MustCompile("Virtual Machine Scale Sets with Flexible Orchestration Mode or Virtual Machines referencing such Virtual Machine Scale Sets cannot use VM Size"),
+			ExpectError: regexp.MustCompile("Virtual Machine Scale Sets with Flexible Orchestration Mode cannot be created with VM Size"),
 		},
 	})
 }
