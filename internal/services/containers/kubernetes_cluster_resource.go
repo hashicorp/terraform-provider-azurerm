@@ -3468,7 +3468,6 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	if profile.OutboundType != nil {
 		outboundType = string(*profile.OutboundType)
 	}
-	m["outbound_type"] = outboundType
 	
 	lbProfiles := make([]interface{}, 0)
 	if lbp := profile.LoadBalancerProfile; lbp != nil {
