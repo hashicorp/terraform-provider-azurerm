@@ -303,12 +303,9 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 			RetentionInDays:                 pointer.To(int64(d.Get("retention_in_days").(int))),
 			Features: &workspaces.WorkspaceFeatures{
 				EnableLogAccessUsingOnlyResourcePermissions: pointer.To(allowResourceOnlyPermission),
+				DisableLocalAuth: pointer.To(!d.Get("local_authentication_enabled").(bool)),
 			},
 		},
-	}
-
-	if v, ok := d.GetOk("local_authentication_enabled"); ok {
-		parameters.Properties.Features.DisableLocalAuth = pointer.To(!v.(bool))
 	}
 
 	if !features.FivePointOh() {
@@ -612,20 +609,20 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			allowResourceOnlyPermissions := true
-			disableLocalAuth := false
 			purgeDataOnThirtyDays := false
-			if features := props.Features; features != nil {
-				allowResourceOnlyPermissions = pointer.From(features.EnableLogAccessUsingOnlyResourcePermissions)
-				disableLocalAuth = pointer.From(features.DisableLocalAuth)
-				purgeDataOnThirtyDays = pointer.From(features.ImmediatePurgeDataOn30Days)
+			if lawFeatures := props.Features; lawFeatures != nil {
+				allowResourceOnlyPermissions = pointer.From(lawFeatures.EnableLogAccessUsingOnlyResourcePermissions)
+				if lawFeatures.DisableLocalAuth != nil {
+					d.Set("local_authentication_enabled", !pointer.From(lawFeatures.DisableLocalAuth))
+
+					if !features.FivePointOh() {
+						d.Set("local_authentication_disabled", pointer.From(lawFeatures.DisableLocalAuth))
+					}
+				}
+				purgeDataOnThirtyDays = pointer.From(lawFeatures.ImmediatePurgeDataOn30Days)
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
-			d.Set("local_authentication_enabled", !disableLocalAuth)
 			d.Set("immediate_data_purge_on_30_days_enabled", purgeDataOnThirtyDays)
-
-			if !features.FivePointOh() {
-				d.Set("local_authentication_disabled", disableLocalAuth)
-			}
 
 			defaultDataCollectionRuleResourceId := ""
 			if props.DefaultDataCollectionRuleResourceId != nil {
