@@ -311,6 +311,10 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// Set the `log_analytics_workspace_id` during creation, in case the workspcae is created on another subscription.
+			if containerAppEnvironment.LogAnalyticsWorkspaceId != "" {
+				metadata.ResourceData.Set("log_analytics_workspace_id", containerAppEnvironment.LogAnalyticsWorkspaceId)
+			}
 			metadata.SetID(id)
 			return nil
 		},
@@ -358,15 +362,11 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						state.LogsDestination = pointer.From(appLogsConfig.Destination)
 						if appLogsConfig.LogAnalyticsConfiguration != nil && appLogsConfig.LogAnalyticsConfiguration.CustomerId != nil {
 							workspaceId, err := findWorkspaceResourceIDFromCustomerID(ctx, metadata, *appLogsConfig.LogAnalyticsConfiguration.CustomerId)
-							if err != nil {
-								if v := metadata.ResourceData.GetRawConfig().AsValueMap()["log_analytics_workspace_id"]; !v.IsNull() && v.AsString() != "" {
-									state.LogAnalyticsWorkspaceId = v.AsString()
-								} else {
-									return fmt.Errorf("retrieving Log Analytics Workspace ID for %s: %+v", *appLogsConfig.LogAnalyticsConfiguration.CustomerId, err)
-								}
-							}
+							// During refreshing stage, `GetRawConfig()` may return null value.
 
-							state.LogAnalyticsWorkspaceId = workspaceId.ID()
+							if err == nil {
+								state.LogAnalyticsWorkspaceId = workspaceId.ID()
+							}
 						}
 					}
 
@@ -490,6 +490,10 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 								CustomerId: customerId,
 								SharedKey:  sharedKey,
 							},
+						}
+						// Set the `log_analytics_workspace_id` during creation, in case the workspcae is created on another subscription.
+						if state.LogAnalyticsWorkspaceId != "" {
+							metadata.ResourceData.Set("log_analytics_workspace_id", state.LogAnalyticsWorkspaceId)
 						}
 					}
 				default:
