@@ -154,3 +154,9 @@ Shared Images can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_shared_image.image1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/images/image1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute`: 2022-03-03

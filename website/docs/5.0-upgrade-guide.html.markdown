@@ -183,6 +183,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
 
+### `azurerm_data_factory_integration_runtime_self_hosted`
+
+* Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
+
 ### `azurerm_eventhub`
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
