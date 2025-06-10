@@ -440,9 +440,6 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	if !features.FivePointOh() {
 		if d.HasChange("local_authentication_disabled") {
-			if props.Features == nil {
-				props.Features = &workspaces.WorkspaceFeatures{}
-			}
 			props.Features.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
 		}
 	}
