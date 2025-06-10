@@ -50,5 +50,5 @@ func isValidPortRange(startStr, endStr string) bool {
 	if err1 != nil || err2 != nil {
 		return false
 	}
-	return start >= 0 && start <= 65535 && end >= 0 && end <= 65535 && start <= end
+	return start >= 0 && start <= 65535 && end >= 0 && end <= 65535 && start < end
 }
