@@ -2155,8 +2155,8 @@ resource "azurerm_application_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_Medium"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 1
   }
 
