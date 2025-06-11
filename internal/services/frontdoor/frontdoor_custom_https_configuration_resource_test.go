@@ -32,7 +32,7 @@ func TestAccFrontDoorCustomHttpsConfiguration_deprecation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.Enabled(data),
-			ExpectError: regexp.MustCompile(fmt.Sprintf("%s", expectedError)),
+			ExpectError: regexp.MustCompile(expectedError),
 		},
 	})
 }
