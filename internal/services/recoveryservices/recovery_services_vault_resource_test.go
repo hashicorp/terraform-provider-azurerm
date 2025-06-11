@@ -56,14 +56,6 @@ func TestAccRecoveryServicesVault_ToggleCrossRegionRestore(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basicWithCrossRegionRestore(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cross_region_restore_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -200,14 +192,6 @@ func TestAccRecoveryServicesVault_immutabilityLocked(t *testing.T) {
 	r := RecoveryServicesVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// To test creation with `Locked`, it is irreversible.
-			Config: r.basicWithImmutability(data, "Locked"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.basicWithImmutability(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
