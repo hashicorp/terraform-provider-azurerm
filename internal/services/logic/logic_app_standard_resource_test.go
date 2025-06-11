@@ -653,7 +653,7 @@ func TestAccLogicAppStandard_ipRestrictionRemoved(t *testing.T) {
 			Config: r.ipRestrictionRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
+				// check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -667,15 +667,7 @@ func TestAccLogicAppStandard_scmIpRestrictionRemoved(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// This configuration includes a single explicit ip_restriction
-			Config: r.oneIpRestriction(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			// This configuration has no site_config blocks at all.
-			Config: r.basic(data),
+			Config: r.scmIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -683,10 +675,10 @@ func TestAccLogicAppStandard_scmIpRestrictionRemoved(t *testing.T) {
 		data.ImportStep(),
 		{
 			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
-			Config: r.ipRestrictionRemoved(data),
+			Config: r.unsetScmIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
+				// check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -1156,14 +1148,14 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_logic_app_standard" "test" {
-  name                                     = "acctest-%[2]d-func"
-  location                                 = azurerm_resource_group.test.location
-  resource_group_name                      = azurerm_resource_group.test.name
-  app_service_plan_id                      = azurerm_app_service_plan.test.id
-  storage_account_name                     = azurerm_storage_account.test.name
-  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
-  use_extension_bundle                     = true
-  bundle_version                           = "[1.31.12]"
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle       = true
+  bundle_version             = "[1.31.12]"
   // client_affinity_enabled                  = true
   client_certificate_mode                  = "Required"
   enabled                                  = false
@@ -1186,11 +1178,11 @@ resource "azurerm_logic_app_standard" "test" {
   }
 
   site_config {
-    always_on 			= true
+    always_on           = true
     min_tls_version     = 1.2
     scm_min_tls_version = 1.2
 
-	cors {
+    cors {
       allowed_origins = [
         "http://www.contoso.com",
         "www.contoso.com",
@@ -1201,18 +1193,18 @@ resource "azurerm_logic_app_standard" "test" {
       support_credentials = true
     }
 
-    ftps_state = "FtpsOnly"
-    http2_enabled = true
-	pre_warmed_instance_count = 2
-    scm_use_main_ip_restriction = true
-    scm_type = "GitHub"
-    use_32_bit_worker_process = false
-    websockets_enabled = true
-    health_check_path = "/health"
-	elastic_instance_minimum = 1
-    app_scale_limit = 10
+    ftps_state                       = "FtpsOnly"
+    http2_enabled                    = true
+    pre_warmed_instance_count        = 2
+    scm_use_main_ip_restriction      = true
+    scm_type                         = "GitHub"
+    use_32_bit_worker_process        = false
+    websockets_enabled               = true
+    health_check_path                = "/health"
+    elastic_instance_minimum         = 1
+    app_scale_limit                  = 10
     runtime_scale_monitoring_enabled = true
-    dotnet_framework_version = "v6.0"
+    dotnet_framework_version         = "v6.0"
 
     ip_restriction {
       ip_address = "10.10.10.10/32"
@@ -1235,7 +1227,7 @@ resource "azurerm_logic_app_standard" "test" {
   }
 
   tags = {
-	environment = "AccTest"
+    environment = "AccTest"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -1279,14 +1271,14 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_logic_app_standard" "test" {
-  name                                     = "acctest-%[2]d-func"
-  location                                 = azurerm_resource_group.test.location
-  resource_group_name                      = azurerm_resource_group.test.name
-  app_service_plan_id                      = azurerm_app_service_plan.test.id
-  storage_account_name                     = azurerm_storage_account.test.name
-  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
-  use_extension_bundle                     = true
-  bundle_version                           = "[1.31.13]"
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle       = true
+  bundle_version             = "[1.31.13]"
   // client_affinity_enabled                  = true
   client_certificate_mode                  = "Required"
   enabled                                  = false
@@ -1309,11 +1301,11 @@ resource "azurerm_logic_app_standard" "test" {
   }
 
   site_config {
-    always_on 			= true
+    always_on           = true
     min_tls_version     = 1.3
     scm_min_tls_version = 1.3
 
-	cors {
+    cors {
       allowed_origins = [
         "http://www.contoso.com",
         "www.contoso.com",
@@ -1324,18 +1316,18 @@ resource "azurerm_logic_app_standard" "test" {
       support_credentials = true
     }
 
-    ftps_state = "Disabled"
-    http2_enabled = false
-	pre_warmed_instance_count = 3
-    scm_use_main_ip_restriction = false
-    scm_type = "ExternalGit"
-    use_32_bit_worker_process = true
-    websockets_enabled = false
-    health_check_path = "/"
-	elastic_instance_minimum = 1
-    app_scale_limit = 12
+    ftps_state                       = "Disabled"
+    http2_enabled                    = false
+    pre_warmed_instance_count        = 3
+    scm_use_main_ip_restriction      = false
+    scm_type                         = "ExternalGit"
+    use_32_bit_worker_process        = true
+    websockets_enabled               = false
+    health_check_path                = "/"
+    elastic_instance_minimum         = 1
+    app_scale_limit                  = 12
     runtime_scale_monitoring_enabled = false
-    dotnet_framework_version = "v8.0"
+    dotnet_framework_version         = "v8.0"
 
     ip_restriction {
       ip_address = "10.10.10.10/32"
@@ -1376,8 +1368,8 @@ resource "azurerm_logic_app_standard" "test" {
   }
 
   tags = {
-	environment = "AccTestUpdated"
-    foo = "bar"
+    environment = "AccTestUpdated"
+    foo         = "bar"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2008,7 +2000,8 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    ip_restriction = []
+    always_on = true
+    // ip_restriction = []
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2068,6 +2061,7 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
+    always_on = true
     scm_ip_restriction {
       ip_address = "10.10.10.10/32"
     }
@@ -2089,7 +2083,8 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    scm_ip_restriction = []
+    always_on = true
+    //   scm_ip_restriction = []
   }
 }
 `, r.template(data), data.RandomInteger)

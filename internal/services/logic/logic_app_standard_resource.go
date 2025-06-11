@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strconv"
 	"strings"
 	"time"
 
@@ -426,6 +427,13 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 
 			siteConfig.AppSettings = pointer.To(appSettings)
 
+			if v, ok := data.AppSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
+				// For compatibility between app_settings and site_config, we need to set the API property based on the presence of the app_setting map value if present.
+				// a replacement of this resource should consider deprecating support for this.
+				vnetRouteAll, _ := strconv.ParseBool(v)
+				siteConfig.VnetRouteAllEnabled = pointer.To(vnetRouteAll)
+			}
+
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(data.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
@@ -583,7 +591,7 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 			if model := appSettingsResp.Model; model != nil {
 				appSettings := pointer.From(model.Properties)
 
-				connectionString := appSettings["AzureWebJobsStorage"]
+				connectionString := appSettings[storageAppSettingName]
 
 				for _, part := range strings.Split(connectionString, ";") {
 					if strings.HasPrefix(part, "AccountName") {
@@ -600,7 +608,7 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				if v, ok := appSettings["FUNCTIONS_EXTENSION_VERSION"]; ok {
+				if v, ok := appSettings[functionVersionAppSettingName]; ok {
 					state.Version = v
 				}
 
@@ -615,15 +623,15 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.BundleVersion = "[1.*, 2.0.0)"
 				}
 
-				state.StorageAccountShareName = appSettings["WEBSITE_CONTENTSHARE"]
-				delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+				state.StorageAccountShareName = appSettings[contentShareAppSettingName]
+				delete(appSettings, contentFileConnStringAppSettingName)
 				delete(appSettings, "APP_KIND")
 				delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
 				delete(appSettings, "AzureFunctionsJobHost__extensionBundle__version")
 				delete(appSettings, "AzureWebJobsDashboard")
-				delete(appSettings, "AzureWebJobsStorage")
-				delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
-				delete(appSettings, "WEBSITE_CONTENTSHARE")
+				delete(appSettings, storageAppSettingName)
+				delete(appSettings, functionVersionAppSettingName)
+				delete(appSettings, contentShareAppSettingName)
 
 				state.AppSettings = appSettings
 			}
@@ -724,10 +732,10 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %v", *id, err)
+				return fmt.Errorf("retrieving %s: %v", *id, err)
 			}
 			if existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("reading %s for update", id)
+				return fmt.Errorf("retrieving %s for update", id)
 			}
 
 			siteEnvelope := *existing.Model.Properties
@@ -751,7 +759,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 			existingSiteConfig.AppSettings = pointer.To(currentAppSettings)
 
-			if metadata.ResourceData.HasChanges("site_config", "app_settings") {
+			if metadata.ResourceData.HasChanges("site_config", "app_settings", "version", "storage_account_name", "storage_account_access_key") {
 				existingSiteConfig, err = expandLogicAppStandardSiteConfigForUpdate(data.SiteConfig, metadata, existingSiteConfig)
 				if err != nil {
 					return fmt.Errorf("expanding site_config update for %s: %v", *id, err)
@@ -885,10 +893,6 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 var _ sdk.ResourceWithUpdate = &LogicAppResource{}
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
-	storagePropName := "AzureWebJobsStorage"
-	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
-	contentSharePropName := "WEBSITE_CONTENTSHARE"
-	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 	appKindPropName := "APP_KIND"
 	appKindPropValue := "workflowApp"
 
@@ -908,11 +912,11 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 	}
 
 	basicSettings := []webapps.NameValuePair{
-		{Name: &storagePropName, Value: &storageConnection},
-		{Name: &functionVersionPropName, Value: &functionVersion},
+		{Name: &storageAppSettingName, Value: &storageConnection},
+		{Name: &functionVersionAppSettingName, Value: &functionVersion},
 		{Name: &appKindPropName, Value: &appKindPropValue},
-		{Name: &contentSharePropName, Value: &contentShare},
-		{Name: &contentFileConnStringPropName, Value: &storageConnection},
+		{Name: &contentShareAppSettingName, Value: &contentShare},
+		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
 	}
 
 	if d.UseExtensionBundle {
@@ -1154,10 +1158,10 @@ func schemaLogicAppCorsSettings() *pluginsdk.Schema {
 
 func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		ConfigMode: pluginsdk.SchemaConfigModeAttr,
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		// Computed:   true,
+		// ConfigMode: pluginsdk.SchemaConfigModeAttr,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"ip_address": {
@@ -1483,7 +1487,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	}
 	siteConfig.HealthCheckPath = pointer.To(config.HealthCheckPath)
 
-	if metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()[0].AsValueMap()["elastic_instance_minimum"].IsKnown() {
+	if metadata.ResourceData.GetRawConfig().AsValueMap()["site_config"].AsValueSlice()[0].AsValueMap()["elastic_instance_minimum"].IsKnown() && config.ElasticInstanceMinimum > 0 {
 		siteConfig.MinimumElasticInstanceCount = pointer.To(config.ElasticInstanceMinimum)
 	}
 
