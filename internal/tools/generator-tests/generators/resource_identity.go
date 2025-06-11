@@ -12,9 +12,7 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-var (
-	riOutputFileFmt = "../../services/%s/%s_resource_identity_gen_test.go"
-)
+var riOutputFileFmt = "../../services/%s/%s_resource_identity_gen_test.go"
 
 type ResourceIdentityCommand struct {
 	Ui cli.Ui

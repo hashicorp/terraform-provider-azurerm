@@ -16,9 +16,8 @@ import (
 // * IDs for resources with a Discriminated Type (untyped and typed resources)
 
 func convertToSnakeCase(input string) string {
-	w := []rune(input)
 	output := ""
-	for _, r := range w {
+	for _, r := range input {
 		if unicode.IsUpper(r) {
 			output += "_"
 		}
@@ -38,11 +37,7 @@ func segmentTypeSupported(segment resourceids.SegmentType) bool {
 		resourceids.UserSpecifiedSegmentType,
 	}
 
-	if slices.Contains(supportedSegmentTypes, segment) {
-		return true
-	}
-
-	return false
+	return slices.Contains(supportedSegmentTypes, segment)
 }
 
 // GenerateIdentitySchemaWithDiscriminatedType appends a discriminated type field to the resource identity schema generated

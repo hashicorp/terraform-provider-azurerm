@@ -6,11 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/generator-tests/helpers"
 	"github.com/iancoleman/strcase"
+	"golang.org/x/text/cases"
 )
 
 var TplFuncMap = template.FuncMap{
 	"ToLower":                   strings.ToLower,
-	"ToTitle":                   strings.Title,
+	"ToTitle":                   cases.Title,
 	"ToCamel":                   strcase.ToCamel,
 	"ToSnake":                   strcase.ToSnake,
 	"TfName":                    helpers.TerraformResourceName,

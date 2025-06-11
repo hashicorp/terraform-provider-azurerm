@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/iancoleman/strcase"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // TerraformResourceName generates a Terraform-compliant resource name by combining the provider and resource name.
@@ -35,12 +37,12 @@ func PrefixedDescriptionString(input string) string {
 	if vowel {
 		prefix = "an"
 	}
-	return fmt.Sprintf("%s %s", prefix, strings.Title(strcase.ToDelimited(input, ' ')))
+	return fmt.Sprintf("%s %s", prefix, cases.Title(language.English).String(strcase.ToDelimited(input, ' ')))
 }
 
 // ToDelimTitle converts the input string to a title-cased string with words delimited by spaces.
 func ToDelimTitle(input string) string {
-	return strings.Title(strcase.ToDelimited(input, ' '))
+	return cases.Title(language.English).String(strcase.ToDelimited(input, ' '))
 }
 
 // PrefixedLabelString determines whether a given label should use "A" or "An" as its prefix based on its starting letter.

@@ -64,7 +64,6 @@ func (e expectStateContainsIdentityValueAtPath) CheckState(ctx context.Context, 
 	}
 
 	identityResult, err := tfjsonpath.Traverse(resource.IdentityValues, e.identityAttrPath)
-
 	if err != nil {
 		resp.Error = err
 
@@ -72,7 +71,6 @@ func (e expectStateContainsIdentityValueAtPath) CheckState(ctx context.Context, 
 	}
 
 	stateResult, err := tfjsonpath.Traverse(resource.AttributeValues, e.stateAttrPath)
-
 	if err != nil {
 		resp.Error = err
 
@@ -81,7 +79,6 @@ func (e expectStateContainsIdentityValueAtPath) CheckState(ctx context.Context, 
 
 	identityString, iOk := identityResult.(string)
 	stateString, sOk := stateResult.(string)
-
 	if !iOk || !sOk {
 		resp.Error = errors.New("ExpectStateContainsIdentityValueAtPath only works with string state + identity attributes")
 

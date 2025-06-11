@@ -97,7 +97,6 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 
 			return nil
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
 				metaData := runArgs(d, meta, rw.logger)
 

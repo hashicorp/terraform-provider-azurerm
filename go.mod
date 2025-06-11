@@ -40,6 +40,7 @@ require (
 	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	golang.org/x/crypto v0.38.0
+	golang.org/x/text v0.25.0
 	golang.org/x/tools v0.31.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -98,7 +99,6 @@ require (
 	golang.org/x/oauth2 v0.26.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/grpc v1.72.1 // indirect
