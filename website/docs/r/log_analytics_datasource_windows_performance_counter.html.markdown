@@ -80,3 +80,9 @@ Log Analytics Windows Performance Counter DataSources can be imported using the 
 ```shell
 terraform import azurerm_log_analytics_datasource_windows_performance_counter.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataSources/datasource1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2020-08-01

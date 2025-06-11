@@ -16,12 +16,12 @@ import (
 type ContainerGroupsListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]ContainerGroup
+	Model        *[]ListResultContainerGroup
 }
 
 type ContainerGroupsListByResourceGroupCompleteResult struct {
 	LatestHttpResponse *http.Response
-	Items              []ContainerGroup
+	Items              []ListResultContainerGroup
 }
 
 type ContainerGroupsListByResourceGroupCustomPager struct {
@@ -64,7 +64,7 @@ func (c ContainerInstanceClient) ContainerGroupsListByResourceGroup(ctx context.
 	}
 
 	var values struct {
-		Values *[]ContainerGroup `json:"value"`
+		Values *[]ListResultContainerGroup `json:"value"`
 	}
 	if err = resp.Unmarshal(&values); err != nil {
 		return
@@ -77,12 +77,12 @@ func (c ContainerInstanceClient) ContainerGroupsListByResourceGroup(ctx context.
 
 // ContainerGroupsListByResourceGroupComplete retrieves all the results into a single object
 func (c ContainerInstanceClient) ContainerGroupsListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ContainerGroupsListByResourceGroupCompleteResult, error) {
-	return c.ContainerGroupsListByResourceGroupCompleteMatchingPredicate(ctx, id, ContainerGroupOperationPredicate{})
+	return c.ContainerGroupsListByResourceGroupCompleteMatchingPredicate(ctx, id, ListResultContainerGroupOperationPredicate{})
 }
 
 // ContainerGroupsListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ContainerInstanceClient) ContainerGroupsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ContainerGroupOperationPredicate) (result ContainerGroupsListByResourceGroupCompleteResult, err error) {
-	items := make([]ContainerGroup, 0)
+func (c ContainerInstanceClient) ContainerGroupsListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ListResultContainerGroupOperationPredicate) (result ContainerGroupsListByResourceGroupCompleteResult, err error) {
+	items := make([]ListResultContainerGroup, 0)
 
 	resp, err := c.ContainerGroupsListByResourceGroup(ctx, id)
 	if err != nil {

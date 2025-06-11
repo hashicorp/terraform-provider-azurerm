@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `severity_filter` - (Required) Only create incidents from alerts when alert severity level is contained in this list. Possible values are `High`, `Medium`, `Low` and `Informational`.
 
-~> **NOTE** At least one of the severity filters need to be set.
+~> **Note:** At least one of the severity filters need to be set.
 
 ---
 
@@ -92,3 +92,9 @@ Sentinel MS Security Incident Alert Rules can be imported using the `resource id
 ```shell
 terraform import azurerm_sentinel_alert_rule_ms_security_incident.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/alertRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2023-12-01-preview

@@ -45,32 +45,33 @@ type LinuxFunctionAppModel struct {
 	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"` // Storage uses MSI not account key
 	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
-	AppSettings                      map[string]string                          `tfschema:"app_settings"`
-	StickySettings                   []helpers.StickySettings                   `tfschema:"sticky_settings"`
-	AuthSettings                     []helpers.AuthSettings                     `tfschema:"auth_settings"`
-	AuthV2Settings                   []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
-	Backup                           []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
-	BuiltinLogging                   bool                                       `tfschema:"builtin_logging_enabled"`
-	ClientCertEnabled                bool                                       `tfschema:"client_certificate_enabled"`
-	ClientCertMode                   string                                     `tfschema:"client_certificate_mode"`
-	ClientCertExclusionPaths         string                                     `tfschema:"client_certificate_exclusion_paths"`
-	ConnectionStrings                []helpers.ConnectionString                 `tfschema:"connection_string"`
-	DailyMemoryTimeQuota             int64                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
-	Enabled                          bool                                       `tfschema:"enabled"`
-	FunctionExtensionsVersion        string                                     `tfschema:"functions_extension_version"`
-	ForceDisableContentShare         bool                                       `tfschema:"content_share_force_disabled"`
-	HttpsOnly                        bool                                       `tfschema:"https_only"`
-	KeyVaultReferenceIdentityID      string                                     `tfschema:"key_vault_reference_identity_id"`
-	PublicNetworkAccess              bool                                       `tfschema:"public_network_access_enabled"`
-	SiteConfig                       []helpers.SiteConfigLinuxFunctionApp       `tfschema:"site_config"`
-	StorageAccounts                  []helpers.StorageAccount                   `tfschema:"storage_account"`
-	Tags                             map[string]string                          `tfschema:"tags"`
-	VirtualNetworkSubnetID           string                                     `tfschema:"virtual_network_subnet_id"`
-	ZipDeployFile                    string                                     `tfschema:"zip_deploy_file"`
-	PublishingDeployBasicAuthEnabled bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
-	PublishingFTPBasicAuthEnabled    bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	Identity                         []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	VnetImagePullEnabled             bool                                       `tfschema:"vnet_image_pull_enabled,addedInNextMajorVersion"`
+	AppSettings                        map[string]string                          `tfschema:"app_settings"`
+	StickySettings                     []helpers.StickySettings                   `tfschema:"sticky_settings"`
+	AuthSettings                       []helpers.AuthSettings                     `tfschema:"auth_settings"`
+	AuthV2Settings                     []helpers.AuthV2Settings                   `tfschema:"auth_settings_v2"`
+	Backup                             []helpers.Backup                           `tfschema:"backup"` // Not supported on Dynamic or Basic plans
+	BuiltinLogging                     bool                                       `tfschema:"builtin_logging_enabled"`
+	ClientCertEnabled                  bool                                       `tfschema:"client_certificate_enabled"`
+	ClientCertMode                     string                                     `tfschema:"client_certificate_mode"`
+	ClientCertExclusionPaths           string                                     `tfschema:"client_certificate_exclusion_paths"`
+	ConnectionStrings                  []helpers.ConnectionString                 `tfschema:"connection_string"`
+	DailyMemoryTimeQuota               int64                                      `tfschema:"daily_memory_time_quota"` // TODO - Value ignored in for linux apps, even in Consumption plans?
+	Enabled                            bool                                       `tfschema:"enabled"`
+	FunctionExtensionsVersion          string                                     `tfschema:"functions_extension_version"`
+	ForceDisableContentShare           bool                                       `tfschema:"content_share_force_disabled"`
+	HttpsOnly                          bool                                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID        string                                     `tfschema:"key_vault_reference_identity_id"`
+	PublicNetworkAccess                bool                                       `tfschema:"public_network_access_enabled"`
+	SiteConfig                         []helpers.SiteConfigLinuxFunctionApp       `tfschema:"site_config"`
+	StorageAccounts                    []helpers.StorageAccount                   `tfschema:"storage_account"`
+	Tags                               map[string]string                          `tfschema:"tags"`
+	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`
+	PublishingDeployBasicAuthEnabled   bool                                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
+	PublishingFTPBasicAuthEnabled      bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	Identity                           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	VnetImagePullEnabled               bool                                       `tfschema:"vnet_image_pull_enabled"`
 
 	// Computed
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
@@ -291,6 +292,12 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_account": helpers.StorageAccountSchema(),
 
 		"tags": tags.Schema(),
+
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
@@ -527,15 +534,16 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:         pointer.To(functionApp.ServicePlanId),
-					Enabled:              pointer.To(functionApp.Enabled),
-					HTTPSOnly:            pointer.To(functionApp.HttpsOnly),
-					SiteConfig:           siteConfig,
-					ClientCertEnabled:    pointer.To(functionApp.ClientCertEnabled),
-					ClientCertMode:       pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
-					DailyMemoryTimeQuota: pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
-					VnetImagePullEnabled: pointer.To(functionApp.VnetImagePullEnabled),
-					VnetRouteAllEnabled:  siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:             pointer.To(functionApp.ServicePlanId),
+					Enabled:                  pointer.To(functionApp.Enabled),
+					HTTPSOnly:                pointer.To(functionApp.HttpsOnly),
+					SiteConfig:               siteConfig,
+					ClientCertEnabled:        pointer.To(functionApp.ClientCertEnabled),
+					ClientCertMode:           pointer.To(webapps.ClientCertMode(functionApp.ClientCertMode)),
+					DailyMemoryTimeQuota:     pointer.To(functionApp.DailyMemoryTimeQuota), // TODO - Investigate, setting appears silently ignored on Linux Function Apps?
+					VnetBackupRestoreEnabled: pointer.To(functionApp.VirtualNetworkBackupRestoreEnabled),
+					VnetImagePullEnabled:     pointer.To(functionApp.VnetImagePullEnabled),
+					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
 			}
 
@@ -776,6 +784,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VnetImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
@@ -928,6 +937,10 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("https_only") {
 				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
+			}
+
+			if metadata.ResourceData.HasChange("virtual_network_backup_restore_enabled") {
+				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {

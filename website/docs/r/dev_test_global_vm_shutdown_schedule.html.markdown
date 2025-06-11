@@ -127,8 +127,8 @@ The following additional attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Test Global Vm Shutdown Schedule.
 * `create` - (Defaults to 30 minutes) Used when creating the Dev Test Global Vm Shutdown Schedule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Test Global Vm Shutdown Schedule.
 * `update` - (Defaults to 30 minutes) Used when updating the Dev Test Global Vm Shutdown Schedule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Dev Test Global Vm Shutdown Schedule.
 
@@ -141,3 +141,9 @@ terraform import azurerm_dev_test_global_vm_shutdown_schedule.example /subscript
 ```
 
 The name of the resource within the `resource id` will always follow the format `shutdown-computevm-<VM Name>` where `<VM Name>` is replaced by the name of the target Virtual Machine
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevTestLab`: 2018-09-15

@@ -176,6 +176,25 @@ resource "azurerm_mongo_cluster" "test" {
 `, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
 
+func (r MongoClusterResource) source(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123update"
+  high_availability_mode = "ZoneRedundantPreferred"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  storage_size_in_gb     = "64"
+  version                = "7.0"
+}
+`, r.template(data, data.Locations.Ternary), data.RandomInteger)
+}
+
 func (r MongoClusterResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -231,7 +250,7 @@ resource "azurerm_mongo_cluster" "geo_replica" {
     ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
   }
 }
-`, r.previewFeature(data), data.RandomInteger, data.Locations.Secondary)
+`, r.source(data), data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r MongoClusterResource) template(data acceptance.TestData, location string) string {

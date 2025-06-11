@@ -73,6 +73,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	r := MsSqlDatabaseResource{}
 
 	maintenance_configuration_name := "SQL_Default"
+
 	switch data.Locations.Primary {
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
@@ -168,7 +169,7 @@ func TestAccMsSqlDatabase_gpServerless(t *testing.T) {
 			Config: r.gpServerless(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("auto_pause_delay_in_minutes").HasValue("70"),
+				check.That(data.ResourceName).Key("auto_pause_delay_in_minutes").HasValue("42"),
 				check.That(data.ResourceName).Key("min_capacity").HasValue("0.75"),
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_S_Gen5_2"),
 			),
@@ -411,6 +412,7 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 
 func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+
 	r := MsSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -1109,7 +1111,10 @@ resource "azurerm_mssql_database" "import" {
 
 func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
 	configName := "SQL_Default"
+
 	switch data.Locations.Primary {
+	case "eastus": // Added due to subscription quota policies...
+		configName = "SQL_EastUS_DB_2"
 	case "westeurope":
 		configName = "SQL_WestEurope_DB_2"
 	case "francecentral":
@@ -1279,7 +1284,7 @@ func (r MsSqlDatabaseResource) gpServerless(data acceptance.TestData) string {
 resource "azurerm_mssql_database" "test" {
   name                        = "acctest-db-%[2]d"
   server_id                   = azurerm_mssql_server.test.id
-  auto_pause_delay_in_minutes = 70
+  auto_pause_delay_in_minutes = 42
   min_capacity                = 0.75
   sku_name                    = "GP_S_Gen5_2"
 }

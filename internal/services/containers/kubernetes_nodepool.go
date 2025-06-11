@@ -63,8 +63,10 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					},
 
 					"vm_size": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Type: pluginsdk.TypeString,
+						// NOTE: O+C AKS RP provides a new feature that will automatically select an available vm size when it's omitted.
+						Optional:     true,
+						Computed:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
@@ -82,7 +84,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 					"fips_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						ForceNew: true,
 					},
 
 					"gpu_instance": {
