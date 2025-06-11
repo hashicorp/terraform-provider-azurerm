@@ -9,6 +9,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurem_netapp_volume_group_oracle_resource` - add support for `data_protection_replication ` including Cross-Region Replication (CRR) and Cross-Zone Replication (CZR) [GH-29771]
 * `azurerm_postgresql_flexible_server` - the `create_mode` property now supports the `ReviveDropped` value  [GH-29814]
 * `azurerm_postgresql_flexible_server` - add support for `SystemAssigned, UserAssigned` to the `identity.type` property [GH-29320]
 
