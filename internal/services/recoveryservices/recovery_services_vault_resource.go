@@ -75,15 +75,18 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 							Required:     true,
 							ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
 						},
+
 						"infrastructure_encryption_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
 						},
+
 						"use_system_assigned_identity": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
+
 						"user_assigned_identity_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
