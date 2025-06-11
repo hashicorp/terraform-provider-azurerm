@@ -2219,6 +2219,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = "listener-1"
     backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
+    priority                   = 10 # required field since API version 2021-08-01
   }
 
   tags = {
