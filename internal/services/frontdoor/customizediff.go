@@ -15,10 +15,14 @@ import (
 )
 
 func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+	if IsFrontDoorFullyRetired() {
+		return fmt.Errorf("%s", FullyRetiredMessage)
+	}
+
 	// New resources are not supported, and since this is a ForceNew field, we also need to block changing the field as
 	// the re-create would fail with the create error from the service API...
-	if old, new := d.GetChange("frontend_endpoint_id"); old.(string) != new.(string) {
-		return fmt.Errorf("%s", deprecationMessage)
+	if IsFrontDoorDeprecatedForCreation() && d.HasChange("frontend_endpoint_id") {
+		return fmt.Errorf("%s", CreateDeprecationMessage)
 	}
 
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
@@ -114,13 +118,14 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 }
 
 func frontDoorCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+	if IsFrontDoorFullyRetired() {
+		return fmt.Errorf("%s", FullyRetiredMessage)
+	}
+
 	// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
 	// the re-create would fail with the create error from the service API...
-	if old, new := d.GetChange("name"); old.(string) != new.(string) {
-		return fmt.Errorf("%s", deprecationMessage)
-	}
-	if old, new := d.GetChange("resource_group_name"); old.(string) != new.(string) {
-		return fmt.Errorf("%s", deprecationMessage)
+	if IsFrontDoorDeprecatedForCreation() && d.HasChanges("name", "resource_group_name") {
+		return fmt.Errorf("%s", CreateDeprecationMessage)
 	}
 
 	if err := frontDoorSettings(d); err != nil {

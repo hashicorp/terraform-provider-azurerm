@@ -27,7 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var deprecationMessage string = "the creation of new Frontdoor resources is no longer permitted following its deprecation on April 1, 2025. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on March 31, 2027"
+var CreateDeprecationMessage string = "the creation of new Frontdoor resources is no longer permitted following its deprecation on April 1, 2025. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on March 31, 2027"
+var FullyRetiredMessage string = "as of March 31, 2027, Frontdoor resources have reached full retirement and are no longer supported by Azure"
 
 func resourceFrontDoor() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

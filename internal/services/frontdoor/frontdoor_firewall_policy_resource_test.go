@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-04-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -21,10 +22,15 @@ type FrontDoorFirewallPolicyResource struct{}
 func TestAccFrontDoorFirewallPolicy_deprecation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 	r := FrontDoorFirewallPolicyResource{}
+	expectedError := frontdoor.CreateDeprecationMessage
+	if frontdoor.IsFrontDoorFullyRetired() {
+		expectedError = frontdoor.FullyRetiredMessage
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basic(data),
-			ExpectError: regexp.MustCompile("the creation of new Frontdoor resources is no longer permitted following its deprecation on April 1, 2025. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on March 31, 2027"),
+			ExpectError: regexp.MustCompile(fmt.Sprintf("%s", expectedError)),
 		},
 	})
 }
