@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_flexible_server` - add support for `SystemAssigned, UserAssigned` to the `identity.type` property [GH-29320]
 
 BUG FIXES:
+* `azurerm_windows_function_app` - the `app_settings` property is no longer marked as sensitive [GH-29834]
 
 * `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` and `storage_container_sas_key` are no longer required to be set [GH-29789]
 
