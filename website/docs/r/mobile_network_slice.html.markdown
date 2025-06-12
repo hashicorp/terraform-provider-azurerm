@@ -54,19 +54,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Slice should exist. Changing this forces a new Mobile Network Slice to be created.
 
-* `single_network_slice_selection_assistance_information` - (Required) A `single_network_slice_selection_assistance_information` block as defined below. Single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
+* `slice_differentiator` - (Optional) Slice differentiator (SD). Must be a 6 digit hex string. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
+
+* `slice_service_type` - (Required) Slice/service type (SST). Must be between `0` and `255`. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
 
 * `description` - (Optional) A description for this Mobile Network Slice.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Slice.
-
----
-
-A `single_network_slice_selection_assistance_information` block supports the following:
-
-* `slice_differentiator` - (Optional) Slice differentiator (SD). Must be a 6 digit hex string.
-
-* `slice_service_type` - (Required) Slice/service type (SST). Must be between `0` and `255`.
 
 ## Attributes Reference
 
