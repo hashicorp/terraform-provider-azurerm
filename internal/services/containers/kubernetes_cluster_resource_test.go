@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,23 +100,23 @@ func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_OutboundTypeNone(t *testing.T) {
-  resource.ParallelTest(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckKubernetesClusterDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: testAccKubernetesClusterConfigOutboundTypeNone(),
-        Check: resource.ComposeTestCheckFunc(
-          resource.TestCheckResourceAttr("azurerm_kubernetes_cluster.test", "network_profile.0.outbound_type", "None"),
-        ),
-      },
-    },
-  })
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKubernetesClusterConfigOutboundTypeNone(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("azurerm_kubernetes_cluster.test", "network_profile.0.outbound_type", "None"),
+				),
+			},
+		},
+	})
 }
 
 func testAccKubernetesClusterConfigOutboundTypeNone() string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-aks-none"
   location = "eastus"
@@ -145,7 +145,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `)
 }
-
 
 func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
