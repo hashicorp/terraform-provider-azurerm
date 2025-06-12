@@ -8,12 +8,11 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -39,8 +38,8 @@ func NewCdnEndpointCustomDomainResource(dnsZoneRg, dnsZoneName string) *CdnEndpo
 }
 
 func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
-	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
-		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
@@ -60,8 +59,8 @@ func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
-	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
-		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
@@ -81,8 +80,8 @@ func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
-	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
-		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
@@ -102,8 +101,8 @@ func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
-	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
-		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
@@ -128,8 +127,8 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
-	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
-		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
@@ -151,8 +150,8 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
-	if retired, _ := azure.IsRetired(2025, time.October, 1); retired {
-		t.Skip("Acceptance tests skipped due to API being retired on 2025 1 October")
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
