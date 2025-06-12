@@ -66,6 +66,7 @@ type FunctionAppFlexConsumptionModel struct {
 	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
 	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
 	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
+	StorageAccounts               []helpers.StorageAccount                       `tfschema:"storage_account"`
 	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
 	Tags                          map[string]string                              `tfschema:"tags"`
 
@@ -212,6 +213,8 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				},
 			},
 		},
+
+		"storage_account": helpers.StorageAccountSchema(),
 
 		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
 
@@ -553,6 +556,13 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
+			storageConfig := helpers.ExpandStorageConfig(functionAppFlexConsumption.StorageAccounts)
+			if storageConfig.Properties != nil {
+				if _, err := client.UpdateAzureStorageAccounts(ctx, id, *storageConfig); err != nil {
+					return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
+				}
+			}
+
 			auth := helpers.ExpandAuthSettings(functionAppFlexConsumption.AuthSettings)
 			if auth.Properties != nil {
 				if _, err := client.UpdateAuthSettings(ctx, id, *auth); err != nil {
@@ -626,6 +636,11 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving Auth Settings for %s: %+v", id, err)
 			}
 
+			storageAccounts, err := client.ListAzureStorageAccounts(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("reading Storage Account information for Linux %s: %+v", id, err)
+			}
+
 			var authV2 webapps.SiteAuthSettingsV2
 			if auth.Model != nil && auth.Model.Properties != nil && strings.EqualFold(pointer.From(auth.Model.Properties.ConfigVersion), "v2") {
 				authV2Resp, err := client.GetAuthSettingsV2(ctx, *id)
@@ -657,6 +672,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				ConnectionStrings:                helpers.FlattenConnectionStrings(connectionStrings.Model),
 				StickySettings:                   helpers.FlattenStickySettings(stickySettings.Model.Properties),
 				SiteCredentials:                  helpers.FlattenSiteCredentials(siteCredentials),
+				StorageAccounts:                  helpers.FlattenStorageAccounts(storageAccounts.Model),
 				AuthSettings:                     helpers.FlattenAuthSettings(auth.Model),
 				AuthV2Settings:                   helpers.FlattenAuthV2Settings(authV2),
 				PublishingDeployBasicAuthEnabled: basicAuthWebDeploy,
@@ -895,6 +911,13 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("site_config") {
 				model.Properties.SiteConfig = siteConfig
+			}
+
+			if metadata.ResourceData.HasChange("storage_account") {
+				storageAccountUpdate := helpers.ExpandStorageConfig(state.StorageAccounts)
+				if _, err := client.UpdateAzureStorageAccounts(ctx, *id, *storageAccountUpdate); err != nil {
+					return fmt.Errorf("updating Storage Accounts for Linux %s: %+v", id, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("always_ready") {
