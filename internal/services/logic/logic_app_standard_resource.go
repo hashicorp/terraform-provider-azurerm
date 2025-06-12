@@ -258,6 +258,8 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		s["client_certificate_mode"].Default = nil
+		s["public_network_access"].Default = nil
+		s["public_network_access"].Computed = true
 	}
 
 	return s
@@ -451,27 +453,26 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 					HTTPSOnly:               pointer.To(data.HTTPSOnly),
 					SiteConfig:              siteConfig,
 					VnetContentShareEnabled: pointer.To(data.VNETContentShareEnabled),
+					PublicNetworkAccess:     pointer.To(data.PublicNetworkAccess),
 				},
 				Tags: pointer.To(data.Tags),
 			}
 
-			publicNetworkAccess := data.PublicNetworkAccess
 			if !features.FivePointOh() {
+				publicNetworkAccess := data.PublicNetworkAccess
 				// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
 				publicNetworkAccess = reconcilePNA(metadata)
 				if v := siteEnvelope.Properties.SiteConfig.PublicNetworkAccess; v != nil && *v == helpers.PublicNetworkAccessDisabled {
 					publicNetworkAccess = helpers.PublicNetworkAccessDisabled
 				}
+				// conversely if `public_network_access` has been set it should take precedence, and we should be propagating the value for that to `site_config.public_network_access_enabled`
+				if publicNetworkAccess == helpers.PublicNetworkAccessDisabled {
+					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+				} else if publicNetworkAccess == helpers.PublicNetworkAccessEnabled {
+					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+				}
+				siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 			}
-
-			// conversely if `public_network_access` has been set it should take precedence, and we should be propagating the value for that to `site_config.public_network_access_enabled`
-			if publicNetworkAccess == helpers.PublicNetworkAccessDisabled {
-				siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
-			} else if publicNetworkAccess == helpers.PublicNetworkAccessEnabled {
-				siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
-			}
-
-			siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 
 			if clientCertEnabled {
 				siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
@@ -677,6 +678,15 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 			if model := configResp.Model; model != nil {
 				state.SiteConfig = flattenLogicAppStandardSiteConfig(model.Properties)
+				// if !features.FivePointOh() {
+				// 	if len(state.SiteConfig) > 0 {
+				// 		if state.SiteConfig[0].PublicNetworkAccessEnabled {
+				// 			state.PublicNetworkAccess = helpers.PublicNetworkAccessEnabled
+				// 		} else {
+				// 			state.PublicNetworkAccess = helpers.PublicNetworkAccessDisabled
+				// 		}
+				// 	}
+				// }
 			}
 
 			return metadata.Encode(&state)
@@ -1309,33 +1319,12 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 
 	result.VNETRouteAllEnabled = pointer.From(input.VnetRouteAllEnabled)
 
-	publicNetworkAccessEnabled := true
-	if input.PublicNetworkAccess != nil {
-		publicNetworkAccessEnabled = !strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
-	}
-
 	if !features.FivePointOh() {
-		result.PublicNetworkAccessEnabled = publicNetworkAccessEnabled
+		result.PublicNetworkAccessEnabled = strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessEnabled)
 	}
 
 	results = append(results, result)
 	return results
-}
-
-func flattenLogicAppStandardSiteCredential(input *webapps.User) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input == nil || input.Properties == nil {
-		log.Printf("[DEBUG] UserProperties is nil")
-		return results
-	}
-
-	result["username"] = input.Properties.PublishingUserName
-
-	result["password"] = pointer.From(input.Properties.PublishingPassword)
-
-	return append(results, result)
 }
 
 func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction) []interface{} {
@@ -1392,52 +1381,6 @@ func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction
 	}
 
 	return restrictions
-}
-
-func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	result := make(map[string]interface{})
-
-	allowedOrigins := make([]interface{}, 0)
-	if s := input.AllowedOrigins; s != nil {
-		for _, v := range *s {
-			allowedOrigins = append(allowedOrigins, v)
-		}
-	}
-	result["allowed_origins"] = pluginsdk.NewSet(pluginsdk.HashString, allowedOrigins)
-
-	if input.SupportCredentials != nil {
-		result["support_credentials"] = *input.SupportCredentials
-	}
-
-	return append(results, result)
-}
-
-func flattenHeaders(input map[string][]string) []interface{} {
-	output := make([]interface{}, 0)
-	headers := make(map[string]interface{})
-	if input == nil {
-		return output
-	}
-
-	if forwardedHost, ok := input["x-forwarded-host"]; ok && len(forwardedHost) > 0 {
-		headers["x_forwarded_host"] = forwardedHost
-	}
-	if forwardedFor, ok := input["x-forwarded-for"]; ok && len(forwardedFor) > 0 {
-		headers["x_forwarded_for"] = forwardedFor
-	}
-	if fdids, ok := input["x-azure-fdid"]; ok && len(fdids) > 0 {
-		headers["x_azure_fdid"] = fdids
-	}
-	if healthProbe, ok := input["x-fd-healthprobe"]; ok && len(healthProbe) > 0 {
-		headers["x_fd_health_probe"] = healthProbe
-	}
-
-	return append(output, headers)
 }
 
 func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, metadata sdk.ResourceMetaData) (*webapps.SiteConfig, error) {
@@ -1498,6 +1441,7 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 	siteConfig.NetFrameworkVersion = pointer.To(config.DotnetFrameworkVersion)
 	siteConfig.VnetRouteAllEnabled = pointer.To(config.VNETRouteAllEnabled)
 
+	siteConfig.PublicNetworkAccess = pointer.To(metadata.ResourceData.Get("public_network_access").(string))
 	if !features.FivePointOh() {
 		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
 	}
@@ -1697,7 +1641,7 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 }
 
 func reconcilePNA(d sdk.ResourceMetaData) string {
-	pna := helpers.PublicNetworkAccessEnabled
+	pna := ""
 	scPNASet := false
 	d.ResourceData.GetRawConfig().AsValueMap()["public_network_access"].IsNull()
 	if !d.ResourceData.GetRawConfig().AsValueMap()["public_network_access"].IsNull() { // is top level set, takes precedence

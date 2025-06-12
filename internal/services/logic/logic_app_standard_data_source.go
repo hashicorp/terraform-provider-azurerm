@@ -428,3 +428,65 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 	results = append(results, result)
 	return results
 }
+
+func flattenLogicAppStandardSiteCredential(input *webapps.User) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input == nil || input.Properties == nil {
+		log.Printf("[DEBUG] UserProperties is nil")
+		return results
+	}
+
+	result["username"] = input.Properties.PublishingUserName
+
+	result["password"] = pointer.From(input.Properties.PublishingPassword)
+
+	return append(results, result)
+}
+
+func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	allowedOrigins := make([]interface{}, 0)
+	if s := input.AllowedOrigins; s != nil {
+		for _, v := range *s {
+			allowedOrigins = append(allowedOrigins, v)
+		}
+	}
+	result["allowed_origins"] = pluginsdk.NewSet(pluginsdk.HashString, allowedOrigins)
+
+	if input.SupportCredentials != nil {
+		result["support_credentials"] = *input.SupportCredentials
+	}
+
+	return append(results, result)
+}
+
+func flattenHeaders(input map[string][]string) []interface{} {
+	output := make([]interface{}, 0)
+	headers := make(map[string]interface{})
+	if input == nil {
+		return output
+	}
+
+	if forwardedHost, ok := input["x-forwarded-host"]; ok && len(forwardedHost) > 0 {
+		headers["x_forwarded_host"] = forwardedHost
+	}
+	if forwardedFor, ok := input["x-forwarded-for"]; ok && len(forwardedFor) > 0 {
+		headers["x_forwarded_for"] = forwardedFor
+	}
+	if fdids, ok := input["x-azure-fdid"]; ok && len(fdids) > 0 {
+		headers["x_azure_fdid"] = fdids
+	}
+	if healthProbe, ok := input["x-fd-healthprobe"]; ok && len(healthProbe) > 0 {
+		headers["x_fd_health_probe"] = healthProbe
+	}
+
+	return append(output, headers)
+}
