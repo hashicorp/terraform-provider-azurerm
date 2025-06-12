@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`.
 
-* `environment_properties` - (Optional) Properties of the Dynatrace environment. A `environment_properties` block as defined below.
+* `environment_properties` - (Optional) Properties of the Dynatrace environment. An `environment_properties` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -105,13 +105,13 @@ A `user` block supports the following:
 
 ---
 
-A `environment_properties` block supports the following:
+An `environment_properties` block supports the following:
 
-* `environment_info` - (Required) Information about the Dynatrace environment. A `environment_info` block as defined below.
+* `environment_info` - (Required) Information about the Dynatrace environment. An `environment_info` block as defined below.
 
 ---
 
-A `environment_info` block supports the following:
+An `environment_info` block supports the following:
 
 * `environment_id` - (Required) The ID of the Dynatrace environment to be created.
 
