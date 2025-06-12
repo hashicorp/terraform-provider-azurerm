@@ -93,3 +93,5 @@ require (
 )
 
 go 1.24.1
+
+replace github.com/hashicorp/go-azure-sdk/sdk => ../go-azure-sdk/sdk
