@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `peering_type` - (Required) The type of the ExpressRoute Circuit Peering. Acceptable values include `AzurePrivatePeering`, `AzurePublicPeering` and `MicrosoftPeering`. 
 
-~> **NOTE:** only one Peering of each Type can be created. Attempting to create multiple peerings of the same type will overwrite the original peering.
+~> **Note:** only one Peering of each Type can be created. Attempting to create multiple peerings of the same type will overwrite the original peering.
 
 * `express_route_circuit_name` - (Required) The name of the ExpressRoute Circuit in which to create the Peering. Changing this forces a new resource to be created.
 
@@ -166,7 +166,7 @@ A `ipv6` block contains:
 
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
 
-~> **NOTE:** `ipv6` can be specified when `peering_type` is `MicrosoftPeering` or `AzurePrivatePeering`
+~> **Note:** `ipv6` can be specified when `peering_type` is `MicrosoftPeering` or `AzurePrivatePeering`
 
 ---
 
@@ -198,9 +198,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit Peering.
 
-* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit Peering.
-
 * `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit Peering.
+
+* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit Peering.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the ExpressRoute Circuit Peering.
 

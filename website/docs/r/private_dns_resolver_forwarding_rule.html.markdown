@@ -125,3 +125,9 @@ Private DNS Resolver Forwarding Rules can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_private_dns_resolver_forwarding_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/dnsForwardingRulesets/dnsForwardingRuleset1/forwardingRules/forwardingRule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2022-07-01

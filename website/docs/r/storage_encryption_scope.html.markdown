@@ -77,3 +77,9 @@ Storage Encryption Scopes can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_storage_encryption_scope.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/account1/encryptionScopes/scope1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage`: 2023-05-01
