@@ -619,13 +619,18 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		return nil, fmt.Errorf("retrieving %s: response was nil", id)
 	}
 
-	prefix, ok := result.(customipprefixes.CustomIPPrefix)
+	resp, ok := result.(customipprefixes.GetOperationResponse)
 	if !ok {
-		return nil, fmt.Errorf("retrieving %s: response was not a valid Custom IP Prefix", id)
+		return nil, fmt.Errorf("retrieving %s: response was invalid", id)
+	}
+
+	prefix := resp.Model
+	if prefix == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
 	if prefix.Properties == nil {
-		return prefix.Properties.CommissionedState, fmt.Errorf("retrieving %s: `properties` was nil", id)
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
 	if err != nil {
