@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -83,6 +83,7 @@ type GitRepositoryDefinitionModel struct {
 	HttpsUser             string `tfschema:"https_user"`
 	HttpsKey              string `tfschema:"https_key_base64"`
 	LocalAuthRef          string `tfschema:"local_auth_reference"`
+	Provider              string `tfschema:"provider"`
 	ReferenceType         string `tfschema:"reference_type"`
 	ReferenceValue        string `tfschema:"reference_value"`
 	SshKnownHosts         string `tfschema:"ssh_known_hosts_base64"`
@@ -547,6 +548,16 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Optional:      true,
 						ValidateFunc:  validate.LocalAuthReference,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.ssh_private_key_base64", "git_repository.0.ssh_known_hosts_base64"},
+					},
+
+					"provider": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "generic",
+						ValidateFunc: validation.StringInSlice([]string{
+							"generic",
+							"azure",
+						}, false),
 					},
 
 					"ssh_private_key_base64": {
@@ -1066,6 +1077,15 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 		output.LocalAuthRef = &input.LocalAuthRef
 	}
 
+	providerType, err := expandProviderType(input.Provider)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if input.Provider != "" {
+		output.Provider = &providerType
+	}
+
 	repositoryRefValue, err := expandRepositoryRefDefinitionModel(input.ReferenceType, input.ReferenceValue)
 	if err != nil {
 		return nil, nil, err
@@ -1091,6 +1111,17 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 	}
 
 	return &output, &configSettings, nil
+}
+
+func expandProviderType(input string) (fluxconfiguration.ProviderType, error) {
+	switch input {
+	case "Generic", "generic":
+		return fluxconfiguration.ProviderTypeGeneric, nil
+	case "Azure", "azure":
+		return fluxconfiguration.ProviderTypeAzure, nil
+	default:
+		return "", fmt.Errorf("provider %s not defined", input)
+	}
 }
 
 func expandRepositoryRefDefinitionModel(referenceType string, referenceValue string) (*fluxconfiguration.RepositoryRefDefinition, error) {
@@ -1284,12 +1315,34 @@ func flattenGitRepositoryDefinitionModel(input *fluxconfiguration.GitRepositoryD
 	output.ReferenceType = referenceType
 	output.ReferenceValue = referenceValue
 
+	providerType, err := flattenProviderType(input.Provider)
+	if err != nil {
+		return nil, err
+	}
+
+	output.Provider = providerType
+
 	if len(gitRepository) > 0 {
 		output.HttpsKey = gitRepository[0].HttpsKey
 		output.SshPrivateKey = gitRepository[0].SshPrivateKey
 	}
 
 	return append(outputList, output), nil
+}
+
+func flattenProviderType(input *fluxconfiguration.ProviderType) (string, error) {
+	if input == nil {
+		return "", nil
+	}
+
+	switch *input {
+	case fluxconfiguration.ProviderTypeGeneric:
+		return "generic", nil
+	case fluxconfiguration.ProviderTypeAzure:
+		return "azure", nil
+	default:
+		return "", fmt.Errorf("provider %s not defined", *input)
+	}
 }
 
 func flattenRepositoryRefDefinitionModel(input *fluxconfiguration.RepositoryRefDefinition) (string, string, error) {
