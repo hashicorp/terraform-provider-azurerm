@@ -79,7 +79,6 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 			"resolution_policy": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      virtualnetworklinks.ResolutionPolicyDefault,
 				ValidateFunc: validation.StringInSlice(virtualnetworklinks.PossibleValuesForResolutionPolicy(), false),
 			},
 
@@ -116,8 +115,11 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 				Id: utils.String(d.Get("virtual_network_id").(string)),
 			},
 			RegistrationEnabled: utils.Bool(d.Get("registration_enabled").(bool)),
-			ResolutionPolicy:    pointer.To(virtualnetworklinks.ResolutionPolicy(d.Get("resolution_policy").(string))),
 		},
+	}
+
+	if v, ok := d.GetOk("resolution_policy"); ok {
+		parameters.Properties.ResolutionPolicy = pointer.To(virtualnetworklinks.ResolutionPolicy(v.(string)))
 	}
 
 	options := virtualnetworklinks.CreateOrUpdateOperationOptions{
