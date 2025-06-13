@@ -18,12 +18,12 @@ resource "azurerm_management_group" "example" {
 }
 
 resource "azurerm_management_group_policy_set_definition" "example" {
- name                = "example"
- policy_type         = "Custom"
- display_name        = "Example"
- management_group_id = azurerm_management_group.example.id
+  name                = "example"
+  policy_type         = "Custom"
+  display_name        = "Example"
+  management_group_id = azurerm_management_group.example.id
 
- parameters = <<PARAMETERS
+  parameters = <<PARAMETERS
    {
        "allowedLocations": {
            "type": "Array",
@@ -36,14 +36,14 @@ resource "azurerm_management_group_policy_set_definition" "example" {
    }
 PARAMETERS
 
- policy_definition_reference {
-   policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-   parameter_values     = <<VALUES
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
+    parameter_values     = <<VALUES
    {
      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
    }
 VALUES
- }
+  }
 }
 ```
 

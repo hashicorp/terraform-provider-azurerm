@@ -148,7 +148,6 @@ func expandPolicyDefinitionReference(input []PolicyDefinitionReferenceModel) ([]
 	result := make([]policysetdefinitions.PolicyDefinitionReference, 0)
 
 	for _, v := range input {
-
 		expandedParameters, err := expandPolicyDefinitionReferenceParameterValues(v.ParameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("expanding `parameter_values`: %+v", err)

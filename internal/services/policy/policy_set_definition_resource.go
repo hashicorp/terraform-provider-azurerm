@@ -717,7 +717,7 @@ func resourceArmPolicySetDefinitionDelete(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if managementGroupName != "" {
-		return deleteForManagementGroup(ctx, client, d, meta, policysetdefinitions.NewProviders2PolicySetDefinitionID(managementGroupName, resourceId.Name).ID())
+		return deleteForManagementGroup(ctx, client, policysetdefinitions.NewProviders2PolicySetDefinitionID(managementGroupName, resourceId.Name).ID())
 	}
 
 	id := policysetdefinitions.NewProviderPolicySetDefinitionID(subscriptionId, resourceId.Name)
@@ -729,7 +729,7 @@ func resourceArmPolicySetDefinitionDelete(d *pluginsdk.ResourceData, meta interf
 	return nil
 }
 
-func deleteForManagementGroup(ctx context.Context, client *policysetdefinitions.PolicySetDefinitionsClient, d *pluginsdk.ResourceData, meta any, managementGroupIdString string) error {
+func deleteForManagementGroup(ctx context.Context, client *policysetdefinitions.PolicySetDefinitionsClient, managementGroupIdString string) error {
 	id, err := policysetdefinitions.ParseProviders2PolicySetDefinitionID(managementGroupIdString)
 	if err != nil {
 		return err
@@ -831,6 +831,7 @@ func flattenAzureRMPolicySetDefinitionPolicyGroups(input *[]policysetdefinitions
 
 	return result
 }
+
 // END TODO: Remove post 5.0
 
 type PolicySetDefinitionResource struct{}
@@ -1090,7 +1091,6 @@ func (r PolicySetDefinitionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model != nil {
-
 				if props := model.Properties; props != nil {
 					state.Description = pointer.From(props.Description)
 					state.DisplayName = pointer.From(props.DisplayName)
