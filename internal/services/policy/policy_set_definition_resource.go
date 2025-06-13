@@ -903,80 +903,9 @@ func (r PolicySetDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
-		"policy_definition_reference": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"policy_definition_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validate.PolicyDefinitionID,
-					},
+		"policy_definition_reference": policyDefinitionReferenceSchema(),
 
-					"parameter_values": {
-						Type:             pluginsdk.TypeString,
-						Optional:         true,
-						ValidateFunc:     validation.StringIsJSON,
-						DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
-					},
-
-					"reference_id": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Computed: true,
-					},
-
-					"policy_group_names": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-		},
-
-		"policy_definition_group": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"display_name": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"category": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"description": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"additional_metadata_resource_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-			Set: policySetDefinitionPolicyDefinitionGroupHash,
-		},
+		"policy_definition_group": policyDefinitionGroupSchema(),
 	}
 }
 
