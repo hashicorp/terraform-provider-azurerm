@@ -94,7 +94,7 @@ A `long_term_backup_schedule` - (optional) (Updatable) Block supports the follow
 
 * `time_of_backup` - (required) The date and time in which the backup should be taken in ISO8601 Date Time format. For example if we want to set  the backup date and time for Jan 24, 2025 00:09:00 UTC the value passed  should be `2025-01-24T09:00:00Z`. 
 
-* `retention_period_in_days` - (required) The retention period in days for Autonomous database backup it can range from `90` to `2558` days (`7` years).
+* `retention_period_in_days` - (Required) The retention period in days for the Autonomous Database Backup. Possible values range from `90` to `2558` days (7 years).
 
 * `enabled` - (Required) A boolean value that indicates whether the long term backup schedule is enabled. 
 
