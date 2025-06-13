@@ -244,16 +244,20 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("snssai") {
+			if metadata.ResourceData.HasChange("single_network_slice_selection_assistance_information") {
 				if !features.FivePointOh() {
 					updateModel.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("slice_service_type") {
 				updateModel.Properties.Snssai = slice.Snssai{
 					Sst: model.SliceServiceType,
 				}
-				if model.SliceDifferentiator != "" {
-					updateModel.Properties.Snssai.Sd = &model.SliceDifferentiator
-				}
+			}
+
+			if metadata.ResourceData.HasChange("slice_differentiator") {
+				updateModel.Properties.Snssai.Sd = &model.SliceDifferentiator
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
