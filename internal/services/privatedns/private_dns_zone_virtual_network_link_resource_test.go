@@ -105,7 +105,6 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 	})
 }
 
-// NxDomainRedirect
 func TestAccPrivateDnsZoneVirtualNetworkLink_toggleResolutionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
 	r := PrivateDnsZoneVirtualNetworkLinkResource{}
