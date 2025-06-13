@@ -132,6 +132,7 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_toggleResolutionPolicy(t *testing.T
 		data.ImportStep(),
 	})
 }
+
 func (t PrivateDnsZoneVirtualNetworkLinkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualnetworklinks.ParseVirtualNetworkLinkID(state.ID)
 	if err != nil {
