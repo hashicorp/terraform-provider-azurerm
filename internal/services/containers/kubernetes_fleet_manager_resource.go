@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -52,6 +52,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"hub_profile": {
 			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/en-us/azure/kubernetes-fleet/architectural-overview",
 			Elem: &pluginsdk.Resource{
@@ -60,10 +61,12 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 						Required: true,
 						Type:     pluginsdk.TypeString,
 					},
+
 					"fqdn": {
 						Computed: true,
 						Type:     pluginsdk.TypeString,
 					},
+
 					"kubernetes_version": {
 						Computed: true,
 						Type:     pluginsdk.TypeString,
@@ -75,6 +78,41 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Optional: true,
 			Type:     pluginsdk.TypeList,
 		},
+
+		"auto_upgrade_profile": {
+			Optional: true,
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Required: true,
+						Type:     pluginsdk.TypeString,
+					},
+
+					"channel": {
+						Required: true,
+						Type:     pluginsdk.TypeString,
+					},
+
+					"disabled": {
+						Optional: true,
+						Type:     pluginsdk.TypeBool,
+					},
+
+					"node_image_selection": {
+						Optional: true,
+						Type:     pluginsdk.TypeString,
+					},
+
+					"update_strategy_id": {
+						Optional: true,
+						Type:     pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -87,7 +125,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20240401.Fleets
+			client := metadata.Client.ContainerService.V20250301.Fleets
 
 			var config KubernetesFleetManagerResourceSchema
 			if err := metadata.Decode(&config); err != nil {
@@ -125,7 +163,7 @@ func (r KubernetesFleetManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20240401.Fleets
+			client := metadata.Client.ContainerService.V20250301.Fleets
 			schema := KubernetesFleetManagerResourceSchema{}
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
@@ -156,7 +194,7 @@ func (r KubernetesFleetManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20240401.Fleets
+			client := metadata.Client.ContainerService.V20250301.Fleets
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
 			if err != nil {
@@ -176,7 +214,7 @@ func (r KubernetesFleetManagerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ContainerService.V20240401.Fleets
+			client := metadata.Client.ContainerService.V20250301.Fleets
 
 			id, err := fleets.ParseFleetID(metadata.ResourceData.Id())
 			if err != nil {
