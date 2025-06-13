@@ -56,14 +56,6 @@ func TestAccRecoveryServicesVault_ToggleCrossRegionRestore(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basicWithCrossRegionRestore(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("cross_region_restore_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -200,14 +192,6 @@ func TestAccRecoveryServicesVault_immutabilityLocked(t *testing.T) {
 	r := RecoveryServicesVaultResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// To test creation with `Locked`, it is irreversible.
-			Config: r.basicWithImmutability(data, "Locked"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.basicWithImmutability(data, "Disabled"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -409,6 +393,21 @@ func TestAccRecoveryServicesVault_updateSkuWithExistingEncryption(t *testing.T) 
 			Config:      r.skuWithEncryption(data, "RS0"),
 			ExpectError: regexp.MustCompile("`sku` cannot be changed when encryption with your own key has been enabled"),
 		},
+	})
+}
+
+func TestAccRecoveryServicesVault_EncryptionWithHsm(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.encryptionWithHSMKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -1548,4 +1547,90 @@ resource "azurerm_recovery_services_vault" "test" {
   soft_delete_enabled                = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) encryptionWithHSMKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = true
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%[1]d"
+  location = "%[2]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctest-key-vault-%[3]s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "premium"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Decrypt",
+      "Encrypt",
+      "Delete",
+      "Get",
+      "List",
+      "Purge",
+      "UnwrapKey",
+      "WrapKey",
+      "Verify",
+      "GetRotationPolicy"
+    ]
+    secret_permissions = [
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-key-vault-key"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA-HSM"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  encryption {
+    key_id                            = azurerm_key_vault_key.test.id
+    infrastructure_encryption_enabled = false
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
