@@ -92,7 +92,7 @@ A `long_term_backup_schedule` - (optional) (Updatable) Block supports the follow
 
 * `repeat_cadence` - (required)  Specifies the schedule for automated long-term backups. Options include `Weekly`, `Monthly`, `Yearly`, or `OneTime` (does not repeat) . For example, if the Backup date and Time is `Jan 24, 2025 00:09:00 UTC` and this is a Tuesday, and Weekly is selected, the long-term backup will happen every Tuesday.
 
-* `time_of_backup` - (required) The date and time in which the backup should be taken in ISO8601 Date Time format. For example if we want to set  the backup date and time for Jan 24, 2025 00:09:00 UTC the value passed  should be `2025-01-24T09:00:00Z`. 
+* `time_of_backup` - (Required) The date and time in which the backup should be taken in ISO8601 Date Time format. 
 
 * `retention_period_in_days` - (Required) The retention period in days for the Autonomous Database Backup. Possible values range from `90` to `2558` days (7 years).
 
