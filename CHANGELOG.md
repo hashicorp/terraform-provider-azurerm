@@ -1,6 +1,7 @@
 ## 4.34.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_kusto_cluster_customer_managed_key` - add support for `managed_hsm_key_id` [GH-29416]
 
 FEATURES:
 
