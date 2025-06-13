@@ -53,12 +53,12 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 						return d.ForceNew("parameters")
 					}
 
-					oldParameters, err := expandParameterDefinitionsValueFromString(oldParametersString)
+					oldParameters, err := expandParameterDefinitionsValueFromStringTrack1(oldParametersString)
 					if err != nil {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					newParameters, err := expandParameterDefinitionsValueFromString(newParametersString)
+					newParameters, err := expandParameterDefinitionsValueFromStringTrack1(newParametersString)
 					if err != nil {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
@@ -131,7 +131,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
+		parameters, err := expandParameterDefinitionsValueFromStringTrack1(parametersString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
@@ -245,7 +245,7 @@ func resourceArmPolicyDefinitionRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr, err := flattenParameterDefinitionsValueToString(props.Parameters); err == nil {
+		if parametersStr, err := flattenParameterDefinitionsValueToStringTrack1(props.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
 		} else {
 			return fmt.Errorf("flattening policy definition parameters %+v", err)

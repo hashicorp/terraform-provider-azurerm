@@ -1,54 +1,59 @@
 ---
 subcategory: "Policy"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_policy_set_definition"
+page_title: "Azure Resource Manager: azurerm_management_group_policy_set_definition"
 description: |-
-  Manages a policy set definition.
+  Manages a Policy Set Definition for a Management Group.
 ---
 
-# azurerm_policy_set_definition
+# azurerm_management_group_policy_set_definition
 
-Manages a Policy Set Definition.
-
--> **Note:** Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
+Manages a Policy Set Definition for a Management Group.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_policy_set_definition" "example" {
-  name         = "example"
-  policy_type  = "Custom"
+resource "azurerm_management_group" "example" {
   display_name = "Example"
+}
+
+resource "azurerm_management_group_policy_set_definition" "example" {
+  name                = "example"
+  policy_type         = "Custom"
+  display_name        = "Example"
+  management_group_id = azurerm_management_group.example.id
 
   parameters = <<PARAMETERS
-    {
-        "allowedLocations": {
-            "type": "Array",
-            "metadata": {
-                "description": "The list of allowed locations for resources.",
-                "displayName": "Allowed locations",
-                "strongType": "location"
-            }
-        }
-    }
+   {
+       "allowedLocations": {
+           "type": "Array",
+           "metadata": {
+               "description": "The list of allowed locations for resources.",
+               "displayName": "Allowed locations",
+               "strongType": "location"
+           }
+       }
+   }
 PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameter_values     = <<VALUE
-    {
-      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
-    }
-    VALUE
+    parameter_values     = <<VALUES
+   {
+     "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
+   }
+VALUES
   }
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Policy Set Definition. Changing this forces a new Policy Set Definition to be created.
+ 
+* `management_group_id` - (Required) The ID of the Management Group where this Policy Set Definition should be created. Changing this forces a new Policy Set Definition to be created.
 
 * `display_name` - (Required) The display name of this Policy Set Definition.
 
@@ -68,7 +73,7 @@ The following arguments are supported:
 
 ---
 
-An `policy_definition_group` block supports the following:
+A `policy_definition_group` block supports the following:
 
 * `name` - (Required) The name which should be used for this Policy Definition Group.
 
@@ -94,7 +99,7 @@ A `policy_definition_reference` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Policy Set Definition.
 
@@ -112,5 +117,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Policy Set Definitions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/policySetDefinitionName
+terraform import azurerm_management_group_policy_set_definition.example /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/policySetDefinitionName
 ```
