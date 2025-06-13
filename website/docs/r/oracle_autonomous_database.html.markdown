@@ -90,7 +90,7 @@ The following arguments are supported:
 
 A `long_term_backup_schedule` - (optional) (Updatable) Block supports the following: for more information see [Create Long-Term Backups on Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/backup-long-term.html#GUID-BD76E02E-AEB0-4450-A6AB-5C9EB1F4EAD0) 
 
-* `repeat_cadence` - (required)  Specifies the schedule for automated long-term backups. Options include `Weekly`, `Monthly`, `Yearly`, or `OneTime` (does not repeat) . For example, if the Backup date and Time is `Jan 24, 2025 00:09:00 UTC` and this is a Tuesday, and Weekly is selected, the long-term backup will happen every Tuesday.
+* `repeat_cadence` - (Required)  Specifies the schedule for automated long-term backups. Possible values are `Weekly`, `Monthly`, `Yearly`, or `OneTime`.
 
 * `time_of_backup` - (Required) The date and time in which the backup should be taken in ISO8601 Date Time format. 
 
