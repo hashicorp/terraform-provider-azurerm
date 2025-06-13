@@ -96,7 +96,7 @@ A `long_term_backup_schedule` - (optional) (Updatable) Block supports the follow
 
 * `retention_period_in_days` - (required) The retention period in days for Autonomous database backup it can range from `90` to `2558` days (`7` years).
 
-* `enabled` - (required) A boolean value that indicates if long term backup is enabled. 
+* `enabled` - (Required) A boolean value that indicates whether the long term backup schedule is enabled. 
 
 ## Attributes Reference
 
