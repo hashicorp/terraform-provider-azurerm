@@ -272,6 +272,8 @@ An `ingress` block supports the following:
 
 * `client_certificate_mode` - The client certificate mode for the Ingress.
 
+* `cors_policy` - A `cors_policy` block as detailed below.
+
 * `custom_domain` - One or more `custom_domain` block as detailed below.
 
 * `fqdn` -  The FQDN of the ingress.
@@ -285,6 +287,22 @@ An `ingress` block supports the following:
 * `traffic_weight` - A `traffic_weight` block as detailed below.
 
 * `transport` - The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
+
+---
+
+A `cors_policy` block supports the following:
+
+* `allowed_origins` - The list of origins that are allowed to make cross-origin calls.
+
+* `allow_credentials_enabled` - Whether user credentials are allowed in the cross-origin request is enabled.
+
+* `allowed_headers` - The list of request headers that are permitted in the actual request.
+
+* `allowed_methods` - The list of HTTP methods are allowed when accessing the resource in a cross-origin request.
+
+* `expose_headers` - The list of headers exposed to the browser in the response to a cross-origin request.
+
+* `max_age_in_seconds` - The number of seconds that the browser can cache the results of a preflight request.
 
 ---
 
