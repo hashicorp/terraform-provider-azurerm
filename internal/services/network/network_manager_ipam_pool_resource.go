@@ -64,15 +64,6 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"display_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
-				"`display_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
-			),
-		},
-
 		"address_prefixes": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -81,6 +72,15 @@ func (ManagerIpamPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
 			},
+		},
+
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9\_\.\-]{1,64}$`),
+				"`display_name` must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
+			),
 		},
 
 		"parent_pool_name": {
