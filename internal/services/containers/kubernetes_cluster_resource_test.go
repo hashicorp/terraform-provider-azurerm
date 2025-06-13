@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -97,6 +97,53 @@ func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 			),
 		},
 	})
+}
+
+func TestAccKubernetesCluster_OutboundTypeNone(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccKubernetesClusterConfigOutboundTypeNone(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("azurerm_kubernetes_cluster.test", "network_profile.0.outbound_type", "None"),
+				),
+			},
+		},
+	})
+}
+
+func testAccKubernetesClusterConfigOutboundTypeNone() string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-none"
+  location = "eastus"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaksnone"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaksnone"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  network_profile {
+    network_plugin = "kubenet"
+    outbound_type  = "None"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`)
 }
 
 func TestAccKubernetesCluster_storageProfile(t *testing.T) {
@@ -225,6 +272,10 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "none"),
 		},
 		data.ImportStep(),
 	})
