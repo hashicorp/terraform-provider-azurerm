@@ -40,6 +40,8 @@ output "private_dns_a_record_id" {
 
 * `registration_enabled` - Whether the auto-registration of virtual machine records in the virtual network in the Private DNS zone is enabled or not.
 
+* `resolution_policy` - The resolution policy of the Private DNS Zone Virtual Network Link.
+
 * `tags` - A mapping of tags to assign to the resource.
 
 ## Timeouts

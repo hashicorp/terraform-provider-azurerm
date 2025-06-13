@@ -105,6 +105,34 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_withTags(t *testing.T) {
 	})
 }
 
+// NxDomainRedirect
+func TestAccPrivateDnsZoneVirtualNetworkLink_toggleResolutionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
+	r := PrivateDnsZoneVirtualNetworkLinkResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resolutionPolicy(data, "Default"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resolutionPolicy(data, "NxDomainRedirect"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.resolutionPolicy(data, "Default"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
 func (t PrivateDnsZoneVirtualNetworkLinkResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualnetworklinks.ParseVirtualNetworkLinkID(state.ID)
 	if err != nil {
@@ -190,6 +218,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   virtual_network_id    = azurerm_virtual_network.test.id
   resource_group_name   = azurerm_resource_group.test.name
   registration_enabled  = true
+  resolution_policy     = "NxDomainRedirect"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -343,4 +372,43 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (PrivateDnsZoneVirtualNetworkLinkResource) resolutionPolicy(data acceptance.TestData, resolution string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+
+  subnet {
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
+  }
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "acctestVnetZone%[1]d.com"
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.test.name
+  registration_enabled  = true
+  resolution_policy     = "%[3]s"
+}
+`, data.RandomInteger, data.Locations.Primary, resolution)
 }
