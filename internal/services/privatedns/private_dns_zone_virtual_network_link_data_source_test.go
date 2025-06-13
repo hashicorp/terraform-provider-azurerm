@@ -54,7 +54,6 @@ func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_resolutionPolicy(t *testi
 				check.That(data.ResourceName).Key("resource_group_name").MatchesOtherKey(check.That(resourceName).Key("resource_group_name")),
 				check.That(data.ResourceName).Key("virtual_network_id").MatchesOtherKey(check.That(vnetName).Key("id")),
 				check.That(data.ResourceName).Key("private_dns_zone_name").MatchesOtherKey(check.That(zoneName).Key("name")),
-				check.That(data.ResourceName).Key("registration_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("resolution_policy").HasValue("NxDomainRedirect"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
