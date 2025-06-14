@@ -227,11 +227,16 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 
 			containerApp.Properties.Configuration.ActiveRevisionsMode = pointer.To(containerapps.ActiveRevisionsMode(app.RevisionMode))
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, containerApp); err != nil {
+			result, err := client.CreateOrUpdate(ctx, id, containerApp)
+			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
+
+			if err := result.Poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for creating %s: %+v", id, err)
+			}
 
 			return nil
 		},
