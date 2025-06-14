@@ -205,6 +205,18 @@ func (s *Server) MoveResourceState(ctx context.Context, req *MoveResourceStateRe
 			return
 		}
 
+		// Set any write-only attributes in the move resource state to null
+		modifiedState, err := tftypes.Transform(moveStateResp.TargetState.Raw, NullifyWriteOnlyAttributes(ctx, moveStateResp.TargetState.Schema))
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Modifying Move Resource State",
+				"There was an unexpected error modifying the Move Resource State. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
+
+		moveStateResp.TargetState.Raw = modifiedState
+
 		// If the implement has set the state in any way, return the response.
 		if !moveStateResp.TargetState.Raw.Equal(tftypes.NewValue(req.TargetResourceSchema.Type().TerraformType(ctx), nil)) {
 			resp.Diagnostics = moveStateResp.Diagnostics

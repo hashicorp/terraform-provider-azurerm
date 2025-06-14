@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/hashicorp/terraform-exec/internal/version"
@@ -187,6 +188,14 @@ func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]
 
 	cmd.Env = tf.buildEnv(mergeEnv)
 	cmd.Dir = tf.workingDir
+	if runtime.GOOS != "windows" {
+		// Windows does not support SIGINT so we cannot do graceful cancellation
+		// see https://pkg.go.dev/os#Signal (os.Interrupt)
+		cmd.Cancel = func() error {
+			return cmd.Process.Signal(os.Interrupt)
+		}
+		cmd.WaitDelay = tf.waitDelay
+	}
 
 	tf.logger.Printf("[INFO] running Terraform command: %s", cmd.String())
 
