@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package grpcApi;
+
+// The response message returned by the Example operation
+message Response {
+  string status = 1; // e.g., "success"
+}
+
+// Empty request message
+message Request {}
+
+// service definition
+service grpcService {
+  rpc ExampleOperation(Request) returns (Response);
+}

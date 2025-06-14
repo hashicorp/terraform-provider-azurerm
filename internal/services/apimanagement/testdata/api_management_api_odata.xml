@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx"
+           xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata">
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ExampleNS" xml:lang="de"
+                xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="ExampleEntity">
+                <Key>
+                    <PropertyRef Name="KeyProperty" />
+                </Key>
+                <Property Name="KeyProperty" Type="Edm.String" Nullable="false"
+                          MaxLength="4" />
+                <Property Name="AnotherProperty" Type="Edm.String" Nullable="false"
+                          MaxLength="4" />
+            </EntityType>
+            <EntityContainer Name="ExampleContainer" m:IsDefaultEntityContainer="true"
+            >
+                <EntitySet Name="ExampleEntitySet" EntityType="ExampleNS.ExampleEntity"
+                />
+            </EntityContainer>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

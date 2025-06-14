@@ -106,7 +106,9 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(api.ApiTypeGraphql),
+					string(api.ApiTypeGrpc),
 					string(api.ApiTypeHTTP),
+					string(api.ApiTypeOdata),
 					string(api.ApiTypeSoap),
 					string(api.ApiTypeWebsocket),
 				}, false),
@@ -159,10 +161,15 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(api.ContentFormatGraphqlNegativelink),
+								string(api.ContentFormatGrpc),
+								string(api.ContentFormatGrpcNegativelink),
+								string(api.ContentFormatOdata),
+								string(api.ContentFormatOdataNegativelink),
 								string(api.ContentFormatOpenapi),
+								string(api.ContentFormatOpenapiNegativelink),
 								string(api.ContentFormatOpenapiPositivejson),
 								string(api.ContentFormatOpenapiPositivejsonNegativelink),
-								string(api.ContentFormatOpenapiNegativelink),
 								string(api.ContentFormatSwaggerNegativejson),
 								string(api.ContentFormatSwaggerNegativelinkNegativejson),
 								string(api.ContentFormatWadlNegativelinkNegativejson),
@@ -793,7 +800,9 @@ func resourceApiManagementApiDelete(d *pluginsdk.ResourceData, meta interface{})
 func soapApiTypeFromApiType(apiType api.ApiType) api.SoapApiType {
 	return map[api.ApiType]api.SoapApiType{
 		api.ApiTypeGraphql:   api.SoapApiTypeGraphql,
+		api.ApiTypeGrpc:      api.SoapApiTypeGrpc,
 		api.ApiTypeHTTP:      api.SoapApiTypeHTTP,
+		api.ApiTypeOdata:     api.SoapApiTypeOdata,
 		api.ApiTypeSoap:      api.SoapApiTypeSoap,
 		api.ApiTypeWebsocket: api.SoapApiTypeWebsocket,
 	}[apiType]

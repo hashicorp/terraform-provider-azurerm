@@ -169,6 +169,38 @@ func TestAccApiManagementApi_graphql(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApi_grpc(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.grpc(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_type").HasValue("grpc"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApi_odata(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.odata(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_type").HasValue("odata"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApiManagementApi_soap(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
@@ -214,6 +246,38 @@ func TestAccApiManagementApi_subscriptionRequired(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApi_importOdata(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importOdata(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_type").HasValue("odata"),
+			),
+		},
+		data.ImportStep("import"),
+	})
+}
+
+func TestAccApiManagementApi_importGrpc(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importGrpc(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("api_type").HasValue("grpc"),
+			),
+		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -550,6 +614,40 @@ resource "azurerm_api_management_api" "test" {
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
 }
 
+func (r ApiManagementApiResource) grpc(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  api_type            = "grpc"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) odata(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  api_type            = "odata"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
 func (r ApiManagementApiResource) soap(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -616,6 +714,68 @@ resource "azurerm_api_management_api" "import" {
   revision            = azurerm_api_management_api.test.revision
 }
 `, r.basic(data))
+}
+
+func (r ApiManagementApiResource) importOdata(data acceptance.TestData, ignoreImported bool) string {
+	ignoreConfig := ""
+	if ignoreImported {
+		ignoreConfig = `lifecycle {
+	ignore_changes = [description, display_name, contact, license]
+}
+`
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  api_type 			  = "odata"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+
+  import {
+    content_value  = file("testdata/api_management_api_odata.xml")
+    content_format = "odata"
+  }
+  %s
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger, ignoreConfig)
+}
+
+func (r ApiManagementApiResource) importGrpc(data acceptance.TestData, ignoreImported bool) string {
+	ignoreConfig := ""
+	if ignoreImported {
+		ignoreConfig = `lifecycle {
+	ignore_changes = [description, display_name, contact, license]
+}
+`
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  api_type 			  = "grpc"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+
+  import {
+    content_value  = file("testdata/api_management_api_grpc.proto")
+    content_format = "grpc"
+  }
+  %s
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger, ignoreConfig)
 }
 
 func (r ApiManagementApiResource) importSwagger(data acceptance.TestData, ignoreImported bool) string {

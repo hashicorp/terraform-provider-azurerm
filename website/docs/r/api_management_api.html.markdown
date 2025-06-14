@@ -57,7 +57,7 @@ The following arguments are supported:
 
 ---
 
-* `api_type` - (Optional) Type of API. Possible values are `graphql`, `http`, `soap`, and `websocket`. Defaults to `http`.
+* `api_type` - (Optional) Type of API. Possible values are `graphql`, `grpc`, `http`, `odata`, `soap`, and `websocket`. Defaults to `http`.
 
 * `display_name` - (Optional) The display name of the API.
 
@@ -117,7 +117,7 @@ A `contact` block supports the following:
 
 A `import` block supports the following:
 
-* `content_format` - (Required) The format of the content from which the API Definition should be imported. Possible values are: `openapi`, `openapi+json`, `openapi+json-link`, `openapi-link`, `swagger-json`, `swagger-link-json`, `wadl-link-json`, `wadl-xml`, `wsdl` and `wsdl-link`.
+* `content_format` - (Required) The format of the content from which the API Definition should be imported. Possible values are: `graphql-link`, `grpc`, `grpc-link`, `odata`, `odata-link` `openapi`, `openapi+json`, `openapi-link`, `openapi+json-link`, `swagger-json`, `swagger-link-json`, `wadl-link-json`, `wadl-xml`, `wsdl` and `wsdl-link`.
 
 * `content_value` - (Required) The Content from which the API Definition should be imported. When a `content_format` of `*-link-*` is specified this must be a URL, otherwise this must be defined inline. The URL must be accessible and return a valid document; otherwise, deployment may fail.
 
