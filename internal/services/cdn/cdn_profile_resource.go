@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -20,6 +21,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+var (
+	CreateDeprecationMessage  string = "creation of new CDN resources is no longer permitted following its deprecation on October 1, 2025. However, modifications to existing CDN resources remain supported until the API reaches full retirement on September 30, 2027"
+	VerizonDeprecationMessage string = "creation of CDN resources are no longer permitted with the `StandardVerizon` and `PremiumVerizon` sku's following its deprecation on October 1, 2025"
+	AkamaiDeprecationMessage  string = "creation of CDN resources are no longer permitted with the `StandardAkamai` sku following its deprecation on October 31, 2023"
+	FullyRetiredMessage       string = "as of September 30, 2027, CDN resources have reached full retirement and are no longer supported by Azure"
 )
 
 func resourceCdnProfile() *pluginsdk.Resource {
@@ -57,9 +65,6 @@ func resourceCdnProfile() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			// NOTE: 'Standard_Verizon', 'Premium_Verizon' and 'Standard_Akamai' have been deprecated by the RP...
-			// Keeping them to avoid a breaking change since the RP will return an error if the
-			// deprecated fields are passed to the RP...
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -75,6 +80,37 @@ func resourceCdnProfile() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			sku := d.Get("sku").(string)
+
+			if IsCdnFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			switch sku {
+			case string(cdn.SkuNameStandardAkamai):
+				// The Akamai sku was retired on 31 October 2023...
+				if IsCdnStandardAkamaiDeprecatedForCreation() {
+					return fmt.Errorf("%s", AkamaiDeprecationMessage)
+				}
+			case string(cdn.SkuNameStandardVerizon), string(cdn.SkuNamePremiumVerizon):
+				// The Verizon skus were retired on 15 January 2025...
+				if IsCdnStandardVerizonPremiumVerizonDeprecatedForCreation() {
+					return fmt.Errorf("%s", VerizonDeprecationMessage)
+				}
+			case string(cdn.SkuNameStandardMicrosoft), string(cdn.SkuNameStandardChinaCdn):
+				// The only currently supported sku's for CDN are 'Standard_Microsoft' and 'Standard_ChinaCdn' which
+				// will also be deprecated as of October 1, 2025, but can still be updated until September 30, 2027.
+				// First, check to see if any of the force new fields have changed after the October 1, 2025 deprecation date,
+				// if they have we need to block the update because the force new will cause the deployments to fail...
+				if IsCdnDeprecatedForCreation() && d.HasChanges("name", "location", "resource_group_name", "sku") {
+					return fmt.Errorf("%s", CreateDeprecationMessage)
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -37,6 +38,10 @@ func NewCdnEndpointCustomDomainResource(dnsZoneRg, dnsZoneName string) *CdnEndpo
 }
 
 func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
@@ -54,6 +59,10 @@ func TestAccCdnEndpointCustomDomain_basic(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
@@ -71,6 +80,10 @@ func TestAccCdnEndpointCustomDomain_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
@@ -88,6 +101,10 @@ func TestAccCdnEndpointCustomDomain_httpsCdn(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
@@ -110,6 +127,10 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedCertificate(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
@@ -129,6 +150,10 @@ func TestAccCdnEndpointCustomDomain_httpsUserManagedSecret(t *testing.T) {
 }
 
 func TestAccCdnEndpointCustomDomain_httpsUpdate(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint_custom_domain", "test")
 
 	r := NewCdnEndpointCustomDomainResource(os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME"), os.Getenv("ARM_TEST_DNS_ZONE_NAME"))
