@@ -31,6 +31,7 @@ func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("virtual_network_id").MatchesOtherKey(check.That(vnetName).Key("id")),
 				check.That(data.ResourceName).Key("private_dns_zone_name").MatchesOtherKey(check.That(zoneName).Key("name")),
 				check.That(data.ResourceName).Key("registration_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("fallback_to_internet").HasValue("false"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
