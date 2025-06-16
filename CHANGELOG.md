@@ -1,6 +1,9 @@
 ## 4.34.0 (Unreleased)
 
 ENHANCEMENTS:
+
+* `dependencies`: `go-azure-sdk` - update to `v0.20250613.1153526` [GH-29871]
+* `provider`: add support for `msi_api_version` property and `ARM_MSI_API_VERSION` env var. [GH-29871]
 * `azurerm_kusto_cluster_customer_managed_key` - add support for `managed_hsm_key_id` [GH-29416]
 
 FEATURES:
@@ -10,6 +13,7 @@ BUG FIXES:
 ## 4.33.0 (June 12, 2025)
 
 FEATURES:
+
 * **New Data Source**: `azurerm_dev_center_attached_network` ([#29793](https://github.com/hashicorp/terraform-provider-azurerm/issues/29793))
 * **New Data Source**: `azurerm_dev_center_dev_box_definition` ([#29790](https://github.com/hashicorp/terraform-provider-azurerm/issues/29790))
 * **New Data Source**: `azurerm_dev_center_catalog` ([#29794](https://github.com/hashicorp/terraform-provider-azurerm/issues/29794))
