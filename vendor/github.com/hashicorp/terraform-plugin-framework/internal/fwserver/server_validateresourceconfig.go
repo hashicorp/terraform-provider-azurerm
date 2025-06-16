@@ -9,14 +9,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
 // ValidateResourceConfigRequest is the framework server request for the
 // ValidateResourceConfig RPC.
 type ValidateResourceConfigRequest struct {
-	Config   *tfsdk.Config
-	Resource resource.Resource
+	ClientCapabilities resource.ValidateConfigClientCapabilities
+	Config             *tfsdk.Config
+	Resource           resource.Resource
 }
 
 // ValidateResourceConfigResponse is the framework server response for the
@@ -51,7 +53,8 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 	}
 
 	vdscReq := resource.ValidateConfigRequest{
-		Config: *req.Config,
+		ClientCapabilities: req.ClientCapabilities,
+		Config:             *req.Config,
 	}
 
 	if resourceWithConfigValidators, ok := req.Resource.(resource.ResourceWithConfigValidators); ok {
@@ -96,8 +99,13 @@ func (s *Server) ValidateResourceConfig(ctx context.Context, req *ValidateResour
 		resp.Diagnostics.Append(vdscResp.Diagnostics...)
 	}
 
+	schemaCapabilities := validator.ValidateSchemaClientCapabilities{
+		WriteOnlyAttributesAllowed: req.ClientCapabilities.WriteOnlyAttributesAllowed,
+	}
+
 	validateSchemaReq := ValidateSchemaRequest{
-		Config: *req.Config,
+		ClientCapabilities: schemaCapabilities,
+		Config:             *req.Config,
 	}
 	// Instantiate a new response for each request to prevent validators
 	// from modifying or removing diagnostics.
