@@ -1,6 +1,7 @@
 ## 4.34.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_network_manager_ipam_pool` - `display_name` is now optional [GH-29842]
 
 * `dependencies`: `go-azure-sdk` - update to `v0.20250613.1153526` [GH-29871]
 * `provider`: add support for `msi_api_version` property and `ARM_MSI_API_VERSION` env var. [GH-29871]
