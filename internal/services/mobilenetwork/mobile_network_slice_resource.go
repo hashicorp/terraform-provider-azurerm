@@ -195,7 +195,7 @@ func (r SliceResource) Create() sdk.ResourceFunc {
 				properties.Properties.Snssai.Sd = &model.SliceDifferentiator
 			}
 
-			if !features.FivePointOh() {
+			if !features.FivePointOh() && len(model.SingleNetworkSliceSelectionAssistanceInformation) > 0 {
 				properties.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
 			}
 
