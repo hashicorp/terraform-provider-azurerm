@@ -178,6 +178,19 @@ type MapNestedAttribute struct {
 	// computed and the value could be altered by other changes then a default
 	// should be avoided and a plan modifier should be used instead.
 	Default defaults.Map
+
+	// WriteOnly indicates that Terraform will not store this attribute value
+	// in the plan or state artifacts.
+	// If WriteOnly is true, either Optional or Required must also be true.
+	// WriteOnly cannot be set with Computed.
+	//
+	// If WriteOnly is true for a nested attribute, all of its child attributes
+	// must also set WriteOnly to true and no child attribute can be Computed.
+	//
+	// This functionality is only supported in Terraform 1.11 and later.
+	// Practitioners that choose a value for this attribute with older
+	// versions of Terraform will receive an error.
+	WriteOnly bool
 }
 
 // ApplyTerraform5AttributePathStep returns the Attributes field value if step
@@ -260,6 +273,11 @@ func (a MapNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns the WriteOnly field value.
+func (a MapNestedAttribute) IsWriteOnly() bool {
+	return a.WriteOnly
+}
+
 // MapDefaultValue returns the Default field value.
 func (a MapNestedAttribute) MapDefaultValue() defaults.Map {
 	return a.Default
@@ -282,6 +300,14 @@ func (a MapNestedAttribute) MapValidators() []validator.Map {
 func (a MapNestedAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if a.CustomType == nil && fwtype.ContainsCollectionWithDynamic(a.GetType()) {
 		resp.Diagnostics.Append(fwtype.AttributeCollectionWithDynamicTypeDiag(req.Path))
+	}
+
+	if a.IsWriteOnly() && !fwschema.ContainsAllWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwschema.InvalidWriteOnlyNestedAttributeDiag(req.Path))
+	}
+
+	if a.IsComputed() && fwschema.ContainsAnyWriteOnlyChildAttributes(a) {
+		resp.Diagnostics.Append(fwschema.InvalidComputedNestedAttributeWithWriteOnlyDiag(req.Path))
 	}
 
 	if a.MapDefaultValue() != nil {
