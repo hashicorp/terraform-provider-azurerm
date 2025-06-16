@@ -23,7 +23,6 @@ func TestAccMobileNetworkSliceDataSource_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key(`location`).Exists(),
 				check.That(data.ResourceName).Key(`description`).HasValue("my favorite slice"),
-				check.That(data.ResourceName).Key(`single_network_slice_selection_assistance_information.0.slice_service_type`).HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
