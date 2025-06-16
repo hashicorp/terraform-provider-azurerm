@@ -10,6 +10,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_orchestrated_virtual_machine_scale_set` - prevent a panic when an empty `os_profile` block is present in the configuration  [GH-29809]
 
 ## 4.33.0 (June 12, 2025)
 
