@@ -195,6 +195,25 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 						if cidr == netw {
 							return metadata.ResourceRequiresImport(r.ResourceType(), id)
 						}
+
+						// ========== Start clearing out legacy data ==========
+						if *prefix.Properties.Cidr == "194.41.20.0/24" || *prefix.Properties.Cidr == "2620:10c:5001::/48" {
+							log.Printf("[DEBUG] Start deleting legacy test data:  %s", *prefix.Id)
+							id, err := customipprefixes.ParseCustomIPPrefixID(*prefix.Id)
+							if err != nil {
+								return err
+							}
+
+							// Must be de-provisioned before deleting
+							if _, err = r.updateCommissionedState(ctx, *id, customipprefixes.CommissionedStateDeprovisioned); err != nil {
+								return err
+							}
+							if err := r.client.DeleteThenPoll(ctx, *id); err != nil {
+								return fmt.Errorf("deleting %s: %+v", id, err)
+							}
+							log.Printf("[DEBUG] End deleting legacy test data:  %s", *prefix.Id)
+						}
+						// ==========End clearing out legacy data  ==========
 					}
 				}
 			}
@@ -634,7 +653,6 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 	}
 
 	if err != nil {
-		log.Printf("[DEBUG] get state %s for %s..", *prefix.Properties.CommissionedState, id)
 		return prefix.Properties.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
 	}
 
