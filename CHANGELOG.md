@@ -1,3 +1,48 @@
+## 4.33.0 (June 12, 2025)
+
+FEATURES:
+* **New Data Source**: `azurerm_dev_center_attached_network` ([#29793](https://github.com/hashicorp/terraform-provider-azurerm/issues/29793))
+* **New Data Source**: `azurerm_dev_center_dev_box_definition` ([#29790](https://github.com/hashicorp/terraform-provider-azurerm/issues/29790))
+* **New Data Source**: `azurerm_dev_center_catalog` ([#29794](https://github.com/hashicorp/terraform-provider-azurerm/issues/29794))
+* **New Data Source**: `azurerm_dev_center_gallery` ([#29795](https://github.com/hashicorp/terraform-provider-azurerm/issues/29795))
+* **New Data Source**: `azurerm_dev_center_network_connection` ([#29792](https://github.com/hashicorp/terraform-provider-azurerm/issues/29792))
+
+ENHANCEMENTS:
+
+* `azurem_netapp_volume_group_oracle_resource` - add support for `data_protection_replication ` including Cross-Region Replication (CRR) and Cross-Zone Replication (CZR) ([#29771](https://github.com/hashicorp/terraform-provider-azurerm/issues/29771))
+* `azurerm_postgresql_flexible_server` - the `create_mode` property now supports the `ReviveDropped` value  ([#29814](https://github.com/hashicorp/terraform-provider-azurerm/issues/29814))
+* `azurerm_postgresql_flexible_server` - add support for `SystemAssigned, UserAssigned` to the `identity.type` property ([#29320](https://github.com/hashicorp/terraform-provider-azurerm/issues/29320))
+
+BUG FIXES:
+* `azurerm_windows_function_app` - the `app_settings` property is no longer marked as sensitive ([#29834](https://github.com/hashicorp/terraform-provider-azurerm/issues/29834))
+* `azurerm_mssql_server_vulnerability_assessment` - `storage_account_access_key` and `storage_container_sas_key` are no longer required to be set ([#29789](https://github.com/hashicorp/terraform-provider-azurerm/issues/29789))
+
+## 4.32.0 (June 05, 2025)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_dev_center_project` ([#29747](https://github.com/hashicorp/terraform-provider-azurerm/issues/29747))
+* **New Data Source**: `azurerm_dev_center_project_environment_type` ([#29762](https://github.com/hashicorp/terraform-provider-azurerm/issues/29762))
+* **New Resource**: `azurerm_qumulo_file_system` ([#28704](https://github.com/hashicorp/terraform-provider-azurerm/issues/28704))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20250526.1224007` ([#29745](https://github.com/hashicorp/terraform-provider-azurerm/issues/29745))
+* Data Source: `azurerm_netapp_volume` - export the `large_volume_enabled` property ([#29712](https://github.com/hashicorp/terraform-provider-azurerm/issues/29712))
+* Data Source: `azurerm_vpn_gateway` - export the `ip_configuration` block ([#29186](https://github.com/hashicorp/terraform-provider-azurerm/issues/29186))
+* `azurerm_kubernetes_cluster` - the `vm_size` property is now optional ([#29612](https://github.com/hashicorp/terraform-provider-azurerm/issues/29612))
+* `azurerm_kubernetes_cluster_node_pool` - the `vm_size` property is now optional ([#29612](https://github.com/hashicorp/terraform-provider-azurerm/issues/29612))
+* `azurerm_netapp_volume` - allow volumes made from snapshots to have a different pool than the original volume ([#29425](https://github.com/hashicorp/terraform-provider-azurerm/issues/29425))
+* `azurerm_netapp_volume` - add support for the `large_volume_enabled` property ([#29712](https://github.com/hashicorp/terraform-provider-azurerm/issues/29712))
+* `azurerm_postgresql_flexible_server` - add support for versionless key vault key IDs to the `customer_managed_key.key_vault_key_id` property ([#29741](https://github.com/hashicorp/terraform-provider-azurerm/issues/29741))
+* `azurerm_virtual_network` - add support for the `ip_address_pool` block ([#29021](https://github.com/hashicorp/terraform-provider-azurerm/issues/29021))
+* `azurerm_vpn_gateway` - export the `ip_configuration` block ([#29186](https://github.com/hashicorp/terraform-provider-azurerm/issues/29186))
+
+BUG FIXES:
+
+* Data Source: `azurerm_lb_backend_address_pool` - the `inbound_nat_rule_port_mapping.frontend_port` and `inbound_nat_rule_port_mapping.backend_port` are now set correctly ([#29791](https://github.com/hashicorp/terraform-provider-azurerm/issues/29791))
+* `keyvault` - fix locking around the keyvault cache ([#28330](https://github.com/hashicorp/terraform-provider-azurerm/issues/28330))
+
 ## 4.31.0 (May 29, 2025)
 
 FEATURES:
