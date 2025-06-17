@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -476,7 +476,7 @@ func TestAccEventHubNamespace_publicNetworkAccessUpdate(t *testing.T) {
 }
 
 func TestAccEventHubNamespace_minimumTLSUpdate(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("The `minimum_tls_version` has only one possible value `1.2`, we can not update it.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")

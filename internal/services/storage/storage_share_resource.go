@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -12,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileshares"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -39,7 +40,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 		Delete: resourceStorageShareDelete,
 
 		Importer: helpers.ImporterValidatingStorageResourceId(func(id, storageDomainSuffix string) error {
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if strings.HasPrefix(id, "/subscriptions") {
 					_, err := fileshares.ParseShareID(id)
 					return err
@@ -156,11 +157,10 @@ func resourceStorageShare() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		r.Schema["storage_account_name"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_account_id",
@@ -171,7 +171,6 @@ func resourceStorageShare() *pluginsdk.Resource {
 		r.Schema["storage_account_id"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ExactlyOneOf: []string{
 				"storage_account_name",
 				"storage_account_id",
@@ -182,6 +181,30 @@ func resourceStorageShare() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
 			Deprecated: "this property is deprecated and will be removed 5.0 and replaced by the `id` property.",
+		}
+
+		r.CustomizeDiff = func(ctx context.Context, diff *pluginsdk.ResourceDiff, i interface{}) error {
+			// Resource Manager ID in use, but change to `storage_account_id` should recreate
+			if strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_id") {
+				return diff.ForceNew("storage_account_id")
+			}
+
+			// using legacy Data Plane ID but attempting to change the storage_account_name should recreate
+			if diff.Id() != "" && !strings.HasPrefix(diff.Id(), "/subscriptions/") && diff.HasChange("storage_account_name") {
+				// converting from storage_account_id to the deprecated storage_account_name is not supported
+				oldAccountId, _ := diff.GetChange("storage_account_id")
+				oldName, newName := diff.GetChange("storage_account_name")
+
+				if oldAccountId.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+
+				if oldName.(string) != "" && newName.(string) != "" {
+					return diff.ForceNew("storage_account_name")
+				}
+			}
+
+			return nil
 		}
 	}
 
@@ -194,7 +217,7 @@ func resourceStorageShareCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		storageClient := meta.(*clients.Client).Storage
 		if accountName := d.Get("storage_account_name").(string); accountName != "" {
 			shareName := d.Get("name").(string)
@@ -323,7 +346,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") && d.Get("storage_account_id").(string) == "" {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
@@ -382,6 +405,19 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return nil
 	}
 
+	if !features.FivePointOh() {
+		// Deal with the ID changing if the user changes from `storage_account_name` to `storage_account_id`
+		if !strings.HasPrefix(d.Id(), "/subscriptions/") {
+			accountId, err := commonids.ParseStorageAccountID(d.Get("storage_account_id").(string))
+			if err != nil {
+				return err
+			}
+
+			id := fileshares.NewShareID(subscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, d.Get("name").(string))
+			d.SetId(id.ID())
+		}
+	}
+
 	id, err := fileshares.ParseShareID(d.Id())
 	if err != nil {
 		return err
@@ -415,8 +451,9 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.ID())
+		d.Set("storage_account_name", "")
 	}
 
 	// TODO - The following section for `url` will need to be updated to go-azure-sdk when the Giovanni Deprecation process has been completed
@@ -452,7 +489,7 @@ func resourceStorageShareUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {
 			return err
@@ -575,7 +612,7 @@ func resourceStorageShareDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	if !features.FivePointOhBeta() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
+	if !features.FivePointOh() && !strings.HasPrefix(d.Id(), "/subscriptions/") {
 		storageClient := meta.(*clients.Client).Storage
 		id, err := shares.ParseShareID(d.Id(), storageClient.StorageDomainSuffix)
 		if err != nil {

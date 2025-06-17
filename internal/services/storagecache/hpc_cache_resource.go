@@ -33,6 +33,8 @@ import (
 
 func resourceHPCCache() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_hpc_cache` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.",
+
 		Create: resourceHPCCacheCreateOrUpdate,
 		Update: resourceHPCCacheCreateOrUpdate,
 		Read:   resourceHPCCacheRead,
@@ -54,7 +56,7 @@ func resourceHPCCache() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -246,7 +248,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 	d.SetId(id.ID())
 
 	// wait for HPC Cache provision state to be succeeded. or further operations with it may fail.
-	cacheClient := meta.(*clients.Client).StorageCache.Caches
+	cacheClient := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	if _, err = resourceHPCCacheWaitForCreating(ctx, cacheClient, id, d); err != nil {
 		return fmt.Errorf("waiting for the HPC Cache provision state %s (Resource Group: %s) : %+v", name, resourceGroup, err)
 	}
@@ -255,7 +257,7 @@ func resourceHPCCacheCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -358,7 +360,7 @@ func resourceHPCCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceHPCCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

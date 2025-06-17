@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -68,12 +68,14 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.Logic/integrationServiceEnvironments",
 	"Microsoft.MachineLearningServices/workspaces",
 	"Microsoft.Netapp/volumes",
+	"Microsoft.Network/applicationGateways",
 	"Microsoft.Network/dnsResolvers",
 	"Microsoft.Network/managedResolvers",
 	"Microsoft.Network/fpgaNetworkInterfaces",
 	"Microsoft.Network/networkWatchers.",
 	"Microsoft.Network/virtualNetworkGateways",
 	"Microsoft.Orbital/orbitalGateways",
+	"Microsoft.PowerAutomate/hostedRpa",
 	"Microsoft.PowerPlatform/enterprisePolicies",
 	"Microsoft.PowerPlatform/vnetaccesslinks",
 	"Microsoft.ServiceFabricMesh/networks",

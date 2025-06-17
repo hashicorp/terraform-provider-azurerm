@@ -10,7 +10,7 @@ description: |-
 
 Manages a Application Volume Group for SAP HANA application.
 
->Note: This feature is intended to be used for SAP-HANA workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-introduction) document as the starting point to understand this feature before using it with Terraform.
+-> **Note:** This feature is intended to be used for SAP-HANA workloads only, with several requirements, please refer to [Understand Azure NetApp Files application volume group for SAP HANA](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-group-introduction) document as the starting point to understand this feature before using it with Terraform.
 
 ## Example Usage
 
@@ -42,14 +42,14 @@ resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-vnet"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "${var.prefix}-delegated-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -65,7 +65,7 @@ resource "azurerm_subnet" "example1" {
   name                 = "${var.prefix}-hosts-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.6.1.0/24"]
+  address_prefixes     = ["10.88.1.0/24"]
 }
 
 resource "azurerm_proximity_placement_group" "example" {
@@ -300,13 +300,13 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 
 This block supports the following:
 
-* `remote_volume_location` - (Required) Location of the primary volume.
+* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `remote_volume_resource_id` - (Required) Resource ID of the primary volume.
+* `remote_volume_resource_id` - (Required) Resource ID of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `replication_frequency` - (Required) eplication frequency. Possible values are `10minutes`, `daily` and `hourly`.
+* `replication_frequency` - (Required) eplication frequency. Possible values are `10minutes`, `daily` and `hourly`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `endpoint_type` - (Optional) The endpoint type. Possible values are `dst` and `src`. Defaults to `dst`.
+* `endpoint_type` - (Optional) The endpoint type. Possible values are `dst` and `src`. Defaults to `dst`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 ---
 
@@ -356,3 +356,9 @@ Application Volume Groups can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_netapp_volume_group_sap_hana.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mytest-rg/providers/Microsoft.NetApp/netAppAccounts/netapp-account-test/volumeGroups/netapp-volumegroup-test
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetApp`: 2025-01-01

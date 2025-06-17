@@ -40,7 +40,7 @@ func (client ThreatIntelligenceIndicatorClient) Get(ctx context.Context, resourc
 			},
 		},
 	}); err != nil {
-		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Get", err.Error()) // nolint: govet
+		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Get", "%+v", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, name)
@@ -122,7 +122,7 @@ func (client ThreatIntelligenceIndicatorClient) CreateIndicator(ctx context.Cont
 			},
 		},
 	}); err != nil {
-		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", err.Error()) // nolint: govet
+		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "CreateIndicator", "%+v", err.Error())
 	}
 
 	req, err := client.CreateIndicatorPreparer(ctx, resourceGroupName, workspaceName, threatIntelligenceProperties)
@@ -206,7 +206,7 @@ func (client ThreatIntelligenceIndicatorClient) QueryIndicators(ctx context.Cont
 			},
 		},
 	}); err != nil {
-		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", err.Error()) // nolint: govet
+		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "QueryIndicators", "%+v", err.Error())
 	}
 
 	result.fn = client.queryIndicatorsNextResults
@@ -328,7 +328,7 @@ func (client ThreatIntelligenceIndicatorClient) Create(ctx context.Context, reso
 			},
 		},
 	}); err != nil {
-		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Create", err.Error()) // nolint: govet
+		return result, validation.NewError("securityinsight.ThreatIntelligenceIndicatorClient", "Create", "%+v", err.Error())
 	}
 
 	req, err := client.CreatePreparer(ctx, resourceGroupName, workspaceName, name, threatIntelligenceProperties)

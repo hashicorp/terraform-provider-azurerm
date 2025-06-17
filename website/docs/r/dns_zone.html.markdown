@@ -76,9 +76,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS Zone.
 
-* `update` - (Defaults to 30 minutes) Used when updating the DNS Zone.
-
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS Zone.
+
+* `update` - (Defaults to 30 minutes) Used when updating the DNS Zone.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS Zone.
 
@@ -89,3 +89,9 @@ DNS Zones can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dns_zone.zone1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2018-05-01

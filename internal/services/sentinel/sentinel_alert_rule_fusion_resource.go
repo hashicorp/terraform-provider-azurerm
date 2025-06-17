@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -119,7 +119,7 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["name"] = &pluginsdk.Schema{
 			Deprecated:   "the `name` is deprecated and will be removed in v5.0 version of the provider.",
 			Type:         pluginsdk.TypeString,
@@ -138,7 +138,7 @@ func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta inter
 	defer cancel()
 
 	name := SentinelAlertRuleFusionName
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		name = d.Get("name").(string)
 	}
 
@@ -244,7 +244,7 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 
 	workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		d.Set("name", id.RuleId)
 	}
 	d.Set("log_analytics_workspace_id", workspaceId.ID())

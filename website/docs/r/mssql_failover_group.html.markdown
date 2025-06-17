@@ -125,8 +125,8 @@ A `partner_server` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Failover Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Failover Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Failover Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Failover Group.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Failover Group.
 
 ## Import
@@ -136,3 +136,9 @@ Failover Groups can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_failover_group.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/server1/failoverGroups/failoverGroup1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql`: 2023-08-01-preview

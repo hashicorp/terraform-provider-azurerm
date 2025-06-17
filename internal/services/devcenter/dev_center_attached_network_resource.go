@@ -10,9 +10,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/attachednetworkconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/devcenters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/networkconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/attachednetworkconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/devcenters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/networkconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -63,7 +63,7 @@ func (r DevCenterAttachedNetworkResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.AttachedNetworkConnections
+			client := metadata.Client.DevCenter.V20250201.AttachedNetworkConnections
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model DevCenterAttachedNetworkResourceModel
@@ -109,7 +109,7 @@ func (r DevCenterAttachedNetworkResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.AttachedNetworkConnections
+			client := metadata.Client.DevCenter.V20250201.AttachedNetworkConnections
 
 			id, err := attachednetworkconnections.ParseDevCenterAttachedNetworkID(metadata.ResourceData.Id())
 			if err != nil {
@@ -144,7 +144,7 @@ func (r DevCenterAttachedNetworkResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.DevCenter.V20230401.AttachedNetworkConnections
+			client := metadata.Client.DevCenter.V20250201.AttachedNetworkConnections
 
 			id, err := attachednetworkconnections.ParseDevCenterAttachedNetworkID(metadata.ResourceData.Id())
 			if err != nil {

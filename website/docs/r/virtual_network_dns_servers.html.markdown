@@ -10,7 +10,7 @@ description: |-
 
 Manages the DNS servers associated with a virtual network.
 
-~> **NOTE on Virtual Networks and DNS Servers:** Terraform currently provides both a standalone [virtual network DNS Servers resource](virtual_network_dns_servers.html), and allows for DNS servers to be defined in-line within the [Virtual Network resource](virtual_network.html).
+~> **Note:** Terraform currently provides both a standalone [virtual network DNS Servers resource](virtual_network_dns_servers.html), and allows for DNS servers to be defined in-line within the [Virtual Network resource](virtual_network.html).
 At this time you cannot use a Virtual Network with in-line DNS servers in conjunction with any Virtual Network DNS Servers resources. Doing so will cause a conflict of Virtual Network DNS Servers configurations and will overwrite virtual networks DNS servers.
 
 ## Example Usage
@@ -58,8 +58,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Network.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Network.
 
 ## Import
@@ -69,3 +69,9 @@ Virtual Network DNS Servers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_network_dns_servers.exampleNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/dnsServers/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01
