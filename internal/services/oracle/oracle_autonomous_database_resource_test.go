@@ -158,6 +158,12 @@ resource "azurerm_oracle_autonomous_database" "test" {
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
   customer_contacts                = ["test@test.com"]
+  long_term_backup_schedule {
+    repeat_cadence           = "Monthly"
+    time_of_backup           = "2025-07-03T09:00:00Z"
+    retention_period_in_days = 200
+    enabled              = true
+  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -180,7 +186,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   compute_model                    = "ECPU"
   compute_count                    = 2
   license_model                    = "BringYourOwnLicense"
-  backup_retention_period_in_days  = 12
+  backup_retention_period_in_days  = 30
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
@@ -194,9 +200,9 @@ resource "azurerm_oracle_autonomous_database" "test" {
   virtual_network_id               = azurerm_virtual_network.test.id
   long_term_backup_schedule {
     repeat_cadence           = "Monthly"
-    time_of_backup           = "2025-04-03T09:00:00Z"
+    time_of_backup           = "2025-07-03T09:00:00Z"
     retention_period_in_days = 323
-    enabled              = false
+    enabled              = true
   }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)

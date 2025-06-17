@@ -523,16 +523,3 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 		},
 	}
 }
-
-func FlattenLongTermBackUpScheduleDetails(longTermBackUpScheduleDetails *autonomousdatabases.LongTermBackUpScheduleDetails) []LongTermBackUpScheduleDetails {
-	output := make([]LongTermBackUpScheduleDetails, 0)
-	if longTermBackUpScheduleDetails != nil {
-		return append(output, LongTermBackUpScheduleDetails{
-			RepeatCadence:         string(pointer.From(longTermBackUpScheduleDetails.RepeatCadence)),
-			TimeOfBackup:          pointer.From(longTermBackUpScheduleDetails.TimeOfBackup),
-			RetentionPeriodInDays: pointer.From(longTermBackUpScheduleDetails.RetentionPeriodInDays),
-			Enabled:               pointer.From(longTermBackUpScheduleDetails.IsDisabled),
-		})
-	}
-	return output
-}

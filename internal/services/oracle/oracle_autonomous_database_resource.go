@@ -163,14 +163,9 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"repeat_cadence": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(autonomousdatabases.RepeatCadenceTypeMonthly),
-							string(autonomousdatabases.RepeatCadenceTypeOneTime),
-							string(autonomousdatabases.RepeatCadenceTypeWeekly),
-							string(autonomousdatabases.RepeatCadenceTypeYearly),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForRepeatCadenceType(), false),
 					},
 					"time_of_backup": {
 						Type:         pluginsdk.TypeString,
@@ -293,6 +288,17 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			if len(model.LongTermBackUpSchedule) > 0 {
+				backupUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						LongTermBackupSchedule: expandLongTermBackupSchedule(model.LongTermBackUpSchedule),
+					},
+				}
+				if err := client.UpdateThenPoll(ctx, id, backupUpdate); err != nil {
+					return fmt.Errorf("configuring backup schedule for %s: %+v", id, err)
+				}
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -319,36 +325,51 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			update := &autonomousdatabases.AutonomousDatabaseUpdate{
-				Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{},
-			}
-			if metadata.ResourceData.HasChange("tags") {
-				update.Tags = pointer.To(model.Tags)
-			}
-			if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
-				update.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
-			}
-			if metadata.ResourceData.HasChange("compute_count") {
-				update.Properties.ComputeCount = pointer.To(model.ComputeCount)
-			}
-			if metadata.ResourceData.HasChange("auto_scaling_enabled") {
-				update.Properties.IsAutoScalingEnabled = pointer.To(model.AutoScalingEnabled)
-			}
-			if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
-				update.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
-			}
-			if metadata.ResourceData.HasChange("long_term_backup_schedule") {
-				update.Properties.LongTermBackupSchedule = &autonomousdatabases.LongTermBackUpScheduleDetails{
-					RepeatCadence:         pointer.To(autonomousdatabases.RepeatCadenceType(model.LongTermBackUpSchedule[0].RepeatCadence)),
-					TimeOfBackup:          pointer.To(model.LongTermBackUpSchedule[0].TimeOfBackup),
-					RetentionPeriodInDays: pointer.To(model.LongTermBackUpSchedule[0].RetentionPeriodInDays),
-					IsDisabled:            pointer.To(model.LongTermBackUpSchedule[0].Enabled),
+			// Check what needs to be updated
+			needsGeneralUpdate := r.hasGeneralUpdates(metadata)
+			needsBackupScheduleUpdate := metadata.ResourceData.HasChange("long_term_backup_schedule")
+
+			// Step 1: Handle general updates (everything except backup schedule)
+			if needsGeneralUpdate {
+				generalUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{},
+				}
+
+				if metadata.ResourceData.HasChange("tags") {
+					generalUpdate.Tags = pointer.To(model.Tags)
+				}
+				if metadata.ResourceData.HasChange("backup_retention_period_in_days") {
+					generalUpdate.Properties.BackupRetentionPeriodInDays = pointer.To(model.BackupRetentionPeriodInDays)
+				}
+				if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
+					generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
+				}
+				if metadata.ResourceData.HasChange("compute_count") {
+					generalUpdate.Properties.ComputeCount = pointer.To(model.ComputeCount)
+				}
+				if metadata.ResourceData.HasChange("auto_scaling_enabled") {
+					generalUpdate.Properties.IsAutoScalingEnabled = pointer.To(model.AutoScalingEnabled)
+				}
+				if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
+					generalUpdate.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
+					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
 				}
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, *update)
-			if err != nil {
-				return fmt.Errorf("updating %s: %v", id, err)
+			// Step 2: Handle backup schedule update separately
+			if needsBackupScheduleUpdate {
+				backupUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						LongTermBackupSchedule: expandLongTermBackupSchedule(model.LongTermBackUpSchedule),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, backupUpdate); err != nil {
+					return fmt.Errorf("updating backup schedule for %s: %+v", *id, err)
+				}
 			}
 
 			return nil
@@ -452,4 +473,24 @@ func flattenAdbsCustomerContacts(customerContactsList *[]autonomousdatabases.Cus
 		}
 	}
 	return customerContacts
+}
+func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autonomousdatabases.LongTermBackUpScheduleDetails {
+	if len(input) == 0 {
+		return nil
+	}
+	schedule := input[0]
+	return &autonomousdatabases.LongTermBackUpScheduleDetails{
+		RepeatCadence:         pointer.To(autonomousdatabases.RepeatCadenceType(schedule.RepeatCadence)),
+		TimeOfBackup:          pointer.To(schedule.TimeOfBackup),
+		RetentionPeriodInDays: pointer.To(schedule.RetentionPeriodInDays),
+		IsDisabled:            pointer.To(!schedule.Enabled),
+	}
+}
+func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
+	return metadata.ResourceData.HasChange("tags") ||
+		metadata.ResourceData.HasChange("backup_retention_period_in_days") ||
+		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
+		metadata.ResourceData.HasChange("compute_count") ||
+		metadata.ResourceData.HasChange("auto_scaling_enabled") ||
+		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled")
 }
