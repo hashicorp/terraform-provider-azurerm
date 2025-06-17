@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterAutomationResource struct{}
@@ -225,7 +225,7 @@ func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (SecurityCenterAutomationResource) logicApp(data acceptance.TestData) string {
@@ -258,7 +258,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -305,7 +305,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "loganalytics"
+    type        = "LogAnalytics"
     resource_id = azurerm_log_analytics_workspace.test.id
   }
 
@@ -368,7 +368,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type              = "eventhub"
+    type              = "EventHub"
     resource_id       = azurerm_eventhub.test.id
     connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
   }
@@ -394,7 +394,7 @@ resource "azurerm_security_center_automation" "import" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -436,7 +436,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -493,7 +493,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -543,7 +543,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -605,7 +605,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -681,13 +681,13 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test2.id
     trigger_url = "https://example.net/this_is_also_never_validated_by_azure"
   }
@@ -729,7 +729,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
