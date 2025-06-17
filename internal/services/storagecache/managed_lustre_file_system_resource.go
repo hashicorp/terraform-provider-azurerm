@@ -32,6 +32,7 @@ type ManagedLustreFileSystemModel struct {
 	MaintenanceWindow   []MaintenanceWindow          `tfschema:"maintenance_window"`
 	MgsAddress          string                       `tfschema:"mgs_address"`
 	SkuName             string                       `tfschema:"sku_name"`
+	RootSquashSettings  []RootSquashSetting          `tfschema:"root_squash_setting"`
 	StorageCapacityInTb int64                        `tfschema:"storage_capacity_in_tb"`
 	SubnetId            string                       `tfschema:"subnet_id"`
 	Zones               []string                     `tfschema:"zones"`
@@ -47,6 +48,13 @@ type HsmSetting struct {
 type EncryptionKey struct {
 	KeyURL        string `tfschema:"key_url"`
 	SourceVaultId string `tfschema:"source_vault_id"`
+}
+
+type RootSquashSetting struct {
+	Mode            string `tfschema:"mode"`
+	NoSquashNidList string `tfschema:"no_squash_nid_list"`
+	SquashGID       int64  `tfschema:"squash_gid"`
+	SquashUID       int64  `tfschema:"squash_uid"`
 }
 
 type MaintenanceWindow struct {
@@ -148,6 +156,35 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validate.TimeOfDayInUTC,
+					},
+				},
+			},
+		},
+
+		"root_squash_setting": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"mode": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(amlfilesystems.PossibleValuesForAmlFilesystemSquashMode(), false),
+					},
+					"no_squash_nid_list": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+					},
+					"squash_gid": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  0,
+					},
+					"squash_uid": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Default:  0,
 					},
 				},
 			},
@@ -308,6 +345,7 @@ func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 					MaintenanceWindow:  expandManagedLustreFileSystemMaintenanceWindowForCreate(model.MaintenanceWindow),
 					FilesystemSubnet:   model.SubnetId,
 					StorageCapacityTiB: float64(model.StorageCapacityInTb),
+					RootSquashSettings: expandRootSquashSettings(model.RootSquashSettings),
 				},
 				Sku: &amlfilesystems.SkuName{
 					Name: pointer.To(model.SkuName),
@@ -352,6 +390,10 @@ func (r ManagedLustreFileSystemResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("encryption_key") {
 				properties.Properties.EncryptionSettings = expandManagedLustreFileSystemEncryptionKey(model.EncryptionKey)
+			}
+
+			if metadata.ResourceData.HasChange("root_squash_setting") {
+				properties.Properties.RootSquashSettings = expandRootSquashSettings(model.RootSquashSettings)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -410,6 +452,7 @@ func (r ManagedLustreFileSystemResource) Read() sdk.ResourceFunc {
 					state.HsmSetting = flattenManagedLustreFileSystemHsmSetting(properties.Hsm)
 					state.Zones = pointer.From(model.Zones)
 					state.EncryptionKey = flattenManagedLustreFileSystemEncryptionKey(properties.EncryptionSettings)
+					state.RootSquashSettings = flattenRootSquashSettings(properties.RootSquashSettings)
 
 					if v := model.Sku; v != nil {
 						state.SkuName = pointer.From(v.Name)
@@ -492,6 +535,42 @@ func expandManagedLustreFileSystemEncryptionKey(input []EncryptionKey) *amlfiles
 	return &amlfilesystems.AmlFilesystemEncryptionSettings{
 		KeyEncryptionKey: result,
 	}
+}
+
+func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFilesystemRootSquashSettings {
+	if len(input) == 0 {
+		return nil
+	}
+
+	rootSquashSetting := &input[0]
+
+	result := &amlfilesystems.AmlFilesystemRootSquashSettings{
+		Mode:             pointer.To(amlfilesystems.AmlFilesystemSquashMode(rootSquashSetting.Mode)),
+		NoSquashNidLists: pointer.To(rootSquashSetting.NoSquashNidList),
+		SquashGID:        pointer.To(int64(rootSquashSetting.SquashGID)),
+		SquashUID:        pointer.To(int64(rootSquashSetting.SquashUID)),
+	}
+
+	return result
+}
+
+func flattenRootSquashSettings(input *amlfilesystems.AmlFilesystemRootSquashSettings) []RootSquashSetting {
+	result := make([]RootSquashSetting, 0)
+	if input == nil {
+		return result
+	}
+
+	rootSquashSetting := RootSquashSetting{}
+
+	if v := input.Mode; v != nil {
+		rootSquashSetting.Mode = string(pointer.From(v))
+	}
+
+	rootSquashSetting.NoSquashNidList = pointer.From(input.NoSquashNidLists)
+	rootSquashSetting.SquashGID = pointer.From(input.SquashGID)
+	rootSquashSetting.SquashUID = pointer.From(input.SquashUID)
+
+	return append(result, rootSquashSetting)
 }
 
 func flattenManagedLustreFileSystemEncryptionKey(input *amlfilesystems.AmlFilesystemEncryptionSettings) []EncryptionKey {
