@@ -3051,7 +3051,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   web_app_routing {
-    dns_zone_ids = []
+    dns_zone_ids             = []
     default_nginx_controller = "%s"
   }
 }
