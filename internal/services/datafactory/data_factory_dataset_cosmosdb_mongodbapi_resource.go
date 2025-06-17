@@ -264,7 +264,7 @@ func (DataFactoryDatasetCosmosDbMongoDbApiResource) Read() sdk.ResourceFunc {
 				state.Annotations = flattenDataFactoryAnnotations(dataset.Annotations)
 			}
 
-			state.CollectionName = dataset.TypeProperties.Collection
+			state.CollectionName = dataset.TypeProperties.Collection.(string)
 
 			state.DataFactoryId = datasets.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID()
 
