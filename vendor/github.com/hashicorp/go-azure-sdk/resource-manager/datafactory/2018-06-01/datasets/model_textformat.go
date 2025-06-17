@@ -11,21 +11,21 @@ import (
 var _ DatasetStorageFormat = TextFormat{}
 
 type TextFormat struct {
-	ColumnDelimiter  *string `json:"columnDelimiter,omitempty"`
-	EncodingName     *string `json:"encodingName,omitempty"`
-	EscapeChar       *string `json:"escapeChar,omitempty"`
-	FirstRowAsHeader *bool   `json:"firstRowAsHeader,omitempty"`
-	NullValue        *string `json:"nullValue,omitempty"`
-	QuoteChar        *string `json:"quoteChar,omitempty"`
-	RowDelimiter     *string `json:"rowDelimiter,omitempty"`
-	SkipLineCount    *int64  `json:"skipLineCount,omitempty"`
-	TreatEmptyAsNull *bool   `json:"treatEmptyAsNull,omitempty"`
+	ColumnDelimiter  *interface{} `json:"columnDelimiter,omitempty"`
+	EncodingName     *interface{} `json:"encodingName,omitempty"`
+	EscapeChar       *interface{} `json:"escapeChar,omitempty"`
+	FirstRowAsHeader *bool        `json:"firstRowAsHeader,omitempty"`
+	NullValue        *interface{} `json:"nullValue,omitempty"`
+	QuoteChar        *interface{} `json:"quoteChar,omitempty"`
+	RowDelimiter     *interface{} `json:"rowDelimiter,omitempty"`
+	SkipLineCount    *int64       `json:"skipLineCount,omitempty"`
+	TreatEmptyAsNull *bool        `json:"treatEmptyAsNull,omitempty"`
 
 	// Fields inherited from DatasetStorageFormat
 
-	Deserializer *string `json:"deserializer,omitempty"`
-	Serializer   *string `json:"serializer,omitempty"`
-	Type         string  `json:"type"`
+	Deserializer *interface{} `json:"deserializer,omitempty"`
+	Serializer   *interface{} `json:"serializer,omitempty"`
+	Type         string       `json:"type"`
 }
 
 func (s TextFormat) DatasetStorageFormat() BaseDatasetStorageFormatImpl {

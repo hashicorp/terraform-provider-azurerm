@@ -4,5 +4,5 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type InformixTableDatasetTypeProperties struct {
-	TableName *string `json:"tableName,omitempty"`
+	TableName *interface{} `json:"tableName,omitempty"`
 }

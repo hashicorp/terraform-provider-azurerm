@@ -460,7 +460,7 @@ func UnmarshalDatasetImplementation(input []byte) (Dataset, error) {
 		return out, nil
 	}
 
-	if strings.EqualFold(value, "LakeHouseTable") {
+	if strings.EqualFold(value, "LakehouseTable") {
 		var out LakeHouseTableDataset
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into LakeHouseTableDataset: %+v", err)

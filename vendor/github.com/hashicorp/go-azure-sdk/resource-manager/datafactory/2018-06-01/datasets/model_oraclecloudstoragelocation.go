@@ -11,14 +11,14 @@ import (
 var _ DatasetLocation = OracleCloudStorageLocation{}
 
 type OracleCloudStorageLocation struct {
-	BucketName *string `json:"bucketName,omitempty"`
-	Version    *string `json:"version,omitempty"`
+	BucketName *interface{} `json:"bucketName,omitempty"`
+	Version    *interface{} `json:"version,omitempty"`
 
 	// Fields inherited from DatasetLocation
 
-	FileName   *string `json:"fileName,omitempty"`
-	FolderPath *string `json:"folderPath,omitempty"`
-	Type       string  `json:"type"`
+	FileName   *interface{} `json:"fileName,omitempty"`
+	FolderPath *interface{} `json:"folderPath,omitempty"`
+	Type       string       `json:"type"`
 }
 
 func (s OracleCloudStorageLocation) DatasetLocation() BaseDatasetLocationImpl {

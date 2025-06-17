@@ -4,5 +4,5 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type MongoDbCollectionDatasetTypeProperties struct {
-	CollectionName string `json:"collectionName"`
+	CollectionName interface{} `json:"collectionName"`
 }

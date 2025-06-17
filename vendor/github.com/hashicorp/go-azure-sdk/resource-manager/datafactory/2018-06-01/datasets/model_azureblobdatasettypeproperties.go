@@ -10,12 +10,12 @@ import (
 
 type AzureBlobDatasetTypeProperties struct {
 	Compression           *DatasetCompression  `json:"compression,omitempty"`
-	FileName              *string              `json:"fileName,omitempty"`
-	FolderPath            *string              `json:"folderPath,omitempty"`
+	FileName              *interface{}         `json:"fileName,omitempty"`
+	FolderPath            *interface{}         `json:"folderPath,omitempty"`
 	Format                DatasetStorageFormat `json:"format"`
-	ModifiedDatetimeEnd   *string              `json:"modifiedDatetimeEnd,omitempty"`
-	ModifiedDatetimeStart *string              `json:"modifiedDatetimeStart,omitempty"`
-	TableRootLocation     *string              `json:"tableRootLocation,omitempty"`
+	ModifiedDatetimeEnd   *interface{}         `json:"modifiedDatetimeEnd,omitempty"`
+	ModifiedDatetimeStart *interface{}         `json:"modifiedDatetimeStart,omitempty"`
+	TableRootLocation     *interface{}         `json:"tableRootLocation,omitempty"`
 }
 
 var _ json.Unmarshaler = &AzureBlobDatasetTypeProperties{}
@@ -23,11 +23,11 @@ var _ json.Unmarshaler = &AzureBlobDatasetTypeProperties{}
 func (s *AzureBlobDatasetTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		Compression           *DatasetCompression `json:"compression,omitempty"`
-		FileName              *string             `json:"fileName,omitempty"`
-		FolderPath            *string             `json:"folderPath,omitempty"`
-		ModifiedDatetimeEnd   *string             `json:"modifiedDatetimeEnd,omitempty"`
-		ModifiedDatetimeStart *string             `json:"modifiedDatetimeStart,omitempty"`
-		TableRootLocation     *string             `json:"tableRootLocation,omitempty"`
+		FileName              *interface{}        `json:"fileName,omitempty"`
+		FolderPath            *interface{}        `json:"folderPath,omitempty"`
+		ModifiedDatetimeEnd   *interface{}        `json:"modifiedDatetimeEnd,omitempty"`
+		ModifiedDatetimeStart *interface{}        `json:"modifiedDatetimeStart,omitempty"`
+		TableRootLocation     *interface{}        `json:"tableRootLocation,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

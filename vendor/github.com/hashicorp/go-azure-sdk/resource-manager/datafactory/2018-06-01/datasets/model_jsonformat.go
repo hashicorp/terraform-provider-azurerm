@@ -11,17 +11,17 @@ import (
 var _ DatasetStorageFormat = JsonFormat{}
 
 type JsonFormat struct {
-	EncodingName       *string      `json:"encodingName,omitempty"`
+	EncodingName       *interface{} `json:"encodingName,omitempty"`
 	FilePattern        *interface{} `json:"filePattern,omitempty"`
-	JsonNodeReference  *string      `json:"jsonNodeReference,omitempty"`
+	JsonNodeReference  *interface{} `json:"jsonNodeReference,omitempty"`
 	JsonPathDefinition *interface{} `json:"jsonPathDefinition,omitempty"`
-	NestingSeparator   *string      `json:"nestingSeparator,omitempty"`
+	NestingSeparator   *interface{} `json:"nestingSeparator,omitempty"`
 
 	// Fields inherited from DatasetStorageFormat
 
-	Deserializer *string `json:"deserializer,omitempty"`
-	Serializer   *string `json:"serializer,omitempty"`
-	Type         string  `json:"type"`
+	Deserializer *interface{} `json:"deserializer,omitempty"`
+	Serializer   *interface{} `json:"serializer,omitempty"`
+	Type         string       `json:"type"`
 }
 
 func (s JsonFormat) DatasetStorageFormat() BaseDatasetStorageFormatImpl {

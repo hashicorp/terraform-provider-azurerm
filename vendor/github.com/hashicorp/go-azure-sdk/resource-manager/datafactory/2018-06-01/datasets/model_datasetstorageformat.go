@@ -16,9 +16,9 @@ type DatasetStorageFormat interface {
 var _ DatasetStorageFormat = BaseDatasetStorageFormatImpl{}
 
 type BaseDatasetStorageFormatImpl struct {
-	Deserializer *string `json:"deserializer,omitempty"`
-	Serializer   *string `json:"serializer,omitempty"`
-	Type         string  `json:"type"`
+	Deserializer *interface{} `json:"deserializer,omitempty"`
+	Serializer   *interface{} `json:"serializer,omitempty"`
+	Type         string       `json:"type"`
 }
 
 func (s BaseDatasetStorageFormatImpl) DatasetStorageFormat() BaseDatasetStorageFormatImpl {

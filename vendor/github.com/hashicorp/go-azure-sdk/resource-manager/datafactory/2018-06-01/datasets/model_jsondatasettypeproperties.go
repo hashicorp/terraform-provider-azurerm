@@ -10,7 +10,7 @@ import (
 
 type JsonDatasetTypeProperties struct {
 	Compression  *DatasetCompression `json:"compression,omitempty"`
-	EncodingName *string             `json:"encodingName,omitempty"`
+	EncodingName *interface{}        `json:"encodingName,omitempty"`
 	Location     DatasetLocation     `json:"location"`
 }
 
@@ -19,7 +19,7 @@ var _ json.Unmarshaler = &JsonDatasetTypeProperties{}
 func (s *JsonDatasetTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		Compression  *DatasetCompression `json:"compression,omitempty"`
-		EncodingName *string             `json:"encodingName,omitempty"`
+		EncodingName *interface{}        `json:"encodingName,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

@@ -14,9 +14,9 @@ type ParquetFormat struct {
 
 	// Fields inherited from DatasetStorageFormat
 
-	Deserializer *string `json:"deserializer,omitempty"`
-	Serializer   *string `json:"serializer,omitempty"`
-	Type         string  `json:"type"`
+	Deserializer *interface{} `json:"deserializer,omitempty"`
+	Serializer   *interface{} `json:"serializer,omitempty"`
+	Type         string       `json:"type"`
 }
 
 func (s ParquetFormat) DatasetStorageFormat() BaseDatasetStorageFormatImpl {

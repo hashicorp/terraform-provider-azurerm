@@ -4,6 +4,6 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SapOdpResourceDatasetTypeProperties struct {
-	Context    string `json:"context"`
-	ObjectName string `json:"objectName"`
+	Context    interface{} `json:"context"`
+	ObjectName interface{} `json:"objectName"`
 }

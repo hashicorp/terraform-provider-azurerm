@@ -4,5 +4,5 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SalesforceServiceCloudObjectDatasetTypeProperties struct {
-	ObjectApiName *string `json:"objectApiName,omitempty"`
+	ObjectApiName *interface{} `json:"objectApiName,omitempty"`
 }

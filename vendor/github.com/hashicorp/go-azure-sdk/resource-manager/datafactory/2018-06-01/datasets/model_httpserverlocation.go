@@ -11,13 +11,13 @@ import (
 var _ DatasetLocation = HTTPServerLocation{}
 
 type HTTPServerLocation struct {
-	RelativeURL *string `json:"relativeUrl,omitempty"`
+	RelativeURL *interface{} `json:"relativeUrl,omitempty"`
 
 	// Fields inherited from DatasetLocation
 
-	FileName   *string `json:"fileName,omitempty"`
-	FolderPath *string `json:"folderPath,omitempty"`
-	Type       string  `json:"type"`
+	FileName   *interface{} `json:"fileName,omitempty"`
+	FolderPath *interface{} `json:"folderPath,omitempty"`
+	Type       string       `json:"type"`
 }
 
 func (s HTTPServerLocation) DatasetLocation() BaseDatasetLocationImpl {

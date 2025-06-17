@@ -4,6 +4,6 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type TeradataTableDatasetTypeProperties struct {
-	Database *string `json:"database,omitempty"`
-	Table    *string `json:"table,omitempty"`
+	Database *interface{} `json:"database,omitempty"`
+	Table    *interface{} `json:"table,omitempty"`
 }

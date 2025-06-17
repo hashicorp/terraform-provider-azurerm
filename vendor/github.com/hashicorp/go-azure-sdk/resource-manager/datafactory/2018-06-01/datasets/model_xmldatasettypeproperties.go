@@ -10,9 +10,9 @@ import (
 
 type XmlDatasetTypeProperties struct {
 	Compression  *DatasetCompression `json:"compression,omitempty"`
-	EncodingName *string             `json:"encodingName,omitempty"`
+	EncodingName *interface{}        `json:"encodingName,omitempty"`
 	Location     DatasetLocation     `json:"location"`
-	NullValue    *string             `json:"nullValue,omitempty"`
+	NullValue    *interface{}        `json:"nullValue,omitempty"`
 }
 
 var _ json.Unmarshaler = &XmlDatasetTypeProperties{}
@@ -20,8 +20,8 @@ var _ json.Unmarshaler = &XmlDatasetTypeProperties{}
 func (s *XmlDatasetTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		Compression  *DatasetCompression `json:"compression,omitempty"`
-		EncodingName *string             `json:"encodingName,omitempty"`
-		NullValue    *string             `json:"nullValue,omitempty"`
+		EncodingName *interface{}        `json:"encodingName,omitempty"`
+		NullValue    *interface{}        `json:"nullValue,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

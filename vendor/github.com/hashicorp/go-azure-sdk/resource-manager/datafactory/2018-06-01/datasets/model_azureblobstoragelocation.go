@@ -11,13 +11,13 @@ import (
 var _ DatasetLocation = AzureBlobStorageLocation{}
 
 type AzureBlobStorageLocation struct {
-	Container *string `json:"container,omitempty"`
+	Container *interface{} `json:"container,omitempty"`
 
 	// Fields inherited from DatasetLocation
 
-	FileName   *string `json:"fileName,omitempty"`
-	FolderPath *string `json:"folderPath,omitempty"`
-	Type       string  `json:"type"`
+	FileName   *interface{} `json:"fileName,omitempty"`
+	FolderPath *interface{} `json:"folderPath,omitempty"`
+	Type       string       `json:"type"`
 }
 
 func (s AzureBlobStorageLocation) DatasetLocation() BaseDatasetLocationImpl {

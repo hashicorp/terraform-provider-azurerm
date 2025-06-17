@@ -9,27 +9,27 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AmazonS3DatasetTypeProperties struct {
-	BucketName            string               `json:"bucketName"`
+	BucketName            interface{}          `json:"bucketName"`
 	Compression           *DatasetCompression  `json:"compression,omitempty"`
 	Format                DatasetStorageFormat `json:"format"`
-	Key                   *string              `json:"key,omitempty"`
-	ModifiedDatetimeEnd   *string              `json:"modifiedDatetimeEnd,omitempty"`
-	ModifiedDatetimeStart *string              `json:"modifiedDatetimeStart,omitempty"`
-	Prefix                *string              `json:"prefix,omitempty"`
-	Version               *string              `json:"version,omitempty"`
+	Key                   *interface{}         `json:"key,omitempty"`
+	ModifiedDatetimeEnd   *interface{}         `json:"modifiedDatetimeEnd,omitempty"`
+	ModifiedDatetimeStart *interface{}         `json:"modifiedDatetimeStart,omitempty"`
+	Prefix                *interface{}         `json:"prefix,omitempty"`
+	Version               *interface{}         `json:"version,omitempty"`
 }
 
 var _ json.Unmarshaler = &AmazonS3DatasetTypeProperties{}
 
 func (s *AmazonS3DatasetTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		BucketName            string              `json:"bucketName"`
+		BucketName            interface{}         `json:"bucketName"`
 		Compression           *DatasetCompression `json:"compression,omitempty"`
-		Key                   *string             `json:"key,omitempty"`
-		ModifiedDatetimeEnd   *string             `json:"modifiedDatetimeEnd,omitempty"`
-		ModifiedDatetimeStart *string             `json:"modifiedDatetimeStart,omitempty"`
-		Prefix                *string             `json:"prefix,omitempty"`
-		Version               *string             `json:"version,omitempty"`
+		Key                   *interface{}        `json:"key,omitempty"`
+		ModifiedDatetimeEnd   *interface{}        `json:"modifiedDatetimeEnd,omitempty"`
+		ModifiedDatetimeStart *interface{}        `json:"modifiedDatetimeStart,omitempty"`
+		Prefix                *interface{}        `json:"prefix,omitempty"`
+		Version               *interface{}        `json:"version,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

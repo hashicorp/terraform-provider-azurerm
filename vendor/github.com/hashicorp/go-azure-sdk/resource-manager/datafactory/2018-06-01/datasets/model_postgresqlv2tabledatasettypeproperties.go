@@ -4,6 +4,6 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PostgreSqlV2TableDatasetTypeProperties struct {
-	Schema *string `json:"schema,omitempty"`
-	Table  *string `json:"table,omitempty"`
+	Schema *interface{} `json:"schema,omitempty"`
+	Table  *interface{} `json:"table,omitempty"`
 }

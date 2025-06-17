@@ -53,7 +53,7 @@ func (s LakeHouseTableDataset) MarshalJSON() ([]byte, error) {
 		return nil, fmt.Errorf("unmarshaling LakeHouseTableDataset: %+v", err)
 	}
 
-	decoded["type"] = "LakeHouseTable"
+	decoded["type"] = "LakehouseTable"
 
 	encoded, err = json.Marshal(decoded)
 	if err != nil {

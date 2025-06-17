@@ -16,9 +16,9 @@ type DatasetLocation interface {
 var _ DatasetLocation = BaseDatasetLocationImpl{}
 
 type BaseDatasetLocationImpl struct {
-	FileName   *string `json:"fileName,omitempty"`
-	FolderPath *string `json:"folderPath,omitempty"`
-	Type       string  `json:"type"`
+	FileName   *interface{} `json:"fileName,omitempty"`
+	FolderPath *interface{} `json:"folderPath,omitempty"`
+	Type       string       `json:"type"`
 }
 
 func (s BaseDatasetLocationImpl) DatasetLocation() BaseDatasetLocationImpl {

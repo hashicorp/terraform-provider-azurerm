@@ -4,7 +4,7 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AmazonRedshiftTableDatasetTypeProperties struct {
-	Schema    *string `json:"schema,omitempty"`
-	Table     *string `json:"table,omitempty"`
-	TableName *string `json:"tableName,omitempty"`
+	Schema    *interface{} `json:"schema,omitempty"`
+	Table     *interface{} `json:"table,omitempty"`
+	TableName *interface{} `json:"tableName,omitempty"`
 }

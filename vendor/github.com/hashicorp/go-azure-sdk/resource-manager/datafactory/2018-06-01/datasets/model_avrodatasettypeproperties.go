@@ -9,7 +9,7 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AvroDatasetTypeProperties struct {
-	AvroCompressionCodec *string         `json:"avroCompressionCodec,omitempty"`
+	AvroCompressionCodec *interface{}    `json:"avroCompressionCodec,omitempty"`
 	AvroCompressionLevel *int64          `json:"avroCompressionLevel,omitempty"`
 	Location             DatasetLocation `json:"location"`
 }
@@ -18,8 +18,8 @@ var _ json.Unmarshaler = &AvroDatasetTypeProperties{}
 
 func (s *AvroDatasetTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AvroCompressionCodec *string `json:"avroCompressionCodec,omitempty"`
-		AvroCompressionLevel *int64  `json:"avroCompressionLevel,omitempty"`
+		AvroCompressionCodec *interface{} `json:"avroCompressionCodec,omitempty"`
+		AvroCompressionLevel *int64       `json:"avroCompressionLevel,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

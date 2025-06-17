@@ -4,5 +4,5 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ODataResourceDatasetTypeProperties struct {
-	Path *string `json:"path,omitempty"`
+	Path *interface{} `json:"path,omitempty"`
 }

@@ -10,14 +10,14 @@ import (
 
 type OrcDatasetTypeProperties struct {
 	Location            DatasetLocation `json:"location"`
-	OrcCompressionCodec *string         `json:"orcCompressionCodec,omitempty"`
+	OrcCompressionCodec *interface{}    `json:"orcCompressionCodec,omitempty"`
 }
 
 var _ json.Unmarshaler = &OrcDatasetTypeProperties{}
 
 func (s *OrcDatasetTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		OrcCompressionCodec *string `json:"orcCompressionCodec,omitempty"`
+		OrcCompressionCodec *interface{} `json:"orcCompressionCodec,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

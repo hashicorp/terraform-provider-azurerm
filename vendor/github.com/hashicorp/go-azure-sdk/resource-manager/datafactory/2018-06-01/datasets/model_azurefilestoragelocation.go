@@ -14,9 +14,9 @@ type AzureFileStorageLocation struct {
 
 	// Fields inherited from DatasetLocation
 
-	FileName   *string `json:"fileName,omitempty"`
-	FolderPath *string `json:"folderPath,omitempty"`
-	Type       string  `json:"type"`
+	FileName   *interface{} `json:"fileName,omitempty"`
+	FolderPath *interface{} `json:"folderPath,omitempty"`
+	Type       string       `json:"type"`
 }
 
 func (s AzureFileStorageLocation) DatasetLocation() BaseDatasetLocationImpl {

@@ -11,7 +11,7 @@ import (
 var _ Dataset = ServiceNowV2ObjectDataset{}
 
 type ServiceNowV2ObjectDataset struct {
-	TypeProperties *GenericDatasetTypeProperties `json:"typeProperties,omitempty"`
+	TypeProperties *ServiceNowV2DatasetTypeProperties `json:"typeProperties,omitempty"`
 
 	// Fields inherited from Dataset
 

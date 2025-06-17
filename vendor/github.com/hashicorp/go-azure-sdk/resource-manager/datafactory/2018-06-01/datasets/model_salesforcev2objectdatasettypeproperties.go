@@ -4,6 +4,6 @@ package datasets
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SalesforceV2ObjectDatasetTypeProperties struct {
-	ObjectApiName *string `json:"objectApiName,omitempty"`
-	ReportId      *string `json:"reportId,omitempty"`
+	ObjectApiName *interface{} `json:"objectApiName,omitempty"`
+	ReportId      *interface{} `json:"reportId,omitempty"`
 }
