@@ -200,7 +200,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		r.Schema["action"].Elem.(pluginsdk.Resource).Schema["type"] = &pluginsdk.Schema{
+		r.Schema["action"].Elem.(*pluginsdk.Resource).Schema["type"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,

@@ -305,7 +305,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "LogAnalytics"
+    type        = "Workspace"
     resource_id = azurerm_log_analytics_workspace.test.id
   }
 
