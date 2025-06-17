@@ -161,7 +161,7 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined below. Changing this forces a new resource to be created.
 
 ---
 
@@ -215,7 +215,7 @@ A `storage_account` block supports the following:
 
 * `storage_container_id` - (Required) The ID of the Storage Container. Changing this forces a new resource to be created.
 
--> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+-> **Note:** When the `azurerm_storage_container` resource is created with `storage_account_name`, this can be obtained from the `id` of the `azurerm_storage_container` resource. When the `azurerm_storage_container` resource is created with `storage_account_id`, please use `azurerm_storage_containers` data source to get the `data_plane_id` of the `azurerm_storage_container` resource for this field.
 
 * `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
@@ -283,7 +283,7 @@ A `worker_node` block supports the following:
 
 * `autoscale` - (Optional) A `autoscale` block as defined below.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 ---
 
@@ -317,7 +317,7 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
-* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above.
+* `script_actions` - (Optional) The script action which will run on the cluster. One or more `script_actions` blocks as defined above. Changing this forces a new resource to be created.
 
 ---
 
@@ -331,7 +331,7 @@ A `edge_node` block supports the following:
 
 * `https_endpoints` - (Optional) The HTTPS Connectivity Endpoint for this HDInsight Hadoop Cluster. One or more `https_endpoints` blocks as defined below.
 
-* `uninstall_script_actions` - (Optional) A `uninstall_script_actions` block as defined below.
+* `uninstall_script_actions` - (Optional) A `uninstall_script_actions` block as defined below. Changing this forces a new resource to be created.
 
 ---
 

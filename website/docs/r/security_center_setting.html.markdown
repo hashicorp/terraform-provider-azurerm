@@ -52,3 +52,9 @@ The setting can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_security_center_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/settings/<setting_name>
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Security`: 2022-05-01

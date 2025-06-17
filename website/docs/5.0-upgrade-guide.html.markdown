@@ -34,6 +34,30 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_hpc_cache`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_hpc_cache_access_policy`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_hpc_cache_blob_nfs_target`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_hpc_cache_blob_target`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_hpc_cache_nfs_target`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_maps_creator`
+
+* This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://aka.ms/AzureMapsCreatorDeprecation).
+
 ### `azurerm_network_packet_capture`
 
 * This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure Provider.
@@ -52,11 +76,7 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 ### `azurerm_security_center_auto_provisioning`
 
-* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
-
-### `azurerm_maps_creator`
-
-* This deprecated resource has been removed from the Azure Provider. Please see the [documention for more details](https://aka.ms/AzureMapsCreatorDeprecation).
+* This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
 
 ### `azurerm_spatial_anchors_account`
 
@@ -124,6 +144,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
+### `azurerm_automation_account`
+
+* The `encryption.key_source` property has been removed.
+
 ### `azurerm_cdn_endpoint_custom_domain`
 
 * The `cdn_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
@@ -143,6 +167,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
 * The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
 
+### `azurerm_container_registry`
+
+* The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.  
+
 ### `azurerm_cosmosdb_account`
 
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
@@ -154,6 +182,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_datadog_monitor_sso_configuration`
 
 * The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
+
+### `azurerm_data_factory_integration_runtime_self_hosted`
+
+* Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
 
 ### `azurerm_eventhub`
 
@@ -206,6 +238,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_monitor_diagnostic_setting`
 
 * The deprecated `metric.retention_policy` block has been removed.
+* The deprecated `metric` block has been removed in favour of the `enabled_metric` block.
 
 ### `azurerm_mssql_database`
 

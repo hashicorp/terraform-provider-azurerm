@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `publish_content_link` - (Optional) One `publish_content_link` block as defined below.
 
-* `description` - (Optional) A description for this credential.
+* `description` - (Optional) A description for the runbook.
 
 * `content` - (Optional) The desired content of the runbook.
 

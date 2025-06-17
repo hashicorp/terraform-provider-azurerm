@@ -22,6 +22,8 @@ Manages the Custom HTTPS Configuration for an Azure Front Door (classic) Fronten
 
 !> **Note:** On `1 April 2025`, Azure Front Door (classic) will be retired for the public cloud, existing Azure Front Door (classic) resources must be migrated out of Azure Front Door (classic) to Azure Front Door Standard/Premium before `1 October 2025` to avoid potential disruptions in service.
 
+## Example Usage
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "FrontDoorExampleResourceGroup"

@@ -142,6 +142,18 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		return
 	}
 
+	// Set any write-only attributes in the import state to null
+	modifiedState, err := tftypes.Transform(importResp.State.Raw, NullifyWriteOnlyAttributes(ctx, importResp.State.Schema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying Import State",
+			"There was an unexpected error modifying the Import State. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return
+	}
+
+	importResp.State.Raw = modifiedState
+
 	if importResp.State.Raw.Equal(req.EmptyState.Raw) {
 		resp.Diagnostics.AddError(
 			"Missing Resource Import State",

@@ -144,4 +144,4 @@ terraform import azurerm_managed_lustre_file_system.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StorageCache`: 2023-05-01
+* `Microsoft.StorageCache`: 2024-07-01
