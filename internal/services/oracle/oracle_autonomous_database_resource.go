@@ -474,6 +474,7 @@ func flattenAdbsCustomerContacts(customerContactsList *[]autonomousdatabases.Cus
 	}
 	return customerContacts
 }
+
 func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autonomousdatabases.LongTermBackUpScheduleDetails {
 	if len(input) == 0 {
 		return nil
@@ -486,6 +487,7 @@ func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autono
 		IsDisabled:            pointer.To(!schedule.Enabled),
 	}
 }
+
 func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
 	return metadata.ResourceData.HasChange("tags") ||
 		metadata.ResourceData.HasChange("backup_retention_period_in_days") ||
