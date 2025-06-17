@@ -21,11 +21,11 @@ import (
 type Client struct {
 	Factories                 *factories.FactoriesClient
 	Credentials               *credentials.CredentialsClient
-	ManagedPrivateEndpoints   *managedprivateendpoints.ManagedPrivateEndpointsClient
-	ManagedVirtualNetworks    *managedvirtualnetworks.ManagedVirtualNetworksClient
 	DataFlowClient            *dataflows.DataFlowsClient
 	DatasetClientGoAzureSDK   *datasets.DatasetsClient
 	IntegrationRuntimesClient *integrationruntimes.IntegrationRuntimesClient
+	ManagedPrivateEndpoints   *managedprivateendpoints.ManagedPrivateEndpointsClient
+	ManagedVirtualNetworks    *managedvirtualnetworks.ManagedVirtualNetworksClient
 	PipelinesClient           *pipelines.PipelinesClient
 
 	// TODO: convert to using hashicorp/go-azure-sdk
@@ -96,11 +96,11 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		Factories:                 factoriesClient,
 		Credentials:               credentialsClient,
-		ManagedPrivateEndpoints:   managedPrivateEndpointsClient,
-		ManagedVirtualNetworks:    managedVirtualNetworksClient,
 		DataFlowClient:            dataFlowClient,
 		DatasetClientGoAzureSDK:   datasetClientGoAzureSDK,
 		IntegrationRuntimesClient: integrationRuntimesClient,
+		ManagedPrivateEndpoints:   managedPrivateEndpointsClient,
+		ManagedVirtualNetworks:    managedVirtualNetworksClient,
 		PipelinesClient:           PipelinesClient,
 
 		// TODO: port to `hashicorp/go-azure-sdk`
