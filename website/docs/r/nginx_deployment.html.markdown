@@ -59,7 +59,6 @@ resource "azurerm_nginx_deployment" "example" {
   resource_group_name       = azurerm_resource_group.example.name
   sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.example.location
-  diagnose_support_enabled  = true
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -98,8 +97,6 @@ The following arguments are supported:
 -> **Note:** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
 * `auto_scale_profile` - (Optional) An `auto_scale_profile` block as defined below.
-
-* `diagnose_support_enabled` - (Optional) Should the metrics be exported to Azure Monitor?
 
 * `email` - (Optional) Specify the preferred support contact email address for receiving alerts and notifications.
 
