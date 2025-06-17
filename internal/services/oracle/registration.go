@@ -29,7 +29,6 @@ func (r Registration) Resources() []sdk.Resource {
 		AutonomousDatabaseRegularResource{},
 		CloudVmClusterResource{},
 		ExadataInfraResource{},
-		AutonomousDatabaseWalletResource{},
 	}
 }
 
