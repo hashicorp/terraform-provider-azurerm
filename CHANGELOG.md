@@ -1,6 +1,7 @@
 ## 4.34.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `containerservice` - update API version to `2025-02-01` [GH-29761]
 * `azurerm_network_manager_ipam_pool` - `display_name` is now optional [GH-29842]
 
 * `dependencies`: `go-azure-sdk` - update to `v0.20250613.1153526` [GH-29871]
