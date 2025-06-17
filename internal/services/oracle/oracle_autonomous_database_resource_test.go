@@ -130,6 +130,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
 func (a AdbsRegularResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 provider "azurerm" {
@@ -162,7 +163,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
     repeat_cadence           = "Monthly"
     time_of_backup           = "2025-07-03T09:00:00Z"
     retention_period_in_days = 200
-    enabled              = true
+    enabled                  = true
   }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
@@ -170,6 +171,8 @@ resource "azurerm_oracle_autonomous_database" "test" {
 
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+
 
 
 %s
@@ -202,7 +205,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
     repeat_cadence           = "Monthly"
     time_of_backup           = "2025-07-03T09:00:00Z"
     retention_period_in_days = 323
-    enabled              = true
+    enabled                  = true
   }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
