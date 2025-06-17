@@ -74,8 +74,7 @@ func (RedisCacheV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_non_ssl_port": {
+		"non_ssl_port_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Default:  false,
 			Optional: true,
