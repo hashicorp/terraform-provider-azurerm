@@ -132,6 +132,47 @@ func parseCode(input string) (*Code, error) {
 	return &out, nil
 }
 
+type GPUDriver string
+
+const (
+	GPUDriverInstall GPUDriver = "Install"
+	GPUDriverNone    GPUDriver = "None"
+)
+
+func PossibleValuesForGPUDriver() []string {
+	return []string{
+		string(GPUDriverInstall),
+		string(GPUDriverNone),
+	}
+}
+
+func (s *GPUDriver) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseGPUDriver(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseGPUDriver(input string) (*GPUDriver, error) {
+	vals := map[string]GPUDriver{
+		"install": GPUDriverInstall,
+		"none":    GPUDriverNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := GPUDriver(input)
+	return &out, nil
+}
+
 type GPUInstanceProfile string
 
 const (
