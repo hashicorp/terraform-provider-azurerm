@@ -156,11 +156,21 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 		return
 	}
 
-	if semanticEqualityResp.NewData.TerraformValue.Equal(resp.NewState.Raw) {
+	if !semanticEqualityResp.NewData.TerraformValue.Equal(resp.NewState.Raw) {
+		logging.FrameworkDebug(ctx, "State updated due to semantic equality")
+
+		resp.NewState.Raw = semanticEqualityResp.NewData.TerraformValue
+	}
+
+	// Set any write-only attributes in the state to null
+	modifiedState, err := tftypes.Transform(resp.NewState.Raw, NullifyWriteOnlyAttributes(ctx, resp.NewState.Schema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying State",
+			"There was an unexpected error modifying the NewState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
 		return
 	}
 
-	logging.FrameworkDebug(ctx, "State updated due to semantic equality")
-
-	resp.NewState.Raw = semanticEqualityResp.NewData.TerraformValue
+	resp.NewState.Raw = modifiedState
 }

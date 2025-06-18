@@ -71,11 +71,11 @@ The following arguments are supported:
 
 * `partitioning_enabled` - (Optional) Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers. Changing this forces a new resource to be created. Defaults to `false` for Basic and Standard.
 
--> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. For premium namespace, partitioning is available at namespace creation, and all queues and topics in the partitioned namespace will be partitioned, for the premium namespace that has `premium_messaging_partitions` sets to `1`, the namespace is not partitioned.
+-> **Note:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. For premium namespace, partitioning is available at namespace creation, and all queues and topics in the partitioned namespace will be partitioned, for the premium namespace that has `premium_messaging_partitions` sets to `1`, the namespace is not partitioned.
 
 * `express_enabled` - (Optional) Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage. Defaults to `false` for Basic and Standard. For Premium, it MUST be set to `false`.
 
-~> **NOTE:** Service Bus Premium namespaces do not support Express Entities, so `express_enabled` MUST be set to `false`.
+~> **Note:** Service Bus Premium namespaces do not support Express Entities, so `express_enabled` MUST be set to `false`.
 
 * `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to. Please [see the documentation](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.
 
@@ -92,8 +92,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Queue.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Queue.
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Queue.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Queue.
 * `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Queue.
 
 ## Import
@@ -103,3 +103,9 @@ Service Bus Queue can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_servicebus_queue.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceBus/namespaces/sbns1/queues/snqueue1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus`: 2022-10-01-preview, 2021-06-01-preview

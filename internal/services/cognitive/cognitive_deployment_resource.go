@@ -93,6 +93,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"OpenAI",
+							"Cohere",
 						}, false),
 					},
 
@@ -123,6 +124,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard",
+							"DataZoneBatch",
 							"DataZoneProvisionedManaged",
 							"DataZoneStandard",
 							"GlobalBatch",

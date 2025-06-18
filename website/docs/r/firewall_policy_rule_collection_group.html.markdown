@@ -203,7 +203,7 @@ A `nat_rule` (NAT rule) block supports the following:
 
 * `translated_fqdn` - (Optional) Specifies the translated FQDN.
 
-~> **NOTE:** Exactly one of `translated_address` and `translated_fqdn` should be set.
+~> **Note:** Exactly one of `translated_address` and `translated_fqdn` should be set.
 
 * `translated_port` - (Required) Specifies the translated port.
 
@@ -245,3 +245,9 @@ Firewall Policy Rule Collection Groups can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_firewall_policy_rule_collection_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1/ruleCollectionGroups/gruop1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

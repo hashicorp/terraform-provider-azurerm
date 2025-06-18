@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
@@ -2402,6 +2402,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			nodePublicIpEnabled,
 			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
+			"default_node_pool.0.kubelet_disk_type",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
 			"default_node_pool.0.only_critical_addons_enabled",

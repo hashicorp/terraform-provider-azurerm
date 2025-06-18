@@ -106,7 +106,7 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPreviewFeature(), false),
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 
@@ -147,12 +147,15 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Free",
+				"M10",
+				"M20",
 				"M25",
 				"M30",
 				"M40",
 				"M50",
 				"M60",
 				"M80",
+				"M200",
 			}, false),
 		},
 
@@ -618,7 +621,7 @@ func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionStrin
 		// Password can be empty if it isn't available in the state file (e.g. during import).
 		// In this case, we simply leave the placeholder unchanged.
 		if userPassword != "" {
-			value = regexp.MustCompile(`<user>:<password>`).ReplaceAllString(value, url.UserPassword(userName, userPassword).String())
+			value = regexp.MustCompile(`<user>:<password>`).ReplaceAllLiteralString(value, url.UserPassword(userName, userPassword).String())
 		}
 
 		results = append(results, MongoClusterConnectionString{

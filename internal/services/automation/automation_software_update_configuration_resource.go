@@ -61,8 +61,6 @@ type Linux struct {
 	Classifications  []string `tfschema:"classifications_included"`
 	ExcludedPackages []string `tfschema:"excluded_packages"`
 	IncludedPackages []string `tfschema:"included_packages"`
-
-	Classification string `tfschema:"classification_included,removedInNextMajorVersion"`
 }
 
 type MonthlyOccurrence struct {
@@ -109,8 +107,6 @@ type Windows struct {
 	ExcludedKbs     []string `tfschema:"excluded_knowledge_base_numbers"`
 	IncludedKbs     []string `tfschema:"included_knowledge_base_numbers"`
 	RebootSetting   string   `tfschema:"reboot"`
-
-	Classification string `tfschema:"classification_included,removedInNextMajorVersion"`
 }
 
 type SoftwareUpdateConfigurationModel struct {
@@ -118,7 +114,6 @@ type SoftwareUpdateConfigurationModel struct {
 	Name                  string       `tfschema:"name"`
 	ErrorCode             string       `tfschema:"error_code"`
 	ErrorMessage          string       `tfschema:"error_message"`
-	OperatingSystem       string       `tfschema:"operating_system,removedInNextMajorVersion"`
 	Linux                 []Linux      `tfschema:"linux"`
 	Windows               []Windows    `tfschema:"windows"`
 	Duration              string       `tfschema:"duration"`
@@ -673,7 +668,6 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 					}
 
 					state.Linux = []Linux{l}
-					state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeLinux)
 				}
 				if windows := updateConfiguration.Windows; windows != nil {
 					w := Windows{
@@ -684,7 +678,6 @@ func (m SoftwareUpdateConfigurationResource) Read() sdk.ResourceFunc {
 					}
 
 					state.Windows = []Windows{w}
-					state.OperatingSystem = string(softwareupdateconfiguration.OperatingSystemTypeWindows)
 				}
 				if targets := updateConfiguration.Targets; targets != nil {
 					t := Target{}
