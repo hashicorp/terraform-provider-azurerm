@@ -20,12 +20,14 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	EnableNodePublicIP         *bool                     `json:"enableNodePublicIP,omitempty"`
 	EnableUltraSSD             *bool                     `json:"enableUltraSSD,omitempty"`
 	GpuInstanceProfile         *GPUInstanceProfile       `json:"gpuInstanceProfile,omitempty"`
+	GpuProfile                 *GPUProfile               `json:"gpuProfile,omitempty"`
 	HostGroupID                *string                   `json:"hostGroupID,omitempty"`
 	KubeletConfig              *KubeletConfig            `json:"kubeletConfig,omitempty"`
 	KubeletDiskType            *KubeletDiskType          `json:"kubeletDiskType,omitempty"`
 	LinuxOSConfig              *LinuxOSConfig            `json:"linuxOSConfig,omitempty"`
 	MaxCount                   *int64                    `json:"maxCount,omitempty"`
 	MaxPods                    *int64                    `json:"maxPods,omitempty"`
+	MessageOfTheDay            *string                   `json:"messageOfTheDay,omitempty"`
 	MinCount                   *int64                    `json:"minCount,omitempty"`
 	Mode                       *AgentPoolMode            `json:"mode,omitempty"`
 	NetworkProfile             *AgentPoolNetworkProfile  `json:"networkProfile,omitempty"`

@@ -49,13 +49,13 @@ The following arguments are supported:
 
 * `address_prefixes` - (Required) Specifies a list of IPv4 or IPv6 IP address prefixes. Changing this forces a new Network Manager IPAM Pool to be created.
 
-* `display_name` - (Required) The display name for the Network Manager IPAM Pool.
-
 * `location` - (Required) The Azure Region where the Network Manager IPAM Pool should exist. Changing this forces a new Network Manager IPAM Pool to be created.
 
 ---
 
 * `description` - (Optional) The description of the Network Manager IPAM Pool.
+
+* `display_name` - (Optional) The display name for the Network Manager IPAM Pool.
 
 * `parent_pool_name` - (Optional) The name of the parent IPAM Pool. Changing this forces a new Network Manager IPAM Pool to be created.
 
