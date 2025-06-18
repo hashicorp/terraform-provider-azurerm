@@ -9,6 +9,7 @@ type FluxConfigurationPatchProperties struct {
 	ConfigurationProtectedSettings *map[string]string                       `json:"configurationProtectedSettings,omitempty"`
 	GitRepository                  *GitRepositoryPatchDefinition            `json:"gitRepository,omitempty"`
 	Kustomizations                 *map[string]KustomizationPatchDefinition `json:"kustomizations,omitempty"`
+	OciRepository                  *OCIRepositoryPatchDefinition            `json:"ociRepository,omitempty"`
 	SourceKind                     *SourceKindType                          `json:"sourceKind,omitempty"`
 	Suspend                        *bool                                    `json:"suspend,omitempty"`
 }
