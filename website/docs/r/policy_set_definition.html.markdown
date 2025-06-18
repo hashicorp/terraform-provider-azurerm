@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) The metadata for the policy set definition. This is a JSON object representing additional metadata that should be stored with the policy definition.
 
-* `parameters` - (Optional) Parameters for the policy set definition. This field is a JSON object that allows you to parameterize your policy definition.
+* `parameters` - (Optional) Parameters for the policy set definition. This field is a JSON object that allows you to parameterize your policy definition. Reducing the number of parameters force a new resource to be created
 
 ---
 
