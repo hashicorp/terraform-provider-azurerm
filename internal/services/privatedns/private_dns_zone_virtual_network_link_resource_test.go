@@ -130,6 +130,13 @@ func TestAccPrivateDnsZoneVirtualNetworkLink_toggleResolutionPolicy(t *testing.T
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.resolutionPolicy(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -374,6 +381,11 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
 }
 
 func (PrivateDnsZoneVirtualNetworkLinkResource) resolutionPolicy(data acceptance.TestData, resolution string) string {
+	resolutionBlock := fmt.Sprintf(`  resolution_policy     = "%s"`, resolution)
+	if resolution == "" {
+		resolutionBlock = ``
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -407,7 +419,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   virtual_network_id    = azurerm_virtual_network.test.id
   resource_group_name   = azurerm_resource_group.test.name
   registration_enabled  = true
-  resolution_policy     = "%[3]s"
+		%[3]s
 }
-`, data.RandomInteger, data.Locations.Primary, resolution)
+`, data.RandomInteger, data.Locations.Primary, resolutionBlock)
 }

@@ -79,6 +79,7 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 			"resolution_policy": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Computed:     true, // When the `name` of `azurerm_private_dns_zone` is a private link endpoint, the service will set default value for this.
 				ValidateFunc: validation.StringInSlice(virtualnetworklinks.PossibleValuesForResolutionPolicy(), false),
 			},
 
