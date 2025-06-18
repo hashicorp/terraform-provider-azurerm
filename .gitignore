@@ -53,6 +53,7 @@ tf.zip
 
 # do not upload secrets
 .env
+<<<<<<< Updated upstream
 
 # do not upload .local folder
 .local
@@ -60,3 +61,6 @@ tf.zip
 # do not upload GitHub Copilot specific folders and copilot instructions file
 .github/prompts
 .github/copilot-instructions.md
+=======
+.env*
+>>>>>>> Stashed changes
