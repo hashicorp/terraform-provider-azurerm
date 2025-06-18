@@ -3403,13 +3403,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) customCATrustCertificates(data acceptance.TestData, certsList []string) string {
-
 	certsString := ""
-
 	if certsList != nil {
 		certsString = "\"" + strings.Join(certsList, "\" ,\"") + "\""
 	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
