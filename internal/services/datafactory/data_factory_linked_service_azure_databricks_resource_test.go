@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinkedServiceDatabricksResource struct{}
@@ -110,11 +111,12 @@ func (t LinkedServiceDatabricksResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("reading Data Factory Databricks Resource (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (LinkedServiceDatabricksResource) msi(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -137,6 +139,37 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
   name                       = "acctestDatabricksLinkedService%d"
   data_factory_id            = azurerm_data_factory.test.id
   msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
+
+  description         = "Initial description"
+  annotations         = ["test1", "test2"]
+  existing_cluster_id = "test"
+  adb_domain          = "https://adb-111111111.11.azuredatabricks.net"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
+  name             = "acctestDatabricksLinkedService%d"
+  data_factory_id  = azurerm_data_factory.test.id
+  msi_workspace_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
 
   description         = "Initial description"
   annotations         = ["test1", "test2"]
@@ -255,9 +288,9 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
-  name                       = "acctestDatabricksLinkedService%d"
-  data_factory_id            = azurerm_data_factory.test.id
-  msi_work_space_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
+  name             = "acctestDatabricksLinkedService%d"
+  data_factory_id  = azurerm_data_factory.test.id
+  msi_workspace_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/test/providers/Microsoft.Databricks/workspaces/testworkspace"
 
   description = "Initial description"
   annotations = ["test1", "test2"]
@@ -317,8 +350,8 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     key2 = "u1k2"
   }
 
-  msi_work_space_resource_id = "/subscriptions/d111111-1111-1111-1111-111111111111/resourceGroups/Testing-rg-creation/providers/Microsoft.Databricks/workspaces/databricks-test"
-  adb_domain                 = "https://someFakeDomain"
+  msi_workspace_id = "/subscriptions/d111111-1111-1111-1111-111111111111/resourceGroups/Testing-rg-creation/providers/Microsoft.Databricks/workspaces/databricks-test"
+  adb_domain       = "https://someFakeDomain"
 
   new_cluster_config {
     node_type             = "Standard_NC12"
@@ -344,6 +377,8 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     init_scripts = ["init.sh", "init2.sh"]
   }
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -376,8 +411,8 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     key1 = "u2k1"
     key2 = "u2k2"
   }
-  msi_work_space_resource_id = "/subscriptions/d111111-1111-1111-1111-111111111111/resourceGroups/Testing-rg-creation/providers/Microsoft.Databricks/workspaces/databricks-test"
-  adb_domain                 = "https://someFakedomain"
+  msi_workspace_id = "/subscriptions/d111111-1111-1111-1111-111111111111/resourceGroups/Testing-rg-creation/providers/Microsoft.Databricks/workspaces/databricks-test"
+  adb_domain       = "https://someFakedomain"
 
   new_cluster_config {
     node_type             = "Standard_NC20"
@@ -403,6 +438,8 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     init_scripts = ["updated_init.sh", "updated_init2.sh", "updated_init3.sh"]
   }
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

@@ -361,6 +361,14 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
 * The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
 
+### `azurerm_data_factory_linked_service_azure_blob_storage`
+
+* The deprecated `key_vault_sas_token` block has been removed in favour of the `sas_token_linked_key_vault_key` block.
+
+### `azurerm_data_factory_linked_service_azure_databricks`
+
+* The deprecated `msi_work_space_resource_id` property has been removed in favour of the `msi_workspace_id` property.
+
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.

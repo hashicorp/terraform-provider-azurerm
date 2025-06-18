@@ -9,12 +9,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinkedServiceAzureBlobStorageResource struct{}
@@ -64,18 +65,18 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri_with_key_vault_sas_token(t *testing.T) {
+func TestAccDataFactoryLinkedServiceAzureBlobStorage_sas_uri_with_sas_token_linked_key_vault_key(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
 	r := LinkedServiceAzureBlobStorageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sas_uri_with_key_vault_sas_token(data),
+			Config: r.sas_uri_with_sas_token_linked_key_vault_key(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sas_uri").Exists(),
-				check.That(data.ResourceName).Key("key_vault_sas_token.0.linked_service_name").HasValue("linkkv"),
-				check.That(data.ResourceName).Key("key_vault_sas_token.0.secret_name").HasValue("secret"),
+				check.That(data.ResourceName).Key("sas_token_linked_key_vault_key.0.linked_service_name").HasValue("linkkv"),
+				check.That(data.ResourceName).Key("sas_token_linked_key_vault_key.0.secret_name").HasValue("secret"),
 			),
 		},
 		data.ImportStep("sas_uri"),
@@ -159,7 +160,7 @@ func (t LinkedServiceAzureBlobStorageResource) Exists(ctx context.Context, clien
 		return nil, fmt.Errorf("reading Data Factory Azure Storage Blob (%s): %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (LinkedServiceAzureBlobStorageResource) basic(data acceptance.TestData) string {
@@ -342,7 +343,56 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (LinkedServiceAzureBlobStorageResource) sas_uri_with_key_vault_sas_token(data acceptance.TestData) string {
+func (LinkedServiceAzureBlobStorageResource) sas_uri_with_sas_token_linked_key_vault_key(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctkv%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name            = "linkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
+}
+
+resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
+  name            = "acctestBlobStorage"
+  data_factory_id = azurerm_data_factory.test.id
+  sas_uri         = "https://storageaccountname.blob.core.windows.net"
+  key_vault_sas_token { ### This field is deprecated in favor of sas_token_linked_key_vault_key and will be removed in version 5.0
+    linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
+    secret_name         = "secret"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -383,7 +433,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   name            = "acctestBlobStorage"
   data_factory_id = azurerm_data_factory.test.id
   sas_uri         = "https://storageaccountname.blob.core.windows.net"
-  key_vault_sas_token {
+  sas_token_linked_key_vault_key {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "secret"
   }
