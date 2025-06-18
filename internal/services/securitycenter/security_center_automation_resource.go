@@ -204,7 +204,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.StringInSlice(append(automations.PossibleValuesForActionType(), "workspace", "logicapp", "eventhub"), false),
+			ValidateFunc: validation.StringInSlice(append(automations.PossibleValuesForActionType(), "loganalytics", "logicapp", "eventhub"), false),
 		}
 	}
 
@@ -445,7 +445,7 @@ func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]automat
 			switch actionMap["type"].(string) {
 			case "logicapp":
 				actionType = automations.ActionTypeLogicApp
-			case "workspace":
+			case "loganalytics":
 				actionType = automations.ActionTypeWorkspace
 			case "eventhub":
 				actionType = automations.ActionTypeEventHub
