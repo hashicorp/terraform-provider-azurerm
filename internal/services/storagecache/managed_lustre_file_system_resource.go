@@ -547,8 +547,8 @@ func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFile
 	result := &amlfilesystems.AmlFilesystemRootSquashSettings{
 		Mode:             pointer.To(amlfilesystems.AmlFilesystemSquashMode(rootSquashSetting.Mode)),
 		NoSquashNidLists: pointer.To(rootSquashSetting.NoSquashNidList),
-		SquashGID:        pointer.To(int64(rootSquashSetting.SquashGID)),
-		SquashUID:        pointer.To(int64(rootSquashSetting.SquashUID)),
+		SquashGID:        pointer.To(rootSquashSetting.SquashGID),
+		SquashUID:        pointer.To(rootSquashSetting.SquashUID),
 	}
 
 	return result
