@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
