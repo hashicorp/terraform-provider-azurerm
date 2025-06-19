@@ -828,7 +828,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("cool_access_retrieval_policy") {
-
 		coolAccessRetrievalPolicy := d.Get("cool_access_retrieval_policy").(string)
 		update.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccessRetrievalPolicy))
 
@@ -839,7 +838,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("cool_access_tiering_policy") {
-
 		coolAccessTieringPolicy := d.Get("cool_access_tiering_policy").(string)
 		update.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccessTieringPolicy))
 
