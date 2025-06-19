@@ -1885,10 +1885,10 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 
-  cool_access_enabled = true
-  cool_access_tiering_policy = "Auto"
+  cool_access_enabled          = true
+  cool_access_tiering_policy   = "Auto"
   cool_access_retrieval_policy = "OnRead"
-  coolness_period_in_days = 10
+  coolness_period_in_days      = 10
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1914,10 +1914,10 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 
-  cool_access_enabled = true
-  cool_access_tiering_policy = "SnapshotOnly"
+  cool_access_enabled          = true
+  cool_access_tiering_policy   = "SnapshotOnly"
   cool_access_retrieval_policy = "Default"
-  coolness_period_in_days = 10
+  coolness_period_in_days      = 10
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1943,10 +1943,10 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 
-  cool_access_enabled = true
-  cool_access_tiering_policy = "SnapshotOnly"
+  cool_access_enabled          = true
+  cool_access_tiering_policy   = "SnapshotOnly"
   cool_access_retrieval_policy = "Never"
-  coolness_period_in_days = 30
+  coolness_period_in_days      = 30
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
@@ -1972,10 +1972,10 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 
-  cool_access_enabled = false
-  cool_access_tiering_policy = "SnapshotOnly"
+  cool_access_enabled          = false
+  cool_access_tiering_policy   = "SnapshotOnly"
   cool_access_retrieval_policy = "Never"
-  coolness_period_in_days = 30
+  coolness_period_in_days      = 30
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
