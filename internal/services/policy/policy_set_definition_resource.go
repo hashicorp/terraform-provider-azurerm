@@ -27,7 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-// BEGIN TODO: Remove post 5.0
+// BEGIN
+// TODO: Remove from here until the `END` comment on ln836 post 5.0
 func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmPolicySetDefinitionCreate,
