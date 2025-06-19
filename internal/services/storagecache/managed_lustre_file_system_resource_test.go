@@ -298,7 +298,7 @@ data "azuread_service_principal" "test" {
 
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
-  role_definition_name = "Contributor"
+  role_definition_name = "Storage Account Contributor"
   principal_id         = data.azuread_service_principal.test.object_id
 }
 
