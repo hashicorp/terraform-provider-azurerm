@@ -9,6 +9,7 @@ ENHANCEMENTS:
 * `azurerm_kusto_cluster_customer_managed_key` - add support for `managed_hsm_key_id` [GH-29416]
 
 FEATURES:
+* **New Data Source**: `azurerm_dev_center_environment_type` [GH-29782]
 * **New Data Source**: `azurerm_dev_center_project_pool` [GH-29778]
 
 BUG FIXES:
