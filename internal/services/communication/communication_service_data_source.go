@@ -87,7 +87,7 @@ func (CommunicationServiceDataSource) Attributes() map[string]*pluginsdk.Schema 
 		"immutable_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
-		}
+		},
 	}
 }
 
