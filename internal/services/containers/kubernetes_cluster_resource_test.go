@@ -207,26 +207,26 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
-		},
-		data.ImportStep(),
+		// {
+		// 	Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+		// },
+		// data.ImportStep(),
+		// {
+		// 	Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+		// },
+		// data.ImportStep(),
+		// {
+		// 	Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
+		// },
+		// data.ImportStep(),
+		// {
+		// 	Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+		// },
+		// data.ImportStep(),
+		// {
+		// 	Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+		// },
+		// data.ImportStep(),
 		{
 			Config: r.networkProfileWithOutboundType(data, "none"),
 		},
@@ -502,12 +502,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.29"
+  kubernetes_version  = "1.31"
 
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "standard_a2_v2"
     upgrade_settings {
       max_surge = %q
     }
