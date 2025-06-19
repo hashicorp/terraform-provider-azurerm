@@ -1,32 +1,32 @@
 {
     "github.copilot.chat.commitMessageGeneration.instructions": [
         {
-            "text": "Provide a concise and clear commit message that summarizes the changes made in the code.",
+            "text": "Provide a concise and clear commit message that summarizes the changes made in the code."
         }
     ],
     "github.copilot.chat.codeGeneration.instructions": [
         {
-            "file": ".github/instructions/coding-standards.instructions.md",
+            "file": ".github/instructions/coding-standards.instructions.md"
         },
         {
-            "file": ".github/instructions/coding-style.instructions.md",
+            "file": ".github/instructions/coding-style.instructions.md"
         },
         {
-            "file": ".github/instructions/coding-patterns.instructions.md",
+            "file": ".github/instructions/coding-patterns.instructions.md"
         },
         {
-            "file": ".github/instructions/terraform-documentation-guidelines.instructions.md",
+            "file": ".github/instructions/terraform-documentation-guidelines.instructions.md"
         },
         {
-            "file": ".github/instructions/terraform-provider-guidelines.instructions.md",
+            "file": ".github/instructions/terraform-provider-guidelines.instructions.md"
         },
         {
-            "file": ".github/instructions/testing-guidelines.instructions.md",
+            "file": ".github/instructions/testing-guidelines.instructions.md"
         }
     ],
     "github.copilot.chat.testGeneration.instructions": [
         {
-            "file": ".github/instructions/testing-guidelines.instructions.md",
+            "file": ".github/instructions/testing-guidelines.instructions.md"
         }
     ],
     "github.copilot.chat.reviewSelection.enabled": true,
