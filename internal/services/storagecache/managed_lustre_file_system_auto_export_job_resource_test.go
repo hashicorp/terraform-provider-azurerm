@@ -65,15 +65,15 @@ func TestAccManagedLustreFileSystemExportJob_complete(t *testing.T) {
 
 func (r ManagedLustreFileSystemAutoExportJobResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s 
+%s
 
 resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
-	name = "acctest-amlfsaej-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	aml_file_system_name = azurerm_managed_lustre_file_system.test.name
-	location = azurerm_resource_group.test.location
-	
-	auto_export_prefixes = ["/"]
+  name                 = "acctest-amlfsaej-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  aml_file_system_name = azurerm_managed_lustre_file_system.test.name
+  location             = azurerm_resource_group.test.location
+
+  auto_export_prefixes = ["/"]
 }
 `, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
 }
@@ -91,5 +91,5 @@ resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
   auto_export_prefixes = ["/"]
   admin_status         = "Enable"
 }
-`, ManagedLustreFileSystemResource{}.complete(data))
+`, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
 }
