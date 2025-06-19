@@ -59,6 +59,6 @@ tf.zip
 .local
 
 # do not upload GitHub Copilot specific folders and copilot instructions file
-.github/prompts
+.github/prompts/*
 !.github/instructions/
 !.github/prompts/
