@@ -3290,7 +3290,6 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 	if v, ok := config["service_cidrs"]; ok {
 		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
-
 	return &networkProfile, nil
 }
 
@@ -3464,7 +3463,11 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 	if profile.OutboundType != nil {
 		outboundType = string(*profile.OutboundType)
 	}
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> a164138aef (resolving conflicts)
 	lbProfiles := make([]interface{}, 0)
 	if lbp := profile.LoadBalancerProfile; lbp != nil {
 		lb := make(map[string]interface{})
