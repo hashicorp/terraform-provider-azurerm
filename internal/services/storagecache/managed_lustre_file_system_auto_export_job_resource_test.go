@@ -48,6 +48,21 @@ func TestAccManagedLustreFileSystemExportJob_basic(t *testing.T) {
 	})
 }
 
+func TestAccManagedLustreFileSystemExportJob_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_lustre_file_system_auto_export_job", "test")
+	r := ManagedLustreFileSystemAutoExportJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ManagedLustreFileSystemAutoExportJobResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s 

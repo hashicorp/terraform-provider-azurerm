@@ -1,5 +1,5 @@
 ---
-subcategory: "Azure Managed Lustre File System Auto Export Job"
+subcategory: "Azure Managed Lustre File System"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_lustre_file_system_auto_export_job"
 description: |-
