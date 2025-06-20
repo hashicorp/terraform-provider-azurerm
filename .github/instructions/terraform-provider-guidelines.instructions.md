@@ -61,7 +61,7 @@ Given below are the Azure-specific guidelines for this Terraform Provider projec
 - Field values in error messages should be wrapped in backticks for clarity
 - Error messages must follow Go standards (lowercase, no punctuation, descriptive)
 - Do not use contractions in error messages. Always use the full form of words. For example, write 'cannot' instead of 'can't' and 'is not' instead of 'isn't'
-- Error messages must use '%w' instead of '%+v' for proper Go error wrapping standards
+- Error messages must use '%+v' for verbose error output formatting
 - Error messages must be clear, concise, and provide actionable guidance
 
 ### Performance Considerations

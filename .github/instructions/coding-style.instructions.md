@@ -75,11 +75,11 @@ func resourceServiceNameDelete(ctx context.Context, d *pluginsdk.ResourceData, m
 ```go
 // Use consistent error formatting with context
 if err != nil {
-    return fmt.Errorf("creating Resource %q: %w", name, err)
+    return fmt.Errorf("creating Resource %q: %+v", name, err)
 }
 
 // Include resource information in error messages
-return fmt.Errorf("retrieving Resource %q (Resource Group %q): %w", 
+return fmt.Errorf("retrieving Resource %q (Resource Group %q): %+v", 
     resourceName, resourceGroupName, err)
 ```
 
@@ -130,7 +130,7 @@ package compute
 ```go
 // Use *ThenPoll methods for long-running operations
 if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-    return fmt.Errorf("creating Resource %q: %w", id.ResourceName, err)
+    return fmt.Errorf("creating Resource %q: %+v", id.ResourceName, err)
 }
 ```
 

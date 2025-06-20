@@ -100,7 +100,7 @@ func resourceServiceName() *pluginsdk.Resource {
 ```go
 // Use consistent error formatting with context
 if err != nil {
-    return fmt.Errorf("creating Resource %q: %w", name, err)
+    return fmt.Errorf("creating Resource %q: %+v", name, err)
 }
 
 // Include resource information in error messages
@@ -128,7 +128,7 @@ id := parse.NewResourceID(subscriptionId, resourceGroupName, resourceName)
 
 // Long-running operations
 if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-    return fmt.Errorf("creating Resource %q: %w", id.ResourceName, err)
+    return fmt.Errorf("creating Resource %q: %+v", id.ResourceName, err)
 }
 ```
 
@@ -137,7 +137,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 // Parse resource IDs consistently
 id, err := parse.ResourceID(d.Id())
 if err != nil {
-    return fmt.Errorf("parsing Resource ID %q: %w", d.Id(), err)
+    return fmt.Errorf("parsing Resource ID %q: %+v", d.Id(), err)
 }
 
 // Set resource ID after creation
