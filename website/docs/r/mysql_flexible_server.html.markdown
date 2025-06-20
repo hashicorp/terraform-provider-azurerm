@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `public_network_access` - (Optional) Whether approved public traffic is allowed through the firewall to this server. Possible values are `Enabled` and `Disabled`.
 
-~> **Note:**  `public_network_access` is automatically set to `Disabled` if the server is created with VNet Integration (i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`").
+~> **Note:** `public_network_access` is automatically set to `Disabled` if the server is created with VNet Integration (i.e. values are provided for `delegated_subnet_id` and `private_dns_zone_id`").
 
 * `replication_role` - (Optional) The replication role. Possible value is `None`.
 
@@ -131,7 +131,7 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) The SKU Name for the MySQL Flexible Server.
 
--> **NOTE:** `sku_name` should start with SKU tier `B (Burstable)`, `GP (General Purpose)`, `MO (Memory Optimized)` like `B_Standard_B1ms`.
+-> **Note:** `sku_name` should start with SKU tier `B (Burstable)`, `GP (General Purpose)`, `MO (Memory Optimized)` like `B_Standard_B1ms`.
 
 * `source_server_id` - (Optional) The resource ID of the source MySQL Flexible Server to be restored. Required when `create_mode` is `PointInTimeRestore`, `GeoRestore`, and `Replica`. Changing this forces a new MySQL Flexible Server to be created.
 
@@ -139,7 +139,7 @@ The following arguments are supported:
 
 * `storage` - (Optional) A `storage` block as defined below.
 
-* `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, and `8.0.21`. Changing this forces a new MySQL Flexible Server to be created.
+* `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, and `8.0.21`.
 
 * `zone` - (Optional) Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are `1`, `2` and `3`.
 
@@ -225,9 +225,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hour) Used when creating the MySQL Flexible Server.
+* `create` - (Defaults to 2 hours) Used when creating the MySQL Flexible Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Flexible Server.
-* `update` - (Defaults to 2 hour) Used when updating the MySQL Flexible Server.
+* `update` - (Defaults to 2 hours) Used when updating the MySQL Flexible Server.
 * `delete` - (Defaults to 1 hour) Used when deleting the MySQL Flexible Server.
 
 ## Import
@@ -237,3 +237,9 @@ MySQL Flexible Servers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mysql_flexible_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforMySQL/flexibleServers/flexibleServer1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforMySQL`: 2023-12-30

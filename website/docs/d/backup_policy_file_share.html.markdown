@@ -40,4 +40,4 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services File Share Protection Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services File Share Protection Policy.

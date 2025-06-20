@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -22,10 +22,10 @@ import (
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.28.5"
-	currentKubernetesVersion      = "1.29.2"
-	olderKubernetesVersionAlias   = "1.28"
-	currentKubernetesVersionAlias = "1.29"
+	olderKubernetesVersion        = "1.31.8"
+	currentKubernetesVersion      = "1.32.4"
+	olderKubernetesVersionAlias   = "1.31"
+	currentKubernetesVersionAlias = "1.32"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {

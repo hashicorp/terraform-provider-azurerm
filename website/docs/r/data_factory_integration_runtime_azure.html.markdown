@@ -59,8 +59,8 @@ The following arguments are supported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Integration Runtime Azure.
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Integration Runtime Azure.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Integration Runtime Azure.
 * `update` - (Defaults to 30 minutes) Used when updating the Data Factory Integration Runtime Azure.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Integration Runtime Azure.
 
@@ -69,5 +69,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Data Factory Azure Integration Runtimes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_factory_integration_runtime_azure.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationruntimes/example
+terraform import azurerm_data_factory_integration_runtime_azure.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/integrationRuntimes/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataFactory`: 2018-06-01

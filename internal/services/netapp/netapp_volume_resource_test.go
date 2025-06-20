@@ -10,12 +10,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // getOverriddenTestLocations returns the overridden test locations for the NetApp Volume tests, specifically for CRR
@@ -132,6 +132,21 @@ func TestAccNetAppVolume_standardNetworkFeature(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_createFromSnapshotInAnotherPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.snapshot(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("create_from_snapshot_resource_id"),
 	})
 }
 
@@ -266,10 +281,28 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_level").HasValue("Standard"),
 				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("101"),
+				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
 				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_largeVolume(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.largeVolume(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("105472"),
+				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -399,7 +432,7 @@ func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("reading Netapp Volume (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (NetAppVolumeResource) volEncryptionCmkUserAssigned(data acceptance.TestData, tenantID string) string {
@@ -751,6 +784,63 @@ resource "azurerm_netapp_volume" "test" {
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) snapshot(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_original" {
+  name                = "acctest-NetAppVolume-WithSnapshotPolicy-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+}
+
+resource "azurerm_netapp_snapshot" "test_original" {
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-NetAppVolume-Snapshot-%[2]d"
+  pool_name           = azurerm_netapp_pool.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  volume_name         = azurerm_netapp_volume.test_original.name
+}
+
+resource "azurerm_netapp_pool" "test_secondary" {
+  name                = "acctest-NetAppPool-secondary-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                             = "acctest-NetAppVolume-WithSnapshotPolicy-%[2]d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  account_name                     = azurerm_netapp_account.test.name
+  pool_name                        = azurerm_netapp_pool.test_secondary.name
+  volume_path                      = "my-unique-file-path-%[2]d-test"
+  service_level                    = "Standard"
+  subnet_id                        = azurerm_subnet.test.id
+  protocols                        = ["NFSv3"]
+  security_style                   = "unix"
+  storage_quota_in_gb              = 100
+  throughput_in_mibps              = 1.562
+  create_from_snapshot_resource_id = azurerm_netapp_snapshot.test_original.id
+}
+`, template, data.RandomInteger)
 }
 
 func (NetAppVolumeResource) snapshotPolicy(data acceptance.TestData) string {
@@ -1246,6 +1336,80 @@ resource "azurerm_netapp_volume" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) largeVolume(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.templateLargePool(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                 = "acctest-NetAppVolume-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  account_name         = azurerm_netapp_account.test.name
+  pool_name            = azurerm_netapp_pool.test.name
+  volume_path          = "my-unique-file-path-%d"
+  service_level        = "Standard"
+  subnet_id            = azurerm_subnet.test.id
+  storage_quota_in_gb  = 105472
+  large_volume_enabled = true
+  throughput_in_mibps  = 1640
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) templateLargePool(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-VirtualNetwork-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.6.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-Subnet-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.6.2.0/24"]
+  delegation {
+    name = "testdelegation"
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = "%d"
+  qos_type            = "Manual"
+}
+`, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, 120)
 }
 
 func (r NetAppVolumeResource) templateForCrossRegionReplication(data acceptance.TestData) string {
