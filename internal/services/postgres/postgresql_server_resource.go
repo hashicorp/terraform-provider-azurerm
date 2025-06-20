@@ -383,7 +383,7 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			ValidateFunc: validation.StringInSlice(servers.PossibleValuesForMinimalTlsVersionEnum(), false),
 		}
 		resource.Schema["ssl_enforcement_enabled"] = &pluginsdk.Schema{
-			Deprecated: "The `ssl_enforcement_enabled` property is deprecated as Azure services will require TLS1.2+ to connect.",
+			Deprecated: "The `ssl_enforcement_enabled` property is deprecated and will be removed in v5.0 of the AzureRM provider as Azure services will require TLS1.2+ to connect.",
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 		}
