@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_policy_set_definition
 
-Manages a policy set definition.
+Manages a Policy Set Definition.
 
 -> **Note:** Policy set definitions (also known as policy initiatives) do not take effect until they are assigned to a scope using a Policy Set Assignment.
 
@@ -16,9 +16,9 @@ Manages a policy set definition.
 
 ```hcl
 resource "azurerm_policy_set_definition" "example" {
-  name         = "testPolicySet"
+  name         = "example"
   policy_type  = "Custom"
-  display_name = "Test Policy Set"
+  display_name = "Example"
 
   parameters = <<PARAMETERS
     {
@@ -48,49 +48,49 @@ PARAMETERS
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the policy set definition. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Policy Set Definition. Changing this forces a new Policy Set Definition to be created.
 
-* `policy_type` - (Required) The policy set type. Possible values are `BuiltIn`, `Custom`, `NotSpecified` and `Static`. Changing this forces a new resource to be created.
-
-* `display_name` - (Required) The display name of the policy set definition.
+* `display_name` - (Required) The display name of this Policy Set Definition.
 
 * `policy_definition_reference` - (Required) One or more `policy_definition_reference` blocks as defined below.
 
-* `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
-
-* `description` - (Optional) The description of the policy set definition.
-
-* `management_group_id` - (Optional) The id of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
-
-* `metadata` - (Optional) The metadata for the policy set definition. This is a JSON object representing additional metadata that should be stored with the policy definition.
-
-* `parameters` - (Optional) Parameters for the policy set definition. This field is a JSON object that allows you to parameterize your policy definition.
+* `policy_type` - (Required) The Policy Set Definition type. Possible values are `BuiltIn`, `Custom`, `NotSpecified`, and `Static`. Changing this forces a new Policy Set Definition to be created.
 
 ---
 
-A `policy_definition_reference` block supports the following:
+* `description` - (Optional) The description of this Policy Set Definition.
 
-* `policy_definition_id` - (Required) The ID of the policy definition that will be included in this policy set definition.
+* `metadata` - (Optional) The metadata for the Policy Set Definition in JSON format.
 
-* `parameter_values` - (Optional) Parameter values for the referenced policy rule. This field is a JSON string that allows you to assign parameters to this policy rule.
+* `parameters` - (Optional) The parameters for the Policy Set Definition in JSON format.
 
-* `reference_id` - (Optional) A unique ID within this policy set definition for this policy definition reference.
-
-* `policy_group_names` - (Optional) A list of names of the policy definition groups that this policy definition reference belongs to.
+* `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
 
 ---
 
 An `policy_definition_group` block supports the following:
 
-* `name` - (Required) The name of this policy definition group.
+* `name` - (Required) The name which should be used for this Policy Definition Group.
 
-* `display_name` - (Optional) The display name of this policy definition group.
+* `additional_metadata_resource_id` - (Optional) The ID of a resource that contains additional metadata for this Policy Definition Group.
 
-* `category` - (Optional) The category of this policy definition group.
+* `category` - (Optional) The category of this Policy Definition Group.
 
-* `description` - (Optional) The description of this policy definition group.
+* `description` - (Optional) The description of this Policy Definition Group.
 
-* `additional_metadata_resource_id` - (Optional) The ID of a resource that contains additional metadata about this policy definition group.
+* `display_name` - (Optional) The display name of this Policy Definition Group.
+
+---
+
+A `policy_definition_reference` block supports the following:
+
+* `policy_definition_id` - (Required) The ID of the Policy Definition to include in this Policy Set Definition.
+
+* `parameter_values` - (Optional) Parameter values for the references Policy Definition in JSON format.
+
+* `policy_group_names` - (Optional) Specifies a list of Policy Definition Groups names that this Policy Definition Reference belongs to.
+
+* `reference_id` - (Optional) A unique ID within this Policy Set Definition for this Policy Definition Reference.
 
 ## Attributes Reference
 
@@ -112,11 +112,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Policy Set Definitions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
-```
-
-or
-
-```shell
-terraform import azurerm_policy_set_definition.example /providers/Microsoft.Management/managementGroups/my-mgmt-group-id/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
+terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/policySetDefinitionName
 ```
