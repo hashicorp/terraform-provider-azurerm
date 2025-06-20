@@ -195,6 +195,25 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 						if cidr == netw {
 							return metadata.ResourceRequiresImport(r.ResourceType(), id)
 						}
+
+						// ========== Start clearing out legacy data ==========
+						if *prefix.Properties.Cidr == "194.41.20.0/24" || *prefix.Properties.Cidr == "2620:10c:5001::/48" {
+							log.Printf("[DEBUG] Start deleting legacy test data:  %s", *prefix.Id)
+							id, err := customipprefixes.ParseCustomIPPrefixID(*prefix.Id)
+							if err != nil {
+								return err
+							}
+
+							// Must be de-provisioned before deleting
+							if _, err = r.updateCommissionedState(ctx, *id, customipprefixes.CommissionedStateDeprovisioned); err != nil {
+								return err
+							}
+							if err := r.client.DeleteThenPoll(ctx, *id); err != nil {
+								return fmt.Errorf("deleting %s: %+v", id, err)
+							}
+							log.Printf("[DEBUG] End deleting legacy test data:  %s", *prefix.Id)
+						}
+						// ==========End clearing out legacy data  ==========
 					}
 				}
 			}
@@ -619,13 +638,18 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		return nil, fmt.Errorf("retrieving %s: response was nil", id)
 	}
 
-	prefix, ok := result.(customipprefixes.CustomIPPrefix)
+	resp, ok := result.(customipprefixes.GetOperationResponse)
 	if !ok {
-		return nil, fmt.Errorf("retrieving %s: response was not a valid Custom IP Prefix", id)
+		return nil, fmt.Errorf("retrieving %s: response was invalid", id)
+	}
+
+	prefix := resp.Model
+	if prefix == nil {
+		return nil, fmt.Errorf("retrieving %s: `model` was nil", id)
 	}
 
 	if prefix.Properties == nil {
-		return prefix.Properties.CommissionedState, fmt.Errorf("retrieving %s: `properties` was nil", id)
+		return nil, fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
 	if err != nil {
