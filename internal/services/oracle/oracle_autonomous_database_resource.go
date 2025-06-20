@@ -30,22 +30,23 @@ type AutonomousDatabaseRegularResourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Required
-	AdminPassword                string  `tfschema:"admin_password"`
-	BackupRetentionPeriodInDays  int64   `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                 string  `tfschema:"character_set"`
-	ComputeCount                 float64 `tfschema:"compute_count"`
-	ComputeModel                 string  `tfschema:"compute_model"`
-	DataStorageSizeInTbs         int64   `tfschema:"data_storage_size_in_tbs"`
-	DbVersion                    string  `tfschema:"db_version"`
-	DbWorkload                   string  `tfschema:"db_workload"`
-	DisplayName                  string  `tfschema:"display_name"`
-	LicenseModel                 string  `tfschema:"license_model"`
-	AutoScalingEnabled           bool    `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled bool    `tfschema:"auto_scaling_for_storage_enabled"`
-	MtlsConnectionRequired       bool    `tfschema:"mtls_connection_required"`
-	NationalCharacterSet         string  `tfschema:"national_character_set"`
-	SubnetId                     string  `tfschema:"subnet_id"`
-	VnetId                       string  `tfschema:"virtual_network_id"`
+	AdminPassword                string                          `tfschema:"admin_password"`
+	BackupRetentionPeriodInDays  int64                           `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                 string                          `tfschema:"character_set"`
+	ComputeCount                 float64                         `tfschema:"compute_count"`
+	ComputeModel                 string                          `tfschema:"compute_model"`
+	DataStorageSizeInTbs         int64                           `tfschema:"data_storage_size_in_tbs"`
+	DbVersion                    string                          `tfschema:"db_version"`
+	DbWorkload                   string                          `tfschema:"db_workload"`
+	DisplayName                  string                          `tfschema:"display_name"`
+	LicenseModel                 string                          `tfschema:"license_model"`
+	LongTermBackUpSchedule       []LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`
+	AutoScalingEnabled           bool                            `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled bool                            `tfschema:"auto_scaling_for_storage_enabled"`
+	MtlsConnectionRequired       bool                            `tfschema:"mtls_connection_required"`
+	NationalCharacterSet         string                          `tfschema:"national_character_set"`
+	SubnetId                     string                          `tfschema:"subnet_id"`
+	VnetId                       string                          `tfschema:"virtual_network_id"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -76,7 +77,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"backup_retention_period_in_days": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1, 60),
 		},
 
@@ -154,6 +154,35 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 				string(autonomousdatabases.LicenseModelLicenseIncluded),
 				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
 			}, false),
+		},
+
+		"long_term_backup_schedule": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"repeat_cadence": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForRepeatCadenceType(), false),
+					},
+					"time_of_backup": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsRFC3339Time,
+					},
+					"retention_period_in_days": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(90, 2558),
+					},
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
 		},
 
 		"national_character_set": {
@@ -259,6 +288,17 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			if len(model.LongTermBackUpSchedule) > 0 {
+				backupUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						LongTermBackupSchedule: expandLongTermBackupSchedule(model.LongTermBackUpSchedule),
+					},
+				}
+				if err := client.UpdateThenPoll(ctx, id, backupUpdate); err != nil {
+					return fmt.Errorf("configuring backup schedule for %s: %+v", id, err)
+				}
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -285,28 +325,51 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			update := &autonomousdatabases.AutonomousDatabaseUpdate{
-				Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{},
-			}
-			if metadata.ResourceData.HasChange("tags") {
-				update.Tags = pointer.To(model.Tags)
-			}
-			if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
-				update.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
-			}
-			if metadata.ResourceData.HasChange("compute_count") {
-				update.Properties.ComputeCount = pointer.To(model.ComputeCount)
-			}
-			if metadata.ResourceData.HasChange("auto_scaling_enabled") {
-				update.Properties.IsAutoScalingEnabled = pointer.To(model.AutoScalingEnabled)
-			}
-			if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
-				update.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
+			// Check what needs to be updated
+			needsGeneralUpdate := r.hasGeneralUpdates(metadata)
+			needsBackupScheduleUpdate := metadata.ResourceData.HasChange("long_term_backup_schedule")
+
+			// Step 1: Handle general updates (everything except backup schedule)
+			if needsGeneralUpdate {
+				generalUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{},
+				}
+
+				if metadata.ResourceData.HasChange("tags") {
+					generalUpdate.Tags = pointer.To(model.Tags)
+				}
+				if metadata.ResourceData.HasChange("backup_retention_period_in_days") {
+					generalUpdate.Properties.BackupRetentionPeriodInDays = pointer.To(model.BackupRetentionPeriodInDays)
+				}
+				if metadata.ResourceData.HasChange("data_storage_size_in_tbs") {
+					generalUpdate.Properties.DataStorageSizeInTbs = pointer.To(model.DataStorageSizeInTbs)
+				}
+				if metadata.ResourceData.HasChange("compute_count") {
+					generalUpdate.Properties.ComputeCount = pointer.To(model.ComputeCount)
+				}
+				if metadata.ResourceData.HasChange("auto_scaling_enabled") {
+					generalUpdate.Properties.IsAutoScalingEnabled = pointer.To(model.AutoScalingEnabled)
+				}
+				if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
+					generalUpdate.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
+					return fmt.Errorf("updating general properties for %s: %+v", *id, err)
+				}
 			}
 
-			err = client.UpdateThenPoll(ctx, *id, *update)
-			if err != nil {
-				return fmt.Errorf("updating %s: %v", id, err)
+			// Step 2: Handle backup schedule update separately
+			if needsBackupScheduleUpdate {
+				backupUpdate := autonomousdatabases.AutonomousDatabaseUpdate{
+					Properties: &autonomousdatabases.AutonomousDatabaseUpdateProperties{
+						LongTermBackupSchedule: expandLongTermBackupSchedule(model.LongTermBackUpSchedule),
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, *id, backupUpdate); err != nil {
+					return fmt.Errorf("updating backup schedule for %s: %+v", *id, err)
+				}
 			}
 
 			return nil
@@ -360,7 +423,9 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
+				state.LongTermBackUpSchedule = FlattenLongTermBackUpScheduleDetails(props.LongTermBackupSchedule)
 			}
+
 			return metadata.Encode(&state)
 		},
 	}
@@ -408,4 +473,26 @@ func flattenAdbsCustomerContacts(customerContactsList *[]autonomousdatabases.Cus
 		}
 	}
 	return customerContacts
+}
+
+func expandLongTermBackupSchedule(input []LongTermBackUpScheduleDetails) *autonomousdatabases.LongTermBackUpScheduleDetails {
+	if len(input) == 0 {
+		return nil
+	}
+	schedule := input[0]
+	return &autonomousdatabases.LongTermBackUpScheduleDetails{
+		RepeatCadence:         pointer.To(autonomousdatabases.RepeatCadenceType(schedule.RepeatCadence)),
+		TimeOfBackup:          pointer.To(schedule.TimeOfBackup),
+		RetentionPeriodInDays: pointer.To(schedule.RetentionPeriodInDays),
+		IsDisabled:            pointer.To(!schedule.Enabled),
+	}
+}
+
+func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.ResourceMetaData) bool {
+	return metadata.ResourceData.HasChange("tags") ||
+		metadata.ResourceData.HasChange("backup_retention_period_in_days") ||
+		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
+		metadata.ResourceData.HasChange("compute_count") ||
+		metadata.ResourceData.HasChange("auto_scaling_enabled") ||
+		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled")
 }
