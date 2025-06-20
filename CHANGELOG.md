@@ -1,6 +1,7 @@
 ## 4.35.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_policy_set_definition` - migrated to use `go-azure-sdk` [GH-29863]
 
 FEATURES:
 
