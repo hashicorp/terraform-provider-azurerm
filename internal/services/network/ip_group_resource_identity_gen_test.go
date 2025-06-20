@@ -16,7 +16,7 @@ import (
 
 func TestAccIpGroup_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ip_group", "test")
-	r := IPGroupResource{}
+	r := IpGroupResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
