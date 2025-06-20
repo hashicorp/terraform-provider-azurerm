@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudConnectorResource struct{}
@@ -60,11 +59,7 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 		"client_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
-			Default: string(servicelinker.ClientTypeNone),
 			ValidateFunc: validation.StringInSlice([]string{
-				// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
-				string(servicelinker.ClientTypeNone),
 				string(servicelinker.ClientTypeDotnet),
 				string(servicelinker.ClientTypeJava),
 				string(servicelinker.ClientTypePython),
@@ -164,8 +159,8 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			props := servicelinker.LinkerResource{
-				Id:         utils.String(id.ID()),
-				Name:       utils.String(model.Name),
+				Id:         pointer.To(id.ID()),
+				Name:       pointer.To(model.Name),
 				Properties: serviceConnectorProperties,
 			}
 
