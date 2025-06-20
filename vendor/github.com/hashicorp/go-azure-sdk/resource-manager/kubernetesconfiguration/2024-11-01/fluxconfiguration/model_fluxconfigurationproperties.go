@@ -18,6 +18,7 @@ type FluxConfigurationProperties struct {
 	GitRepository                  *GitRepositoryDefinition            `json:"gitRepository,omitempty"`
 	Kustomizations                 *map[string]KustomizationDefinition `json:"kustomizations,omitempty"`
 	Namespace                      *string                             `json:"namespace,omitempty"`
+	OciRepository                  *OCIRepositoryDefinition            `json:"ociRepository,omitempty"`
 	ProvisioningState              *ProvisioningState                  `json:"provisioningState,omitempty"`
 	ReconciliationWaitDuration     *string                             `json:"reconciliationWaitDuration,omitempty"`
 	RepositoryPublicKey            *string                             `json:"repositoryPublicKey,omitempty"`

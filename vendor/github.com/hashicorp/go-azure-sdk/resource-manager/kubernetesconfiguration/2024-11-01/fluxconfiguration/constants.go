@@ -59,6 +59,88 @@ func parseFluxComplianceState(input string) (*FluxComplianceState, error) {
 	return &out, nil
 }
 
+type OperationType string
+
+const (
+	OperationTypeCopy    OperationType = "copy"
+	OperationTypeExtract OperationType = "extract"
+)
+
+func PossibleValuesForOperationType() []string {
+	return []string{
+		string(OperationTypeCopy),
+		string(OperationTypeExtract),
+	}
+}
+
+func (s *OperationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseOperationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseOperationType(input string) (*OperationType, error) {
+	vals := map[string]OperationType{
+		"copy":    OperationTypeCopy,
+		"extract": OperationTypeExtract,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := OperationType(input)
+	return &out, nil
+}
+
+type ProviderType string
+
+const (
+	ProviderTypeAzure   ProviderType = "Azure"
+	ProviderTypeGeneric ProviderType = "Generic"
+)
+
+func PossibleValuesForProviderType() []string {
+	return []string{
+		string(ProviderTypeAzure),
+		string(ProviderTypeGeneric),
+	}
+}
+
+func (s *ProviderType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseProviderType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseProviderType(input string) (*ProviderType, error) {
+	vals := map[string]ProviderType{
+		"azure":   ProviderTypeAzure,
+		"generic": ProviderTypeGeneric,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ProviderType(input)
+	return &out, nil
+}
+
 type ProvisioningState string
 
 const (
@@ -159,6 +241,7 @@ const (
 	SourceKindTypeAzureBlob     SourceKindType = "AzureBlob"
 	SourceKindTypeBucket        SourceKindType = "Bucket"
 	SourceKindTypeGitRepository SourceKindType = "GitRepository"
+	SourceKindTypeOCIRepository SourceKindType = "OCIRepository"
 )
 
 func PossibleValuesForSourceKindType() []string {
@@ -166,6 +249,7 @@ func PossibleValuesForSourceKindType() []string {
 		string(SourceKindTypeAzureBlob),
 		string(SourceKindTypeBucket),
 		string(SourceKindTypeGitRepository),
+		string(SourceKindTypeOCIRepository),
 	}
 }
 
@@ -187,6 +271,7 @@ func parseSourceKindType(input string) (*SourceKindType, error) {
 		"azureblob":     SourceKindTypeAzureBlob,
 		"bucket":        SourceKindTypeBucket,
 		"gitrepository": SourceKindTypeGitRepository,
+		"ocirepository": SourceKindTypeOCIRepository,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
