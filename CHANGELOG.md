@@ -1,3 +1,18 @@
+## 4.35.0 (Unreleased)
+
+FEATURES:
+* **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
+
+ENHANCEMENTS:
+* `azurerm_gallery_application` - add support for Resource Identity [GH-29836]
+* `azurerm_linux_function_app` - add support for Resource Identity [GH-29836]
+* `azurerm_subnet` - add support for Resource Identity [GH-29836]
+* `azurerm_windows_virtual_machine`: `os_disk.0.diff_disk_settings.0.placement` now supports `NvmeDisk` [GH-29922]
+* `azurerm_virtual_network` - add support for Resource Identity [GH-29836]
+* `azurerm_policy_set_definition` - migrate to use `go-azure-sdk` [GH-29863]
+
+BUG FIXES:
+
 ## 4.34.0 (June 20, 2025)
 
 ENHANCEMENTS:
