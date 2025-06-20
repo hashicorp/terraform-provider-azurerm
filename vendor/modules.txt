@@ -1008,6 +1008,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/deployme
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resources
 github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/tags
+github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/adminkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/querykeys
 github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services

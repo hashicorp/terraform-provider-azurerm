@@ -285,6 +285,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `plan_id` property now defaults to `panw-cngfw-payg`.
 
+### `azurerm_policy_set_definition`
+
+* The `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
+
 ### `azurerm_redis_cache`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
