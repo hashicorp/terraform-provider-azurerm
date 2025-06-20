@@ -1258,14 +1258,14 @@ provider "azurerm" {
 %s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "vnet-%d"
+  name                = "acctest-vnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "subnet1"
+  name                 = "acctest-subnet1"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
