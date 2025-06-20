@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudexadatainfrastructures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
@@ -316,7 +316,7 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 24 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
+			client := metadata.Client.Oracle.OracleClient25.CloudVMClusters
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model CloudVmClusterResourceModel
@@ -414,7 +414,7 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
+			client := metadata.Client.Oracle.OracleClient25.CloudVMClusters
 			id, err := cloudvmclusters.ParseCloudVMClusterID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -453,7 +453,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
+			client := metadata.Client.Oracle.OracleClient25.CloudVMClusters
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -520,7 +520,7 @@ func (CloudVmClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Oracle.OracleClient.CloudVMClusters
+			client := metadata.Client.Oracle.OracleClient25.CloudVMClusters
 
 			id, err := cloudvmclusters.ParseCloudVMClusterID(metadata.ResourceData.Id())
 			if err != nil {
