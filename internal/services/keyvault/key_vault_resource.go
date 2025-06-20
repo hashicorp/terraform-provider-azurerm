@@ -280,7 +280,7 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	isPublic := d.Get("public_network_access_enabled").(bool)
 	if !features.FivePointOh() {
 		if len(d.Get("contact").(*pluginsdk.Set).List()) > 0 {
-			// In v4.0 providers block creation of all key vaults if the configuration
+			// In v4.0, the provider will not allow creating key vaults if the configuration
 			// file contains a 'contact' field...
 			return fmt.Errorf("%s: `contact` field is not supported for new key vaults", id)
 		}
@@ -787,8 +787,10 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
-		return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+	if !features.FivePointOh() {
+		if err := d.Set("contact", flattenKeyVaultCertificateContactList(&contacts)); err != nil {
+			return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+		}
 	}
 
 	return nil
