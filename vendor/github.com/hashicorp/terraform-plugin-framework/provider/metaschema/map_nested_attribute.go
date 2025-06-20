@@ -6,11 +6,12 @@ package metaschema
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Ensure the implementation satisifies the desired interfaces.
@@ -157,5 +158,11 @@ func (a MapNestedAttribute) IsRequired() bool {
 // IsSensitive always returns false as there is no plan for provider meta
 // schema data.
 func (a MapNestedAttribute) IsSensitive() bool {
+	return false
+}
+
+// IsWriteOnly returns false as write-only attributes are not relevant to provider meta schemas,
+// as these schemas describe data explicitly not saved to any artifact.
+func (a MapNestedAttribute) IsWriteOnly() bool {
 	return false
 }

@@ -159,3 +159,9 @@ Digital Twins Time Series Database Connections can be imported using the `resour
 ```shell
 terraform import azurerm_digital_twins_time_series_database_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt1/timeSeriesDatabaseConnections/connection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DigitalTwins`: 2023-01-31

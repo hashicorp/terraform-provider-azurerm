@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,8 +100,21 @@ func resourceNetAppPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"cool_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// `cool_access_enabled` cannot be disabled
+			pluginsdk.ForceNewIfChange("cool_access_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) && !new.(bool)
+			}),
+		),
 	}
 
 	return resource
@@ -138,6 +151,7 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 			ServiceLevel:   capacitypools.ServiceLevel(d.Get("service_level").(string)),
 			Size:           sizeInBytes,
 			EncryptionType: &encryptionType,
+			CoolAccess:     pointer.To(d.Get("cool_access_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -185,6 +199,10 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	if d.HasChange("qos_type") {
 		qosType := capacitypools.QosType(d.Get("qos_type").(string))
 		update.Properties.QosType = &qosType
+	}
+
+	if d.HasChange("cool_access_enabled") {
+		update.Properties.CoolAccess = pointer.To(d.Get("cool_access_enabled").(bool))
 	}
 
 	if d.HasChange("tags") {
@@ -244,6 +262,7 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		d.Set("qos_type", qosType)
 		d.Set("encryption_type", string(pointer.From(poolProperties.EncryptionType)))
+		d.Set("cool_access_enabled", pointer.From(poolProperties.CoolAccess))
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}

@@ -168,3 +168,9 @@ Management Group Consumption Budgets can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_consumption_budget_management_group.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/budget1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Consumption`: 2019-10-01

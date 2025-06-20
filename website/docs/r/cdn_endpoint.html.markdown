@@ -10,6 +10,12 @@ description: |-
 
 A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviours and origins. The CDN Endpoint is exposed using the URL format `<endpointname>.azureedge.net`.
 
+!> **Note:** Azure rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
+
+!> **Note:** The CDN services from Edgio(formerly Verizon) was shut down on 15 January 2025 and is no longer available.
+
+!> **Note:** Support for CDN services from Akamai was removed on 31 October 2023.
+
 ## Example Usage
 
 ```hcl
@@ -22,7 +28,7 @@ resource "azurerm_cdn_profile" "example" {
   name                = "example-cdn"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "example" {
@@ -72,7 +78,7 @@ The following arguments are supported:
 
 * `probe_path` - (Optional) the path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the `origin_path`.
 
--> **NOTE:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
+-> **Note:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
 
 * `global_delivery_rule` - (Optional) Actions that are valid for all resources regardless of any conditions. A `global_delivery_rule` block as defined below.
 
@@ -407,8 +413,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the CDN Endpoint.
 
 ## Import

@@ -1,0 +1,86 @@
+
+## `github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/imageversions` Documentation
+
+The `imageversions` SDK allows for interaction with Azure Resource Manager `devcenter` (API Version `2025-02-01`).
+
+This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
+
+### Import Path
+
+```go
+import "github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/imageversions"
+```
+
+
+### Client Initialization
+
+```go
+client := imageversions.NewImageVersionsClientWithBaseURI("https://management.azure.com")
+client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `ImageVersionsClient.Get`
+
+```go
+ctx := context.TODO()
+id := imageversions.NewImageVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "galleryName", "imageName", "versionName")
+
+read, err := client.Get(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ImageVersionsClient.GetByProject`
+
+```go
+ctx := context.TODO()
+id := imageversions.NewVersionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "imageName", "versionName")
+
+read, err := client.GetByProject(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ImageVersionsClient.ListByImage`
+
+```go
+ctx := context.TODO()
+id := imageversions.NewGalleryImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "devCenterName", "galleryName", "imageName")
+
+// alternatively `client.ListByImage(ctx, id)` can be used to do batched pagination
+items, err := client.ListByImageComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `ImageVersionsClient.ListByProject`
+
+```go
+ctx := context.TODO()
+id := imageversions.NewImageID("12345678-1234-9876-4563-123456789012", "example-resource-group", "projectName", "imageName")
+
+// alternatively `client.ListByProject(ctx, id)` can be used to do batched pagination
+items, err := client.ListByProjectComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```

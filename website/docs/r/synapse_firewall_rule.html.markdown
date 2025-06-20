@@ -66,9 +66,9 @@ The following arguments are supported:
 
 * `end_ip_address` - (Required) The ending IP address to allow through the firewall for this rule.
 
--> **NOTE:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0`.
+-> **Note:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0`.
 
--> **NOTE:** The Azure feature `Allow access to Azure services` requires the `name` to be `AllowAllWindowsAzureIps`.
+-> **Note:** The Azure feature `Allow access to Azure services` requires the `name` to be `AllowAllWindowsAzureIps`.
 
 ## Attributes Reference
 
@@ -81,8 +81,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Firewall Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the Synapse Firewall Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Firewall Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Synapse Firewall Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Synapse Firewall Rule.
 
 ## Import
