@@ -57,11 +57,11 @@ The following arguments are supported:
 
 * `routing_configuration_id` - (Required) The ID of the Network Manager Routing Configuration. Changing this forces a new Network Manager Routing Rule Collection to be created.
 
-* `network_group_ids` - (Required) A list of Network Group ID which this Network Manager Routing Rule Collection applies to.
+* `network_group_ids` - (Required) A list of Network Group IDs which this Network Manager Routing Rule Collection applies to.
 
 ---
 
-* `bgp_route_propagation_enabled` - (Optional) Whether the BGP route propagation is enabled? Defaults to `false`.
+* `bgp_route_propagation_enabled` - (Optional) Whether to enable the BGP route propagation. Defaults to `false`.
 
 * `description` - (Optional) The description of the Network Manager Routing Rule Collection.
 

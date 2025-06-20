@@ -253,9 +253,8 @@ func flattenBgpRoutePropagation(input *routingrulecollections.DisableBgpRoutePro
 func expandNetworkManagerRoutingNetworkGroupIds(inputList []string) []routingrulecollections.NetworkManagerRoutingGroupItem {
 	outputList := make([]routingrulecollections.NetworkManagerRoutingGroupItem, 0, len(inputList))
 	for _, v := range inputList {
-		input := v
 		output := routingrulecollections.NetworkManagerRoutingGroupItem{
-			NetworkGroupId: input,
+			NetworkGroupId: v,
 		}
 
 		outputList = append(outputList, output)
