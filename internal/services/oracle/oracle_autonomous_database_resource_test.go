@@ -240,8 +240,6 @@ func (a AdbsRegularResource) publicAccess(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
-
-
 %s
 
 provider "azurerm" {

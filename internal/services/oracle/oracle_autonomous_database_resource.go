@@ -180,7 +180,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		"permission_level": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabases.PermissionLevelTypeUnrestricted),
 				string(autonomousdatabases.PermissionLevelTypeRestricted),
