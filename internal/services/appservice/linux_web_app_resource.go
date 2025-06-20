@@ -1078,6 +1078,9 @@ func (r LinuxWebAppResource) CustomizeDiff() sdk.ResourceFunc {
 					return nil
 				}
 				_, newValue := rd.GetChange("vnet_image_pull_enabled")
+				if newValue.(bool) {
+					return nil
+				}
 				servicePlanId, err := commonids.ParseAppServicePlanID(planId.(string))
 				if err != nil {
 					return err
