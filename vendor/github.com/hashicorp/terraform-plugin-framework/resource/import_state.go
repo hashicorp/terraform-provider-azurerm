@@ -34,7 +34,18 @@ type ImportStateRequest struct {
 	// as an Attribute. However, this identifier can also be treated as
 	// its own type of value and parsed during import. This value
 	// is not stored in the state unless the provider explicitly stores it.
+	//
+	// This ID field is supplied in the "terraform import" CLI command or in the import config block "id" attribute.
+	// Either ID or Identity must be supplied by the practitioner, depending on the method used to import the resource.
 	ID string
+
+	// Identity is the configuration data provided by the practitioner in the import config block "identity" attribute. This
+	// configuration data will conform to the identity schema defined by the managed resource. If the resource does not support identity,
+	// this value will not be set.
+	//
+	// The "identity" attribute in the import block is only supported in Terraform 1.12 and later.
+	// Either ID or Identity must be supplied by the practitioner, depending on the method used to import the resource.
+	Identity *tfsdk.ResourceIdentity
 
 	// ClientCapabilities defines optionally supported protocol features for the
 	// ImportResourceState RPC, such as forward-compatible Terraform behavior changes.
@@ -56,6 +67,14 @@ type ImportStateResponse struct {
 	// refresh the resource, e.g. call the Resource Read method.
 	State tfsdk.State
 
+	// Identity is the identity of the resource following the Import operation.
+	// This field is pre-populated from ImportStateRequest.Identity and
+	// should be set during the resource's Import operation.
+	//
+	// If the resource does not support identity, this value will not be set and will
+	// raise a diagnostic if set by the resource's Import operation.
+	Identity *tfsdk.ResourceIdentity
+
 	// Private is the private state resource data following the Import operation.
 	// This field is not pre-populated as there is no pre-existing private state
 	// data during the resource's Import operation.
@@ -75,6 +94,11 @@ type ImportStateResponse struct {
 // ImportStatePassthroughID is a helper function to set the import
 // identifier to a given state attribute path. The attribute must accept a
 // string value.
+//
+// This method will also automatically pass through the Identity field if imported by
+// the identity attribute of a import config block (Terraform 1.12+ and later). In this
+// scenario where identity is provided instead of the string ID, the state field defined
+// at `attrPath` will be set to null.
 func ImportStatePassthroughID(ctx context.Context, attrPath path.Path, req ImportStateRequest, resp *ImportStateResponse) {
 	if attrPath.Equal(path.Empty()) {
 		resp.Diagnostics.AddError(
@@ -84,5 +108,9 @@ func ImportStatePassthroughID(ctx context.Context, attrPath path.Path, req Impor
 		)
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, attrPath, req.ID)...)
+	// If the import is using the ID string identifier, (either via the "terraform import" CLI command, or a config block with the "id" attribute set)
+	// pass through the ID to the designated state attribute.
+	if req.ID != "" {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, attrPath, req.ID)...)
+	}
 }

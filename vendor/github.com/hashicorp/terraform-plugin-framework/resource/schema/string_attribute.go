@@ -229,6 +229,18 @@ func (a StringAttribute) IsWriteOnly() bool {
 	return a.WriteOnly
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a StringAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a StringAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // StringDefaultValue returns the Default field value.
 func (a StringAttribute) StringDefaultValue() defaults.String {
 	return a.Default

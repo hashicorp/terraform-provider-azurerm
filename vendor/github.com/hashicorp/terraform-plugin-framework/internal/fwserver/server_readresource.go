@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschemadata"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
@@ -20,6 +21,8 @@ import (
 // ReadResource RPC.
 type ReadResourceRequest struct {
 	ClientCapabilities resource.ReadClientCapabilities
+	IdentitySchema     fwschema.Schema
+	CurrentIdentity    *tfsdk.ResourceIdentity
 	CurrentState       *tfsdk.State
 	Resource           resource.Resource
 	Private            *privatestate.Data
@@ -32,6 +35,7 @@ type ReadResourceResponse struct {
 	Deferred    *resource.Deferred
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
+	NewIdentity *tfsdk.ResourceIdentity
 	Private     *privatestate.Data
 }
 
@@ -115,12 +119,36 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		resp.Private = req.Private
 	}
 
+	// If the resource supports identity and there is no current identity data, pre-populate with a null value.
+	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
+	if req.CurrentIdentity == nil && req.IdentitySchema != nil {
+		nullTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		req.CurrentIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullTfValue.Copy(),
+		}
+	}
+
+	if req.CurrentIdentity != nil {
+		readReq.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.CurrentIdentity.Schema,
+			Raw:    req.CurrentIdentity.Raw.Copy(),
+		}
+
+		readResp.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.CurrentIdentity.Schema,
+			Raw:    req.CurrentIdentity.Raw.Copy(),
+		}
+	}
+
 	logging.FrameworkTrace(ctx, "Calling provider defined Resource Read")
 	req.Resource.Read(ctx, readReq, &readResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Resource Read")
 
 	resp.Diagnostics = readResp.Diagnostics
 	resp.NewState = &readResp.State
+	resp.NewIdentity = readResp.Identity
 	resp.Deferred = readResp.Deferred
 
 	if readResp.Private != nil {
@@ -132,6 +160,16 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 	}
 
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if resp.NewIdentity != nil && req.IdentitySchema == nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Read Response",
+			"An unexpected error was encountered when creating the read response. New identity data was returned by the provider read operation, but the resource does not indicate identity support.\n\n"+
+				"This is always a problem with the provider and should be reported to the provider developer.",
+		)
+
 		return
 	}
 
