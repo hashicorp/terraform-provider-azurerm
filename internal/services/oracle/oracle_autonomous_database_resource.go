@@ -46,7 +46,6 @@ type AutonomousDatabaseRegularResourceModel struct {
 	NationalCharacterSet         string   `tfschema:"national_character_set"`
 	SubnetId                     string   `tfschema:"subnet_id"`
 	VnetId                       string   `tfschema:"virtual_network_id"`
-	PermissionLevel              string   `tfschema:"permission_level"`
 	AllowedIps                   []string `tfschema:"allowed_ips"`
 
 	// Optional
@@ -177,15 +176,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew: true,
 		},
 
-		"permission_level": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.PermissionLevelTypeUnrestricted),
-				string(autonomousdatabases.PermissionLevelTypeRestricted),
-			}, false),
-		},
-
 		"subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -275,9 +265,6 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 
 			if len(model.CustomerContacts) > 0 {
 				properties.CustomerContacts = pointer.To(expandAdbsCustomerContacts(model.CustomerContacts))
-			}
-			if model.PermissionLevel != "" {
-				properties.PermissionLevel = pointer.To(autonomousdatabases.PermissionLevelType(model.PermissionLevel))
 			}
 
 			if model.SubnetId != "" {
@@ -400,7 +387,6 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
-				state.PermissionLevel = string(pointer.From(props.PermissionLevel))
 			}
 			return metadata.Encode(&state)
 		},
