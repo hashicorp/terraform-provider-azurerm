@@ -13,7 +13,7 @@ FEATURES:
 * **New Data Source**: `azurerm_dev_center_project_pool` [GH-29778]
 
 BUG FIXES:
-`azurerm_eventgrid_namespace` - validations for `maximum_session_expiry_in_hours` and `maximum_client_sessions_per_authentication_name` are now correct #29919 [GH-29919]
+`azurerm_eventgrid_namespace` - validations for `maximum_session_expiry_in_hours` and `maximum_client_sessions_per_authentication_name` are now correct [GH-29919]
 * `azurerm_api_management_api_operation` - fix validation for the `url_template` property to allow parameters prefixed with `*` [GH-29895]
 * `azurerm_mysql_flexible_server` - reverted a change made to the validation of the `sku_name` property that caused errors for existing resources [GH-29909]
 * `azurerm_orchestrated_virtual_machine_scale_set` - prevent a panic when an empty `os_profile` block is present in the configuration  [GH-29809]
