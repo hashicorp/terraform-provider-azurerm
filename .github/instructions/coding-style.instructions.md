@@ -13,6 +13,25 @@ All Go files must include this exact copyright header at the top:
 // SPDX-License-Identifier: MPL-2.0
 ```
 
+### Implementation Guidelines
+The following external contributing topics provide detailed best practices and guidance that supplement these coding style guidelines; new contributors are encouraged to review them for deeper context.
+  - [`contributing/topics/best-practices.md`](../../contributing/topics/best-practices.md)
+  - [`contributing/topics/guide-new-data-source.md`](../../contributing/topics/guide-new-data-source.md)
+  - [`contributing/topics/guide-new-feature.md`](../../contributing/topics/guide-new-feature.md)
+  - [`contributing/topics/guide-new-fields-to-data-source.md`](../../contributing/topics/guide-new-fields-to-data-source.md)
+  - [`contributing/topics/guide-new-fields-to-resource.md`](../../contributing/topics/guide-new-fields-to-resource.md)
+  - [`contributing/topics/guide-new-resource-vs-inline.md`](../../contributing/topics/guide-new-resource-vs-inline.md)
+  - [`contributing/topics/guide-new-resource.md`](../../contributing/topics/guide-new-resource.md)
+  - [`contributing/topics/guide-new-service-package.md`](../../contributing/topics/guide-new-service-package.md)
+  - [`contributing/topics/guide-new-write-only-attribute.md`](../../contributing/topics/guide-new-write-only-attribute.md)
+  - [`contributing/topics/guide-resource-ids.md`](../../contributing/topics/guide-resource-ids.md)
+  - [`contributing/topics/guide-state-migrations.md`](../../contributing/topics/guide-state-migrations.md)
+  - [`contributing/topics/reference-acceptance-testing.md`](../../contributing/topics/reference-acceptance-testing.md)
+  - [`contributing/topics/reference-documentation-standards.md`](../../contributing/topics/reference-documentation-standards.md)
+  - [`contributing/topics/reference-errors.md`](../../contributing/topics/reference-errors.md)
+  - [`contributing/topics/schema-design-considerations.md`](../../contributing/topics/schema-design-considerations.md)
+  - [`contributing/topics/reference-naming.md`](../../contributing/topics/reference-naming.md)
+
 ### Code Formatting (gofmt/gofumpt Enforced)
 - **gofmt**: All Go code must be formatted with `gofmt` (automatically handled by most editors)
 - **gofumpt**: Use `gofumpt` for stricter formatting that enforces additional style rules beyond gofmt
@@ -168,4 +187,5 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 - All code must pass `golangci-lint` checks
 - Use `make lint` to run linting locally
 - All tests must pass before merging
-- Use `make test` for unit tests, `make testacc` for acceptance tests
+- Use `make test` for unit tests
+- Use `make testacc` for acceptance tests
