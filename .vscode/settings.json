@@ -1,7 +1,7 @@
 {
     "github.copilot.chat.commitMessageGeneration.instructions": [
         {
-            "text": "Provide a concise and clear commit message that summarizes the changes made in the code."
+            "text": "Provide a concise and clear commit message that summarizes the changes made in the code, ideally under 50 characters."
         }
     ],
     "github.copilot.chat.codeGeneration.instructions": [

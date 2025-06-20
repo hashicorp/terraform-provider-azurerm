@@ -208,8 +208,6 @@ func dataSourceServiceNameResourceType() *pluginsdk.Resource {
 			},
 
             "tags": commonschema.TagsDataSource(),
-
-            "zones": commonschema.ZonesMultipleComputed(),
         },
     }
 }
@@ -235,7 +233,6 @@ func dataSourceServiceNameResourceTypeRead(ctx context.Context, d *pluginsdk.Res
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("zones", zones.FlattenUntyped(model.Zones))
 		d.Set("location", location.Normalize(model.Location))
 
 		storageAccountType := ""
