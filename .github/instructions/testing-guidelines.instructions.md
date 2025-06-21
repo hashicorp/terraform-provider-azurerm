@@ -45,7 +45,11 @@ While the core testing principles remain the same, there are some differences in
 
 #### Acceptance Tests
 - Primary testing method for Terraform resource lifecycle (CRUD operations)
-- Place acceptance tests in files ending with `_test.go` in the same package
+- Place acceptance tests in files ending with `_test.go` in the same directory as the resource
+- **Package Naming**: Acceptance tests must use the resource package name with `_test` appended
+  - Example: If the resource is in package `cdn`, tests should be in package `cdn_test`
+  - Example: If the resource is in package `compute`, tests should be in package `compute_test`
+  - This follows Go's external test package convention for testing exported APIs
 - Test against real Azure APIs with live Azure credentials
 - Use the acceptance testing framework provided by the provider
 - Test resource creation, updates, imports, and deletion
