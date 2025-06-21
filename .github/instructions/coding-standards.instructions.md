@@ -6,6 +6,14 @@ description: This document outlines the coding standards for Go files in the Ter
 ## Coding Standards
 Given below are the coding standards for the Terraform AzureRM provider which **MUST** be followed.
 
+### Modern vs Legacy Implementation Standards
+
+#### Modern SDK-Based Implementation (Preferred)
+The modern implementation uses the `internal/sdk` framework and should be used for new resources and data sources.
+
+#### Legacy Plugin SDK Implementation
+The legacy implementation uses traditional Plugin SDK v2 patterns and should be maintained for existing resources but not used for new implementations.
+
 ### Naming Conventions
 
 #### Package Names
@@ -16,6 +24,16 @@ Given below are the coding standards for the Terraform AzureRM provider which **
 #### Function Names
 - **Exported functions**: PascalCase (e.g., `CreateResource`, `ValidateInput`)
 - **Unexported functions**: camelCase (e.g., `parseResourceID`, `buildParameters`)
+
+**Modern SDK Implementation:**
+- **Resource struct methods**: Use receiver methods on struct types
+  - Examples: `(r ServiceNameResource) Create()`, `(r ServiceNameResource) Read()`
+- **Data source struct methods**: Use receiver methods on struct types
+  - Examples: `(r ServiceNameDataSource) Read()`
+- **Model structs**: Use PascalCase with descriptive suffixes
+  - Examples: `ServiceNameModel`, `ServiceNameDataSourceModel`
+
+**Legacy Plugin SDK Implementation:**
 - **Resource CRUD functions**: `resource[ResourceType][Operation]`
   - Examples: `resourceVirtualMachineCreate`, `resourceStorageAccountRead`
 - **Data source functions**: `dataSource[ResourceType]`
@@ -52,7 +70,138 @@ Given below are the coding standards for the Terraform AzureRM provider which **
 
 ### Resource Implementation Patterns
 
-#### Standard CRUD Functions
+#### Modern SDK-Based Implementation (Preferred)
+
+**Model Structure:**
+```go
+type ServiceNameModel struct {
+    Name              string            `tfschema:"name"`
+    ResourceGroup     string            `tfschema:"resource_group_name"`
+    Location          string            `tfschema:"location"`
+    Sku               string            `tfschema:"sku_name"`
+    Enabled           bool              `tfschema:"enabled"`
+    Tags              map[string]string `tfschema:"tags"`
+    
+    // Computed attributes
+    Endpoint          string            `tfschema:"endpoint"`
+    Status            string            `tfschema:"status"`
+}
+
+type ServiceNameResource struct{}
+
+var (
+    _ sdk.Resource           = ServiceNameResource{}
+    _ sdk.ResourceWithUpdate = ServiceNameResource{}
+)
+
+func (r ServiceNameResource) ResourceType() string {
+    return "azurerm_service_name"
+}
+
+func (r ServiceNameResource) ModelObject() interface{} {
+    return &ServiceNameModel{}
+}
+
+func (r ServiceNameResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+    return parse.ValidateServiceNameID
+}
+
+func (r ServiceNameResource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "name": {
+            Description:  "The name of the Service.",
+            Type:         pluginsdk.TypeString,
+            Required:     true,
+            ForceNew:     true,
+            ValidateFunc: validation.StringIsNotEmpty,
+        },
+        "resource_group_name": commonschema.ResourceGroupName(),
+        "location": commonschema.Location(),
+        "tags": tags.Schema(),
+    }
+}
+
+func (r ServiceNameResource) Attributes() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "endpoint": {
+            Description: "The endpoint URL of the Service.",
+            Type:        pluginsdk.TypeString,
+            Computed:    true,
+        },
+        "status": {
+            Description: "The current status of the Service.",
+            Type:        pluginsdk.TypeString,
+            Computed:    true,
+        },
+    }
+}
+```
+
+**Modern CRUD Functions:**
+```go
+func (r ServiceNameResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+            subscriptionId := metadata.Client.Account.SubscriptionId
+
+            var model ServiceNameModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            id := parse.NewServiceNameID(subscriptionId, model.ResourceGroup, model.Name)
+
+            metadata.Logger.Infof("Import check for %s", id)
+            existing, err := client.Get(ctx, id)
+            if err != nil && !response.WasNotFound(existing.HttpResponse) {
+                return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+            }
+
+            if !response.WasNotFound(existing.HttpResponse) {
+                return metadata.ResourceRequiresImport(r.ResourceType(), id)
+            }
+
+            metadata.Logger.Infof("Creating %s", id)
+            // Create logic here
+
+            metadata.SetID(id)
+            return nil
+        },
+    }
+}
+
+func (r ServiceNameResource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+
+            id, err := parse.ServiceNameID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+
+            metadata.Logger.Infof("Reading %s", id)
+            resp, err := client.Get(ctx, *id)
+            if err != nil {
+                if response.WasNotFound(resp.HttpResponse) {
+                    return metadata.MarkAsGone(id)
+                }
+                return fmt.Errorf("retrieving %s: %+v", id, err)
+            }
+
+            // Map response to model and encode
+            return metadata.Encode(&model)
+        },
+    }
+}
+```
+
+#### Legacy Plugin SDK Implementation
+
+**Standard CRUD Functions:**
 ```go
 func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error
 func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error  
@@ -60,7 +209,7 @@ func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, m
 func resourceServiceNameDelete(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error
 ```
 
-#### Resource Schema Patterns
+**Resource Schema Patterns:**
 ```go
 func resourceServiceName() *pluginsdk.Resource {
     return &pluginsdk.Resource{
@@ -96,7 +245,35 @@ func resourceServiceName() *pluginsdk.Resource {
 
 ### Error Handling
 
-#### Standard Error Patterns
+#### Modern SDK Error Patterns
+```go
+// Use metadata.Decode for model decoding errors
+var model ServiceNameModel
+if err := metadata.Decode(&model); err != nil {
+    return fmt.Errorf("decoding: %+v", err)
+}
+
+// Use metadata.Logger for structured logging
+metadata.Logger.Infof("Import check for %s", id)
+
+// Use metadata.ResourceRequiresImport for import conflicts
+if !response.WasNotFound(existing.HttpResponse) {
+    return metadata.ResourceRequiresImport(r.ResourceType(), id)
+}
+
+// Use metadata.MarkAsGone for deleted resources
+if response.WasNotFound(resp.HttpResponse) {
+    return metadata.MarkAsGone(id)
+}
+
+// Use metadata.SetID for resource ID management
+metadata.SetID(id)
+
+// Use metadata.Encode for state management
+return metadata.Encode(&model)
+```
+
+#### Legacy Error Patterns
 ```go
 // Use consistent error formatting with context
 if err != nil {
@@ -118,7 +295,32 @@ if response.WasThrottled(resp.HttpResponse) {
 
 ### Azure SDK Integration
 
-#### Client Usage
+#### Modern SDK Client Usage
+```go
+// Use metadata.Client for accessing clients
+client := metadata.Client.ServiceName.ResourceClient
+subscriptionId := metadata.Client.Account.SubscriptionId
+
+// Use structured logging with metadata.Logger
+metadata.Logger.Infof("Creating %s", id)
+
+// Use proper error context with modern SDK
+if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+    return fmt.Errorf("creating %s: %+v", id, err)
+}
+
+// Use metadata for resource ID management
+metadata.SetID(id)
+
+// Use metadata for state encoding/decoding
+var model ServiceNameModel
+if err := metadata.Decode(&model); err != nil {
+    return fmt.Errorf("decoding: %+v", err)
+}
+return metadata.Encode(&model)
+```
+
+#### Legacy Client Usage
 ```go
 // Standard client initialization
 client := meta.(*clients.Client).ServiceName.ResourceClient
@@ -171,27 +373,12 @@ d.SetId(id.ID())
 
 ### Testing Standards
 
-#### Test Organization
+For comprehensive testing patterns, implementation details, and Azure-specific testing guidelines, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
+
+#### Test Organization Standards
 - Place tests in same package with `_test.go` suffix
 - Use table-driven tests for multiple scenarios
 - Separate unit tests from acceptance tests
 - Use meaningful test names following `TestFunctionName_Scenario_ExpectedOutcome`
-
-#### Acceptance Test Patterns
-```go
-func TestAccResourceName_basic(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_resource_name", "test")
-    r := ResourceNameResource{}
-    
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("name").HasValue(data.RandomString),
-            ),
-        },
-        data.ImportStep(),
-    })
-}
-```
+- Write comprehensive acceptance tests for all resources
+- Include import tests for all resources (`data.ImportStep()`)

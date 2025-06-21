@@ -19,6 +19,29 @@ description: This document outlines the standards and guidelines for writing doc
 - **Resources**: Exports computed values after creation/update
 - **Data Sources**: Exports all available information from existing resources
 
+## Implementation Approach Considerations
+
+### Modern vs Legacy Implementation Documentation
+
+While the underlying Go implementation (modern SDK vs legacy Plugin SDK) is transparent to end users, documentation should maintain consistency regardless of implementation approach:
+
+#### Documentation Standards (Both Approaches)
+- **User Experience**: Documentation should be identical regardless of whether the resource uses modern SDK-based or legacy Plugin SDK implementation
+- **Feature Parity**: Both approaches should document the same Azure resource capabilities and behaviors
+- **Example Consistency**: HCL configuration examples should follow the same patterns and naming conventions
+- **Argument Documentation**: Schema definitions should be documented identically regardless of implementation approach
+
+#### Implementation-Aware Considerations
+- **Feature Availability**: Some newer features may only be available in modern SDK implementations - document actual capabilities
+- **Error Messages**: Modern implementations may provide more structured error handling - reflect actual user experience
+- **Validation**: Modern implementations may have improved validation - document current behavior accurately
+- **Import Patterns**: Resource ID formats should be consistent but verify actual import functionality
+
+#### Migration Transparency
+- **Seamless Experience**: When resources migrate from legacy to modern implementation, documentation changes should be minimal
+- **Behavioral Consistency**: Document the resource behavior as users experience it, not the implementation details
+- **Version Notes**: Avoid mentioning implementation approaches in user-facing documentation unless absolutely necessary
+
 ## Documentation Structure
 
 ### File Organization
@@ -343,6 +366,21 @@ description: |-
 * `list_argument` - (Optional) A list of `list_argument` blocks as defined below.
 ```
 
+#### Implementation-Specific Documentation Guidelines
+When documenting resources that may use different implementation approaches:
+
+**Feature Documentation:**
+- **Available Features**: Document only features that are actually available in the current implementation
+- **Validation Patterns**: Reflect the actual validation behavior users will experience
+- **Error Handling**: Describe error messages and handling as they actually appear to users
+- **Import Behavior**: Document the actual import functionality and resource ID format
+
+**Version Considerations:**
+- **Current Functionality**: Always document what works in the current provider version
+- **Future Features**: Avoid documenting features not yet available
+- **Migration Notes**: If implementation changes affect user experience, document the changes in release notes, not resource docs
+- **Consistency**: Maintain consistent documentation style regardless of underlying implementation
+
 #### Data Source Argument Documentation Patterns
 ```markdown
 * `argument_name` - The name/identifier used to locate the existing resource.
@@ -377,6 +415,27 @@ A `configuration` block supports the following:
 - Include multiple lookup scenarios when relevant
 - Show filtering and selection patterns
 - Demonstrate practical use cases
+
+#### Modern vs Legacy Implementation Examples
+While implementation approach is transparent to users, ensure examples reflect actual behavior:
+
+**Modern Implementation Considerations:**
+- May have more comprehensive validation in examples
+- Could include newer Azure features and capabilities
+- May demonstrate improved error handling patterns
+- Should reflect any enhanced functionality
+
+**Legacy Implementation Considerations:**
+- Examples should match currently available functionality
+- May have more basic validation patterns
+- Should accurately represent current feature set
+- Focus on proven, stable configuration patterns
+
+**Consistency Requirements:**
+- HCL syntax and structure should be identical regardless of implementation
+- Resource and argument names must match exactly
+- Behavior described should reflect actual user experience
+- Examples should work with the current provider version
 
 #### Resource Example Naming Conventions
 ```hcl

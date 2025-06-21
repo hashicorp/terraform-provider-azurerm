@@ -6,6 +6,32 @@ description: This document outlines the testing guidelines for Go files in the T
 ## Testing Guidelines
 Given below are the testing guidelines for the Terraform AzureRM provider which **MUST** be followed.
 
+### Implementation Approach Testing Considerations
+
+#### Modern vs Legacy Resource Testing
+
+While the core testing principles remain the same, there are some differences in testing patterns between modern (SDK-based) and legacy (Plugin SDK v2) resource implementations:
+
+**Modern SDK-Based Resource Testing:**
+- Resources use the `internal/sdk` framework with type-safe models
+- Testing patterns leverage `sdk.ResourceFunc` return types with `metadata` access
+- Resource existence checks access clients through `metadata.Client`
+- Error handling and logging use structured `metadata` patterns
+- State management uses `metadata.Decode()` and `metadata.Encode()`
+
+**Legacy Plugin SDK Resource Testing:**
+- Resources use traditional Plugin SDK v2 patterns with function-based CRUD
+- Testing patterns use direct `*pluginsdk.ResourceData` and `clients.Client` access
+- Resource existence checks use traditional client initialization patterns
+- Error handling uses traditional error patterns and direct state manipulation
+- State management uses `d.Set()` and `d.Get()` patterns
+
+**Testing Consistency Requirements:**
+- **User Experience**: Acceptance tests should be identical regardless of implementation approach
+- **Test Framework**: Both approaches use the same acceptance testing framework
+- **Resource Lifecycle**: Both approaches test the same CRUD operations and import functionality
+- **Azure Integration**: Both approaches test the same Azure API interactions and behaviors
+
 ### Test Types
 
 #### Unit Tests
@@ -155,6 +181,27 @@ func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) {
 ### Azure-Specific Testing Guidelines
 
 #### Resource Existence Checks
+
+The implementation of resource existence checks differs between modern and legacy approaches:
+
+**Modern SDK Resource Existence Check:**
+```go
+func (r ServiceNameResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+    id, err := parse.ServiceNameID(state.ID)
+    if err != nil {
+        return nil, err
+    }
+
+    resp, err := clients.ServiceName.ResourceClient.Get(ctx, *id)
+    if err != nil {
+        return nil, fmt.Errorf("reading %s: %+v", *id, err)
+    }
+
+    return utils.Bool(resp.Model != nil), nil
+}
+```
+
+**Legacy Plugin SDK Resource Existence Check:**
 ```go
 func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
     id, err := parse.FrontDoorProfileID(state.ID)
@@ -172,6 +219,37 @@ func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.
 ```
 
 #### Test Configuration Templates
+
+Test configuration templates should be consistent regardless of implementation approach, but the underlying resource structure may differ:
+
+**Modern SDK Test Configuration Example:**
+```go
+func (r ServiceNameResource) basic(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_name" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name           = "Standard"
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+```
+
+**Legacy Plugin SDK Test Configuration Example:**
 ```go
 func (CdnFrontDoorProfileResource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`

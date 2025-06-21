@@ -1,6 +1,6 @@
 ---
 applyTo: "internal/**/*.go"
-description: This document outlines the coding style for Go files in the Terraform AzureRM provider repository. It includes naming conventions, formatting rules, and guidelines for writing maintainable Terraform provider code.
+description: This document outlines the basic coding style for Go files in the Terraform AzureRM provider repository. It focuses on formatting rules, import organization, and fundamental Go style guidelines. For comprehensive standards and implementation patterns, see the other instruction files.
 ---
 
 ## Coding Style for Go Files
@@ -60,132 +60,118 @@ import (
 )
 ```
 
-### Naming Conventions
+### Basic Go Naming Conventions
 
-#### Functions and Methods
-- **Exported functions**: Use PascalCase (e.g., `CreateResource`, `ValidateInput`)
-- **Unexported functions**: Use camelCase (e.g., `parseResourceID`, `buildParameters`)
-- **Resource functions**: Follow pattern `resource[ServiceName][ResourceType][Operation]`
-  - Examples: `resourceVirtualMachineCreate`, `resourceStorageAccountRead`
+For comprehensive naming conventions including modern vs legacy patterns, see [`coding-standards.instructions.md`](./coding-standards.instructions.md).
 
-#### Variables and Constants
-- **Exported variables**: Use PascalCase
-- **Unexported variables**: Use camelCase
-- **Constants**: Use PascalCase for exported, camelCase for unexported
-- **Acronyms**: Keep as uppercase (e.g., `resourceGroupID`, `vmSSH`)
-
-#### Types and Structs
-- **Exported types**: Use PascalCase
-- **Unexported types**: Use camelCase
+#### Basic Rules
+- **Exported identifiers**: Use PascalCase (e.g., `CreateResource`, `ValidateInput`)
+- **Unexported identifiers**: Use camelCase (e.g., `parseResourceID`, `buildParameters`)
+- **Acronyms**: Keep as uppercase (e.g., `resourceGroupID`, `vmSSH`, `apiURL`)
 - **Interface names**: Often end with 'er' (e.g., `ResourceProvider`, `Validator`)
 
-### Terraform Provider Patterns
+### Modern vs Legacy Style Considerations
 
-#### Resource Functions
-```go
-// Standard CRUD function signatures
-func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error
-func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error
-func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error
-func resourceServiceNameDelete(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error
-```
+While most formatting rules apply to both implementation approaches, there are some style differences to be aware of:
 
-#### Error Handling
+#### Modern SDK-Based Style (Preferred)
 ```go
-// Use consistent error formatting with context
-if err != nil {
-    return fmt.Errorf("creating Resource %q: %+v", name, err)
+// Model struct with tfschema tags (modern approach)
+type ServiceResourceModel struct {
+    Name          string            `tfschema:"name"`
+    ResourceGroup string            `tfschema:"resource_group_name"`
+    Location      string            `tfschema:"location"`
+    Tags          map[string]string `tfschema:"tags"`
 }
 
-// Include resource information in error messages
-return fmt.Errorf("retrieving Resource %q (Resource Group %q): %+v", 
-    resourceName, resourceGroupName, err)
+// Resource struct methods (modern approach)
+func (r ServiceResourceResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // Implementation
+        },
+    }
+}
 ```
 
-#### Client Usage
+#### Legacy Plugin SDK Style (Maintenance)
 ```go
-// Standard client initialization pattern
-client := meta.(*clients.Client).ServiceName.ResourceClient
+// Traditional function-based approach (legacy)
+func resourceServiceCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    // Implementation
+}
 
-// Use parsed resource IDs for type safety
-id := parse.NewResourceID(subscriptionId, resourceGroupName, resourceName)
+// Traditional schema definition (legacy)
+func resourceServiceSchema() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "name": {
+            Type:     pluginsdk.TypeString,
+            Required: true,
+        },
+    }
+}
 ```
+
+#### Style Guidelines for Both Approaches
+- **File naming**: Use snake_case for all file names (`service_resource.go`, `service_data_source.go`)
+- **Package organization**: Group related functionality within service packages
+- **Import grouping**: Always maintain the three-group import structure (standard, third-party, local)
+- **Function length**: Keep functions focused and under 50 lines when possible
+- **Variable naming**: Use descriptive names that indicate purpose and scope
 
 ### Documentation and Comments
 
-#### Function Documentation
-```go
-// resourceVirtualMachineCreate handles the creation of Azure Virtual Machines.
-// It validates the configuration, provisions the VM through Azure Resource Manager,
-// and waits for the deployment to complete before updating the Terraform state.
-func resourceVirtualMachineCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
-```
-
-#### Package Documentation
+#### Go Documentation Standards
 ```go
 // Package compute provides Terraform resources for Azure Compute services
 // including Virtual Machines, Virtual Machine Scale Sets, and related resources.
 package compute
-```
 
-### Azure-Specific Patterns
-
-#### Resource Schema
-```go
-// Use consistent schema patterns
-"name": {
-    Type:         pluginsdk.TypeString,
-    Required:     true,
-    ForceNew:     true,
-    ValidateFunc: validation.StringIsNotEmpty,
-},
-
-"location": azure.SchemaLocation(),
-
-"resource_group_name": azure.SchemaResourceGroupName(),
-```
-
-#### Long-Running Operations
-```go
-// Use *ThenPoll methods for long-running operations
-if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-    return fmt.Errorf("creating Resource %q: %+v", id.ResourceName, err)
+// CreateResource creates a new Azure resource with the specified configuration.
+// It validates the input parameters and returns an error if validation fails.
+func CreateResource(config *ResourceConfig) error {
+    // Implementation here
 }
 ```
 
-### Code Quality Standards
+#### Documentation Style by Implementation Approach
 
-#### golangci-lint Rules
-- **gofmt**: Code must be formatted with gofmt
-- **gofumpt**: Code must pass gofumpt stricter formatting checks
-- **goimports**: Imports must be organized correctly
-- **govet**: Pass go vet checks
-- **ineffassign**: No ineffective assignments
-- **misspell**: No common misspellings
-- **unconvert**: No unnecessary type conversions
+**Modern SDK Documentation:**
+```go
+// ServiceResourceModel represents the Terraform model for Service Resource
+type ServiceResourceModel struct {
+    // Name is the unique identifier for the service resource
+    Name string `tfschema:"name"`
+}
 
-#### Testing Requirements
-- All exported functions should have corresponding tests
-- Use table-driven tests for multiple scenarios
-- Mock external dependencies appropriately
-- Follow acceptance test patterns for resource lifecycle testing
+// Create implements the create operation for Service Resource
+func (r ServiceResourceResource) Create() sdk.ResourceFunc {
+    // Return function handles resource creation lifecycle
+}
+```
 
-### File Organization
+**Legacy Plugin SDK Documentation:**
+```go
+// resourceServiceCreate handles the creation of Service Resource in Terraform
+func resourceServiceCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    // Extract configuration and create Azure resource
+}
 
-#### Directory Structure
-- Place resource files in `internal/services/[service]/`
-- Use separate files for different resource types
-- Group related utilities in shared files
-- Keep test files alongside source files with `_test.go` suffix
+// resourceServiceSchema defines the Terraform schema for Service Resource
+func resourceServiceSchema() map[string]*pluginsdk.Schema {
+    // Return schema definition for resource configuration
+}
+```
 
-#### File Naming
-- Resource files: `[service]_[resource_type]_resource.go`
-- Data source files: `[service]_[resource_type]_data_source.go`
-- Utility files: descriptive names (e.g., `validate.go`, `parse.go`)
+#### Comment Style
+- Use `//` for single-line comments
+- Use `/* */` for multi-line comments only when necessary
+- Comments should explain "why" not "what" when the code is clear
+- Keep comments up-to-date with code changes
 
-### Build and Linting
-- All code must pass `golangci-lint` checks
-- Use `make lint` to run linting locally
-- All tests must pass before merging
-- Use `make test` for unit tests
-- Use `make testacc` for acceptance tests
+For detailed implementation patterns and comprehensive standards, see:
+- [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) - Detailed implementation patterns
+- [`coding-standards.instructions.md`](./coding-standards.instructions.md) - Comprehensive coding standards
+- [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md) - Testing guidelines
+- [`terraform-provider-guidelines.instructions.md`](./terraform-provider-guidelines.instructions.md) - Azure-specific guidelines

@@ -6,9 +6,458 @@ description: This document outlines the coding patterns for Go files in the Terr
 ## Coding Patterns for Terraform AzureRM Provider
 Given below are the coding patterns for the Terraform AzureRM provider which **MUST** be followed.
 
-### Resource Implementation Pattern
+### Implementation Approach Overview
 
-#### Standard Resource Structure
+This provider supports two implementation approaches:
+
+#### **Modern SDK-Based Implementation (Preferred)**
+- Uses the `internal/sdk` framework with type-safe models
+- Employs receiver methods on resource/data source structs
+- Features structured state management with `tfschema` tags
+- Provides enhanced error handling and logging through metadata
+- **Recommended for all new resources and data sources**
+
+#### **Legacy Plugin SDK Implementation (Maintenance)**
+- Uses traditional Plugin SDK v2 patterns with function-based CRUD
+- Employs direct schema manipulation and `d.Set()`/`d.Get()` patterns
+- Features traditional error handling and state management
+- **Maintained for existing resources but not recommended for new development**
+
+Both approaches are covered comprehensively below with complete implementation examples.
+
+### Modern Resource Implementation Pattern (SDK v2)
+
+The modern pattern uses the `internal/sdk` framework which provides a more structured approach with type-safe models and clear separation between arguments and attributes.
+
+#### Modern Resource Structure
+```go
+type ServiceNameResourceTypeModel struct {
+    Name              string            `tfschema:"name"`
+    ResourceGroup     string            `tfschema:"resource_group_name"`
+    Location          string            `tfschema:"location"`
+    Sku               string            `tfschema:"sku_name"`
+    Enabled           bool              `tfschema:"enabled"`
+    Configuration     []ConfigModel     `tfschema:"configuration"`
+    Tags              map[string]string `tfschema:"tags"`
+    
+    // Computed attributes
+    Id                string            `tfschema:"id"`
+    Endpoint          string            `tfschema:"endpoint"`
+    Status            string            `tfschema:"status"`
+}
+
+type ConfigModel struct {
+    Setting1 string `tfschema:"setting1"`
+    Setting2 string `tfschema:"setting2"`
+}
+
+type ServiceNameResourceTypeResource struct{}
+
+var (
+    _ sdk.Resource           = ServiceNameResourceTypeResource{}
+    _ sdk.ResourceWithUpdate = ServiceNameResourceTypeResource{}
+)
+
+func (r ServiceNameResourceTypeResource) ResourceType() string {
+    return "azurerm_service_name_resource_type"
+}
+
+func (r ServiceNameResourceTypeResource) ModelObject() interface{} {
+    return &ServiceNameResourceTypeModel{}
+}
+
+func (r ServiceNameResourceTypeResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+    return parse.ValidateServiceNameResourceTypeID
+}
+
+func (r ServiceNameResourceTypeResource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "name": {
+            Type:         pluginsdk.TypeString,
+            Required:     true,
+            ForceNew:     true,
+            ValidateFunc: validation.StringIsNotEmpty,
+        },
+
+        "resource_group_name": commonschema.ResourceGroupName(),
+
+        "location": commonschema.Location(),
+
+        "sku_name": {
+            Type:     pluginsdk.TypeString,
+            Required: true,
+            ValidateFunc: validation.StringInSlice([]string{
+                "Standard",
+                "Premium",
+            }, false),
+        },
+
+        "enabled": {
+            Type:     pluginsdk.TypeBool,
+            Optional: true,
+            Default:  true,
+        },
+
+        "configuration": {
+            Type:     pluginsdk.TypeList,
+            Optional: true,
+            MaxItems: 1,
+            Elem: &pluginsdk.Resource{
+                Schema: map[string]*pluginsdk.Schema{
+                    "setting1": {
+                        Type:         pluginsdk.TypeString,
+                        Required:     true,
+                        ValidateFunc: validation.StringIsNotEmpty,
+                    },
+                    "setting2": {
+                        Type:     pluginsdk.TypeString,
+                        Optional: true,
+                        Default:  "default_value",
+                    },
+                },
+            },
+        },
+
+        "tags": tags.Schema(),
+    }
+}
+
+func (r ServiceNameResourceTypeResource) Attributes() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "id": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+
+        "endpoint": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+
+        "status": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+    }
+}
+```
+
+#### Modern CRUD Operations
+```go
+func (r ServiceNameResourceTypeResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceTypeClient
+            subscriptionId := metadata.Client.Account.SubscriptionId
+
+            var model ServiceNameResourceTypeModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            id := parse.NewServiceNameResourceTypeID(subscriptionId, model.ResourceGroup, model.Name)
+
+            metadata.Logger.Infof("Import check for %s", id)
+            existing, err := client.Get(ctx, id)
+            if err != nil && !response.WasNotFound(existing.HttpResponse) {
+                return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+            }
+
+            if !response.WasNotFound(existing.HttpResponse) {
+                return metadata.ResourceRequiresImport(r.ResourceType(), id)
+            }
+
+            metadata.Logger.Infof("Creating %s", id)
+
+            properties := servicenametype.ResourceType{
+                Location: model.Location,
+                Properties: &servicenametype.ResourceTypeProperties{
+                    Enabled: &model.Enabled,
+                    // Map other properties
+                },
+                Sku: &servicenametype.Sku{
+                    Name: servicenametype.SkuName(model.Sku),
+                },
+                Tags: &model.Tags,
+            }
+
+            if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+                return fmt.Errorf("creating %s: %+v", id, err)
+            }
+
+            metadata.SetID(id)
+            return nil
+        },
+    }
+}
+
+func (r ServiceNameResourceTypeResource) Update() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceTypeClient
+
+            id, err := parse.ServiceNameResourceTypeID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+
+            metadata.Logger.Infof("Decoding state for %s", id)
+            var state ServiceNameResourceTypeModel
+            if err := metadata.Decode(&state); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            metadata.Logger.Infof("Updating %s", id)
+
+            properties := servicenametype.ResourceTypeUpdate{
+                Properties: &servicenametype.ResourceTypeProperties{
+                    Enabled: &state.Enabled,
+                },
+                Sku: &servicenametype.Sku{
+                    Name: servicenametype.SkuName(state.Sku),
+                },
+                Tags: &state.Tags,
+            }
+
+            if err := client.UpdateThenPoll(ctx, *id, properties); err != nil {
+                return fmt.Errorf("updating %s: %+v", id, err)
+            }
+
+            return nil
+        },
+    }
+}
+
+func (r ServiceNameResourceTypeResource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceTypeClient
+
+            id, err := parse.ServiceNameResourceTypeID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+
+            metadata.Logger.Infof("Reading %s", id)
+            resp, err := client.Get(ctx, *id)
+            if err != nil {
+                if response.WasNotFound(resp.HttpResponse) {
+                    return metadata.MarkAsGone(id)
+                }
+                return fmt.Errorf("retrieving %s: %+v", id, err)
+            }
+
+            model := resp.Model
+            if model == nil {
+                return fmt.Errorf("retrieving %s: model was nil", id)
+            }
+
+            state := ServiceNameResourceTypeModel{
+                Name:          id.ResourceTypeName,
+                ResourceGroup: id.ResourceGroupName,
+            }
+
+            if model.Location != nil {
+                state.Location = *model.Location
+            }
+
+            if model.Sku != nil {
+                state.Sku = string(model.Sku.Name)
+            }
+
+            if model.Tags != nil {
+                state.Tags = *model.Tags
+            }
+
+            if props := model.Properties; props != nil {
+                if props.Enabled != nil {
+                    state.Enabled = *props.Enabled
+                }
+                // Map other properties
+            }
+
+            return metadata.Encode(&state)
+        },
+    }
+}
+
+func (r ServiceNameResourceTypeResource) Delete() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceTypeClient
+
+            id, err := parse.ServiceNameResourceTypeID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+
+            metadata.Logger.Infof("Deleting %s", id)
+
+            if err := client.DeleteThenPoll(ctx, *id); err != nil {
+                return fmt.Errorf("deleting %s: %+v", id, err)
+            }
+
+            return nil
+        },
+    }
+}
+```
+
+### Modern Data Source Pattern
+```go
+type ServiceNameResourceTypeDataSourceModel struct {
+    Name              string            `tfschema:"name"`
+    ResourceGroup     string            `tfschema:"resource_group_name"`
+    Location          string            `tfschema:"location"`
+    Sku               string            `tfschema:"sku_name"`
+    Enabled           bool              `tfschema:"enabled"`
+    Configuration     []ConfigModel     `tfschema:"configuration"`
+    Tags              map[string]string `tfschema:"tags"`
+    Endpoint          string            `tfschema:"endpoint"`
+    Status            string            `tfschema:"status"`
+}
+
+type ServiceNameResourceTypeDataSource struct{}
+
+var _ sdk.DataSource = ServiceNameResourceTypeDataSource{}
+
+func (r ServiceNameResourceTypeDataSource) ResourceType() string {
+    return "azurerm_service_name_resource_type"
+}
+
+func (r ServiceNameResourceTypeDataSource) ModelObject() interface{} {
+    return &ServiceNameResourceTypeDataSourceModel{}
+}
+
+func (r ServiceNameResourceTypeDataSource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+    return parse.ValidateServiceNameResourceTypeID
+}
+
+func (r ServiceNameResourceTypeDataSource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "name": {
+            Type:         pluginsdk.TypeString,
+            Required:     true,
+            ValidateFunc: validation.StringIsNotEmpty,
+        },
+
+        "resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+    }
+}
+
+func (r ServiceNameResourceTypeDataSource) Attributes() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "location": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+
+        "sku_name": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+
+        "enabled": {
+            Type:     pluginsdk.TypeBool,
+            Computed: true,
+        },
+
+        "configuration": {
+            Type:     pluginsdk.TypeList,
+            Computed: true,
+            Elem: &pluginsdk.Resource{
+                Schema: map[string]*pluginsdk.Schema{
+                    "setting1": {
+                        Type:     pluginsdk.TypeString,
+                        Computed: true,
+                    },
+                    "setting2": {
+                        Type:     pluginsdk.TypeString,
+                        Computed: true,
+                    },
+                },
+            },
+        },
+
+        "endpoint": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+
+        "status": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+
+        "tags": tags.SchemaDataSource(),
+    }
+}
+
+func (r ServiceNameResourceTypeDataSource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceTypeClient
+            subscriptionId := metadata.Client.Account.SubscriptionId
+
+            var state ServiceNameResourceTypeDataSourceModel
+            if err := metadata.Decode(&state); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            id := parse.NewServiceNameResourceTypeID(subscriptionId, state.ResourceGroup, state.Name)
+
+            resp, err := client.Get(ctx, id)
+            if err != nil {
+                if response.WasNotFound(resp.HttpResponse) {
+                    return fmt.Errorf("%s was not found", id)
+                }
+                return fmt.Errorf("retrieving %s: %+v", id, err)
+            }
+
+            model := resp.Model
+            if model == nil {
+                return fmt.Errorf("retrieving %s: model was nil", id)
+            }
+
+            state.Name = id.ResourceTypeName
+            state.ResourceGroup = id.ResourceGroupName
+
+            if model.Location != nil {
+                state.Location = *model.Location
+            }
+
+            if model.Sku != nil {
+                state.Sku = string(model.Sku.Name)
+            }
+
+            if model.Tags != nil {
+                state.Tags = *model.Tags
+            }
+
+            if props := model.Properties; props != nil {
+                if props.Enabled != nil {
+                    state.Enabled = *props.Enabled
+                }
+                // Map other properties and computed attributes
+            }
+
+            metadata.SetID(id)
+            return metadata.Encode(&state)
+        },
+    }
+}
+```
+
+### Legacy Resource Implementation Pattern (Plugin SDK v2)
+
+The legacy pattern uses the traditional Plugin SDK v2 approach with direct schema manipulation. This pattern is still used in many existing resources and should be maintained for backward compatibility.
+
+#### Legacy Resource Structure
 ```go
 func resourceServiceNameResourceType() *pluginsdk.Resource {
     return &pluginsdk.Resource{
@@ -51,7 +500,7 @@ func resourceServiceNameResourceTypeSchema() map[string]*pluginsdk.Schema {
 }
 ```
 
-#### CRUD Operation Pattern
+#### Legacy CRUD Operation Pattern
 ```go
 func resourceServiceNameResourceTypeCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     client := meta.(*clients.Client).ServiceName.ResourceTypeClient
@@ -151,7 +600,7 @@ func NewClient(o *common.ClientOptions) *Client {
 }
 ```
 
-### Data Source Pattern
+### Legacy Data Source Pattern
 
 #### Standard Data Source Structure
 ```go
@@ -406,55 +855,12 @@ func ServiceNameResourceTypeID(input string) (*ServiceNameResourceTypeId, error)
 
 ### Testing Patterns
 
-#### Acceptance Test Pattern
-```go
-func TestAccServiceNameResourceType_basic(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_service_name_resource_type", "test")
-    r := ServiceNameResourceTypeTestResource{}
+For comprehensive testing patterns, implementation details, and Azure-specific testing guidelines, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
 
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("name").HasValue(data.RandomString),
-                check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
-            ),
-        },
-        data.ImportStep(),
-    })
-}
-
-func (r ServiceNameResourceTypeTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-    id, err := parse.ServiceNameResourceTypeID(state.ID)
-    if err != nil {
-        return nil, err
-    }
-
-    resp, err := clients.ServiceName.ResourceTypeClient.Get(ctx, *id)
-    if err != nil {
-        return nil, fmt.Errorf("retrieving %s: %w", *id, err)
-    }
-
-    return utils.Bool(resp.Model != nil), nil
-}
-
-func (r ServiceNameResourceTypeTestResource) basic(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_service_name_resource_type" "test" {
-  name                = "acctest-%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-```
+Key testing requirements:
+- Write comprehensive acceptance tests for all resources
+- Use the standard acceptance test framework
+- Test both success and failure scenarios
+- Ensure tests are idempotent and can run in parallel
+- Include import tests for all resources (`data.ImportStep()`)
+- Test Azure-specific features like resource tagging and location handling
