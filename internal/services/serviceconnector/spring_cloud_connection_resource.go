@@ -91,6 +91,7 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 		schema["client_type"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Computed: true,
 			Default:  string(servicelinker.ClientTypeNone),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(servicelinker.ClientTypeNone),
