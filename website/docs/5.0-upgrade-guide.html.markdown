@@ -398,6 +398,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `topic_name` property has been removed.
 * The deprecated `enable_batched_operations` property has been removed in favour of the `batched_operations_enabled` property.
 
+### azurerm_spring_cloud_connection
+
+* The property `client_type` no longer accepts `none` as a value. Because this is Optional, `none` is the same as omitting the field.
+
 ### `azurerm_storage_container`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.

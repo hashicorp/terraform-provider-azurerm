@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SpringCloudConnectorResource struct{}
@@ -35,7 +35,7 @@ type SpringCloudConnectorResourceModel struct {
 }
 
 func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+	schema := map[string]*schema.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -60,11 +60,7 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 		"client_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
-			Default: string(servicelinker.ClientTypeNone),
 			ValidateFunc: validation.StringInSlice([]string{
-				// TODO: remove `None` in 4.0, since this is Optional `None` == omitting the field
-				string(servicelinker.ClientTypeNone),
 				string(servicelinker.ClientTypeDotnet),
 				string(servicelinker.ClientTypeJava),
 				string(servicelinker.ClientTypePython),
@@ -90,6 +86,28 @@ func (r SpringCloudConnectorResource) Arguments() map[string]*schema.Schema {
 
 		"authentication": authInfoSchema(),
 	}
+
+	if !features.FivePointOh() {
+		schema["client_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(servicelinker.ClientTypeNone),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(servicelinker.ClientTypeNone),
+				string(servicelinker.ClientTypeDotnet),
+				string(servicelinker.ClientTypeJava),
+				string(servicelinker.ClientTypePython),
+				string(servicelinker.ClientTypeGo),
+				string(servicelinker.ClientTypePhp),
+				string(servicelinker.ClientTypeRuby),
+				string(servicelinker.ClientTypeDjango),
+				string(servicelinker.ClientTypeNodejs),
+				string(servicelinker.ClientTypeSpringBoot),
+			}, false),
+		}
+	}
+
+	return schema
 }
 
 func (r SpringCloudConnectorResource) Attributes() map[string]*schema.Schema {
@@ -164,8 +182,8 @@ func (r SpringCloudConnectorResource) Create() sdk.ResourceFunc {
 			}
 
 			props := servicelinker.LinkerResource{
-				Id:         utils.String(id.ID()),
-				Name:       utils.String(model.Name),
+				Id:         pointer.To(id.ID()),
+				Name:       pointer.To(model.Name),
 				Properties: serviceConnectorProperties,
 			}
 
@@ -211,7 +229,7 @@ func (r SpringCloudConnectorResource) Read() sdk.ResourceFunc {
 					AuthInfo:         flattenServiceConnectorAuthInfo(props.AuthInfo, pwd),
 				}
 
-				if props.ClientType != nil {
+				if props.ClientType != nil && pointer.From(props.ClientType) != servicelinker.ClientTypeNone {
 					state.ClientType = string(*props.ClientType)
 				}
 
