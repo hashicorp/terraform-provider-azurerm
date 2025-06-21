@@ -37,6 +37,7 @@ resource "azurerm_management_group_policy_set_definition" "example" {
 PARAMETERS
 
   policy_definition_reference {
+    version              = "1.0.*"
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
     parameter_values     = <<VALUES
    {
@@ -96,6 +97,8 @@ A `policy_definition_reference` block supports the following:
 * `policy_group_names` - (Optional) Specifies a list of Policy Definition Groups names that this Policy Definition Reference belongs to.
 
 * `reference_id` - (Optional) A unique ID within this Policy Set Definition for this Policy Definition Reference.
+
+* `version` - (Optional) The version of the Policy Definition to use.
 
 ## Attributes Reference
 
