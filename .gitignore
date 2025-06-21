@@ -60,5 +60,6 @@ tf.zip
 
 # do not upload GitHub Copilot specific folders and copilot instructions file
 .github/prompts/*
+!.github/prompts/*.prompt.md
 !.github/instructions/
 !.github/prompts/
