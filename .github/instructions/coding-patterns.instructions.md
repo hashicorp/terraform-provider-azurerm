@@ -582,6 +582,263 @@ func resourceServiceNameResourceTypeRead(ctx context.Context, d *pluginsdk.Resou
 }
 ```
 
+#### State Management with d.GetRawConfig()
+
+**When to Use `d.GetRawConfig()` vs `d.Get()` (untyped Resources Only):**
+
+`d.GetRawConfig()` should be used in specific scenarios where you need to distinguish between user-configured values and computed/default values. This method is only available in untyped Plugin SDK resource implementations.
+
+**Appropriate Use Cases:**
+```go
+// 1. Detecting if a user explicitly set a value vs using a default
+func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    client := meta.(*clients.Client).ServiceName.ResourceClient
+    
+    id, err := parse.ServiceNameID(d.Id())
+    if err != nil {
+        return err
+    }
+    
+    parameters := serviceapi.UpdateParameters{
+        Name: d.Get("name").(string),
+    }
+    
+    // Check if user explicitly configured the setting
+    if raw := d.GetRawConfig().GetAttr("timeout_seconds"); !raw.IsNull() {
+        // User explicitly set this value, use it
+        timeoutValue := d.Get("timeout_seconds").(int)
+        parameters.TimeoutSeconds = &timeoutValue
+    }
+    // If raw is null, don't send timeout_seconds parameter to Azure API
+    // This allows Azure to use its service default
+    
+    if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+        return fmt.Errorf("updating %s: %+v", *id, err)
+    }
+    
+    return nil
+}
+
+// 1b. Alternative pattern using AsValueMap() for multiple fields
+func resourceServiceNameUpdateAlternative(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    client := meta.(*clients.Client).ServiceName.ResourceClient
+    
+    id, err := parse.ServiceNameID(d.Id())
+    if err != nil {
+        return err
+    }
+    
+    parameters := serviceapi.UpdateParameters{
+        Name: d.Get("name").(string),
+    }
+    
+    // Get all raw config values at once for multiple checks
+    rawConfig := d.GetRawConfig().AsValueMap()
+    
+    // Check if user explicitly configured sampling_percentage
+    samplingPercentage := rawConfig["sampling_percentage"]
+    if !samplingPercentage.IsNull() {
+        parameters.SamplingSettings = &serviceapi.SamplingSettings{
+            SamplingType: serviceapi.SamplingTypeFixed,
+            Percentage:   d.Get("sampling_percentage").(float64),
+        }
+    } else {
+        parameters.SamplingSettings = nil
+    }
+    
+    // Check if user explicitly configured timeout_seconds
+    timeoutSeconds := rawConfig["timeout_seconds"]
+    if !timeoutSeconds.IsNull() {
+        timeoutValue := d.Get("timeout_seconds").(int)
+        parameters.TimeoutSeconds = &timeoutValue
+    }
+    
+    if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+        return fmt.Errorf("updating %s: %+v", *id, err)
+    }
+    
+    return nil
+}
+
+// 2. Handling optional complex blocks that should be omitted when not configured
+func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    client := meta.(*clients.Client).ServiceName.ResourceClient
+    subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+    
+    name := d.Get("name").(string)
+    resourceGroupName := d.Get("resource_group_name").(string)
+    location := azure.NormalizeLocation(d.Get("location").(string))
+    
+    id := parse.NewServiceNameID(subscriptionId, resourceGroupName, name)
+    
+    parameters := serviceapi.CreateParameters{
+        Name:     name,
+        Location: location,
+    }
+    
+    // Only include advanced_config if user explicitly configured it
+    if raw := d.GetRawConfig().GetAttr("advanced_config"); !raw.IsNull() {
+        advancedConfig := expandAdvancedConfig(d.Get("advanced_config").([]interface{}))
+        parameters.AdvancedConfig = &advancedConfig
+    }
+    // If raw is null, don't include AdvancedConfig in API call
+    
+    if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+        return fmt.Errorf("creating %s: %+v", id, err)
+    }
+    
+    d.SetId(id.ID())
+    return nil
+}
+
+// 3. Preserving Azure service defaults vs Terraform defaults
+func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    client := meta.(*clients.Client).ServiceName.ResourceClient
+    
+    id, err := parse.ServiceNameID(d.Id())
+    if err != nil {
+        return err
+    }
+    
+    resp, err := client.Get(ctx, *id)
+    if err != nil {
+        if response.WasNotFound(resp.HttpResponse) {
+            log.Printf("[DEBUG] %s was not found - removing from state", *id)
+            d.SetId("")
+            return nil
+        }
+        return fmt.Errorf("retrieving %s: %+v", *id, err)
+    }
+    
+    d.Set("name", id.ServiceName)
+    d.Set("resource_group_name", id.ResourceGroupName)
+    
+    if model := resp.Model; model != nil {
+        d.Set("location", azure.NormalizeLocation(model.Location))
+        
+        if props := model.Properties; props != nil {
+            // Only set in state if user originally configured it
+            if raw := d.GetRawConfig().GetAttr("timeout_seconds"); !raw.IsNull() {
+                d.Set("timeout_seconds", props.TimeoutSeconds)
+            }
+            // If user never set timeout_seconds, don't store Azure's default in state
+        }
+    }
+    
+    return nil
+}
+```
+
+**When NOT to Use `d.GetRawConfig()`:**
+```go
+// AVOID: Using GetRawConfig for required fields
+func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    client := meta.(*clients.Client).ServiceName.ResourceClient
+    
+    // INCORRECT - required fields should always use d.Get()
+    var name string
+    if raw := d.GetRawConfig().GetAttr("name"); !raw.IsNull() {
+        name = d.Get("name").(string)
+    }
+    
+    // CORRECT - required fields always use d.Get()
+    name := d.Get("name").(string)
+    
+    // Continue with resource creation...
+    return nil
+}
+
+// AVOID: Using GetRawConfig when you always need the value
+func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    client := meta.(*clients.Client).ServiceName.ResourceClient
+    
+    // INCORRECT - if you always need the value, use d.Get()
+    var enabled bool
+    if raw := d.GetRawConfig().GetAttr("enabled"); !raw.IsNull() {
+        enabled = d.Get("enabled").(bool)
+    } else {
+        enabled = false // This adds unnecessary complexity
+    }
+    
+    // CORRECT - use d.Get() with proper default handling
+    enabled := d.Get("enabled").(bool) // Schema default will be used if not set
+    
+    // Use the enabled value in API call...
+    return nil
+}
+
+// AVOID: Using GetRawConfig in typed resource implementations
+// Typed resources use metadata.Decode() patterns instead
+func (r ServiceNameResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // CORRECT for typed resources - use metadata.Decode()
+            var model ServiceNameModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+            
+            // DON'T try to use d.GetRawConfig() in typed resources
+            // The metadata pattern handles this automatically
+            return nil
+        },
+    }
+}
+```
+
+**Schema Design for `d.GetRawConfig()` Patterns:**
+```go
+// When planning to use GetRawConfig, consider schema defaults carefully
+func resourceServiceNameSchema() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "timeout_seconds": {
+            Type:     pluginsdk.TypeInt,
+            Optional: true,
+            // NO Default here if you want to distinguish between
+            // user-set vs Azure service default
+        },
+        
+        "advanced_config": {
+            Type:     pluginsdk.TypeList,
+            Optional: true,
+            MaxItems: 1,
+            // GetRawConfig useful here to distinguish between
+            // empty block {} vs not configured at all
+            Elem: &pluginsdk.Resource{
+                Schema: map[string]*pluginsdk.Schema{
+                    "setting": {
+                        Type:     pluginsdk.TypeString,
+                        Required: true,
+                    },
+                },
+            },
+        },
+        
+        "enabled": {
+            Type:     pluginsdk.TypeBool,
+            Optional: true,
+            Default:  true,
+            // GetRawConfig not needed here - default handling is sufficient
+        },
+    }
+}
+```
+
+**Best Practices for `d.GetRawConfig()`:**
+- **Use sparingly**: Only when you need to distinguish between explicit configuration and defaults
+- **Document intent**: Add comments explaining why GetRawConfig is necessary
+- **Consider alternatives**: Often proper schema defaults eliminate the need for GetRawConfig
+- **untyped only**: This pattern is only available in untyped Plugin SDK resources
+- **Validate necessity**: Ask if the Azure API behavior truly requires distinguishing explicit vs default values
+- **Test thoroughly**: Ensure behavior works correctly with both explicit and omitted values
+
+**Anti-Patterns to Avoid:**
+- **AVOID**: Overusing GetRawConfig when d.Get() with defaults would work
+- **AVOID**: Using GetRawConfig for required fields
+- **AVOID**: Using GetRawConfig when the value is always needed
+- **AVOID**: Complex conditional logic that could be simplified with proper defaults
+- **AVOID**: Using GetRawConfig in typed resource implementations (use metadata patterns instead)
+
 ### Import Management Pattern
 
 #### Standard Go Import Organization
@@ -681,7 +938,7 @@ func NewClient(o *common.ClientOptions) *Client {
 ```go
 func dataSourceServiceNameResourceType() *pluginsdk.Resource {
     return &pluginsdk.Resource{
-        Read: dataSourceManagedDiskRead,
+        Read: dataSourceServiceNameResourceTypeRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -742,7 +999,7 @@ func dataSourceServiceNameResourceTypeRead(ctx context.Context, d *pluginsdk.Res
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := commonids.NewManagedDiskID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := parse.NewServiceNameResourceTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -939,3 +1196,7 @@ Key testing requirements:
 - Ensure tests are idempotent and can run in parallel
 - Include import tests for all resources (`data.ImportStep()`)
 - Test Azure-specific features like resource tagging and location handling
+
+
+
+

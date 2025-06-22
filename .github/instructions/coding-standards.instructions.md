@@ -435,8 +435,6 @@ CustomizeDiff: pluginsdk.All(
 ),
 ```
 
-
-
 ### Migration Guidelines
 
 #### Migrating from Untyped to Typed Implementation
@@ -581,6 +579,10 @@ d.SetId(id.ID())
     // ForceNew: false allows in-place updates
 },
 ```
+
+### State Management Standards
+
+For detailed state management patterns including when to use `d.GetRawConfig()` vs `d.Get()` in untyped Plugin SDK resources, see the State Management section in [`coding-patterns.instructions.md`](./coding-patterns.instructions.md).
 
 ### Testing Standards
 
