@@ -8,19 +8,19 @@ Given below are the testing guidelines for the Terraform AzureRM provider which 
 
 ### Implementation Approach Testing Considerations
 
-#### Modern vs Legacy Resource Testing
+#### Typed vs Untyped Resource Testing
 
-While the core testing principles remain the same, there are some differences in testing patterns between modern (SDK-based) and legacy (Plugin SDK v2) resource implementations:
+While the core testing principles remain the same, there are some differences in testing patterns between typed resource and untyped (Plugin SDK) resource implementations:
 
-**Modern SDK-Based Resource Testing:**
+**Typed Resource Testing:**
 - Resources use the `internal/sdk` framework with type-safe models
 - Testing patterns leverage `sdk.ResourceFunc` return types with `metadata` access
 - Resource existence checks access clients through `metadata.Client`
 - Error handling and logging use structured `metadata` patterns
 - State management uses `metadata.Decode()` and `metadata.Encode()`
 
-**Legacy Plugin SDK Resource Testing:**
-- Resources use traditional Plugin SDK v2 patterns with function-based CRUD
+**untyped Plugin SDK Resource Testing:**
+- Resources use traditional Plugin SDK patterns with function-based CRUD
 - Testing patterns use direct `*pluginsdk.ResourceData` and `clients.Client` access
 - Resource existence checks use traditional client initialization patterns
 - Error handling uses traditional error patterns and direct state manipulation
@@ -67,6 +67,65 @@ While the core testing principles remain the same, there are some differences in
 - Example: `TestAccCdnFrontDoorProfile_basic`
 - Example: `TestAccCdnFrontDoorProfile_update`
 - Example: `TestAccCdnFrontDoorProfile_requiresImport`
+
+### CustomizeDiff Testing Patterns
+
+When testing resources that use CustomizeDiff, remember the dual import requirement:
+
+```go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+```
+
+**Testing CustomizeDiff Validation:**
+```go
+func TestAccServiceName_customizeDiffValidation(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config:      r.invalidConfiguration(data),
+            ExpectError: regexp.MustCompile("`configuration` is required when `enabled` is true"),
+        },
+        {
+            Config: r.validConfiguration(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+    })
+}
+```
+
+**Testing ForceNew Behavior with CustomizeDiff:**
+```go
+func TestAccServiceName_forceNewOnPropertyChange(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("property_name").HasValue("initial_value"),
+            ),
+        },
+        {
+            Config: r.updatedProperty(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("property_name").HasValue("updated_value"),
+                // Verify the resource ID changed (ForceNew behavior)
+                check.That(data.ResourceName).Key("id").Exists(),
+            ),
+        },
+    })
+}
+```
 
 ### Go Testing Patterns
 
@@ -186,9 +245,9 @@ func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) {
 
 #### Resource Existence Checks
 
-The implementation of resource existence checks differs between modern and legacy approaches:
+The implementation of resource existence checks differs between typed and untyped approaches:
 
-**Modern SDK Resource Existence Check:**
+**typed resource Resource Existence Check:**
 ```go
 func (r ServiceNameResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
     id, err := parse.ServiceNameID(state.ID)
@@ -205,7 +264,7 @@ func (r ServiceNameResource) Exists(ctx context.Context, clients *clients.Client
 }
 ```
 
-**Legacy Plugin SDK Resource Existence Check:**
+**untyped Plugin SDK Resource Existence Check:**
 ```go
 func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
     id, err := parse.FrontDoorProfileID(state.ID)
@@ -226,7 +285,7 @@ func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.
 
 Test configuration templates should be consistent regardless of implementation approach, but the underlying resource structure may differ:
 
-**Modern SDK Test Configuration Example:**
+**typed resource Test Configuration Example:**
 ```go
 func (r ServiceNameResource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`
@@ -253,7 +312,7 @@ resource "azurerm_service_name" "test" {
 }
 ```
 
-**Legacy Plugin SDK Test Configuration Example:**
+**untyped Plugin SDK Test Configuration Example:**
 ```go
 func (CdnFrontDoorProfileResource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`

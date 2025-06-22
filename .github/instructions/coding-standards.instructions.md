@@ -6,13 +6,13 @@ description: This document outlines the coding standards for Go files in the Ter
 ## Coding Standards
 Given below are the coding standards for the Terraform AzureRM provider which **MUST** be followed.
 
-### Modern vs Legacy Implementation Standards
+### Typed vs Untyped Resource Implementation Standards
 
-#### Modern SDK-Based Implementation (Preferred)
-The modern implementation uses the `internal/sdk` framework and should be used for new resources and data sources.
+#### Typed Resource Implementation (Preferred)
+The Typed Resource implementation uses the `internal/sdk` framework and should be used for new resources and data sources.
 
-#### Legacy Plugin SDK Implementation
-The legacy implementation uses traditional Plugin SDK v2 patterns and should be maintained for existing resources but not used for new implementations.
+#### UnTyped Resource Implementation
+The Untyped Resource Implementation uses traditional Plugin SDK patterns and should be maintained for existing resources but not used for new implementations.
 
 ### Naming Conventions
 
@@ -25,7 +25,7 @@ The legacy implementation uses traditional Plugin SDK v2 patterns and should be 
 - **Exported functions**: PascalCase (e.g., `CreateResource`, `ValidateInput`)
 - **Unexported functions**: camelCase (e.g., `parseResourceID`, `buildParameters`)
 
-**Modern SDK Implementation:**
+**Typed Resource Implementation:**
 - **Resource struct methods**: Use receiver methods on struct types
   - Examples: `(r ServiceNameResource) Create()`, `(r ServiceNameResource) Read()`
 - **Data source struct methods**: Use receiver methods on struct types
@@ -33,7 +33,7 @@ The legacy implementation uses traditional Plugin SDK v2 patterns and should be 
 - **Model structs**: Use PascalCase with descriptive suffixes
   - Examples: `ServiceNameModel`, `ServiceNameDataSourceModel`
 
-**Legacy Plugin SDK Implementation:**
+**UnTyped Resource Implementation:**
 - **Resource CRUD functions**: `resource[ResourceType][Operation]`
   - Examples: `resourceVirtualMachineCreate`, `resourceStorageAccountRead`
 - **Data source functions**: `dataSource[ResourceType]`
@@ -70,7 +70,7 @@ The legacy implementation uses traditional Plugin SDK v2 patterns and should be 
 
 ### Resource Implementation Patterns
 
-#### Modern SDK-Based Implementation (Preferred)
+#### Typed Resource Implementation (Preferred)
 
 **Model Structure:**
 ```go
@@ -137,7 +137,7 @@ func (r ServiceNameResource) Attributes() map[string]*pluginsdk.Schema {
 }
 ```
 
-**Modern CRUD Functions:**
+**Typed CRUD Functions:**
 ```go
 func (r ServiceNameResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
@@ -199,7 +199,7 @@ func (r ServiceNameResource) Read() sdk.ResourceFunc {
 }
 ```
 
-#### Legacy Plugin SDK Implementation
+#### UnTyped Resource Implementation
 
 **Standard CRUD Functions:**
 ```go
@@ -245,7 +245,7 @@ func resourceServiceName() *pluginsdk.Resource {
 
 ### Error Handling
 
-#### Modern SDK Error Patterns
+#### typed resource Error Patterns
 ```go
 // Use metadata.Decode for model decoding errors
 var model ServiceNameModel
@@ -273,7 +273,7 @@ metadata.SetID(id)
 return metadata.Encode(&model)
 ```
 
-#### Legacy Error Patterns
+#### untyped Error Patterns
 ```go
 // Use consistent error formatting with context
 if err != nil {
@@ -293,9 +293,220 @@ if response.WasThrottled(resp.HttpResponse) {
 }
 ```
 
+
+#### CustomizeDiff Implementation Pattern
+
+**Dual Import Requirement:**
+When implementing CustomizeDiff functions, both packages must be imported:
+
+```go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+```
+
+**Standard CustomizeDiff Resource Pattern:**
+```go
+func resourceServiceName() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceServiceNameCreate,
+        Read:   resourceServiceNameRead,
+        Update: resourceServiceNameUpdate,
+        Delete: resourceServiceNameDelete,
+
+        CustomizeDiff: pluginsdk.All(
+            // Must use *schema.ResourceDiff from external package
+            pluginsdk.ForceNewIfChange("property_name", func(ctx context.Context, old, new, meta interface{}) bool {
+                return old.(string) != new.(string)
+            }),
+            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Custom validation logic
+                if diff.Get("enabled").(bool) && diff.Get("configuration") == nil {
+                    return fmt.Errorf("configuration is required when enabled is true")
+                }
+                return nil
+            },
+        ),
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definitions use pluginsdk types
+        },
+    }
+}
+```
+
+**Why This Pattern is Required:**
+- The internal pluginsdk package provides aliases for most Plugin SDK types
+- However, CustomizeDiff function signatures are **not** aliased and must use *schema.ResourceDiff
+- The pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers are available in the internal package
+- Resource and schema definitions use pluginsdk types for consistency
+#### Common CustomizeDiff Import Issues and Troubleshooting
+
+**Compilation Error: `pluginsdk.ResourceDiff` is not defined**
+```go
+//  INCORRECT - Will cause compilation error
+func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
+    // pluginsdk.ResourceDiff doesn't exist - this will fail to compile
+}
+
+//  CORRECT - Must use external schema package
+func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+    // Custom validation logic using the correct type
+}
+```
+
+**Missing Import Error**
+If you see errors like `undefined: schema.ResourceDiff`, ensure you have both imports:
+```go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"    // Required for *schema.ResourceDiff
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"  // Required for helpers
+)
+```
+
+**Helper Function Usage**
+```go
+// Use pluginsdk helpers for common patterns
+CustomizeDiff: pluginsdk.All(
+    pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
+        return old.(string) != new.(string)
+    }),
+    // Custom validation functions use *schema.ResourceDiff
+    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        // Validation logic
+        return nil
+    },
+),
+```
+
+#### Azure-Specific CustomizeDiff Examples
+
+**Azure Storage Account SKU and Kind Validation:**
+```go
+CustomizeDiff: pluginsdk.All(
+    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        accountTier := diff.Get("account_tier").(string)
+        accountKind := diff.Get("account_kind").(string)
+        
+        if accountTier == "Premium" && accountKind != "BlockBlobStorage" && accountKind != "FileStorage" {
+            return fmt.Errorf("`account_kind` must be `BlockBlobStorage` or `FileStorage` when `account_tier` is `Premium`")
+        }
+        return nil
+    },
+    pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
+        return old.(string) != new.(string)
+    }),
+),
+```
+
+**Azure Virtual Machine SKU and Zone Validation:**
+```go
+CustomizeDiff: pluginsdk.All(
+    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        size := diff.Get("size").(string)
+        zones := diff.Get("zones").([]interface{})
+        
+        // Check if VM size supports availability zones
+        if len(zones) > 0 && !supportsAvailabilityZones(size) {
+            return fmt.Errorf("VM size `%s` does not support availability zones", size)
+        }
+        return nil
+    },
+    pluginsdk.ForceNewIfChange("size", func(ctx context.Context, old, new, meta interface{}) bool {
+        // Force recreation when changing VM size
+        return old.(string) != new.(string)
+    }),
+),
+```
+
+**Azure Premium SKU with Zone Redundancy:**
+```go
+CustomizeDiff: pluginsdk.All(
+    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        skuName := diff.Get("sku_name").(string)
+        zoneRedundant := diff.Get("zone_redundant").(bool)
+        
+        if skuName == "Premium" && !zoneRedundant {
+            return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+        }
+        return nil
+    },
+),
+```
+
+
+
+### Migration Guidelines
+
+#### Migrating from Untyped to Typed Implementation
+
+**Migration Decision Criteria:**
+- **New Resources**: Always use Typed Resource Implementation
+- **Major Feature Additions**: Consider migration opportunity when adding significant functionality
+- **Bug Fixes**: Maintain existing untyped implementation for simple fixes
+- **End-of-Life Planning**: Plan migration for resources approaching major version changes
+
+**Migration Process:**
+1. **Assessment Phase**
+   - Analyze existing resource complexity and usage patterns
+   - Identify breaking changes that may be required
+   - Plan migration timeline and testing strategy
+
+2. **Implementation Phase**
+   ```go
+   // Step 1: Create typed model structure
+   type ExistingResourceModel struct {
+       Name          string            `tfschema:"name"`
+       ResourceGroup string            `tfschema:"resource_group_name"`
+       // Map all existing schema fields
+   }
+   
+   // Step 2: Implement typed resource interface
+   type ExistingResource struct{}
+   
+   var _ sdk.Resource = ExistingResource{}
+   ```
+
+3. **Testing Phase**
+   - Comprehensive acceptance test coverage
+   - State compatibility validation
+   - Import functionality verification
+   - Cross-version compatibility testing
+
+**Migration Considerations:**
+- **State Compatibility**: Ensure Terraform state remains compatible during migration
+- **User Impact**: Migration should be transparent to end users
+- **Feature Parity**: Maintain all existing functionality
+- **Documentation**: Update examples and guides without breaking existing configurations
+- **Rollback Plan**: Maintain ability to revert if critical issues arise
+
+**State Management During Migration:**
+```go
+// Ensure consistent resource ID format
+func (r ExistingResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+    return parse.ValidateExistingResourceID  // Use same parser as untyped version
+}
+
+// Maintain backward compatibility in Read operation
+func (r ExistingResource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // Handle both old and new state formats if necessary
+            id, err := parse.ExistingResourceID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+            // Continue with standard typed implementation
+            return nil
+        },
+    }
+}
+```
+
 ### Azure SDK Integration
 
-#### Modern SDK Client Usage
+#### typed resource Client Usage
 ```go
 // Use metadata.Client for accessing clients
 client := metadata.Client.ServiceName.ResourceClient
@@ -304,7 +515,7 @@ subscriptionId := metadata.Client.Account.SubscriptionId
 // Use structured logging with metadata.Logger
 metadata.Logger.Infof("Creating %s", id)
 
-// Use proper error context with modern SDK
+// Use proper error context with typed resource
 if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
     return fmt.Errorf("creating %s: %+v", id, err)
 }
@@ -320,7 +531,7 @@ if err := metadata.Decode(&model); err != nil {
 return metadata.Encode(&model)
 ```
 
-#### Legacy Client Usage
+#### untyped Client Usage
 ```go
 // Standard client initialization
 client := meta.(*clients.Client).ServiceName.ResourceClient

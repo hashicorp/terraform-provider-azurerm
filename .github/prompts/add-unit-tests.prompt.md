@@ -18,7 +18,7 @@ Add unit tests for this Go file in the Terraform AzureRM provider. Make sure you
 
 This provider supports two implementation approaches. **Unit testing patterns should be appropriate for the implementation approach being tested.**
 
-### Modern SDK-Based Implementation Testing
+### Typed Resource Implementation Testing
 **For resources using the internal/sdk framework**
 
 - Test type-safe model structures with 	fschema tags
@@ -28,13 +28,13 @@ This provider supports two implementation approaches. **Unit testing patterns sh
 - Test resource interfaces (sdk.Resource, sdk.ResourceWithUpdate, etc.)
 - Test IDValidationFunc() method implementations
 
-### Legacy Plugin SDK Implementation Testing  
-**For resources using traditional Plugin SDK v2 patterns**
+### Untyped Resource Implementation Testing  
+**For resources using traditional Plugin SDK patterns**
 
 - Test function-based CRUD patterns
 - Test direct schema manipulation patterns
 - Test traditional client initialization
-- Test 	f.ImportAsExistsError() and state manipulation patterns
+- Test f.ImportAsExistsError() and state manipulation patterns
 - Test d.Set() and d.Get() state management
 
 ### Common Testing Patterns (Both Approaches)
@@ -53,34 +53,27 @@ This provider supports two implementation approaches. **Unit testing patterns sh
 
 ## Go Testing Patterns
 
-- Use 	.Run() for subtests to group related test cases
-- Use 
-equire for assertions that should stop test execution on failure
-- Use ssert for assertions that should continue test execution
+- Use .Run() for subtests to group related test cases
+- Use require for assertions that should stop test execution on failure
+- Use Assert for assertions that should continue test execution
 - Use table-driven tests for testing multiple scenarios
-- Use 	estify/mock for mocking complex dependencies
+- Use testify/mock for mocking complex dependencies
 - Test both success and failure paths
 
 ## Go Testing Assertions and Patterns
 
-- Use if got != want or 
-equire.Equal(t, want, got) for value comparisons
-- Use 
-equire.NoError(t, err) for error checks that should stop test execution
-- Use ssert.Error(t, err) for expected errors that shouldn't stop execution
-- Use 
-equire.NotNil(t, result) or 
-equire.Nil(t, result) for nil checks
-- Use 
-equire.True(t, condition) or 
-equire.False(t, condition) for boolean conditions
+- Use if got != want or Require.Equal(t, want, got) for value comparisons
+- Use Require.NoError(t, err) for error checks that should stop test execution
+- Use Assert.Error(t, err) for expected errors that shouldn't stop execution
+- Use Require.NotNil(t, result) or Require.Nil(t, result) for nil checks
+- Use Require.True(t, condition) or Require.False(t, condition) for boolean conditions
 
 ## Implementation-Specific Testing Patterns
 
-### Modern SDK Resource Testing Patterns
+### typed resource Resource Testing Patterns
 
 #### Model Structure Testing
-`go
+```go
 package servicename_test
 
 import (
@@ -102,10 +95,10 @@ func TestServiceNameResourceModel_TfschemaValidation(t *testing.T) {
     require.Equal(t, "test-resource", model.Name)
     require.Equal(t, "test-rg", model.ResourceGroup)
 }
-`
+```
 
 #### Resource Interface Testing
-`go
+```go
 func TestServiceNameResource_Interfaces(t *testing.T) {
     resource := servicename.ServiceNameResource{}
     
@@ -120,10 +113,10 @@ func TestServiceNameResource_Interfaces(t *testing.T) {
     model := resource.ModelObject()
     require.IsType(t, &servicename.ServiceNameResourceModel{}, model)
 }
-`
+```
 
-#### Modern SDK Error Handling Testing
-`go
+#### typed resource Error Handling Testing
+```go
 func TestServiceNameResource_ErrorHandling(t *testing.T) {
     // Test metadata error patterns
     testCases := []struct {
@@ -144,16 +137,16 @@ func TestServiceNameResource_ErrorHandling(t *testing.T) {
     
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
-            // Test error handling patterns specific to modern SDK
+            // Test error handling patterns specific to typed resource
         })
     }
 }
-`
+```
 
-### Legacy Plugin SDK Testing Patterns
+### untyped Plugin SDK Testing Patterns
 
 #### Function-Based CRUD Testing
-`go
+```go
 package servicename_test
 
 func TestResourceServiceNameCreate_ValidationPatterns(t *testing.T) {
@@ -186,15 +179,15 @@ func TestResourceServiceNameCreate_ValidationPatterns(t *testing.T) {
     
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
-            // Test legacy validation patterns
+            // Test untyped validation patterns
         })
     }
 }
-`
+```
 
-#### Legacy Error Handling Testing
-`go
-func TestResourceServiceName_LegacyErrorHandling(t *testing.T) {
+#### untyped Error Handling Testing
+```go
+func TestResourceServiceName_untypedErrorHandling(t *testing.T) {
     testCases := []struct {
         name           string
         mockResponse   *http.Response
@@ -214,16 +207,16 @@ func TestResourceServiceName_LegacyErrorHandling(t *testing.T) {
     
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
-            // Test legacy error handling patterns
+            // Test untyped error handling patterns
         })
     }
 }
-`
+```
 
 ## Common Testing Patterns (Both Approaches)
 
 ### Resource ID Parsing Tests
-`go
+```go
 func TestParseServiceNameResourceID(t *testing.T) {
     testCases := []struct {
         name     string
@@ -265,10 +258,10 @@ func TestParseServiceNameResourceID(t *testing.T) {
         })
     }
 }
-`
+```
 
 ### Validation Function Tests
-`go
+```go
 func TestValidateServiceNameResourceName(t *testing.T) {
     validNames := []string{
         "valid-name",
@@ -301,10 +294,10 @@ func TestValidateServiceNameResourceName(t *testing.T) {
         })
     }
 }
-`
+```
 
 ### Azure-Specific Validation Tests
-`go
+```go
 func TestValidateAzureLocation(t *testing.T) {
     validLocations := []string{
         "East US",
@@ -335,10 +328,10 @@ func TestValidateAzureLocation(t *testing.T) {
         })
     }
 }
-`
+```
 
 ### Schema Expand/Flatten Function Tests
-`go
+```go
 func TestExpandServiceNameResourceConfig(t *testing.T) {
     input := []interface{}{
         map[string]interface{}{
@@ -391,10 +384,10 @@ func TestFlattenServiceNameResourceConfig(t *testing.T) {
     tags := config["tags"].(map[string]interface{})
     require.Equal(t, "test", tags["Environment"])
 }
-`
+```
 
 ### Azure API Error Handling Tests
-`go
+```go
 func TestHandleAzureAPIErrors(t *testing.T) {
     testCases := []struct {
         name         string
@@ -441,7 +434,7 @@ func TestHandleAzureAPIErrors(t *testing.T) {
         })
     }
 }
-`
+```
 
 ## Azure Service-Specific Testing Considerations
 
@@ -452,7 +445,7 @@ func TestHandleAzureAPIErrors(t *testing.T) {
 - Test character restrictions and length limits
 
 ### Location and Region Handling
-`go
+```go
 func TestAzureLocationNormalization(t *testing.T) {
     testCases := []struct {
         input    string
@@ -471,10 +464,10 @@ func TestAzureLocationNormalization(t *testing.T) {
         })
     }
 }
-`
+```
 
 ### Resource Tags Testing
-`go
+```go
 func TestAzureResourceTags(t *testing.T) {
     input := map[string]interface{}{
         "Environment": "production",
@@ -489,7 +482,7 @@ func TestAzureResourceTags(t *testing.T) {
     require.Equal(t, "terraform-provider", (*result)["Project"])
     require.Equal(t, "platform-team", (*result)["Owner"])
 }
-`
+```
 
 ## Running Tests
 
@@ -497,16 +490,16 @@ func TestAzureResourceTags(t *testing.T) {
 - Run specific test: go test -run TestFunctionName ./internal/services/servicename/
 - Run tests with coverage: go test -cover ./internal/services/servicename/...
 - Run acceptance tests: make testacc TEST=./internal/services/servicename TESTARGS='-run=TestAccResourceName'
-- Run tests for modern SDK resources: Focus on receiver method testing and model validation
-- Run tests for legacy resources: Focus on function-based patterns and traditional state management
+- Run tests for typed resource resources: Focus on receiver method testing and model validation
+- Run tests for untyped resources: Focus on function-based patterns and traditional state management
 
 ## Best Practices Summary
 
-1. **Implementation Awareness**: Choose appropriate testing patterns based on whether the code uses modern SDK or legacy approaches
+1. **Implementation Awareness**: Choose appropriate testing patterns based on whether the code uses typed resource or untyped approaches
 2. **Package Naming**: Use external test package convention (package servicename_test)
 3. **Test Coverage**: Focus on utility functions, parsers, and validators rather than full resource lifecycle
 4. **Azure Integration**: Test Azure-specific patterns like resource ID parsing, location handling, and API error responses
-5. **Error Handling**: Test both modern SDK error patterns (metadata methods) and legacy patterns (traditional error handling)
+5. **Error Handling**: Test both typed resource error patterns (metadata methods) and untyped patterns (traditional error handling)
 6. **Consistency**: Ensure tests follow the same patterns regardless of implementation approach for common functionality
 7. **Mocking**: Use appropriate mocking for Azure API calls and external dependencies
 8. **Edge Cases**: Test boundary conditions, invalid inputs, and error scenarios thoroughly

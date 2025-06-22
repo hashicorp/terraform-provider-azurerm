@@ -17,10 +17,10 @@ Given below are the Azure-specific guidelines for this Terraform Provider projec
 
 ### Implementation Approach Guidelines
 
-#### Modern SDK-Based Implementation (Preferred)
-For new resources and data sources, use the modern `internal/sdk` framework. For detailed patterns, see [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) and [`coding-standards.instructions.md`](./coding-standards.instructions.md).
+#### Typed Resource Implementation (Preferred)
+For new resources and data sources, use the typed resource `internal/sdk` framework. For detailed patterns, see [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) and [`coding-standards.instructions.md`](./coding-standards.instructions.md).
 
-Azure-specific modern implementation requirements:
+Azure-specific typed implementation requirements:
 - Use type-safe model structures with `tfschema` tags for Azure resource properties
 - Leverage `metadata.Client` for Azure SDK client access and structured logging
 - Implement proper resource ID validation with Azure-specific parsing utilities
@@ -28,10 +28,10 @@ Azure-specific modern implementation requirements:
 - Handle Azure resource lifecycle with proper import conflict detection
 - Implement Azure resource existence checks using `metadata.MarkAsGone()`
 
-#### Legacy Plugin SDK Implementation (Maintenance Only)
-For existing resources that haven't been migrated, maintain the traditional Plugin SDK v2 approach. For detailed patterns, see [`coding-patterns.instructions.md`](./coding-patterns.instructions.md).
+#### Untyped Resource Implementation (Maintenance Only)
+For existing resources that haven't been migrated, maintain the traditional Plugin SDK approach. For detailed patterns, see [`coding-patterns.instructions.md`](./coding-patterns.instructions.md).
 
-Azure-specific legacy implementation requirements:
+Azure-specific untyped implementation requirements:
 - Use direct schema manipulation with proper Azure resource validation
 - Implement Azure API client initialization through `clients.Client`
 - Handle Azure resource state using `d.Set()` and `d.Get()` patterns
@@ -48,7 +48,7 @@ Azure-specific legacy implementation requirements:
 
 ### Azure Client Management Patterns
 
-#### Modern SDK Client Usage
+#### typed resource Client Usage
 ```go
 // Use metadata.Client for accessing Azure clients
 client := metadata.Client.ServiceName.ResourceClient
@@ -57,13 +57,13 @@ subscriptionId := metadata.Client.Account.SubscriptionId
 // Use structured logging with metadata.Logger
 metadata.Logger.Infof("Creating %s", id)
 
-// Proper Azure API error handling with modern SDK
+// Proper Azure API error handling with typed resource
 if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
     return fmt.Errorf("creating %s: %+v", id, err)
 }
 ```
 
-#### Legacy Client Usage
+#### untyped Client Usage
 ```go
 // Standard Azure client initialization
 client := meta.(*clients.Client).ServiceName.ResourceClient
@@ -71,11 +71,58 @@ client := meta.(*clients.Client).ServiceName.ResourceClient
 // Use Azure resource ID parsing for type safety
 id := parse.NewResourceID(subscriptionId, resourceGroupName, resourceName)
 
-// Azure long-running operations with legacy pattern
+// Azure long-running operations with untyped pattern
 if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
     return fmt.Errorf("creating Azure Resource %q: %+v", id.ResourceName, err)
 }
 ```
+
+### CustomizeDiff Implementation for Azure Resources
+
+#### Standard CustomizeDiff Pattern
+```go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+func resourceAzureServiceName() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceAzureServiceNameCreate,
+        Read:   resourceAzureServiceNameRead,
+        Update: resourceAzureServiceNameUpdate,
+        Delete: resourceAzureServiceNameDelete,
+
+        CustomizeDiff: pluginsdk.All(
+            // Azure-specific validation
+            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Validate Azure resource dependencies
+                if diff.Get("sku_name").(string) == "Premium" && 
+                   diff.Get("zone_redundant").(bool) == false {
+                    return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+                }
+                return nil
+            },
+            // Force recreation for Azure resource properties that require it
+            pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
+                return old.(string) != new.(string)
+            }),
+        ),
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Azure resource schema
+        },
+    }
+}
+```
+
+#### Azure-Specific CustomizeDiff Use Cases
+- **SKU validation**: Ensure Azure SKU combinations are valid
+- **Location constraints**: Validate region-specific feature availability
+- **Resource dependencies**: Check Azure resource prerequisite relationships
+- **API version compatibility**: Ensure feature combinations match Azure API versions
+- **Performance tier validation**: Validate Azure performance tier constraints
+
 
 ### Azure-Specific Resource Patterns
 - Use standardized resource naming patterns with resourceToken

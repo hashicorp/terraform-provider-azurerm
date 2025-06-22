@@ -62,7 +62,7 @@ import (
 
 ### Basic Go Naming Conventions
 
-For comprehensive naming conventions including modern vs legacy patterns, see [`coding-standards.instructions.md`](./coding-standards.instructions.md).
+For comprehensive naming conventions including typed vs untyped patterns, see [`coding-standards.instructions.md`](./coding-standards.instructions.md).
 
 #### Basic Rules
 - **Exported identifiers**: Use PascalCase (e.g., `CreateResource`, `ValidateInput`)
@@ -70,13 +70,13 @@ For comprehensive naming conventions including modern vs legacy patterns, see [`
 - **Acronyms**: Keep as uppercase (e.g., `resourceGroupID`, `vmSSH`, `apiURL`)
 - **Interface names**: Often end with 'er' (e.g., `ResourceProvider`, `Validator`)
 
-### Modern vs Legacy Style Considerations
+### typed vs untyped Style Considerations
 
 While most formatting rules apply to both implementation approaches, there are some style differences to be aware of:
 
-#### Modern SDK-Based Style (Preferred)
+#### typed resource-Based Style (Preferred)
 ```go
-// Model struct with tfschema tags (modern approach)
+// Model struct with tfschema tags (typed resource approach)
 type ServiceResourceModel struct {
     Name          string            `tfschema:"name"`
     ResourceGroup string            `tfschema:"resource_group_name"`
@@ -84,7 +84,7 @@ type ServiceResourceModel struct {
     Tags          map[string]string `tfschema:"tags"`
 }
 
-// Resource struct methods (modern approach)
+// Resource struct methods (typed resource approach)
 func (r ServiceResourceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute,
@@ -95,14 +95,14 @@ func (r ServiceResourceResource) Create() sdk.ResourceFunc {
 }
 ```
 
-#### Legacy Plugin SDK Style (Maintenance)
+#### untyped Plugin SDK Style (Maintenance)
 ```go
-// Traditional function-based approach (legacy)
+// Traditional function-based approach (untyped)
 func resourceServiceCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     // Implementation
 }
 
-// Traditional schema definition (legacy)
+// Traditional schema definition (untyped)
 func resourceServiceSchema() map[string]*pluginsdk.Schema {
     return map[string]*pluginsdk.Schema{
         "name": {
@@ -137,7 +137,7 @@ func CreateResource(config *ResourceConfig) error {
 
 #### Documentation Style by Implementation Approach
 
-**Modern SDK Documentation:**
+**typed resource Documentation:**
 ```go
 // ServiceResourceModel represents the Terraform model for Service Resource
 type ServiceResourceModel struct {
@@ -151,7 +151,7 @@ func (r ServiceResourceResource) Create() sdk.ResourceFunc {
 }
 ```
 
-**Legacy Plugin SDK Documentation:**
+**untyped Plugin SDK Documentation:**
 ```go
 // resourceServiceCreate handles the creation of Service Resource in Terraform
 func resourceServiceCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {

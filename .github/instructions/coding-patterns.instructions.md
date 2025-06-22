@@ -10,26 +10,26 @@ Given below are the coding patterns for the Terraform AzureRM provider which **M
 
 This provider supports two implementation approaches:
 
-#### **Modern SDK-Based Implementation (Preferred)**
+#### **Typed Resource Implementation (Preferred)**
 - Uses the `internal/sdk` framework with type-safe models
 - Employs receiver methods on resource/data source structs
 - Features structured state management with `tfschema` tags
 - Provides enhanced error handling and logging through metadata
 - **Recommended for all new resources and data sources**
 
-#### **Legacy Plugin SDK Implementation (Maintenance)**
-- Uses traditional Plugin SDK v2 patterns with function-based CRUD
+#### **Untyped Resource Implementation (Maintenance)**
+- Uses traditional Plugin SDK patterns with function-based CRUD
 - Employs direct schema manipulation and `d.Set()`/`d.Get()` patterns
 - Features traditional error handling and state management
 - **Maintained for existing resources but not recommended for new development**
 
 Both approaches are covered comprehensively below with complete implementation examples.
 
-### Modern Resource Implementation Pattern (SDK v2)
+### Typed Resource Implementation Pattern
 
-The modern pattern uses the `internal/sdk` framework which provides a more structured approach with type-safe models and clear separation between arguments and attributes.
+The typed resource pattern uses the `internal/sdk` framework which provides a more structured approach with type-safe models and clear separation between arguments and attributes.
 
-#### Modern Resource Structure
+#### Typed Resource Structure
 ```go
 type ServiceNameResourceTypeModel struct {
     Name              string            `tfschema:"name"`
@@ -142,7 +142,7 @@ func (r ServiceNameResourceTypeResource) Attributes() map[string]*pluginsdk.Sche
 }
 ```
 
-#### Modern CRUD Operations
+#### Typed CRUD Operations
 ```go
 func (r ServiceNameResourceTypeResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
@@ -307,7 +307,7 @@ func (r ServiceNameResourceTypeResource) Delete() sdk.ResourceFunc {
 }
 ```
 
-### Modern Data Source Pattern
+### Typed Data Source Pattern
 ```go
 type ServiceNameResourceTypeDataSourceModel struct {
     Name              string            `tfschema:"name"`
@@ -453,11 +453,11 @@ func (r ServiceNameResourceTypeDataSource) Read() sdk.ResourceFunc {
 }
 ```
 
-### Legacy Resource Implementation Pattern (Plugin SDK v2)
+### unTyped Resource Implementation Pattern (Plugin SDK)
 
-The legacy pattern uses the traditional Plugin SDK v2 approach with direct schema manipulation. This pattern is still used in many existing resources and should be maintained for backward compatibility.
+The untyped resource pattern uses the traditional Plugin SDK approach with direct schema manipulation. This pattern is still used in many existing resources and should be maintained for backward compatibility.
 
-#### Legacy Resource Structure
+#### untyped Resource Structure
 ```go
 func resourceServiceNameResourceType() *pluginsdk.Resource {
     return &pluginsdk.Resource{
@@ -500,7 +500,7 @@ func resourceServiceNameResourceTypeSchema() map[string]*pluginsdk.Schema {
 }
 ```
 
-#### Legacy CRUD Operation Pattern
+#### untyped CRUD Operation Pattern
 ```go
 func resourceServiceNameResourceTypeCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     client := meta.(*clients.Client).ServiceName.ResourceTypeClient
@@ -582,6 +582,81 @@ func resourceServiceNameResourceTypeRead(ctx context.Context, d *pluginsdk.Resou
 }
 ```
 
+### Import Management Pattern
+
+#### Standard Go Import Organization
+`go
+package servicename
+
+import (
+    // Standard library imports first
+    "context"
+    "fmt"
+    "log"
+    "regexp"
+    "time"
+    
+    // External dependencies second
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+    
+    // Internal imports last
+    "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/common"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+`
+
+#### CustomizeDiff Import Requirements
+
+**Important**: When using CustomizeDiff functions, you must import both packages:
+
+`go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+`
+
+**Why Both Imports are Required:**
+- pluginsdk provides the main resource types (pluginsdk.Resource, pluginsdk.Schema, etc.)
+- schema provides CustomizeDiff function types that are **not** aliased in the internal pluginsdk package
+- CustomizeDiff functions must use *schema.ResourceDiff parameter type from the external package
+
+**Correct CustomizeDiff Pattern:**
+`go
+func resourceServiceName() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceServiceNameCreate,
+        Read:   resourceServiceNameRead,
+        Update: resourceServiceNameUpdate,
+        Delete: resourceServiceNameDelete,
+
+        CustomizeDiff: pluginsdk.All(
+            // CustomizeDiff functions must use *schema.ResourceDiff
+            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Validation logic here
+                return nil
+            },
+        ),
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definition using pluginsdk types
+        },
+    }
+}
+`
+
+**What NOT to do:**
+`go
+//  INCORRECT - Cannot use pluginsdk.ResourceDiff (doesn't exist)
+func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
+    // This will cause compilation errors
+}
+`
+
+
 ### Client Management Pattern
 
 #### Client Registration
@@ -600,7 +675,7 @@ func NewClient(o *common.ClientOptions) *Client {
 }
 ```
 
-### Legacy Data Source Pattern
+### untyped Data Source Pattern
 
 #### Standard Data Source Structure
 ```go

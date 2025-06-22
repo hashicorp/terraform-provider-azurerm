@@ -5,7 +5,7 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 ## Stack
 
 - Go 1.22.x or later
-- Terraform Plugin SDK v2
+- Terraform Plugin SDK
 - Azure SDK for Go
 - HashiCorp Go Azure SDK
 - HashiCorp Go Azure Helpers
@@ -20,7 +20,7 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
   /common            - Common utilities and helpers
   /features          - Feature flag management
   /provider          - Main provider configuration
-  /sdk               - Internal SDK framework for modern resource implementations
+  /sdk               - Internal SDK framework for typed resource implementations
   /services          - Service-specific implementations
     /servicename     - Individual Azure service (e.g., compute, storage)
       /client        - Service-specific client setup
@@ -38,7 +38,7 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 
 This provider supports two implementation approaches. **For comprehensive implementation patterns, detailed examples, and best practices, see the specialized instruction files in the repository.**
 
-### Modern SDK-Based Implementation (Preferred)
+### Typed Resource Implementation (Preferred)
 **Recommended for all new resources and data sources**
 
 - **Framework**: Uses the internal/sdk framework with type-safe models
@@ -50,12 +50,12 @@ This provider supports two implementation approaches. **For comprehensive implem
 - **Resource ID management**: metadata.SetID() for resource identification
 - **Logging**: Structured logging through metadata.Logger
 
-**Detailed Guidance**: See coding-patterns.instructions.md and coding-standards.instructions.md for comprehensive modern implementation patterns.
+**Detailed Guidance**: See coding-patterns.instructions.md and coding-standards.instructions.md for comprehensive typed implementation patterns.
 
-### Legacy Plugin SDK Implementation (Maintenance Only)
+### Untyped Resource Implementation (Maintenance Only)
 **Maintained for existing resources but not recommended for new development**
 
-- **Framework**: Traditional Plugin SDK v2 patterns
+- **Framework**: Traditional Plugin SDK patterns
 - **Function-based CRUD**: Functions like 
 esourceNameCreate, 
 esourceNameRead
@@ -65,7 +65,7 @@ esourceNameRead
 - **Resource ID management**: Direct d.SetId() calls
 - **Logging**: Traditional logging patterns
 
-**Detailed Guidance**: See coding-patterns.instructions.md for legacy implementation maintenance patterns.
+**Detailed Guidance**: See coding-patterns.instructions.md for untyped implementation maintenance patterns.
 
 ### Implementation-Aware Development
 - **Code Review**: Both approaches must follow the same quality standards
@@ -239,7 +239,7 @@ func resourceExampleResource() *pluginsdk.Resource {
 
 ### Error Handling Standards
 
-#### Modern SDK Error Patterns
+#### Typed Resource Error Patterns
 `go
 // Use metadata.Decode for model decoding errors
 var model ServiceNameResourceModel
@@ -267,7 +267,7 @@ metadata.SetID(id)
 return metadata.Encode(&model)
 `
 
-#### Legacy Error Patterns
+#### Untyped Error Patterns
 `go
 // Use consistent error formatting with context
 if err != nil {
@@ -295,15 +295,65 @@ if response.WasThrottled(resp.HttpResponse) {
 - Error messages must use '%+v' for verbose error output formatting
 - Error messages must be clear, concise, and provide actionable guidance
 
+
+#### CustomizeDiff Implementation Pattern
+
+**Dual Import Requirement:**
+When implementing CustomizeDiff functions, both packages must be imported:
+
+`go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+`
+
+**Standard CustomizeDiff Resource Pattern:**
+`go
+func resourceServiceName() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceServiceNameCreate,
+        Read:   resourceServiceNameRead,
+        Update: resourceServiceNameUpdate,
+        Delete: resourceServiceNameDelete,
+
+        CustomizeDiff: pluginsdk.All(
+            // Must use *schema.ResourceDiff from external package
+            pluginsdk.ForceNewIfChange("property_name", func(ctx context.Context, old, new, meta interface{}) bool {
+                return old.(string) != new.(string)
+            }),
+            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Custom validation logic
+                if diff.Get("enabled").(bool) && diff.Get("configuration") == nil {
+                    return fmt.Errorf("configuration is required when enabled is true")
+                }
+                return nil
+            },
+        ),
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definitions use pluginsdk types
+        },
+    }
+}
+`
+
+**Why This Pattern is Required:**
+- The internal pluginsdk package provides aliases for most Plugin SDK types
+- However, CustomizeDiff function signatures are **not** aliased and must use *schema.ResourceDiff
+- The pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers are available in the internal package
+- Resource and schema definitions use pluginsdk types for consistency
+
+
 ### Detailed Implementation Guidance
 
 #### Choosing Implementation Approach
-- **New Resources/Data Sources**: Always use Modern SDK-Based Implementation
-- **Existing Resources**: Continue using Legacy Plugin SDK Implementation for maintenance
-- **Major Updates**: Consider migrating legacy resources to modern approach if significant changes are required
+- **New Resources/Data Sources**: Always use Typed Resource Implementation
+- **Existing Resources**: Continue using Untyped Resource Implementation for maintenance
+- **Major Updates**: Consider migrating untyped resources to typed resource approach if significant changes are required
 - **Bug Fixes**: Maintain existing implementation approach for simple bug fixes
 
-#### Modern SDK Implementation Best Practices
+#### Typed Resource Implementation Best Practices
 - Use type-safe model structures with appropriate `tfschema` tags
 - Leverage receiver methods on resource struct types for CRUD operations
 - Implement proper resource interfaces (`sdk.Resource`, `sdk.ResourceWithUpdate`, etc.)
@@ -311,7 +361,7 @@ if response.WasThrottled(resp.HttpResponse) {
 - Follow structured error handling patterns with `metadata` methods
 - Implement comprehensive validation in `IDValidationFunc()` method
 
-#### Legacy Plugin SDK Maintenance Best Practices
+#### Untyped Resource Maintenance Best Practices
 - Maintain existing function-based CRUD patterns
 - Use direct schema manipulation with `d.Set()` and `d.Get()`
 - Continue using traditional client initialization patterns
@@ -320,8 +370,8 @@ if response.WasThrottled(resp.HttpResponse) {
 - Ensure backward compatibility when making changes
 
 #### Migration Considerations
-- **User Experience**: Migration from legacy to modern should be transparent to users
+- **User Experience**: Migration from untyped to typed resource should be transparent to users
 - **State Compatibility**: Ensure Terraform state remains compatible across implementations
-- **Feature Parity**: Modern implementation should maintain all existing functionality
+- **Feature Parity**: typed implementation should maintain all existing functionality
 - **Testing**: Comprehensive testing required to validate migration behavior
 - **Documentation**: Update internal development docs but keep user docs consistent

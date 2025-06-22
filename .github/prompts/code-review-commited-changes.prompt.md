@@ -1,4 +1,4 @@
-﻿---
+---
 mode: agent
 tools: [runCommands]
 description: "Code Review for Terraform AzureRM Provider Git Diff"
@@ -63,7 +63,7 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
 
 ## Constraints
 
-* **IMPORTANT**: Use `git --no-pager diff --no-prefix --unified=3` to get the diff for code review.
+* **IMPORTANT**: Use `git --no-pager diff --no-prefix --unified=3 main...HEAD` to get the diff for code review.
 * In the provided git diff, if the line start with `+` or `-`, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with `@@`, it means that the line is a hunk header.
 
 * Avoid overwhelming the developer with too many suggestions at once.
@@ -83,13 +83,13 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
     # Suggestions
 
     ## ${code_review_emoji} ${Summary of the suggestion, include necessary context to understand suggestion}
-    - **Priority**: ${priority: (🔥/⚠️/🟡/🟢)}
-    - **File**: ${relative/path/to/file}
-    - **Details**: ...
-    - **Azure Context** (if applicable): Reference to Azure service behavior or API documentation
-    - **Terraform Impact** (if applicable): How this affects Terraform configurations or state
-    - **Example** (if applicable): ...
-    - **Suggested Change** (if applicable): (Go code snippet...)
+    * **Priority**: ${priority: (🔥/⚠️/🟡/🟢)}
+    * **File**: ${relative/path/to/file}
+    * **Details**: ...
+    * **Azure Context** (if applicable): Reference to Azure service behavior or API documentation
+    * **Terraform Impact** (if applicable): How this affects Terraform configurations or state
+    * **Example** (if applicable): ...
+    * **Suggested Change** (if applicable): (Go code snippet...)
     
     ## (other suggestions...)
     ...
@@ -132,7 +132,6 @@ Use code review emojis. Give the reviewee added context and clarity to follow up
 ### Terraform Provider Specific Review Points
 
 When reviewing Terraform AzureRM provider code, pay special attention to:
-
 
 #### CustomizeDiff Import Requirements
 - **Dual Import Pattern**: When reviewing CustomizeDiff functions, verify both packages are imported:

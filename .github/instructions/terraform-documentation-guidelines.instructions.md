@@ -21,24 +21,24 @@ description: This document outlines the standards and guidelines for writing doc
 
 ## Implementation Approach Considerations
 
-### Modern vs Legacy Implementation Documentation
+### Typed vs Untyped Implementation Documentation
 
-While the underlying Go implementation (modern SDK vs legacy Plugin SDK) is transparent to end users, documentation should maintain consistency regardless of implementation approach:
+While the underlying Go implementation (typed resource vs untyped Plugin SDK) is transparent to end users, documentation should maintain consistency regardless of implementation approach:
 
 #### Documentation Standards (Both Approaches)
-- **User Experience**: Documentation should be identical regardless of whether the resource uses modern SDK-based or legacy Plugin SDK implementation
+- **User Experience**: Documentation should be identical regardless of whether the resource uses typed resource-based or Untyped Resource Implementation
 - **Feature Parity**: Both approaches should document the same Azure resource capabilities and behaviors
 - **Example Consistency**: HCL configuration examples should follow the same patterns and naming conventions
 - **Argument Documentation**: Schema definitions should be documented identically regardless of implementation approach
 
 #### Implementation-Aware Considerations
-- **Feature Availability**: Some newer features may only be available in modern SDK implementations - document actual capabilities
-- **Error Messages**: Modern implementations may provide more structured error handling - reflect actual user experience
-- **Validation**: Modern implementations may have improved validation - document current behavior accurately
+- **Feature Availability**: Some newer features may only be available in typed resource implementations - document actual capabilities
+- **Error Messages**: typed implementations may provide more structured error handling - reflect actual user experience
+- **Validation**: typed implementations may have improved validation - document current behavior accurately
 - **Import Patterns**: Resource ID formats should be consistent but verify actual import functionality
 
 #### Migration Transparency
-- **Seamless Experience**: When resources migrate from legacy to modern implementation, documentation changes should be minimal
+- **Seamless Experience**: When resources migrate from untyped to typed implementation, documentation changes should be minimal
 - **Behavioral Consistency**: Document the resource behavior as users experience it, not the implementation details
 - **Version Notes**: Avoid mentioning implementation approaches in user-facing documentation unless absolutely necessary
 
@@ -416,16 +416,16 @@ A `configuration` block supports the following:
 - Show filtering and selection patterns
 - Demonstrate practical use cases
 
-#### Modern vs Legacy Implementation Examples
+#### Typed vs Untyped Implementation Examples
 While implementation approach is transparent to users, ensure examples reflect actual behavior:
 
-**Modern Implementation Considerations:**
+**typed implementation Considerations:**
 - May have more comprehensive validation in examples
 - Could include newer Azure features and capabilities
 - May demonstrate improved error handling patterns
 - Should reflect any enhanced functionality
 
-**Legacy Implementation Considerations:**
+**untyped Implementation Considerations:**
 - Examples should match currently available functionality
 - May have more basic validation patterns
 - Should accurately represent current feature set

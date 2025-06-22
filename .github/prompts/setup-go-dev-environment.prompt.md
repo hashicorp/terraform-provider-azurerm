@@ -46,7 +46,7 @@ export PATH=$PATH:$GOPATH/bin
 
 ## 3. Clone the Repository
 ```bash
-# Using modern Go modules (recommended)
+# Using Go modules (recommended)
 git clone https://github.com/hashicorp/terraform-provider-azurerm.git
 cd terraform-provider-azurerm
 

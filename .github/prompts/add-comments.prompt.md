@@ -2,7 +2,6 @@ Add comments to the Go code in this Terraform AzureRM provider file to explain t
 
 Focus on documenting Azure resource behavior, Terraform lifecycle operations, and provider-specific patterns.
 
-
 ## Go Documentation Guidelines for Terraform AzureRM Provider
 
 - Use Go documentation conventions with complete sentences
