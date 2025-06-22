@@ -85,7 +85,7 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
     # Suggestions
 
     ## ${code_review_emoji} ${Summary of the suggestion, include necessary context to understand suggestion}
-    - **Priority**: ${priority: (🔥/⚠️/🟡/🟢)}
+    - **Priority**: ${priority: (🔥/🔴/🟡/🟢)}
     - **File**: ${relative/path/to/file}
     - **Details**: ...
     - **Azure Context** (if applicable): Reference to Azure service behavior or API documentation
@@ -100,7 +100,7 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
     ```
 * Use the following emojis to indicate the priority of the suggestions:
     * 🔥 Critical
-    * ⚠️ High
+    * 🔴 High
     * 🟡 Medium
     * 🟢 Low
 * Each suggestion should be prefixed with an emoji to indicate the type of suggestion:
