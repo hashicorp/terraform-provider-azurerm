@@ -145,16 +145,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `used_data_storage_size_in_tbs` - The amount of storage that has been used, in terabytes.
 
-* `long_term_backup_schedule` - Block exports the following:
-
-* `repeat_cadence` -  Specifies the frequency  for automated long-term backups. 
-* `time_of_backup` - The date and time in which the backup should be taken. 
-* `retention_period_in_days` - The retention period in days for Autonomous database backup.
-* `enabled` -  A boolean value that indicates if long term backup is enabled/disabled.
-
 * `virtual_network_id` - The ID to an Azure Resource Manager vnet resource.
 
 * `allowed_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`.
+
+* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below
+
+---
+
+A `long_term_backup_schedule` blocks exports the following:
+
+* `repeat_cadence` - The frequency for automated long-term backups.
+
+* `time_of_backup` - The date and time in which the backup would be made.
+
+* `retention_period_in_days` - The retention period in days for Autonomous database backup.
+
+* `enabled` -  A boolean value that indicates if long term backup is enabled/disabled.
 
 ## Timeouts
 
