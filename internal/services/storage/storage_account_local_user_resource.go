@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"strings"
 	"time"
 
@@ -23,9 +24,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_local_user -service-package-name storage -properties "local_user_name:name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "passwordOnly"
+
 type LocalUserResource struct{}
 
-var _ sdk.ResourceWithUpdate = LocalUserResource{}
+var (
+	_ sdk.ResourceWithUpdate   = LocalUserResource{}
+	_ sdk.ResourceWithIdentity = LocalUserResource{}
+)
 
 type PermissionsModel struct {
 	Create bool `tfschema:"create"`
@@ -194,6 +200,10 @@ func (r LocalUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return localusers.ValidateLocalUserID
 }
 
+func (r LocalUserResource) Identity() resourceids.ResourceId {
+	return &localusers.LocalUserId{}
+}
+
 func (r LocalUserResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -334,6 +344,10 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 				if props.Sid != nil {
 					model.Sid = *props.Sid
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&model)
