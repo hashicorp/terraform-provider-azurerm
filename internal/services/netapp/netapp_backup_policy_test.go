@@ -112,13 +112,13 @@ func (r NetAppBackupPolicyResource) complete(data acceptance.TestData) string {
 %[1]s
 
 resource "azurerm_netapp_backup_policy" "test" {
-  name                    = "acctest-NetAppBackupPolicy-%[2]d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
-  account_name            = azurerm_netapp_account.test.name
-  daily_backups_to_keep   = 2
-  weekly_backups_to_keep  = 2
-  enabled                 = true
+  name                   = "acctest-NetAppBackupPolicy-%[2]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  account_name           = azurerm_netapp_account.test.name
+  daily_backups_to_keep  = 2
+  weekly_backups_to_keep = 2
+  enabled                = true
 
   tags = {
     "testTag" = "testTagValue"
