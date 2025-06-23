@@ -4,19 +4,12 @@ FEATURES:
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
-* `azurerm_route_filter` - add support for Resource Identity [GH-29946]
-* `azurerm_network_security_rule` - add support for Resource Identity [GH-29941]
-* `azurerm_bastion_host` - add support for Resource Identity [GH-29936]
-`azurerm_application_security_group` - add support for Resource Identity [GH-29926]
 * Data Source: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
 * `azurerm_policy_set_definition` - add support for the `policy_definition_reference.version` property [GH-29924]
 * `azurerm_function_app_flex_consumption` - add support for the `vnet_route_all_enabled` property [GH-29839]
-* `azurerm_gallery_application` - add support for Resource Identity [GH-29836]
-* `azurerm_linux_function_app` - add support for Resource Identity [GH-29836]
-* `azurerm_subnet` - add support for Resource Identity [GH-29836]
 * `azurerm_windows_virtual_machine`: `os_disk.0.diff_disk_settings.0.placement` now supports `NvmeDisk` [GH-29922]
-* `azurerm_virtual_network` - add support for Resource Identity [GH-29836]
 * `azurerm_policy_set_definition` - migrate to use `go-azure-sdk` [GH-29863]
+
 
 BUG FIXES:
 `azurerm_netapp_backup_policy` - the `weekly_backups_to_keep` and `monthly_backups_to_keep` properties can now be set to `0` [GH-29920]
