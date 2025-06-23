@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_policy_set_definition` - migrate to use `go-azure-sdk` [GH-29863]
 
 BUG FIXES:
+`azurerm_netapp_backup_policy` - the `weekly_backups_to_keep` and `monthly_backups_to_keep` properties can now be set to `0` [GH-29920]
 
 ## 4.34.0 (June 20, 2025)
 
