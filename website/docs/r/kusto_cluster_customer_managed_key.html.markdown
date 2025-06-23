@@ -88,9 +88,13 @@ The following arguments are supported:
 
 * `cluster_id` - (Required) The ID of the Kusto Cluster. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The ID of the Key Vault. 
+* `key_vault_id` - (Optional) The ID of the Key Vault for CMK encryption.
 
-* `key_name` - (Required) The name of Key Vault Key.
+* `managed_hsm_key_id` - (Optional) The Managed HSM Key ID for CMK encryption.
+
+~> **Note:** Exactly one of `managed_hsm_key_id` or `key_vault_id` must be specified.
+
+* `key_name` - (Optional) The name of Key Vault Key.
 
 * `key_version` - (Optional) The version of Key Vault Key.
 

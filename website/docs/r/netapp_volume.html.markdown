@@ -99,6 +99,7 @@ resource "azurerm_netapp_volume" "example" {
   security_style             = "unix"
   storage_quota_in_gb        = 100
   snapshot_directory_visible = false
+  large_volume_enabled       = false
 
   # When creating volume from a snapshot
   create_from_snapshot_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/capacityPools/pool1/volumes/volume1/snapshots/snapshot1"
@@ -168,9 +169,9 @@ The following arguments are supported:
 
 * `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
-* `snapshot_directory_visible` - (Optional) Specifies whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible, default value is true.
+* `snapshot_directory_visible` - (Optional) Specifies whether the .snapshot (NFS clients) or ~snapshot (SMB clients) path of a volume is visible. Defaults to `true`.
 
-* `create_from_snapshot_resource_id` - (Optional) Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name`, `account_name` and `pool_name`. Changing this forces a new resource to be created.
+* `create_from_snapshot_resource_id` - (Optional) Creates volume from snapshot. Following properties must be the same as the original volume where the snapshot was taken from: `protocols`, `subnet_id`, `location`, `service_level`, `resource_group_name` and `account_name`. Changing this forces a new resource to be created.
 
 * `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below. Changing this forces a new resource to be created.
 
@@ -184,7 +185,7 @@ The following arguments are supported:
 
 * `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`. Changing this forces a new resource to be created.
 
-* `kerberos_enabled` - (Optional) Enable to allow Kerberos secured volumes. Requires appropriate export rules.
+* `kerberos_enabled` - (Optional) Enable to allow Kerberos secured volumes. Requires appropriate export rules. Changing this forces a new resource to be created.
 
 ~> **Note:** `kerberos_enabled` requires that the parent `azurerm_netapp_account` has a *valid* AD connection defined. If the configuration is invalid, the volume will still be created but in a failed state. This requires manually deleting the volume and recreating it again via Terraform once the AD configuration has been corrected.
 
@@ -194,9 +195,13 @@ The following arguments are supported:
 
 * `smb_access_based_enumeration_enabled` - (Optional) Limits enumeration of files and folders (that is, listing the contents) in SMB only to users with allowed access on the share. For instance, if a user doesn't have access to read a file or folder in a share with access-based enumeration enabled, then the file or folder doesn't show up in directory listings. Defaults to `false`. For more information, please refer to [Understand NAS share permissions in Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/network-attached-storage-permissions#:~:text=security%20for%20administrators.-,Access%2Dbased%20enumeration,in%20an%20Azure%20NetApp%20Files%20SMB%20volume.%20Only%20contosoadmin%20has%20access.,-In%20the%20below)
 
-* `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability.
+* `smb_continuous_availability_enabled` - (Optional) Enable SMB Continuous Availability. Changing this forces a new resource to be created.
 
-* `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption.
+* `smb3_protocol_encryption_enabled` - (Optional) Enable SMB encryption. Changing this forces a new resource to be created.
+
+* `large_volume_enabled` - (Optional) A boolean specifying if the volume is a large volume. Defaults to `false`.
+
+-> **Note:** Large volumes must be at least 50 TiB in size and can be up to 1,024 TiB (1 PiB). For more information, please refer to [Requirements and considerations for large volumes](https://learn.microsoft.com/en-us/azure/azure-netapp-files/large-volumes-requirements-considerations)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

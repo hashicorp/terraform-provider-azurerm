@@ -62,7 +62,6 @@ func ParseBotServiceIDInsensitively(input string) (*BotServiceId, error) {
 }
 
 func (id *BotServiceId) FromParseResult(input resourceids.ParseResult) error {
-
 	var ok bool
 
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {

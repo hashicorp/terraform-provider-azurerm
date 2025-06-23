@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -442,13 +443,11 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_automation_account":     {},
-		"azurerm_container_registry":     {},
-		"azurerm_managed_disk":           {},
-		"azurerm_media_services_account": {},
-		"azurerm_snapshot":               {},
+	resourcesWhichNeedToBeAddressed := map[string]struct{}{}
+
+	if !features.FivePointOh() {
+		resourcesWhichNeedToBeAddressed["azurerm_container_registry"] = struct{}{}
+		resourcesWhichNeedToBeAddressed["azurerm_automation_account"] = struct{}{}
 	}
 
 	for _, resourceName := range resourceNames {
@@ -559,7 +558,6 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 		"azurerm_application_insights":    {},
 		"azurerm_cosmosdb_account":        {},
 		"azurerm_log_analytics_workspace": {},
-		"azurerm_search_service":          {},
 	}
 
 	for _, resourceName := range resourceNames {

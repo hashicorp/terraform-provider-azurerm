@@ -359,3 +359,9 @@ Logic Apps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_logic_app_standard.logicapp1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/logicapp1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web`: 2023-12-01, 2023-01-01
