@@ -101,7 +101,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"gpu_profile": {
 						Type:     pluginsdk.TypeString,
-						Default:  string(agentpools.GPUDriverInstall),
+						Default:  string(agentpools.GPUDriverNone),
 						Optional: true,
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
