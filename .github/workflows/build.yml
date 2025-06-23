@@ -125,7 +125,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
-      # TODO: Customize `matrix` for your provider. Compare to existing .goreleaser.yml.
       # Verify expected Artifacts list for a workflow run.
       matrix:
         goos: [freebsd, windows, linux, darwin]
