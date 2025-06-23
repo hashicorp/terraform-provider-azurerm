@@ -214,7 +214,6 @@ resource "azurerm_oracle_autonomous_database" "test" {
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
-  }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
