@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbycontainergrouppools"
@@ -27,6 +28,7 @@ type ContainerGroupStandbyPoolResource struct{}
 
 type ContainerGroupStandbyPoolResourceModel struct {
 	Name                    string            `tfschema:"name"`
+	Location                string            `tfschema:"location"`
 	ResourceGroupName       string            `tfschema:"resource_group_name"`
 	ContainerGroupId        string            `tfschema:"container_gorup_id"`
 	ContainerGroupRevision  int64             `tfschema:"container_group_revision"`
@@ -45,6 +47,8 @@ func (ContainerGroupStandbyPoolResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
+
+		"location": commonschema.Location(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
@@ -125,6 +129,7 @@ func (r ContainerGroupStandbyPoolResource) Create() sdk.ResourceFunc {
 			}
 
 			payload := standbycontainergrouppools.StandbyContainerGroupPoolResource{
+				Location: location.Normalize(config.Location),
 				Properties: &standbycontainergrouppools.StandbyContainerGroupPoolResourceProperties{
 					ContainerGroupProperties: standbycontainergrouppools.ContainerGroupProperties{
 						ContainerGroupProfile: standbycontainergrouppools.ContainerGroupProfile{
@@ -248,6 +253,7 @@ func (r ContainerGroupStandbyPoolResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
 				if prop := model.Properties; prop != nil {
 					state.ContainerGroupId = prop.ContainerGroupProperties.ContainerGroupProfile.Id
 					state.ContainerGroupRevision = pointer.From(prop.ContainerGroupProperties.ContainerGroupProfile.Revision)

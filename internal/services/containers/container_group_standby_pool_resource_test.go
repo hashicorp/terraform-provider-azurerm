@@ -106,6 +106,7 @@ provider "azurerm" {
 
 resource "azurerm_container_group_standby_pool" "test" {
   name                = "acctest-%[2]d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   container_gorup_id  = azurerm_container_group.test.id
   max_ready_capacity  = 2
@@ -120,10 +121,12 @@ func (r ContainerGroupStandbyPoolResource) requiresImport(data acceptance.TestDa
 
 resource "azurerm_container_group_standby_pool" "import" {
   name                = azurerm_container_group_standby_pool.test.name
+  location            = azurerm_container_group_standby_pool.test.location
   resource_group_name = azurerm_container_group_standby_pool.test.resource_group_name
   container_gorup_id  = azurerm_container_group_standby_pool.test.contianer_group_id
   max_ready_capacity  = azurerm_container_group_standby_pool.test.max_ready_capacity
 }
+
 
 `, r.basic(data))
 }
@@ -138,6 +141,7 @@ provider "azurerm" {
 
 resource "azurerm_container_group_standby_pool" "test" {
   name                     = "acctest-%[2]d"
+  location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   container_gorup_id       = azurerm_container_group.test.id
   container_group_revision = 1
