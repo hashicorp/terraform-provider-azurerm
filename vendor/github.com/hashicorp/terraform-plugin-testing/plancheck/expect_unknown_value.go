@@ -27,6 +27,13 @@ func (e expectUnknownValue) CheckPlan(ctx context.Context, req CheckPlanRequest,
 
 		result, err := tfjsonpath.Traverse(rc.Change.AfterUnknown, e.attributePath)
 		if err != nil {
+			// If we find the attribute in the known values, return a more explicit message
+			knownVal, knownErr := tfjsonpath.Traverse(rc.Change.After, e.attributePath)
+			if knownErr == nil {
+				resp.Error = fmt.Errorf("Expected unknown value at %q, but found known value: \"%v\"", e.attributePath.String(), knownVal)
+				return
+			}
+
 			resp.Error = err
 			return
 		}
@@ -38,7 +45,14 @@ func (e expectUnknownValue) CheckPlan(ctx context.Context, req CheckPlanRequest,
 		}
 
 		if !isUnknown {
-			resp.Error = fmt.Errorf("attribute at path is known")
+			// The attribute should have a known value, look first to return a more explicit message
+			knownVal, knownErr := tfjsonpath.Traverse(rc.Change.After, e.attributePath)
+			if knownErr == nil {
+				resp.Error = fmt.Errorf("Expected unknown value at %q, but found known value: \"%v\"", e.attributePath.String(), knownVal)
+				return
+			}
+
+			resp.Error = fmt.Errorf("Expected unknown value at %q, but found known value", e.attributePath.String())
 			return
 		}
 

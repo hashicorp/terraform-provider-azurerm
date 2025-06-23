@@ -362,7 +362,7 @@ A `default_node_pool` block supports the following:
 
 * `name` - (Required) The name which should be used for the default Kubernetes Node Pool.
 
-* `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
+* `vm_size` - (Optional) The size of the Virtual Machine, such as `Standard_DS2_v2`. `temporary_name_for_rotation` must be specified when attempting a resize.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group within which this AKS Cluster should be created. Changing this forces a new resource to be created.
 
@@ -1167,4 +1167,4 @@ terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService`: 2024-09-01
+* `Microsoft.ContainerService`: 2025-02-01

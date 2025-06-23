@@ -136,6 +136,194 @@ resource "azurerm_netapp_volume_group_oracle" "example" {
 }
 ```
 
+## Example Usage - Cross-Region Replication
+
+```hcl
+provider "azurerm" {
+  features {
+    netapp {
+      prevent_volume_destruction = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "${var.prefix}-resources"
+  location = var.location
+
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
+}
+
+# Primary region networking
+resource "azurerm_virtual_network" "example_primary" {
+  name                = "${var.prefix}-vnet-primary"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.47.0.0/16"]
+}
+
+resource "azurerm_subnet" "example_primary" {
+  name                 = "${var.prefix}-delegated-subnet-primary"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example_primary.name
+  address_prefixes     = ["10.47.2.0/24"]
+
+  delegation {
+    name = "exampledelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+# Secondary region networking
+resource "azurerm_virtual_network" "example_secondary" {
+  name                = "${var.prefix}-vnet-secondary"
+  location            = var.alt_location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.48.0.0/16"]
+}
+
+resource "azurerm_subnet" "example_secondary" {
+  name                 = "${var.prefix}-delegated-subnet-secondary"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example_secondary.name
+  address_prefixes     = ["10.48.2.0/24"]
+
+  delegation {
+    name = "exampledelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+# Primary region NetApp infrastructure
+resource "azurerm_netapp_account" "example_primary" {
+  name                = "${var.prefix}-netapp-account-primary"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  depends_on = [
+    azurerm_subnet.example_primary
+  ]
+}
+
+resource "azurerm_netapp_pool" "example_primary" {
+  name                = "${var.prefix}-netapp-pool-primary"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example_primary.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+}
+
+# Secondary region NetApp infrastructure
+resource "azurerm_netapp_account" "example_secondary" {
+  name                = "${var.prefix}-netapp-account-secondary"
+  location            = var.alt_location
+  resource_group_name = azurerm_resource_group.example.name
+
+  depends_on = [
+    azurerm_subnet.example_secondary
+  ]
+}
+
+resource "azurerm_netapp_pool" "example_secondary" {
+  name                = "${var.prefix}-netapp-pool-secondary"
+  location            = var.alt_location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example_secondary.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+}
+
+# Primary Oracle volume group
+resource "azurerm_netapp_volume_group_oracle" "example_primary" {
+  name                   = "${var.prefix}-NetAppVolumeGroupOracle-primary"
+  location               = azurerm_resource_group.example.location
+  resource_group_name    = azurerm_resource_group.example.name
+  account_name           = azurerm_netapp_account.example_primary.name
+  group_description      = "Primary Oracle volume group for CRR"
+  application_identifier = "TST"
+
+  volume {
+    name                       = "${var.prefix}-volume-ora1-primary"
+    volume_path                = "${var.prefix}-my-unique-file-ora-path-1-primary"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.example_primary.id
+    subnet_id                  = azurerm_subnet.example_primary.id
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+  }
+}
+
+# Secondary Oracle volume group with CRR
+resource "azurerm_netapp_volume_group_oracle" "example_secondary" {
+  depends_on = [azurerm_netapp_volume_group_oracle.example_primary]
+
+  name                   = "${var.prefix}-NetAppVolumeGroupOracle-secondary"
+  location               = var.alt_location
+  resource_group_name    = azurerm_resource_group.example.name
+  account_name           = azurerm_netapp_account.example_secondary.name
+  group_description      = "Secondary Oracle volume group for CRR"
+  application_identifier = "TST"
+
+  volume {
+    name                       = "${var.prefix}-volume-ora1-secondary"
+    volume_path                = "${var.prefix}-my-unique-file-ora-path-1-secondary"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.example_secondary.id
+    subnet_id                  = azurerm_subnet.example_secondary.id
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+
+    data_protection_replication {
+      endpoint_type             = "dst"
+      remote_volume_location    = azurerm_resource_group.example.location
+      remote_volume_resource_id = azurerm_netapp_volume_group_oracle.example_primary.volume[0].id
+      replication_frequency     = "10minutes"
+    }
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -198,7 +386,23 @@ A `volume` block supports the following:
 
 * `data_protection_snapshot_policy` - (Optional) A `data_protection_snapshot_policy` block as defined below.
 
+* `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below. Changing this forces a new Application Volume Group to be created and data will be lost.
+
 ---
+A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, not all volume spec types are supported, please refer to [Understand Azure NetApp Files application volume group for Oracle](https://learn.microsoft.com/en-us/azure/azure-netapp-files/application-volume-oracle-introduction) for details. Each volume must be in a supported [region pair](https://docs.microsoft.com/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs).
+
+This block supports the following:
+
+* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
+
+* `remote_volume_resource_id` - (Required) Resource ID of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
+
+* `replication_frequency` - (Required) Replication frequency. Possible values are `10minutes`, `daily` and `hourly`. Changing this forces a new Application Volume Group to be created and data will be lost.
+
+* `endpoint_type` - (Optional) The endpoint type. Possible values are `dst` and `src`. Defaults to `dst`. Changing this forces a new Application Volume Group to be created and data will be lost.
+
+---
+
 A `data_protection_snapshot_policy` block supports the following:
 
 * `snapshot_policy_id` - (Required) Resource ID of the snapshot policy to apply to the volume.

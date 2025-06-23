@@ -351,6 +351,10 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 				if values["source_api_id"].IsNull() && (values["display_name"].IsNull() || protocols == nil || len(*protocols) == 0) {
 					return errors.New("`display_name`, `protocols` are required when `source_api_id` is not set")
 				}
+
+				if d.Get("api_type").(string) == string(api.ApiTypeWebsocket) && d.Get("service_url").(string) == "" {
+					return errors.New("`service_url` is required when `api_type` is `websocket`")
+				}
 				return nil
 			}),
 		),
@@ -438,7 +442,6 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 			ApiType:                       pointer.To(soapApiType),
 			Path:                          path,
 			Protocols:                     protocols,
-			ServiceURL:                    pointer.To(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
 			SubscriptionRequired:          &subscriptionRequired,
 			AuthenticationSettings:        authenticationSettings,
@@ -447,6 +450,10 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 			Contact:                       contactInfo,
 			License:                       licenseInfo,
 		},
+	}
+
+	if serviceUrl != "" {
+		params.Properties.ServiceURL = pointer.To(serviceUrl)
 	}
 
 	if sourceApiId != "" {
