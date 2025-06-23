@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hostname` - The hostname of the Communication Service.
 
-* `immutableresourceid` - The immutable resource id of the Communication Service.
+* `immutable_resource_id` - The immutable resource id of the Communication Service.
 
 ## Timeouts
 
