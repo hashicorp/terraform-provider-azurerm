@@ -32,7 +32,7 @@ type CommunicationServiceDataSourceModel struct {
 	SecondaryKey              string            `tfschema:"secondary_key"`
 	Tags                      map[string]string `tfschema:"tags"`
 	HostName                  string            `tfschema:"hostname"`
-	ImmutableResourceId	  	  string            `tfschema:"immutable_resource_id"`
+	ImmutableResourceId       string            `tfschema:"immutable_resource_id"`
 }
 
 func (CommunicationServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
