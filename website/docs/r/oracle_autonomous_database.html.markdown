@@ -90,7 +90,6 @@ The following arguments are supported:
 
 * `long_term_backup_schedule` - (Optional) Block supports the following: for more information see [Create Long-Term Backups on Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/backup-long-term.html#GUID-BD76E02E-AEB0-4450-A6AB-5C9EB1F4EAD0) 
 
-
 ---
 
 A `long_term_backup_schedule` blocks supports the following:
