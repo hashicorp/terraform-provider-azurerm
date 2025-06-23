@@ -504,11 +504,67 @@ func (r ExistingResource) Read() sdk.ResourceFunc {
 
 ### Azure SDK Integration
 
+#### Pointer Package Usage
+
+**Use the `pointer` package instead of the `utils` package for pointer operations where applicable:**
+
+```go
+// PREFERRED - Use pointer package
+import "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
+// Convert values to pointers
+// Common scenarios: optional Azure API parameters, nullable fields
+stringPtr := pointer.To("example")
+intPtr := pointer.To(42)
+boolPtr := pointer.To(true)
+
+// Convert pointers to values with defaults
+stringValue := pointer.From(stringPtr)
+stringValueWithDefault := pointer.FromString(stringPtr, "default")
+intValue := pointer.FromInt32(intPtr, 0)
+boolValue := pointer.FromBool(boolPtr, false)
+
+// Check if pointer is nil or has value
+if pointer.IsNil(stringPtr) {
+    // Handle nil pointer
+}
+```
+
+```go
+// AVOID - Legacy utils package patterns (where pointer package can be used)
+import "github.com/hashicorp/terraform-provider-azurerm/utils"
+
+// Legacy patterns - use pointer package instead
+stringPtr := utils.String("example")  // Use pointer.To("example")
+intPtr := utils.Int32(42)             // Use pointer.To(42)
+boolPtr := utils.Bool(true)           // Use pointer.To(true)
+
+// Legacy dereference patterns
+if stringPtr != nil {
+    value := *stringPtr
+}
+// Use pointer.From(stringPtr) or pointer.FromString(stringPtr, "default")
+```
+
+**When to Use Each Package:**
+- **pointer package**: For basic pointer operations, type conversions, and nil checking
+- **utils package**: For Azure-specific utilities, complex transformations, and legacy compatibility where pointer package doesn't provide equivalent functionality
+
+**Migration Guidelines:**
+- **New Code**: Always use `pointer` package for pointer operations
+- **Existing Code**: Gradually migrate to `pointer` package during refactoring
+- **Legacy Compatibility**: Maintain `utils` package usage only where `pointer` package doesn't provide equivalent functionality
+
 #### typed resource Client Usage
 ```go
 // Use metadata.Client for accessing clients
 client := metadata.Client.ServiceName.ResourceClient
 subscriptionId := metadata.Client.Account.SubscriptionId
+
+// Use pointer package for pointer operations
+// Common scenarios: optional Azure API parameters, nullable fields
+enabled := pointer.To(true)
+name := pointer.To("example-resource")
 
 // Use structured logging with metadata.Logger
 metadata.Logger.Infof("Creating %s", id)
@@ -533,6 +589,11 @@ return metadata.Encode(&model)
 ```go
 // Standard client initialization
 client := meta.(*clients.Client).ServiceName.ResourceClient
+
+// Use pointer package for pointer operations
+// Common scenarios: optional Azure API parameters, nullable fields
+enabled := pointer.To(d.Get("enabled").(bool))
+timeout := pointer.To(d.Get("timeout_seconds").(int))
 
 // Use resource ID parsing for type safety
 id := parse.NewResourceID(subscriptionId, resourceGroupName, resourceName)
@@ -595,3 +656,4 @@ For comprehensive testing patterns, implementation details, and Azure-specific t
 - Use meaningful test names following `TestFunctionName_Scenario_ExpectedOutcome`
 - Write comprehensive acceptance tests for all resources
 - Include import tests for all resources (`data.ImportStep()`)
+
