@@ -4,6 +4,7 @@ FEATURES:
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
+* `azurerm_route_filter` - add support for Resource Identity [GH-29946]
 * `azurerm_network_security_rule` - add support for Resource Identity [GH-29941]
 * `azurerm_bastion_host` - add support for Resource Identity [GH-29936]
 `azurerm_application_security_group` - add support for Resource Identity [GH-29926]
