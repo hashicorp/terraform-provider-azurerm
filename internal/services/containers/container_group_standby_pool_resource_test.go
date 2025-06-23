@@ -158,7 +158,7 @@ func (ContainerGroupStandbyPoolResource) template(data acceptance.TestData) stri
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_role_definition" "container-contributor" {
-  name = "Container Instance Contributor"
+  name = "Azure Container Instances Contributor Role"
 }
 
 data "azurerm_role_definition" "nw-contributor" {

@@ -61,20 +61,19 @@ func (ContainerGroupStandbyPoolResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"subnet_ids": {
-			Type:     pluginsdk.TypeSet,
+			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: commonids.ValidateSubnetID,
 			},
-			Set: pluginsdk.HashString,
 		},
 
 		"max_ready_capacity": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(0, 2000),
 		},
 
 		"refill_policy": {
@@ -87,7 +86,6 @@ func (ContainerGroupStandbyPoolResource) Arguments() map[string]*pluginsdk.Schem
 
 		"tags": tags.Schema(),
 	}
-
 }
 
 func (ContainerGroupStandbyPoolResource) Attributes() map[string]*pluginsdk.Schema {
@@ -144,7 +142,9 @@ func (r ContainerGroupStandbyPoolResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(config.Tags),
 			}
 
-			client.CreateOrUpdateThenPoll(ctx, id, payload)
+			if err = client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
 
 			metadata.SetID(id)
 			return nil
@@ -219,7 +219,6 @@ func (r ContainerGroupStandbyPoolResource) Update() sdk.ResourceFunc {
 			return nil
 		},
 	}
-
 }
 
 func (r ContainerGroupStandbyPoolResource) Read() sdk.ResourceFunc {
@@ -259,10 +258,9 @@ func (r ContainerGroupStandbyPoolResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return nil
+			return metadata.Encode(&state)
 		},
 	}
-
 }
 
 func (r ContainerGroupStandbyPoolResource) Delete() sdk.ResourceFunc {
@@ -284,7 +282,6 @@ func (r ContainerGroupStandbyPoolResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-
 }
 
 func (r ContainerGroupStandbyPoolResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
