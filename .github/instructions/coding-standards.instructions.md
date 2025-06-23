@@ -474,7 +474,7 @@ import (
 
 //  INCORRECT - Will cause compilation error
 func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
-    // pluginsdk.ResourceDiff doesn't exist - this will fail to compile
+    // pluginsdk.ResourceDiff does not exist - this will fail to compile
 }
 
 //  CORRECT - Must use external schema package
@@ -642,7 +642,7 @@ CustomizeDiff: pluginsdk.All(
        Name          string            `tfschema:"name"`
        ResourceGroup string            `tfschema:"resource_group_name"`
        // Map all existing schema fields
-   }
+    }
    
    // Step 2: Implement typed resource interface
    type ExistingResource struct{}
@@ -681,9 +681,12 @@ func (r ExistingResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 }
 
 // Maintain backward compatibility in Read operation
-
+func (r ExistingResource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
         Timeout: 5 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+            
             // Handle both old and new state formats if necessary
             id, err := parse.ExistingResourceID(metadata.ResourceData.Id())
             if err != nil {
@@ -765,12 +768,12 @@ if stringPtr != nil {
 
 **When to Use Each Package:**
 - **pointer package**: For basic pointer operations, type conversions, and nil checking
-- **utils package**: For Azure-specific utilities, complex transformations, and legacy compatibility where pointer package doesn't provide equivalent functionality
+- **utils package**: For Azure-specific utilities, complex transformations, and legacy compatibility where pointer package does not provide equivalent functionality
 
 **Migration Guidelines:**
 - **New Code**: Always use `pointer` package for pointer operations
 - **Existing Code**: Gradually migrate to `pointer` package during refactoring
-- **Legacy Compatibility**: Maintain `utils` package usage only where `pointer` package doesn't provide equivalent functionality
+- **Legacy Compatibility**: Maintain `utils` package usage only where `pointer` package does not provide equivalent functionality
 
 #### typed resource Client Usage
 ```go
@@ -899,11 +902,17 @@ import (
 
 #### The "None" Value Pattern
 
-Many Azure APIs accept values like None, Off, or Default as default values and expose them as constants in the API specification. The provider is moving away from exposing these values directly to users, instead leveraging Terraform's native null handling by allowing fields to be omitted.
+Many Azure APIs accept values like None, Off, or Default as default values and expose them as constants in the API specification. The provider is moving away from exposing these values directly to users, instead leveraging Terraform's native null handling by allowing fields to be omitted. While it is not uncommon to find older resources in the provider that expose and accept these as valid values, the provider is moving away from this pattern, since Terraform has its own null type (i.e., by omitting the field). This ultimately means that the end user does not need to bloat their configuration with superfluous information that is implied through the omission of information. The resulting schema requires a conversion between the Terraform null value and "None" within the Create and Read functions.
 
 **Modern Approach (Preferred):**
 ```go
 package servicename
+
+import (
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
 // Schema excludes the "None" value - users omit the field instead
 "shutdown_on_idle": {
     Type:     pluginsdk.TypeString,
@@ -911,8 +920,9 @@ package servicename
     ValidateFunc: validation.StringInSlice([]string{
         string(azureapi.ShutdownOnIdleModeUserAbsence),
         string(azureapi.ShutdownOnIdleModeLowUsage),
-        // Note: "None" value is handled in Create/Update and Read functions
+        // Note: While the "None" value exists it is handled in the Create/Update and Read functions.
         // NOT exposed in validation
+        // string(azureapi.ShutdownOnIdleModeNone),
     }, false),
 },
 
@@ -931,6 +941,15 @@ package servicename
 
 **Typed resource Implementation:**
 ```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
 // Create/Update function - Convert Terraform null to Azure "None"
 func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
@@ -941,6 +960,7 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
             }
 
             // Default to "None" if user did not specify a value
+            // The resource property shutdown_on_idle maps to the attribute ShutdownOnIdle in the model
             shutdownOnIdle := string(azureapi.ShutdownOnIdleModeNone)
             if model.ShutdownOnIdle != "" {
                 shutdownOnIdle = model.ShutdownOnIdle
@@ -965,10 +985,12 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
             model := ServiceModel{}
             
             // Only set value in state if it is not "None"
+            shutdownOnIdle := ""
             if props.ShutdownOnIdle != nil && *props.ShutdownOnIdle != string(azureapi.ShutdownOnIdleModeNone) {
-                model.ShutdownOnIdle = *props.ShutdownOnIdle
+                shutdownOnIdle = string(*props.ShutdownOnIdle)
             }
-            // If Azure returns "None", leave field empty in Terraform state
+            model.ShutdownOnIdle = shutdownOnIdle
+            // If Azure returns "None", field remains empty in Terraform state
 
             return metadata.Encode(&model)
         },
@@ -978,6 +1000,14 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
 
 **Untyped Plugin SDK Implementation:**
 ```go
+package servicename
+
+import (
+    "context"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
 // Create function - Convert Terraform null to Azure "None"
 func resourceServiceCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     // Default to "None" if user did not specify a value
@@ -1011,6 +1041,12 @@ func resourceServiceRead(ctx context.Context, d *pluginsdk.ResourceData, meta in
 
 **Error Handling:**
 ```go
+package servicename
+
+import (
+    "fmt"
+)
+
 // If user somehow attempts to set "None" explicitly
 if model.ShutdownOnIdle == string(azureapi.ShutdownOnIdleModeNone) {
     return fmt.Errorf("property `shutdown_on_idle` cannot be set to `None` - omit the field to use default behavior")
