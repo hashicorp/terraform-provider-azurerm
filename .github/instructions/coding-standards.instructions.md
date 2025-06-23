@@ -1,4 +1,4 @@
----
+﻿---
 applyTo: "internal/**/*.go"
 description: This document outlines the coding standards for Go files in the Terraform AzureRM provider repository. It includes naming conventions, file organization, error handling patterns, resource implementation guidelines, and Azure SDK usage standards.
 ---
@@ -896,6 +896,139 @@ import (
     // ForceNew: false allows in-place updates
 },
 ```
+
+#### The "None" Value Pattern
+
+Many Azure APIs accept values like None, Off, or Default as default values and expose them as constants in the API specification. The provider is moving away from exposing these values directly to users, instead leveraging Terraform's native null handling by allowing fields to be omitted.
+
+**Modern Approach (Preferred):**
+```go
+package servicename
+// Schema excludes the "None" value - users omit the field instead
+"shutdown_on_idle": {
+    Type:     pluginsdk.TypeString,
+    Optional: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        string(azureapi.ShutdownOnIdleModeUserAbsence),
+        string(azureapi.ShutdownOnIdleModeLowUsage),
+        // Note: "None" value is handled in Create/Update and Read functions
+        // NOT exposed in validation
+    }, false),
+},
+
+// Example validation that excludes "None" - users cannot explicitly set it
+"performance_level": {
+    Type:     pluginsdk.TypeString,
+    Optional: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        "Low",
+        "Medium",
+        "High",
+        // Note: "None" is NOT included here - handled automatically
+    }, false),
+},
+```
+
+**Typed resource Implementation:**
+```go
+// Create/Update function - Convert Terraform null to Azure "None"
+func (r ServiceResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            var model ServiceModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            // Default to "None" if user did not specify a value
+            shutdownOnIdle := string(azureapi.ShutdownOnIdleModeNone)
+            if model.ShutdownOnIdle != "" {
+                shutdownOnIdle = model.ShutdownOnIdle
+            }
+
+            properties := azureapi.ServiceProperties{
+                ShutdownOnIdle: &shutdownOnIdle,
+            }
+
+            // ...continue with resource creation
+            return nil
+        },
+    }
+}
+
+// Read function - Convert Azure "None" back to Terraform null
+func (r ServiceResource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // ...retrieve resource from Azure
+
+            model := ServiceModel{}
+            
+            // Only set value in state if it is not "None"
+            if props.ShutdownOnIdle != nil && *props.ShutdownOnIdle != string(azureapi.ShutdownOnIdleModeNone) {
+                model.ShutdownOnIdle = *props.ShutdownOnIdle
+            }
+            // If Azure returns "None", leave field empty in Terraform state
+
+            return metadata.Encode(&model)
+        },
+    }
+}
+```
+
+**Untyped Plugin SDK Implementation:**
+```go
+// Create function - Convert Terraform null to Azure "None"
+func resourceServiceCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    // Default to "None" if user did not specify a value
+    shutdownOnIdle := string(azureapi.ShutdownOnIdleModeNone)
+    if v := d.Get("shutdown_on_idle").(string); v != "" {
+        shutdownOnIdle = v
+    }
+
+    properties := azureapi.ServiceProperties{
+        ShutdownOnIdle: &shutdownOnIdle,
+    }
+
+    // ...continue with resource creation
+    return nil
+}
+
+// Read function - Convert Azure "None" back to Terraform null
+func resourceServiceRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    // ...retrieve resource from Azure
+
+    // Only set value in state if it is not "None"
+    shutdownOnIdle := ""
+    if props.ShutdownOnIdle != nil && *props.ShutdownOnIdle != string(azureapi.ShutdownOnIdleModeNone) {
+        shutdownOnIdle = *props.ShutdownOnIdle
+    }
+    d.Set("shutdown_on_idle", shutdownOnIdle)
+
+    return nil
+}
+```
+
+**Error Handling:**
+```go
+// If user somehow attempts to set "None" explicitly
+if model.ShutdownOnIdle == string(azureapi.ShutdownOnIdleModeNone) {
+    return fmt.Errorf("property `shutdown_on_idle` cannot be set to `None` - omit the field to use default behavior")
+}
+```
+
+**Key Principles:**
+- **User Experience**: Users omit optional fields instead of explicitly setting "None" values
+- **Validation**: Exclude "None", "Off", "Default" values from schema validation
+- **Create/Update**: Convert empty/null Terraform values to appropriate Azure default constants
+- **Read**: Convert Azure default constants back to empty values in Terraform state
+- **Legacy Support**: Existing resources with exposed "None" values are planned for removal in v4.0
+
+**Benefits:**
+- Cleaner user configurations without superfluous default values
+- Leverages Terraform's native null handling
+- Consistent with Terraform best practices
+- Reduces configuration bloat
 
 ### State Management Standards
 
