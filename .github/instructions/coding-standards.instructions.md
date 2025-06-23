@@ -1070,6 +1070,753 @@ if model.ShutdownOnIdle == string(azureapi.ShutdownOnIdleModeNone) {
 
 For detailed state management patterns including when to use `d.GetRawConfig()` vs `d.Get()` in untyped Plugin SDK resources, see the State Management section in [`coding-patterns.instructions.md`](./coding-patterns.instructions.md).
 
+### Security Considerations
+
+#### Credential and Secret Management
+
+**Never Log Sensitive Information:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - No sensitive data in logs
+metadata.Logger.Infof("Creating Storage Account %s", id.StorageAccountName)
+log.Printf("[DEBUG] Configuring network rules for %s", id)
+
+// BAD - Sensitive data in logs
+log.Printf("[DEBUG] Connection string: %s", connectionString) // Never log connection strings
+metadata.Logger.Debugf("Client secret: %s", clientSecret)     // Never log secrets
+log.Printf("[DEBUG] SAS token: %s", sasToken)                 // Never log tokens
+```
+
+**Secure Environment Variable Handling:**
+```go
+package servicename
+
+import (
+    "fmt"
+    "os"
+)
+
+// GOOD - Proper environment variable validation
+func validateTestCredentials() error {
+    requiredVars := []string{
+        "ARM_SUBSCRIPTION_ID",
+        "ARM_CLIENT_ID", 
+        "ARM_CLIENT_SECRET",
+        "ARM_TENANT_ID",
+    }
+    
+    for _, envVar := range requiredVars {
+        if value := os.Getenv(envVar); value == "" {
+            return fmt.Errorf("required environment variable %s is not set", envVar)
+        }
+    }
+    return nil
+}
+
+// BAD - Hardcoded credentials
+const (
+    subscriptionID = "12345678-1234-1234-1234-123456789012" // Never hardcode
+    clientSecret   = "super-secret-value"                   // Never hardcode
+)
+```
+
+**Azure Key Vault Integration:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    "strings"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - Key Vault reference pattern for typed resource
+func (r ServiceResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            var model ServiceModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            // Validate Key Vault reference format
+            if isKeyVaultReference(model.ConnectionString) {
+                if err := validateKeyVaultReference(model.ConnectionString); err != nil {
+                    return fmt.Errorf("invalid Key Vault reference format: %+v", err)
+                }
+            }
+
+            // Use the reference without logging actual value
+            properties := azureapi.ServiceProperties{
+                ConnectionString: model.ConnectionString, // Azure will resolve the Key Vault reference
+            }
+
+            return nil
+        },
+    }
+}
+
+func isKeyVaultReference(value string) bool {
+    return strings.HasPrefix(value, "@Microsoft.KeyVault(SecretUri=")
+}
+
+func validateKeyVaultReference(reference string) error {
+    // Validate Key Vault reference format without logging the actual secret
+    if !strings.Contains(reference, "vault.azure.net") {
+        return fmt.Errorf("Key Vault reference must use vault.azure.net domain")
+    }
+    return nil
+}
+```
+
+#### Input Validation and Sanitization
+
+**Prevent Injection Attacks:**
+```go
+package servicename
+
+import (
+    "fmt"
+    "regexp"
+    "strings"
+)
+
+// GOOD - Proper input validation
+func ValidateAzureResourceName(v interface{}, k string) (warnings []string, errors []error) {
+    value := v.(string)
+    
+    // Validate length
+    if len(value) < 1 || len(value) > 64 {
+        errors = append(errors, fmt.Errorf("property %s must be between 1 and 64 characters, got %d", k, len(value)))
+        return warnings, errors
+    }
+    
+    // Validate allowed characters only (prevent injection)
+    allowedPattern := regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
+    if !allowedPattern.MatchString(value) {
+        errors = append(errors, fmt.Errorf("property %s can only contain alphanumeric characters, hyphens, and underscores", k))
+        return warnings, errors
+    }
+    
+    // Prevent reserved names
+    reservedNames := []string{"admin", "root", "system", "default"}
+    for _, reserved := range reservedNames {
+        if strings.EqualFold(value, reserved) {
+            errors = append(errors, fmt.Errorf("property %s cannot use reserved name %s", k, reserved))
+            return warnings, errors
+        }
+    }
+    
+    return warnings, errors
+}
+
+// BAD - No input validation
+func ValidateNameUnsafe(v interface{}, k string) (warnings []string, errors []error) {
+    value := v.(string)
+    // No validation - vulnerable to injection attacks
+    return warnings, errors
+}
+```
+
+**SQL Injection Prevention in Resource Names:**
+```go
+package servicename
+
+import (
+    "fmt"
+    "strings"
+)
+
+// GOOD - Sanitize resource names that might be used in SQL contexts
+func ValidateSQLResourceName(v interface{}, k string) (warnings []string, errors []error) {
+    value := v.(string)
+    
+    // Check for SQL injection patterns
+    sqlInjectionPatterns := []string{
+        "'", "\"", ";", "--", "/*", "*/", "xp_", "sp_", "exec", "execute",
+        "select", "insert", "update", "delete", "drop", "create", "alter",
+    }
+    
+    lowerValue := strings.ToLower(value)
+    for _, pattern := range sqlInjectionPatterns {
+        if strings.Contains(lowerValue, pattern) {
+            errors = append(errors, fmt.Errorf("property %s cannot contain potentially unsafe characters or SQL keywords", k))
+            return warnings, errors
+        }
+    }
+    
+    return warnings, errors
+}
+```
+
+#### Network Security
+
+**TLS and Certificate Validation:**
+```go
+package servicename
+
+import (
+    "context"
+    "crypto/tls"
+    "fmt"
+    "net/http"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - Proper TLS configuration
+func configureSecureHTTPClient() *http.Client {
+    return &http.Client{
+        Transport: &http.Transport{
+            TLSClientConfig: &tls.Config{
+                MinVersion: tls.VersionTLS12, // Enforce minimum TLS version
+                CipherSuites: []uint16{
+                    tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+                    tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+                    tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+                },
+            },
+        },
+    }
+}
+
+// BAD - Insecure TLS configuration
+func configureInsecureHTTPClient() *http.Client {
+    return &http.Client{
+        Transport: &http.Transport{
+            TLSClientConfig: &tls.Config{
+                InsecureSkipVerify: true, // Never skip certificate verification
+                MinVersion:         tls.VersionTLS10, // Too old
+            },
+        },
+    }
+}
+```
+
+#### Authentication and Authorization
+
+**Service Principal Best Practices:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    "time"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - Proper authentication handling
+func (r ServiceResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+            
+            // Verify client authentication before proceeding
+            if err := verifyClientAuthentication(ctx, client); err != nil {
+                return fmt.Errorf("authentication verification failed: %+v", err)
+            }
+            
+            // Use context with timeout for all operations
+            ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
+            defer cancel()
+            
+            // Proceed with authenticated operations
+            return nil
+        },
+    }
+}
+
+func verifyClientAuthentication(ctx context.Context, client interface{}) error {
+    // Implement authentication verification logic
+    // This should be done by the Azure SDK, but can be verified if needed
+    return nil
+}
+```
+
+**Token Refresh and Lifecycle Management:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    "time"
+)
+
+// GOOD - Proper token lifecycle management
+func handleTokenRefresh(ctx context.Context, operation func() error) error {
+    const maxRetries = 3
+    
+    for attempt := 1; attempt <= maxRetries; attempt++ {
+        err := operation()
+        if err == nil {
+            return nil
+        }
+        
+        // Check if error is due to token expiration
+        if isTokenExpiredError(err) && attempt < maxRetries {
+            // Wait before retry (exponential backoff)
+            backoffDuration := time.Duration(attempt*attempt) * time.Second
+            time.Sleep(backoffDuration)
+            continue
+        }
+        
+        return fmt.Errorf("operation failed after %d attempts: %+v", attempt, err)
+    }
+    
+    return fmt.Errorf("operation failed after %d attempts", maxRetries)
+}
+
+func isTokenExpiredError(err error) bool {
+    // Implement logic to detect token expiration errors
+    return false // Placeholder
+}
+```
+
+### Performance Considerations
+
+#### Azure API Rate Limiting and Throttling
+
+**Exponential Backoff Implementation:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    "math"
+    "time"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+    "github.com/hashicorp/terraform-provider-azurerm/utils/response"
+)
+
+// GOOD - Proper rate limiting with exponential backoff
+func (r ServiceResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+            
+            operation := func() error {
+                resp, err := client.CreateOrUpdate(ctx, id, properties)
+                if err != nil {
+                    if response.WasThrottled(resp.HttpResponse) {
+                        return &ThrottledError{Err: err}
+                    }
+                    return err
+                }
+                return nil
+            }
+            
+            return retryWithExponentialBackoff(ctx, operation, metadata.Logger)
+        },
+    }
+}
+
+type ThrottledError struct {
+    Err error
+}
+
+func (e *ThrottledError) Error() string {
+    return e.Err.Error()
+}
+
+func retryWithExponentialBackoff(ctx context.Context, operation func() error, logger interface{}) error {
+    const maxRetries = 5
+    const baseDelay = 1 * time.Second
+    const maxDelay = 32 * time.Second
+    
+    for attempt := 0; attempt < maxRetries; attempt++ {
+        err := operation()
+        if err == nil {
+            return nil
+        }
+        
+        // Check if it's a throttling error
+        if throttleErr, ok := err.(*ThrottledError); ok {
+            if attempt == maxRetries-1 {
+                return fmt.Errorf("request throttled after %d attempts: %+v", maxRetries, throttleErr.Err)
+            }
+            
+            // Calculate exponential backoff delay
+            delay := time.Duration(math.Pow(2, float64(attempt))) * baseDelay
+            if delay > maxDelay {
+                delay = maxDelay
+            }
+            
+            // Log throttling and wait
+            if logger != nil {
+                // Note: Use appropriate logger based on implementation type
+                // metadata.Logger.Infof() for typed resource
+                // log.Printf() for untyped
+            }
+            
+            select {
+            case <-ctx.Done():
+                return ctx.Err()
+            case <-time.After(delay):
+                continue
+            }
+        }
+        
+        // For non-throttling errors, return immediately
+        return err
+    }
+    
+    return fmt.Errorf("operation failed after %d attempts", maxRetries)
+}
+```
+
+#### Efficient Resource Queries
+
+**Batch Operations:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - Use batch operations when available
+func (r ServiceResource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+            
+            // If Azure API supports batch operations, use them
+            if batchClient, ok := client.(BatchOperationClient); ok {
+                return r.readWithBatch(ctx, metadata, batchClient)
+            }
+            
+            // Fall back to individual operations
+            return r.readIndividual(ctx, metadata, client)
+        },
+    }
+}
+
+type BatchOperationClient interface {
+    BatchGet(ctx context.Context, ids []string) ([]Resource, error)
+}
+
+func (r ServiceResource) readWithBatch(ctx context.Context, metadata sdk.ResourceMetaData, client BatchOperationClient) error {
+    // Implement batch reading logic
+    return nil
+}
+
+func (r ServiceResource) readIndividual(ctx context.Context, metadata sdk.ResourceMetaData, client interface{}) error {
+    // Implement individual reading logic
+    return nil
+}
+```
+
+**Efficient Pagination:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - Proper pagination handling
+func listResourcesEfficiently(ctx context.Context, client interface{}) ([]Resource, error) {
+    var allResources []Resource
+    nextLink := ""
+    
+    for {
+        // Use appropriate page size (usually 100-1000 depending on Azure service)
+        pageSize := 100
+        
+        resp, err := client.List(ctx, ListOptions{
+            PageSize: pageSize,
+            NextLink: nextLink,
+        })
+        if err != nil {
+            return nil, fmt.Errorf("listing resources: %+v", err)
+        }
+        
+        allResources = append(allResources, resp.Resources...)
+        
+        // Check if there are more pages
+        if resp.NextLink == "" {
+            break
+        }
+        nextLink = resp.NextLink
+        
+        // Prevent infinite loops
+        if len(allResources) > 10000 { // Reasonable upper limit
+            return nil, fmt.Errorf("too many resources returned, possible infinite pagination")
+        }
+    }
+    
+    return allResources, nil
+}
+```
+
+#### Caching Strategies
+
+**Safe Resource Caching:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    "sync"
+    "time"
+)
+
+// GOOD - Implement caching for read-only or slowly changing data
+type ResourceCache struct {
+    cache map[string]CachedResource
+    mutex sync.RWMutex
+    ttl   time.Duration
+}
+
+type CachedResource struct {
+    Resource  interface{}
+    Timestamp time.Time
+}
+
+func NewResourceCache(ttl time.Duration) *ResourceCache {
+    return &ResourceCache{
+        cache: make(map[string]CachedResource),
+        ttl:   ttl,
+    }
+}
+
+func (c *ResourceCache) Get(ctx context.Context, key string, fetchFunc func(ctx context.Context) (interface{}, error)) (interface{}, error) {
+    c.mutex.RLock()
+    cached, exists := c.cache[key]
+    c.mutex.RUnlock()
+    
+    // Check if cache hit and not expired
+    if exists && time.Since(cached.Timestamp) < c.ttl {
+        return cached.Resource, nil
+    }
+    
+    // Cache miss or expired, fetch new data
+    resource, err := fetchFunc(ctx)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Update cache
+    c.mutex.Lock()
+    c.cache[key] = CachedResource{
+        Resource:  resource,
+        Timestamp: time.Now(),
+    }
+    c.mutex.Unlock()
+    
+    return resource, nil
+}
+
+// CAUTION - Only cache immutable or slowly changing data
+// Never cache: user data, secrets, frequently changing resources
+// Safe to cache: Azure service endpoints, supported VM sizes, available regions (with appropriate TTL)
+```
+
+#### Memory Management
+
+**Efficient Resource Processing:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - Process large datasets efficiently
+func (r ServiceResource) processLargeDataset(ctx context.Context, metadata sdk.ResourceMetaData) error {
+    client := metadata.Client.ServiceName.ResourceClient
+    
+    // Use streaming/paging instead of loading all data at once
+    processFunc := func(resource Resource) error {
+        // Process individual resource
+        return nil
+    }
+    
+    return client.StreamResources(ctx, processFunc)
+}
+
+// GOOD - Proper memory cleanup
+func (r ServiceResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // Use defer for cleanup
+            defer func() {
+                // Clean up any temporary resources
+                if tempData != nil {
+                    tempData.Cleanup()
+                }
+            }()
+            
+            // Limit slice capacity for large datasets
+            items := make([]Item, 0, 1000) // Set reasonable initial capacity
+            
+            // Process data
+            return nil
+        },
+    }
+}
+```
+
+#### Timeout Management
+
+**Appropriate Timeout Configuration:**
+```go
+package servicename
+
+import (
+    "time"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+// GOOD - Service-appropriate timeouts
+func resourceServiceName() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Timeouts: &pluginsdk.ResourceTimeout{
+            // Short operations (metadata only)
+            Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+            
+            // Medium operations (simple resources)
+            Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+            
+            // Long operations (complex resources like clusters)
+            // Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+        },
+    }
+}
+
+// For very long operations (like large VM deployments)
+func resourceComplexService() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Timeouts: &pluginsdk.ResourceTimeout{
+            Create: pluginsdk.DefaultTimeout(120 * time.Minute), // 2 hours for complex deployments
+            Delete: pluginsdk.DefaultTimeout(90 * time.Minute),  // Longer delete for cleanup
+            Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+            Read:   pluginsdk.DefaultTimeout(10 * time.Minute),  // Longer read for complex resources
+        },
+    }
+}
+```
+
+#### Context Management
+
+**Proper Context Usage:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    "time"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - Proper context handling
+func (r ServiceResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+            
+            // Create child context with shorter timeout for individual operations
+            operationCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+            defer cancel()
+            
+            // Pass context to all Azure API calls
+            if err := client.CreateOrUpdateThenPoll(operationCtx, id, properties); err != nil {
+                return fmt.Errorf("creating %s: %+v", id, err)
+            }
+            
+            // Check context cancellation between operations
+            select {
+            case <-ctx.Done():
+                return ctx.Err()
+            default:
+                // Continue processing
+            }
+            
+            return nil
+        },
+    }
+}
+```
+
+#### Performance Monitoring
+
+**Operation Timing and Metrics:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+    "time"
+    
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// GOOD - Add timing for performance monitoring
+func (r ServiceResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            startTime := time.Now()
+            defer func() {
+                duration := time.Since(startTime)
+                metadata.Logger.Infof("Resource creation completed in %v", duration)
+
+                // Note: id and properties are example placeholders representing actual resource identifiers
+                // and Azure API parameters that would be defined in the actual implementation context
+
+                // Log slow operations for investigation
+                if duration > 5*time.Minute {
+                    metadata.Logger.Infof("Slow operation detected: %s took %v", id, duration)
+                }
+            }()
+
+            client := metadata.Client.ServiceName.ResourceClient
+
+            // Track individual operation timings
+            opStart := time.Now()
+            if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+                return fmt.Errorf("creating %s: %+v", id, err)
+            }
+            metadata.Logger.Debugf("Azure API call completed in %v", time.Since(opStart))
+
+            return nil
+        },
+    }
+}
+```
+
 ### Testing Standards
 
 For comprehensive testing patterns, implementation details, and Azure-specific testing guidelines, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
