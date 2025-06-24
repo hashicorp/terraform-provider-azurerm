@@ -1554,13 +1554,13 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			Computed:   true,
 			Deprecated: "`enable_http2` has been deprecated in favour of the `http2_enabled` property and will be removed in v5.0 of the AzureRM Provider",
 		}
-		resource.Schema["ssl_profile"].Elem.(pluginsdk.Resource).Schema["verify_client_certificate_dn"] = &pluginsdk.Schema{
+		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_certificate_dn"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"ssl_profile.0.verify_client_cert_dn"},
 		}
-		resource.Schema["ssl_profile"].Elem.(pluginsdk.Resource).Schema["verify_client_cert_dn"] = &pluginsdk.Schema{
+		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_cert_dn"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Computed:   true,

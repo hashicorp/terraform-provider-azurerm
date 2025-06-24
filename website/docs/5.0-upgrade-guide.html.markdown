@@ -358,6 +358,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_windows_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
 ## Breaking Changes in Data Sources
 
 Please follow the format in the example below for listing breaking changes in data sources:

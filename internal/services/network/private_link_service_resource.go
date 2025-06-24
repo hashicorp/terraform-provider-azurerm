@@ -72,7 +72,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Set: pluginsdk.HashString,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
 			"proxy_protocol_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
