@@ -452,7 +452,6 @@ resource "azurerm_container_app_job" "test" {
       volume_mounts {
         path = "/appsettings"
         name = "appsettings-volume"
-        sub_path = "subdirectory"
       }
     }
   }
@@ -1405,7 +1404,6 @@ resource "azurerm_container_app_job" "test" {
       volume_mounts {
         path = "/appsettings"
         name = azurerm_container_app_environment_storage.test.name
-        sub_path = "subdirectory"
       }
     }
 
@@ -1417,7 +1415,6 @@ resource "azurerm_container_app_job" "test" {
       volume_mounts {
         name = azurerm_container_app_environment_storage.test.name
         path = "/appsettings"
-        sub_path = "subdirectory"
       }
     }
   }
