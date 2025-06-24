@@ -464,30 +464,6 @@ func TestAccNetAppVolume_coolAccess(t *testing.T) {
 	})
 }
 
-func TestAccNetAppVolume_coolAccessDisabledExpectError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
-	r := NetAppVolumeResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.coolAccessDisabledExpectError(data),
-			ExpectError: regexp.MustCompile("when `cool_access_enabled` is false, `cool_access_retrieval_policy`, `cool_access_tiering_policy`, and `coolness_period_in_days` must not be set"),
-		},
-	})
-}
-
-func TestAccNetAppVolume_coolAccessEnabledExpectError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
-	r := NetAppVolumeResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.coolAccessEnabledExpectError(data),
-			ExpectError: regexp.MustCompile("when `cool_access_enabled` is true, `cool_access_retrieval_policy`, `cool_access_tiering_policy`, and `coolness_period_in_days` must be set"),
-		},
-	})
-}
-
 func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := volumes.ParseVolumeID(state.ID)
 	if err != nil {
@@ -1885,11 +1861,11 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 
-  cool_access_enabled          = true
-  cool_access_tiering_policy   = "Auto"
-  cool_access_retrieval_policy = "OnRead"
-  coolness_period_in_days      = 10
-
+  cool_access {
+    cool_access_tiering_policy   = "Auto"
+    cool_access_retrieval_policy = "OnRead"
+    coolness_period_in_days      = 10
+  }
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
@@ -1914,11 +1890,11 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 
-  cool_access_enabled          = true
-  cool_access_tiering_policy   = "SnapshotOnly"
-  cool_access_retrieval_policy = "Default"
-  coolness_period_in_days      = 10
-
+  cool_access {
+    cool_access_tiering_policy   = "SnapshotOnly"
+    cool_access_retrieval_policy = "Default"
+    coolness_period_in_days      = 10
+  }
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
     "SkipASMAzSecPack" = "true"
@@ -1943,65 +1919,11 @@ resource "azurerm_netapp_volume" "test" {
   storage_quota_in_gb = 100
   throughput_in_mibps = 1.562
 
-  cool_access_enabled          = true
-  cool_access_tiering_policy   = "SnapshotOnly"
-  cool_access_retrieval_policy = "Never"
-  coolness_period_in_days      = 30
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
+  cool_access {
+    cool_access_tiering_policy   = "SnapshotOnly"
+    cool_access_retrieval_policy = "Never"
+    coolness_period_in_days      = 30
   }
-}
-`, NetAppVolumeResource{}.templateCoolAccess(data), data.RandomInteger, data.RandomInteger)
-}
-
-func (NetAppVolumeResource) coolAccessDisabledExpectError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_netapp_volume" "test" {
-  name                = "acctest-NetAppVolume-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_path         = "my-unique-file-path-%d"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.test.id
-  storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
-
-  cool_access_enabled          = false
-  cool_access_tiering_policy   = "SnapshotOnly"
-  cool_access_retrieval_policy = "Never"
-  coolness_period_in_days      = 30
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
-`, NetAppVolumeResource{}.templateCoolAccess(data), data.RandomInteger, data.RandomInteger)
-}
-
-func (NetAppVolumeResource) coolAccessEnabledExpectError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_netapp_volume" "test" {
-  name                = "acctest-NetAppVolume-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  account_name        = azurerm_netapp_account.test.name
-  pool_name           = azurerm_netapp_pool.test.name
-  volume_path         = "my-unique-file-path-%d"
-  service_level       = "Standard"
-  subnet_id           = azurerm_subnet.test.id
-  storage_quota_in_gb = 100
-  throughput_in_mibps = 1.562
-
-  cool_access_enabled = true
 
   tags = {
     "CreatedOnDate"    = "2022-07-08T23:50:21Z",
