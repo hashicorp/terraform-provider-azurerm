@@ -7,28 +7,16 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-	"unicode"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/iancoleman/strcase"
 )
 
 // These functions support generating the resource identity schema for the following types of identities and resources
 // * Hierarchical IDs (untyped and typed resources)
 // * IDs for resources with a Discriminated Type (untyped and typed resources)
-
-func convertToSnakeCase(input string) string {
-	output := ""
-	for _, r := range input {
-		if unicode.IsUpper(r) {
-			output += "_"
-		}
-		output += string(r)
-	}
-
-	return strings.ToLower(output)
-}
 
 // segmentTypeSupported contains a list of segments that should be used to construct the resource identity schema
 // this list will need to be extended to support hierarchical resource IDs for management groups or resources
@@ -68,7 +56,7 @@ func GenerateIdentitySchema(id resourceids.ResourceId) func() map[string]*schema
 func identitySchema(id resourceids.ResourceId) map[string]*schema.Schema {
 	idSchema := make(map[string]*schema.Schema, 0)
 	for _, segment := range id.Segments() {
-		name := convertToSnakeCase(segment.Name)
+		name := strcase.ToSnake(segment.Name)
 
 		if segmentTypeSupported(segment.Type) {
 			idSchema[name] = &schema.Schema{
@@ -90,7 +78,7 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 
 	identityString := "/"
 	for _, segment := range id.Segments() {
-		name := convertToSnakeCase(segment.Name)
+		name := strcase.ToSnake(segment.Name)
 
 		if segment.Type == resourceids.StaticSegmentType || segment.Type == resourceids.ResourceProviderSegmentType {
 			identityString += pointer.From(segment.FixedValue) + "/"
@@ -168,7 +156,7 @@ func resourceIdentityData(identity *schema.IdentityData, id resourceids.Resource
 	}
 
 	for _, segment := range id.Segments() {
-		name := convertToSnakeCase(segment.Name)
+		name := strcase.ToSnake(segment.Name)
 
 		if segmentTypeSupported(segment.Type) {
 			field, ok := parsed.Parsed[segment.Name]
