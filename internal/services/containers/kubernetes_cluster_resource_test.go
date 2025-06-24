@@ -207,26 +207,26 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		// {
-		// 	Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
-		// },
-		// data.ImportStep(),
-		// {
-		// 	Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
-		// },
-		// data.ImportStep(),
-		// {
-		// 	Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
-		// },
-		// data.ImportStep(),
-		// {
-		// 	Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
-		// },
-		// data.ImportStep(),
-		// {
-		// 	Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
-		// },
-		// data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+		},
+		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+		},
+		data.ImportStep(),
 		{
 			Config: r.networkProfileWithOutboundType(data, "none"),
 		},
