@@ -12,7 +12,8 @@ ENHANCEMENTS:
 
 
 BUG FIXES:
-`azurerm_netapp_backup_policy` - the `weekly_backups_to_keep` and `monthly_backups_to_keep` properties can now be set to `0` [GH-29920]
+* `provider` - allow missing `subscription_id` when `use_cli` is `true` [GH-29985]
+* `azurerm_netapp_backup_policy` - the `weekly_backups_to_keep` and `monthly_backups_to_keep` properties can now be set to `0` [GH-29920]
 
 ## 4.34.0 (June 20, 2025)
 
