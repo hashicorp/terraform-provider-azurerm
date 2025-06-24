@@ -46,6 +46,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Partner Registration.
 
+* `partner_registration_id` - The immutable id of the corresponding partner registration.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:

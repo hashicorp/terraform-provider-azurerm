@@ -21,9 +21,10 @@ var _ sdk.Resource = EventGridPartnerRegistrationResource{}
 type EventGridPartnerRegistrationResource struct{}
 
 type EventGridPartnerRegistrationResourceModel struct {
-	Name          string            `tfschema:"name"`
-	ResourceGroup string            `tfschema:"resource_group_name"`
-	Tags          map[string]string `tfschema:"tags"`
+	Name                  string            `tfschema:"name"`
+	ResourceGroup         string            `tfschema:"resource_group_name"`
+	PartnerRegistrationID string            `tfschema:"partner_registration_id"`
+	Tags                  map[string]string `tfschema:"tags"`
 }
 
 func (EventGridPartnerRegistrationResource) Arguments() map[string]*pluginsdk.Schema {
@@ -40,7 +41,12 @@ func (EventGridPartnerRegistrationResource) Arguments() map[string]*pluginsdk.Sc
 }
 
 func (EventGridPartnerRegistrationResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"partner_registration_id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (EventGridPartnerRegistrationResource) ModelObject() interface{} {
@@ -154,6 +160,9 @@ func (r EventGridPartnerRegistrationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.PartnerRegistrationID = pointer.From(props.PartnerRegistrationImmutableId)
+				}
 			}
 			return metadata.Encode(&state)
 		},
