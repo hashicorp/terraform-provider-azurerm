@@ -127,11 +127,11 @@ The following arguments are supported:
 
 * `active_active` - (Optional) If `true`, an active-active Virtual Network Gateway will be created. An active-active gateway requires a `HighPerformance` or an `UltraPerformance` SKU. If `false`, an active-standby gateway will be created. Defaults to `false`.
 
+* `bgp_enabled` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
+
 * `default_local_network_gateway_id` - (Optional) The ID of the local network gateway through which outbound Internet traffic from the virtual network in which the gateway is created will be routed (*forced tunnelling*). Refer to the [Azure documentation on forced tunnelling](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm). If not specified, forced tunnelling is disabled.
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network Gateway should exist. Changing this forces a new Virtual Network Gateway to be created.
-
-* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
 
 * `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
 

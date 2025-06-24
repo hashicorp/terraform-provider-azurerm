@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -107,7 +108,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 }
 
 func resourceApplicationGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourceApplicationGatewayCreate,
 		Read:     resourceApplicationGatewayRead,
 		Update:   resourceApplicationGatewayUpdate,
@@ -904,8 +905,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			// lintignore:XS003
 			"ssl_policy": sslProfileSchema(true),
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_http2": {
+			"http2_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -1232,8 +1232,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						// TODO: replace cert by certificate in 4.0
-						"verify_client_cert_issuer_dn": {
+						"verify_client_certificate_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -1542,6 +1541,34 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
 	}
+	if !features.FivePointOh() {
+		resource.Schema["http2_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_http2"},
+		}
+		resource.Schema["enable_http2"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`enable_http2` has been deprecated in favour of the `http2_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		resource.Schema["ssl_profile"].Elem.(pluginsdk.Resource).Schema["verify_client_certificate_dn"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"ssl_profile.0.verify_client_cert_dn"},
+		}
+		resource.Schema["ssl_profile"].Elem.(pluginsdk.Resource).Schema["verify_client_cert_dn"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`verify_client_cert_dn` has been deprecated in favour of `verify_client_certificate_dn` and will be removed in v5.0 of the AzureRM provider",
+		}
+	}
+
+	return resource
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1563,7 +1590,6 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError("azurerm_application_gateway", id.ID())
 	}
 
-	enablehttp2 := d.Get("enable_http2").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	// Gateway ID is needed to link sub-resources together in expand functions
@@ -1623,7 +1649,6 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
 			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
-			EnableHTTP2:                   pointer.To(enablehttp2),
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
@@ -1642,6 +1667,16 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			RewriteRuleSets: rewriteRuleSets,
 			UrlPathMaps:     urlPathMaps,
 		},
+	}
+
+	if v, ok := d.GetOk("http2_enabled"); ok {
+		gateway.Properties.EnableHTTP2 = pointer.To(v.(bool))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_http2"); ok {
+			gateway.Properties.EnableHTTP2 = pointer.To(v.(bool))
+		}
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -1750,8 +1785,14 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties = &applicationgateways.ApplicationGatewayPropertiesFormat{}
 	}
 
-	if d.HasChange("enable_http2") {
-		payload.Properties.EnableHTTP2 = pointer.To(d.Get("enable_http2").(bool))
+	if d.HasChange("http2_enabled") {
+		payload.Properties.EnableHTTP2 = pointer.To(d.Get("http2_enabled").(bool))
+	}
+
+	if !features.FivePointOh() {
+		if d.HasChange("enable_http2") {
+			payload.Properties.EnableHTTP2 = pointer.To(d.Get("enable_http2").(bool))
+		}
 	}
 
 	if d.HasChange("trusted_root_certificate") {
@@ -2041,7 +2082,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `ssl_policy`: %+v", setErr)
 			}
 
-			d.Set("enable_http2", props.EnableHTTP2)
+			d.Set("http2_enabled", props.EnableHTTP2)
+			if !features.FivePointOh() {
+				d.Set("enable_http2", props.EnableHTTP2)
+			}
 			d.Set("fips_enabled", props.EnableFips)
 			d.Set("force_firewall_policy_association", props.ForceFirewallPolicyAssociation)
 
@@ -4139,7 +4183,6 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
-		verifyClientCertIssuerDn := v["verify_client_cert_issuer_dn"].(bool)
 		verifyClientCertificateRevocation := applicationgateways.ApplicationGatewayClientRevocationOptionsNone
 		if v["verify_client_certificate_revocation"].(string) != "" {
 			verifyClientCertificateRevocation = applicationgateways.ApplicationGatewayClientRevocationOptions(v["verify_client_certificate_revocation"].(string))
@@ -4149,12 +4192,18 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 			Name: pointer.To(name),
 			Properties: &applicationgateways.ApplicationGatewaySslProfilePropertiesFormat{
 				ClientAuthConfiguration: &applicationgateways.ApplicationGatewayClientAuthConfiguration{
-					VerifyClientCertIssuerDN: pointer.To(verifyClientCertIssuerDn),
-					VerifyClientRevocation:   pointer.To(verifyClientCertificateRevocation),
+					VerifyClientRevocation: pointer.To(verifyClientCertificateRevocation),
 				},
 			},
 		}
-
+		if verify, ok := v["verify_client_certificate_issuer_dn"]; ok {
+			output.Properties.ClientAuthConfiguration.VerifyClientCertIssuerDN = pointer.To(verify.(bool))
+		}
+		if !features.FivePointOh() {
+			if verify, ok := v["verify_client_cert_issuer_dn"]; ok {
+				output.Properties.ClientAuthConfiguration.VerifyClientCertIssuerDN = pointer.To(verify.(bool))
+			}
+		}
 		if v["trusted_client_certificate_names"] != nil {
 			clientCerts := v["trusted_client_certificate_names"].([]interface{})
 			clientCertSubResources := make([]applicationgateways.SubResource, 0)
@@ -4230,7 +4279,10 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 				}
 			}
 			output["trusted_client_certificate_names"] = trustedClientCertificateNames
-			output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
+			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
+			if !features.FivePointOh() {
+				output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
+			}
 			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 		}
 

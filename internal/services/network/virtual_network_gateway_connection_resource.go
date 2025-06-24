@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,7 +29,7 @@ import (
 )
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceVirtualNetworkGatewayConnectionCreate,
 		Read:   resourceVirtualNetworkGatewayConnectionRead,
 		Update: resourceVirtualNetworkGatewayConnectionUpdate,
@@ -141,8 +142,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				ValidateFunc: localnetworkgateways.ValidateLocalNetworkGatewayID,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
@@ -352,6 +352,23 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["bgp_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_bgp"},
+		}
+		resource.Schema["enable_bgp"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`enable_bgp` has been deprecated in favour of the `bgp_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return resource
 }
 
 func resourceVirtualNetworkGatewayConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -507,7 +524,10 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 		}
 
 		if props.EnableBgp != nil {
-			d.Set("enable_bgp", props.EnableBgp)
+			d.Set("bgp_enabled", props.EnableBgp)
+			if !features.FivePointOh() {
+				d.Set("enable_bgp", props.EnableBgp)
+			}
 		}
 
 		if props.UsePolicyBasedTrafficSelectors != nil {
@@ -634,8 +654,13 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	if d.HasChange("enable_bgp") {
-		payload.Properties.EnableBgp = pointer.To(d.Get("enable_bgp").(bool))
+	if d.HasChange("bgp_enabled") {
+		payload.Properties.EnableBgp = pointer.To(d.Get("bgp_enabled").(bool))
+	}
+	if !features.FivePointOh() {
+		if d.HasChange("enable_bgp") {
+			payload.Properties.EnableBgp = pointer.To(d.Get("enable_bgp").(bool))
+		}
 	}
 
 	if d.HasChange("use_policy_based_traffic_selectors") {
@@ -748,10 +773,19 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	props := &virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionPropertiesFormat{
 		ConnectionType:                 connectionType,
 		ConnectionMode:                 pointer.To(connectionMode),
-		EnableBgp:                      pointer.To(d.Get("enable_bgp").(bool)),
 		EnablePrivateLinkFastPath:      pointer.To(d.Get("private_link_fast_path_enabled").(bool)),
 		ExpressRouteGatewayBypass:      pointer.To(d.Get("express_route_gateway_bypass").(bool)),
 		UsePolicyBasedTrafficSelectors: pointer.To(d.Get("use_policy_based_traffic_selectors").(bool)),
+	}
+
+	if v, ok := d.GetOk("bgp_enabled"); ok {
+		props.EnableBgp = pointer.To(v.(bool))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_bgp"); ok {
+			props.EnableBgp = pointer.To(v.(bool))
+		}
 	}
 
 	if virtualNetworkGateway.Name != nil && virtualNetworkGateway.Id != nil {

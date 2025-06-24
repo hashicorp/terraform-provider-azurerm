@@ -162,7 +162,7 @@ The following arguments are supported:
 
 * `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
 
-* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+* `http2_enabled` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
 * `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
 
@@ -450,7 +450,7 @@ A `global` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
+* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_Small`, `Standard_Medium`, `Standard_Large`, `Standard_v2`, `WAF_Large`, `WAF_Medium` and `WAF_v2`.
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
 
@@ -509,7 +509,7 @@ A `ssl_profile` block supports the following:
 
 * `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
-* `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
+* `verify_client_certificate_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
  
 * `verify_client_certificate_revocation` - (Optional) Specify the method to check client certificate revocation status. Possible value is `OCSP`.
 

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -236,7 +237,7 @@ func TestAccVirtualNetworkGateway_enableBgp(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.enableBgp(data),
+			Config: r.bgpEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("1"),
@@ -1150,8 +1151,9 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, sku)
 }
 
-func (VirtualNetworkGatewayResource) enableBgp(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (VirtualNetworkGatewayResource) bgpEnabled(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1191,7 +1193,58 @@ resource "azurerm_virtual_network_gateway" "test" {
   type       = "Vpn"
   vpn_type   = "RouteBased"
   sku        = "VpnGw1"
-  enable_bgp = true
+  enable_bgp = true ### This property is being replaced with bgp_enabled
+
+  ip_configuration {
+    public_ip_address_id          = azurerm_public_ip.test.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip1-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type        = "Vpn"
+  vpn_type    = "RouteBased"
+  sku         = "VpnGw1"
+  bgp_enabled = true
 
   ip_configuration {
     public_ip_address_id          = azurerm_public_ip.test.id

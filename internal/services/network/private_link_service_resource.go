@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -31,7 +32,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_link_service -service-package-name network -properties "private_link_service_name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourcePrivateLinkService() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourcePrivateLinkServiceCreate,
 		Read:     resourcePrivateLinkServiceRead,
 		Update:   resourcePrivateLinkServiceUpdate,
@@ -72,7 +73,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			},
 
 			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_proxy_protocol": {
+			"proxy_protocol_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -168,6 +169,24 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+	if !features.FivePointOh() {
+		resource.Schema["proxy_protocol_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_proxy_protocol"},
+		}
+
+		resource.Schema["enable_proxy_protocol"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"proxy_protocol_enabled"},
+			Deprecated:    "`enable_proxy_protocol` has been deprecated in favour of the `proxy_protocol_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return resource
 }
 
 func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -194,7 +213,6 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 			AutoApproval: &privatelinkservices.ResourceSet{
 				Subscriptions: utils.ExpandStringSlice(d.Get("auto_approval_subscription_ids").(*pluginsdk.Set).List()),
 			},
-			EnableProxyProtocol: pointer.To(d.Get("enable_proxy_protocol").(bool)),
 			Visibility: &privatelinkservices.ResourceSet{
 				Subscriptions: utils.ExpandStringSlice(d.Get("visibility_subscription_ids").(*pluginsdk.Set).List()),
 			},
@@ -203,6 +221,16 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 			Fqdns:                                utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("proxy_protocol_enabled"); ok {
+		parameters.Properties.EnableProxyProtocol = pointer.To(v.(bool))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_proxy_protocol"); ok {
+			parameters.Properties.EnableProxyProtocol = pointer.To(v.(bool))
+		}
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -260,8 +288,13 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	if d.HasChange("enable_proxy_protocol") {
-		payload.Properties.EnableProxyProtocol = pointer.To(d.Get("enable_proxy_protocol").(bool))
+	if d.HasChange("proxy_protocol_enabled") {
+		payload.Properties.EnableProxyProtocol = pointer.To(d.Get("proxy_protocol_enabled").(bool))
+	}
+	if !features.FivePointOh() {
+		if d.HasChange("enable_proxy_protocol") {
+			payload.Properties.EnableProxyProtocol = pointer.To(d.Get("enable_proxy_protocol").(bool))
+		}
 	}
 
 	if d.HasChange("visibility_subscription_ids") {
@@ -338,7 +371,10 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("alias", props.Alias)
-			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
+			if !features.FivePointOh() {
+				d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+			}
 
 			var autoApprovalSub []interface{}
 			if autoApproval := props.AutoApproval; autoApproval != nil {
