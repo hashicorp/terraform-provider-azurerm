@@ -405,7 +405,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"cool_access_retrieval_policy": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -832,7 +831,6 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		} else {
 			update.Properties.CoolAccess = pointer.To(false)
 		}
-
 	}
 
 	if d.HasChange("tags") {
@@ -929,7 +927,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
 
-		if pointer.From(props.CoolAccess) == true {
+		if pointer.From(props.CoolAccess) {
 			// enums returned from the API are inconsistent so normalize them here
 			// https://github.com/Azure/azure-rest-api-specs/issues/35371
 			coolAccess := map[string]interface{}{
