@@ -32,10 +32,10 @@ func resourceStorageAccountNetworkRules() *pluginsdk.Resource {
 		Update: resourceStorageAccountNetworkRulesUpdate,
 		Delete: resourceStorageAccountNetworkRulesDelete,
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}, pluginsdk.IdentityTypeVirtual),
 
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}, pluginsdk.IdentityTypeVirtual),
 		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -296,7 +296,7 @@ func resourceStorageAccountNetworkRulesRead(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.IdentityTypeVirtual)
 }
 
 func resourceStorageAccountNetworkRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {

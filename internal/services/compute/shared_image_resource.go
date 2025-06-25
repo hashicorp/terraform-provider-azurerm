@@ -29,7 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name shared_image -service-package-name compute -properties "image_name:name,resource_group_name,gallery_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name shared_image -service-package-name compute -properties "name,resource_group_name,gallery_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceSharedImage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

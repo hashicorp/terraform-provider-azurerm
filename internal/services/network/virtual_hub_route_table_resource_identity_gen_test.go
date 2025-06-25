@@ -30,7 +30,7 @@ func TestAccVirtualHubRouteTable_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_hub_route_table.test", tfjsonpath.New("hub_route_table_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_hub_route_table.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_hub_route_table.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("virtual_hub_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_hub_route_table.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("virtual_hub_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_hub_route_table.test", tfjsonpath.New("virtual_hub_name"), tfjsonpath.New("virtual_hub_id")),
