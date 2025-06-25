@@ -76,13 +76,13 @@ func ImageSchema() *pluginsdk.Schema {
 					),
 				},
 				"resource_id": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
 					ExactlyOneOf: []string{"resource_id", "well_known_image_name"},
 				},
 				"well_known_image_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
 					ExactlyOneOf: []string{"resource_id", "well_known_image_name"},
 				},
 			},

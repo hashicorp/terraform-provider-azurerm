@@ -87,8 +87,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"subnet_id": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
+									Type:         pluginsdk.TypeString,
+									Required:     true,
 									ValidateFunc: commonids.ValidateSubnetID,
 								},
 							},
