@@ -51,16 +51,11 @@ func (r CognitiveCommitmentPlanResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9_-]{2,64}$"),
-				"The name can only include alphanumeric characters, underscores and hyphens, must contain between 2 and 64 characters.",
+				"The `name` must be between 2 and 64 characters long and can only include letters, numbers, underscores, and hyphens.",
 			),
 		},
 
-		"cognitive_account_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,
-		},
+		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesaccounts.AccountId{}),
 
 		"hosting_model": {
 			Type:         pluginsdk.TypeString,
@@ -122,7 +117,7 @@ func (r CognitiveCommitmentPlanResource) Create() sdk.ResourceFunc {
 			id := commitmentplans.NewAccountCommitmentPlanID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.AccountName, model.Name)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {

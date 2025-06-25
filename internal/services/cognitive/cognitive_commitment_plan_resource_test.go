@@ -107,10 +107,6 @@ func (r CognitiveCommitmentPlanTestResource) Exists(ctx context.Context, clients
 
 func (r CognitiveCommitmentPlanTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%d"
   location = "%s"
@@ -128,6 +124,10 @@ resource "azurerm_cognitive_account" "test" {
 
 func (r CognitiveCommitmentPlanTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cognitive_commitment_plan" "test" {
@@ -156,6 +156,10 @@ resource "azurerm_cognitive_commitment_plan" "import" {
 
 func (r CognitiveCommitmentPlanTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cognitive_commitment_plan" "test" {
@@ -176,6 +180,10 @@ resource "azurerm_cognitive_commitment_plan" "test" {
 
 func (r CognitiveCommitmentPlanTestResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cognitive_commitment_plan" "test" {
