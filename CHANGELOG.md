@@ -4,6 +4,7 @@ FEATURES:
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
+* `azurerm_container_app_job` - add support for the `volume_mounts.sub_path` property [GH-29883]
 * `azurerm_container_app` - add support for the `cors` property [GH-29785]
 `azurerm_data_protection_backup_policy_disk` - the `absolute_criteria` property now supports the `AllBackup`, `FirstOfMonth` and `FirstOfYear` values [GH-29917]
 * Data Source: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
