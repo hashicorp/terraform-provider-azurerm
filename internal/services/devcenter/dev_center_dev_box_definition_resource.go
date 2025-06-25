@@ -6,6 +6,7 @@ package devcenter
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -35,6 +36,7 @@ type DevCenterDevBoxDefinitionResourceModel struct {
 	Name             string            `tfschema:"name"`
 	Location         string            `tfschema:"location"`
 	DevCenterId      string            `tfschema:"dev_center_id"`
+	HibernateSupport bool              `tfschema:"hibernate_support_enabled"`
 	ImageReferenceId string            `tfschema:"image_reference_id"`
 	SkuName          string            `tfschema:"sku_name"`
 	Tags             map[string]string `tfschema:"tags"`
@@ -60,6 +62,12 @@ func (r DevCenterDevBoxDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 		"location": commonschema.Location(),
 
 		"dev_center_id": commonschema.ResourceIDReferenceRequiredForceNew(&devboxdefinitions.DevCenterId{}),
+
+		"hibernate_support_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"image_reference_id": commonschema.ResourceIDReferenceRequired(&images.GalleryImageId{}),
 
@@ -107,13 +115,19 @@ func (r DevCenterDevBoxDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			hs := devboxdefinitions.HibernateSupportDisabled
+			if model.HibernateSupport {
+				hs = devboxdefinitions.HibernateSupportEnabled
+			}
+
 			parameters := devboxdefinitions.DevBoxDefinition{
 				Location: location.Normalize(model.Location),
 				Properties: &devboxdefinitions.DevBoxDefinitionProperties{
 					ImageReference: &devboxdefinitions.ImageReference{
 						Id: pointer.To(model.ImageReferenceId),
 					},
-					Sku: expandDevCenterDevBoxDefinitionSku(model.SkuName),
+					HibernateSupport: pointer.To(hs),
+					Sku:              expandDevCenterDevBoxDefinitionSku(model.SkuName),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -159,6 +173,10 @@ func (r DevCenterDevBoxDefinitionResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					if v := props.ImageReference; v != nil {
 						state.ImageReferenceId = pointer.From(v.Id)
+					}
+
+					if v := props.HibernateSupport; v != nil {
+						state.HibernateSupport = !strings.EqualFold(string(pointer.From(v)), string(devboxdefinitions.HibernateSupportDisabled))
 					}
 
 					if v := props.Sku; v != nil {
@@ -216,6 +234,14 @@ func (r DevCenterDevBoxDefinitionResource) Update() sdk.ResourceFunc {
 				parameters.Properties.ImageReference = &devboxdefinitions.ImageReference{
 					Id: pointer.To(model.ImageReferenceId),
 				}
+			}
+
+			if metadata.ResourceData.HasChange("hibernate_support_enabled") {
+				hs := devboxdefinitions.HibernateSupportDisabled
+				if model.HibernateSupport {
+					hs = devboxdefinitions.HibernateSupportEnabled
+				}
+				parameters.Properties.HibernateSupport = pointer.To(hs)
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {

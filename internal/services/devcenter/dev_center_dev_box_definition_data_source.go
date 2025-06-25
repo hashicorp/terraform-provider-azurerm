@@ -6,6 +6,7 @@ package devcenter
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -28,6 +29,7 @@ type DevCenterDevBoxDefinitionDataSourceModel struct {
 	Location         string            `tfschema:"location"`
 	DevCenterId      string            `tfschema:"dev_center_id"`
 	ImageReferenceId string            `tfschema:"image_reference_id"`
+	HibernateSupport bool              `tfschema:"hibernate_support_enabled"`
 	SkuName          string            `tfschema:"sku_name"`
 	Tags             map[string]string `tfschema:"tags"`
 }
@@ -52,6 +54,11 @@ func (DevCenterDevBoxDefinitionDataSource) Attributes() map[string]*pluginsdk.Sc
 		},
 
 		"location": commonschema.LocationComputed(),
+
+		"hibernate_support_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
@@ -110,6 +117,10 @@ func (r DevCenterDevBoxDefinitionDataSource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					if v := props.ImageReference; v != nil {
 						state.ImageReferenceId = pointer.From(v.Id)
+					}
+
+					if v := props.HibernateSupport; v != nil {
+						state.HibernateSupport = !strings.EqualFold(string(pointer.From(v)), string(devboxdefinitions.HibernateSupportDisabled))
 					}
 
 					if v := props.Sku; v != nil {
