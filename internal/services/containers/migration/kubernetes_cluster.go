@@ -8,7 +8,6 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -37,7 +36,7 @@ func (k KubernetesClusterV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 }
 
 func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -331,7 +330,7 @@ func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 									},
 								},
 
-								"transparent_huge_page": {
+								"transparent_huge_page_enabled": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
@@ -1225,19 +1224,6 @@ func (k KubernetesClusterV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
-
-	if !features.FivePointOh() {
-		s["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page"},
-			Deprecated:    "`default_node_pool.linux_os_config.transparent_huge_page_enabled` has been deprecated in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property and will be removed in v5.0 of the AzureRM Provider",
-		}
-		s["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"].ConflictsWith = []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page_enabled"}
-	}
-
-	return s
 }
 
 func (k KubernetesClusterV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
@@ -1273,7 +1259,7 @@ func (k KubernetesClusterV1ToV2) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 }
 
 func (k KubernetesClusterV1ToV2) Schema() map[string]*pluginsdk.Schema {
-	s := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -1567,7 +1553,7 @@ func (k KubernetesClusterV1ToV2) Schema() map[string]*pluginsdk.Schema {
 									},
 								},
 
-								"transparent_huge_page": {
+								"transparent_huge_page_enabled": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 								},
@@ -2547,20 +2533,4 @@ func (k KubernetesClusterV1ToV2) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FivePointOh() {
-		if nodePoolConfig := s["default_node_pool"].Elem.(*pluginsdk.Resource); nodePoolConfig != nil {
-			if linuxOsConfig := nodePoolConfig.Schema["linux_os_config"].Elem.(*pluginsdk.Resource); linuxOsConfig != nil {
-				linuxOsConfig.Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				}
-				linuxOsConfig.Schema["transparent_huge_page"].ConflictsWith = []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page_enabled"}
-				linuxOsConfig.Schema["transparent_huge_page"].Computed = true
-				linuxOsConfig.Schema["transparent_huge_page_enabled"].ConflictsWith = []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page"}
-			}
-		}
-	}
-
-	return s
 }
