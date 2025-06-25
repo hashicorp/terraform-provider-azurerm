@@ -477,6 +477,37 @@ func TestAccLogicAppStandard_corsSettings(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_corsSettingsRemoved(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.corsSettings(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_enableHttp2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -633,7 +664,6 @@ func TestAccLogicAppStandard_ipRestrictionRemoved(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// This configuration includes a single explicit ip_restriction
 			Config: r.oneIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -641,19 +671,9 @@ func TestAccLogicAppStandard_ipRestrictionRemoved(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			// This configuration has no site_config blocks at all.
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
 			Config: r.ipRestrictionRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -666,7 +686,6 @@ func TestAccLogicAppStandard_scmIpRestrictionRemoved(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// This configuration includes a single explicit ip_restriction
 			Config: r.scmIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -674,11 +693,9 @@ func TestAccLogicAppStandard_scmIpRestrictionRemoved(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			// This configuration explicitly sets ip_restriction to [] using attribute syntax.
 			Config: r.unsetScmIpRestriction(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// check.That(data.ResourceName).Key("site_config.0.ip_restriction.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -1156,7 +1173,6 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   use_extension_bundle       = true
   bundle_version             = "[1.31.12]"
-  // client_affinity_enabled                  = true
   client_certificate_mode                  = "Required"
   enabled                                  = false
   https_only                               = true
@@ -1279,7 +1295,6 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   use_extension_bundle       = true
   bundle_version             = "[1.31.13]"
-  // client_affinity_enabled                  = true
   client_certificate_mode                  = "Required"
   enabled                                  = false
   https_only                               = true
@@ -2001,7 +2016,6 @@ resource "azurerm_logic_app_standard" "test" {
 
   site_config {
     always_on = true
-    // ip_restriction = []
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -2084,7 +2098,6 @@ resource "azurerm_logic_app_standard" "test" {
 
   site_config {
     always_on = true
-    //   scm_ip_restriction = []
   }
 }
 `, r.template(data), data.RandomInteger)
