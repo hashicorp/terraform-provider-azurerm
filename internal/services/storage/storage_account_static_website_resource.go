@@ -81,8 +81,8 @@ func (a AccountStaticWebsiteResource) Identity() resourceids.ResourceId {
 	return &commonids.StorageAccountId{}
 }
 
-func (a AccountStaticWebsiteResource) IdentityType() pluginsdk.IdentityType {
-	return pluginsdk.IdentityTypeVirtual
+func (a AccountStaticWebsiteResource) IdentityType() pluginsdk.ResourceTypeForIdentity {
+	return pluginsdk.ResourceTypeForIdentityVirtual
 }
 
 func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
@@ -197,7 +197,7 @@ func (a AccountStaticWebsiteResource) Read() sdk.ResourceFunc {
 				state.Error404Document = website.ErrorDocument404Path
 			}
 
-			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.IdentityTypeVirtual); err != nil {
+			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
 				return err
 			}
 

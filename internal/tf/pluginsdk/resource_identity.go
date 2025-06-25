@@ -18,21 +18,20 @@ import (
 // * Hierarchical IDs (untyped and typed resources)
 // * IDs for resources with a Discriminated Type (untyped and typed resources)
 
-// IdentityType is used to select different schema generation behaviours depending on the kind of resource/resource ID
-// TODO: does this want a different name?
-type IdentityType int
+// ResourceTypeForIdentity is used to select different schema generation behaviours depending on the type of resource/resource ID
+type ResourceTypeForIdentity int
 
 const (
-	IdentityTypeDefault = iota
-	IdentityTypeVirtual
+	ResourceTypeForIdentityDefault = iota
+	ResourceTypeForIdentityVirtual
 )
 
-func identityType(idType []IdentityType) IdentityType {
-	var t IdentityType
+func identityType(idType []ResourceTypeForIdentity) ResourceTypeForIdentity {
+	var t ResourceTypeForIdentity
 
 	switch len(idType) {
 	case 0:
-		t = IdentityTypeDefault
+		t = ResourceTypeForIdentityDefault
 	case 1:
 		t = idType[0]
 	default:
@@ -55,9 +54,9 @@ func segmentTypeSupported(segment resourceids.SegmentType) bool {
 	return slices.Contains(supportedSegmentTypes, segment)
 }
 
-func segmentName(segment resourceids.Segment, idType IdentityType, numSegments, idx int) string {
+func segmentName(segment resourceids.Segment, idType ResourceTypeForIdentity, numSegments, idx int) string {
 	switch idType {
-	case IdentityTypeVirtual:
+	case ResourceTypeForIdentityVirtual:
 		return strcase.ToSnake(segment.Name)
 	default:
 		// For the last segment, if it's a `*Name` field, we generate it as `name` rather than snake casing the segment's name
@@ -70,7 +69,7 @@ func segmentName(segment resourceids.Segment, idType IdentityType, numSegments, 
 
 // GenerateIdentitySchemaWithDiscriminatedType appends a discriminated type field to the resource identity schema generated
 // from the resource ID type
-func GenerateIdentitySchemaWithDiscriminatedType(id resourceids.ResourceId, field string, idType ...IdentityType) func() map[string]*schema.Schema {
+func GenerateIdentitySchemaWithDiscriminatedType(id resourceids.ResourceId, field string, idType ...ResourceTypeForIdentity) func() map[string]*schema.Schema {
 	return func() map[string]*schema.Schema {
 		identitySchema := identitySchema(id, identityType(idType))
 
@@ -84,13 +83,13 @@ func GenerateIdentitySchemaWithDiscriminatedType(id resourceids.ResourceId, fiel
 }
 
 // GenerateIdentitySchema generates the resource identity schema from the resource ID type
-func GenerateIdentitySchema(id resourceids.ResourceId, idType ...IdentityType) func() map[string]*schema.Schema {
+func GenerateIdentitySchema(id resourceids.ResourceId, idType ...ResourceTypeForIdentity) func() map[string]*schema.Schema {
 	return func() map[string]*schema.Schema {
 		return identitySchema(id, identityType(idType))
 	}
 }
 
-func identitySchema(id resourceids.ResourceId, idType IdentityType) map[string]*schema.Schema {
+func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity) map[string]*schema.Schema {
 	idSchema := make(map[string]*schema.Schema)
 
 	segments := id.Segments()
@@ -110,7 +109,7 @@ func identitySchema(id resourceids.ResourceId, idType IdentityType) map[string]*
 
 // ValidateResourceIdentityData validates the resource identity data provided by the user when performing a plannable
 // import using resource identity
-func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...IdentityType) error {
+func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
@@ -159,7 +158,7 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 }
 
 // SetResourceIdentityData sets the resource identity data in state
-func SetResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...IdentityType) error {
+func SetResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
@@ -173,7 +172,7 @@ func SetResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, 
 }
 
 // SetResourceIdentityDataDiscriminatedType sets the resource identity data, which includes a discriminated type in state
-func SetResourceIdentityDataDiscriminatedType(d *schema.ResourceData, id resourceids.ResourceId, discriminatedType DiscriminatedType, idType ...IdentityType) error {
+func SetResourceIdentityDataDiscriminatedType(d *schema.ResourceData, id resourceids.ResourceId, discriminatedType DiscriminatedType, idType ...ResourceTypeForIdentity) error {
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
@@ -190,7 +189,7 @@ func SetResourceIdentityDataDiscriminatedType(d *schema.ResourceData, id resourc
 	return nil
 }
 
-func resourceIdentityData(identity *schema.IdentityData, id resourceids.ResourceId, idType IdentityType) error {
+func resourceIdentityData(identity *schema.IdentityData, id resourceids.ResourceId, idType ResourceTypeForIdentity) error {
 	parser := resourceids.NewParserFromResourceIdType(id)
 	parsed, err := parser.Parse(id.ID(), true)
 	if err != nil {

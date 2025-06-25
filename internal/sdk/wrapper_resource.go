@@ -177,7 +177,7 @@ and we recommend using the %[2]q resource instead.
 	// TODO: State Migrations
 
 	if v, ok := rw.resource.(ResourceWithIdentity); ok {
-		var idType pluginsdk.IdentityType = pluginsdk.IdentityTypeDefault
+		var idType pluginsdk.ResourceTypeForIdentity = pluginsdk.ResourceTypeForIdentityDefault
 		if v, ok := rw.resource.(ResourceWithIdentityTypeOverride); ok {
 			idType = v.IdentityType()
 		}

@@ -115,12 +115,11 @@ type ResourceWithIdentity interface {
 	Identity() resourceids.ResourceId
 }
 
-// todo rename?
 type ResourceWithIdentityTypeOverride interface {
 	ResourceWithIdentity
 
 	// IdentityType returns the type of resource ID, this is used to influence schema generation behaviours
-	IdentityType() pluginsdk.IdentityType
+	IdentityType() pluginsdk.ResourceTypeForIdentity
 }
 
 type ResourceWithIdentityDiscriminatedType interface {

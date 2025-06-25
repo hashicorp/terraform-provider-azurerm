@@ -272,8 +272,8 @@ func (s AccountQueuePropertiesResource) Identity() resourceids.ResourceId {
 	return &commonids.StorageAccountId{}
 }
 
-func (s AccountQueuePropertiesResource) IdentityType() pluginsdk.IdentityType {
-	return pluginsdk.IdentityTypeVirtual
+func (s AccountQueuePropertiesResource) IdentityType() pluginsdk.ResourceTypeForIdentity {
+	return pluginsdk.ResourceTypeForIdentityVirtual
 }
 
 func (s AccountQueuePropertiesResource) Create() sdk.ResourceFunc {
@@ -482,7 +482,7 @@ func (s AccountQueuePropertiesResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.IdentityTypeVirtual); err != nil {
+			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
 				return err
 			}
 
