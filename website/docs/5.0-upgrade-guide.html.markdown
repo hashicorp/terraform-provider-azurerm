@@ -124,6 +124,7 @@ This deprecated data source has been superseded/retired and has been removed fro
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `client_certificate_mode` property now defaults to `Required` to match API default value.
 
 ### `azurerm_postgresql_server`
 
