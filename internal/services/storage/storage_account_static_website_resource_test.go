@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AccountStaticWebsiteResource struct{}
+type StorageAccountStaticWebsiteResource struct{}
 
-func TestAccountStaticWebsiteResource_complete(t *testing.T) {
+func TestStorageAccountStaticWebsiteResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
-	r := AccountStaticWebsiteResource{}
+	r := StorageAccountStaticWebsiteResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccountStaticWebsiteResource_complete(t *testing.T) {
 	})
 }
 
-func TestAccountStaticWebsiteResource_update(t *testing.T) {
+func TestStorageAccountStaticWebsiteResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
-	r := AccountStaticWebsiteResource{}
+	r := StorageAccountStaticWebsiteResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,9 +69,9 @@ func TestAccountStaticWebsiteResource_update(t *testing.T) {
 	})
 }
 
-func TestAccountStaticWebsiteResource_with404(t *testing.T) {
+func TestStorageAccountStaticWebsiteResource_with404(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
-	r := AccountStaticWebsiteResource{}
+	r := StorageAccountStaticWebsiteResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,9 +84,9 @@ func TestAccountStaticWebsiteResource_with404(t *testing.T) {
 	})
 }
 
-func TestAccountStaticWebsiteResource_withIndex(t *testing.T) {
+func TestStorageAccountStaticWebsiteResource_withIndex(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_static_website", "test")
-	r := AccountStaticWebsiteResource{}
+	r := StorageAccountStaticWebsiteResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -99,7 +99,7 @@ func TestAccountStaticWebsiteResource_withIndex(t *testing.T) {
 	})
 }
 
-func (r AccountStaticWebsiteResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageAccountStaticWebsiteResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -130,7 +130,7 @@ func (r AccountStaticWebsiteResource) Exists(ctx context.Context, client *client
 	return pointer.To(props.StaticWebsite.Enabled), nil
 }
 
-func (r AccountStaticWebsiteResource) complete(data acceptance.TestData) string {
+func (r StorageAccountStaticWebsiteResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -142,7 +142,7 @@ resource "azurerm_storage_account_static_website" "test" {
 `, r.template(data))
 }
 
-func (r AccountStaticWebsiteResource) with404(data acceptance.TestData) string {
+func (r StorageAccountStaticWebsiteResource) with404(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -153,7 +153,7 @@ resource "azurerm_storage_account_static_website" "test" {
 `, r.template(data))
 }
 
-func (r AccountStaticWebsiteResource) withIndex(data acceptance.TestData) string {
+func (r StorageAccountStaticWebsiteResource) withIndex(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -164,7 +164,7 @@ resource "azurerm_storage_account_static_website" "test" {
 `, r.template(data))
 }
 
-func (r AccountStaticWebsiteResource) template(data acceptance.TestData) string {
+func (r StorageAccountStaticWebsiteResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -17,13 +17,15 @@ import (
 // ApplyResourceChangeRequest is the framework server request for the
 // ApplyResourceChange RPC.
 type ApplyResourceChangeRequest struct {
-	Config         *tfsdk.Config
-	PlannedPrivate *privatestate.Data
-	PlannedState   *tfsdk.Plan
-	PriorState     *tfsdk.State
-	ProviderMeta   *tfsdk.Config
-	ResourceSchema fwschema.Schema
-	Resource       resource.Resource
+	Config          *tfsdk.Config
+	PlannedPrivate  *privatestate.Data
+	PlannedState    *tfsdk.Plan
+	PlannedIdentity *tfsdk.ResourceIdentity
+	PriorState      *tfsdk.State
+	ProviderMeta    *tfsdk.Config
+	ResourceSchema  fwschema.Schema
+	IdentitySchema  fwschema.Schema
+	Resource        resource.Resource
 }
 
 // ApplyResourceChangeResponse is the framework server response for the
@@ -31,6 +33,7 @@ type ApplyResourceChangeRequest struct {
 type ApplyResourceChangeResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
+	NewIdentity *tfsdk.ResourceIdentity
 	Private     *privatestate.Data
 }
 
@@ -45,12 +48,14 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 		logging.FrameworkTrace(ctx, "ApplyResourceChange received no PriorState, running CreateResource")
 
 		createReq := &CreateResourceRequest{
-			Config:         req.Config,
-			PlannedPrivate: req.PlannedPrivate,
-			PlannedState:   req.PlannedState,
-			ProviderMeta:   req.ProviderMeta,
-			ResourceSchema: req.ResourceSchema,
-			Resource:       req.Resource,
+			Config:          req.Config,
+			PlannedPrivate:  req.PlannedPrivate,
+			PlannedState:    req.PlannedState,
+			PlannedIdentity: req.PlannedIdentity,
+			ProviderMeta:    req.ProviderMeta,
+			ResourceSchema:  req.ResourceSchema,
+			IdentitySchema:  req.IdentitySchema,
+			Resource:        req.Resource,
 		}
 		createResp := &CreateResourceResponse{}
 
@@ -58,6 +63,7 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 
 		resp.Diagnostics = createResp.Diagnostics
 		resp.NewState = createResp.NewState
+		resp.NewIdentity = createResp.NewIdentity
 		resp.Private = createResp.Private
 
 		return
@@ -72,6 +78,7 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 			PriorState:     req.PriorState,
 			ProviderMeta:   req.ProviderMeta,
 			ResourceSchema: req.ResourceSchema,
+			IdentitySchema: req.IdentitySchema,
 			Resource:       req.Resource,
 		}
 		deleteResp := &DeleteResourceResponse{}
@@ -80,6 +87,7 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 
 		resp.Diagnostics = deleteResp.Diagnostics
 		resp.NewState = deleteResp.NewState
+		resp.NewIdentity = deleteResp.NewIdentity
 		resp.Private = deleteResp.Private
 
 		return
@@ -89,13 +97,15 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 	logging.FrameworkTrace(ctx, "ApplyResourceChange running UpdateResource")
 
 	updateReq := &UpdateResourceRequest{
-		Config:         req.Config,
-		PlannedPrivate: req.PlannedPrivate,
-		PlannedState:   req.PlannedState,
-		PriorState:     req.PriorState,
-		ProviderMeta:   req.ProviderMeta,
-		ResourceSchema: req.ResourceSchema,
-		Resource:       req.Resource,
+		Config:          req.Config,
+		PlannedPrivate:  req.PlannedPrivate,
+		PlannedState:    req.PlannedState,
+		PlannedIdentity: req.PlannedIdentity,
+		PriorState:      req.PriorState,
+		ProviderMeta:    req.ProviderMeta,
+		ResourceSchema:  req.ResourceSchema,
+		IdentitySchema:  req.IdentitySchema,
+		Resource:        req.Resource,
 	}
 	updateResp := &UpdateResourceResponse{}
 
@@ -103,5 +113,6 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 
 	resp.Diagnostics = updateResp.Diagnostics
 	resp.NewState = updateResp.NewState
+	resp.NewIdentity = updateResp.NewIdentity
 	resp.Private = updateResp.Private
 }

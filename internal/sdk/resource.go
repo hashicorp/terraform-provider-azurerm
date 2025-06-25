@@ -108,6 +108,21 @@ type ResourceWithCustomImporter interface {
 	CustomImporter() ResourceRunFunc
 }
 
+type ResourceWithIdentity interface {
+	Resource
+
+	// Identity returns the resource's identity type
+	Identity() resourceids.ResourceId
+}
+
+type ResourceWithDiscriminatedType interface {
+	Resource
+
+	// DiscriminatedType returns a struct containing the API field name of the discriminated type
+	// as well as the resource's discriminated type value
+	DiscriminatedType() pluginsdk.DiscriminatedType
+}
+
 // ResourceWithUpdate is an optional interface
 //
 // Notably the Arguments for Resources implementing this interface

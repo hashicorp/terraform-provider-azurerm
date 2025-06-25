@@ -62,7 +62,6 @@ func ParseBillingAccountInvoiceSectionIDInsensitively(input string) (*BillingAcc
 }
 
 func (id *BillingAccountInvoiceSectionId) FromParseResult(input resourceids.ParseResult) error {
-
 	var ok bool
 
 	if id.BillingAccountName, ok = input.Parsed["billingAccountName"]; !ok {

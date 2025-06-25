@@ -561,7 +561,6 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 		"azurerm_application_insights":    {},
 		"azurerm_cosmosdb_account":        {},
 		"azurerm_log_analytics_workspace": {},
-		"azurerm_search_service":          {},
 	}
 
 	for _, resourceName := range resourceNames {

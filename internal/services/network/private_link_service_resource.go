@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privatelinkservices"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -27,16 +28,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_link_service -service-package-name network -properties "private_link_service_name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourcePrivateLinkService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateLinkServiceCreate,
-		Read:   resourcePrivateLinkServiceRead,
-		Update: resourcePrivateLinkServiceUpdate,
-		Delete: resourcePrivateLinkServiceDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := privatelinkservices.ParsePrivateLinkServiceID(id)
-			return err
-		}),
+		Create:   resourcePrivateLinkServiceCreate,
+		Read:     resourcePrivateLinkServiceRead,
+		Update:   resourcePrivateLinkServiceUpdate,
+		Delete:   resourcePrivateLinkServiceDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&privatelinkservices.PrivateLinkServiceId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privatelinkservices.PrivateLinkServiceId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -364,9 +368,12 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePrivateLinkServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
