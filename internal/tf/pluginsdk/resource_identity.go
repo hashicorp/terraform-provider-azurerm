@@ -198,7 +198,7 @@ func resourceIdentityData(identity *schema.IdentityData, id resourceids.Resource
 
 	segments := id.Segments()
 	numSegments := len(segments)
-	for idx, segment := range id.Segments() {
+	for idx, segment := range segments {
 		if segmentTypeSupported(segment.Type) {
 			name := segmentName(segment, idType, numSegments, idx)
 
