@@ -95,20 +95,23 @@ func TestAccCdnProfile_skuDeprecation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.standardAkamai(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(cdn.AkamaiDeprecationMessage),
 		},
 		{
 			Config:      r.standardVerizon(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(cdn.VerizonDeprecationMessage),
 		},
 		{
 			Config:      r.premiumVerizon(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(cdn.VerizonDeprecationMessage),
 		},
 	})
 }
 
-func TestAccCdnProfile_deprecationFullyRetired(t *testing.T) {
+func TestAccCdnProfile_createShouldFail(t *testing.T) {
 	if !cdn.IsCdnDeprecatedForCreation() {
 		t.Skip("CDN is not deprecated for creation until October 1, 2025")
 	}
@@ -124,6 +127,7 @@ func TestAccCdnProfile_deprecationFullyRetired(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basic(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(expectedError),
 		},
 	})

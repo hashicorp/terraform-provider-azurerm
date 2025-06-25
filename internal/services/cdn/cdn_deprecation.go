@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+var (
+	CreateDeprecationMessage  string = "creation of new CDN resources is no longer permitted following its deprecation on October 1, 2025. However, modifications to existing CDN resources remain supported until the API reaches full retirement on September 30, 2027"
+	VerizonDeprecationMessage string = "creation of CDN resources are no longer permitted with the `StandardVerizon` and `PremiumVerizon` sku's following its deprecation on October 1, 2025"
+	AkamaiDeprecationMessage  string = "creation of CDN resources are no longer permitted with the `StandardAkamai` sku following its deprecation on October 31, 2023"
+	FullyRetiredMessage       string = "as of September 30, 2027, CDN resources have reached full retirement and are no longer supported by Azure"
+)
+
 // isAPIFieldDeprecated checks if an API field has been deprecated based on the deprecation date
 // compared to the current time in the client's timezone versus Los Angeles timezone.
 // deprecationDate should be in "2006-01-02" format (YYYY-MM-DD)
