@@ -29,6 +29,7 @@ type CloudVmClusterDataModel struct {
 	CloudExadataInfrastructureId string                       `tfschema:"cloud_exadata_infrastructure_id"`
 	ClusterName                  string                       `tfschema:"cluster_name"`
 	CompartmentId                string                       `tfschema:"compartment_id"`
+	ComputeModel                 string                       `tfschema:"compute_model"`
 	ComputeNodes                 []string                     `tfschema:"compute_nodes"`
 	CpuCoreCount                 int64                        `tfschema:"cpu_core_count"`
 	DataCollectionOptions        []DataCollectionOptionsModel `tfschema:"data_collection_options"`
@@ -127,6 +128,11 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"compartment_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"compute_model": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -466,6 +472,7 @@ func (d CloudVmClusterDataSource) Read() sdk.ResourceFunc {
 					state.CloudExadataInfrastructureId = props.CloudExadataInfrastructureId
 					state.ClusterName = pointer.From(props.ClusterName)
 					state.CompartmentId = pointer.From(props.CompartmentId)
+					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 					state.ComputeNodes = pointer.From(props.ComputeNodes)
 					state.CpuCoreCount = props.CpuCoreCount
 					state.DataStoragePercentage = pointer.From(props.DataStoragePercentage)
