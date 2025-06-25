@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compartment_id` - The OCID of the compartment.
 
+* `compute_model` - The compute model of the Exadata Infrastructure.
+
 * `compute_nodes` - A `compute_nodes` block as defined below.
 
 * `cpu_core_count` - The number of CPU cores enabled on the Cloud VM Cluster.

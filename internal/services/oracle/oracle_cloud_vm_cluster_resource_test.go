@@ -253,7 +253,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[1]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
-  zones               = ["3"]
+  zones               = ["2"]
 }
 
 data "azurerm_oracle_db_servers" "test" {

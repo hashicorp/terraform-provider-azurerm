@@ -37,8 +37,10 @@ type ExadataInfraResourceModel struct {
 	StorageCount int64  `tfschema:"storage_count"`
 
 	// Optional
-	CustomerContacts  []string                 `tfschema:"customer_contacts"`
-	MaintenanceWindow []MaintenanceWindowModel `tfschema:"maintenance_window"`
+	DatabaseServerType string                   `tfschema:"database_server_type"`
+	StorageServerType  string                   `tfschema:"storage_server_type"`
+	CustomerContacts   []string                 `tfschema:"customer_contacts"`
+	MaintenanceWindow  []MaintenanceWindowModel `tfschema:"maintenance_window"`
 }
 
 func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
@@ -61,6 +63,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ValidateFunc: validate.ComputeCount,
 			ForceNew:     true,
+		},
+
+		"database_server_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DatabaseServerType,
 		},
 
 		"display_name": {
@@ -172,6 +182,14 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"storage_server_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageServerType,
+		},
+
 		"tags": commonschema.Tags(),
 
 		"zones": commonschema.ZonesMultipleRequiredForceNew(),
@@ -227,7 +245,12 @@ func (r ExadataInfraResource) Create() sdk.ResourceFunc {
 					CustomerContacts: pointer.To(ExpandCustomerContacts(model.CustomerContacts)),
 				},
 			}
-
+			if model.DatabaseServerType != "" {
+				param.Properties.DatabaseServerType = pointer.To(model.DatabaseServerType)
+			}
+			if model.StorageServerType != "" {
+				param.Properties.StorageServerType = pointer.To(model.StorageServerType)
+			}
 			if len(model.MaintenanceWindow) > 0 {
 				param.Properties.MaintenanceWindow = &cloudexadatainfrastructures.MaintenanceWindow{
 					DaysOfWeek:      pointer.To(ExpandDayOfWeekTo(model.MaintenanceWindow[0].DaysOfWeek)),
@@ -324,6 +347,8 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 					state.StorageCount = pointer.From(props.StorageCount)
 					state.Shape = props.Shape
 					state.MaintenanceWindow = FlattenMaintenanceWindow(props.MaintenanceWindow)
+					state.DatabaseServerType = pointer.ToString(props.DatabaseServerType)
+					state.StorageServerType = pointer.ToString(props.StorageServerType)
 				}
 			}
 
