@@ -41,19 +41,21 @@ The following arguments are supported:
 
 * `vault_id` - (Required) The ID of the Backup Vault within which the Backup Policy Blob Storage should exist. Changing this forces a new Backup Policy Blob Storage to be created.
 
-* `backup_repeating_time_intervals` - (Optional) Specifies a list of repeating time interval. It should follow `ISO 8601` repeating time interval. Changing this forces a new Backup Policy Blob Storage to be created.
+* `time_zone` - (Optional) Specifies the Time Zone which should be used by the *backup scheduler* `backup_repeating_time_intervals`. Changing this forces a new Backup Policy Blob Storage to be created.
+
+* `backup_repeating_time_intervals` - (Optional) The backup scheduler, specifies a list of repeating time interval. It should follow `ISO 8601` repeating time interval. Changing this forces a new Backup Policy Blob Storage to be created.
+
+-> **Note:** `time_zone` and `backup_repeating_time_intervals` are only evaluated when VaultStore (`vault_default_retention_duration`) is used.
 
 * `operational_default_retention_duration` - (Optional) The duration of operational default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy Blob Storage to be created.
-
-* `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new Backup Policy Blob Storage to be created.
-
--> **Note:** Setting `retention_rule` also requires setting `vault_default_retention_duration`.
-
-* `time_zone` - (Optional) Specifies the Time Zone which should be used by the backup schedule. Changing this forces a new Backup Policy Blob Storage to be created.
 
 * `vault_default_retention_duration` - (Optional) The duration of vault default retention rule. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy Blob Storage to be created.
 
 -> **Note:** Setting `vault_default_retention_duration` also requires setting `backup_repeating_time_intervals`. At least one of `operational_default_retention_duration` or `vault_default_retention_duration` must be specified.
+
+* `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new Backup Policy Blob Storage to be created.
+
+-> **Note:** Setting `retention_rule` also requires setting `vault_default_retention_duration`.
 
 ---
 
