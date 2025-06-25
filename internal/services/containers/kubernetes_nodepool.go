@@ -409,7 +409,7 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 			Type:       pluginsdk.TypeString,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "This field is deprecated in favour of `transparaent_huge_page` and will be removed in version 5.0 of the provider",
+			Deprecated: "This field is deprecated in favour of `transparent_huge_page` and will be removed in version 5.0 of the provider",
 			ValidateFunc: validation.StringInSlice([]string{
 				"always",
 				"madvise",
