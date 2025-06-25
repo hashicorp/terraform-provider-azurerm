@@ -661,7 +661,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "VpnGw1"
 
   active_active = true
-  enable_bgp    = true
+  bgp_enabled   = true
 
   ip_configuration {
     name                 = "gw-ip1"
@@ -1293,10 +1293,10 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type       = "Vpn"
-  vpn_type   = "RouteBased"
-  sku        = "VpnGw1"
-  enable_bgp = true
+  type        = "Vpn"
+  vpn_type    = "RouteBased"
+  sku         = "VpnGw1"
+  bgp_enabled = true
 
   ip_configuration {
     name                          = "gw-ip"
@@ -1715,7 +1715,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "VpnGw1"
 
   active_active = true
-  enable_bgp    = true
+  bgp_enabled   = true
 
   ip_configuration {
     name                 = "gw-ip1"

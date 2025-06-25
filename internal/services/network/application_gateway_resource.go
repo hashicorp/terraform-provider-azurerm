@@ -1555,10 +1555,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			Deprecated: "`enable_http2` has been deprecated in favour of the `http2_enabled` property and will be removed in v5.0 of the AzureRM Provider",
 		}
 		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_certificate_dn"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"ssl_profile.0.verify_client_cert_dn"},
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
 		}
 		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_cert_dn"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
@@ -4828,6 +4827,13 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 			if policy, ok := v["ssl_policy"]; ok && policy != nil {
 				if err := checkSslPolicy(policy.([]interface{})); err != nil {
 					return err
+				}
+			}
+			if !features.FivePointOh() {
+				_, certOk := v["verify_client_cert_issuer_dn"]
+				_, certificateOk := v["verify_client_certificate_issuer_dn"]
+				if certOk && certificateOk {
+					return fmt.Errorf("`verify_client_cert_issuer_dn` conflicts with `verify_client_certificate_issuer_dn`, they cannot be used together")
 				}
 			}
 		}

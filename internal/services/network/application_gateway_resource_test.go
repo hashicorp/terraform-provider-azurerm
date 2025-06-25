@@ -5600,7 +5600,7 @@ resource "azurerm_application_gateway" "test" {
   name                = "acctestag-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  enable_http2        = true
+  http2_enabled       = true
 
   sku {
     name     = "Standard_v2"
