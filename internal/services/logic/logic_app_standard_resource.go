@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -569,6 +568,7 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.OutboundIpAddresses = pointer.From(props.OutboundIPAddresses)
 					state.PossibleOutboundIpAddresses = pointer.From(props.PossibleOutboundIPAddresses)
 					state.ClientAffinityEnabled = pointer.From(props.ClientAffinityEnabled)
+					state.ClientCertificateEnabled = pointer.From(props.ClientCertEnabled)
 					state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
@@ -677,15 +677,6 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 			if model := configResp.Model; model != nil {
 				state.SiteConfig = flattenLogicAppStandardSiteConfig(model.Properties)
-				// if !features.FivePointOh() {
-				// 	if len(state.SiteConfig) > 0 {
-				// 		if state.SiteConfig[0].PublicNetworkAccessEnabled {
-				// 			state.PublicNetworkAccess = helpers.PublicNetworkAccessEnabled
-				// 		} else {
-				// 			state.PublicNetworkAccess = helpers.PublicNetworkAccessDisabled
-				// 		}
-				// 	}
-				// }
 			}
 
 			return metadata.Encode(&state)
@@ -951,331 +942,6 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 	return basicSettings, nil
 }
 
-func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"always_on": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				"cors": schemaLogicAppCorsSettings(),
-
-				"ftps_state": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.FtpsStateAllAllowed),
-						string(webapps.FtpsStateDisabled),
-						string(webapps.FtpsStateFtpsOnly),
-					}, false),
-				},
-
-				"http2_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				"ip_restriction": schemaLogicAppStandardIpRestriction(),
-
-				"linux_fx_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-				},
-
-				"min_tls_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SupportedTlsVersionsOnePointTwo),
-					}, false),
-				},
-
-				"pre_warmed_instance_count": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 20),
-				},
-
-				"scm_ip_restriction": schemaLogicAppStandardIpRestriction(),
-
-				"scm_use_main_ip_restriction": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				"scm_min_tls_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SupportedTlsVersionsOnePointTwo),
-					}, false),
-				},
-
-				"scm_type": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ScmTypeBitbucketGit),
-						string(webapps.ScmTypeBitbucketHg),
-						string(webapps.ScmTypeCodePlexGit),
-						string(webapps.ScmTypeCodePlexHg),
-						string(webapps.ScmTypeDropbox),
-						string(webapps.ScmTypeExternalGit),
-						string(webapps.ScmTypeExternalHg),
-						string(webapps.ScmTypeGitHub),
-						string(webapps.ScmTypeLocalGit),
-						string(webapps.ScmTypeNone),
-						string(webapps.ScmTypeOneDrive),
-						string(webapps.ScmTypeTfs),
-						string(webapps.ScmTypeVSO),
-						string(webapps.ScmTypeVSTSRM),
-					}, false),
-				},
-
-				"use_32_bit_worker_process": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
-
-				"websockets_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				"health_check_path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-				},
-
-				"elastic_instance_minimum": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 20),
-				},
-
-				"app_scale_limit": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntAtLeast(0),
-				},
-
-				"runtime_scale_monitoring_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				"dotnet_framework_version": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "v4.0",
-					ValidateFunc: validation.StringInSlice([]string{
-						"v4.0",
-						"v5.0",
-						"v6.0",
-						"v8.0",
-					}, false),
-				},
-
-				"vnet_route_all_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Computed: true,
-				},
-
-				"auto_swap_slot_name": {
-					Type:     pluginsdk.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-
-	if !features.FivePointOh() {
-		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SupportedTlsVersionsOnePointZero),
-				string(webapps.SupportedTlsVersionsOnePointOne),
-				string(webapps.SupportedTlsVersionsOnePointTwo),
-			}, false),
-		}
-		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SupportedTlsVersionsOnePointZero),
-				string(webapps.SupportedTlsVersionsOnePointOne),
-				string(webapps.SupportedTlsVersionsOnePointTwo),
-			}, false),
-		}
-	}
-
-	return schema
-}
-
-func schemaLogicAppCorsSettings() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"allowed_origins": {
-					Type:     pluginsdk.TypeSet,
-					Required: true,
-					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				},
-				"support_credentials": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-			},
-		},
-	}
-}
-
-func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		// Computed:   true,
-		// ConfigMode: pluginsdk.SchemaConfigModeAttr,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"ip_address": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"service_tag": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"virtual_network_subnet_id": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"name": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"priority": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
-				},
-
-				"action": {
-					Type:     pluginsdk.TypeString,
-					Default:  "Allow",
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"Allow",
-						"Deny",
-					}, false),
-				},
-
-				// lintignore:XS003
-				"headers": {
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					Computed:   true,
-					MaxItems:   1,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							// lintignore:S018
-							"x_forwarded_host": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MaxItems: 8,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-
-							// lintignore:S018
-							"x_forwarded_for": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MaxItems: 8,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsCIDR,
-								},
-							},
-
-							// lintignore:S018
-							"x_azure_fdid": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MaxItems: 8,
-								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsUUID,
-								},
-							},
-
-							// lintignore:S018
-							"x_fd_health_probe": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MaxItems: 1,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-									ValidateFunc: validation.StringInSlice([]string{
-										"1",
-									}, false),
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.LogicAppSiteConfig {
 	results := make([]helpers.LogicAppSiteConfig, 0)
 	result := helpers.LogicAppSiteConfig{}
@@ -1449,11 +1115,15 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 }
 
 func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, metadata sdk.ResourceMetaData, existing *webapps.SiteConfig) (*webapps.SiteConfig, error) {
+	siteConfig := &webapps.SiteConfig{}
 	if len(d) == 0 {
-		return nil, nil
+		siteConfig.Cors = &webapps.CorsSettings{
+			AllowedOrigins:     pointer.To(make([]string, 0)),
+			SupportCredentials: pointer.To(false),
+		}
+		return siteConfig, nil
 	}
 
-	siteConfig := &webapps.SiteConfig{}
 	if existing != nil {
 		siteConfig = existing
 	}
@@ -1473,7 +1143,15 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		siteConfig.Cors = helpers.ExpandCorsSettings(config.Cors)
+		if len(config.Cors) == 0 {
+			// removing this block should reset the CORS settings to the default values of an empty CORS configuration
+			siteConfig.Cors = &webapps.CorsSettings{
+				AllowedOrigins:     pointer.To(make([]string, 0)),
+				SupportCredentials: pointer.To(false),
+			}
+		} else {
+			siteConfig.Cors = helpers.ExpandCorsSettings(config.Cors)
+		}
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
