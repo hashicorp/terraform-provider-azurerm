@@ -381,7 +381,7 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
 
-* `cors_policy` - (Optional) A `cors_policy` block as defined below.
+* `cors` - (Optional) A `cors` block as defined below.
 
 * `fqdn` - The FQDN of the ingress.
 
@@ -405,7 +405,7 @@ An `ingress` block supports the following:
 
 ---
 
-A `cors_policy` block supports the following:
+A `cors` block supports the following:
 
 * `allowed_origins` - (Required) Specifies the list of origins that are allowed to make cross-origin calls.
 
@@ -415,7 +415,7 @@ A `cors_policy` block supports the following:
 
 * `allowed_methods` - (Optional) Specifies the list of HTTP methods are allowed when accessing the resource in a cross-origin request.
 
-* `expose_headers` - (Optional) Specifies the list of headers exposed to the browser in the response to a cross-origin request.
+* `exposed_headers` - (Optional) Specifies the list of headers exposed to the browser in the response to a cross-origin request.
 
 * `max_age_in_seconds` - (Optional) Specifies the number of seconds that the browser can cache the results of a preflight request.
 

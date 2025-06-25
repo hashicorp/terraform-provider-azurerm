@@ -1405,12 +1405,12 @@ resource "azurerm_container_app" "test" {
       percentage      = 100
     }
 
-    cors_policy {
+    cors {
       allow_credentials_enabled = true
       allowed_headers           = ["HEADER1", "HEADER2"]
       allowed_methods           = ["GET", "POST"]
       allowed_origins           = ["https://a.test.com", "https://b.test.com"]
-      expose_headers            = ["HEADER3", "HEADER3"]
+      exposed_headers           = ["HEADER3", "HEADER3"]
       max_age_in_seconds        = 100
     }
   }
@@ -2210,12 +2210,12 @@ resource "azurerm_container_app" "test" {
       percentage      = 80
     }
 
-    cors_policy {
+    cors {
       allow_credentials_enabled = false
       allowed_headers           = ["HEADER3", "HEADER4"]
       allowed_methods           = ["PUT", "PATCH"]
       allowed_origins           = ["https://c.test.com", "https://d.test.com"]
-      expose_headers            = ["HEADER1", "HEADER2"]
+      exposed_headers           = ["HEADER1", "HEADER2"]
       max_age_in_seconds        = 100
     }
   }
