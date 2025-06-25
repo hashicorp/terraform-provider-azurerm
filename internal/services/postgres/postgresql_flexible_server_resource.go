@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -185,6 +186,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeReviveDropped),
 					string(servers.CreateModeGeoRestore),
 					string(servers.CreateModeUpdate),
 				}, false),
@@ -306,7 +308,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
@@ -318,7 +320,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.primary_user_assigned_identity_id",
@@ -432,6 +434,27 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+			}
+
+			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			oldIdentityRaw, newIdentityRaw := diff.GetChange("identity")
+			oldIdentity := oldIdentityRaw.([]interface{})
+			oldIdentityType := string(identity.TypeNone)
+			if len(oldIdentity) > 0 {
+				oldIdentityBlock := oldIdentity[0].(map[string]interface{})
+				oldIdentityType = oldIdentityBlock["type"].(string)
+			}
+
+			newIdentity := newIdentityRaw.([]interface{})
+			newIdentityType := string(identity.TypeNone)
+			if len(newIdentity) > 0 {
+				newIdentityBlock := newIdentity[0].(map[string]interface{})
+				newIdentityType = newIdentityBlock["type"].(string)
+			}
+
+			if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
+				diff.ForceNew("identity.0.type")
 			}
 
 			return nil
@@ -583,6 +606,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
+		// The source server will be Updating status when creating a replica
+		sourceServerId, _ := servers.ParseFlexibleServerID(v.(string))
+		locks.ByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+		defer locks.UnlockByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+
 		parameters.Properties.SourceServerResourceId = pointer.To(v.(string))
 	}
 

@@ -10,6 +10,8 @@ description: |-
 
 Manages a HPC Cache Access Policy.
 
+!> **Note:** The `azurerm_hpc_cache_access_policy` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.
+
 ## Example Usage
 
 ```hcl

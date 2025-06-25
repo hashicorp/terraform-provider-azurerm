@@ -76,6 +76,23 @@ func GetProviderSchema_Response(in *tfprotov6.GetProviderSchemaResponse) *tfplug
 	return resp
 }
 
+func GetResourceIdentitySchemas_Response(in *tfprotov6.GetResourceIdentitySchemasResponse) *tfplugin6.GetResourceIdentitySchemas_Response {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfplugin6.GetResourceIdentitySchemas_Response{
+		Diagnostics:     Diagnostics(in.Diagnostics),
+		IdentitySchemas: make(map[string]*tfplugin6.ResourceIdentitySchema, len(in.IdentitySchemas)),
+	}
+
+	for name, schema := range in.IdentitySchemas {
+		resp.IdentitySchemas[name] = ResourceIdentitySchema(schema)
+	}
+
+	return resp
+}
+
 func ValidateProviderConfig_Response(in *tfprotov6.ValidateProviderConfigResponse) *tfplugin6.ValidateProviderConfig_Response {
 	if in == nil {
 		return nil

@@ -108,6 +108,12 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetorkManagerVerifierWorkspace_update,
 			"requiresImport": testAccNetorkManagerVerifierWorkspace_requiresImport,
 		},
+		"RoutingConfiguration": {
+			"basic":          testAccNetworkManagerRoutingConfiguration_basic,
+			"complete":       testAccNetworkManagerRoutingConfiguration_complete,
+			"update":         testAccNetworkManagerRoutingConfiguration_update,
+			"requiresImport": testAccNetworkManagerRoutingConfiguration_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {

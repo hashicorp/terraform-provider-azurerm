@@ -48,7 +48,7 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
     category = "AuditEvent"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -76,15 +76,15 @@ The following arguments are supported:
 
 * `enabled_log` - (Optional) One or more `enabled_log` blocks as defined below.
 
--> **Note:** At least one `enabled_log` or `metric` block must be specified. At least one type of Log or Metric must be enabled.
+-> **Note:** At least one `enabled_log` or `enabled_metric` block must be specified. At least one type of Log or Metric must be enabled.
 
 * `log_analytics_workspace_id` - (Optional) Specifies the ID of a Log Analytics Workspace where Diagnostics Data should be sent.
 
 -> **Note:** At least one of `eventhub_authorization_rule_id`, `log_analytics_workspace_id`, `partner_solution_id` and `storage_account_id` must be specified.
 
-* `metric` - (Optional) One or more `metric` blocks as defined below.
+* `enabled_metric` - (Optional) One or more `enabled_metric` blocks as defined below.
 
--> **Note:** At least one `enabled_log` or `metric` block must be specified.
+-> **Note:** At least one `enabled_log` or `enabled_metric` block must be specified.
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where logs should be sent. 
 
@@ -114,13 +114,11 @@ An `enabled_log` block supports the following:
 
 ---
 
-A `metric` block supports the following:
+An `enabled_metric` block supports the following:
 
 * `category` - (Required) The name of a Diagnostic Metric Category for this Resource.
 
 -> **Note:** The Metric Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) to identify which categories are available for a given Resource.
-
-* `enabled` - (Optional) Is this Diagnostic Metric enabled? Defaults to `true`.
 
 ## Attributes Reference
 
@@ -146,3 +144,9 @@ terraform import azurerm_monitor_diagnostic_setting.example "/subscriptions/0000
 ```
 
 -> **Note:** This is a Terraform specific Resource ID which uses the format `{resourceId}|{diagnosticSettingName}`
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights`: 2021-05-01-preview
