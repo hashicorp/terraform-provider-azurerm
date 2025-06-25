@@ -64,6 +64,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"backup_repeating_time_intervals"},
 			},
 
 			"backup_repeating_time_intervals": {
@@ -74,6 +75,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				RequiredWith: []string{"vault_default_retention_duration"},
 			},
 
 			"operational_default_retention_duration": {
