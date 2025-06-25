@@ -641,7 +641,7 @@ A `microsoft_defender` block supports the following:
 
 A `network_profile` block supports the following:
 
-* `advanced_networking` - (Optional) A `advanced_networking` block as defined below.
+* `advanced_networking` - (Optional) An `advanced_networking` block as defined below.
 
 * `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure`, `kubenet` and `none`. Changing this forces a new resource to be created.
 
@@ -699,7 +699,7 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 ---
 
-A `advanced_networking` block exports the following:
+An `advanced_networking` block exports the following:
 
 * `enabled` - Enable or disable [Advanced Container Networking Services](https://learn.microsoft.com/en-us/azure/aks/advanced-container-networking-services-overview)
 

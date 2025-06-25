@@ -251,7 +251,7 @@ A `windows_profile` block exports the following:
 
 A `network_profile` block exports the following:
 
-* `advanced_networking` - A `advanced_networking` block as defined below.
+* `advanced_networking` - An `advanced_networking` block as defined below.
 
 * `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
 
@@ -269,7 +269,7 @@ A `network_profile` block exports the following:
 
 ---
 
-A `advanced_networking` block exports the following:
+An `advanced_networking` block exports the following:
 
 * `enabled` - Is Advanced Container Networking Services enabled?
 
