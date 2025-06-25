@@ -19,7 +19,7 @@ import (
 
 type FrontDoorResource struct{}
 
-func TestAccFrontDoor_deprecation(t *testing.T) {
+func TestAccFrontDoor_createShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	r := FrontDoorResource{}
 	expectedError := frontdoor.CreateDeprecationMessage
@@ -30,6 +30,7 @@ func TestAccFrontDoor_deprecation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basic(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(expectedError),
 		},
 	})

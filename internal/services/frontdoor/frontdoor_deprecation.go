@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+var (
+	CreateDeprecationMessage string = "the creation of new Frontdoor resources is no longer permitted following its deprecation on April 1, 2025. However, modifications to existing Frontdoor resources remain supported until the API reaches full retirement on March 31, 2027"
+	FullyRetiredMessage      string = "as of March 31, 2027, Frontdoor resources have reached full retirement and are no longer supported by Azure"
+)
+
 // isAPIFieldDeprecated checks if an API field has been deprecated based on the deprecation date
 // compared to the current time in the client's timezone versus Los Angeles timezone.
 // deprecationDate should be in "2006-01-02" format (YYYY-MM-DD)

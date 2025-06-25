@@ -20,7 +20,7 @@ import (
 
 type FrontDoorCustomHttpsConfigurationResource struct{}
 
-func TestAccFrontDoorCustomHttpsConfiguration_deprecation(t *testing.T) {
+func TestAccFrontDoorCustomHttpsConfiguration_createShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
 	r := FrontDoorCustomHttpsConfigurationResource{}
 
@@ -32,6 +32,7 @@ func TestAccFrontDoorCustomHttpsConfiguration_deprecation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.Enabled(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(expectedError),
 		},
 	})

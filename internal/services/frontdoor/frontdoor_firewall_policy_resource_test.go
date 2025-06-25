@@ -19,7 +19,7 @@ import (
 
 type FrontDoorFirewallPolicyResource struct{}
 
-func TestAccFrontDoorFirewallPolicy_deprecation(t *testing.T) {
+func TestAccFrontDoorFirewallPolicy_createShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 	r := FrontDoorFirewallPolicyResource{}
 	expectedError := frontdoor.CreateDeprecationMessage
@@ -30,6 +30,7 @@ func TestAccFrontDoorFirewallPolicy_deprecation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basic(data),
+			PlanOnly:    true,
 			ExpectError: regexp.MustCompile(expectedError),
 		},
 	})
