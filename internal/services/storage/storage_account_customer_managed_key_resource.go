@@ -33,10 +33,10 @@ func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 		Update: resourceStorageAccountCustomerManagedKeyCreateUpdate,
 		Delete: resourceStorageAccountCustomerManagedKeyDelete,
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}, pluginsdk.ResourceTypeForIdentityVirtual),
 
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}, pluginsdk.ResourceTypeForIdentityVirtual),
 		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -300,7 +300,7 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		return nil
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
 func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
