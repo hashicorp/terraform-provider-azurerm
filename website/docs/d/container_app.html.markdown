@@ -43,6 +43,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `ingress` - An `ingress` block as detailed below.
 
+* `additional_port_mapping` - One or more `additional_port_mapping` blocks as detailed below.
+
 * `registry` - A `registry` block as detailed below.
 
 * `secret` - One or more `secret` block as detailed below.
@@ -286,6 +288,16 @@ An `ingress` block supports the following:
 * `traffic_weight` - A `traffic_weight` block as detailed below.
 
 * `transport` - The transport method for the Ingress. Possible values include `auto`, `http`, and `http2`. Defaults to `auto`
+
+---
+
+An `additional_port_mapping` block supports the following:
+
+* `external` - Whether the app port is accessible outside of the environment.
+
+* `target_port` - The additional target port on the container for the Ingress traffic.
+
+* `exposed_port` - The additional exposed port for the Ingress traffic.
 
 ---
 
