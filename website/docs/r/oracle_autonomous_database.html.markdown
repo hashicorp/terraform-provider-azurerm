@@ -96,7 +96,7 @@ The following arguments are supported:
 
 A `long_term_backup_schedule` blocks supports the following:
 
-* `repeat_cadence` - (Required)  Specifies the schedule for automated long-term backups. Options include `Weekly`, `Monthly`, `Yearly`, or `OneTime` (does not repeat) . For example, if the Backup date and Time is `Jan 24, 2025 00:09:00 UTC` and this is a Tuesday, and Weekly is selected, the long-term backup will happen every Tuesday.
+* `repeat_cadence` - (Required)  Specifies the schedule for automated long-term backups. Possible values are `Weekly`, `Monthly`, `Yearly`, or `OneTime` (does not repeat) . For example, if the Backup date and Time is `Jan 24, 2025 00:09:00 UTC` and this is a Tuesday, and Weekly is selected, the long-term backup will happen every Tuesday.
 
 * `time_of_backup` - (Required) The date and time in which the backup should be taken in ISO8601 Date Time format. 
 
