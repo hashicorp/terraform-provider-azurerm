@@ -127,7 +127,7 @@ resource "azurerm_managed_devops_pool" "test" {
   fabric_profile {
     kind = "Vmss"
     images {
-      resource_id = "/Subscriptions/%s/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
+      resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
     }
     sku {
@@ -165,7 +165,7 @@ resource "azurerm_managed_devops_pool" "import" {
   fabric_profile {
     kind = "Vmss"
     images {
-      resource_id = "/Subscriptions/%s/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
+      resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
     }
     sku {
@@ -173,7 +173,7 @@ resource "azurerm_managed_devops_pool" "import" {
     }
   }
 }
-`, r.basic(data), data.Client().SubscriptionID)
+`, r.basic(data))
 }
 
 func (r ManagedDevOpsPoolResource) complete(data acceptance.TestData) string {
@@ -211,7 +211,7 @@ resource "azurerm_managed_devops_pool" "test" {
   fabric_profile {
     kind = "Vmss"
     images {
-      resource_id = "/Subscriptions/%s/Providers/Microsoft.Compute/Locations/australiaeast/publishers/canonical/artifacttypes/vmimage/offers/0001-com-ubuntu-server-focal/skus/20_04-lts-gen2/versions/latest"
+      resource_id = data.azurerm_platform_image.test.id
       buffer      = "*"
     }
     sku {
@@ -261,6 +261,13 @@ resource "azurerm_dev_center_project" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dev_center_id       = azurerm_dev_center.test.id
+}
+
+data "azurerm_platform_image" "test" {
+  location  = azurerm_resource_group.test.location
+  publisher = "Canonical"
+  offer     = "0001-com-ubuntu-server-focal"
+  sku       = "20_04-lts-gen2"
 }
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

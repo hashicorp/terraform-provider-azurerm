@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -71,7 +72,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"images": ImagesSchema(),
+					"image": ImageSchema(),
 					"kind": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
@@ -88,10 +89,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 								"subnet_id": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
-									ValidateFunc: validation.StringMatch(
-										regexp.MustCompile(`^/subscriptions/[0-9a-fA-F-]{36}/resourceGroups/[-\w._()]+/providers/Microsoft\.Network/virtualNetworks/[-\w._()]+/subnets/[-\w._()]+$`),
-										"Subnet ID must match the format '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}'.",
-									),
+									ValidateFunc: commonids.ValidateSubnetID,
 								},
 							},
 						},
@@ -132,7 +130,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 							string("AzureDevOps"),
 						}, false),
 					},
-					"organizations": {
+					"organization": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						Elem: &pluginsdk.Resource{
@@ -192,12 +190,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (ManagedDevOpsPoolResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (ManagedDevOpsPoolResource) ModelObject() interface{} {
@@ -230,7 +223,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
+			expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -253,7 +246,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 			payload := pools.Pool{
 				Name:     pointer.To(config.Name),
 				Location: location.Normalize(config.Location),
-				Identity: identity,
+				Identity: expandedIdentity,
 				Properties: &pools.PoolProperties{
 					DevCenterProjectResourceId: config.DevCenterProjectResourceId,
 					MaximumConcurrency:         config.MaximumConcurrency,
@@ -305,11 +298,11 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("identity") {
-				identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
+				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(config.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
-				payload.Identity = identity
+				payload.Identity = expandedIdentity
 			}
 
 			if metadata.ResourceData.HasChange("dev_center_project_resource_id") {
@@ -386,14 +379,11 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
-				if modelIdentity := model.Identity; modelIdentity != nil {
-					identity, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(pointer.From(model.Identity))))
-					if err != nil {
-						return err
-					}
-
-					state.Identity = pointer.From(identity)
+				expandedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return err
 				}
+				state.Identity = expandedIdentity
 
 				if props := model.Properties; props != nil {
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId

@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Managed DevOps Pool exists.
 
-* `maximum_concurrency` - Defines how many resources can there be created at any given time.
+* `maximum_concurrency` - The maximum number of agents that can be created.
 
 * `organization_profile` - An `organization_profile` block as defined below.
 
@@ -55,43 +55,41 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Managed DevOps Pool.
 
-* `type` - This is the resource type `Microsoft.DevOpsInfrastructure/pools.
-
 ---
 
-An `agent_profile` block supports the following:
+An `agent_profile` block exports the following:
 
 * `kind` - Defines the type of agent profile. Possible values are: `Stateful` and `Stateless`.
 
-* `grace_period_time_span` - Configures the amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete. The format for Grace Period is `dd.hh:mm:ss` and the default is no grace period.
+* `grace_period_time_span` - The amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete.
 
-* `max_agent_lifetime` - Configures the maximum duration an agent in a `stateful` pool can run before it is shut down and discarded. The format for Max time to live for standby agents is `dd.hh:mm:ss`. The default value of Max time to live for standby agents is set to the maximum allowed duration of seven days (7.00:00:00).
+* `max_agent_lifetime` - The maximum duration an agent in a `stateful` pool can run before it is shut down and discarded.
 
 * `resource_predictions` - A `resource_predictions` block as defined below.
 
-* `resource_predictions_profile` - One or more `resource_predictions_profile` blocks as defined below.
+* `resource_predictions_profile` - A `resource_predictions_profile` block as defined below.
 
 ---
 
-A `resource_predictions` block supports the following:
+A `resource_predictions` block exports the following:
 
-* `days_data` - A JSON string containing a list of maps, where each map represents a day of the week. Each map includes keys for start and end times, with corresponding values indicating the number of agents available during those times. For example, jsonencode([{},{"09:00:00": 1, "17:00:00": 0},{},{},{},{},{}]) specifies 1 standby agent available every Monday from 9:00 AM to 5:00 PM.
+* `days_data` - A JSON string containing a list of maps, where each map represents a day of the week. Each map includes keys for start and end times, with corresponding values indicating the number of agents available during those times.
 
-* `time_zone` - Specifies the time zone for the predictions data to be provisioned at. Default is UTC.
+* `time_zone` - The time zone for the predictions data to be provisioned at.
 
 ---
 
-A `resource_predictions_profile` block supports the following:
+A `resource_predictions_profile` block exports the following:
 
 * `kind` - Determines how the stand-by scheme should be provided. Possible values are: `Manual` and `Automatic`.
 
-* `prediction_preference` - Specifies the desired balance between cost and performance. Accepted values are: `MostCostEffective`, `MoreCostEffective`, `Balanced`, `MorePerformance`, and `BestPerformance`.
+* `prediction_preference` - The desired balance between cost and performance.
 
 ---
 
-A `fabric_profile` block supports the following:
+A `fabric_profile` block exports the following:
 
-* `images` - One or more `images` blocks as defined below.
+* `image` - One or more `image` blocks as defined below.
 
 * `kind` - Discriminator property for FabricProfile. Possible value is: `Vmss`.
 
@@ -105,67 +103,67 @@ A `fabric_profile` block supports the following:
 
 ---
 
-An `images` block supports the following:
+An `image` block exports the following:
 
-* `aliases` - List of aliases to reference the image by.
+* `aliases` - A list of image aliases.
 
-* `buffer` - The percentage of the buffer to be allocated to this image.
+* `buffer` - The percentage of the buffer allocated to this image.
 
 * `resource_id` - The resource id of the image.
 
-* `well_known_image_name` - The image to use from a well-known set of images made available to customers.
+* `well_known_image_name` - The image name from a well-known set of images made available to customers.
 
 ---
 
-A `sku` block supports the following:
+A `sku` block exports the following:
 
-* `name` - (Required) The Azure SKU of the machines in the pool.
-
----
-
-A `network_profile` block supports the following:
-
-* `subnet_id` - The subnet id on which to put all machines created in the pool.
+* `name` - The Azure SKU of the machines in the pool.
 
 ---
 
-An `os_profile` block supports the following:
+A `network_profile` block exports the following:
 
-* `logon_type` - Determines how the service should be run. Accepted values are: `Interactive` and `Service`.
+* `subnet_id` - The ID of the subnet associated with the Managed DevOps Pool.
+
+---
+
+An `os_profile` block exports the following:
+
+* `logon_type` - The logon type.
 
 * `secrets_management_settings` - A `secrets_management_settings` block as defined below.
 
 ---
 
-A `secrets_management_settings` block supports the following:
+A `secrets_management_settings` block exports the following:
 
-* `certificate_store_location` - Specifies where to store certificates on the machine.
+* `certificate_store_location` -  The location where the certificates are stored.
 
-* `certificate_store_name` - Name of the certificate store to use on the machine. Possible values are: 'My' and 'Root'.
+* `certificate_store_name` - The certificate store name.
 
-* `key_exportable` - Defines if the key of the certificates should be exportable.
+* `key_export_enabled` - Whether the keys of the certificates are exportable.
 
-* `observed_certificates` - Specifies the list of certificates from Azure Key vault to install on all machines in the pool.
-
----
-
-A `storage_profile` block supports the following:
-
-* `data_disks` - One or more `data_disks` blocks as defined above.
-
-* `os_disk_storage_account_type` - The storage account type of the OS disk. Possible values are: `Premium`, `Standard` and `StandardSSD`.
+* `observed_certificates` - A list of certificates installed on the machines in the Managed DevOps Pool.
 
 ---
 
-A `data_disks` block supports the following:
+A `storage_profile` block exports the following:
 
-* `caching` - The type of caching in a data disk. Possible values are: `None`, `ReadOnly` and `ReadWrite`.
+* `data_disk` - A `data_disk` block as defined above.
+
+* `os_disk_storage_account_type` - The storage account type of the OS disk.
+
+---
+
+A `data_disk` block exports the following:
+
+* `caching` - The type of caching on the data disk.
 
 * `disk_size_gb` - The initial disk size in gigabytes.
 
-* `drive_letter` - The drive letter for the empty data disk. If not specified, it will be the first available letter.
+* `drive_letter` - The drive letter for the empty data disk.
 
-* `storage_account_type` - The storage Account type to be used for the data disk. If omitted, the default is "standard_lrs".
+* `storage_account_type` - The storage account type of the data disk.
 
 ---
 
@@ -181,19 +179,19 @@ An `identity` block exports the following:
 
 ---
 
-An `organization_profile` block supports the following:
+An `organization_profile` block exports the following:
 
 * `kind` - Discriminator property for OrganizationProfile. Possible value is`AzureDevOps` currently.
 
-* `organizations` - One or more `organizations` blocks as defined below.
+* `organizations` - One or more `organization` blocks as defined below.
 
 * `permission_profile` - One or more `permission_profile` blocks as defined below.
 
 ---
 
-An `organizations` block supports the following:
+An `organization` block exports the following:
 
-* `url` - (Required) The Azure DevOps organization URL in which the pool should be created.
+* `url` - The Azure DevOps organization URL in which the pool should be created.
 
 * `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool.
 
@@ -201,9 +199,9 @@ An `organizations` block supports the following:
 
 ---
 
-A `permission_profile` block supports the following:
+A `permission_profile` block exports the following:
 
-* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Accepted values are: `CreatorOnly`, `Inherit` and `SpecificAccounts`.
+* `kind` - Determines who has admin permissions to the Azure DevOps pool. Possible values are: `CreatorOnly`, `Inherit` and `SpecificAccounts`.
 
 * `groups` - (Optional) Specifies a list of group email addresses.
 

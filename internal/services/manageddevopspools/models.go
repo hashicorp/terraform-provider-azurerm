@@ -47,7 +47,7 @@ type ResourcePredictionsProfileModel struct {
 }
 
 type FabricProfileModel struct {
-	Images         []ImageModel          `tfschema:"images"`
+	Images         []ImageModel          `tfschema:"image"`
 	Kind           string                `tfschema:"kind"`
 	NetworkProfile []NetworkProfileModel `tfschema:"network_profile"`
 	OsProfile      []OsProfileModel      `tfschema:"os_profile"`
@@ -63,13 +63,13 @@ type ImageModel struct {
 }
 type OsProfileModel struct {
 	LogonType                 string                           `tfschema:"logon_type"`
-	SecretsManagementSettings []SecretsManagementSettingsModel `tfschema:"secrets_management_settings"`
+	SecretsManagementSettings []SecretsManagementSettingsModel `tfschema:"secrets_management"`
 }
 
 type SecretsManagementSettingsModel struct {
 	CertificateStoreLocation *string  `tfschema:"certificate_store_location"`
 	CertificateStoreName     *string  `tfschema:"certificate_store_name"`
-	KeyExportable            bool     `tfschema:"key_exportable"`
+	KeyExportable            bool     `tfschema:"key_export_enabled"`
 	ObservedCertificates     []string `tfschema:"observed_certificates"`
 }
 
@@ -82,7 +82,7 @@ type DevOpsAzureSkuModel struct {
 }
 
 type StorageProfileModel struct {
-	DataDisks                []DataDiskModel `tfschema:"data_disks"`
+	DataDisks                []DataDiskModel `tfschema:"data_disk"`
 	OsDiskStorageAccountType string          `tfschema:"os_disk_storage_account_type"`
 }
 
@@ -94,7 +94,7 @@ type DataDiskModel struct {
 }
 
 type OrganizationProfileModel struct {
-	Organizations     []OrganizationModel      `tfschema:"organizations"`
+	Organizations     []OrganizationModel      `tfschema:"organization"`
 	PermissionProfile []PermissionProfileModel `tfschema:"permission_profile"`
 	Kind              string                   `tfschema:"kind"`
 }

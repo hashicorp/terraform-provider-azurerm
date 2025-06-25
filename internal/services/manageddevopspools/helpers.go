@@ -14,7 +14,7 @@ func expandAgentProfileModel(input []AgentProfileModel) (pools.AgentProfile, err
 	}
 
 	agentProfile := input[0]
-	resource_predictions := expandResourcePredictionsModel(agentProfile.ResourcePredictions)
+	resourcePredictions := expandResourcePredictionsModel(agentProfile.ResourcePredictions)
 	switch agentProfile.Kind {
 	case AgentProfileKindStateful:
 		stateful := &pools.Stateful{
@@ -22,8 +22,8 @@ func expandAgentProfileModel(input []AgentProfileModel) (pools.AgentProfile, err
 			MaxAgentLifetime:    agentProfile.MaxAgentLifetime,
 		}
 
-		if resource_predictions != nil {
-			stateful.ResourcePredictions = pointer.To(interface{}(pointer.From(resource_predictions)))
+		if resourcePredictions != nil {
+			stateful.ResourcePredictions = pointer.To(interface{}(pointer.From(resourcePredictions)))
 		}
 
 		if len(agentProfile.ResourcePredictionsProfile) > 0 {
@@ -52,8 +52,8 @@ func expandAgentProfileModel(input []AgentProfileModel) (pools.AgentProfile, err
 			ResourcePredictions: pointer.To(interface{}(expandResourcePredictionsModel(agentProfile.ResourcePredictions))),
 		}
 
-		if resource_predictions != nil {
-			stateless.ResourcePredictions = pointer.To(interface{}(pointer.From(resource_predictions)))
+		if resourcePredictions != nil {
+			stateless.ResourcePredictions = pointer.To(interface{}(pointer.From(resourcePredictions)))
 		}
 
 		if len(agentProfile.ResourcePredictionsProfile) > 0 {

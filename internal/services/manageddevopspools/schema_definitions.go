@@ -54,7 +54,7 @@ func ResourcePredictionsProfileSchema() *pluginsdk.Schema {
 	}
 }
 
-func ImagesSchema() *pluginsdk.Schema {
+func ImageSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
@@ -78,10 +78,12 @@ func ImagesSchema() *pluginsdk.Schema {
 				"resource_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ExactlyOneOf: []string{"resource_id", "well_known_image_name"},
 				},
 				"well_known_image_name": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					ExactlyOneOf: []string{"resource_id", "well_known_image_name"},
 				},
 			},
 		},
@@ -97,10 +99,10 @@ func OsProfileSchema() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"logon_type": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.StringInSlice(pools.PossibleValuesForLogonType(), false),
 				},
-				"secrets_management_settings": SecretsManagementSettingsSchema(),
+				"secrets_management": SecretsManagementSettingsSchema(),
 			},
 		},
 	}
@@ -122,7 +124,7 @@ func SecretsManagementSettingsSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCertificateStoreNameOption(), false),
 				},
-				"key_exportable": {
+				"key_export_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
@@ -145,7 +147,7 @@ func StorageProfileSchema() *pluginsdk.Schema {
 		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"data_disks": {
+				"data_disk": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
 					MaxItems: 1,
@@ -176,149 +178,6 @@ func StorageProfileSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(pools.PossibleValuesForOsDiskStorageAccountType(), false),
-				},
-			},
-		},
-	}
-}
-
-func AgentProfileComputedSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"kind": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"grace_period_time_span": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"max_agent_lifetime": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"resource_predictions":         ResourcePredictionsSchema(),
-				"resource_predictions_profile": ResourcePredictionsProfileSchema(),
-			},
-		},
-	}
-}
-
-func FabricProfileComputedSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"images": ImagesSchema(),
-				"kind": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string("Vmss"),
-					}, false),
-				},
-				"network_profile": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"subnet_id": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-						},
-					},
-				},
-				"os_profile": OsProfileSchema(),
-				"sku": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"name": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-						},
-					},
-				},
-				"storage_profile": StorageProfileSchema(),
-			},
-		},
-	}
-}
-
-func OrganizationProfileComputedSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Computed: true,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"kind": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string("AzureDevOps"),
-					}, false),
-				},
-				"organizations": {
-					Type:     pluginsdk.TypeList,
-					Required: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"parallelism": {
-								Type:     pluginsdk.TypeInt,
-								Optional: true,
-							},
-							"projects": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-							"url": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.IsURLWithHTTPS,
-							},
-						},
-					},
-				},
-				"permission_profile": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"groups": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-							"kind": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-							},
-							"users": {
-								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								Elem: &pluginsdk.Schema{
-									Type: pluginsdk.TypeString,
-								},
-							},
-						},
-					},
 				},
 			},
 		},

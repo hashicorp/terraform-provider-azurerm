@@ -32,19 +32,150 @@ func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 
 func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"agent_profile": AgentProfileComputedSchema(),
+		"agent_profile": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"kind": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"grace_period_time_span": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"max_agent_lifetime": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"resource_predictions":         ResourcePredictionsSchema(),
+					"resource_predictions_profile": ResourcePredictionsProfileSchema(),
+				},
+			},
+		},
 		"dev_center_project_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"fabric_profile": FabricProfileComputedSchema(),
-		"identity":       commonschema.SystemAssignedUserAssignedIdentityComputed(),
-		"location":       commonschema.LocationComputed(),
+		"fabric_profile": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"image": ImageSchema(),
+					"kind": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string("Vmss"),
+						}, false),
+					},
+					"network_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"subnet_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+					"os_profile": OsProfileSchema(),
+					"sku": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+					"storage_profile": StorageProfileSchema(),
+				},
+			},
+		},
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
+		"location": commonschema.LocationComputed(),
 		"maximum_concurrency": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-		"organization_profile": OrganizationProfileComputedSchema(),
+		"organization_profile": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"kind": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string("AzureDevOps"),
+						}, false),
+					},
+					"organization": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"parallelism": {
+									Type:     pluginsdk.TypeInt,
+									Optional: true,
+								},
+								"projects": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"url": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.IsURLWithHTTPS,
+								},
+							},
+						},
+					},
+					"permission_profile": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"groups": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+								"kind": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+								"users": {
+									Type:     pluginsdk.TypeSet,
+									Optional: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		"provisioning_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -91,14 +222,12 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
-				if modelIdentity := model.Identity; modelIdentity != nil {
-					identity, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To((identity.SystemAndUserAssignedMap)(pointer.From(model.Identity))))
-					if err != nil {
-						return err
-					}
-
-					state.Identity = pointer.From(identity)
+				expandedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return err
 				}
+
+				state.Identity = expandedIdentity
 
 				if props := model.Properties; props != nil {
 					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
