@@ -4,6 +4,7 @@ FEATURES:
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
+`azurerm_data_protection_backup_policy_disk` - the `absolute_criteria` property now supports the `AllBackup`, `FirstOfMonth` and `FirstOfYear` values [GH-29917]
 * Data Source: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
 * `azurerm_policy_set_definition` - add support for the `policy_definition_reference.version` property [GH-29924]
 * `azurerm_function_app_flex_consumption` - add support for the `vnet_route_all_enabled` property [GH-29839]
