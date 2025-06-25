@@ -1551,9 +1551,29 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		config := resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource)
-		config.Schema["transparent_huge_page"].ConflictsWith = []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page_enabled"}
-		config.Schema["transparent_huge_page_enabled"].ConflictsWith = []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page"}
+		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page_enabled"},
+			ValidateFunc: validation.StringInSlice([]string{
+				"always",
+				"madvise",
+				"never",
+			}, false),
+		}
+		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"default_node_pool.0.linux_os_config.0.transparent_huge_page"},
+			Deprecated:    "this property has been deprecated in favour of `transparent_huge_page` and will be removed in version 5.0 of the Provider.",
+			ValidateFunc: validation.StringInSlice([]string{
+				"always",
+				"madvise",
+				"never",
+			}, false),
+		}
 	}
 
 	return resource

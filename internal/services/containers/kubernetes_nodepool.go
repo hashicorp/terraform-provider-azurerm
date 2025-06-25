@@ -405,7 +405,17 @@ func schemaNodePoolLinuxOSConfig() *pluginsdk.Schema {
 				"never",
 			}, false),
 		}
-		s.Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"].Computed = true
+		s.Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "This field is deprecated in favour of `transparaent_huge_page` and will be removed in version 5.0 of the provider",
+			ValidateFunc: validation.StringInSlice([]string{
+				"always",
+				"madvise",
+				"never",
+			}, false),
+		}
 	}
 
 	return s
@@ -1041,20 +1051,20 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 		Sysctls: sysctlConfig,
 	}
 
-	if v := raw["transparent_huge_page"].(string); v != "" {
-		result.TransparentHugePageEnabled = pointer.To(v)
+	if v, ok := raw["transparent_huge_page"]; ok {
+		result.TransparentHugePageEnabled = pointer.To(v.(string))
 	}
 
 	if !features.FivePointOh() {
-		if v := raw["transparent_huge_page_enabled"].(string); v != "" {
-			result.TransparentHugePageEnabled = pointer.To(v)
+		if v, ok := raw["transparent_huge_page_enabled"]; ok {
+			result.TransparentHugePageEnabled = pointer.To(v.(string))
 		}
 	}
-	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
-		result.TransparentHugePageDefrag = pointer.To(v)
+	if v, ok := raw["transparent_huge_page_defrag"]; ok {
+		result.TransparentHugePageDefrag = pointer.To(v.(string))
 	}
-	if v := raw["swap_file_size_mb"].(int); v != 0 {
-		result.SwapFileSizeMB = pointer.To(int64(v))
+	if v, ok := raw["swap_file_size_mb"]; ok {
+		result.SwapFileSizeMB = pointer.To(int64(v.(int)))
 	}
 	return result, nil
 }

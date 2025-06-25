@@ -85,9 +85,29 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		config := resource.Schema["linux_os_config"].Elem.(*pluginsdk.Resource)
-		config.Schema["transparent_huge_page"].ConflictsWith = []string{"linux_os_config.0.transparent_huge_page_enabled"}
-		config.Schema["transparent_huge_page_enabled"].ConflictsWith = []string{"linux_os_config.0.transparent_huge_page"}
+		resource.Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"linux_os_config.0.transparent_huge_page_enabled"},
+			ValidateFunc: validation.StringInSlice([]string{
+				"always",
+				"madvise",
+				"never",
+			}, false),
+		}
+		resource.Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"linux_os_config.0.transparent_huge_page"},
+			Deprecated:    "this property has been deprecated in favour of `transparent_huge_page` and will be removed in version 5.0 of the Provider.",
+			ValidateFunc: validation.StringInSlice([]string{
+				"always",
+				"madvise",
+				"never",
+			}, false),
+		}
 	}
 
 	return resource
@@ -1352,19 +1372,19 @@ func expandAgentPoolLinuxOSConfig(input []interface{}) (*agentpools.LinuxOSConfi
 	result := &agentpools.LinuxOSConfig{
 		Sysctls: sysctlConfig,
 	}
-	if v := raw["transparent_huge_page"].(string); v != "" {
-		result.TransparentHugePageEnabled = pointer.To(v)
+	if v, ok := raw["transparent_huge_page"]; ok {
+		result.TransparentHugePageEnabled = pointer.To(v.(string))
 	}
 	if !features.FivePointOh() {
-		if v := raw["transparent_huge_page_enabled"].(string); v != "" {
-			result.TransparentHugePageEnabled = pointer.To(v)
+		if v, ok := raw["transparent_huge_page_enabled"]; ok {
+			result.TransparentHugePageEnabled = pointer.To(v.(string))
 		}
 	}
-	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
-		result.TransparentHugePageDefrag = pointer.To(v)
+	if v, ok := raw["transparent_huge_page_defrag"]; ok {
+		result.TransparentHugePageDefrag = pointer.To(v.(string))
 	}
-	if v := raw["swap_file_size_mb"].(int); v != 0 {
-		result.SwapFileSizeMB = pointer.To(int64(v))
+	if v, ok := raw["swap_file_size_mb"]; ok {
+		result.SwapFileSizeMB = pointer.To(int64(v.(int)))
 	}
 	return result, nil
 }
