@@ -1063,7 +1063,7 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 	if v, ok := raw["transparent_huge_page_defrag"]; ok {
 		result.TransparentHugePageDefrag = pointer.To(v.(string))
 	}
-	if v, ok := raw["swap_file_size_mb"]; ok {
+	if v, ok := raw["swap_file_size_mb"]; ok && v.(int) != 0 {
 		result.SwapFileSizeMB = pointer.To(int64(v.(int)))
 	}
 	return result, nil
