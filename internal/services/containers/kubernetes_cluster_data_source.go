@@ -863,6 +863,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `azure_active_directory_role_based_access_control`: %+v", err)
 			}
 
+			bootstrapProfile := flattenKubernetesClusterDataSourceBootstrapProfile(props.BootstrapProfile)
+			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
+				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
+			}
+
 			servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(props.ServicePrincipalProfile)
 			if err := d.Set("service_principal", servicePrincipal); err != nil {
 				return fmt.Errorf("setting `service_principal`: %+v", err)
@@ -1269,6 +1274,25 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 	}
 
 	return results
+}
+
+func flattenKubernetesClusterDataSourceBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	artifactSource := string(pointer.From(profile.ArtifactSource))
+	containerRegistryId := ""
+	if profile.ContainerRegistryId != nil {
+		containerRegistryId = *profile.ContainerRegistryId
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"artifact_source":       artifactSource,
+			"container_registry_id": containerRegistryId,
+		},
+	}
 }
 
 func flattenKubernetesClusterDataSourceIdentityProfile(profile *map[string]managedclusters.UserAssignedIdentity) ([]interface{}, error) {
