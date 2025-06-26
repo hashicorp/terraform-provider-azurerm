@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -153,7 +154,7 @@ func resourceNetworkInterfaceApplicationSecurityGroupAssociationRead(d *pluginsd
 		info := parseFieldsFromNetworkInterface(*nicProps)
 		exists := false
 		for _, groupId := range info.applicationSecurityGroupIDs {
-			if groupId == id.Second.ID() {
+			if strings.EqualFold(groupId, id.Second.ID()) {
 				exists = true
 			}
 		}
