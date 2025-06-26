@@ -2339,7 +2339,7 @@ resource "azurerm_logic_app_standard" "test" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.kv.id]
+    identity_ids = [azurerm_user_assigned_identity.kv.id]
   }
 
   key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
