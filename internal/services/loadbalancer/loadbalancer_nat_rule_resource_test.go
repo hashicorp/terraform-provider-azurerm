@@ -599,8 +599,8 @@ resource "azurerm_lb_nat_rule" "test" {
   frontend_port                  = 0
   backend_port                   = 0
   idle_timeout_in_minutes        = 4
-  floating_ip_enable             = false
-  tcp_reset_enable               = false
+  floating_ip_enabled            = false
+  tcp_reset_enabled              = false
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
 `, data.RandomInteger, data.Locations.Primary)

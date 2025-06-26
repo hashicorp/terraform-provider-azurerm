@@ -75,7 +75,7 @@ func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
 
 			"tcp_reset_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
+				Computed: true,
 			},
 
 			"disable_outbound_snat": {
@@ -164,10 +164,6 @@ func dataSourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface
 					return fmt.Errorf("setting `probe_id`: %+v", err)
 				}
 			}
-			if err := d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP)); err != nil {
-				return fmt.Errorf("setting `floating_ip_enabled`: %+v", err)
-			}
-
 			if err := d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP)); err != nil {
 				return fmt.Errorf("setting `floating_ip_enabled`: %+v", err)
 			}
