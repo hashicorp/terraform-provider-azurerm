@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary,kind:functionapp;linux"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary"
 
 package appservice
 
@@ -89,15 +89,13 @@ type LinuxFunctionAppModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-var _ sdk.ResourceWithUpdate = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithIdentityDiscriminatedType = LinuxFunctionAppResource{}
+var (
+	_ sdk.ResourceWithUpdate         = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithCustomizeDiff  = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithIdentity       = LinuxFunctionAppResource{}
+)
 
 func (r LinuxFunctionAppResource) ModelObject() interface{} {
 	return &LinuxFunctionAppModel{}
@@ -109,13 +107,6 @@ func (r LinuxFunctionAppResource) ResourceType() string {
 
 func (r LinuxFunctionAppResource) Identity() resourceids.ResourceId {
 	return &commonids.FunctionAppId{}
-}
-
-func (r LinuxFunctionAppResource) DiscriminatedType() pluginsdk.DiscriminatedType {
-	return pluginsdk.DiscriminatedType{
-		Field: "kind",
-		Value: "functionapp,linux",
-	}
 }
 
 func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -860,11 +851,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			if err := pluginsdk.SetResourceIdentityDataDiscriminatedType(metadata.ResourceData, id, r.DiscriminatedType()); err != nil {
-				return err
-			}
-
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }
