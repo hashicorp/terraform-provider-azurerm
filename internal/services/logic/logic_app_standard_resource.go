@@ -183,6 +183,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"key_vault_reference_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // When the `identity` is specified as `SystemAssigned`, the service will add `SystemAssigned` to this `key_vault_reference_identity_id` property.
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			},
 			"public_network_access": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -393,6 +399,10 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		siteEnvelope.Identity = expandedIdentity
 	}
 
+	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok && v.(string) != "" {
+		siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(v.(string))
+	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -534,6 +544,10 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		siteEnvelope.Identity = expandedIdentity
 	}
 
+	if d.HasChange("key_vault_reference_identity_id") {
+		siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(d.Get("key_vault_reference_identity_id").(string))
+	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, siteEnvelope); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -653,6 +667,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetId))
 			d.Set("vnet_content_share_enabled", pointer.From(props.VnetContentShareEnabled))
 			d.Set("public_network_access", pointer.From(props.PublicNetworkAccess))
+			d.Set("key_vault_reference_identity_id", pointer.From(props.KeyVaultReferenceIdentity))
 
 			clientCertMode := ""
 			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
