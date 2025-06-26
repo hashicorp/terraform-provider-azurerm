@@ -149,6 +149,8 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
+* `storage_account` - (Optional) One or up to five `storage_account` blocks as defined below.
+
 * `storage_account_share_name` - (Optional) The name of the share used by the logic app, if you want to use a custom name. This corresponds to the WEBSITE_CONTENTSHARE appsetting, which this resource will create for you. If you don't specify a name, then this resource will generate a dynamic name. This setting is useful if you want to provision a storage account and create a share using `azurerm_storage_share`.
 
 ~> **Note:** When integrating a `CI/CD pipeline` and expecting to run from a deployed package in `Azure` you must seed your `app settings` as part of terraform code for Logic App to be successfully deployed. `Important Default key pairs`: (`"WEBSITE_RUN_FROM_PACKAGE" = ""`, `"FUNCTIONS_WORKER_RUNTIME" = "node"` (or Python, etc.), `"WEBSITE_NODE_DEFAULT_VERSION" = "10.14.1"`, `"APPINSIGHTS_INSTRUMENTATIONKEY" = ""`).
@@ -306,6 +308,24 @@ A `headers` block supports the following:
 * `x_forwarded_for` - (Optional) A list of allowed 'X-Forwarded-For' IPs in CIDR notation with a maximum of 8.
 
 * `x_forwarded_host` - (Optional) A list of allowed 'X-Forwarded-Host' domains with a maximum of 8.
+
+---
+
+A `storage_account` block supports the following:
+
+* `access_key` - (Required) The Access key for the storage account.
+
+* `account_name` - (Required) The Name of the Storage Account.
+
+* `name` - (Required) The name which should be used for this Storage Account.
+
+* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
+
+* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`.
+
+* `mount_path` - (Optional) The path at which to mount the storage share.
+
+---
 
 ## Attributes Reference
 
