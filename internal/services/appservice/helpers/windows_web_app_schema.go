@@ -798,7 +798,7 @@ func (s *SiteConfigWindows) ExpandForUpdate(metadata sdk.ResourceMetaData, exist
 	return &expanded, nil
 }
 
-func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentStack string) error {
+func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentStack string, metadata sdk.ResourceMetaData) error {
 	if appSiteConfig != nil {
 		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
 		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
@@ -853,7 +853,9 @@ func (s *SiteConfigWindows) Flatten(appSiteConfig *webapps.SiteConfig, currentSt
 
 	var winAppStack ApplicationStackWindows
 	if currentStack == CurrentStackDotNetCore {
+		// Set both .NET Core and .NET Framework versions to prevent drift
 		winAppStack.NetCoreVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
+		winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
 	} else {
 		winAppStack.NetFrameworkVersion = pointer.From(appSiteConfig.NetFrameworkVersion)
 	}
