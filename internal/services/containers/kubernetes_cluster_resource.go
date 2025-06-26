@@ -53,7 +53,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingResourceId(
 			func(id string) error {
-				_, err := commonids.ParseKubernetesClusterID(id)
+				_, err := commonids.ParseKubernetesClusterIDInsensitively(id)
 				return err
 			}),
 
