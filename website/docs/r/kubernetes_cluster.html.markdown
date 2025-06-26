@@ -99,6 +99,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `azure_policy_enabled` - (Optional) Should the Azure Policy Add-On be enabled? For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
+* `bootstrap_profile` - (Optional) A `bootstrap_profile` block as defined below. For more details please visit [the documentation](https://learn.microsoft.com/en-us/azure/aks/network-isolated?pivots=aks-managed-acr#deploy-a-network-isolated-cluster-with-aks-managed-acr).
+
 * `confidential_computing` - (Optional) A `confidential_computing` block as defined below. For more details please [the documentation](https://learn.microsoft.com/en-us/azure/confidential-computing/confidential-nodes-aks-overview)
 
 * `cost_analysis_enabled` - (Optional) Should cost analysis be enabled for this Kubernetes Cluster? Defaults to `false`. The `sku_tier` must be set to `Standard` or `Premium` to enable this feature. Enabling this will add Kubernetes Namespace and Deployment details to the Cost Analysis views in the Azure portal.
@@ -557,6 +559,14 @@ A `linux_profile` block supports the following:
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
 * `ssh_key` - (Required) An `ssh_key` block as defined below. Only one is currently allowed. Changing this will update the key on all node pools. More information can be found in [the documentation](https://learn.microsoft.com/en-us/azure/aks/node-access#update-ssh-key-on-an-existing-aks-cluster-preview).
+
+---
+
+A `bootstrap_profile` block supports the following:
+
+* `artifact_source` - (Required) The source where the artifacts are downloaded from. Possible values are `Direct` and `Cache`.
+
+* `container_registry_id` - (Required) The resource ID of Azure Container Registry. The registry must have private network access, premium SKU and zone redundancy.
 
 ---
 

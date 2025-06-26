@@ -98,6 +98,8 @@ The following attributes are exported:
 
 * `network_profile` - A `network_profile` block as documented below.
 
+* `bootstrap_profile` - A `bootstrap_profile` block as documented below.
+
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
 * `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
@@ -264,6 +266,14 @@ A `network_profile` block exports the following:
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
 * `service_cidr` - Network range used by the Kubernetes service.
+
+---
+
+A `bootstrap_profile` block exports the following:
+
+* `artifact_source` - The source where the artifacts are downloaded from. Possible values are `Direct` and `Cache`.
+
+* `container_registry_id` - The resource ID of Azure Container Registry. The registry must have private network access, premium SKU and zone redundancy.
 
 ---
 
