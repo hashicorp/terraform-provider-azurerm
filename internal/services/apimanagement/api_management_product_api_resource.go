@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/productapi"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
@@ -18,15 +19,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name api_management_product_api -service-package-name apimanagement -properties "service_name:api_management_name,resource_group_name,product_id,api_id:api_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceApiManagementProductApi() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementProductApiCreate,
-		Read:   resourceApiManagementProductApiRead,
-		Delete: resourceApiManagementProductApiDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := productapi.ParseProductApiID(id)
-			return err
-		}),
+		Create:   resourceApiManagementProductApiCreate,
+		Read:     resourceApiManagementProductApiRead,
+		Delete:   resourceApiManagementProductApiDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&productapi.ProductApiId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&productapi.ProductApiId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -100,7 +104,7 @@ func resourceApiManagementProductApiRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("api_management_name", id.ServiceName)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApiManagementProductApiDelete(d *pluginsdk.ResourceData, meta interface{}) error {
