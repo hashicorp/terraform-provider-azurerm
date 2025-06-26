@@ -1061,6 +1061,7 @@ func TestAccLogicAppStandard_keyVaultReferenceIdentity(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseLogicAppId(state.ID)
 	if err != nil {
