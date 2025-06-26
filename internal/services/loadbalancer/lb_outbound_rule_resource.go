@@ -127,7 +127,7 @@ func resourceArmLoadBalancerOutboundRule() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeBool,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: []string{"enabled_tcp_reset"},
+			ConflictsWith: []string{"enable_tcp_reset"},
 		}
 	}
 
