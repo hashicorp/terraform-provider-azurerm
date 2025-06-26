@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/encryptionscopes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -22,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_encryption_scope -service-package-name storage -properties "encryption_scope_name:name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "keyVaultKey"
+
 func resourceStorageEncryptionScope() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceStorageEncryptionScopeCreate,
@@ -29,10 +32,11 @@ func resourceStorageEncryptionScope() *pluginsdk.Resource {
 		Update: resourceStorageEncryptionScopeUpdate,
 		Delete: resourceStorageEncryptionScopeDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := encryptionscopes.ParseEncryptionScopeID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&encryptionscopes.EncryptionScopeId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&encryptionscopes.EncryptionScopeId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -217,7 +221,7 @@ func resourceStorageEncryptionScopeRead(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceStorageEncryptionScopeDelete(d *pluginsdk.ResourceData, meta interface{}) error {
