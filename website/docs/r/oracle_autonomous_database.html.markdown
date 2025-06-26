@@ -72,15 +72,17 @@ The following arguments are supported:
 
 * `auto_scaling_for_storage_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database storage. The default value is `false`.
 
-* `mtls_connection_required` - (Required) Specifies if the Autonomous Database requires mTLS connections. Changing this forces a new Autonomous Database to be created.
+* `mtls_connection_required` - (Optional) Specifies if the Autonomous Database requires mTLS connections. Changing this forces a new Autonomous Database to be created.
+ 
+~> **Note:** `mtls_connection_required` is required for all workload types except 'APEX' when creating a database with public access.
 
 * `license_model` - (Required) The Oracle license model that applies to the Oracle Autonomous Database. Changing this forces a new Autonomous Database to be created. Bring your own license (BYOL) allows you to apply your current on-premises Oracle software licenses to equivalent, highly automated Oracle services in the cloud. License Included allows you to subscribe to new Oracle Database software licenses and the Oracle Database service. Note that when provisioning an [Autonomous Database on dedicated Exadata infrastructure](https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html), this attribute must be null. It is already set at the Autonomous Exadata Infrastructure level. When provisioning an [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) database, if a value is not specified, the system defaults the value to `BRING_YOUR_OWN_LICENSE`. Bring your own license (BYOL) also allows you to select the DB edition using the optional parameter.
 
 * `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new Autonomous Database to be created. The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8. 
 
-* `subnet_id` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with. Changing this forces a new Autonomous Database to be created.
+* `subnet_id` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with. Changing this forces a new Autonomous Database to be created.
 
-* `virtual_network_id` - (Required) The ID of the vnet associated with the cloud VM cluster. Changing this forces a new Autonomous Database to be created.
+* `virtual_network_id` - (Optional) The ID of the vnet associated with the cloud VM cluster. Changing this forces a new Autonomous Database to be created.
 
 ---
 
