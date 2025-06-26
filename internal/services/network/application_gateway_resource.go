@@ -1554,16 +1554,16 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			Computed:   true,
 			Deprecated: "`enable_http2` has been deprecated in favour of the `http2_enabled` property and will be removed in v5.0 of the AzureRM Provider",
 		}
-		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_certificate_dn"] = &pluginsdk.Schema{
+		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_certificate_issuer_dn"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
 		}
-		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_cert_dn"] = &pluginsdk.Schema{
+		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_cert_issuer_dn"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Computed:   true,
-			Deprecated: "`verify_client_cert_dn` has been deprecated in favour of `verify_client_certificate_dn` and will be removed in v5.0 of the AzureRM provider",
+			Deprecated: "`verify_client_cert_issuer_dn` has been deprecated in favour of `verify_client_certificate_issuer_dn` and will be removed in v5.0 of the AzureRM provider",
 		}
 	}
 
@@ -4818,24 +4818,20 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	}
 
 	sslProfiles := d.Get("ssl_profile").([]interface{})
-	if len(sslProfiles) > 0 {
-		for _, profile := range sslProfiles {
-			if profile == nil {
-				continue
-			}
-			v := profile.(map[string]interface{})
-			if policy, ok := v["ssl_policy"]; ok && policy != nil {
-				if err := checkSslPolicy(policy.([]interface{})); err != nil {
-					return err
-				}
-			}
-			if !features.FivePointOh() {
-				_, certOk := v["verify_client_cert_issuer_dn"]
-				_, certificateOk := v["verify_client_certificate_issuer_dn"]
-				if certOk && certificateOk {
-					return fmt.Errorf("`verify_client_cert_issuer_dn` conflicts with `verify_client_certificate_issuer_dn`, they cannot be used together")
-				}
-			}
+	// Validate the structure of sslProfiles before calling d.Set
+	for _, profile := range sslProfiles {
+		if profile == nil {
+			return fmt.Errorf("nil profile found in sslProfiles")
+		}
+		v, ok := profile.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("invalid profile structure in sslProfiles")
+		}
+		if _, exists := v["name"]; !exists {
+			return fmt.Errorf("missing 'name' in sslProfiles")
+		}
+		if _, exists := v["verify_client_certificate_issuer_dn"]; !exists {
+			return fmt.Errorf("missing 'verify_client_certificate_issuer_dn' in sslProfiles")
 		}
 	}
 
