@@ -49,19 +49,20 @@ type CloudVmClusterResourceModel struct {
 	VnetId                       string   `tfschema:"virtual_network_id"`
 
 	// Optional
-	BackupSubnetCidr         string                       `tfschema:"backup_subnet_cidr"`
-	ClusterName              string                       `tfschema:"cluster_name"`
-	DataCollectionOptions    []DataCollectionOptionsModel `tfschema:"data_collection_options"`
-	DataStoragePercentage    int64                        `tfschema:"data_storage_percentage"`
-	Domain                   string                       `tfschema:"domain"`
-	IsLocalBackupEnabled     bool                         `tfschema:"local_backup_enabled"`
-	IsSparseDiskgroupEnabled bool                         `tfschema:"sparse_diskgroup_enabled"`
-	Ocid                     string                       `tfschema:"ocid"`
-	ScanListenerPortTcp      int64                        `tfschema:"scan_listener_port_tcp"`
-	ScanListenerPortTcpSsl   int64                        `tfschema:"scan_listener_port_tcp_ssl"`
-	SystemVersion            string                       `tfschema:"system_version"`
-	TimeZone                 string                       `tfschema:"time_zone"`
-	ZoneId                   string                       `tfschema:"zone_id"`
+	BackupSubnetCidr               string                                `tfschema:"backup_subnet_cidr"`
+	ClusterName                    string                                `tfschema:"cluster_name"`
+	DataCollectionOptions          []DataCollectionOptionsModel          `tfschema:"data_collection_options"`
+	DataStoragePercentage          int64                                 `tfschema:"data_storage_percentage"`
+	Domain                         string                                `tfschema:"domain"`
+	IsLocalBackupEnabled           bool                                  `tfschema:"local_backup_enabled"`
+	IsSparseDiskgroupEnabled       bool                                  `tfschema:"sparse_diskgroup_enabled"`
+	Ocid                           string                                `tfschema:"ocid"`
+	ScanListenerPortTcp            int64                                 `tfschema:"scan_listener_port_tcp"`
+	ScanListenerPortTcpSsl         int64                                 `tfschema:"scan_listener_port_tcp_ssl"`
+	SystemVersion                  string                                `tfschema:"system_version"`
+	TimeZone                       string                                `tfschema:"time_zone"`
+	ZoneId                         string                                `tfschema:"zone_id"`
+	FileSystemConfigurationDetails []FileSystemConfigurationDetailsModel `tfschema:"file_system_configuration_details"`
 }
 
 func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -288,6 +289,26 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
+
+		"file_system_configuration_details": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"mount_point": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+					},
+					"file_system_size_gb": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Computed: true,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -353,6 +374,17 @@ func (r CloudVmClusterResource) Create() sdk.ResourceFunc {
 					SubnetId:                     model.SubnetId,
 					VnetId:                       model.VnetId,
 				},
+			}
+
+			if len(model.FileSystemConfigurationDetails) > 0 {
+				properties := make([]cloudvmclusters.FileSystemConfigurationDetails, 0)
+				for _, item := range model.FileSystemConfigurationDetails {
+					properties = append(properties, cloudvmclusters.FileSystemConfigurationDetails{
+						MountPoint:       pointer.To(item.MountPoint),
+						FileSystemSizeGb: pointer.To(item.FileSystemSizeGb),
+					})
+				}
+				param.Properties.FileSystemConfigurationDetails = &properties
 			}
 
 			if model.BackupSubnetCidr != "" {
@@ -440,6 +472,24 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("file_system_configuration_details") {
+				fileSystemConfigProperties := make([]cloudvmclusters.FileSystemConfigurationDetails, 0)
+				for _, item := range model.FileSystemConfigurationDetails {
+					fileSystemConfigProperties = append(fileSystemConfigProperties, cloudvmclusters.FileSystemConfigurationDetails{
+						MountPoint:       pointer.To(item.MountPoint),
+						FileSystemSizeGb: pointer.To(item.FileSystemSizeGb),
+					})
+				}
+				update := cloudvmclusters.CloudVMClusterUpdate{
+					Properties: &cloudvmclusters.CloudVMClusterUpdateProperties{
+						FileSystemConfigurationDetails: &fileSystemConfigProperties,
+					},
+				}
+				if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
+				}
+			}
+
 			return nil
 		},
 	}
@@ -509,6 +559,7 @@ func (CloudVmClusterResource) Read() sdk.ResourceFunc {
 					state.SystemVersion = pointer.From(props.SystemVersion)
 					state.TimeZone = pointer.From(props.TimeZone)
 					state.ZoneId = pointer.From(props.ZoneId)
+					state.FileSystemConfigurationDetails = FlattenFileSystemConfigurationDetails(props.FileSystemConfigurationDetails)
 				}
 			}
 

@@ -113,6 +113,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `zones` - The Cloud Exadata Infrastructure Azure zones.
 
+* `defined_file_system_configuration` - A `defined_file_system_configuration` block as defined below. Predefined configurations for the file system.
+
 ---
 
 A `estimated_patching_time` block exports the following:
@@ -142,6 +144,18 @@ A `maintenance_window` block exports the following:
 * `preference` - The maintenance window scheduling preference.
 
 * `weeks_of_month` - Weeks during the month when maintenance should be performed.
+
+---
+
+A `defined_file_system_configuration` block exports the following:
+
+* `is_backup_partition` - Checks if the data can be backed up.
+
+* `is_resizable` - Checks if the mount path is resizable.
+
+* `min_size_gb` - Minimum size of mount path in Gb.
+
+* `mount_point` - Mount path for the file system.
 
 ---
 
