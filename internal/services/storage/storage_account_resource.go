@@ -47,7 +47,7 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account -service-package-name storage -properties "storage_account_name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"

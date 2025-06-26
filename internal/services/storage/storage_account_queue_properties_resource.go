@@ -25,8 +25,8 @@ import (
 type AccountQueuePropertiesResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate   = AccountQueuePropertiesResource{}
-	_ sdk.ResourceWithIdentity = AccountQueuePropertiesResource{}
+	_ sdk.ResourceWithUpdate               = AccountQueuePropertiesResource{}
+	_ sdk.ResourceWithIdentityTypeOverride = AccountQueuePropertiesResource{}
 )
 
 type AccountQueuePropertiesModel struct {
@@ -272,6 +272,10 @@ func (s AccountQueuePropertiesResource) Identity() resourceids.ResourceId {
 	return &commonids.StorageAccountId{}
 }
 
+func (s AccountQueuePropertiesResource) IdentityType() pluginsdk.ResourceTypeForIdentity {
+	return pluginsdk.ResourceTypeForIdentityVirtual
+}
+
 func (s AccountQueuePropertiesResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -478,7 +482,7 @@ func (s AccountQueuePropertiesResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
 				return err
 			}
 

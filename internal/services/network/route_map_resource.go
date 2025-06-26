@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_map -service-package-name network -properties "route_map_name:name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id" -test-params "ident"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_map -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id" -test-params "ident"
 
 type RouteMapModel struct {
 	Name         string `tfschema:"name"`
