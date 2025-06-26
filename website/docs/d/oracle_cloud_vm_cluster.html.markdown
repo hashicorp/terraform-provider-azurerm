@@ -67,6 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `domain` - The domain name for the Cloud VM Cluster.
 
+* `file_system_configuration_details` - A `file_system_configuration_details` block as defined below. A filesystem configuration information for the VM cluster
+
 * `gi_version` - A valid Oracle Grid Infrastructure (GI) software version.
 
 * `hostname` - The hostname for the Cloud VM Cluster without suffix.
@@ -171,6 +173,14 @@ A `iorm_config_cache` block exports the following:
 * `lifecycle_state` - The current state of IORM configuration for the Exadata DB system.
 
 * `objective` - The current value for the IORM objective. The default is `AUTO`.
+
+---
+
+A `file_system_configuration_details` block exports the following:
+
+* `mount_point` - Mount path.
+
+* `file_system_size_gb` - Size of the VM.
 
 ## Timeouts
 
