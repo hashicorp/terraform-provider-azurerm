@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementProductAPIResource struct{}
+type ApiManagementProductApiResource struct{}
 
 func TestAccApiManagementProductApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_api", "test")
-	r := ApiManagementProductAPIResource{}
+	r := ApiManagementProductApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccApiManagementProductApi_basic(t *testing.T) {
 
 func TestAccApiManagementProductApi_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_api", "test")
-	r := ApiManagementProductAPIResource{}
+	r := ApiManagementProductApiResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccApiManagementProductApi_requiresImport(t *testing.T) {
 	})
 }
 
-func (ApiManagementProductAPIResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementProductApiResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := productapi.ParseProductApiID(state.ID)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (ApiManagementProductAPIResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(true), nil
 }
 
-func (ApiManagementProductAPIResource) basic(data acceptance.TestData) string {
+func (ApiManagementProductApiResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -111,7 +111,7 @@ resource "azurerm_api_management_product_api" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ApiManagementProductAPIResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementProductApiResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
