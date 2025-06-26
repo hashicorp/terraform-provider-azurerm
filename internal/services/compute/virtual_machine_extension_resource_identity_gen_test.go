@@ -9,17 +9,17 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccAvailabilitySet_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-	r := AvailabilitySetResource{}
+func TestAccVirtualMachineExtension_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
+	r := VirtualMachineExtensionResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -30,9 +30,10 @@ func TestAccAvailabilitySet_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValue("azurerm_availability_set.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_availability_set.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_availability_set.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_machine_extension.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_machine_extension.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("virtual_machine_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_machine_extension.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("virtual_machine_id")),
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_machine_extension.test", tfjsonpath.New("virtual_machine_name"), tfjsonpath.New("virtual_machine_id")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "site_name:name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary,kind:functionapp;linux"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary,kind:functionapp;linux"
 
 package appservice
 
@@ -97,7 +97,7 @@ var _ sdk.ResourceWithCustomizeDiff = LinuxFunctionAppResource{}
 
 var _ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
 
-var _ sdk.ResourceWithIdentity = LinuxFunctionAppResource{}
+var _ sdk.ResourceWithIdentityDiscriminatedType = LinuxFunctionAppResource{}
 
 func (r LinuxFunctionAppResource) ModelObject() interface{} {
 	return &LinuxFunctionAppModel{}

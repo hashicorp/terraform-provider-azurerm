@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name capacity_reservation -service-package-name compute -properties "capacity_reservation_name:name" -compare-values "subscription_id:capacity_reservation_group_id,resource_group_name:capacity_reservation_group_id,capacity_reservation_group_name:capacity_reservation_group_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name capacity_reservation -service-package-name compute -properties "name" -compare-values "subscription_id:capacity_reservation_group_id,resource_group_name:capacity_reservation_group_id,capacity_reservation_group_name:capacity_reservation_group_id"
 
 func resourceCapacityReservation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

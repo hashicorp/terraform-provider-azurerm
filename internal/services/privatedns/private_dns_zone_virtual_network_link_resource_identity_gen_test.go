@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package compute_test
+package privatedns_test
 
 import (
 	"context"
@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccAvailabilitySet_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
-	r := AvailabilitySetResource{}
+func TestAccPrivateDnsZoneVirtualNetworkLink_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone_virtual_network_link", "test")
+	r := PrivateDnsZoneVirtualNetworkLinkResource{}
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -30,9 +30,10 @@ func TestAccAvailabilitySet_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValue("azurerm_availability_set.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_availability_set.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_availability_set.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+					statecheck.ExpectIdentityValue("azurerm_private_dns_zone_virtual_network_link.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_zone_virtual_network_link.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_zone_virtual_network_link.test", tfjsonpath.New("private_dns_zone_name"), tfjsonpath.New("private_dns_zone_name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_zone_virtual_network_link.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

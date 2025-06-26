@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_security_rule -service-package-name network -properties "security_rule_name:name,network_security_group_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_security_rule -service-package-name network -properties "name,network_security_group_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceNetworkSecurityRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
