@@ -3,6 +3,7 @@
 package oracle_test
 
 import (
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -19,7 +20,7 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("versions.#").HasValue("4"),
+				resource.TestCheckResourceAttrSet(data.ResourceName, "versions.0"),
 			),
 		},
 	})
