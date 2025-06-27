@@ -83,22 +83,20 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["workspace_id"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"workspace_resource_id"},
-			AtLeastOneOf:  []string{"workspace_id", "workspace_resource_id"},
-			ForceNew:      true,
-			ValidateFunc:  linkedstorageaccounts.ValidateWorkspaceID,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"workspace_id", "workspace_resource_id"},
+			ValidateFunc: linkedstorageaccounts.ValidateWorkspaceID,
 		}
 		resource.Schema["workspace_resource_id"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"workspace_id"},
-			AtLeastOneOf:  []string{"workspace_id", "workspace_resource_id"},
-			ForceNew:      true,
-			ValidateFunc:  linkedstorageaccounts.ValidateWorkspaceID,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"workspace_id", "workspace_resource_id"},
+			ValidateFunc: linkedstorageaccounts.ValidateWorkspaceID,
 		}
 	}
 
