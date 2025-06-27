@@ -1711,7 +1711,8 @@ resource "azurerm_subnet" "subnet2" {
 }
 
 func (r CosmosDBAccountResource) complete(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -1766,10 +1767,64 @@ resource "azurerm_cosmosdb_account" "test" {
   network_acl_bypass_for_azure_services = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet1.id,
+    azurerm_subnet.subnet2.id
+  ]
+
+  multiple_write_locations_enabled = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com"]
+    exposed_headers    = ["x-tempo-*"]
+    allowed_headers    = ["x-tempo-*"]
+    allowed_methods    = ["GET", "PUT"]
+    max_age_in_seconds = 500
+  }
+
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r CosmosDBAccountResource) completeTags(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -1827,10 +1882,67 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet1.id,
+    azurerm_subnet.subnet2.id
+  ]
+
+  multiple_write_locations_enabled = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com"]
+    exposed_headers    = ["x-tempo-*"]
+    allowed_headers    = ["x-tempo-*"]
+    allowed_methods    = ["GET", "PUT"]
+    max_age_in_seconds = 500
+  }
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r CosmosDBAccountResource) completeMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -1859,6 +1971,63 @@ resource "azurerm_cosmosdb_account" "test" {
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
   }
+
+  multiple_write_locations_enabled = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[4]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com"]
+    exposed_headers    = ["x-tempo-*"]
+    allowed_headers    = ["x-tempo-*"]
+    allowed_methods    = ["GET", "PUT"]
+    max_age_in_seconds = 500
+  }
+
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  consistency_policy {
+    consistency_level       = "%[3]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet1.id,
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -1976,7 +2145,8 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) completeUpdated(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -2042,10 +2212,78 @@ resource "azurerm_cosmosdb_account" "test" {
   access_key_metadata_writes_enabled = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  capabilities {
+    name = "DisableRateLimitingResponses"
+  }
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
+
+  multiple_write_locations_enabled = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
+    exposed_headers    = ["x-tempo-*", "x-method-*"]
+    allowed_headers    = ["*"]
+    allowed_methods    = ["GET"]
+    max_age_in_seconds = 2147483647
+  }
+
+  access_key_metadata_writes_enabled = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r CosmosDBAccountResource) completeUpdated_RemoveDisableRateLimitingResponsesCapabilities(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -2107,10 +2345,74 @@ resource "azurerm_cosmosdb_account" "test" {
   access_key_metadata_writes_enabled = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
+
+  multiple_write_locations_enabled = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
+    exposed_headers    = ["x-tempo-*", "x-method-*"]
+    allowed_headers    = ["*"]
+    allowed_methods    = ["GET"]
+    max_age_in_seconds = 2147483647
+  }
+
+  access_key_metadata_writes_enabled = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r CosmosDBAccountResource) completeUpdatedMongoDB(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -2183,10 +2485,85 @@ resource "azurerm_cosmosdb_account" "test" {
   access_key_metadata_writes_enabled = true
 }
 `, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  capabilities {
+    name = "DisableRateLimitingResponses"
+  }
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "MongoDBv3.4"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
+  consistency_policy {
+    consistency_level       = "%[3]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
+
+  multiple_write_locations_enabled = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[4]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
+    exposed_headers    = ["x-tempo-*", "x-method-*"]
+    allowed_headers    = ["*"]
+    allowed_methods    = ["GET"]
+    max_age_in_seconds = 2147483647
+  }
+  access_key_metadata_writes_enabled = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
 }
 
 func (r CosmosDBAccountResource) completeUpdatedMongoDB_RemoveDisableRateLimitingResponsesCapability(data acceptance.TestData, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -2227,6 +2604,76 @@ resource "azurerm_cosmosdb_account" "test" {
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
   }
+
+  multiple_write_locations_enabled = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[4]s"
+    failover_priority = 1
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 2
+  }
+
+  cors_rule {
+    allowed_origins    = ["http://www.example.com", "http://www.test.com"]
+    exposed_headers    = ["x-tempo-*", "x-method-*"]
+    allowed_headers    = ["*"]
+    allowed_methods    = ["GET"]
+    max_age_in_seconds = 2147483647
+  }
+  access_key_metadata_writes_enabled = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "MongoDB"
+
+  capabilities {
+    name = "EnableMongo"
+  }
+
+  capabilities {
+    name = "AllowSelfServeUpgradeToMongo36"
+  }
+
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "MongoDBv3.4"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
+  consistency_policy {
+    consistency_level       = "%[3]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
 
   multiple_write_locations_enabled = true
 
@@ -2509,7 +2956,8 @@ resource "azurerm_subnet" "subnet2" {
 }
 
 func (r CosmosDBAccountResource) vNetFilters(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -2540,6 +2988,43 @@ resource "azurerm_cosmosdb_account" "test" {
     id                                   = azurerm_subnet.subnet2.id
     ignore_missing_vnet_service_endpoint = false
   }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, r.vNetFiltersPreReqs(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  multiple_write_locations_enabled = false
+  automatic_failover_enabled       = false
+
+  consistency_policy {
+    consistency_level       = "Eventual"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  is_virtual_network_filter_enabled = true
+  ip_range_filter                   = []
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
+
+  virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint = [
+    azurerm_subnet.subnet1.id
+  ]
 
   geo_location {
     location          = azurerm_resource_group.test.location
@@ -4703,7 +5188,8 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) ipRangeFilters(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -4741,10 +5227,49 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, r.vNetFiltersPreReqs(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  multiple_write_locations_enabled = false
+  automatic_failover_enabled       = false
+
+  consistency_policy {
+    consistency_level       = "Eventual"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  is_virtual_network_filter_enabled = true
+  ip_range_filter                   = ["55.0.1.0/24"]
+
+  virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint = [
+    azurerm_subnet.subnet1.id
+  ]
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
+
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, r.vNetFiltersPreReqs(data), data.RandomInteger)
 }
 
 func (r CosmosDBAccountResource) ipRangeFiltersUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 
 resource "azurerm_cosmosdb_account" "test" {
@@ -4775,6 +5300,44 @@ resource "azurerm_cosmosdb_account" "test" {
     id                                   = azurerm_subnet.subnet2.id
     ignore_missing_vnet_service_endpoint = false
   }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, r.vNetFiltersPreReqs(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  multiple_write_locations_enabled = false
+  automatic_failover_enabled       = false
+
+  consistency_policy {
+    consistency_level       = "Eventual"
+    max_interval_in_seconds = 5
+    max_staleness_prefix    = 100
+  }
+
+  is_virtual_network_filter_enabled = true
+  ip_range_filter                   = ["55.0.1.0/24", "55.0.2.0/24", "0.0.0.0"]
+
+  virtual_network_subnet_ids_ignore_missing_vnet_service_endpoint = [
+    azurerm_subnet.subnet1.id
+  ]
+
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet2.id
+  ]
+
 
   geo_location {
     location          = azurerm_resource_group.test.location
@@ -4835,7 +5398,8 @@ resource "azurerm_cosmosdb_account" "test" {
 }
 
 func (r CosmosDBAccountResource) withoutMaxAgeInSeconds(data acceptance.TestData, kind cosmosdb.DatabaseAccountKind, consistency cosmosdb.DefaultConsistencyLevel) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOhBeta() {
+		return fmt.Sprintf(`
 %[1]s
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-ca-%[2]d"
@@ -4855,6 +5419,48 @@ resource "azurerm_cosmosdb_account" "test" {
   virtual_network_rule {
     id = azurerm_subnet.subnet2.id
   }
+  multiple_write_locations_enabled = true
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+  }
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+  cors_rule {
+    allowed_origins = ["http://www.example.com"]
+    exposed_headers = ["x-tempo-*"]
+    allowed_headers = ["x-tempo-*"]
+    allowed_methods = ["GET", "PUT"]
+  }
+  access_key_metadata_writes_enabled    = false
+  network_acl_bypass_for_azure_services = true
+}
+`, r.completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+	}
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
+  }
+  is_virtual_network_filter_enabled = true
+  virtual_network_subnet_ids = [
+    azurerm_subnet.subnet1.id,
+    azurerm_subnet.subnet2.id
+  ]
   multiple_write_locations_enabled = true
   geo_location {
     location          = azurerm_resource_group.test.location
