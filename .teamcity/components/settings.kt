@@ -181,7 +181,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "servicebus" to testConfiguration(parallelism = 10),
 
         // Spring Cloud only allows a max of 10 provisioned
-        "springcloud" to testConfiguration(parallelism = 5),
+        "springcloud" to testConfiguration(parallelism = 5, daysOfWeek = "2"),
 
         // SQL has quota available in certain locations
         "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),

@@ -12,7 +12,11 @@ import (
 // without introducing a merge conflict into every PR.
 
 type (
-	BasicMapReader         = schema.BasicMapReader
+	BasicMapReader    = schema.BasicMapReader
+	DiscriminatedType = struct {
+		Field string
+		Value string
+	}
 	MapFieldReader         = schema.MapFieldReader
 	MapFieldWriter         = schema.MapFieldWriter
 	Resource               = schema.Resource
