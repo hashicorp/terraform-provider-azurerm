@@ -427,6 +427,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ExactlyOneOf: []string{"subnet_id", "public_ip_address_id", "public_ip_prefix_id"},
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
@@ -451,6 +452,7 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ExactlyOneOf: []string{"subnet_id", "public_ip_address_id", "public_ip_prefix_id"},
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 
