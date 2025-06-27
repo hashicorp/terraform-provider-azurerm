@@ -50,7 +50,9 @@ The following arguments are supported:
 
 * `data_factory_id` - (Required) The Data Factory ID in which to associate the Linked Service with. Changing this forces a new resource.
 
-* `key_vault_id` - (Required) The ID the Azure Key Vault resource.
+* `key_vault_id` - (Optional) The ID the Azure Key Vault resource. Mutually exclusive with `key_vault_base_url_dynamic_expression`. Use `key_vault_base_url_dynamic_expression` instead if the URL is a dynamic expression.
+
+* `key_vault_base_url_dynamic_expression` - (Optional) The base url of the Azure Key Vault. Use only if the base url is a dynamic expression (for example `@{concat('https://my-kv-',linkedService().environmentName,'.vault.azure.net')}`). Use `key_vault_id` otherwise. This attribute is mutually exclusive with `key_vault_id`.
 
 * `description` - (Optional) The description for the Data Factory Linked Service Key Vault.
 
