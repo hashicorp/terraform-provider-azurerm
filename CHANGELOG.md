@@ -5,6 +5,8 @@ FEATURES:
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
+* `azurerm_machine_learning_compute_cluster` - the `scale_settings` block and its sub-properties are no longer `ForceNew` [GH-29878]
+* `azurerm_machine_learning_compute_cluster` - the `tags` property is no longer `ForceNew` [GH-29878]
 * `azurerm_private_link_service` - add support for the `destination_ip_address` property [GH-29395]
 * `azurerm_oracle_autonomous_database ` - add support for `long_term_backup_schedule` [GH-29207]
 * `azurerm_container_app_job` - add support for the `volume_mounts.sub_path` property [GH-29883]
