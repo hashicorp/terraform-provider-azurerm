@@ -92,6 +92,45 @@ func TestAccMsSqlJobStep_complete(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlJobStep_withManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
+	r := MsSqlJobStepResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("job_credential_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlJobStep_updateFromCredentialToManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
+	r := MsSqlJobStepResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCredential(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("job_credential_id").IsSet(),
+			),
+		},
+		{
+			Config: r.withManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("job_credential_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlJobStepTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobsteps.ParseStepID(state.ID)
 	if err != nil {
@@ -235,4 +274,34 @@ resource "azurerm_mssql_job_credential" "test" {
   password     = "testpassword"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MsSqlJobStepResource) withManagedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_job_step" "test" {
+  name                 = "acctestjs-%[1]d"
+  job_id               = azurerm_mssql_job.test.id
+  job_target_group_id  = azurerm_mssql_job_target_group.test.id
+  job_step_index       = 1
+  sql_script           = "SELECT 1;"
+  # job_credential_id intentionally omitted
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlJobStepResource) withCredential(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_job_step" "test" {
+  name                 = "acctestjs-%[1]d"
+  job_id               = azurerm_mssql_job.test.id
+  job_target_group_id  = azurerm_mssql_job_target_group.test.id
+  job_step_index       = 1
+  sql_script           = "SELECT 1;"
+  job_credential_id    = azurerm_mssql_job_credential.test.id
+}
+`, r.template(data), data.RandomInteger)
 }
