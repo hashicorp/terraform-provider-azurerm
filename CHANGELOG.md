@@ -1,6 +1,7 @@
 ## 4.35.0 (Unreleased)
 
 FEATURES:
+* **New Resource**: `azurerm_email_communication_service_domain_sennder_username` [GH-29340]
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
