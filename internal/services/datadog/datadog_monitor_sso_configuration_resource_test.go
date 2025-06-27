@@ -41,6 +41,9 @@ func (r *SSODatadogMonitorResource) populateValuesFromEnvironment(t *testing.T) 
 }
 
 func TestAccDatadogMonitorSSO_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as azurerm_datadog_monitor_sso_configuration is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
 	r.populateValuesFromEnvironment(t)
@@ -57,7 +60,7 @@ func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 
 func TestAccDatadogMonitorSSO_singleSignOnEnabled(t *testing.T) {
 	if features.FivePointOh() {
-		t.Skip("Skipping as single_sign_on_enabled is not supported in 5.0")
+		t.Skip("Skipping as azurerm_datadog_monitor_sso_configuration is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
@@ -74,6 +77,9 @@ func TestAccDatadogMonitorSSO_singleSignOnEnabled(t *testing.T) {
 }
 
 func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as azurerm_datadog_monitor_sso_configuration is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
 	r.populateValuesFromEnvironment(t)
@@ -89,6 +95,9 @@ func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 }
 
 func TestAccDatadogMonitorSSO_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as azurerm_datadog_monitor_sso_configuration is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
 	r := SSODatadogMonitorResource{}
 	r.populateValuesFromEnvironment(t)
