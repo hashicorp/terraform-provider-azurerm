@@ -3,9 +3,9 @@
 package oracle_test
 
 import (
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )

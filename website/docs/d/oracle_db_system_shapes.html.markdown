@@ -17,7 +17,7 @@ Gets a list of the shapes that can be used to launch a new DB system. The shape 
 ```hcl
 data "azurerm_oracle_db_system_shapes" "example" {
   location = "West Europe"
-  zone = "2"
+  zone     = "2"
 }
 
 output "example" {
