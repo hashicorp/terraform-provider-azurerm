@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -164,7 +165,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// Enable
-			Config: r.enableProxyProtocol(data, true),
+			Config: r.proxyProtocolEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -172,7 +173,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 		data.ImportStep(),
 		{
 			// Disable
-			Config: r.enableProxyProtocol(data, false),
+			Config: r.proxyProtocolEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -180,7 +181,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 		data.ImportStep(),
 		{
 			// Enable
-			Config: r.enableProxyProtocol(data, true),
+			Config: r.proxyProtocolEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -330,8 +331,9 @@ resource "azurerm_private_link_service" "import" {
 `, r.basic(data), data.RandomInteger)
 }
 
-func (r PrivateLinkServiceResource) enableProxyProtocol(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
+func (r PrivateLinkServiceResource) proxyProtocolEnabled(data acceptance.TestData, enabled bool) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_subnet" "test" {
@@ -348,6 +350,37 @@ resource "azurerm_private_link_service" "test" {
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   enable_proxy_protocol = %t
+
+  nat_ip_configuration {
+    name      = "primaryIpConfiguration-%d"
+    subnet_id = azurerm_subnet.test.id
+    primary   = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, enabled, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-basic-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.4.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                   = "acctestPLS-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  proxy_protocol_enabled = %t
 
   nat_ip_configuration {
     name      = "primaryIpConfiguration-%d"
