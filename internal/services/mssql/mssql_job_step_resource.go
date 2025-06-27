@@ -103,7 +103,7 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 				Schema: map[string]*pluginsdk.Schema{
 					"job_credential_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: jobcredentials.ValidateCredentialID,
 					},
 					"mssql_database_id": {
