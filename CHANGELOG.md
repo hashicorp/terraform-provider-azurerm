@@ -15,7 +15,7 @@ ENHANCEMENTS:
 * `azurerm_function_app_flex_consumption` - add support for the `vnet_route_all_enabled` property [GH-29839]
 * `azurerm_windows_virtual_machine`: `os_disk.0.diff_disk_settings.0.placement` now supports `NvmeDisk` [GH-29922]
 * `azurerm_policy_set_definition` - migrate to use `go-azure-sdk` [GH-29863]
-
+* `azurerm_purview_account` - add support for the `managed_event_hub_enabled` and `aws_external_id` properties [GH-29732]
 
 BUG FIXES:
 * `provider` - allow missing `subscription_id` when `use_cli` is `true` [GH-29985]
