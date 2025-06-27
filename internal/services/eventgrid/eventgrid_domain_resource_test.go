@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -64,6 +64,8 @@ func TestAccEventGridDomain_update(t *testing.T) {
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("auto_create_topic_with_first_subscription").HasValue("false"),
 				check.That(data.ResourceName).Key("auto_delete_topic_with_last_subscription").HasValue("false"),
+				check.That(data.ResourceName).Key("data_residency_boundary").HasValue("WithinRegion"),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
 			),
 		},
 		data.ImportStep(),
@@ -242,6 +244,9 @@ resource "azurerm_eventgrid_domain" "test" {
   local_auth_enabled                        = false
   auto_create_topic_with_first_subscription = false
   auto_delete_topic_with_last_subscription  = false
+
+  data_residency_boundary = "WithinRegion"
+  minimum_tls_version     = "1.2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -465,6 +470,9 @@ resource "azurerm_eventgrid_domain" "test" {
   tags = {
     "foo" = "bar"
   }
+
+  data_residency_boundary = "WithinGeopair"
+  minimum_tls_version     = "1.2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
