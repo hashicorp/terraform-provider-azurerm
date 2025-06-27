@@ -343,6 +343,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolic
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices
+github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/senderusernames
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2021-07-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups
 github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservations
