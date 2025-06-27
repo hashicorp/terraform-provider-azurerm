@@ -9,6 +9,8 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 func TestAccAzureRMDataSourceLoadBalancerOutboundRule_basic(t *testing.T) {
@@ -40,7 +42,12 @@ func TestAccAzureRMDataSourceLoadBalancerOutboundRule_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("protocol").Exists(),
 				check.That(data.ResourceName).Key("backend_address_pool_id").Exists(),
 				check.That(data.ResourceName).Key("idle_timeout_in_minutes").Exists(),
-				check.That(data.ResourceName).Key("tcp_reset_enabled").Exists(),
+				func() pluginsdk.TestCheckFunc {
+					if !features.FivePointOh() {
+						return check.That(data.ResourceName).Key("enable_tcp_reset").Exists()
+					}
+					return check.That(data.ResourceName).Key("tcp_reset_enabled").Exists()
+				}(),
 			),
 		},
 	})
