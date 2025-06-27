@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `job_id` - (Required) The ID of the Elastic Job. Changing this forces a new Elastic Job Step to be created.
 
-* `job_credential_id` - (Required) The ID of the Elastic Job Credential to use when executing this Elastic Job Step.
+* `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when executing this Elastic Job Step. Omit this argument to run the step under the Job Agent's managed identity (system- or user-assigned).
 
 * `job_step_index` - (Required) The index at which to insert this Elastic Job Step into the Elastic Job.
 
