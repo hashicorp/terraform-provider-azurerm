@@ -30,22 +30,23 @@ type AutonomousDatabaseRegularResourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Required
-	AdminPassword                string  `tfschema:"admin_password"`
-	BackupRetentionPeriodInDays  int64   `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                 string  `tfschema:"character_set"`
-	ComputeCount                 float64 `tfschema:"compute_count"`
-	ComputeModel                 string  `tfschema:"compute_model"`
-	DataStorageSizeInTbs         int64   `tfschema:"data_storage_size_in_tbs"`
-	DbVersion                    string  `tfschema:"db_version"`
-	DbWorkload                   string  `tfschema:"db_workload"`
-	DisplayName                  string  `tfschema:"display_name"`
-	LicenseModel                 string  `tfschema:"license_model"`
-	AutoScalingEnabled           bool    `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled bool    `tfschema:"auto_scaling_for_storage_enabled"`
-	MtlsConnectionRequired       bool    `tfschema:"mtls_connection_required"`
-	NationalCharacterSet         string  `tfschema:"national_character_set"`
-	SubnetId                     string  `tfschema:"subnet_id"`
-	VnetId                       string  `tfschema:"virtual_network_id"`
+	AdminPassword                string   `tfschema:"admin_password"`
+	BackupRetentionPeriodInDays  int64    `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                 string   `tfschema:"character_set"`
+	ComputeCount                 float64  `tfschema:"compute_count"`
+	ComputeModel                 string   `tfschema:"compute_model"`
+	DataStorageSizeInTbs         int64    `tfschema:"data_storage_size_in_tbs"`
+	DbVersion                    string   `tfschema:"db_version"`
+	DbWorkload                   string   `tfschema:"db_workload"`
+	DisplayName                  string   `tfschema:"display_name"`
+	LicenseModel                 string   `tfschema:"license_model"`
+	AutoScalingEnabled           bool     `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled bool     `tfschema:"auto_scaling_for_storage_enabled"`
+	MtlsConnectionRequired       bool     `tfschema:"mtls_connection_required"`
+	NationalCharacterSet         string   `tfschema:"national_character_set"`
+	SubnetId                     string   `tfschema:"subnet_id"`
+	VnetId                       string   `tfschema:"virtual_network_id"`
+	AllowedIps                   []string `tfschema:"allowed_ips"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -140,12 +141,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Required: true,
 		},
 
-		"mtls_connection_required": {
-			Type:     pluginsdk.TypeBool,
-			Required: true,
-			ForceNew: true,
-		},
-
 		"license_model": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -163,20 +158,6 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"subnet_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		},
-
-		"virtual_network_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
-
 		// Optional
 		"customer_contacts": {
 			Type:     pluginsdk.TypeList,
@@ -186,6 +167,35 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validate.CustomerContactEmail,
+			},
+		},
+
+		"mtls_connection_required": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"subnet_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
+		"virtual_network_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: commonids.ValidateVirtualNetworkID,
+		},
+
+		"allowed_ips": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
 			},
 		},
 
@@ -228,37 +238,53 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
+			properties := &autonomousdatabases.AutonomousDatabaseProperties{
+				AdminPassword:                  pointer.To(model.AdminPassword),
+				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
+				CharacterSet:                   pointer.To(model.CharacterSet),
+				ComputeCount:                   pointer.To(model.ComputeCount),
+				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				DataBaseType:                   "Regular",
+				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
+				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+				DbVersion:                      pointer.To(model.DbVersion),
+				DisplayName:                    pointer.To(model.DisplayName),
+				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
+				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
+				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
+				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
+				WhitelistedIPs:                 pointer.To(model.AllowedIps),
+			}
+
+			if len(model.AllowedIps) > 0 {
+				if err := validate.ValidateAllowedIPsList(model.AllowedIps); err != nil {
+					return err
+				}
+			}
+
+			if len(model.CustomerContacts) > 0 {
+				properties.CustomerContacts = pointer.To(expandAdbsCustomerContacts(model.CustomerContacts))
+			}
+
+			if model.SubnetId != "" {
+				properties.SubnetId = pointer.To(model.SubnetId)
+			}
+
+			if model.VnetId != "" {
+				properties.VnetId = pointer.To(model.VnetId)
+			}
 
 			param := autonomousdatabases.AutonomousDatabase{
-				Name:     pointer.To(model.Name),
-				Location: location.Normalize(model.Location),
-				Tags:     pointer.To(model.Tags),
-				Properties: &autonomousdatabases.AutonomousDatabaseProperties{
-					AdminPassword:                  pointer.To(model.AdminPassword),
-					BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
-					CharacterSet:                   pointer.To(model.CharacterSet),
-					ComputeCount:                   pointer.To(model.ComputeCount),
-					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-					CustomerContacts:               pointer.To(expandAdbsCustomerContacts(model.CustomerContacts)),
-					DataBaseType:                   "Regular",
-					DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
-					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
-					DbVersion:                      pointer.To(model.DbVersion),
-					DisplayName:                    pointer.To(model.DisplayName),
-					IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
-					IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
-					IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-					LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-					NcharacterSet:                  pointer.To(model.NationalCharacterSet),
-					SubnetId:                       pointer.To(model.SubnetId),
-					VnetId:                         pointer.To(model.VnetId),
-				},
+				Name:       pointer.To(model.Name),
+				Location:   location.Normalize(model.Location),
+				Tags:       pointer.To(model.Tags),
+				Properties: properties,
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
-
 			metadata.SetID(id)
 			return nil
 		},
@@ -360,6 +386,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
 				state.VnetId = pointer.From(props.VnetId)
+				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 			}
 			return metadata.Encode(&state)
 		},
