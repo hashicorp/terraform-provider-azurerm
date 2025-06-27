@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `allow_resource_only_permissions` - (Optional) Specifies if the log Analytics Workspace allows users accessing to data associated with the resources they have permission to view, without permission to workspace. Defaults to `true`.
 
-* `local_authentication_enabled` - (Optional) Specifies if the log Analytics workspace should allow authentication methods in addition to Microsoft Entra (Azure AD). Defaults to `true`.
+* `local_authentication_enabled` - (Optional) Specifies if the log Analytics workspace should allow local authentication methods in addition to Microsoft Entra (Azure AD). Defaults to `true`.
 
 * `sku` - (Optional) Specifies the SKU of the Log Analytics Workspace. Possible values are `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, `CapacityReservation`, `PerGB2018`, and `LACluster`. Defaults to `PerGB2018`.
 
