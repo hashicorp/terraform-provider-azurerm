@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -56,10 +56,12 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"public_network_enabled": {
+			"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
+
+			"managed_event_hub_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Optional: true,
 				Default:  true,
+				Optional: true,
 			},
 
 			"managed_resource_group_name": {
@@ -70,7 +72,11 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				ValidateFunc: resourcegroups.ValidateName,
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
+			"public_network_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"managed_resources": {
 				Type:     pluginsdk.TypeList,
@@ -120,6 +126,11 @@ func resourcePurviewAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
+			"aws_external_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -164,6 +175,12 @@ func resourcePurviewAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("managed_resource_group_name"); ok {
 		purviewAccount.Properties.ManagedResourceGroupName = pointer.To(v.(string))
+	}
+
+	if d.Get("managed_event_hub_enabled").(bool) {
+		purviewAccount.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateEnabled)
+	} else {
+		purviewAccount.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateDisabled)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, purviewAccount); err != nil {
@@ -215,12 +232,18 @@ func resourcePurviewAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			d.Set("public_network_enabled", pointer.From(props.PublicNetworkAccess) == account.PublicNetworkAccessEnabled)
 
+			d.Set("managed_event_hub_enabled", pointer.From(props.ManagedEventHubState) == account.ManagedEventHubStateEnabled)
+
 			d.Set("managed_resource_group_name", pointer.From(props.ManagedResourceGroupName))
 
 			if endpoints := props.Endpoints; endpoints != nil {
 				d.Set("catalog_endpoint", endpoints.Catalog)
 				d.Set("guardian_endpoint", endpoints.Guardian)
 				d.Set("scan_endpoint", endpoints.Scan)
+			}
+
+			if props.CloudConnectors != nil {
+				d.Set("aws_external_id", pointer.From(props.CloudConnectors.AwsExternalId))
 			}
 		}
 
@@ -266,6 +289,14 @@ func resourcePurviewAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			parameters.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessEnabled)
 		} else {
 			parameters.Properties.PublicNetworkAccess = pointer.To(account.PublicNetworkAccessDisabled)
+		}
+	}
+
+	if d.HasChange("managed_event_hub_enabled") {
+		if d.Get("managed_event_hub_enabled").(bool) {
+			parameters.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateEnabled)
+		} else {
+			parameters.Properties.ManagedEventHubState = pointer.To(account.ManagedEventHubStateDisabled)
 		}
 	}
 
