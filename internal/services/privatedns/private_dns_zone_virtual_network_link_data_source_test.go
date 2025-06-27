@@ -9,11 +9,52 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type PrivateDnsZoneVirtualNetworkLinkDataSource struct{}
 
 func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test as it has deprecated fields")
+	}
+	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone_virtual_network_link", "test")
+	r := PrivateDnsZoneVirtualNetworkLinkDataSource{}
+
+	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
+	zoneID := "azurerm_private_dns_zone.id"
+	vnetName := "azurerm_virtual_network.test"
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").MatchesOtherKey(check.That(resourceName).Key("id")),
+				check.That(data.ResourceName).Key("name").MatchesOtherKey(check.That(resourceName).Key("name")),
+				check.That(data.ResourceName).Key("virtual_network_id").MatchesOtherKey(check.That(vnetName).Key("id")),
+				check.That(data.ResourceName).Key("private_dns_zone_id").MatchesOtherKey(check.That(zoneID).Key("name")),
+				check.That(data.ResourceName).Key("registration_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+	})
+}
+
+func (PrivateDnsZoneVirtualNetworkLinkDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                = azurerm_private_dns_zone_virtual_network_link.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.name
+}
+`, PrivateDnsZoneVirtualNetworkLinkResource{}.basic(data))
+}
+
+func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_resource_group_name(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test as it has deprecated fields")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_private_dns_zone_virtual_network_link", "test")
 	r := PrivateDnsZoneVirtualNetworkLinkDataSource{}
 
@@ -23,7 +64,7 @@ func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.resource_group_name(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("id").MatchesOtherKey(check.That(resourceName).Key("id")),
 				check.That(data.ResourceName).Key("name").MatchesOtherKey(check.That(resourceName).Key("name")),
@@ -37,7 +78,7 @@ func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	})
 }
 
-func (PrivateDnsZoneVirtualNetworkLinkDataSource) basic(data acceptance.TestData) string {
+func (PrivateDnsZoneVirtualNetworkLinkDataSource) resource_group_name(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
