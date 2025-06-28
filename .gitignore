@@ -30,7 +30,8 @@ website/node_modules
 
 website/vendor
 
-.vscode/
+.vscode/*
+!.vscode/settings.json
 
 # mkdocs output
 site/
@@ -58,5 +59,7 @@ tf.zip
 .local
 
 # do not upload GitHub Copilot specific folders and copilot instructions file
-.github/prompts
-.github/copilot-instructions.md
+.github/prompts/*
+!.github/prompts/*.prompt.md
+!.github/instructions/
+!.github/prompts/
