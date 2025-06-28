@@ -86,6 +86,12 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"cross_subscription_restore": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(backupvaults.PossibleValuesForCrossSubscriptionRestoreState(), false),
+			},
+
 			"retention_duration_in_days": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
@@ -117,6 +123,11 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
 			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && new.(bool) != old.(bool)
+			}),
+
+			// Once `cross_subscription_restore` is specified as `PermanentlyDisabled` it cannot be enabled.
+			pluginsdk.ForceNewIfChange("cross_subscription_restore", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(string) == string(backupvaults.CrossSubscriptionRestoreStatePermanentlyDisabled) && new.(string) != old.(string)
 			}),
 
 			// Once `immutability` is enabled it cannot be disabled.
@@ -202,6 +213,15 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
+	if v, ok := d.GetOk("cross_subscription_restore"); ok {
+		if parameters.Properties.FeatureSettings == nil {
+			parameters.Properties.FeatureSettings = &backupvaults.FeatureSettings{}
+		}
+		parameters.Properties.FeatureSettings.CrossSubscriptionRestoreSettings = &backupvaults.CrossSubscriptionRestoreSettings{
+			State: pointer.To(backupvaults.CrossSubscriptionRestoreState(v.(string))),
+		}
+	}
+
 	if v, ok := d.GetOk("retention_duration_in_days"); ok {
 		parameters.Properties.SecuritySettings.SoftDeleteSettings.RetentionDurationInDays = pointer.To(v.(float64))
 	}
@@ -262,6 +282,10 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 
 		crossRegionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
+			if crossSubsRestore := featureSetting.CrossSubscriptionRestoreSettings; crossSubsRestore != nil {
+				d.Set("cross_subscription_restore", pointer.From(crossSubsRestore.State))
+			}
+
 			if crossRegionRestore := featureSetting.CrossRegionRestoreSettings; crossRegionRestore != nil {
 				if pointer.From(crossRegionRestore.State) == backupvaults.CrossRegionRestoreStateEnabled {
 					crossRegionStoreEnabled = true
