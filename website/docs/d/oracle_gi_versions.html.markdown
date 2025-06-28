@@ -30,6 +30,10 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the GI Versions in.
 
+* `shape` - (Optional) The model name of the Cloud Exadata Infrastructure resource. Possible values are 'ExaDbXS', 'Exadata.X9M', and 'Exadata.X11M'.
+
+* `zone` - (Optional) The Cloud Exadata Infrastructure Azure zones.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -46,4 +50,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Oracle.Database`: 2024-06-01
+* `Oracle.Database`: 2025-03-01
