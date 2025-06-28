@@ -25,18 +25,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
+func resourceApplicationInsightsClassicWebTests() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsWebTestsCreateUpdate,
-		Read:   resourceApplicationInsightsWebTestsRead,
-		Update: resourceApplicationInsightsWebTestsCreateUpdate,
-		Delete: resourceApplicationInsightsWebTestsDelete,
+		Create: resourceApplicationInsightsClassicWebTestsCreateUpdate,
+		Read:   resourceApplicationInsightsClassicWebTestsRead,
+		Update: resourceApplicationInsightsClassicWebTestsCreateUpdate,
+		Delete: resourceApplicationInsightsClassicWebTestsDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := webtests.ParseWebTestID(id)
 			return err
 		}),
-
-		DeprecationMessage: "The `azurerm_application_insights_web_test` resource is deprecated and will be removed in favour of the `azurerm_application_insights_classic_web_test` resource in version 5.0 of the AzureRM Provider.",
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -139,7 +137,7 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsClassicWebTestsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,7 +160,7 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+			return tf.ImportAsExistsError("azurerm_application_insights_classic_web_test", id.ID())
 		}
 	}
 
@@ -173,7 +171,7 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 	isEnabled := d.Get("enabled").(bool)
 	retryEnabled := d.Get("retry_enabled").(bool)
 	geoLocationsRaw := d.Get("geo_locations").([]interface{})
-	geoLocations := expandApplicationInsightsWebTestGeoLocations(geoLocationsRaw)
+	geoLocations := expandApplicationInsightsClassicWebTestGeoLocations(geoLocationsRaw)
 	testConf := d.Get("configuration").(string)
 
 	t := d.Get("tags").(map[string]interface{})
@@ -208,10 +206,10 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 
 	d.SetId(id.ID())
 
-	return resourceApplicationInsightsWebTestsRead(d, meta)
+	return resourceApplicationInsightsClassicWebTestsRead(d, meta)
 }
 
-func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsClassicWebTestsRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -265,7 +263,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 				d.Set("configuration", config.WebTest)
 			}
 
-			if err := d.Set("geo_locations", flattenApplicationInsightsWebTestGeoLocations(props.Locations)); err != nil {
+			if err := d.Set("geo_locations", flattenApplicationInsightsClassicWebTestGeoLocations(props.Locations)); err != nil {
 				return fmt.Errorf("setting `geo_locations`: %+v", err)
 			}
 		}
@@ -281,7 +279,7 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsClassicWebTestsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -302,7 +300,7 @@ func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta i
 	return err
 }
 
-func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtests.WebTestGeolocation {
+func expandApplicationInsightsClassicWebTestGeoLocations(input []interface{}) []webtests.WebTestGeolocation {
 	locations := make([]webtests.WebTestGeolocation, 0)
 
 	for _, v := range input {
@@ -316,7 +314,7 @@ func expandApplicationInsightsWebTestGeoLocations(input []interface{}) []webtest
 	return locations
 }
 
-func flattenApplicationInsightsWebTestGeoLocations(input []webtests.WebTestGeolocation) []string {
+func flattenApplicationInsightsClassicWebTestGeoLocations(input []webtests.WebTestGeolocation) []string {
 	results := make([]string, 0)
 	if len(input) == 0 {
 		return results
