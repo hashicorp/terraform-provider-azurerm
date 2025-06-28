@@ -227,6 +227,10 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
 		},
 		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "none"),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -498,7 +502,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.29"
+  kubernetes_version  = "1.31"
 
   default_node_pool {
     name       = "default"
