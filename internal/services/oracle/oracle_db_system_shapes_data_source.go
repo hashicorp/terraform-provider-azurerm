@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbsystemshapes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbsystemshapes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -20,6 +20,7 @@ type DbSystemShapesDataSource struct{}
 type DbSystemShapesModel struct {
 	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
 	Location       string               `tfschema:"location"`
+	Zone           string               `tfschema:"zone"`
 }
 
 type DbSystemShapeModel struct {
@@ -48,6 +49,11 @@ type DbSystemShapeModel struct {
 func (d DbSystemShapesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
+		"zone": {
+			Type:        pluginsdk.TypeString,
+			Optional:    true,
+			Description: "Filter the versions by zone",
+		},
 	}
 }
 
@@ -172,7 +178,12 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 
 			id := dbsystemshapes.NewLocationID(subscriptionId, state.Location)
 
-			resp, err := client.ListByLocation(ctx, id)
+			options := dbsystemshapes.ListByLocationOperationOptions{}
+			if state.Zone != "" {
+				options.Zone = &state.Zone
+			}
+
+			resp, err := client.ListByLocation(ctx, id, options)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
