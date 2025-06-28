@@ -449,6 +449,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								),
 							},
 						},
+
+						"default_nginx_controller": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  managedclusters.NginxIngressControllerTypeAnnotationControlled,
+							ValidateFunc: validation.StringInSlice(
+								[]string{
+									string(managedclusters.NginxIngressControllerTypeAnnotationControlled),
+									string(managedclusters.NginxIngressControllerTypeInternal),
+									string(managedclusters.NginxIngressControllerTypeExternal),
+									string(managedclusters.NginxIngressControllerTypeNone),
+								}, false),
+						},
+
 						"web_app_routing_identity": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -4470,6 +4484,11 @@ func expandKubernetesClusterIngressProfile(d *pluginsdk.ResourceData, input []in
 				out.WebAppRouting.DnsZoneResourceIds = utils.ExpandStringSlice(dnsZoneResourceIds)
 			}
 		}
+		if v := config["default_nginx_controller"]; v != nil {
+			out.WebAppRouting.Nginx = &managedclusters.ManagedClusterIngressProfileNginx{
+				DefaultIngressControllerType: pointer.To(managedclusters.NginxIngressControllerType(v.(string))),
+			}
+		}
 	}
 	return &out
 }
@@ -4489,6 +4508,10 @@ func flattenKubernetesClusterIngressProfile(input *managedclusters.ManagedCluste
 	}
 
 	out["web_app_routing_identity"] = webAppRoutingIdentity
+
+	if input.WebAppRouting.Nginx != nil {
+		out["default_nginx_controller"] = pointer.From(input.WebAppRouting.Nginx.DefaultIngressControllerType)
+	}
 
 	return []interface{}{out}
 }
