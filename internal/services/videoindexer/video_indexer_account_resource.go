@@ -27,12 +27,13 @@ type AccountResource struct{}
 var _ sdk.ResourceWithUpdate = AccountResource{}
 
 type AccountModel struct {
-	Name          string                                     `tfschema:"name"`
-	ResourceGroup string                                     `tfschema:"resource_group_name"`
-	Location      string                                     `tfschema:"location"`
-	Storage       []StorageModel                             `tfschema:"storage"`
-	Identity      []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Tags          map[string]string                          `tfschema:"tags"`
+	Name                       string                                     `tfschema:"name"`
+	ResourceGroup              string                                     `tfschema:"resource_group_name"`
+	Location                   string                                     `tfschema:"location"`
+	Storage                    []StorageModel                             `tfschema:"storage"`
+	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	PublicNetworkAccessEnabled bool                                       `tfschema:"public_network_access_enabled"`
+	Tags                       map[string]string                          `tfschema:"tags"`
 }
 
 type StorageModel struct {
@@ -75,6 +76,12 @@ func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityRequired(),
+
+		"public_network_access_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -123,12 +130,18 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
+			publicNetworkAccess := accounts.PublicNetworkAccessEnabled
+			if !account.PublicNetworkAccessEnabled {
+				publicNetworkAccess = accounts.PublicNetworkAccessDisabled
+			}
+
 			payload := accounts.Account{
 				Identity: expandedIdentity,
 				Location: location.Normalize(account.Location),
 				Tags:     pointer.To(account.Tags),
 				Properties: &accounts.AccountPropertiesForPutRequest{
-					StorageServices: expandStorageForCreate(account.Storage),
+					PublicNetworkAccess: &publicNetworkAccess,
+					StorageServices:     expandStorageForCreate(account.Storage),
 				},
 			}
 
@@ -181,6 +194,12 @@ func (r AccountResource) Read() sdk.ResourceFunc {
 					if err != nil {
 						return fmt.Errorf("flattening `storage`: %+v", err)
 					}
+
+					publicNetworkAccessEnabled := true
+					if pointer.From(props.PublicNetworkAccess) == accounts.PublicNetworkAccessDisabled {
+						publicNetworkAccessEnabled = false
+					}
+					state.PublicNetworkAccessEnabled = publicNetworkAccessEnabled
 				}
 			}
 
@@ -223,6 +242,17 @@ func (r AccountResource) Update() sdk.ResourceFunc {
 				payload.Properties = &accounts.AccountPropertiesForPatchRequest{
 					StorageServices: expandStorageForUpdate(account.Storage),
 				}
+			}
+
+			if metadata.ResourceData.HasChange("public_network_access_enabled") {
+				if payload.Properties == nil {
+					payload.Properties = &accounts.AccountPropertiesForPatchRequest{}
+				}
+				publicNetworkAccess := accounts.PublicNetworkAccessEnabled
+				if !account.PublicNetworkAccessEnabled {
+					publicNetworkAccess = accounts.PublicNetworkAccessDisabled
+				}
+				payload.Properties.PublicNetworkAccess = &publicNetworkAccess
 			}
 
 			if _, err := client.Update(ctx, *id, payload); err != nil {
