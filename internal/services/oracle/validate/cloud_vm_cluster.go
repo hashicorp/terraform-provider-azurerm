@@ -9,7 +9,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudvmclusters"
 )
 
 func CloudVMClusterName(i interface{}, k string) (warnings []string, errors []error) {
@@ -111,6 +111,36 @@ func SystemVersion(i interface{}, k string) (warnings []string, errors []error) 
 	re := regexp.MustCompile(pattern)
 	if !re.MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s must match one of the following patterns: %v", k, pattern))
+	}
+
+	return
+}
+
+func DatabaseServerType(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if len(v) < 1 || len(v) > 255 {
+		errors = append(errors, fmt.Errorf("%s must be %d to %d characters", k, 1, 255))
+		return
+	}
+
+	return
+}
+
+func StorageServerType(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if len(v) < 1 || len(v) > 255 {
+		errors = append(errors, fmt.Errorf("%s must be %d to %d characters", k, 1, 255))
+		return
 	}
 
 	return

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -253,7 +253,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[1]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
-  zones               = ["3"]
+  zones               = ["2"]
 }
 
 data "azurerm_oracle_db_servers" "test" {

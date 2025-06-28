@@ -45,6 +45,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compartment_id` - The OCID of the compartment.
 
+* `compute_model` - The compute model of the Exadata Infrastructure.
+
 * `compute_nodes` - A `compute_nodes` block as defined below.
 
 * `cpu_core_count` - The number of CPU cores enabled on the Cloud VM Cluster.
@@ -180,4 +182,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Oracle.Database`: 2024-06-01
+* `Oracle.Database`: 2025-03-01
