@@ -6,7 +6,6 @@ package applicationinsights_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -17,14 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AppInsightsWebTestsResource struct{}
+type AppInsightsClassicWebTestsResource struct{}
 
-func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip()
-	}
-	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	r := AppInsightsWebTestsResource{}
+func TestAccApplicationInsightsClassicWebTests_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_classic_web_test", "test")
+	r := AppInsightsClassicWebTestsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,12 +33,9 @@ func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
 	})
 }
 
-func TestAccApplicationInsightsWebTests_complete(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip()
-	}
-	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	r := AppInsightsWebTestsResource{}
+func TestAccApplicationInsightsClassicWebTests_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_classic_web_test", "test")
+	r := AppInsightsClassicWebTestsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,12 +48,9 @@ func TestAccApplicationInsightsWebTests_complete(t *testing.T) {
 	})
 }
 
-func TestAccApplicationInsightsWebTests_update(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip()
-	}
-	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	r := AppInsightsWebTestsResource{}
+func TestAccApplicationInsightsClassicWebTests_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_classic_web_test", "test")
+	r := AppInsightsClassicWebTestsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -93,12 +83,9 @@ func TestAccApplicationInsightsWebTests_update(t *testing.T) {
 	})
 }
 
-func TestAccApplicationInsightsWebTests_requiresImport(t *testing.T) {
-	if !features.FivePointOh() {
-		t.Skip()
-	}
-	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
-	r := AppInsightsWebTestsResource{}
+func TestAccApplicationInsightsClassicWebTests_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_classic_web_test", "test")
+	r := AppInsightsClassicWebTestsResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -111,7 +98,7 @@ func TestAccApplicationInsightsWebTests_requiresImport(t *testing.T) {
 	})
 }
 
-func (t AppInsightsWebTestsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t AppInsightsClassicWebTestsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := webtests.ParseWebTestID(state.ID)
 	if err != nil {
 		return nil, err
@@ -125,7 +112,7 @@ func (t AppInsightsWebTestsResource) Exists(ctx context.Context, clients *client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AppInsightsWebTestsResource) basic(data acceptance.TestData) string {
+func (AppInsightsClassicWebTestsResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -143,7 +130,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_web_test" "test" {
+resource "azurerm_application_insights_classic_web_test" "test" {
   name                    = "acctestappinsightswebtests-%d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
@@ -166,7 +153,7 @@ XML
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (AppInsightsWebTestsResource) complete(data acceptance.TestData) string {
+func (AppInsightsClassicWebTestsResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -184,7 +171,7 @@ resource "azurerm_application_insights" "test" {
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_web_test" "test" {
+resource "azurerm_application_insights_classic_web_test" "test" {
   name                    = "acctestappinsightswebtests-%d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
@@ -215,19 +202,19 @@ XML
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (AppInsightsWebTestsResource) requiresImport(data acceptance.TestData) string {
-	template := AppInsightsWebTestsResource{}.basic(data)
+func (AppInsightsClassicWebTestsResource) requiresImport(data acceptance.TestData) string {
+	template := AppInsightsClassicWebTestsResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_application_insights_web_test" "import" {
-  name                    = azurerm_application_insights_web_test.test.name
-  location                = azurerm_application_insights_web_test.test.location
-  resource_group_name     = azurerm_application_insights_web_test.test.resource_group_name
-  application_insights_id = azurerm_application_insights_web_test.test.application_insights_id
-  kind                    = azurerm_application_insights_web_test.test.kind
-  configuration           = azurerm_application_insights_web_test.test.configuration
-  geo_locations           = azurerm_application_insights_web_test.test.geo_locations
+resource "azurerm_application_insights_classic_web_test" "import" {
+  name                    = azurerm_application_insights_classic_web_test.test.name
+  location                = azurerm_application_insights_classic_web_test.test.location
+  resource_group_name     = azurerm_application_insights_classic_web_test.test.resource_group_name
+  application_insights_id = azurerm_application_insights_classic_web_test.test.application_insights_id
+  kind                    = azurerm_application_insights_classic_web_test.test.kind
+  configuration           = azurerm_application_insights_classic_web_test.test.configuration
+  geo_locations           = azurerm_application_insights_classic_web_test.test.geo_locations
 }
 `, template)
 }
