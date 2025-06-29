@@ -101,6 +101,55 @@ The `target_region` block supports the following:
 
 * `storage_account_type` - (Optional) The storage account type for the image version. Possible values are `Standard_LRS`, `Premium_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
 
+---
+
+The `uefi_settings` block supports the following:
+
+* `signature_template_names` - (Required) A list of UEFI signature template names to include in the UEFI settings. Possible values are `MicrosoftUefiCertificateAuthorityTemplate`, `MicrosoftWindowsTemplate` and `NoSignatureTemplate`
+
+* `additional_signatures` - (Optional) An `additional_signatures` block as defined below.
+
+
+The `additional_signatures` block supports the following:
+
+* `db` - (Optional) One or more `db` blocks as defined below.
+
+* `dbx` - (Optional) One or more `dbx` blocks as defined below.
+
+* `kek` - (Optional) One or more `kek` blocks as defined below.
+
+* `pk` - (Optional) A `pk` block as defined below.
+
+
+A `db` block supports the following:
+
+* `certificate_base64` - (Required) A list of Base64-encoded certificates.
+
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`.
+
+
+A `dbx` block supports the following:
+
+* `certificate_base64` - (Required) A list of Base64-encoded certificates.
+
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`.
+
+
+A `kek` block supports the following:
+
+* `certificate_base64` - (Required) A list of Base64-encoded certificates.
+
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`.
+
+
+The `pk` block supports the following:
+
+* `certificate_base64` - (Required) A list of Base64-encoded certificates.
+
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`.
+
+
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
