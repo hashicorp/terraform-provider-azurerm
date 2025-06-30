@@ -6,8 +6,6 @@ FEATURES:
 
 ENHANCEMENTS:
 * **Data Source**: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
-
-
 * `azurerm_cdn_endpoint` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
 * `azurerm_cdn_endpoint_custom_domain` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
 * `azurerm_cdn_profile` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
