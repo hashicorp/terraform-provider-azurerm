@@ -11,9 +11,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -525,6 +527,14 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing threat intelligence indicator id %s: %+v", *info.ID, err)
 			}
 
+			// The creation request shall be a LRO, otherwise the GET request after creation may be returned with HTTP 404.
+			// Tracked by https://github.com/Azure/azure-rest-api-specs/issues/35551
+			pollerType := custompollers.NewThreatIntelligenceIndicatorPoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -655,6 +665,13 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
+			// For update operation, the request will not be effective in response immediately, we use the poller here to leave the API some time to be consistent.
+			pollerType := custompollers.NewThreatIntelligenceIndicatorPoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -671,7 +688,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+			workspaceID := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
@@ -689,7 +706,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			state := IndicatorModel{
 				Name:        pointer.From(model.Name),
 				CreatedOn:   pointer.From(model.Created),
-				WorkspaceId: workspaceId.ID(),
+				WorkspaceId: workspaceID.ID(),
 				PatternType: pointer.From(model.PatternType),
 				Revoked:     pointer.From(model.Revoked),
 			}
