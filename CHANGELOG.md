@@ -8,12 +8,15 @@ ENHANCEMENTS:
 * **Data Source**: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
 
 
+* `azurerm_cdn_endpoint` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
+* `azurerm_cdn_endpoint_custom_domain` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
+* `azurerm_cdn_profile` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
 * `azurerm_container_app_job` - add support for the `volume_mounts.sub_path` property [GH-29883]
 * `azurerm_container_app` - add support for the `cors` property [GH-29785]
 * `azurerm_data_protection_backup_policy_disk` - the `absolute_criteria` property now supports the `AllBackup`, `FirstOfMonth` and `FirstOfYear` values [GH-29917]
 * `azurerm_frontdoor` - block new resource creation while allowing existing resources to be updated [GH-29257]
-* `azurerm_frontdoor_firewall_policy` - block new resource creation while allowing existing resources to be updated [GH-29257]
 * `azurerm_frontdoor_custom_https_configuration` - block new resource creation while allowing existing resources to be updated [GH-29257]
+* `azurerm_frontdoor_firewall_policy` - block new resource creation while allowing existing resources to be updated [GH-29257]
 * `azurerm_frontdoor_rules_engine` - block new resource creation while allowing existing resources to be updated [GH-29257]
 * `azurerm_function_app_flex_consumption` - add support for the `vnet_route_all_enabled` property [GH-29839]
 * `azurerm_machine_learning_compute_cluster` - the `scale_settings` block and its sub-properties are no longer `ForceNew` [GH-29878]
