@@ -36,8 +36,6 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 			return err
 		}),
 
-		DeprecationMessage: "The `azurerm_application_insights_web_test` resource is deprecated and will be removed in favour of the `azurerm_application_insights_classic_web_test` resource in version 5.0 of the AzureRM Provider.",
-
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.WebTestUpgradeV0ToV1{},

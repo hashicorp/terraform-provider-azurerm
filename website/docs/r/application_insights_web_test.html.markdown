@@ -1,14 +1,16 @@
 ---
 subcategory: "Application Insights"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_application_insights_classic_web_test"
+page_title: "Azure Resource Manager: azurerm_application_insights_web_test"
 description: |-
   Manages an Application Insights WebTest.
 ---
 
-# azurerm_application_insights_classic_web_test
+# azurerm_application_insights_web_test
 
-Manages an Application Insights Classic WebTest.
+Manages an Application Insights WebTest.
+
+~> **Note:** Despite the discrepancy in its name, this Terraform resource corresponds to the Azure resource 'Application Insights Classic Web Test'. Azure changed the name, but we retained the original name in Terraform to avoid disruption and ensure backward compatibility.
 
 ## Example Usage
 
@@ -25,7 +27,7 @@ resource "azurerm_application_insights" "example" {
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_classic_web_test" "example" {
+resource "azurerm_application_insights_web_test" "example" {
   name                    = "tf-test-appinsights-webtest"
   location                = azurerm_application_insights.example.location
   resource_group_name     = azurerm_resource_group.example.name
@@ -47,11 +49,11 @@ XML
 }
 
 output "webtest_id" {
-  value = azurerm_application_insights_classic_web_test.example.id
+  value = azurerm_application_insights_web_test.example.id
 }
 
 output "webtests_synthetic_id" {
-  value = azurerm_application_insights_classic_web_test.example.synthetic_monitor_id
+  value = azurerm_application_insights_web_test.example.synthetic_monitor_id
 }
 ```
 
@@ -101,7 +103,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Application Insights Web Tests can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_insights_classic_web_test.my_test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/webTests/my_test
+terraform import azurerm_application_insights_web_test.my_test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/webTests/my_test
 ```
 
 ## API Providers
