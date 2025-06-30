@@ -1862,8 +1862,8 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   cool_access {
-    cool_access_tiering_policy   = "Auto"
-    cool_access_retrieval_policy = "OnRead"
+    tiering_policy   = "Auto"
+    retrieval_policy = "OnRead"
     coolness_period_in_days      = 10
   }
   tags = {
@@ -1891,8 +1891,8 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   cool_access {
-    cool_access_tiering_policy   = "SnapshotOnly"
-    cool_access_retrieval_policy = "Default"
+    tiering_policy   = "SnapshotOnly"
+    retrieval_policy = "Default"
     coolness_period_in_days      = 10
   }
   tags = {
@@ -1920,8 +1920,8 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   cool_access {
-    cool_access_tiering_policy   = "SnapshotOnly"
-    cool_access_retrieval_policy = "Never"
+    tiering_policy   = "SnapshotOnly"
+    retrieval_policy = "Never"
     coolness_period_in_days      = 30
   }
 

@@ -405,13 +405,13 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"cool_access_retrieval_policy": {
+						"retrieval_policy": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForCoolAccessRetrievalPolicy(), false),
 						},
 
-						"cool_access_tiering_policy": {
+						"tiering_policy": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForCoolAccessTieringPolicy(), false),
@@ -666,8 +666,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	if len(d.Get("cool_access").([]interface{})) > 0 {
 		coolAccess := d.Get("cool_access").([]interface{})[0].(map[string]interface{})
 		parameters.Properties.CoolAccess = pointer.To(true)
-		parameters.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["cool_access_retrieval_policy"].(string)))
-		parameters.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["cool_access_tiering_policy"].(string)))
+		parameters.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
+		parameters.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
 		parameters.Properties.CoolnessPeriod = pointer.To(int64(coolAccess["coolness_period_in_days"].(int)))
 	}
 
@@ -817,12 +817,12 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			coolAccess := d.Get("cool_access").([]interface{})[0].(map[string]interface{})
 			update.Properties.CoolAccess = pointer.To(true)
 
-			if d.HasChange("cool_access.0.cool_access_retrieval_policy") {
-				update.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["cool_access_retrieval_policy"].(string)))
+			if d.HasChange("cool_access.0.retrieval_policy") {
+				update.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
 			}
 
-			if d.HasChange("cool_access.0.cool_access_tiering_policy") {
-				update.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["cool_access_tiering_policy"].(string)))
+			if d.HasChange("cool_access.0.tiering_policy") {
+				update.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
 			}
 
 			if d.HasChange("cool_access.0.coolness_period_in_days") {
@@ -931,9 +931,9 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 			// enums returned from the API are inconsistent so normalize them here
 			// https://github.com/Azure/azure-rest-api-specs/issues/35371
 			coolAccess := map[string]interface{}{
-				"cool_access_retrieval_policy": normalizeCoolAccessRetrievalPolicy(pointer.From(props.CoolAccessRetrievalPolicy)),
-				"cool_access_tiering_policy":   normalizeCoolAccessTieringPolicy(pointer.From(props.CoolAccessTieringPolicy)),
-				"coolness_period_in_days":      pointer.From(props.CoolnessPeriod),
+				"retrieval_policy":        normalizeCoolAccessRetrievalPolicy(pointer.From(props.CoolAccessRetrievalPolicy)),
+				"tiering_policy":          normalizeCoolAccessTieringPolicy(pointer.From(props.CoolAccessTieringPolicy)),
+				"coolness_period_in_days": pointer.From(props.CoolnessPeriod),
 			}
 			d.Set("cool_access", []interface{}{coolAccess})
 		} else {

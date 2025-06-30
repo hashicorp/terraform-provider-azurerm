@@ -213,9 +213,9 @@ The following arguments are supported:
 
 A `cool_access` block supports the following:
 
-* `cool_access_retrieval_policy` - (Required) The cool access retrieval policy for the volume. Possible values are `Default`, `Never` and `OnRead`.
+* `retrieval_policy` - (Required) The cool access retrieval policy for the volume. Possible values are `Default`, `Never` and `OnRead`.
 
-* `cool_access_tiering_policy` - (Required) The cool access tiering policy for the volume. Possible values are `Auto` and `SnapshotOnly`.
+* `tiering_policy` - (Required) The cool access tiering policy for the volume. Possible values are `Auto` and `SnapshotOnly`.
 
 * `coolness_period_in_days` - (Required) The coolness period in days for the volume. Possible vales are between `2` and `183`.
 
