@@ -21,6 +21,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		DbSystemShapesDataSource{},
 		ExadataInfraDataSource{},
 		GiVersionsDataSource{},
+		AutonomousDatabaseBackupDataSource{},
 	}
 }
 
@@ -29,6 +30,8 @@ func (r Registration) Resources() []sdk.Resource {
 		AutonomousDatabaseRegularResource{},
 		CloudVmClusterResource{},
 		ExadataInfraResource{},
+		AutonomousDatabaseBackupResource{},
+		AutonomousDatabaseCloneResource{},
 	}
 }
 
