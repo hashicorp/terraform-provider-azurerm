@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/custompollers"
@@ -110,7 +111,7 @@ func (r ThreatIntelligenceIndicator) IDValidationFunc() pluginsdk.SchemaValidate
 }
 
 func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	res := map[string]*pluginsdk.Schema{
 		"workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -140,6 +141,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -312,6 +314,12 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
+
+	if !features.FivePointOh() {
+		res["display_name"].ForceNew = false
+	}
+
+	return res
 }
 
 func (r ThreatIntelligenceIndicator) Attributes() map[string]*pluginsdk.Schema {
@@ -643,10 +651,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("revoked") {
 				properties.Revoked = &model.Revoked
-			}
-
-			if metadata.ResourceData.HasChange("source") {
-				properties.Source = &model.Source
 			}
 
 			if metadata.ResourceData.HasChange("threat_types") {
