@@ -447,7 +447,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Optional:   true,
 			Computed:   true,
 			ForceNew:   true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
-			Deprecated: "`ultra_ssd_disk_iops_read_write` has been deprecated in favour of `disk_iops_read_write` and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated: "`enable_automatic_updates` has been deprecated in favour of `automatic_updates_enabled` and will be removed in v5.0 of the AzureRM Provider",
 		}
 
 		resource.Schema["automatic_updates_enabled"] = &pluginsdk.Schema{

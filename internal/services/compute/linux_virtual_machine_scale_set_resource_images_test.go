@@ -285,8 +285,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    disable_automatic_rollback   = true
+    automatic_os_upgrade_enabled = true
   }
 
   rolling_upgrade_policy {
@@ -340,8 +340,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = false
-    enable_automatic_os_upgrade = false
+    disable_automatic_rollback   = false
+    automatic_os_upgrade_enabled = false
   }
 
   rolling_upgrade_policy {
