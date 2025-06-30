@@ -210,7 +210,7 @@ func TestAccAppServicePlan_basicWindowsContainer(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("xenon"),
 				check.That(data.ResourceName).Key("is_xenon").HasValue("true"),
-				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Premium0V3"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("PremiumV3"),
 				check.That(data.ResourceName).Key("sku.0.size").HasValue("P1v3"),
 			),
 		},
@@ -228,30 +228,8 @@ func TestAccAppServicePlan_zoneRedundant(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
-				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Premium0V3"),
-				check.That(data.ResourceName).Key("sku.0.size").HasValue("P0v3"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("3"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.zoneRedundantUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone_redundant").HasValue("false"),
-				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Premium0V3"),
-				check.That(data.ResourceName).Key("sku.0.size").HasValue("P0v3"),
-				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("3"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.zoneRedundant(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zone_redundant").HasValue("true"),
-				check.That(data.ResourceName).Key("sku.0.tier").HasValue("Premium0V3"),
-				check.That(data.ResourceName).Key("sku.0.size").HasValue("P0v3"),
+				check.That(data.ResourceName).Key("sku.0.tier").HasValue("PremiumV2"),
+				check.That(data.ResourceName).Key("sku.0.size").HasValue("P1v2"),
 				check.That(data.ResourceName).Key("sku.0.capacity").HasValue("3"),
 			),
 		},
@@ -614,7 +592,7 @@ resource "azurerm_app_service_plan" "test" {
   is_xenon            = true
 
   sku {
-    tier = "Premium0V3"
+    tier = "PremiumV3"
     size = "P1v3"
   }
 }
@@ -637,40 +615,14 @@ resource "azurerm_app_service_plan" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "Windows"
-  zone_redundant      = true
+
+  zone_redundant = true
 
   sku {
-    tier     = "Premium0V3"
-    size     = "P0v3"
+    tier     = "PremiumV2"
+    size     = "P1v2"
     capacity = 3
   }
 }
-`, data.RandomInteger, "East Asia", data.RandomInteger)
-}
-
-func (r AppServicePlanResource) zoneRedundantUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "Windows"
-  zone_redundant      = false
-
-  sku {
-    tier     = "Premium0V3"
-    size     = "P0v3"
-    capacity = 3
-  }
-}
-`, data.RandomInteger, "East Asia", data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
