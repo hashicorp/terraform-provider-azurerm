@@ -31,24 +31,27 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name firewall -service-package-name firewall -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var AzureFirewallResourceName = "azurerm_firewall"
 
 func resourceFirewall() *pluginsdk.Resource {
 	resource := pluginsdk.Resource{
-		Create: resourceFirewallCreateUpdate,
-		Read:   resourceFirewallRead,
-		Update: resourceFirewallCreateUpdate,
-		Delete: resourceFirewallDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := azurefirewalls.ParseAzureFirewallID(id)
-			return err
-		}),
+		Create:   resourceFirewallCreateUpdate,
+		Read:     resourceFirewallRead,
+		Update:   resourceFirewallCreateUpdate,
+		Delete:   resourceFirewallDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&azurefirewalls.AzureFirewallId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&azurefirewalls.AzureFirewallId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -466,10 +469,12 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {

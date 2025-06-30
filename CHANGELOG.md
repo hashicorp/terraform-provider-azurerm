@@ -1,6 +1,27 @@
+## 4.34.0 (June 20, 2025)
+
+ENHANCEMENTS:
+* dependencies: `containerservice` - update API version to `2025-02-01` ([#29761](https://github.com/hashicorp/terraform-provider-azurerm/issues/29761))
+* `azurerm_network_manager_ipam_pool` - `display_name` is now optional ([#29842](https://github.com/hashicorp/terraform-provider-azurerm/issues/29842))
+
+* `dependencies`: `go-azure-sdk` - update to `v0.20250613.1153526` ([#29871](https://github.com/hashicorp/terraform-provider-azurerm/issues/29871))
+* `provider`: add support for `msi_api_version` property and `ARM_MSI_API_VERSION` env var. ([#29871](https://github.com/hashicorp/terraform-provider-azurerm/issues/29871))
+* `azurerm_kusto_cluster_customer_managed_key` - add support for `managed_hsm_key_id` ([#29416](https://github.com/hashicorp/terraform-provider-azurerm/issues/29416))
+
+FEATURES:
+* **New Data Source**: `azurerm_dev_center_environment_type` ([#29782](https://github.com/hashicorp/terraform-provider-azurerm/issues/29782))
+* **New Data Source**: `azurerm_dev_center_project_pool` ([#29778](https://github.com/hashicorp/terraform-provider-azurerm/issues/29778))
+
+BUG FIXES:
+* `azurerm_eventgrid_namespace` - validations for `maximum_session_expiry_in_hours` and `maximum_client_sessions_per_authentication_name` are now correct ([#29919](https://github.com/hashicorp/terraform-provider-azurerm/issues/29919))
+* `azurerm_api_management_api_operation` - fix validation for the `url_template` property to allow parameters prefixed with `*` ([#29895](https://github.com/hashicorp/terraform-provider-azurerm/issues/29895))
+* `azurerm_mysql_flexible_server` - reverted a change made to the validation of the `sku_name` property that caused errors for existing resources ([#29909](https://github.com/hashicorp/terraform-provider-azurerm/issues/29909))
+* `azurerm_orchestrated_virtual_machine_scale_set` - prevent a panic when an empty `os_profile` block is present in the configuration  ([#29809](https://github.com/hashicorp/terraform-provider-azurerm/issues/29809))
+
 ## 4.33.0 (June 12, 2025)
 
 FEATURES:
+
 * **New Data Source**: `azurerm_dev_center_attached_network` ([#29793](https://github.com/hashicorp/terraform-provider-azurerm/issues/29793))
 * **New Data Source**: `azurerm_dev_center_dev_box_definition` ([#29790](https://github.com/hashicorp/terraform-provider-azurerm/issues/29790))
 * **New Data Source**: `azurerm_dev_center_catalog` ([#29794](https://github.com/hashicorp/terraform-provider-azurerm/issues/29794))

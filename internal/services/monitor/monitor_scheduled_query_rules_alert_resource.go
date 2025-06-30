@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,6 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_scheduled_query_rules_alert -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "AlertingActionConfigComplete"
+
 func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
@@ -33,10 +36,11 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 		Update: resourceMonitorScheduledQueryRulesAlertCreateUpdate,
 		Delete: resourceMonitorScheduledQueryRulesAlertDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := scheduledqueryrules.ParseScheduledQueryRuleID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&scheduledqueryrules.ScheduledQueryRuleId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&scheduledqueryrules.ScheduledQueryRuleId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -367,7 +371,7 @@ func resourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, meta
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMonitorScheduledQueryRulesAlertDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -6,6 +6,7 @@ package plugintest
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -173,6 +174,40 @@ func (wd *WorkingDir) ClearState(ctx context.Context) error {
 	return nil
 }
 
+func (wd *WorkingDir) CopyState(ctx context.Context, src string) error {
+	srcState, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("failed to open statefile for read: %w", err)
+	}
+
+	defer srcState.Close()
+
+	dstState, err := os.Create(filepath.Join(wd.baseDir, "terraform.tfstate"))
+	if err != nil {
+		return fmt.Errorf("failed to open statefile for write: %w", err)
+	}
+
+	defer dstState.Close()
+
+	buf := make([]byte, 1024)
+	for {
+		n, err := srcState.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("failed to read from statefile: %w", err)
+		}
+
+		_, err = dstState.Write(buf[:n])
+		if err != nil {
+			return fmt.Errorf("failed to write to statefile: %w", err)
+		}
+	}
+
+	return nil
+}
+
 // ClearPlan deletes any saved plan present in the working directory.
 func (wd *WorkingDir) ClearPlan(ctx context.Context) error {
 	logging.HelperResourceTrace(ctx, "Clearing Terraform plan")
@@ -295,6 +330,17 @@ func (wd *WorkingDir) HasSavedPlan() bool {
 	return err == nil
 }
 
+// RemoveResource removes a resource from state.
+func (wd *WorkingDir) RemoveResource(ctx context.Context, address string) error {
+	logging.HelperResourceTrace(ctx, "Calling Terraform CLI state rm command")
+
+	err := wd.tf.StateRm(context.Background(), address)
+
+	logging.HelperResourceTrace(ctx, "Called Terraform CLI state rm command")
+
+	return err
+}
+
 // SavedPlan returns an object describing the current saved plan file, if any.
 //
 // If no plan is saved or if the plan file cannot be read, SavedPlan returns
@@ -347,6 +393,10 @@ func (wd *WorkingDir) State(ctx context.Context) (*tfjson.State, error) {
 	logging.HelperResourceTrace(ctx, "Called Terraform CLI show command for JSON state")
 
 	return state, err
+}
+
+func (wd *WorkingDir) StateFilePath() string {
+	return filepath.Join(wd.baseDir, "terraform.tfstate")
 }
 
 // Import runs terraform import

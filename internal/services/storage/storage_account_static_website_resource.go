@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -17,9 +18,14 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_static_website -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "complete"
+
 type AccountStaticWebsiteResource struct{}
 
-var _ sdk.ResourceWithUpdate = AccountStaticWebsiteResource{}
+var (
+	_ sdk.ResourceWithUpdate               = AccountStaticWebsiteResource{}
+	_ sdk.ResourceWithIdentityTypeOverride = AccountStaticWebsiteResource{}
+)
 
 type AccountStaticWebsiteResourceModel struct {
 	StorageAccountId string `tfschema:"storage_account_id"`
@@ -69,6 +75,14 @@ func (a AccountStaticWebsiteResource) ResourceType() string {
 
 func (a AccountStaticWebsiteResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateStorageAccountID
+}
+
+func (a AccountStaticWebsiteResource) Identity() resourceids.ResourceId {
+	return &commonids.StorageAccountId{}
+}
+
+func (a AccountStaticWebsiteResource) IdentityType() pluginsdk.ResourceTypeForIdentity {
+	return pluginsdk.ResourceTypeForIdentityVirtual
 }
 
 func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
@@ -181,6 +195,10 @@ func (a AccountStaticWebsiteResource) Read() sdk.ResourceFunc {
 			if website := props.StaticWebsite; website != nil {
 				state.IndexDocument = website.IndexDocument
 				state.Error404Document = website.ErrorDocument404Path
+			}
+
+			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

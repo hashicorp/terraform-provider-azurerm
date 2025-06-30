@@ -250,6 +250,18 @@ func (a MapAttribute) IsWriteOnly() bool {
 	return a.WriteOnly
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // MapDefaultValue returns the Default field value.
 func (a MapAttribute) MapDefaultValue() defaults.Map {
 	return a.Default

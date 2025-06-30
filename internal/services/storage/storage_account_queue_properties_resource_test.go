@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AccountQueuePropertiesResource struct{}
+type StorageAccountQueuePropertiesResource struct{}
 
 func TestAccStorageAccountQueueProperties_corsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_queue_properties", "test")
-	r := AccountQueuePropertiesResource{}
+	r := StorageAccountQueuePropertiesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccStorageAccountQueueProperties_corsOnly(t *testing.T) {
 
 func TestAccStorageAccountQueueProperties_loggingOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_queue_properties", "test")
-	r := AccountQueuePropertiesResource{}
+	r := StorageAccountQueuePropertiesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccStorageAccountQueueProperties_loggingOnly(t *testing.T) {
 
 func TestAccStorageAccountQueueProperties_hourMetricsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_queue_properties", "test")
-	r := AccountQueuePropertiesResource{}
+	r := StorageAccountQueuePropertiesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +67,7 @@ func TestAccStorageAccountQueueProperties_hourMetricsOnly(t *testing.T) {
 
 func TestAccStorageAccountQueueProperties_minuteMetricsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_queue_properties", "test")
-	r := AccountQueuePropertiesResource{}
+	r := StorageAccountQueuePropertiesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccStorageAccountQueueProperties_minuteMetricsOnly(t *testing.T) {
 
 func TestAccStorageAccountQueueProperties_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_queue_properties", "test")
-	r := AccountQueuePropertiesResource{}
+	r := StorageAccountQueuePropertiesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -139,7 +139,7 @@ func TestAccStorageAccountQueueProperties_update(t *testing.T) {
 
 func TestAccStorageAccountQueueProperties_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_queue_properties", "test")
-	r := AccountQueuePropertiesResource{}
+	r := StorageAccountQueuePropertiesResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -152,7 +152,7 @@ func TestAccStorageAccountQueueProperties_complete(t *testing.T) {
 	})
 }
 
-func (r AccountQueuePropertiesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageAccountQueuePropertiesResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseStorageAccountID(state.ID)
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func (r AccountQueuePropertiesResource) Exists(ctx context.Context, client *clie
 	return pointer.To(present), nil
 }
 
-func (r AccountQueuePropertiesResource) corsOnly(data acceptance.TestData) string {
+func (r StorageAccountQueuePropertiesResource) corsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -209,7 +209,7 @@ resource "azurerm_storage_account_queue_properties" "test" {
 `, r.template(data))
 }
 
-func (r AccountQueuePropertiesResource) hourMetricsOnly(data acceptance.TestData) string {
+func (r StorageAccountQueuePropertiesResource) hourMetricsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -227,7 +227,7 @@ resource "azurerm_storage_account_queue_properties" "test" {
 `, r.template(data))
 }
 
-func (r AccountQueuePropertiesResource) minuteMetricsOnly(data acceptance.TestData) string {
+func (r StorageAccountQueuePropertiesResource) minuteMetricsOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -245,7 +245,7 @@ resource "azurerm_storage_account_queue_properties" "test" {
 `, r.template(data))
 }
 
-func (r AccountQueuePropertiesResource) loggingOnly(data acceptance.TestData) string {
+func (r StorageAccountQueuePropertiesResource) loggingOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -266,7 +266,7 @@ resource "azurerm_storage_account_queue_properties" "test" {
 `, r.template(data))
 }
 
-func (r AccountQueuePropertiesResource) complete(data acceptance.TestData) string {
+func (r StorageAccountQueuePropertiesResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -305,7 +305,7 @@ resource "azurerm_storage_account_queue_properties" "test" {
 `, r.template(data))
 }
 
-func (r AccountQueuePropertiesResource) template(data acceptance.TestData) string {
+func (r StorageAccountQueuePropertiesResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {

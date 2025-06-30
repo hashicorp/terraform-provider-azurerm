@@ -188,6 +188,18 @@ func (a DynamicAttribute) IsWriteOnly() bool {
 	return false
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a DynamicAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a DynamicAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // DynamicValidators returns the Validators field value.
 func (a DynamicAttribute) DynamicValidators() []validator.Dynamic {
 	return a.Validators

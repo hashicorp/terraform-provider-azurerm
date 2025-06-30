@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,18 +27,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 const virtualHubResourceName = "azurerm_virtual_hub"
 
 func resourceVirtualHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualHubCreate,
-		Read:   resourceVirtualHubRead,
-		Update: resourceVirtualHubUpdate,
-		Delete: resourceVirtualHubDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualwans.ParseVirtualHubID(id)
-			return err
-		}),
+		Create:   resourceVirtualHubCreate,
+		Read:     resourceVirtualHubRead,
+		Update:   resourceVirtualHubUpdate,
+		Delete:   resourceVirtualHubDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualwans.VirtualHubId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualwans.VirtualHubId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -364,9 +368,12 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			d.Set("virtual_router_auto_scale_min_capacity", props.VirtualRouterAutoScaleConfiguration.MinCapacity)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -19,9 +20,14 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_queue_properties -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "corsOnly"
+
 type AccountQueuePropertiesResource struct{}
 
-var _ sdk.ResourceWithUpdate = AccountQueuePropertiesResource{}
+var (
+	_ sdk.ResourceWithUpdate               = AccountQueuePropertiesResource{}
+	_ sdk.ResourceWithIdentityTypeOverride = AccountQueuePropertiesResource{}
+)
 
 type AccountQueuePropertiesModel struct {
 	StorageAccountId string                                `json:"storage_account_id" tfschema:"storage_account_id"`
@@ -262,6 +268,14 @@ func (s AccountQueuePropertiesResource) IDValidationFunc() pluginsdk.SchemaValid
 	return commonids.ValidateStorageAccountID
 }
 
+func (s AccountQueuePropertiesResource) Identity() resourceids.ResourceId {
+	return &commonids.StorageAccountId{}
+}
+
+func (s AccountQueuePropertiesResource) IdentityType() pluginsdk.ResourceTypeForIdentity {
+	return pluginsdk.ResourceTypeForIdentityVirtual
+}
+
 func (s AccountQueuePropertiesResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -466,6 +480,10 @@ func (s AccountQueuePropertiesResource) Read() sdk.ResourceFunc {
 						},
 					}
 				}
+			}
+
+			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

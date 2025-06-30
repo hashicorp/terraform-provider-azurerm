@@ -103,13 +103,10 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"absolute_criteria": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(backuppolicies.AbsoluteMarkerFirstOfDay),
-											string(backuppolicies.AbsoluteMarkerFirstOfWeek),
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(backuppolicies.PossibleValuesForAbsoluteMarker(), false),
 									},
 								},
 							},

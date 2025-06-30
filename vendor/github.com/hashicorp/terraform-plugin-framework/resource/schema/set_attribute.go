@@ -235,6 +235,18 @@ func (a SetAttribute) IsWriteOnly() bool {
 	return false
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // SetDefaultValue returns the Default field value.
 func (a SetAttribute) SetDefaultValue() defaults.Set {
 	return a.Default

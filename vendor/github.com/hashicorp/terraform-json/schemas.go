@@ -92,6 +92,9 @@ type ProviderSchema struct {
 
 	// The definitions for any functions in this provider.
 	Functions map[string]*FunctionSignature `json:"functions,omitempty"`
+
+	// The schemas for resources identities in this provider.
+	ResourceIdentitySchemas map[string]*IdentitySchema `json:"resource_identity_schemas,omitempty"`
 }
 
 // Schema is the JSON representation of a particular schema
@@ -293,4 +296,32 @@ type SchemaNestedAttributeType struct {
 	// The upper limit on number of items that can be declared
 	// of this attribute type (not applicable to single nesting mode).
 	MaxItems uint64 `json:"max_items,omitempty"`
+}
+
+// IdentitySchema is the JSON representation of a particular
+// resource identity schema
+type IdentitySchema struct {
+	// The version of the particular resource identity schema.
+	Version uint64 `json:"version"`
+
+	// Map of identity attributes
+	Attributes map[string]*IdentityAttribute `json:"attributes,omitempty"`
+}
+
+// IdentityAttribute describes an identity attribute
+type IdentityAttribute struct {
+	// The identity attribute type
+	IdentityType cty.Type `json:"type,omitempty"`
+
+	// The description of the identity attribute
+	Description string `json:"description,omitempty"`
+
+	// RequiredForImport when enabled signifies that this attribute must be
+	// specified in the configuration during import
+	RequiredForImport bool `json:"required_for_import,omitempty"`
+
+	// OptionalForImport when enabled signifies that this attribute is not
+	// required to be specified during import, because it can be supplied by the
+	// provider
+	OptionalForImport bool `json:"optional_for_import,omitempty"`
 }

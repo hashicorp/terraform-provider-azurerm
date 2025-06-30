@@ -1217,6 +1217,7 @@ resource "azurerm_container_app_job" "test" {
 func (r ContainerAppJobResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -1290,8 +1291,9 @@ resource "azurerm_container_app_job" "test" {
       cpu    = 0.5
       memory = "1Gi"
       volume_mounts {
-        path = "/appsettings"
-        name = azurerm_container_app_environment_storage.test.name
+        path     = "/appsettings"
+        name     = azurerm_container_app_environment_storage.test.name
+        sub_path = "subdirectory"
       }
     }
 
@@ -1301,8 +1303,9 @@ resource "azurerm_container_app_job" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/appsettings"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/appsettings"
+        sub_path = "subdirectory"
       }
     }
   }

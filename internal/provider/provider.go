@@ -393,7 +393,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
-			return nil, diag.FromErr(fmt.Errorf("`subscription_id` is a required provider property when performing a plan/apply operation"))
+			if !d.Get("use_cli").(bool) {
+				return nil, diag.FromErr(fmt.Errorf("`subscription_id` is a required provider property when performing a plan/apply operation"))
+			}
 		}
 
 		var auxTenants []string

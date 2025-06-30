@@ -23,16 +23,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name public_ip_prefix -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourcePublicIpPrefix() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePublicIpPrefixCreate,
-		Read:   resourcePublicIpPrefixRead,
-		Update: resourcePublicIpPrefixUpdate,
-		Delete: resourcePublicIpPrefixDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := publicipprefixes.ParsePublicIPPrefixID(id)
-			return err
-		}),
+		Create:   resourcePublicIpPrefixCreate,
+		Read:     resourcePublicIpPrefixRead,
+		Update:   resourcePublicIpPrefixUpdate,
+		Delete:   resourcePublicIpPrefixDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&publicipprefixes.PublicIPPrefixId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&publicipprefixes.PublicIPPrefixId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -209,9 +212,12 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 				d.Set("ip_version", string(*version))
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePublicIpPrefixDelete(d *pluginsdk.ResourceData, meta interface{}) error {
