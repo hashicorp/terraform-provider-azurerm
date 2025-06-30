@@ -512,58 +512,6 @@ func forceUnlinkDatabaseTyped(ctx context.Context, client *databases.DatabasesCl
 	return nil
 }
 
-func expandArmDatabaseModuleArray(input []interface{}, isGeoEnabled bool) (*[]databases.Module, error) {
-	results := make([]databases.Module, 0)
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		moduleName := v["name"].(string)
-		if moduleName != "RediSearch" && moduleName != "RedisJSON" && isGeoEnabled {
-			return nil, fmt.Errorf("Only RediSearch and RedisJSON modules are allowed with geo-replication")
-		}
-		results = append(results, databases.Module{
-			Name: moduleName,
-			Args: utils.String(v["args"].(string)),
-		})
-	}
-	return &results, nil
-}
-
-func flattenArmDatabaseModuleArray(input *[]databases.Module) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		args := ""
-		if item.Args != nil {
-			args = *item.Args
-			// new behavior if you do not pass args the RP sets the args to "PARTITIONS AUTO" by default
-			// (for RediSearch) which causes the database to be force new on every plan after creation
-			// feels like an RP bug, but I added this workaround...
-			// NOTE: You also cannot set the args to PARTITIONS AUTO by default else you will get an error on create:
-			// Code="InvalidRequestBody" Message="The value of the parameter 'properties.modules' is invalid."
-			if strings.EqualFold(args, "PARTITIONS AUTO") {
-				args = ""
-			}
-		}
-
-		var version string
-		if item.Version != nil {
-			version = *item.Version
-		}
-
-		results = append(results, map[string]interface{}{
-			"name":    item.Name,
-			"args":    args,
-			"version": version,
-		})
-	}
-
-	return results
-}
-
 func expandArmGeoLinkedDatabase(inputId []string, parentDBId string, inputGeoName string) (*databases.DatabasePropertiesGeoReplication, error) {
 	idList := make([]databases.LinkedDatabase, 0)
 	if len(inputId) == 0 {
