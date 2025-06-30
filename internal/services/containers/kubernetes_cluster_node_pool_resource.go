@@ -572,19 +572,20 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
 	}
 
+	subnetsToLock := make([]string, 0)
 	if podSubnetID != nil {
 		// Lock pod subnet to avoid race condition with AKS
-		profile.PodSubnetID = utils.String(podSubnetID.ID())
-		locks.ByName(podSubnetID.SubnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(podSubnetID.SubnetName, network.SubnetResourceName)
+		profile.PodSubnetID = pointer.To(podSubnetID.ID())
+		subnetsToLock = append(subnetsToLock, podSubnetID.SubnetName)
 	}
 
 	if nodeSubnetID != nil {
 		// Lock node subnet to avoid race condition with AKS
-		profile.VnetSubnetID = utils.String(nodeSubnetID.ID())
-		locks.ByName(nodeSubnetID.SubnetName, network.SubnetResourceName)
-		defer locks.UnlockByName(nodeSubnetID.SubnetName, network.SubnetResourceName)
+		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
+		subnetsToLock = append(subnetsToLock, nodeSubnetID.SubnetName)
 	}
+	locks.MultipleByName(&subnetsToLock, network.SubnetResourceName)
+	defer locks.UnlockMultipleByName(&subnetsToLock, network.SubnetResourceName)
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
 		profile.HostGroupID = utils.String(hostGroupID)
