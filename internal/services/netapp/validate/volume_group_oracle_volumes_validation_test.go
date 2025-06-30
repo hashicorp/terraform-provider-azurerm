@@ -1228,35 +1228,6 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Name: "ValidateEndpointDstNotEnabledOnLogVolume",
-			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
-				{ // data1
-					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData1))),
-					Properties: volumegroups.VolumeProperties{
-						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
-						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleData1)),
-					},
-				},
-				{ // log
-					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
-					Properties: volumegroups.VolumeProperties{
-						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
-						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleLog)),
-						DataProtection: &volumegroups.VolumePropertiesDataProtection{
-							Replication: &volumegroups.ReplicationObject{
-								EndpointType: pointer.To(volumegroups.EndpointTypeDst),
-							},
-						},
-					},
-				},
-			},
-			Errors: 1,
-		},
-		{
 			Name: "ValidateCustomerManagedKeyOptionsAreSetTogether",
 			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
 				{ // data1

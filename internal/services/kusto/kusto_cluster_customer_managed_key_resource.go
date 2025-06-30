@@ -10,12 +10,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
+	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,12 +56,25 @@ func resourceKustoClusterCustomerManagedKey() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateKustoClusterID,
 			},
 
-			"key_vault_id": commonschema.ResourceIDReferenceRequired(&commonids.KeyVaultId{}),
+			"key_vault_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateKeyVaultID,
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id"},
+			},
+
+			"managed_hsm_key_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.Any(validate.ManagedHSMDataPlaneVersionedKeyID, validate.ManagedHSMDataPlaneVersionlessKeyID),
+				ExactlyOneOf: []string{"managed_hsm_key_id", "key_vault_id"},
+			},
 
 			"key_name": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"key_vault_id"},
 			},
 
 			"key_version": {
@@ -112,44 +127,62 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 		}
 	}
 
-	keyVaultIDRaw := d.Get("key_vault_id").(string)
-	keyVaultID, err := commonids.ParseKeyVaultID(keyVaultIDRaw)
-	if err != nil {
-		return err
-	}
+	keyName := ""
+	keyVersion := ""
+	keyVaultURI := ""
 
-	keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *keyVaultID, err)
-	}
-
-	softDeleteEnabled := false
-	purgeProtectionEnabled := false
-	if model := keyVault.Model; model != nil {
-		if esd := model.Properties.EnableSoftDelete; esd != nil {
-			softDeleteEnabled = *esd
+	if _, ok := d.GetOk("key_vault_id"); ok {
+		keyVaultID, err := commonids.ParseKeyVaultID(d.Get("key_vault_id").(string))
+		if err != nil {
+			return err
 		}
-		if epp := model.Properties.EnablePurgeProtection; epp != nil {
-			purgeProtectionEnabled = *epp
+
+		keyVault, err := vaultsClient.Get(ctx, *keyVaultID)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", *keyVaultID, err)
+		}
+
+		softDeleteEnabled := false
+		purgeProtectionEnabled := false
+		if model := keyVault.Model; model != nil {
+			if esd := model.Properties.EnableSoftDelete; esd != nil {
+				softDeleteEnabled = *esd
+			}
+			if epp := model.Properties.EnablePurgeProtection; epp != nil {
+				purgeProtectionEnabled = *epp
+			}
+		}
+		if !softDeleteEnabled || !purgeProtectionEnabled {
+			return fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultID)
+		}
+
+		keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
+		if err != nil {
+			return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
+		}
+		keyName = d.Get("key_name").(string)
+		keyVersion = d.Get("key_version").(string)
+		keyVaultURI = *keyVaultBaseURL
+	} else if managedHSMKeyId, ok := d.GetOk("managed_hsm_key_id"); ok {
+		if keyId, err := parse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
+			keyName = keyId.KeyName
+			keyVersion = keyId.KeyVersion
+			keyVaultURI = keyId.BaseUri()
+		} else if keyId, err := parse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
+			keyName = keyId.KeyName
+			keyVersion = ""
+			keyVaultURI = keyId.BaseUri()
+		} else {
+			return fmt.Errorf("Failed to parse '%s' as HSM key ID", managedHSMKeyId)
 		}
 	}
-	if !softDeleteEnabled || !purgeProtectionEnabled {
-		return fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultID)
-	}
 
-	keyVaultBaseURL, err := keyVaultsClient.BaseUriForKeyVault(ctx, *keyVaultID)
-	if err != nil {
-		return fmt.Errorf("looking up Key Vault URI from %s: %+v", *keyVaultID, err)
-	}
-
-	keyName := d.Get("key_name").(string)
-	keyVersion := d.Get("key_version").(string)
 	props := clusters.ClusterUpdate{
 		Properties: &clusters.ClusterProperties{
 			KeyVaultProperties: &clusters.KeyVaultProperties{
 				KeyName:     utils.String(keyName),
 				KeyVersion:  utils.String(keyVersion),
-				KeyVaultUri: utils.String(*keyVaultBaseURL),
+				KeyVaultUri: utils.String(keyVaultURI),
 			},
 		},
 	}
@@ -171,6 +204,7 @@ func resourceKustoClusterCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceDat
 func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
 	keyVaultsClient := meta.(*clients.Client).KeyVault
+	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -223,16 +257,33 @@ func resourceKustoClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta 
 		return fmt.Errorf("retrieving %s: `properties.keyVaultProperties.keyVaultUri` was nil", id)
 	}
 
-	// now we have the key vault uri we can look up the ID
-	subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
+	isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 	if err != nil {
-		return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+		return err
+	}
+	switch {
+	case isHSMURI && keyVersion == "":
+		{
+			d.Set("managed_hsm_key_id", parse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName).ID())
+		}
+	case isHSMURI && keyVersion != "":
+		{
+			d.Set("managed_hsm_key_id", parse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion).ID())
+		}
+	case !isHSMURI:
+		{
+			// now we have the key vault uri we can look up the ID
+			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+			keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultURI)
+			if err != nil {
+				return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+			}
+			d.Set("key_vault_id", keyVaultID)
+			d.Set("key_name", keyName)
+		}
 	}
 
 	d.Set("cluster_id", d.Id())
-	d.Set("key_vault_id", keyVaultID)
-	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
 	d.Set("user_identity", userIdentity)
 	return nil

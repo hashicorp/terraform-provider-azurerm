@@ -1,6 +1,8 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary,kind:functionapp;linux"
+
 package appservice
 
 import (
@@ -17,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -94,12 +97,25 @@ var _ sdk.ResourceWithCustomizeDiff = LinuxFunctionAppResource{}
 
 var _ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
 
+var _ sdk.ResourceWithIdentityDiscriminatedType = LinuxFunctionAppResource{}
+
 func (r LinuxFunctionAppResource) ModelObject() interface{} {
 	return &LinuxFunctionAppModel{}
 }
 
 func (r LinuxFunctionAppResource) ResourceType() string {
 	return "azurerm_linux_function_app"
+}
+
+func (r LinuxFunctionAppResource) Identity() resourceids.ResourceId {
+	return &commonids.FunctionAppId{}
+}
+
+func (r LinuxFunctionAppResource) DiscriminatedType() pluginsdk.DiscriminatedType {
+	return pluginsdk.DiscriminatedType{
+		Field: "kind",
+		Value: "functionapp,linux",
+	}
 }
 
 func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -842,6 +858,10 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("encoding: %+v", err)
 					}
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityDataDiscriminatedType(metadata.ResourceData, id, r.DiscriminatedType()); err != nil {
+				return err
 			}
 
 			return nil

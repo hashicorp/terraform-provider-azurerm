@@ -28,25 +28,8 @@ func (s *muxServer) ValidateEphemeralResourceConfig(ctx context.Context, req *tf
 		}, nil
 	}
 
-	// TODO: Remove and call server.ValidateEphemeralResourceConfig below directly once interface becomes required.
-	ephemeralResourceServer, ok := server.(tfprotov5.EphemeralResourceServer)
-	if !ok {
-		resp := &tfprotov5.ValidateEphemeralResourceConfigResponse{
-			Diagnostics: []*tfprotov5.Diagnostic{
-				{
-					Severity: tfprotov5.DiagnosticSeverityError,
-					Summary:  "ValidateEphemeralResourceConfig Not Implemented",
-					Detail: "A ValidateEphemeralResourceConfig call was received by the provider, however the provider does not implement ValidateEphemeralResourceConfig. " +
-						"Either upgrade the provider to a version that implements ValidateEphemeralResourceConfig or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return resp, nil
-	}
-
 	ctx = logging.Tfprotov5ProviderServerContext(ctx, server)
 	logging.MuxTrace(ctx, "calling downstream server")
 
-	return ephemeralResourceServer.ValidateEphemeralResourceConfig(ctx, req)
+	return server.ValidateEphemeralResourceConfig(ctx, req)
 }

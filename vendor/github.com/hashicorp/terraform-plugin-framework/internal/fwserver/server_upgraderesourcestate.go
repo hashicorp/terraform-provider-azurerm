@@ -225,9 +225,19 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 			return
 		}
 
+		// Set any write-only attributes in the state to null
+		modifiedState, err := tftypes.Transform(upgradedStateValue, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error Modifying Upgraded Resource State",
+				"There was an unexpected error modifying the Upgraded Resource State. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+			)
+			return
+		}
+
 		resp.UpgradedState = &tfsdk.State{
 			Schema: req.ResourceSchema,
-			Raw:    upgradedStateValue,
+			Raw:    modifiedState,
 		}
 
 		return
@@ -242,6 +252,17 @@ func (s *Server) UpgradeResourceState(ctx context.Context, req *UpgradeResourceS
 		)
 		return
 	}
+
+	// Set any write-only attributes in the state to null
+	modifiedState, err := tftypes.Transform(upgradeResourceStateResponse.State.Raw, NullifyWriteOnlyAttributes(ctx, req.ResourceSchema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying Upgraded Resource State",
+			"There was an unexpected error modifying the Upgraded Resource State. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return
+	}
+	upgradeResourceStateResponse.State.Raw = modifiedState
 
 	resp.UpgradedState = &upgradeResourceStateResponse.State
 }
