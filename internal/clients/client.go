@@ -17,6 +17,8 @@ import (
 	fluidrelay_2022_05_26 "github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26"
 	hdinsight_v2021_06_01 "github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01"
 	nginx_2024_11_01_preview "github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview"
+
+	// redisenterprise_2025_04_01 "github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	servicenetworking_2023_11_01 "github.com/hashicorp/go-azure-sdk/resource-manager/servicenetworking/2023-11-01"
 	storagecache_2023_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01"
 	storagecache_2024_07_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01"
@@ -124,6 +126,7 @@ import (
 	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
+	redismanaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	search "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
@@ -261,6 +264,7 @@ type Client struct {
 	RedHatOpenShift                   *redhatopenshift.Client
 	Redis                             *redis.Client
 	RedisEnterprise                   *redisenterprise.Client
+	RedisManaged                      *redisenterprise_2025_04_01.Client
 	Relay                             *relay.Client
 	Resource                          *resource.Client
 	Search                            *search.Client
@@ -604,6 +608,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
+	}
+	if client.RedisManaged, err = redismanaged.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Redis Managed: %+v", err)
 	}
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)
