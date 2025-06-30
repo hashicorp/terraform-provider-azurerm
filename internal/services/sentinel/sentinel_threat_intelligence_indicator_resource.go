@@ -665,8 +665,8 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			// For update operation, the request will not be effective in response immediately, we use the poller here to leave the API some time to be consistent.
-			pollerType := custompollers.NewThreatIntelligenceIndicatorPoller(client, *id)
+			// The GET result may be inconsistent with update in a period, similar to the issue on creation.
+			pollerType := custompollers.NewThreatIntelligenceIndicatorUpdatePoller(client, *id, pointer.From(properties.LastUpdatedTimeUtc))
 			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return err
