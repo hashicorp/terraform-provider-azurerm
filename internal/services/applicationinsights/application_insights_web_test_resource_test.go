@@ -20,7 +20,7 @@ import (
 type AppInsightsWebTestsResource struct{}
 
 func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
-	if !features.FivePointOh() {
+	if features.FivePointOh() {
 		t.Skip()
 	}
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
@@ -38,7 +38,7 @@ func TestAccApplicationInsightsWebTests_basic(t *testing.T) {
 }
 
 func TestAccApplicationInsightsWebTests_complete(t *testing.T) {
-	if !features.FivePointOh() {
+	if features.FivePointOh() {
 		t.Skip()
 	}
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
@@ -94,7 +94,7 @@ func TestAccApplicationInsightsWebTests_update(t *testing.T) {
 }
 
 func TestAccApplicationInsightsWebTests_requiresImport(t *testing.T) {
-	if !features.FivePointOh() {
+	if features.FivePointOh() {
 		t.Skip()
 	}
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
