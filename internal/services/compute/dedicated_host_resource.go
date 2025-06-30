@@ -148,7 +148,6 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				// TODO: remove `None` in 4.0 in favour of this field being set to an empty string (since it's optional)
 				string(dedicatedhosts.DedicatedHostLicenseTypesNone),
 				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
 				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),
