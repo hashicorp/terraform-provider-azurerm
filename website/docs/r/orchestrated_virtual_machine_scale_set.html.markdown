@@ -427,9 +427,9 @@ A `network_interface` block supports the following:
 
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
-* `enable_accelerated_networking` - (Optional) Does this Network Interface support Accelerated Networking? Possible values are `true` and `false`. Defaults to `false`.
+* `accelerated_networking_enabled` - (Optional) Does this Network Interface support Accelerated Networking? Possible values are `true` and `false`. Defaults to `false`.
 
-* `enable_ip_forwarding` - (Optional) Does this Network Interface support IP Forwarding? Possible values are `true` and `false`. Defaults to `false`.
+* `ip_forwarding_enabled` - (Optional) Does this Network Interface support IP Forwarding? Possible values are `true` and `false`. Defaults to `false`.
 
 * `network_security_group_id` - (Optional) The ID of a Network Security Group which should be assigned to this Network Interface.
 

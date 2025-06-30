@@ -6,7 +6,6 @@ package compute_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"regexp"
 	"testing"
 	"time"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1177,8 +1177,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1250,8 +1250,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -1328,7 +1328,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
+      provision_vm_agent        = true
 
       winrm_listener {
         protocol = "Http"
@@ -2394,8 +2394,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2487,8 +2487,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2575,8 +2575,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2668,8 +2668,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2761,8 +2761,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2851,8 +2851,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"
@@ -2941,8 +2941,8 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
       admin_password       = "Passwword1234"
 
       automatic_updates_enabled = true
-      provision_vm_agent       = true
-      timezone                 = "W. Europe Standard Time"
+      provision_vm_agent        = true
+      timezone                  = "W. Europe Standard Time"
 
       winrm_listener {
         protocol = "Http"

@@ -6,7 +6,6 @@ package compute
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"regexp"
 	"strings"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -71,7 +71,6 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 
 				"additional_unattend_content": additionalUnattendContentSchema(),
 
-				// TODO 4.0: change this from enable_* to *_enabled
 				"automatic_updates_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -648,9 +647,9 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 			Computed:      true,
 			ValidateFunc:  validation.IntAtLeast(1),
 			ConflictsWith: []string{"disk_iops_read_write"},
-			Deprecated:    "`ultra_ssd_disk_mbps_read_write` has been deprecated in favour of `disk_iops_read_write` and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated:    "`ultra_ssd_disk_mbps_read_write` has been deprecated in favour of `disk_mpbs_read_write` and will be removed in v5.0 of the AzureRM Provider",
 		}
-		schema.Elem.(*pluginsdk.Resource).Schema["disk_iops_read_write"] = &pluginsdk.Schema{
+		schema.Elem.(*pluginsdk.Resource).Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeInt,
 			Optional:      true,
 			Computed:      true,

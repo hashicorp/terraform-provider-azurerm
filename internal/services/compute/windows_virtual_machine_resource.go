@@ -197,7 +197,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			"enable_automatic_updates": {
+			"automatic_updates_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
@@ -506,7 +506,13 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 		computerName = id.VirtualMachineName
 	}
+
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_automatic_updates"); ok {
+			enableAutomaticUpdates = v.(bool)
+		}
+	}
 
 	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -974,7 +980,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 						return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
 					}
 
-					d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
+					d.Set("automatic_updates_enabled", config.EnableAutomaticUpdates)
+					if !features.FivePointOh() {
+						d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
+					}
 					d.Set("provision_vm_agent", config.ProvisionVMAgent)
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
