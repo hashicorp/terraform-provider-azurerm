@@ -102,7 +102,10 @@ func (p *threatIntelligenceIndicatorUpdatePooler) Poll(ctx context.Context) (*po
 	}
 
 	if model.LastUpdatedTimeUtc != nil && model.LastUpdatedTimeUtc != &p.lastUpdateTime {
-		return &pollingSuccess, nil
+		p.succeededCnt++
+		if p.succeededCnt > concistentRequestNumber {
+			return &pollingSuccess, nil
+		}
 	}
 
 	return &pollingInProgress, nil
