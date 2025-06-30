@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"time"
 
@@ -29,7 +30,7 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name dedicated_host -service-package-name compute -properties "name" -compare-values "subscription_id:dedicated_host_group_id,resource_group_name:dedicated_host_group_id,host_group_name:dedicated_host_group_id"
 
 func resourceDedicatedHost() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDedicatedHostCreate,
 		Read:   resourceDedicatedHostRead,
 		Update: resourceDedicatedHostUpdate,
@@ -134,8 +135,6 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// TODO: remove `None` in 4.0 in favour of this field being set to an empty string (since it's optional)
-					string(dedicatedhosts.DedicatedHostLicenseTypesNone),
 					string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
 					string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),
 				}, false),
@@ -145,6 +144,22 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["license_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				// TODO: remove `None` in 4.0 in favour of this field being set to an empty string (since it's optional)
+				string(dedicatedhosts.DedicatedHostLicenseTypesNone),
+				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerHybrid),
+				string(dedicatedhosts.DedicatedHostLicenseTypesWindowsServerPerpetual),
+			}, false),
+			Default: string(dedicatedhosts.DedicatedHostLicenseTypesNone),
+		}
+	}
+
+	return resource
 }
 
 func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -221,8 +236,12 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("sku_name", model.Sku.Name)
 		if props := model.Properties; props != nil {
 			d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
-			d.Set("license_type", string(pointer.From(props.LicenseType)))
-
+			if pointer.From(props.LicenseType) != dedicatedhosts.DedicatedHostLicenseTypesNone {
+				d.Set("license_type", string(pointer.From(props.LicenseType)))
+			}
+			if !features.FivePointOh() {
+				d.Set("license_type", string(pointer.From(props.LicenseType)))
+			}
 			platformFaultDomain := 0
 			if props.PlatformFaultDomain != nil {
 				platformFaultDomain = int(*props.PlatformFaultDomain)

@@ -197,7 +197,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_automatic_updates": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -441,6 +440,21 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "this property has been deprecated due to a breaking change introduced by the Service team, which redefined it as a read-only field within the API",
+		}
+
+		resource.Schema["enable_automatic_updates"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			ForceNew:   true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
+			Deprecated: "`ultra_ssd_disk_iops_read_write` has been deprecated in favour of `disk_iops_read_write` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["automatic_updates_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 		}
 	}
 
