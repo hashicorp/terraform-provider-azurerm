@@ -11,84 +11,72 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-func resourceManagedRedisCluster() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
-		Create: resourceManagedRedisClusterCreate,
-		Read:   resourceManagedRedisClusterRead,
-		Update: resourceManagedRedisClusterUpdate,
-		Delete: resourceManagedRedisClusterDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := redisenterprise.ParseRedisEnterpriseID(id)
-			return err
-		}),
+type ManagedRedisClusterResource struct{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+var _ sdk.ResourceWithUpdate = ManagedRedisClusterResource{}
+
+type ManagedRedisClusterResourceModel struct {
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	SkuName           string            `tfschema:"sku_name"`
+	Zones             []string          `tfschema:"zones"`
+	MinimumTlsVersion string            `tfschema:"minimum_tls_version"`
+	Hostname          string            `tfschema:"hostname"`
+	Tags              map[string]string `tfschema:"tags"`
+}
+
+func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
+	arguments := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ManagedRedisName,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ManagedRedisName,
-			},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+		"location": commonschema.Location(),
 
-			"location": commonschema.Location(),
-
-			"sku_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ManagedRedisClusterSkuName,
-			},
-
-			"zones": commonschema.ZonesMultipleOptionalForceNew(),
-
-			"minimum_tls_version": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(redisenterprise.TlsVersionOnePointTwo),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(redisenterprise.TlsVersionOnePointTwo),
-				}, false),
-			},
-
-			"hostname": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
-
-			"tags": commonschema.Tags(),
+		"sku_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ManagedRedisClusterSkuName,
 		},
+
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+
+		"minimum_tls_version": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(redisenterprise.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redisenterprise.TlsVersionOnePointTwo),
+			}, false),
+		},
+
+		"tags": commonschema.Tags(),
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+		arguments["minimum_tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ForceNew: true,
@@ -101,182 +89,216 @@ func resourceManagedRedisCluster() *pluginsdk.Resource {
 		}
 	}
 
-	return resource
+	return arguments
 }
 
-func resourceManagedRedisClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisManaged.Client
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id := redisenterprise.NewRedisEnterpriseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_managed_redis_cluster", id.ID())
-		}
-	}
-
-	location := location.Normalize(d.Get("location").(string))
-	sku := expandManagedRedisClusterSku(d.Get("sku_name").(string))
-
-	// If the sku type is flash check to make sure that the sku is supported in that region
-	if strings.Contains(string(sku.Name), "Flash") {
-		if err := validate.ManagedRedisClusterLocationFlashSkuSupport(location); err != nil {
-			return fmt.Errorf("%s: %s", id, err)
-		}
-	}
-
-	tlsVersion := redisenterprise.TlsVersion(d.Get("minimum_tls_version").(string))
-	parameters := redisenterprise.Cluster{
-		Location: location,
-		Sku:      sku,
-		Properties: &redisenterprise.ClusterProperties{
-			MinimumTlsVersion: &tlsVersion,
+func (r ManagedRedisClusterResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-
-	if v, ok := d.GetOk("zones"); ok {
-		// Zones are currently not supported in these regions
-		if err := validate.ManagedRedisClusterLocationZoneSupport(location); err != nil {
-			return fmt.Errorf("%s: %s", id, err)
-		}
-		zones := zones.ExpandUntyped(v.(*pluginsdk.Set).List())
-		if len(zones) > 0 {
-			parameters.Zones = &zones
-		}
-	}
-
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-	}
-
-	log.Printf("[DEBUG] Waiting for %s to become available..", id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
-		Target:     []string{"Running"},
-		Refresh:    managedRedisClusterStateRefreshFunc(ctx, client, id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to become available: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	return resourceManagedRedisClusterRead(d, meta)
 }
 
-func resourceManagedRedisClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisManaged.Client
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r ManagedRedisClusterResource) ModelObject() interface{} {
+	return &ManagedRedisClusterResourceModel{}
+}
 
-	id, err := redisenterprise.ParseRedisEnterpriseID(d.Id())
-	if err != nil {
-		return err
-	}
+func (r ManagedRedisClusterResource) ResourceType() string {
+	return "azurerm_managed_redis_cluster"
+}
 
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %s was not found - removing from state!", *id)
-			d.SetId("")
-			return nil
-		}
+func (r ManagedRedisClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return redisenterprise.ValidateRedisEnterpriseID
+}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
+func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RedisManaged.Client
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	d.Set("name", id.RedisEnterpriseName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-		if err := d.Set("tags", tags.Flatten(model.Tags)); err != nil {
-			return fmt.Errorf("setting `tags`: %+v", err)
-		}
-
-		if err := d.Set("sku_name", flattenManagedRedisClusterSku(model.Sku)); err != nil {
-			return fmt.Errorf("setting `sku_name`: %+v", err)
-		}
-
-		d.Set("zones", zones.FlattenUntyped(model.Zones))
-		if props := model.Properties; props != nil {
-			d.Set("hostname", props.HostName)
-
-			tlsVersion := ""
-			if props.MinimumTlsVersion != nil {
-				tlsVersion = string(*props.MinimumTlsVersion)
+			var model ManagedRedisClusterResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding %+v", err)
 			}
-			d.Set("minimum_tls_version", tlsVersion)
-		}
-	}
 
-	return nil
+			id := redisenterprise.NewRedisEnterpriseID(subscriptionId, model.ResourceGroupName, model.Name)
+
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			sku := expandManagedRedisClusterSku(model.SkuName)
+
+			// If the sku type is flash check to make sure that the sku is supported in that region
+			if strings.Contains(string(sku.Name), "Flash") {
+				if err := validate.ManagedRedisClusterLocationFlashSkuSupport(model.Location); err != nil {
+					return fmt.Errorf("%s: %s", id, err)
+				}
+			}
+
+			tlsVersion := redisenterprise.TlsVersion(model.MinimumTlsVersion)
+			parameters := redisenterprise.Cluster{
+				Location: model.Location,
+				Sku:      sku,
+				Properties: &redisenterprise.ClusterProperties{
+					MinimumTlsVersion: &tlsVersion,
+				},
+				Tags: pointer.To(model.Tags),
+			}
+
+			if len(model.Zones) > 0 {
+				// Zones are currently not supported in these regions
+				if err := validate.ManagedRedisClusterLocationZoneSupport(model.Location); err != nil {
+					return fmt.Errorf("%s: %s", id, err)
+				}
+				parameters.Zones = pointer.To(model.Zones)
+			}
+
+			if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+			}
+
+			log.Printf("[DEBUG] Waiting for %s to become available..", id)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
+				Target:     []string{"Running"},
+				Refresh:    managedRedisClusterStateRefreshFunc(ctx, client, id),
+				MinTimeout: 15 * time.Second,
+				Timeout:    30 * time.Minute,
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
 }
 
-func resourceManagedRedisClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisManaged.Client
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
+func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RedisManaged.Client
 
-	id, err := redisenterprise.ParseRedisEnterpriseID(d.Id())
-	if err != nil {
-		return err
+			id, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			state := ManagedRedisClusterResourceModel{
+				Name:              id.RedisEnterpriseName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
+
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
+
+				if skuName := flattenManagedRedisClusterSku(model.Sku); skuName != nil {
+					state.SkuName = *skuName
+				}
+
+				state.Zones = pointer.From(model.Zones)
+
+				if props := model.Properties; props != nil {
+					state.Hostname = pointer.From(props.HostName)
+
+					tlsVersion := ""
+					if props.MinimumTlsVersion != nil {
+						tlsVersion = string(*props.MinimumTlsVersion)
+					}
+					state.MinimumTlsVersion = tlsVersion
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
 	}
-
-	t := d.Get("tags").(map[string]interface{})
-	expandedTags := tags.Expand(t)
-
-	parameters := redisenterprise.ClusterUpdate{
-		Tags: expandedTags,
-	}
-
-	if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	log.Printf("[DEBUG] Waiting for %s to become available", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
-		Target:     []string{"Running"},
-		Refresh:    managedRedisClusterStateRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to become available: %+v", *id, err)
-	}
-
-	return resourceManagedRedisClusterRead(d, meta)
 }
 
-func resourceManagedRedisClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisManaged.Client
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RedisManaged.Client
 
-	id, err := redisenterprise.ParseRedisEnterpriseID(d.Id())
-	if err != nil {
-		return err
+			id, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var state ManagedRedisClusterResourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return err
+			}
+
+			log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
+
+			parameters := redisenterprise.ClusterUpdate{
+				Tags: pointer.To(state.Tags),
+			}
+
+			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			log.Printf("[DEBUG] Waiting for %s to become available", *id)
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
+				Target:     []string{"Running"},
+				Refresh:    managedRedisClusterStateRefreshFunc(ctx, client, *id),
+				MinTimeout: 15 * time.Second,
+				Timeout:    30 * time.Minute,
+			}
+
+			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to become available: %+v", *id, err)
+			}
+
+			return nil
+		},
 	}
+}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+func (r ManagedRedisClusterResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RedisManaged.Client
+
+			id, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			return nil
+		},
 	}
-
-	return nil
 }
 
 func expandManagedRedisClusterSku(v string) redisenterprise.Sku {
