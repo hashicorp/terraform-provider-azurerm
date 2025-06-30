@@ -5,6 +5,7 @@ package privatedns
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -48,6 +49,11 @@ func dataSourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"fallback_to_internet": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -78,6 +84,11 @@ func dataSourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, m
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("registration_enabled", props.RegistrationEnabled)
+
+			d.Set("fallback_to_internet", false)
+			if strings.HasPrefix(id.PrivateDnsZoneName, "privatelink.") && *props.ResolutionPolicy == virtualnetworklinks.ResolutionPolicyNxDomainRedirect {
+				d.Set("fallback_to_internet", true)
+			}
 
 			if network := props.VirtualNetwork; network != nil {
 				d.Set("virtual_network_id", network.Id)
