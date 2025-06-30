@@ -124,6 +124,7 @@ import (
 	redhatopenshift "github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift/client"
 	redis "github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/client"
 	redisenterprise "github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/client"
+	redismanaged "github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/client"
 	relay "github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/client"
 	resource "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/client"
 	search "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/client"
@@ -261,6 +262,7 @@ type Client struct {
 	RedHatOpenShift                   *redhatopenshift.Client
 	Redis                             *redis.Client
 	RedisEnterprise                   *redisenterprise.Client
+	RedisManaged                      *redismanaged.Client
 	Relay                             *relay.Client
 	Resource                          *resource.Client
 	Search                            *search.Client
@@ -604,6 +606,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.RedisEnterprise, err = redisenterprise.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
+	}
+	if client.RedisManaged, err = redismanaged.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Redis Managed: %+v", err)
 	}
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)

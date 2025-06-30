@@ -74,6 +74,15 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_redis_enterprise_cluster`
+
+* This deperecated resource has been superseded by `azurerm_managed_redis_cluster` and has been removed from the Azure Provider.
+* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-remove-tls-10-11).
+
+### `azurerm_redis_enterprise_database`
+
+* This deperecated resource has been superseded by `azurerm_managed_redis_database` and has been removed from the Azure Provider.
+
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -96,6 +105,10 @@ This deprecated data source has been superseded/retired and has been removed fro
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+### `azurerm_redis_enterprise_database`
+
+* This deperecated data source has been superseded by `azurerm_managed_redis_database` and has been removed from the Azure Provider.
 
 ### `azurerm_spatial_anchors_account`
 
@@ -292,10 +305,6 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_redis_cache`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
-
-### `azurerm_redis_enterprise_cluster`
-
-* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 
 ### `azurerm_sentinel_alert_rule_fusion`
 
