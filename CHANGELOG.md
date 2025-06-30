@@ -5,19 +5,25 @@ FEATURES:
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
-* `azurerm_machine_learning_compute_cluster` - the `scale_settings` block and its sub-properties are no longer `ForceNew` [GH-29878]
-* `azurerm_machine_learning_compute_cluster` - the `tags` property is no longer `ForceNew` [GH-29878]
-* `azurerm_private_link_service` - add support for the `destination_ip_address` property [GH-29395]
-* `azurerm_oracle_autonomous_database ` - add support for `long_term_backup_schedule` [GH-29207]
+* **Data Source**: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
+
+
 * `azurerm_container_app_job` - add support for the `volume_mounts.sub_path` property [GH-29883]
 * `azurerm_container_app` - add support for the `cors` property [GH-29785]
-`azurerm_data_protection_backup_policy_disk` - the `absolute_criteria` property now supports the `AllBackup`, `FirstOfMonth` and `FirstOfYear` values [GH-29917]
-* Data Source: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
-* `azurerm_policy_set_definition` - add support for the `policy_definition_reference.version` property [GH-29924]
+* `azurerm_data_protection_backup_policy_disk` - the `absolute_criteria` property now supports the `AllBackup`, `FirstOfMonth` and `FirstOfYear` values [GH-29917]
+* `azurerm_frontdoor` - block new resource creation while allowing existing resources to be updated [GH-29257]
+* `azurerm_frontdoor_firewall_policy` - block new resource creation while allowing existing resources to be updated [GH-29257]
+* `azurerm_frontdoor_custom_https_configuration` - block new resource creation while allowing existing resources to be updated [GH-29257]
+* `azurerm_frontdoor_rules_engine` - block new resource creation while allowing existing resources to be updated [GH-29257]
 * `azurerm_function_app_flex_consumption` - add support for the `vnet_route_all_enabled` property [GH-29839]
-* `azurerm_windows_virtual_machine`: `os_disk.0.diff_disk_settings.0.placement` now supports `NvmeDisk` [GH-29922]
-* `azurerm_policy_set_definition` - migrate to use `go-azure-sdk` [GH-29863]
+* `azurerm_machine_learning_compute_cluster` - the `scale_settings` block and its sub-properties are no longer `ForceNew` [GH-29878]
+* `azurerm_machine_learning_compute_cluster` - the `tags` property is no longer `ForceNew` [GH-29878]
+* `azurerm_oracle_autonomous_database ` - add support for `long_term_backup_schedule` [GH-29207] 
+* `azurerm_policy_set_definition` - add support for the `policy_definition_reference.version` property [GH-29924]
+* `azurerm_policy_set_definition` - migrate to use `go-azure-sdk` [GH-29863] 
+* `azurerm_private_link_service` - add support for the `destination_ip_address` property [GH-29395]
 * `azurerm_purview_account` - add support for the `managed_event_hub_enabled` and `aws_external_id` properties [GH-29732]
+* `azurerm_windows_virtual_machine`: `os_disk.0.diff_disk_settings.0.placement` now supports `NvmeDisk` [GH-29922]
 
 BUG FIXES:
 * `provider` - allow missing `subscription_id` when `use_cli` is `true` [GH-29985]
