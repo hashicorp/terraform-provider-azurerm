@@ -4,13 +4,17 @@
 package web
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -142,12 +146,50 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 
 			"zone_redundant": {
 				Type:     pluginsdk.TypeBool,
-				ForceNew: true,
 				Optional: true,
 			},
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				// Specifying the `zone_redundant` SKU tier requires `Premium`.
+				zoneRedundant := d.GetRawConfig().AsValueMap()["zone_redundant"]
+				if !zoneRedundant.IsNull() {
+					skuConfig := d.Get("sku").([]interface{})
+					if len(skuConfig) > 0 {
+						sku := skuConfig[0].(map[string]interface{})
+						if tier, ok := sku["tier"]; ok {
+							if !strings.Contains(tier.(string), "Premium") {
+								return errors.New("`zone_redundant` cannot be specified when `sku.0.tier` is not `Premium`")
+							}
+						}
+					}
+				}
+				return nil
+			}),
+
+			pluginsdk.ForceNewIf("zone_redundant", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+				zoneRedundant := d.GetRawConfig().AsValueMap()["zone_redundant"]
+				if !zoneRedundant.IsNull() {
+					old, new := d.GetChange("zone_redundant")
+					if old.(bool) != new.(bool) {
+						skuConfig := d.Get("sku").([]interface{})
+						if len(skuConfig) > 0 {
+							sku := skuConfig[0].(map[string]interface{})
+							// `zone_redundant` can be disabled and enabling it requires the `capacity` of `sku` to be greater than `1`.
+							if old.(bool) && !new.(bool) {
+								return false
+							} else if capacity, ok := sku["capacity"]; ok && capacity.(int) > 1 {
+								return false
+							}
+						}
+					}
+				}
+				return true
+			}),
+		),
 	}
 }
 
@@ -219,8 +261,8 @@ func resourceAppServicePlanCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v))
 	}
 
-	if v := d.Get("zone_redundant").(bool); v {
-		appServicePlan.AppServicePlanProperties.ZoneRedundant = utils.Bool(v)
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "zone_redundant") {
+		appServicePlan.AppServicePlanProperties.ZoneRedundant = pointer.To(d.Get("zone_redundant").(bool))
 	}
 
 	if reserved {

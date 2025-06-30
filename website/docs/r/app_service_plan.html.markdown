@@ -125,9 +125,9 @@ The following arguments are supported:
 
 * `is_xenon` - (Optional) Whether to create a xenon App Service Plan.
 
-* `zone_redundant` - (Optional) Specifies if the App Service Plan should be Zone Redundant. Changing this forces a new resource to be created.
+* `zone_redundant` - (Optional) Specifies if the App Service Plan should be Zone Redundant.
 
-~> **Note:** Requires either `PremiumV2` or `PremiumV3` SKU and that at least 3 instances. For more information, please see the [App Service Team Blog](https://azure.github.io/AppService/2021/08/25/App-service-support-for-availability-zones.html).
+~> **Note:** The `zone_redundant` can only be specified when the SKU tier is set to `Premium`. It can be disabled. To enable it, the SKU capacity must be greater than `1`, and the App Service Plan must support more than one availability zone. In all other cases, changing forces a new resource to be created. For more information, please see the [Availability Zone Support](https://learn.microsoft.com/en-us/azure/reliability/reliability-app-service?tabs=azurecli&pivots=free-shared-basic#availability-zone-support). 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
