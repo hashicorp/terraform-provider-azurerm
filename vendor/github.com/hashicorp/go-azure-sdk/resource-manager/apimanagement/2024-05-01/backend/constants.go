@@ -49,3 +49,44 @@ func parseBackendProtocol(input string) (*BackendProtocol, error) {
 	out := BackendProtocol(input)
 	return &out, nil
 }
+
+type BackendType string
+
+const (
+	BackendTypePool   BackendType = "Pool"
+	BackendTypeSingle BackendType = "Single"
+)
+
+func PossibleValuesForBackendType() []string {
+	return []string{
+		string(BackendTypePool),
+		string(BackendTypeSingle),
+	}
+}
+
+func (s *BackendType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseBackendType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseBackendType(input string) (*BackendType, error) {
+	vals := map[string]BackendType{
+		"pool":   BackendTypePool,
+		"single": BackendTypeSingle,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := BackendType(input)
+	return &out, nil
+}
