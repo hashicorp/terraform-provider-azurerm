@@ -262,8 +262,8 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "test" {
   granular_marking {
     language = "en"
   }
-  source            = "updated Sentinel"
-  validate_from_utc = "2022-12-15T16:00:00Z"
+  source            = "test Sentinel"
+  validate_from_utc = "2023-12-15T16:00:00Z"
 
   depends_on = [azurerm_sentinel_log_analytics_workspace_onboarding.test]
 }
