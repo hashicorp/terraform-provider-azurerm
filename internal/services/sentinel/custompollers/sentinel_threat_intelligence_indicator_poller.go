@@ -56,11 +56,6 @@ func (p *threatIntelligenceIndicatorPooler) Poll(ctx context.Context) (*pollers.
 		return nil, fmt.Errorf("retrieving %s, %+v", p.id, err)
 	}
 
-	model, ok := resp.Value.AsThreatIntelligenceIndicatorModel()
-	if !ok {
-		return &pollers.PollingFailedError{}, fmt.Errorf("retrieving %s: type mismatch", id)
-	}
-
 	if p.succeededCnt < concistentRequestNumber {
 		p.succeededCnt++
 		return &pollingInProgress, nil
