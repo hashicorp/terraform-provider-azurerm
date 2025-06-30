@@ -442,7 +442,7 @@ resource "azurerm_service_plan" "test" {
     Foo         = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "East Asia")
 }
 
 func (r ServicePlanResource) completeUpdate(data acceptance.TestData) string {
@@ -471,7 +471,7 @@ resource "azurerm_service_plan" "test" {
     Foo = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "East Asia")
 }
 
 func (r ServicePlanResource) requiresImport(data acceptance.TestData) string {
