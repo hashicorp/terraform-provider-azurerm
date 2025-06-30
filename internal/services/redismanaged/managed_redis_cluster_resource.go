@@ -16,12 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -51,7 +52,7 @@ func resourceManagedRedisCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.RedisEnterpriseName,
+				ValidateFunc: validate.ManagedRedisName,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -62,7 +63,7 @@ func resourceManagedRedisCluster() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.RedisEnterpriseClusterSkuName,
+				ValidateFunc: validate.ManagedRedisClusterSkuName,
 			},
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
@@ -104,7 +105,7 @@ func resourceManagedRedisCluster() *pluginsdk.Resource {
 }
 
 func resourceManagedRedisClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisEnterprise.Client
+	client := meta.(*clients.Client).RedisManaged.Client
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -128,7 +129,7 @@ func resourceManagedRedisClusterCreate(d *pluginsdk.ResourceData, meta interface
 
 	// If the sku type is flash check to make sure that the sku is supported in that region
 	if strings.Contains(string(sku.Name), "Flash") {
-		if err := validate.RedisEnterpriseClusterLocationFlashSkuSupport(location); err != nil {
+		if err := validate.ManagedRedisClusterLocationFlashSkuSupport(location); err != nil {
 			return fmt.Errorf("%s: %s", id, err)
 		}
 	}
@@ -145,7 +146,7 @@ func resourceManagedRedisClusterCreate(d *pluginsdk.ResourceData, meta interface
 
 	if v, ok := d.GetOk("zones"); ok {
 		// Zones are currently not supported in these regions
-		if err := validate.RedisEnterpriseClusterLocationZoneSupport(location); err != nil {
+		if err := validate.ManagedRedisClusterLocationZoneSupport(location); err != nil {
 			return fmt.Errorf("%s: %s", id, err)
 		}
 		zones := zones.ExpandUntyped(v.(*pluginsdk.Set).List())
@@ -175,7 +176,7 @@ func resourceManagedRedisClusterCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceManagedRedisClusterRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisEnterprise.Client
+	client := meta.(*clients.Client).RedisManaged.Client
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -224,7 +225,7 @@ func resourceManagedRedisClusterRead(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func resourceManagedRedisClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisEnterprise.Client
+	client := meta.(*clients.Client).RedisManaged.Client
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
@@ -262,7 +263,7 @@ func resourceManagedRedisClusterUpdate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceManagedRedisClusterDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RedisEnterprise.Client
+	client := meta.(*clients.Client).RedisManaged.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
