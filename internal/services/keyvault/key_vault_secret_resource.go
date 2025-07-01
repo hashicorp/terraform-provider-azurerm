@@ -173,13 +173,17 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
+		// Remove nanoseconds to avoid precision issues when converting to date.UnixTime
+		cleaned := time.Unix(notBeforeDate.Unix(), 0).UTC()
+		notBeforeUnixTime := date.UnixTime(cleaned)
 		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
+		// Remove nanoseconds to avoid precision issues when converting to date.UnixTime
+		cleaned := time.Unix(expirationDate.Unix(), 0).UTC()
+		expirationUnixTime := date.UnixTime(cleaned)
 		parameters.SecretAttributes.Expires = &expirationUnixTime
 	}
 
@@ -277,13 +281,17 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		notBeforeUnixTime := date.UnixTime(notBeforeDate)
+		// Remove nanoseconds to avoid precision issues when converting to date.UnixTime
+		cleaned := time.Unix(notBeforeDate.Unix(), 0).UTC()
+		notBeforeUnixTime := date.UnixTime(cleaned)
 		secretAttributes.NotBefore = &notBeforeUnixTime
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		expirationUnixTime := date.UnixTime(expirationDate)
+		// Remove nanoseconds to avoid precision issues when converting to date.UnixTime
+		cleaned := time.Unix(expirationDate.Unix(), 0).UTC()
+		expirationUnixTime := date.UnixTime(cleaned)
 		secretAttributes.Expires = &expirationUnixTime
 	}
 
