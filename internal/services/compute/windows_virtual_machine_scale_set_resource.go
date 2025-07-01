@@ -272,7 +272,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 	if upgradeMode == virtualmachinescalesets.UpgradeModeRolling && (healthProbeId == "" && !hasHealthExtension) {
 		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
+	enableAutomaticUpdates := d.Get("automatic_updates_enabled").(bool)
 	if !features.FivePointOh() {
 		if v, ok := d.GetOk("enable_automatic_updates"); ok {
 			enableAutomaticUpdates = v.(bool)

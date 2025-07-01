@@ -507,7 +507,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		computerName = id.VirtualMachineName
 	}
 
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
+	enableAutomaticUpdates := d.Get("automatic_updates_enabled").(bool)
 	if !features.FivePointOh() {
 		if v, ok := d.GetOk("enable_automatic_updates"); ok {
 			enableAutomaticUpdates = v.(bool)

@@ -183,6 +183,9 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))
+	if licenseType == "" {
+		licenseType = dedicatedhosts.DedicatedHostLicenseTypesNone
+	}
 	payload := dedicatedhosts.DedicatedHost{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &dedicatedhosts.DedicatedHostProperties{
@@ -273,6 +276,9 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 		if d.HasChange("license_type") {
 			licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))
+			if licenseType == "" {
+				licenseType = dedicatedhosts.DedicatedHostLicenseTypesNone
+			}
 			payload.Properties.LicenseType = &licenseType
 		}
 	}
