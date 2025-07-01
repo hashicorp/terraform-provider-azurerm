@@ -186,11 +186,6 @@ and we recommend using the %[2]q resource instead.
 		resource.Identity = &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(resourceId, idType),
 		}
-		if v, ok := rw.resource.(ResourceWithIdentityDiscriminatedType); ok {
-			resource.Identity = &schema.ResourceIdentity{
-				SchemaFunc: pluginsdk.GenerateIdentitySchemaWithDiscriminatedType(resourceId, v.DiscriminatedType().Field, idType),
-			}
-		}
 
 		resource.Importer = pluginsdk.ImporterValidatingIdentityThen(resourceId, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
