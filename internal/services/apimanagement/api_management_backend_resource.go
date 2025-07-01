@@ -356,6 +356,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Required: true,
 							MinItems: 1,
+							MaxItems: 30,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"id": {
@@ -404,35 +405,46 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	credentialsRaw := d.Get("credentials").([]interface{})
-	credentials := expandApiManagementBackendCredentials(credentialsRaw)
-	protocol := d.Get("protocol").(string)
-	proxyRaw := d.Get("proxy").([]interface{})
-	proxy := expandApiManagementBackendProxy(proxyRaw)
-	tlsRaw := d.Get("tls").([]interface{})
-	tls := expandApiManagementBackendTls(tlsRaw)
-	url := d.Get("url").(string)
-	backendType := pointer.To(backend.BackendTypeSingle) // Default to Single backend type. Because this value is heavily dependant on the existence of the `pool` field, we set it to Single here and then change it if the pool is set.
+	properties := new(backend.BackendContractProperties)
 
-	circuitBreakerRaw := d.Get("circuit_breaker_rule").([]interface{})
-	circuitBreaker := expandApiManagementBackendCircuitBreaker(circuitBreakerRaw)
+	// Pool type backends are very particular about what fields can and cannot be set
+	if poolRaw, ok := d.GetOk("pool"); ok {
+		properties.Type = pointer.To(backend.BackendTypePool)
+		properties.Pool = expandApiManagementBackendPool(poolRaw.([]interface{}))
+		// TODO, currently get two validation errors of
+		// Url is not supported for backend pool.
+		// Protocol is not supported for backend pool.
+		// Both of these are set to "null" if I look at the ARM representation of an existing pool type backend
+		// I cannot set nil for these fields, and they are defaulted to empty strings which causes the error
+		// Idea: I know it works via the azapi provider, try intercepting that put request and see what the data is
+		// Also, the model ('model_backendcontractproperties.go') shows that the protocol and url are not set as "omitempty", they are the only ones which sucks cus those are the ones I need to _be_ empty
+	} else {
+		properties.Type = pointer.To(backend.BackendTypeSingle) // Set the type to Single if pool is not defined
+		// Single type backends can have all the other fields set
+		credentialsRaw := d.Get("credentials").([]interface{})
+		properties.Credentials = expandApiManagementBackendCredentials(credentialsRaw)
+		properties.Protocol = backend.BackendProtocol(d.Get("protocol").(string))
+		proxyRaw := d.Get("proxy").([]interface{})
+		properties.Proxy = expandApiManagementBackendProxy(proxyRaw)
+		tlsRaw := d.Get("tls").([]interface{})
+		properties.Tls = expandApiManagementBackendTls(tlsRaw)
+		properties.Url = d.Get("url").(string)
+		circuitBreakerRaw := d.Get("circuit_breaker_rule").([]interface{})
+		properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(circuitBreakerRaw)
 
-	backendContract := backend.BackendContract{
-		Properties: &backend.BackendContractProperties{
-			Credentials:    credentials,
-			Protocol:       backend.BackendProtocol(protocol),
-			Proxy:          proxy,
-			Tls:            tls,
-			Url:            url,
-			CircuitBreaker: circuitBreaker,
-			Type:           backendType,
-		},
+		if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
+			err, serviceFabricCluster := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
+			if err != nil {
+				return err
+			}
+			properties.Properties = &backend.BackendProperties{
+				ServiceFabricCluster: serviceFabricCluster,
+			}
+		}
 	}
 
-	if poolRaw, ok := d.GetOk("pool"); ok {
-		pool := expandApiManagementBackendPool(poolRaw.([]interface{}))
-		backendContract.Properties.Pool = pool
-		backendContract.Properties.Type = pointer.To(backend.BackendTypePool) // If the pool is set, we change the backend type to pool (LoadBalancer)
+	backendContract := backend.BackendContract{
+		Properties: properties,
 	}
 
 	if description, ok := d.GetOk("description"); ok {
@@ -445,15 +457,8 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 		backendContract.Properties.Title = pointer.To(title.(string))
 	}
 
-	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
-		err, serviceFabricCluster := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
-		if err != nil {
-			return err
-		}
-		backendContract.Properties.Properties = &backend.BackendProperties{
-			ServiceFabricCluster: serviceFabricCluster,
-		}
-	}
+	// TODO, remove this debugging
+	log.Printf("[DEBUG] sending properties: %+v", *backendContract.Properties)
 
 	if _, err := client.CreateOrUpdate(ctx, id, backendContract, backend.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
