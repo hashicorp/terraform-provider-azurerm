@@ -418,6 +418,8 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 		// I cannot set nil for these fields, and they are defaulted to empty strings which causes the error
 		// Idea: I know it works via the azapi provider, try intercepting that put request and see what the data is
 		// Also, the model ('model_backendcontractproperties.go') shows that the protocol and url are not set as "omitempty", they are the only ones which sucks cus those are the ones I need to _be_ empty
+		properties.Protocol = backend.BackendProtocol("")
+		properties.Url = ""
 	} else {
 		properties.Type = pointer.To(backend.BackendTypeSingle) // Set the type to Single if pool is not defined
 		// Single type backends can have all the other fields set
