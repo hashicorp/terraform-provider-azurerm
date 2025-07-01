@@ -5,6 +5,7 @@ FEATURES:
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
+*` azurerm_virtual_network_gateway` - the `ip_configuration.public_ip_address_id` property is now optional [GH-30038]
 * **Data Source**: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
 * `azurerm_cdn_endpoint` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
 * `azurerm_cdn_endpoint_custom_domain` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
