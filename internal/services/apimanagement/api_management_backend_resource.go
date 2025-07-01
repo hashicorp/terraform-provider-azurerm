@@ -49,6 +49,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ApiManagementBackendName,
+				Description:  "Specifies the name of the API Management Backend. Changing this forces a new resource to be created.",
 			},
 
 			"api_management_name": schemaz.SchemaApiManagementName(),
@@ -56,9 +57,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"credentials": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"authorization": {
@@ -121,8 +123,9 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"protocol": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"pool"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(backend.BackendProtocolHTTP),
 					string(backend.BackendProtocolSoap),
@@ -130,9 +133,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"proxy": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"password": {
@@ -162,9 +166,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"service_fabric_cluster": {
-				Type:     pluginsdk.TypeList,
-				MaxItems: 1,
-				Optional: true,
+				Type:          pluginsdk.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"client_certificate_id": {
@@ -231,9 +236,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"tls": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"validate_certificate_chain": {
@@ -257,86 +263,77 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 				ConflictsWith: []string{"pool"},
 			},
 
-			"circuit_breaker": {
+			"circuit_breaker_rule": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"pool"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"rules": {
-							Type:     pluginsdk.TypeList,
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"accept_retry_after": {
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  false,
+						},
+						"trip_duration": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azvalidate.ISO8601Duration,
+						},
+						"failure_condition": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"name": {
-										Type:         pluginsdk.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+									"count": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 									},
-									"accept_retry_after": {
-										Type:     pluginsdk.TypeBool,
+									"error_reasons": {
+										Type:     pluginsdk.TypeList,
 										Optional: true,
-										Default:  false,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"OperationNotFound",
+												"SubscriptionKeyNotFound",
+												"SubscriptionKeyInvalid",
+												"ClientConnectionFailure",
+												"BackendConnectionFailure",
+												"ExpressionValueEvaluationFailure",
+											}, false),
+										},
 									},
-									"trip_duration": {
+									"interval": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ValidateFunc: azvalidate.ISO8601Duration,
 									},
-									"failure_condition": {
+									"percentage": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(0, 100),
+										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
+									},
+									"status_code_ranges": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
-										MaxItems: 1,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
-												"count": {
-													Type:         pluginsdk.TypeInt,
-													Optional:     true,
-													ExactlyOneOf: []string{"circuit_breaker.0.rules.0.failure_condition.0.count", "circuit_breaker.0.rules.0.failure_condition.0.percentage"},
-												},
-												"error_reasons": {
-													Type:     pluginsdk.TypeList,
-													Optional: true,
-													Elem: &pluginsdk.Schema{
-														Type: pluginsdk.TypeString,
-														ValidateFunc: validation.StringInSlice([]string{
-															"OperationNotFound",
-															"SubscriptionKeyNotFound",
-															"SubscriptionKeyInvalid",
-															"ClientConnectionFailure",
-															"BackendConnectionFailure",
-															"ExpressionValueEvaluationFailure",
-														}, false),
-													},
-												},
-												"interval": {
-													Type:         pluginsdk.TypeString,
-													Required:     true,
-													ValidateFunc: azvalidate.ISO8601Duration,
-												},
-												"percentage": {
-													Type:         pluginsdk.TypeInt,
-													Optional:     true,
-													ValidateFunc: validation.IntBetween(0, 100),
-													ExactlyOneOf: []string{"circuit_breaker.0.rules.0.failure_condition.0.count", "circuit_breaker.0.rules.0.failure_condition.0.percentage"},
-												},
-												"status_code_ranges": {
-													Type:     pluginsdk.TypeList,
+												"min": {
+													Type:     pluginsdk.TypeInt,
 													Required: true,
-													Elem: &pluginsdk.Resource{
-														Schema: map[string]*pluginsdk.Schema{
-															"min": {
-																Type:     pluginsdk.TypeInt,
-																Required: true,
-															},
-															"max": {
-																Type:     pluginsdk.TypeInt,
-																Required: true,
-															},
-														},
-													},
+												},
+												"max": {
+													Type:     pluginsdk.TypeInt,
+													Required: true,
 												},
 											},
 										},
@@ -352,10 +349,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
-				ConflictsWith: []string{"circuit_breaker", "url"},
+				ConflictsWith: []string{"circuit_breaker_rule", "url"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"services": {
+						"service": {
 							Type:     pluginsdk.TypeList,
 							Required: true,
 							MinItems: 1,
@@ -415,10 +412,10 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	tlsRaw := d.Get("tls").([]interface{})
 	tls := expandApiManagementBackendTls(tlsRaw)
 	url := d.Get("url").(string)
-	circuitBreakerRaw := d.Get("circuit_breaker").([]interface{})
+	backendType := pointer.To(backend.BackendTypeSingle) // Default to Single backend type. Because this value is heavily dependant on the existence of the `pool` field, we set it to Single here and then change it if the pool is set.
+
+	circuitBreakerRaw := d.Get("circuit_breaker_rule").([]interface{})
 	circuitBreaker := expandApiManagementBackendCircuitBreaker(circuitBreakerRaw)
-	poolRaw := d.Get("pool").([]interface{})
-	pool := expandApiManagementBackendPool(poolRaw)
 
 	backendContract := backend.BackendContract{
 		Properties: &backend.BackendContractProperties{
@@ -428,9 +425,16 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 			Tls:            tls,
 			Url:            url,
 			CircuitBreaker: circuitBreaker,
-			Pool:           pool,
+			Type:           backendType,
 		},
 	}
+
+	if poolRaw, ok := d.GetOk("pool"); ok {
+		pool := expandApiManagementBackendPool(poolRaw.([]interface{}))
+		backendContract.Properties.Pool = pool
+		backendContract.Properties.Type = pointer.To(backend.BackendTypePool) // If the pool is set, we change the backend type to pool (LoadBalancer)
+	}
+
 	if description, ok := d.GetOk("description"); ok {
 		backendContract.Properties.Description = pointer.To(description.(string))
 	}
@@ -501,8 +505,8 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 					return fmt.Errorf("setting `service_fabric_cluster`: %s", err)
 				}
 			}
-			if err := d.Set("circuit_breaker", flattenApiManagementBackendCircuitBreaker(props.CircuitBreaker)); err != nil {
-				return fmt.Errorf("setting `circuit_breaker`: %s", err)
+			if err := d.Set("circuit_breaker_rule", flattenApiManagementBackendCircuitBreaker(props.CircuitBreaker)); err != nil {
+				return fmt.Errorf("setting `circuit_breaker_rule`: %s", err)
 			}
 			if err := d.Set("pool", flattenApiManagementBackendPool(props.Pool)); err != nil {
 				return fmt.Errorf("setting `pool`: %s", err)
@@ -677,74 +681,61 @@ func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.Back
 	}
 
 	v := input[0].(map[string]interface{})
-	circuitBreaker := backend.BackendCircuitBreaker{}
+	circuitBreaker := backend.BackendCircuitBreaker{} // API & SDK have a circuit_breaker and a sub rules block. This is a lot of nesting so we "merge" the two levels into one object.
+	rules := make([]backend.CircuitBreakerRule, 0)    // API requests a list so we need to provide a slice, even if it only contains one element.
+	rule := backend.CircuitBreakerRule{}
 
-	if rulesRaw := v["rules"].([]interface{}); len(rulesRaw) > 0 {
-		rules := make([]backend.CircuitBreakerRule, 0)
-		for _, ruleRaw := range rulesRaw {
-			rule := ruleRaw.(map[string]interface{})
-			circuitBreakerRule := backend.CircuitBreakerRule{}
-
-			if name, ok := rule["name"].(string); ok && name != "" {
-				circuitBreakerRule.Name = pointer.To(name)
-			}
-
-			if acceptRetryAfter, ok := rule["accept_retry_after"].(bool); ok {
-				circuitBreakerRule.AcceptRetryAfter = pointer.To(acceptRetryAfter)
-			}
-
-			if tripDuration, ok := rule["trip_duration"].(string); ok && tripDuration != "" {
-				circuitBreakerRule.TripDuration = pointer.To(tripDuration)
-			}
-
-			if failureConditionRaw := rule["failure_condition"].([]interface{}); len(failureConditionRaw) > 0 {
-				failureCondition := failureConditionRaw[0].(map[string]interface{})
-				circuitBreakerFailureCondition := backend.CircuitBreakerFailureCondition{}
-
-				if count, ok := failureCondition["count"].(int); ok {
-					circuitBreakerFailureCondition.Count = pointer.To(int64(count))
-				} else if percentage, ok := failureCondition["percentage"].(int); ok {
-					circuitBreakerFailureCondition.Percentage = pointer.To(int64(percentage))
-				}
-
-				if errorReasonsRaw := failureCondition["error_reasons"].([]interface{}); len(errorReasonsRaw) > 0 {
-					errorReasons := make([]string, 0)
-					for _, v := range errorReasonsRaw {
-						errorReasons = append(errorReasons, v.(string))
-					}
-					circuitBreakerFailureCondition.ErrorReasons = &errorReasons
-				}
-
-				if interval, ok := failureCondition["interval"].(string); ok && interval != "" {
-					circuitBreakerFailureCondition.Interval = pointer.To(interval)
-				}
-
-				if statusCodeRangesRaw := failureCondition["status_code_ranges"].([]interface{}); len(statusCodeRangesRaw) > 0 {
-					statusCodeRanges := make([]backend.FailureStatusCodeRange, 0)
-					for _, rangeRaw := range statusCodeRangesRaw {
-						scRange := rangeRaw.(map[string]interface{})
-						statusCodeRange := backend.FailureStatusCodeRange{}
-
-						if min, ok := scRange["min"].(int); ok {
-							statusCodeRange.Min = pointer.To(int64(min))
-						}
-
-						if max, ok := scRange["max"].(int); ok {
-							statusCodeRange.Max = pointer.To(int64(max))
-						}
-
-						statusCodeRanges = append(statusCodeRanges, statusCodeRange)
-					}
-					circuitBreakerFailureCondition.StatusCodeRanges = &statusCodeRanges
-				}
-
-				circuitBreakerRule.FailureCondition = &circuitBreakerFailureCondition
-			}
-
-			rules = append(rules, circuitBreakerRule)
-		}
-		circuitBreaker.Rules = &rules
+	if name, ok := v["name"].(string); ok {
+		rule.Name = pointer.To(name)
 	}
+	if acceptRetryAfter, ok := v["accept_retry_after"].(bool); ok {
+		rule.AcceptRetryAfter = pointer.To(acceptRetryAfter)
+	}
+	if tripDuration, ok := v["trip_duration"].(string); ok {
+		rule.TripDuration = pointer.To(tripDuration)
+	}
+
+	if failureConditionRaw := v["failure_condition"].([]interface{}); len(failureConditionRaw) > 0 {
+		failureCondition := failureConditionRaw[0].(map[string]interface{})
+		circuitBreakerFailureCondition := backend.CircuitBreakerFailureCondition{}
+
+		if count, ok := failureCondition["count"].(int); ok {
+			circuitBreakerFailureCondition.Count = pointer.To(int64(count))
+		}
+		if percentage, ok := failureCondition["percentage"].(int); ok {
+			circuitBreakerFailureCondition.Percentage = pointer.To(int64(percentage))
+		}
+		if errorReasonsRaw := failureCondition["error_reasons"].([]interface{}); len(errorReasonsRaw) > 0 {
+			errorReasons := make([]string, 0)
+			for _, v := range errorReasonsRaw {
+				errorReasons = append(errorReasons, v.(string))
+			}
+			circuitBreakerFailureCondition.ErrorReasons = &errorReasons
+		}
+		if interval, ok := failureCondition["interval"].(string); ok && interval != "" {
+			circuitBreakerFailureCondition.Interval = pointer.To(interval)
+		}
+
+		if statusCodeRangesRaw := failureCondition["status_code_ranges"].([]interface{}); len(statusCodeRangesRaw) > 0 {
+			statusCodeRanges := make([]backend.FailureStatusCodeRange, 0)
+			for _, rangeRaw := range statusCodeRangesRaw {
+				scRange := rangeRaw.(map[string]interface{})
+				statusCodeRange := backend.FailureStatusCodeRange{}
+				if min, ok := scRange["min"].(int); ok {
+					statusCodeRange.Min = pointer.To(int64(min))
+				}
+				if max, ok := scRange["max"].(int); ok {
+					statusCodeRange.Max = pointer.To(int64(max))
+				}
+				statusCodeRanges = append(statusCodeRanges, statusCodeRange)
+			}
+			circuitBreakerFailureCondition.StatusCodeRanges = &statusCodeRanges
+		}
+		rule.FailureCondition = &circuitBreakerFailureCondition
+	}
+
+	rules[0] = rule // Add element to "list"
+	circuitBreaker.Rules = &rules
 
 	return &circuitBreaker
 }
@@ -757,7 +748,7 @@ func expandApiManagementBackendPool(input []interface{}) *backend.BackendBasePar
 	v := input[0].(map[string]interface{})
 	pool := backend.BackendBaseParametersPool{}
 
-	if servicesRaw := v["services"].([]interface{}); len(servicesRaw) > 0 {
+	if servicesRaw := v["service"].([]interface{}); len(servicesRaw) > 0 {
 		services := make([]backend.BackendPoolItem, 0)
 		for _, serviceRaw := range servicesRaw {
 			service := serviceRaw.(map[string]interface{})
@@ -897,72 +888,66 @@ func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBrea
 	if input == nil {
 		return results
 	}
+	if input.Rules == nil || len(*input.Rules) == 0 {
+		return results
+	}
 
-	result := make(map[string]interface{})
+	// We're only processing the first rule as the Terraform schema expects one circuit breaker rule
+	rule := (*input.Rules)[0]
+	result := make(map[string]interface{}) // API & SDK have a circuit_breaker and a sub rules block. This is a lot of nesting so we "merge" the two levels into one object.
 
-	if rules := input.Rules; rules != nil {
-		rulesResult := make([]interface{}, 0)
-		for _, rule := range *rules {
-			ruleResult := make(map[string]interface{})
+	if rule.Name != nil {
+		result["name"] = *rule.Name
+	}
 
-			if rule.Name != nil {
-				ruleResult["name"] = *rule.Name
-			}
+	if rule.AcceptRetryAfter != nil {
+		result["accept_retry_after"] = *rule.AcceptRetryAfter
+	}
 
-			if rule.AcceptRetryAfter != nil {
-				ruleResult["accept_retry_after"] = *rule.AcceptRetryAfter
-			}
+	if rule.TripDuration != nil {
+		result["trip_duration"] = *rule.TripDuration
+	}
 
-			if rule.TripDuration != nil {
-				ruleResult["trip_duration"] = *rule.TripDuration
-			}
+	if failureCondition := rule.FailureCondition; failureCondition != nil {
+		failureConditionResult := make(map[string]interface{})
 
-			if failureCondition := rule.FailureCondition; failureCondition != nil {
-				failureConditionResult := make(map[string]interface{})
-
-				if failureCondition.Count != nil {
-					failureConditionResult["count"] = *failureCondition.Count
-				}
-
-				if failureCondition.ErrorReasons != nil {
-					failureConditionResult["error_reasons"] = *failureCondition.ErrorReasons
-				}
-
-				if failureCondition.Interval != nil {
-					failureConditionResult["interval"] = *failureCondition.Interval
-				}
-
-				if failureCondition.Percentage != nil {
-					failureConditionResult["percentage"] = *failureCondition.Percentage
-				}
-
-				if statusCodeRanges := failureCondition.StatusCodeRanges; statusCodeRanges != nil {
-					statusCodeRangesResult := make([]interface{}, 0)
-
-					for _, statusCodeRange := range *statusCodeRanges {
-						rangeResult := make(map[string]interface{})
-
-						if statusCodeRange.Min != nil {
-							rangeResult["min"] = *statusCodeRange.Min
-						}
-
-						if statusCodeRange.Max != nil {
-							rangeResult["max"] = *statusCodeRange.Max
-						}
-
-						statusCodeRangesResult = append(statusCodeRangesResult, rangeResult)
-					}
-
-					failureConditionResult["status_code_ranges"] = statusCodeRangesResult
-				}
-
-				ruleResult["failure_condition"] = []interface{}{failureConditionResult}
-			}
-
-			rulesResult = append(rulesResult, ruleResult)
+		if failureCondition.Count != nil {
+			failureConditionResult["count"] = int(*failureCondition.Count)
 		}
 
-		result["rules"] = rulesResult
+		if failureCondition.ErrorReasons != nil {
+			failureConditionResult["error_reasons"] = *failureCondition.ErrorReasons
+		}
+
+		if failureCondition.Interval != nil {
+			failureConditionResult["interval"] = *failureCondition.Interval
+		}
+
+		if failureCondition.Percentage != nil {
+			failureConditionResult["percentage"] = int(*failureCondition.Percentage)
+		}
+
+		if statusCodeRanges := failureCondition.StatusCodeRanges; statusCodeRanges != nil {
+			statusCodeRangesResult := make([]interface{}, 0)
+
+			for _, statusCodeRange := range *statusCodeRanges {
+				rangeResult := make(map[string]interface{})
+
+				if statusCodeRange.Min != nil {
+					rangeResult["min"] = int(*statusCodeRange.Min)
+				}
+
+				if statusCodeRange.Max != nil {
+					rangeResult["max"] = int(*statusCodeRange.Max)
+				}
+
+				statusCodeRangesResult = append(statusCodeRangesResult, rangeResult)
+			}
+
+			failureConditionResult["status_code_ranges"] = statusCodeRangesResult
+		}
+
+		result["failure_condition"] = []interface{}{failureConditionResult}
 	}
 
 	return []interface{}{result}
@@ -995,7 +980,7 @@ func flattenApiManagementBackendPool(input *backend.BackendBaseParametersPool) [
 			servicesResult = append(servicesResult, serviceResult)
 		}
 
-		result["services"] = servicesResult
+		result["service"] = servicesResult
 	}
 
 	return []interface{}{result}
