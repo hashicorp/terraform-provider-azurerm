@@ -184,7 +184,7 @@ func (r ManagedRedisDatabaseResource) ModelObject() interface{} {
 }
 
 func (r ManagedRedisDatabaseResource) ResourceType() string {
-	return "azurerm_redis_enterprise_database"
+	return "azurerm_managed_redis_database"
 }
 
 func (r ManagedRedisDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {

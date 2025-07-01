@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/validate"
@@ -41,7 +40,7 @@ type ManagedRedisClusterResourceModel struct {
 }
 
 func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -74,22 +73,6 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		arguments["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(redisenterprise.TlsVersionOnePointTwo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(redisenterprise.TlsVersionOnePointZero),
-				string(redisenterprise.TlsVersionOnePointOne),
-				string(redisenterprise.TlsVersionOnePointTwo),
-			}, false),
-		}
-	}
-
-	return arguments
 }
 
 func (r ManagedRedisClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -175,7 +158,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				Target:     []string{"Running"},
 				Refresh:    managedRedisClusterStateRefreshFunc(ctx, client, id),
 				MinTimeout: 15 * time.Second,
-				Timeout:    30 * time.Minute,
+				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
 			}
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
