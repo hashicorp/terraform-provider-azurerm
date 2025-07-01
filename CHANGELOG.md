@@ -5,7 +5,6 @@ FEATURES:
 * **New Resource**: `azurerm_management_group_policy_set_definition` [GH-29863]
 
 ENHANCEMENTS:
-*` azurerm_virtual_network_gateway` - the `ip_configuration.public_ip_address_id` property is now optional [GH-30038]
 * **Data Source**: `azurerm_communication_service` - add support for the `immutable_resource_id` property [GH-29912]
 * `azurerm_cdn_endpoint` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
 * `azurerm_cdn_endpoint_custom_domain` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated [GH-29299]
@@ -25,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_policy_set_definition` - migrate to use `go-azure-sdk` [GH-29863] 
 * `azurerm_private_link_service` - add support for the `destination_ip_address` property [GH-29395]
 * `azurerm_purview_account` - add support for the `managed_event_hub_enabled` and `aws_external_id` properties [GH-29732]
+* `azurerm_virtual_network_gateway` - the `ip_configuration.public_ip_address_id` property is now optional [GH-30038]
 * `azurerm_windows_virtual_machine`: `os_disk.0.diff_disk_settings.0.placement` now supports `NvmeDisk` [GH-29922]
 
 BUG FIXES:
