@@ -1133,7 +1133,7 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterface(input []interface{
 
 		if !features.FivePointOh() {
 			config.Properties.EnableAcceleratedNetworking = pointer.To(raw["enable_accelerated_networking"].(bool))
-			config.Properties.EnableIPForwarding = pointer.To(raw["enable_ip_forwarding_enabled"].(bool))
+			config.Properties.EnableIPForwarding = pointer.To(raw["enable_ip_forwarding"].(bool))
 		}
 
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
