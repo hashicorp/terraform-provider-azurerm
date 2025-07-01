@@ -234,7 +234,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 			if linkedDatabase != nil {
 				isGeoEnabled = true
 			}
-			module, err := expandArmDatabaseModuleArrayFromModel(model.Module, isGeoEnabled)
+			module, err := expandArmDatabaseModuleArray(model.Module, isGeoEnabled)
 			if err != nil {
 				return fmt.Errorf("setting module error: %+v", err)
 			}
@@ -261,7 +261,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 					}
 
 					if resp.Model != nil && strings.Contains(strings.ToLower(string(resp.Model.Sku.Name)), "flash") {
-						return fmt.Errorf("creating a Redis Enterprise Database with modules in a Redis Enterprise Cluster that has an incompatible Flash SKU type %q - please remove the Redis Enterprise Database modules or change the Redis Enterprise Cluster SKU type %s", string(resp.Model.Sku.Name), id)
+						return fmt.Errorf("creating a Managed Redis Database with modules in a Managed Redis Cluster that has an incompatible Flash SKU type %q - please remove the Managed Redis Database modules or change the Managed Redis Cluster SKU type %s", string(resp.Model.Sku.Name), id)
 					}
 				}
 
@@ -368,7 +368,6 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 			evictionPolicy := databases.EvictionPolicy(model.EvictionPolicy)
 			protocol := databases.Protocol(model.ClientProtocol)
 
-			// Handle linked database changes for force unlink
 			if metadata.ResourceData.HasChange("linked_database_id") {
 				oldItemsRaw, newItemsRaw := metadata.ResourceData.GetChange("linked_database_id")
 				oldItems := oldItemsRaw.(*pluginsdk.Set).List()
@@ -376,7 +375,7 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 
 				isForceUnlink, data := forceUnlinkItems(oldItems, newItems)
 				if isForceUnlink {
-					if err := forceUnlinkDatabaseTyped(ctx, client, *id, *data); err != nil {
+					if err := forceUnlinkDatabase(ctx, client, *id, *data); err != nil {
 						return fmt.Errorf("unlinking database error: %+v", err)
 					}
 				}
@@ -391,7 +390,7 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 			if linkedDatabase != nil {
 				isGeoEnabled = true
 			}
-			module, err := expandArmDatabaseModuleArrayFromModel(model.Module, isGeoEnabled)
+			module, err := expandArmDatabaseModuleArray(model.Module, isGeoEnabled)
 			if err != nil {
 				return fmt.Errorf("setting module error: %+v", err)
 			}
@@ -453,7 +452,7 @@ func (r ManagedRedisDatabaseResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandArmDatabaseModuleArrayFromModel(input []ModuleModel, isGeoEnabled bool) (*[]databases.Module, error) {
+func expandArmDatabaseModuleArray(input []ModuleModel, isGeoEnabled bool) (*[]databases.Module, error) {
 	results := make([]databases.Module, 0)
 
 	for _, item := range input {
@@ -498,8 +497,8 @@ func flattenArmDatabaseModuleArrayToModel(input *[]databases.Module) []ModuleMod
 	return results
 }
 
-func forceUnlinkDatabaseTyped(ctx context.Context, client *databases.DatabasesClient, id databases.DatabaseId, unlinkedDbRaw []string) error {
-	log.Printf("[INFO]Preparing to unlink a linked database")
+func forceUnlinkDatabase(ctx context.Context, client *databases.DatabasesClient, id databases.DatabaseId, unlinkedDbRaw []string) error {
+	log.Printf("[INFO] Preparing to unlink a linked database")
 
 	parameters := databases.ForceUnlinkParameters{
 		Ids: unlinkedDbRaw,
