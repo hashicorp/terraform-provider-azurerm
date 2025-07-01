@@ -126,17 +126,15 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 
 	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["automatic_updates_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_automatic_updates"},
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
 		}
 		schema.Elem.(*pluginsdk.Resource).Schema["enable_automatic_updates"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"automatic_updates_enabled"},
-			Deprecated:    "`enable_automatic_updates` has been deprecated in favour of `automatic_updates_enabled` and will be removed in v5.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`enable_automatic_updates` has been deprecated in favour of `automatic_updates_enabled` and will be removed in v5.0 of the AzureRM Provider",
 		}
 	}
 
@@ -340,31 +338,27 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 
 	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["enable_accelerated_networking"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"accelerated_networking_enabled"},
-			Deprecated:    "`enable_accelerated_networking` has been deprecated in favour of `accelerated_networking_enabled` and will be removed in v5.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`enable_accelerated_networking` has been deprecated in favour of `accelerated_networking_enabled` and will be removed in v5.0 of the AzureRM Provider",
 		}
 		schema.Elem.(*pluginsdk.Resource).Schema["accelerated_networking_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"accelerated_networking_enabled"},
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
 		}
 
 		schema.Elem.(*pluginsdk.Resource).Schema["enable_ip_forwarding"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"ip_forwarding_enabled"},
-			Deprecated:    "`enable_ip_forwarding` has been deprecated in favour of `ip_forwarding_enabled` and will be removed in v5.0 of the AzureRM Provider",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`enable_ip_forwarding` has been deprecated in favour of `ip_forwarding_enabled` and will be removed in v5.0 of the AzureRM Provider",
 		}
 		schema.Elem.(*pluginsdk.Resource).Schema["ip_forwarding_enabled"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeBool,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"enable_ip_forwarding"},
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
 		}
 	}
 
@@ -627,34 +621,30 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["ultra_ssd_disk_iops_read_write"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			ValidateFunc:  validation.IntAtLeast(1),
-			Computed:      true,
-			ConflictsWith: []string{"disk_iops_read_write"},
-			Deprecated:    "`ultra_ssd_disk_iops_read_write` has been deprecated in favour of `disk_iops_read_write` and will be removed in v5.0 of the AzureRM Provider",
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+			Computed:     true,
+			Deprecated:   "`ultra_ssd_disk_iops_read_write` has been deprecated in favour of `disk_iops_read_write` and will be removed in v5.0 of the AzureRM Provider",
 		}
 		schema.Elem.(*pluginsdk.Resource).Schema["disk_iops_read_write"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IntAtLeast(1),
-			ConflictsWith: []string{"ultra_ssd_disk_iops_read_write"},
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 		}
 		schema.Elem.(*pluginsdk.Resource).Schema["ultra_ssd_disk_mbps_read_write"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IntAtLeast(1),
-			ConflictsWith: []string{"disk_iops_read_write"},
-			Deprecated:    "`ultra_ssd_disk_mbps_read_write` has been deprecated in favour of `disk_mpbs_read_write` and will be removed in v5.0 of the AzureRM Provider",
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+			Deprecated:   "`ultra_ssd_disk_mbps_read_write` has been deprecated in favour of `disk_mpbs_read_write` and will be removed in v5.0 of the AzureRM Provider",
 		}
 		schema.Elem.(*pluginsdk.Resource).Schema["disk_mbps_read_write"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  validation.IntAtLeast(1),
-			ConflictsWith: []string{"ultra_ssd_disk_mbps_read_write"},
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 		}
 	}
 
