@@ -66,17 +66,6 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ManagedRedisClusterSkuName,
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
-
-		"minimum_tls_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(redisenterprise.TlsVersionOnePointTwo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(redisenterprise.TlsVersionOnePointTwo),
-			}, false),
-		},
-
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -98,7 +87,18 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"minimum_tls_version": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(redisenterprise.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redisenterprise.TlsVersionOnePointTwo),
+			}, false),
+		},
+
 		"tags": commonschema.Tags(),
+
+		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 	}
 }
 
