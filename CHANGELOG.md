@@ -5,6 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_private_dns_resolver_dns_forwarding_ruleset` - fix an issue where `private_dns_resolver_outbound_endpoint_ids` failed to update [GH-30046]
 
 ## 4.35.0 (July 01, 2025)
 
