@@ -1,8 +1,10 @@
 ## 4.36.0 (Unreleased)
 
-ENHANCEMENTS:
-
 FEATURES:
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
+
+ENHANCEMENTS:
 
 BUG FIXES:
 * `azurerm_private_dns_resolver_dns_forwarding_ruleset` - fix an issue where `private_dns_resolver_outbound_endpoint_ids` failed to update [GH-30046]
