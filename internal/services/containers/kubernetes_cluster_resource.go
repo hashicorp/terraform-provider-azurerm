@@ -2671,7 +2671,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if props.SecurityProfile != nil {
 				customCaTrustCertList = utils.FlattenStringSlice(props.SecurityProfile.CustomCATrustCertificates)
 			}
-			d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList)
+			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
+				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
+			}
 
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
