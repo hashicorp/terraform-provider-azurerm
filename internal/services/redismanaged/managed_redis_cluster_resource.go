@@ -64,7 +64,6 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"minimum_tls_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  string(redisenterprise.TlsVersionOnePointTwo),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(redisenterprise.TlsVersionOnePointTwo),
@@ -236,10 +235,25 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil || existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model or properties was nil", *id)
+			}
 
 			parameters := redisenterprise.ClusterUpdate{
-				Tags: pointer.To(state.Tags),
+				Properties: existing.Model.Properties,
+			}
+
+			if metadata.ResourceData.HasChange("minimum_tls_version") {
+				parameters.Properties.MinimumTlsVersion = pointer.To(redisenterprise.TlsVersion(state.MinimumTlsVersion))
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				parameters.Tags = pointer.To(state.Tags)
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
