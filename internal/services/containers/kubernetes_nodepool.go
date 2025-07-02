@@ -1051,17 +1051,17 @@ func expandClusterNodePoolLinuxOSConfig(input []interface{}) (*managedclusters.L
 		Sysctls: sysctlConfig,
 	}
 
-	if v, ok := raw["transparent_huge_page"]; ok {
-		result.TransparentHugePageEnabled = pointer.To(v.(string))
+	if v := raw["transparent_huge_page"].(string); v != "" {
+		result.TransparentHugePageEnabled = pointer.To(v)
 	}
 
 	if !features.FivePointOh() {
-		if v, ok := raw["transparent_huge_page_enabled"]; ok {
-			result.TransparentHugePageEnabled = pointer.To(v.(string))
+		if v := raw["transparent_huge_page_enabled"].(string); v != "" {
+			result.TransparentHugePageEnabled = pointer.To(v)
 		}
 	}
-	if v, ok := raw["transparent_huge_page_defrag"]; ok {
-		result.TransparentHugePageDefrag = pointer.To(v.(string))
+	if v := raw["transparent_huge_page_defrag"].(string); v != "" {
+		result.TransparentHugePageDefrag = pointer.To(v)
 	}
 	if v, ok := raw["swap_file_size_mb"]; ok && v.(int) != 0 {
 		result.SwapFileSizeMB = pointer.To(int64(v.(int)))

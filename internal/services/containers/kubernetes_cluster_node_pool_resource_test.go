@@ -130,7 +130,7 @@ func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("identity.0.identity_ids"),
 	})
 }
 
