@@ -268,6 +268,7 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"system_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.SystemVersion,
 		},

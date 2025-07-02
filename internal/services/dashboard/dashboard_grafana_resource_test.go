@@ -155,7 +155,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "10"
+  grafana_major_version = "11"
 
   sku = "Essential"
 }
@@ -193,7 +193,7 @@ resource "azurerm_dashboard_grafana" "test" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
-  grafana_major_version             = "10"
+  grafana_major_version             = "11"
   smtp {
     enabled          = true
     host             = "localhost:25"

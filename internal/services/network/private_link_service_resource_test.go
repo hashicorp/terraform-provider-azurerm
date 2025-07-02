@@ -230,6 +230,28 @@ func TestAccPrivateLinkService_withAlias(t *testing.T) {
 	})
 }
 
+func TestAccPrivateLinkService_destinationIPAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.destinationIPAddress(data, "10.0.0.1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.destinationIPAddress(data, "10.0.0.2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t PrivateLinkServiceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatelinkservices.ParsePrivateLinkServiceID(state.ID)
 	if err != nil {
@@ -795,6 +817,75 @@ resource "azurerm_private_link_service" "test" {
   ]
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateLinkServiceResource) destinationIPAddress(data acceptance.TestData, destinationIPAddress string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatelinkservice-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-complete-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.1.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestPLS-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
+  visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
+  fqdns                          = ["foo.com", "bar.com"]
+  destination_ip_address         = "%s"
+
+  nat_ip_configuration {
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.1.40"
+    private_ip_address_version = "IPv4"
+    primary                    = true
+  }
+
+  nat_ip_configuration {
+    name                       = "secondaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.1.41"
+    private_ip_address_version = "IPv4"
+    primary                    = false
+  }
+
+  nat_ip_configuration {
+    name                       = "ternaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address         = "10.5.1.42"
+    private_ip_address_version = "IPv4"
+    primary                    = false
+  }
+
+  tags = {
+    env = "test"
+  }
+}
+`, data.RandomInteger, "UK South", data.RandomInteger, data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateLinkServiceResource) template(data acceptance.TestData) string {
