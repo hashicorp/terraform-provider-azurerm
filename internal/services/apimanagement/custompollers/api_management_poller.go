@@ -44,6 +44,7 @@ var (
 	}
 )
 
+// NewAPIManagementPoller - creates a new poller for API Management long-running delete operation to handle the case where the delete operation is asynchronous.
 func NewAPIManagementPoller(cli *apimanagementservice.ApiManagementServiceClient, response *http.Response) (*apiManagementPoller, error) {
 	pollingUrl := response.Header.Get("Azure-AsyncOperation")
 	if pollingUrl == "" {
