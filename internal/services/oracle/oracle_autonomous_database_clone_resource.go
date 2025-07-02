@@ -124,6 +124,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		//optional
+
 		"refreshable_model": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -142,6 +143,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		//optional for clone from backup time stamp
+
 		"use_latest_available_backup_time_stamp": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -372,7 +374,6 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 				if model.Timestamp != "" {
 					cloneBackup.Timestamp = pointer.To(model.Timestamp)
 				}
-
 			} else {
 				// Regular clone
 				param.Properties = &autonomousdatabases.AutonomousDatabaseCloneProperties{
@@ -501,7 +502,6 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 					if cloneProps.CustomerContacts != nil {
 						state.CustomerContacts = flattenCloneCustomerContacts(*cloneProps.CustomerContacts)
 					}
-
 				} else if backupProps, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties); ok {
 					state.CloneType = string(backupProps.CloneType)
 					state.SourceId = backupProps.SourceId

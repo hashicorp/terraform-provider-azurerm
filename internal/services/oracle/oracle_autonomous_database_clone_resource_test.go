@@ -86,7 +86,7 @@ func TestAccAutonomousDatabaseClone_backupTimestampLatestBackup(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.backupTimestampClone(data),
+			Config: r.backupTimestampCloneLatest(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_base_type").HasValue("CloneFromBackupTimestamp"),
@@ -102,7 +102,7 @@ func TestAccAutonomousDatabaseClone_backupTimestampWithSpecificTime(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.backupTimestampWithTime(data),
+			Config: r.backupTimestampSpecific(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_base_type").HasValue("CloneFromBackupTimestamp"),
@@ -289,7 +289,7 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func (r AutonomousDatabaseCloneResource) backupTimestampClone(data acceptance.TestData) string {
+func (r AutonomousDatabaseCloneResource) backupTimestampCloneLatest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -333,7 +333,7 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func (r AutonomousDatabaseCloneResource) backupTimestampWithTime(data acceptance.TestData) string {
+func (r AutonomousDatabaseCloneResource) backupTimestampSpecific(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
