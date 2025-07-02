@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -312,22 +313,22 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					if props.ClientProtocol != nil {
-						state.ClientProtocol = string(*props.ClientProtocol)
+						state.ClientProtocol = string(pointer.From(props.ClientProtocol))
 					}
 
 					if props.ClusteringPolicy != nil {
-						state.ClusteringPolicy = string(*props.ClusteringPolicy)
+						state.ClusteringPolicy = string(pointer.From(props.ClusteringPolicy))
 					}
 
 					if props.EvictionPolicy != nil {
-						state.EvictionPolicy = string(*props.EvictionPolicy)
+						state.EvictionPolicy = string(pointer.From(props.EvictionPolicy))
 					}
 
-					state.Module = flattenArmDatabaseModuleArrayToModel(props.Modules)
+					state.Module = flattenArmDatabaseModuleArray(props.Modules)
 
 					if geoProps := props.GeoReplication; geoProps != nil {
 						if geoProps.GroupNickname != nil {
-							state.LinkedDatabaseGroupNickname = *geoProps.GroupNickname
+							state.LinkedDatabaseGroupNickname = pointer.From(geoProps.GroupNickname)
 						}
 						state.LinkedDatabaseId = flattenArmGeoLinkedDatabase(geoProps.LinkedDatabases)
 					}
@@ -369,13 +370,10 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 			protocol := databases.Protocol(model.ClientProtocol)
 
 			if metadata.ResourceData.HasChange("linked_database_id") {
-				oldItemsRaw, newItemsRaw := metadata.ResourceData.GetChange("linked_database_id")
-				oldItems := oldItemsRaw.(*pluginsdk.Set).List()
-				newItems := newItemsRaw.(*pluginsdk.Set).List()
-
-				isForceUnlink, data := forceUnlinkItems(oldItems, newItems)
+				oldItems, newItems := metadata.ResourceData.GetChange("linked_database_id")
+				isForceUnlink, data := forceUnlinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
 				if isForceUnlink {
-					if err := forceUnlinkDatabase(ctx, client, *id, *data); err != nil {
+					if err := forceUnlinkDatabase(&metadata, *data); err != nil {
 						return fmt.Errorf("unlinking database error: %+v", err)
 					}
 				}
@@ -467,7 +465,7 @@ func expandArmDatabaseModuleArray(input []ModuleModel, isGeoEnabled bool) (*[]da
 	return &results, nil
 }
 
-func flattenArmDatabaseModuleArrayToModel(input *[]databases.Module) []ModuleModel {
+func flattenArmDatabaseModuleArray(input *[]databases.Module) []ModuleModel {
 	results := make([]ModuleModel, 0)
 	if input == nil {
 		return results
@@ -497,14 +495,22 @@ func flattenArmDatabaseModuleArrayToModel(input *[]databases.Module) []ModuleMod
 	return results
 }
 
-func forceUnlinkDatabase(ctx context.Context, client *databases.DatabasesClient, id databases.DatabaseId, unlinkedDbRaw []string) error {
+func forceUnlinkDatabase(meta *sdk.ResourceMetaData, unlinkedDbRaw []string) error {
+	client := meta.Client.RedisManaged.DatabaseClient
+	ctx, cancel := timeouts.ForUpdate(meta.Client.StopContext, meta.ResourceData)
+	defer cancel()
 	log.Printf("[INFO] Preparing to unlink a linked database")
+
+	id, err := databases.ParseDatabaseID(meta.ResourceData.Id())
+	if err != nil {
+		return err
+	}
 
 	parameters := databases.ForceUnlinkParameters{
 		Ids: unlinkedDbRaw,
 	}
 
-	if err := client.ForceUnlinkThenPoll(ctx, id, parameters); err != nil {
+	if err := client.ForceUnlinkThenPoll(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("force unlinking from database %s error: %+v", id, err)
 	}
 
