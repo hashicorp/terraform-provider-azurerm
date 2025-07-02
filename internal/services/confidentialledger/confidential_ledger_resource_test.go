@@ -367,5 +367,5 @@ resource "azurerm_user_assigned_identity" "second" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
