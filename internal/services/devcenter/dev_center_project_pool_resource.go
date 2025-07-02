@@ -334,7 +334,7 @@ func expandDevCenterProjectManagedVirtualNetworkRegions(input []string) *[]strin
 		return nil
 	}
 
-	var result []string
+	result := make([]string, 0)
 
 	for _, v := range input {
 		result = append(result, location.Normalize(v))
