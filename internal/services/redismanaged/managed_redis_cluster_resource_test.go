@@ -216,7 +216,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[2]d"
+  name                = "acctestMngdRedis%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -282,5 +282,5 @@ resource "azurerm_managed_redis_cluster" "test" {
     user_assigned_identity_id  = azurerm_user_assigned_identity.test.id
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomStringOfLength(5))
 }
