@@ -1970,7 +1970,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AddonProfiles = addonProfiles
 	}
 
-	if d.HasChange("api_server_authorized_ip_ranges") || d.HasChange("run_command_enabled") || d.HasChange("private_cluster_public_fqdn_enabled") || d.HasChange("api_server_access_profile") {
+	if d.HasChange("run_command_enabled") || d.HasChange("private_cluster_public_fqdn_enabled") || d.HasChange("api_server_access_profile") {
 		updateCluster = true
 
 		apiServerProfile := expandKubernetesClusterAPIAccessProfile(d)
