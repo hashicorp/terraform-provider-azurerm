@@ -689,10 +689,6 @@ resource "azurerm_virtual_network" "test" {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "100"
   }
-
-  lifecycle {
-    ignore_changes = [address_space]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -755,10 +751,6 @@ resource "azurerm_virtual_network" "test" {
     id                     = azurerm_network_manager_ipam_pool.test2.id
     number_of_ip_addresses = "200"
   }
-
-  lifecycle {
-    ignore_changes = [address_space]
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -801,10 +793,6 @@ resource "azurerm_virtual_network" "test" {
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "300"
-  }
-
-  lifecycle {
-    ignore_changes = [address_space]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -851,10 +839,6 @@ resource "azurerm_virtual_network" "test" {
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "5192296858534827628530496329220096"
-  }
-
-  lifecycle {
-    ignore_changes = [address_space]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
