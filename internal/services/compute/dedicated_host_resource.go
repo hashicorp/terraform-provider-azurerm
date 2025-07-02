@@ -236,11 +236,18 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("sku_name", model.Sku.Name)
 		if props := model.Properties; props != nil {
 			d.Set("auto_replace_on_failure", props.AutoReplaceOnFailure)
-			if pointer.From(props.LicenseType) != dedicatedhosts.DedicatedHostLicenseTypesNone {
-				d.Set("license_type", string(pointer.From(props.LicenseType)))
+			licenseType := string(pointer.From(props.LicenseType))
+			if licenseType == string(dedicatedhosts.DedicatedHostLicenseTypesNone) || licenseType == "" {
+				d.Set("license_type", nil)
+			} else {
+				d.Set("license_type", licenseType)
 			}
 			if !features.FivePointOh() {
-				d.Set("license_type", string(pointer.From(props.LicenseType)))
+				if licenseType == "" {
+					d.Set("license_type", dedicatedhosts.DedicatedHostLicenseTypesNone)
+				} else {
+					d.Set("license_type", licenseType)
+				}
 			}
 			platformFaultDomain := 0
 			if props.PlatformFaultDomain != nil {
