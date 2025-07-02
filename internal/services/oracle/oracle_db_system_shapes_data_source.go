@@ -20,7 +20,6 @@ type DbSystemShapesDataSource struct{}
 type DbSystemShapesModel struct {
 	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
 	Location       string               `tfschema:"location"`
-	Zone           string               `tfschema:"zone"`
 }
 
 type DbSystemShapeModel struct {
@@ -49,11 +48,6 @@ type DbSystemShapeModel struct {
 func (d DbSystemShapesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
-		"zone": {
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Description: "Filter the versions by zone",
-		},
 	}
 }
 
@@ -179,9 +173,6 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 			id := dbsystemshapes.NewLocationID(subscriptionId, state.Location)
 
 			options := dbsystemshapes.ListByLocationOperationOptions{}
-			if state.Zone != "" {
-				options.Zone = &state.Zone
-			}
 
 			resp, err := client.ListByLocation(ctx, id, options)
 			if err != nil {
