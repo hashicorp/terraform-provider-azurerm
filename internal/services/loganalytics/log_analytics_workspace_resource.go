@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -32,7 +33,7 @@ import (
 )
 
 func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLogAnalyticsWorkspaceCreate,
 		Read:   resourceLogAnalyticsWorkspaceRead,
 		Update: resourceLogAnalyticsWorkspaceUpdate,
@@ -77,10 +78,10 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"local_authentication_disabled": {
+			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"cmk_for_query_forced": {
@@ -179,6 +180,25 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["local_authentication_disabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
+			ConflictsWith: []string{"local_authentication_enabled"},
+		}
+
+		resource.Schema["local_authentication_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"local_authentication_disabled"},
+		}
+	}
+
+	return resource
 }
 
 func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -271,7 +291,6 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
-	disableLocalAuth := d.Get("local_authentication_disabled").(bool)
 
 	parameters := workspaces.Workspace{
 		Name:     &name,
@@ -284,9 +303,15 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 			RetentionInDays:                 pointer.To(int64(d.Get("retention_in_days").(int))),
 			Features: &workspaces.WorkspaceFeatures{
 				EnableLogAccessUsingOnlyResourcePermissions: pointer.To(allowResourceOnlyPermission),
-				DisableLocalAuth: pointer.To(disableLocalAuth),
+				DisableLocalAuth: pointer.To(!d.Get("local_authentication_enabled").(bool)),
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("local_authentication_disabled"); ok {
+			parameters.Properties.Features.DisableLocalAuth = pointer.To(v.(bool))
+		}
 	}
 
 	// nolint : staticcheck
@@ -398,18 +423,22 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	payload := existing.Model
 	props := payload.Properties
 
+	if props.Features == nil {
+		props.Features = &workspaces.WorkspaceFeatures{}
+	}
+
 	if d.HasChange("allow_resource_only_permissions") {
-		if props.Features == nil {
-			props.Features = &workspaces.WorkspaceFeatures{}
-		}
 		props.Features.EnableLogAccessUsingOnlyResourcePermissions = pointer.To(d.Get("allow_resource_only_permissions").(bool))
 	}
 
-	if d.HasChange("local_authentication_disabled") {
-		if props.Features == nil {
-			props.Features = &workspaces.WorkspaceFeatures{}
+	if d.HasChange("local_authentication_enabled") {
+		props.Features.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
+	}
+
+	if !features.FivePointOh() {
+		if d.HasChange("local_authentication_disabled") {
+			props.Features.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
 		}
-		props.Features.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
 	}
 
 	if d.HasChange("cmk_for_query_forced") {
@@ -580,15 +609,19 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			allowResourceOnlyPermissions := true
-			disableLocalAuth := false
 			purgeDataOnThirtyDays := false
-			if features := props.Features; features != nil {
-				allowResourceOnlyPermissions = pointer.From(features.EnableLogAccessUsingOnlyResourcePermissions)
-				disableLocalAuth = pointer.From(features.DisableLocalAuth)
-				purgeDataOnThirtyDays = pointer.From(features.ImmediatePurgeDataOn30Days)
+			if lawFeatures := props.Features; lawFeatures != nil {
+				allowResourceOnlyPermissions = pointer.From(lawFeatures.EnableLogAccessUsingOnlyResourcePermissions)
+				if lawFeatures.DisableLocalAuth != nil {
+					d.Set("local_authentication_enabled", !pointer.From(lawFeatures.DisableLocalAuth))
+
+					if !features.FivePointOh() {
+						d.Set("local_authentication_disabled", pointer.From(lawFeatures.DisableLocalAuth))
+					}
+				}
+				purgeDataOnThirtyDays = pointer.From(lawFeatures.ImmediatePurgeDataOn30Days)
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
-			d.Set("local_authentication_disabled", disableLocalAuth)
 			d.Set("immediate_data_purge_on_30_days_enabled", purgeDataOnThirtyDays)
 
 			defaultDataCollectionRuleResourceId := ""
