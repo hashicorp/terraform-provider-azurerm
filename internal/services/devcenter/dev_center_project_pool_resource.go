@@ -241,6 +241,10 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 				Properties: &pools.PoolUpdateProperties{},
 			}
 
+			if model.VirtualNetworkType == string(pools.VirtualNetworkTypeManaged) && len(model.ManagedVirtualNetworkRegions) == 0 {
+				return fmt.Errorf("`managed_virtual_network_regions` is required when `virtual_network_type` is `Managed`")
+			}
+
 			if metadata.ResourceData.HasChange("dev_box_definition_name") {
 				parameters.Properties.DevBoxDefinitionName = pointer.To(model.DevBoxDefinitionName)
 			}
@@ -266,10 +270,6 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("virtual_network_type") {
-				if model.VirtualNetworkType == string(pools.VirtualNetworkTypeManaged) && len(model.ManagedVirtualNetworkRegions) == 0 {
-					return fmt.Errorf("`managed_virtual_network_regions` is required when `virtual_network_type` is `Managed`")
-				}
-
 				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkType(model.VirtualNetworkType))
 			}
 
