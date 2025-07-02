@@ -54,6 +54,7 @@ type FeatureResourceModel struct {
 	PercentageFilter     float64                      `tfschema:"percentage_filter_value"`
 	TimewindowFilters    []TimewindowFilterParameters `tfschema:"timewindow_filter"`
 	TargetingFilters     []TargetingFilterAudience    `tfschema:"targeting_filter"`
+	CustomFilters        []CustomFilter               `tfschema:"custom_filter"`
 }
 
 func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
@@ -163,6 +164,36 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: validation.IsRFC3339Time,
+					},
+				},
+			},
+		},
+		"custom_filter": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"parameters": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"value": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+								},
+							},
+						},
 					},
 				},
 			},
