@@ -426,7 +426,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 				model.Properties.LocalDiagnosticsAccess = expandPacketCoreControlLocalDiagnosticsAccessConfiguration(plan.LocalDiagnosticsAccess)
 			}
 
-			if metadata.ResourceData.HasChange("mobile_network_id") {
+			if metadata.ResourceData.HasChange("site_ids") {
 				model.Properties.Sites = expandPacketCoreControlPlaneSites(plan.SiteIds)
 			}
 
