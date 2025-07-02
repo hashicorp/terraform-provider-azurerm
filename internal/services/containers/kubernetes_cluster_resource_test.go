@@ -494,6 +494,15 @@ resource "azurerm_subnet_route_table_association" "node_subnet" {
 }
 
 func (r KubernetesClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
+
+	bootstrapBlock := ""
+	if outboundType == "none" {
+		bootstrapBlock = `
+  bootstrap_profile {
+    artifact_source = "Cache"
+  }`
+	}
+
 	return fmt.Sprintf(`
 %s
 
