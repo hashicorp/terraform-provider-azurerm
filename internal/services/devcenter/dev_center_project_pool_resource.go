@@ -330,11 +330,10 @@ func flattenDevCenterProjectPoolStopOnDisconnect(input *pools.StopOnDisconnectCo
 }
 
 func expandDevCenterProjectManagedVirtualNetworkRegions(input []string) *[]string {
-	if len(input) == 0 {
-		return nil
-	}
-
 	result := make([]string, 0)
+	if len(input) == 0 {
+		return &result
+	}
 
 	for _, v := range input {
 		result = append(result, location.Normalize(v))
