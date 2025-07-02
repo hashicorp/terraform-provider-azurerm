@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
@@ -29,14 +30,20 @@ type ManagedRedisClusterResource struct{}
 var _ sdk.ResourceWithUpdate = ManagedRedisClusterResource{}
 
 type ManagedRedisClusterResourceModel struct {
-	Name              string            `tfschema:"name"`
-	ResourceGroupName string            `tfschema:"resource_group_name"`
-	Location          string            `tfschema:"location"`
-	SkuName           string            `tfschema:"sku_name"`
-	Zones             []string          `tfschema:"zones"`
-	MinimumTlsVersion string            `tfschema:"minimum_tls_version"`
-	Hostname          string            `tfschema:"hostname"`
-	Tags              map[string]string `tfschema:"tags"`
+	Name               string               `tfschema:"name"`
+	ResourceGroupName  string               `tfschema:"resource_group_name"`
+	Location           string               `tfschema:"location"`
+	SkuName            string               `tfschema:"sku_name"`
+	Zones              []string             `tfschema:"zones"`
+	MinimumTlsVersion  string               `tfschema:"minimum_tls_version"`
+	Hostname           string               `tfschema:"hostname"`
+	Tags               map[string]string    `tfschema:"tags"`
+	CustomerManagedKey []CustomerManagedKey `tfschema:"customer_managed_key"`
+}
+
+type CustomerManagedKey struct {
+	EncryptionKeyUrl       string `tfschema:"encryption_key_url"`
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
 }
 
 func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -68,6 +75,27 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice([]string{
 				string(redisenterprise.TlsVersionOnePointTwo),
 			}, false),
+		},
+
+		"customer_managed_key": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"encryption_key_url": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsURLWithHTTPS,
+					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
 		},
 
 		"tags": commonschema.Tags(),
@@ -137,6 +165,15 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 					MinimumTlsVersion: &tlsVersion,
 				},
 				Tags: pointer.To(model.Tags),
+			}
+
+			// Add customer managed key encryption if specified
+			if len(model.CustomerManagedKey) > 0 {
+				encryption, err := expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey)
+				if err != nil {
+					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+				}
+				parameters.Properties.Encryption = encryption
 			}
 
 			if len(model.Zones) > 0 {
@@ -211,6 +248,8 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 						tlsVersion = string(*props.MinimumTlsVersion)
 					}
 					state.MinimumTlsVersion = tlsVersion
+
+					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
 				}
 			}
 
@@ -254,6 +293,14 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = pointer.To(state.Tags)
+			}
+
+			if metadata.ResourceData.HasChange("customer_managed_key") {
+				encryption, err := expandManagedRedisClusterCustomerManagedKey(state.CustomerManagedKey)
+				if err != nil {
+					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+				}
+				parameters.Properties.Encryption = encryption
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
@@ -336,5 +383,52 @@ func managedRedisClusterStateRefreshFunc(ctx context.Context, client *redisenter
 		}
 
 		return res, string(*res.Model.Properties.ResourceState), nil
+	}
+}
+
+func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) (*redisenterprise.ClusterPropertiesEncryption, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	cmk := input[0]
+
+	return &redisenterprise.ClusterPropertiesEncryption{
+		CustomerManagedKeyEncryption: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryption{
+			KeyEncryptionKeyURL: pointer.To(cmk.EncryptionKeyUrl),
+			KeyEncryptionKeyIdentity: &redisenterprise.ClusterPropertiesEncryptionCustomerManagedKeyEncryptionKeyEncryptionKeyIdentity{
+				IdentityType:                   pointer.To(redisenterprise.CmkIdentityTypeUserAssignedIdentity),
+				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityId),
+			},
+		},
+	}, nil
+}
+
+func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterPropertiesEncryption) []CustomerManagedKey {
+	if input == nil || input.CustomerManagedKeyEncryption == nil {
+		return []CustomerManagedKey{}
+	}
+
+	cmkEncryption := input.CustomerManagedKeyEncryption
+
+	var encryptionKeyUrl, userAssignedIdentityId string
+
+	if cmkEncryption.KeyEncryptionKeyURL != nil {
+		encryptionKeyUrl = *cmkEncryption.KeyEncryptionKeyURL
+	}
+
+	if cmkEncryption.KeyEncryptionKeyIdentity != nil && cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId != nil {
+		userAssignedIdentityId = *cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId
+	}
+
+	if encryptionKeyUrl == "" && userAssignedIdentityId == "" {
+		return []CustomerManagedKey{}
+	}
+
+	return []CustomerManagedKey{
+		{
+			EncryptionKeyUrl:       encryptionKeyUrl,
+			UserAssignedIdentityId: userAssignedIdentityId,
+		},
 	}
 }
