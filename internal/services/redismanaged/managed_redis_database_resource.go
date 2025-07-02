@@ -365,18 +365,17 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			clusteringPolicy := databases.ClusteringPolicy(model.ClusteringPolicy)
-			evictionPolicy := databases.EvictionPolicy(model.EvictionPolicy)
-			protocol := databases.Protocol(model.ClientProtocol)
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
 
-			if metadata.ResourceData.HasChange("linked_database_id") {
-				oldItems, newItems := metadata.ResourceData.GetChange("linked_database_id")
-				isForceUnlink, data := forceUnlinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
-				if isForceUnlink {
-					if err := forceUnlinkDatabase(&metadata, *data); err != nil {
-						return fmt.Errorf("unlinking database error: %+v", err)
-					}
-				}
+			if existing.Model == nil || existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model or properties was nil", *id)
+			}
+
+			parameters := databases.Database{
+				Properties: existing.Model.Properties,
 			}
 
 			linkedDatabase, err := expandArmGeoLinkedDatabase(model.LinkedDatabaseId, id.ID(), model.LinkedDatabaseGroupNickname)
@@ -388,20 +387,24 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 			if linkedDatabase != nil {
 				isGeoEnabled = true
 			}
-			module, err := expandArmDatabaseModuleArray(model.Module, isGeoEnabled)
-			if err != nil {
-				return fmt.Errorf("setting module error: %+v", err)
+
+			if metadata.ResourceData.HasChange("module") {
+				module, err := expandArmDatabaseModuleArray(model.Module, isGeoEnabled)
+				if err != nil {
+					return fmt.Errorf("setting module error: %+v", err)
+				}
+				parameters.Properties.Modules = module
 			}
 
-			parameters := databases.Database{
-				Properties: &databases.DatabaseProperties{
-					ClientProtocol:   &protocol,
-					ClusteringPolicy: &clusteringPolicy,
-					EvictionPolicy:   &evictionPolicy,
-					Modules:          module,
-					GeoReplication:   linkedDatabase,
-					Port:             utils.Int64(model.Port),
-				},
+			if metadata.ResourceData.HasChange("linked_database_id") {
+				oldItems, newItems := metadata.ResourceData.GetChange("linked_database_id")
+				isForceUnlink, data := forceUnlinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
+				if isForceUnlink {
+					if err := forceUnlinkDatabase(&metadata, *data); err != nil {
+						return fmt.Errorf("unlinking database error: %+v", err)
+					}
+				}
+				parameters.Properties.GeoReplication = linkedDatabase
 			}
 
 			if err := client.CreateThenPoll(ctx, *id, parameters); err != nil {
@@ -432,13 +435,13 @@ func (r ManagedRedisDatabaseResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
-			// can't use the poll since cluster deletion also deletes the default database, which will case db deletion failure
+			// can't use DeleteThenPoll since cluster deletion also deletes the default database, which will cause db deletion failure
 			stateConf := &pluginsdk.StateChangeConf{
 				Pending:                   []string{"found"},
 				Target:                    []string{"clusterNotFound", "dbNotFound"},
 				Refresh:                   redisEnterpriseDatabaseDeleteRefreshFunc(ctx, client, clusterClient, clusterId, dbId),
 				ContinuousTargetOccurence: 3,
-				Timeout:                   30 * time.Minute,
+				Timeout:                   metadata.ResourceData.Timeout(pluginsdk.TimeoutDelete),
 			}
 
 			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
