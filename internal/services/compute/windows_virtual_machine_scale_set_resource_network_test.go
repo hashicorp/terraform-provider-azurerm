@@ -937,9 +937,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name                 = "example"
-    primary              = true
-    ip_forwarding_enable = true
+    name                  = "example"
+    primary               = true
+    ip_forwarding_enabled = true
 
     ip_configuration {
       name      = "internal"

@@ -301,8 +301,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    disable_automatic_rollback   = true
+    automatic_os_upgrade_enabled = true
   }
 
   rolling_upgrade_policy {
@@ -312,7 +312,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     pause_time_between_batches              = "PT30S"
   }
 
-  enable_automatic_updates = false
+  automatic_updates_enabled = false
 
   depends_on = ["azurerm_lb_rule.test"]
 }

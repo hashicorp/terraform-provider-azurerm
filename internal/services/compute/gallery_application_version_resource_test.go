@@ -307,7 +307,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc%[3]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -319,11 +319,11 @@ resource "azurerm_storage_blob" "test" {
   size                   = 512
 }
 
+
 `, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func (r GalleryApplicationVersionResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -346,7 +346,7 @@ resource "azurerm_gallery_application_version" "test" {
     regional_replica_count = 1
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r GalleryApplicationVersionResource) requiresImport(data acceptance.TestData) string {
@@ -453,7 +453,6 @@ resource "azurerm_gallery_application_version" "test" {
 }
 
 func (r GalleryApplicationVersionResource) enableHealthCheck(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -478,7 +477,7 @@ resource "azurerm_gallery_application_version" "test" {
     regional_replica_count = 1
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r GalleryApplicationVersionResource) enableHealthCheckUpdated(data acceptance.TestData) string {
@@ -511,7 +510,6 @@ resource "azurerm_gallery_application_version" "test" {
 }
 
 func (r GalleryApplicationVersionResource) endOfLifeDate(data acceptance.TestData, endOfLifeDate string) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -536,7 +534,7 @@ resource "azurerm_gallery_application_version" "test" {
     regional_replica_count = 1
   }
 }
-`, template, endOfLifeDate)
+`, r.template(data), endOfLifeDate)
 }
 
 func (r GalleryApplicationVersionResource) excludeFromLatest(data acceptance.TestData) string {

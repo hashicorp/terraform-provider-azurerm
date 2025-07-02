@@ -117,7 +117,6 @@ func (r VirtualMachineGalleryApplicationAssignmentResource) Exists(ctx context.C
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -125,7 +124,7 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
   gallery_application_version_id = azurerm_gallery_application_version.test.id
   virtual_machine_id             = azurerm_linux_virtual_machine.test.id
 }
-`, template)
+`, r.template(data))
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) requiresImport(data acceptance.TestData) string {
@@ -141,7 +140,6 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "import" {
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -152,7 +150,7 @@ resource "azurerm_virtual_machine_gallery_application_assignment" "test" {
   order                          = 1
   tag                            = "app"
 }
-`, template)
+`, r.template(data))
 }
 
 func (r VirtualMachineGalleryApplicationAssignmentResource) order(data acceptance.TestData, order int) string {
@@ -182,7 +180,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 

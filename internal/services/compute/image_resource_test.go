@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ImageResource struct{}
@@ -202,7 +201,7 @@ func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state 
 		return nil, fmt.Errorf("retrieving Compute Image %q", id)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
@@ -421,7 +420,6 @@ resource "azurerm_virtual_machine" "testsource" {
 }
 
 func (r ImageResource) setupUnmanagedDisks(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -461,7 +459,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -505,7 +503,7 @@ resource "azurerm_virtual_machine" "testsource" {
     cost-center = "Ops"
   }
 }
-`, template)
+`, r.template(data))
 }
 
 func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperVGen string) string {
@@ -524,8 +522,6 @@ func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperV
     storage_type = "StandardSSD_LRS"
   }`
 
-	template := r.setupUnmanagedDisks(data)
-
 	return fmt.Sprintf(`
 %[1]s
 
@@ -543,7 +539,7 @@ resource "azurerm_image" "test" {
     cost-center = "Ops"
   }
 }
-`, template, hyperVGenAtt, osDisk)
+`, r.setupUnmanagedDisks(data), hyperVGenAtt, osDisk)
 }
 
 func (r ImageResource) standaloneImageRequiresImport(data acceptance.TestData) string {

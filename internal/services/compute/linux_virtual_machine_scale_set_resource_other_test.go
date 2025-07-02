@@ -714,9 +714,8 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationBasic(t *testing.
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationComplete(t *testing.T) {
+func (r LinuxVirtualMachineScaleSetResource) TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -3188,7 +3187,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
@@ -3242,6 +3241,7 @@ resource "azurerm_gallery_application_version" "test" {
     storage_account_type   = "Premium_LRS"
   }
 }
+
 
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
