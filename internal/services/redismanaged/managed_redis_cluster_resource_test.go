@@ -91,6 +91,22 @@ func TestAccManagedRedisCluster_update(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedisCluster_withCmk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis_cluster", "test")
+	r := ManagedRedisClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCmk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("customer_managed_key.0.encryption_key_url").Exists(),
+				check.That(data.ResourceName).Key("customer_managed_key.0.user_assigned_identity_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ManagedRedisClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := redisenterprise.ParseRedisEnterpriseID(state.ID)
 	if err != nil {
@@ -182,6 +198,88 @@ resource "azurerm_managed_redis_cluster" "test" {
 
   tags = {
     ENV = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ManagedRedisClusterResource) withCmk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest-kv-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "List",
+      "Purge",
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+      "SetRotationPolicy"
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_managed_redis_cluster" "test" {
+  name                = "acctest-rec-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku_name = "Enterprise_E1-2"
+
+  customer_managed_key {
+    encryption_key_url         = azurerm_key_vault_key.test.id
+    user_assigned_identity_id  = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.template(data), data.RandomInteger)
