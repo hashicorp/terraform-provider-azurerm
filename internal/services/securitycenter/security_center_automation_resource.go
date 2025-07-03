@@ -207,7 +207,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 			Optional: true,
 			Computed: true,
 			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-				return strings.EqualFold(oldValue, newValue)
+				return strings.EqualFold(oldValue, newValue) || (oldValue == "loganalytics" && newValue == "Workspace") || (oldValue == "Workspace" && newValue == "loganalytics")
 			},
 			ValidateFunc: validation.StringInSlice(append(automations.PossibleValuesForActionType(), "loganalytics", "logicapp", "eventhub"), false),
 		}
