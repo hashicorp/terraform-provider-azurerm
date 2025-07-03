@@ -107,12 +107,12 @@ func TestAccManagedRedisCluster_withCmk(t *testing.T) {
 	})
 }
 
-func TestAccManagedRedisCluster_withBalancedB5Sku(t *testing.T) {
+func TestAccManagedRedisCluster_withPrivateEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_cluster", "test")
 	r := ManagedRedisClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withBalancedB5Sku(data),
+			Config: r.withPrivateEndpoint(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -159,7 +159,7 @@ resource "azurerm_managed_redis_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  sku_name = "Enterprise_E1-2"
+  sku_name = "Balanced_B3"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -173,7 +173,7 @@ resource "azurerm_managed_redis_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  sku_name = "Enterprise_E1-2"
+  sku_name = "Balanced_B3"
 
   tags = {
     environment = "Production"
@@ -207,7 +207,7 @@ resource "azurerm_managed_redis_cluster" "test" {
 
   minimum_tls_version = "1.2"
 
-  sku_name = "EnterpriseFlash_F300-3"
+  sku_name = "Balanced_B3"
   zones    = ["1", "2", "3"]
 
   tags = {
@@ -289,7 +289,7 @@ resource "azurerm_managed_redis_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  sku_name = "Enterprise_E1-2"
+  sku_name = "Balanced_B3"
 
   identity {
     type = "UserAssigned"
@@ -304,16 +304,44 @@ resource "azurerm_managed_redis_cluster" "test" {
 `, r.template(data), data.RandomInteger, data.RandomStringOfLength(5))
 }
 
-func (r ManagedRedisClusterResource) withBalancedB5Sku(data acceptance.TestData) string {
+func (r ManagedRedisClusterResource) withPrivateEndpoint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
 
 resource "azurerm_managed_redis_cluster" "test" {
-  name                = "acctest-mrc-%d"
+  name                = "acctest-mrc-%[2]d"
+  location            = azurerm_virtual_network.test.location
   resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku_name = "Balanced_B5"
+  sku_name            = "Balanced_B3"
 }
-`, r.template(data), data.RandomInteger)
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-redis-pe-%[2]d"
+  location            = azurerm_managed_redis_cluster.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet_id           = azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "acctest-redis-psc-%[2]d"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_managed_redis_cluster.test.id
+    subresource_names              = ["redisEnterprise"]
+  }
+}
+
+	`, r.template(data), data.RandomInteger)
 }
