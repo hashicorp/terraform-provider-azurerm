@@ -34,6 +34,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func base64EncodedStateFunc(v interface{}) string {
 	switch s := v.(type) {
 	case string:
@@ -106,14 +108,15 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 
 func resourceApplicationGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationGatewayCreate,
-		Read:   resourceApplicationGatewayRead,
-		Update: resourceApplicationGatewayUpdate,
-		Delete: resourceApplicationGatewayDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := applicationgateways.ParseApplicationGatewayID(id)
-			return err
-		}),
+		Create:   resourceApplicationGatewayCreate,
+		Read:     resourceApplicationGatewayRead,
+		Update:   resourceApplicationGatewayUpdate,
+		Delete:   resourceApplicationGatewayDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&applicationgateways.ApplicationGatewayId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&applicationgateways.ApplicationGatewayId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -2153,9 +2156,12 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 			d.Set("firewall_policy_id", firewallPolicyId)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApplicationGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {

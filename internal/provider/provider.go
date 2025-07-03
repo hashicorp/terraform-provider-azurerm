@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -284,7 +283,14 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", nil),
-				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
+				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically.",
+			},
+
+			"msi_api_version": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_API_VERSION", nil),
+				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 			},
 
 			// Azure CLI specific fields
@@ -360,7 +366,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", nil),
 				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-				Deprecated:  features.DeprecatedInFourPointOh("This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead."),
+				Deprecated:  "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
 			},
 
 			"storage_use_azuread": {
@@ -375,14 +381,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
-	if !features.FourPointOhBeta() {
-		p.Schema["subscription_id"].Required = false
-		p.Schema["subscription_id"].Optional = true
-
-		delete(p.Schema, "resource_provider_registrations")
-		delete(p.Schema, "resource_providers_to_register")
-	}
-
 	p.ConfigureContextFunc = providerConfigure(p)
 
 	return p
@@ -395,7 +393,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
-			return nil, diag.FromErr(fmt.Errorf("`subscription_id` is a required provider property when performing a plan/apply operation"))
+			if !d.Get("use_cli").(bool) {
+				return nil, diag.FromErr(fmt.Errorf("`subscription_id` is a required provider property when performing a plan/apply operation"))
+			}
 		}
 
 		var auxTenants []string
@@ -480,7 +480,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 
 			ADOPipelineServiceConnectionID: d.Get("ado_pipeline_service_connection_id").(string),
 
-			CustomManagedIdentityEndpoint: d.Get("msi_endpoint").(string),
+			CustomManagedIdentityEndpoint:   d.Get("msi_endpoint").(string),
+			CustomManagedIdentityAPIVersion: d.Get("msi_api_version").(string),
 
 			AzureCliSubscriptionIDHint: subscriptionId,
 
@@ -515,13 +516,11 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		return nil, diag.FromErr(err)
 	}
 
-	if features.FourPointOhBeta() {
-		additionalProvidersToRegister := make(resourceproviders.ResourceProviders)
-		for _, rp := range d.Get("resource_providers_to_register").([]interface{}) {
-			additionalProvidersToRegister.Add(rp.(string))
-		}
-		requiredResourceProviders.Merge(additionalProvidersToRegister)
+	additionalProvidersToRegister := make(resourceproviders.ResourceProviders)
+	for _, rp := range d.Get("resource_providers_to_register").([]interface{}) {
+		additionalProvidersToRegister.Add(rp.(string))
 	}
+	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,

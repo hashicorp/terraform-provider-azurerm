@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
 
-~> **NOTE:** At least one of `cors_rule`, `logging`, `minute_metrics`, or `hour_metrics` must be specified.
+~> **Note:** At least one of `cors_rule`, `logging`, `minute_metrics`, or `hour_metrics` must be specified.
 
 ---
 
@@ -131,8 +131,8 @@ A `minute_metrics` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Account Queue Properties.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Queue Properties.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Queue Properties.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Queue Properties.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Account Queue Properties.
 
 ## Import

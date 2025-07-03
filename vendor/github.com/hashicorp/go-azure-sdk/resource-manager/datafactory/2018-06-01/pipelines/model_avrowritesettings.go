@@ -11,10 +11,10 @@ import (
 var _ FormatWriteSettings = AvroWriteSettings{}
 
 type AvroWriteSettings struct {
-	FileNamePrefix  *string `json:"fileNamePrefix,omitempty"`
-	MaxRowsPerFile  *int64  `json:"maxRowsPerFile,omitempty"`
-	RecordName      *string `json:"recordName,omitempty"`
-	RecordNamespace *string `json:"recordNamespace,omitempty"`
+	FileNamePrefix  *interface{} `json:"fileNamePrefix,omitempty"`
+	MaxRowsPerFile  *int64       `json:"maxRowsPerFile,omitempty"`
+	RecordName      *string      `json:"recordName,omitempty"`
+	RecordNamespace *string      `json:"recordNamespace,omitempty"`
 
 	// Fields inherited from FormatWriteSettings
 

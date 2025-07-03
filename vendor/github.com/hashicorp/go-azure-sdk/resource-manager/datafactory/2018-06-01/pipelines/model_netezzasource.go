@@ -12,18 +12,18 @@ var _ CopySource = NetezzaSource{}
 
 type NetezzaSource struct {
 	AdditionalColumns *interface{}              `json:"additionalColumns,omitempty"`
-	PartitionOption   *string                   `json:"partitionOption,omitempty"`
+	PartitionOption   *interface{}              `json:"partitionOption,omitempty"`
 	PartitionSettings *NetezzaPartitionSettings `json:"partitionSettings,omitempty"`
-	Query             *string                   `json:"query,omitempty"`
-	QueryTimeout      *string                   `json:"queryTimeout,omitempty"`
+	Query             *interface{}              `json:"query,omitempty"`
+	QueryTimeout      *interface{}              `json:"queryTimeout,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s NetezzaSource) CopySource() BaseCopySourceImpl {

@@ -171,17 +171,22 @@ func FlattenMetricRules(input *tagrules.MetricRules) []MetricRule {
 		return []MetricRule{}
 	}
 
-	filteringTags := make([]FilteringTag, 0)
+	var metricRule MetricRule
 
 	if input.FilteringTags != nil {
-		filteringTags = FlattenFilteringTags(input.FilteringTags)
+		filteringTags := FlattenFilteringTags(input.FilteringTags)
+		metricRule.FilteringTags = filteringTags
 	}
 
-	return []MetricRule{
-		{
-			FilteringTags: filteringTags,
-		},
+	if input.SendingMetrics != nil {
+		if pointer.From(input.SendingMetrics) == tagrules.SendingMetricsStatusEnabled {
+			metricRule.SendingMetrics = true
+		} else {
+			metricRule.SendingMetrics = false
+		}
 	}
+
+	return []MetricRule{metricRule}
 }
 
 func ExpandMetricRules(input []MetricRule) *tagrules.MetricRules {
@@ -189,9 +194,17 @@ func ExpandMetricRules(input []MetricRule) *tagrules.MetricRules {
 		return nil
 	}
 	v := input[0]
+	var sendingMetrics tagrules.SendingMetricsStatus
+
+	if v.SendingMetrics {
+		sendingMetrics = tagrules.SendingMetricsStatusEnabled
+	} else {
+		sendingMetrics = tagrules.SendingMetricsStatusDisabled
+	}
 
 	return &tagrules.MetricRules{
-		FilteringTags: ExpandFilteringTag(v.FilteringTags),
+		FilteringTags:  ExpandFilteringTag(v.FilteringTags),
+		SendingMetrics: pointer.To(sendingMetrics),
 	}
 }
 

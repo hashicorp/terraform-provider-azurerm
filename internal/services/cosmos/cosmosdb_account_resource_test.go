@@ -794,7 +794,7 @@ func TestAccCosmosDBAccount_capabilitiesAdd(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra", "EnableAggregationPipeline"}),
+			Config: r.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra", "EnableAggregationPipeline", "DeleteAllItemsByPartitionKey"}),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
 			),

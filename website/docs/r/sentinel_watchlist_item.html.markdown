@@ -84,3 +84,9 @@ Sentinel Watchlist Items can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_sentinel_watchlist_item.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/watchlists/list1/watchlistItems/item1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2022-11-01
