@@ -30,23 +30,24 @@ type AutonomousDatabaseRegularResourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Required
-	AdminPassword                string   `tfschema:"admin_password"`
-	BackupRetentionPeriodInDays  int64    `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                 string   `tfschema:"character_set"`
-	ComputeCount                 float64  `tfschema:"compute_count"`
-	ComputeModel                 string   `tfschema:"compute_model"`
-	DataStorageSizeInTbs         int64    `tfschema:"data_storage_size_in_tbs"`
-	DbVersion                    string   `tfschema:"db_version"`
-	DbWorkload                   string   `tfschema:"db_workload"`
-	DisplayName                  string   `tfschema:"display_name"`
-	LicenseModel                 string   `tfschema:"license_model"`
-	LongTermBackUpSchedule       []LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`AutoScalingEnabled           bool     `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled bool     `tfschema:"auto_scaling_for_storage_enabled"`
-	MtlsConnectionRequired       bool     `tfschema:"mtls_connection_required"`
-	NationalCharacterSet         string   `tfschema:"national_character_set"`
-	SubnetId                     string   `tfschema:"subnet_id"`
-	VnetId                       string   `tfschema:"virtual_network_id"`
-	AllowedIps                   []string `tfschema:"allowed_ips"`
+	AdminPassword                string                          `tfschema:"admin_password"`
+	BackupRetentionPeriodInDays  int64                           `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                 string                          `tfschema:"character_set"`
+	ComputeCount                 float64                         `tfschema:"compute_count"`
+	ComputeModel                 string                          `tfschema:"compute_model"`
+	DataStorageSizeInTbs         int64                           `tfschema:"data_storage_size_in_tbs"`
+	DbVersion                    string                          `tfschema:"db_version"`
+	DbWorkload                   string                          `tfschema:"db_workload"`
+	DisplayName                  string                          `tfschema:"display_name"`
+	LicenseModel                 string                          `tfschema:"license_model"`
+	LongTermBackUpSchedule       []LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`
+	AutoScalingEnabled           bool                            `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled bool                            `tfschema:"auto_scaling_for_storage_enabled"`
+	MtlsConnectionRequired       bool                            `tfschema:"mtls_connection_required"`
+	NationalCharacterSet         string                          `tfschema:"national_character_set"`
+	SubnetId                     string                          `tfschema:"subnet_id"`
+	VnetId                       string                          `tfschema:"virtual_network_id"`
+	AllowedIps                   []string                        `tfschema:"allowed_ips"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
