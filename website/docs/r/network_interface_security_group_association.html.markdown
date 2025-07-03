@@ -88,3 +88,9 @@ terraform import azurerm_network_interface_security_group_association.associatio
 ```
 
 -> **Note:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}|{networkSecurityGroupId}`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

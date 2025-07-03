@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -24,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name subnet -service-package-name network -properties "name,resource_group_name,virtual_network_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var SubnetResourceName = "azurerm_subnet"
 
@@ -100,20 +103,21 @@ var subnetDelegationServiceNames = []string{
 
 func resourceSubnet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetCreate,
-		Read:   resourceSubnetRead,
-		Update: resourceSubnetUpdate,
-		Delete: resourceSubnetDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseSubnetID(id)
-			return err
-		}),
+		Create:   resourceSubnetCreate,
+		Read:     resourceSubnetRead,
+		Update:   resourceSubnetUpdate,
+		Delete:   resourceSubnetDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SubnetId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -502,6 +506,10 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
 			}
 		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
 	}
 
 	return nil
