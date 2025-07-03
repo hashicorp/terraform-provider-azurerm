@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccWindowsVirtualMachine_otherPatchModeManual(t *testing.T) {
@@ -479,7 +480,6 @@ func TestAccWindowsVirtualMachine_otherEnableAutomaticUpdatesDefault(t *testing.
 			Config: r.otherEnableAutomaticUpdatesDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_automatic_updates").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -1120,6 +1120,9 @@ func TestAccWindowsVirtualMachine_otherGuestPatchHotpatchingDisabled(t *testing.
 }
 
 func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Graceful shutdown removed in version 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -1135,6 +1138,9 @@ func TestAccWindowsVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
 }
 
 func TestAccWindowsVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Graceful shutdown removed in version 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
@@ -2073,7 +2079,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 

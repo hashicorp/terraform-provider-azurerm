@@ -857,8 +857,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   disable_password_authentication = false
   upgrade_mode                    = "Automatic"
   automatic_os_upgrade_policy {
-    disable_automatic_rollback  = true
-    enable_automatic_os_upgrade = true
+    disable_automatic_rollback   = true
+    automatic_os_upgrade_enabled = true
   }
   rolling_upgrade_policy {
     max_batch_instance_percent              = 21
