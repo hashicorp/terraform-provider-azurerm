@@ -989,10 +989,12 @@ func FlattenOrchestratedVirtualMachineScaleSetAdditionalCapabilities(input *virt
 	}
 }
 
-func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(input map[string]interface{}, customData string) *virtualmachinescalesets.VirtualMachineScaleSetOSProfile {
+func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(d *pluginsdk.ResourceData, customData string) *virtualmachinescalesets.VirtualMachineScaleSetOSProfile {
 	osProfile := virtualmachinescalesets.VirtualMachineScaleSetOSProfile{}
 	winConfig := virtualmachinescalesets.WindowsConfiguration{}
 	patchSettings := virtualmachinescalesets.PatchSettings{}
+
+	input := d.Get("os_profile.0.windows_configuration").([]interface{})[0].(map[string]interface{})
 
 	if len(input) > 0 {
 		osProfile.CustomData = pointer.To(customData)
@@ -1010,9 +1012,14 @@ func expandOrchestratedVirtualMachineScaleSetOsProfileWithWindowsConfiguration(i
 		if additionalUnattendContents := input["additional_unattend_content"].([]interface{}); len(additionalUnattendContents) > 0 {
 			winConfig.AdditionalUnattendContent = expandWindowsConfigurationAdditionalUnattendContent(input["additional_unattend_content"].([]interface{}))
 		}
-		winConfig.EnableAutomaticUpdates = pointer.To(input["automatic_updates_enabled"].(bool))
+
+		if v, ok := d.GetOk("os_profile.0.windows_configuration.0.automatic_updates_enabled"); ok {
+			winConfig.EnableAutomaticUpdates = pointer.To(v.(bool))
+		}
 		if !features.FivePointOh() {
-			winConfig.EnableAutomaticUpdates = pointer.To(input["enable_automatic_updates"].(bool))
+			if v, ok := d.GetOk("os_profile.0.windows_configuration.0.enable_automatic_updates"); ok {
+				winConfig.EnableAutomaticUpdates = pointer.To(v.(bool))
+			}
 		}
 		winConfig.ProvisionVMAgent = pointer.To(input["provision_vm_agent"].(bool))
 		winRmListenersRaw := input["winrm_listener"].(*pluginsdk.Set).List()
@@ -1274,7 +1281,7 @@ func ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(input []inte
 
 		if !features.FivePointOh() {
 			config.Properties.EnableAcceleratedNetworking = pointer.To(raw["enable_accelerated_networking"].(bool))
-			config.Properties.EnableIPForwarding = pointer.To(raw["enable_ip_forwarding_enabled"].(bool))
+			config.Properties.EnableIPForwarding = pointer.To(raw["enable_ip_forwarding"].(bool))
 		}
 
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {

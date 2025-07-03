@@ -61,6 +61,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testin
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 		{
 			Config: r.imagesDisableAutomaticUpdate(data, "2019-Datacenter"),
@@ -71,6 +72,7 @@ func TestAccWindowsVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testin
 		data.ImportStep(
 			"admin_password",
 			"enable_automatic_updates",
+			"automatic_updates_enabled",
 		),
 	})
 }
