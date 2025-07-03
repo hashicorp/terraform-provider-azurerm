@@ -35,12 +35,12 @@ type ManagedRedisClusterResourceModel struct {
 	ResourceGroupName  string                                     `tfschema:"resource_group_name"`
 	Location           string                                     `tfschema:"location"`
 	SkuName            string                                     `tfschema:"sku_name"`
-	Zones              []string                                   `tfschema:"zones"`
-	MinimumTlsVersion  string                                     `tfschema:"minimum_tls_version"`
-	Hostname           string                                     `tfschema:"hostname"`
-	Tags               map[string]string                          `tfschema:"tags"`
 	CustomerManagedKey []CustomerManagedKey                       `tfschema:"customer_managed_key"`
 	Identity           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	MinimumTlsVersion  string                                     `tfschema:"minimum_tls_version"`
+	Tags               map[string]string                          `tfschema:"tags"`
+	Zones              []string                                   `tfschema:"zones"`
+	Hostname           string                                     `tfschema:"hostname"`
 }
 
 type CustomerManagedKey struct {
@@ -68,8 +68,6 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.ManagedRedisClusterSkuName,
 		},
 
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -90,6 +88,8 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"minimum_tls_version": {
 			Type:     pluginsdk.TypeString,
@@ -172,14 +172,6 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			// Set identity
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
-			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
-			}
-			parameters.Identity = expandedIdentity
-
-			// Add customer managed key encryption if specified
 			if len(model.CustomerManagedKey) > 0 {
 				encryption, err := expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey)
 				if err != nil {
@@ -187,6 +179,12 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				}
 				parameters.Properties.Encryption = encryption
 			}
+
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			parameters.Identity = expandedIdentity
 
 			if len(model.Zones) > 0 {
 				// TODO cross check with API if this is still valid
@@ -245,13 +243,10 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.Tags = pointer.From(model.Tags)
 
 				if skuName := flattenManagedRedisClusterSku(model.Sku); skuName != nil {
 					state.SkuName = *skuName
 				}
-
-				state.Zones = pointer.From(model.Zones)
 
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
@@ -259,8 +254,11 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = *flattenedIdentity
 
+				state.Tags = pointer.From(model.Tags)
+				state.Zones = pointer.From(model.Zones)
+
 				if props := model.Properties; props != nil {
-					state.Hostname = pointer.From(props.HostName)
+					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
 
 					tlsVersion := ""
 					if props.MinimumTlsVersion != nil {
@@ -268,7 +266,7 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 					}
 					state.MinimumTlsVersion = tlsVersion
 
-					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
+					state.Hostname = pointer.From(props.HostName)
 				}
 			}
 
@@ -306,12 +304,13 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				Properties: existing.Model.Properties,
 			}
 
-			if metadata.ResourceData.HasChange("minimum_tls_version") {
-				parameters.Properties.MinimumTlsVersion = pointer.To(redisenterprise.TlsVersion(state.MinimumTlsVersion))
-			}
+			if metadata.ResourceData.HasChange("customer_managed_key") {
+				encryption, err := expandManagedRedisClusterCustomerManagedKey(state.CustomerManagedKey)
+				if err != nil {
+					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
+				}
 
-			if metadata.ResourceData.HasChange("tags") {
-				parameters.Tags = pointer.To(state.Tags)
+				parameters.Properties.Encryption = encryption
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -322,13 +321,12 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				parameters.Identity = expandedIdentity
 			}
 
-			if metadata.ResourceData.HasChange("customer_managed_key") {
-				encryption, err := expandManagedRedisClusterCustomerManagedKey(state.CustomerManagedKey)
-				if err != nil {
-					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
-				}
+			if metadata.ResourceData.HasChange("minimum_tls_version") {
+				parameters.Properties.MinimumTlsVersion = pointer.To(redisenterprise.TlsVersion(state.MinimumTlsVersion))
+			}
 
-				parameters.Properties.Encryption = encryption
+			if metadata.ResourceData.HasChange("tags") {
+				parameters.Tags = pointer.To(state.Tags)
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
