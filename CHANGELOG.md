@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 * `azurerm_linux_web_app` - support for the `vnet_image_pull_enabled` property [GH-29452]
+* `azurerm_linux_web_app_slot` - support for the `vnet_image_pull_enabled` property [GH-29452]
 
 BUG FIXES:
 * `azurerm_private_dns_resolver_dns_forwarding_ruleset` - fix an issue where `private_dns_resolver_outbound_endpoint_ids` failed to update [GH-30046]
