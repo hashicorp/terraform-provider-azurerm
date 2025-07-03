@@ -233,7 +233,6 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 					return err
 				}
 				customIpPrefixId = id.ID()
-
 			}
 			d.Set("custom_ip_prefix_id", customIpPrefixId)
 		}

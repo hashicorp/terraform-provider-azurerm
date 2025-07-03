@@ -82,7 +82,7 @@ func TestAccPublicIpPrefix_globalTier(t *testing.T) {
 
 func TestAccPublicIpPrefix_customIpPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	if os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID") == "" {
 		t.Skip("ARM_TEST_CUSTOM_IP_PREFIX_ID env var not set")
@@ -454,7 +454,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (PublicIPPrefixResource) customIpPrefix(data acceptance.TestData) string {
+func (PublicIpPrefixResource) customIpPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
