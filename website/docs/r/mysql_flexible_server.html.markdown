@@ -139,7 +139,7 @@ The following arguments are supported:
 
 * `storage` - (Optional) A `storage` block as defined below.
 
-* `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, and `8.0.21`. Changing this forces a new MySQL Flexible Server to be created.
+* `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, and `8.0.21`.
 
 * `zone` - (Optional) Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are `1`, `2` and `3`.
 

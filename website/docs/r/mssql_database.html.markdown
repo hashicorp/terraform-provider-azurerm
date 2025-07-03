@@ -252,7 +252,7 @@ The following arguments are supported:
 
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases.
 
-* `secondary_type` - (Optional) How do you want your replica to be made? Valid values include `Geo` and `Named`. Defaults to `Geo`. Changing this forces a new resource to be created.
+* `secondary_type` - (Optional) How do you want your replica to be made? Valid values include `Geo`, `Named` and `Standby`. Defaults to `Geo`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

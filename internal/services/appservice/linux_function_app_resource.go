@@ -1,6 +1,8 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary"
+
 package appservice
 
 import (
@@ -17,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -86,13 +89,13 @@ type LinuxFunctionAppModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-var _ sdk.ResourceWithUpdate = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
+var (
+	_ sdk.ResourceWithUpdate         = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithCustomizeDiff  = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithIdentity       = LinuxFunctionAppResource{}
+)
 
 func (r LinuxFunctionAppResource) ModelObject() interface{} {
 	return &LinuxFunctionAppModel{}
@@ -100,6 +103,10 @@ func (r LinuxFunctionAppResource) ModelObject() interface{} {
 
 func (r LinuxFunctionAppResource) ResourceType() string {
 	return "azurerm_linux_function_app"
+}
+
+func (r LinuxFunctionAppResource) Identity() resourceids.ResourceId {
+	return &commonids.FunctionAppId{}
 }
 
 func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -844,7 +851,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }

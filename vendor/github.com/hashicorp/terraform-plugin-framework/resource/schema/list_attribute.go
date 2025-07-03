@@ -247,6 +247,18 @@ func (a ListAttribute) IsWriteOnly() bool {
 	return a.WriteOnly
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a ListAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a ListAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // ListDefaultValue returns the Default field value.
 func (a ListAttribute) ListDefaultValue() defaults.List {
 	return a.Default

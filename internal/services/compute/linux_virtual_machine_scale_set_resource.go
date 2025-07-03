@@ -81,6 +81,25 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return false
 			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				networkInterfaces := diff.Get("network_interface").([]interface{})
+				for _, v := range networkInterfaces {
+					raw := v.(map[string]interface{})
+					auxiliaryMode := raw["auxiliary_mode"].(string)
+					auxiliarySku := raw["auxiliary_sku"].(string)
+
+					if auxiliaryMode != "" && auxiliarySku == "" {
+						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+					}
+
+					if auxiliarySku != "" && auxiliaryMode == "" {
+						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+					}
+				}
+
+				return nil
+			}),
 		),
 	}
 }

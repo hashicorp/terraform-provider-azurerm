@@ -61,7 +61,7 @@ func TestAccAppServiceEnvironmentV3_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("dns_suffix").HasValue(fmt.Sprintf("acctest-ase-%d.appserviceenvironment.net", data.RandomInteger)),
 				check.That(data.ResourceName).Key("inbound_network_dependencies.#").HasValue("3"),
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
-				check.That(data.ResourceName).Key("windows_outbound_ip_addresses.#").HasValue("2"),
+				check.That(data.ResourceName).Key("windows_outbound_ip_addresses.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),

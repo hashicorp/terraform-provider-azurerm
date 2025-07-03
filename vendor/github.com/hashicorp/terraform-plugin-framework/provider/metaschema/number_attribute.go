@@ -128,3 +128,15 @@ func (a NumberAttribute) IsSensitive() bool {
 func (a NumberAttribute) IsWriteOnly() bool {
 	return false
 }
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a NumberAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a NumberAttribute) IsOptionalForImport() bool {
+	return false
+}

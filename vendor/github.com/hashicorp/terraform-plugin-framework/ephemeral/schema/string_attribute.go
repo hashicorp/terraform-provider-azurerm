@@ -186,6 +186,18 @@ func (a StringAttribute) IsWriteOnly() bool {
 	return false
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a StringAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a StringAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // StringValidators returns the Validators field value.
 func (a StringAttribute) StringValidators() []validator.String {
 	return a.Validators
