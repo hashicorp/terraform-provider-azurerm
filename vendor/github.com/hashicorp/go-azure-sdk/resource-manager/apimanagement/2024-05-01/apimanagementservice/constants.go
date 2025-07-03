@@ -144,18 +144,61 @@ func parseCertificateStatus(input string) (*CertificateStatus, error) {
 	return &out, nil
 }
 
+type DeveloperPortalStatus string
+
+const (
+	DeveloperPortalStatusDisabled DeveloperPortalStatus = "Disabled"
+	DeveloperPortalStatusEnabled  DeveloperPortalStatus = "Enabled"
+)
+
+func PossibleValuesForDeveloperPortalStatus() []string {
+	return []string{
+		string(DeveloperPortalStatusDisabled),
+		string(DeveloperPortalStatusEnabled),
+	}
+}
+
+func (s *DeveloperPortalStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDeveloperPortalStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDeveloperPortalStatus(input string) (*DeveloperPortalStatus, error) {
+	vals := map[string]DeveloperPortalStatus{
+		"disabled": DeveloperPortalStatusDisabled,
+		"enabled":  DeveloperPortalStatusEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DeveloperPortalStatus(input)
+	return &out, nil
+}
+
 type HostnameType string
 
 const (
-	HostnameTypeDeveloperPortal HostnameType = "DeveloperPortal"
-	HostnameTypeManagement      HostnameType = "Management"
-	HostnameTypePortal          HostnameType = "Portal"
-	HostnameTypeProxy           HostnameType = "Proxy"
-	HostnameTypeScm             HostnameType = "Scm"
+	HostnameTypeConfigurationApi HostnameType = "ConfigurationApi"
+	HostnameTypeDeveloperPortal  HostnameType = "DeveloperPortal"
+	HostnameTypeManagement       HostnameType = "Management"
+	HostnameTypePortal           HostnameType = "Portal"
+	HostnameTypeProxy            HostnameType = "Proxy"
+	HostnameTypeScm              HostnameType = "Scm"
 )
 
 func PossibleValuesForHostnameType() []string {
 	return []string{
+		string(HostnameTypeConfigurationApi),
 		string(HostnameTypeDeveloperPortal),
 		string(HostnameTypeManagement),
 		string(HostnameTypePortal),
@@ -179,11 +222,12 @@ func (s *HostnameType) UnmarshalJSON(bytes []byte) error {
 
 func parseHostnameType(input string) (*HostnameType, error) {
 	vals := map[string]HostnameType{
-		"developerportal": HostnameTypeDeveloperPortal,
-		"management":      HostnameTypeManagement,
-		"portal":          HostnameTypePortal,
-		"proxy":           HostnameTypeProxy,
-		"scm":             HostnameTypeScm,
+		"configurationapi": HostnameTypeConfigurationApi,
+		"developerportal":  HostnameTypeDeveloperPortal,
+		"management":       HostnameTypeManagement,
+		"portal":           HostnameTypePortal,
+		"proxy":            HostnameTypeProxy,
+		"scm":              HostnameTypeScm,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -191,6 +235,129 @@ func parseHostnameType(input string) (*HostnameType, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := HostnameType(input)
+	return &out, nil
+}
+
+type LegacyApiState string
+
+const (
+	LegacyApiStateDisabled LegacyApiState = "Disabled"
+	LegacyApiStateEnabled  LegacyApiState = "Enabled"
+)
+
+func PossibleValuesForLegacyApiState() []string {
+	return []string{
+		string(LegacyApiStateDisabled),
+		string(LegacyApiStateEnabled),
+	}
+}
+
+func (s *LegacyApiState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLegacyApiState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLegacyApiState(input string) (*LegacyApiState, error) {
+	vals := map[string]LegacyApiState{
+		"disabled": LegacyApiStateDisabled,
+		"enabled":  LegacyApiStateEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LegacyApiState(input)
+	return &out, nil
+}
+
+type LegacyPortalStatus string
+
+const (
+	LegacyPortalStatusDisabled LegacyPortalStatus = "Disabled"
+	LegacyPortalStatusEnabled  LegacyPortalStatus = "Enabled"
+)
+
+func PossibleValuesForLegacyPortalStatus() []string {
+	return []string{
+		string(LegacyPortalStatusDisabled),
+		string(LegacyPortalStatusEnabled),
+	}
+}
+
+func (s *LegacyPortalStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLegacyPortalStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLegacyPortalStatus(input string) (*LegacyPortalStatus, error) {
+	vals := map[string]LegacyPortalStatus{
+		"disabled": LegacyPortalStatusDisabled,
+		"enabled":  LegacyPortalStatusEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LegacyPortalStatus(input)
+	return &out, nil
+}
+
+type MigrateToStv2Mode string
+
+const (
+	MigrateToStv2ModeNewIP      MigrateToStv2Mode = "NewIP"
+	MigrateToStv2ModePreserveIP MigrateToStv2Mode = "PreserveIp"
+)
+
+func PossibleValuesForMigrateToStv2Mode() []string {
+	return []string{
+		string(MigrateToStv2ModeNewIP),
+		string(MigrateToStv2ModePreserveIP),
+	}
+}
+
+func (s *MigrateToStv2Mode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMigrateToStv2Mode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseMigrateToStv2Mode(input string) (*MigrateToStv2Mode, error) {
+	vals := map[string]MigrateToStv2Mode{
+		"newip":      MigrateToStv2ModeNewIP,
+		"preserveip": MigrateToStv2ModePreserveIP,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := MigrateToStv2Mode(input)
 	return &out, nil
 }
 
@@ -282,10 +449,11 @@ func parseNatGatewayState(input string) (*NatGatewayState, error) {
 type PlatformVersion string
 
 const (
-	PlatformVersionMtvOne       PlatformVersion = "mtv1"
-	PlatformVersionStvOne       PlatformVersion = "stv1"
-	PlatformVersionStvTwo       PlatformVersion = "stv2"
-	PlatformVersionUndetermined PlatformVersion = "undetermined"
+	PlatformVersionMtvOne         PlatformVersion = "mtv1"
+	PlatformVersionStvOne         PlatformVersion = "stv1"
+	PlatformVersionStvTwo         PlatformVersion = "stv2"
+	PlatformVersionStvTwoPointOne PlatformVersion = "stv2.1"
+	PlatformVersionUndetermined   PlatformVersion = "undetermined"
 )
 
 func PossibleValuesForPlatformVersion() []string {
@@ -293,6 +461,7 @@ func PossibleValuesForPlatformVersion() []string {
 		string(PlatformVersionMtvOne),
 		string(PlatformVersionStvOne),
 		string(PlatformVersionStvTwo),
+		string(PlatformVersionStvTwoPointOne),
 		string(PlatformVersionUndetermined),
 	}
 }
@@ -315,6 +484,7 @@ func parsePlatformVersion(input string) (*PlatformVersion, error) {
 		"mtv1":         PlatformVersionMtvOne,
 		"stv1":         PlatformVersionStvOne,
 		"stv2":         PlatformVersionStvTwo,
+		"stv2.1":       PlatformVersionStvTwoPointOne,
 		"undetermined": PlatformVersionUndetermined,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -414,22 +584,26 @@ func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
 type SkuType string
 
 const (
-	SkuTypeBasic       SkuType = "Basic"
-	SkuTypeConsumption SkuType = "Consumption"
-	SkuTypeDeveloper   SkuType = "Developer"
-	SkuTypeIsolated    SkuType = "Isolated"
-	SkuTypePremium     SkuType = "Premium"
-	SkuTypeStandard    SkuType = "Standard"
+	SkuTypeBasic        SkuType = "Basic"
+	SkuTypeBasicVTwo    SkuType = "BasicV2"
+	SkuTypeConsumption  SkuType = "Consumption"
+	SkuTypeDeveloper    SkuType = "Developer"
+	SkuTypeIsolated     SkuType = "Isolated"
+	SkuTypePremium      SkuType = "Premium"
+	SkuTypeStandard     SkuType = "Standard"
+	SkuTypeStandardVTwo SkuType = "StandardV2"
 )
 
 func PossibleValuesForSkuType() []string {
 	return []string{
 		string(SkuTypeBasic),
+		string(SkuTypeBasicVTwo),
 		string(SkuTypeConsumption),
 		string(SkuTypeDeveloper),
 		string(SkuTypeIsolated),
 		string(SkuTypePremium),
 		string(SkuTypeStandard),
+		string(SkuTypeStandardVTwo),
 	}
 }
 
@@ -449,11 +623,13 @@ func (s *SkuType) UnmarshalJSON(bytes []byte) error {
 func parseSkuType(input string) (*SkuType, error) {
 	vals := map[string]SkuType{
 		"basic":       SkuTypeBasic,
+		"basicv2":     SkuTypeBasicVTwo,
 		"consumption": SkuTypeConsumption,
 		"developer":   SkuTypeDeveloper,
 		"isolated":    SkuTypeIsolated,
 		"premium":     SkuTypePremium,
 		"standard":    SkuTypeStandard,
+		"standardv2":  SkuTypeStandardVTwo,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil

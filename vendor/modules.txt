@@ -173,7 +173,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/a
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apidiagnostic
-github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationtag
@@ -218,6 +217,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/subs
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tag
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/deletedconfigurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/operations
