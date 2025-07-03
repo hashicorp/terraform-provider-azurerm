@@ -172,7 +172,8 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 
 			id := dbsystemshapes.NewLocationID(subscriptionId, state.Location)
 
-			resp, err := client.ListByLocation(ctx, id, resp, err := client.ListByLocation(ctx, id, dbsystemshapes.DefaultListByLocationOperationOptions()))
+			resp, err := client.ListByLocation(ctx, id, dbsystemshapes.DefaultListByLocationOperationOptions())
+
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
