@@ -170,11 +170,12 @@ resource "azurerm_image" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {
@@ -304,11 +305,12 @@ resource "azurerm_image" "abc" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {
@@ -323,11 +325,12 @@ resource "azurerm_image" "def" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
-    size_gb  = 30
-    caching  = "None"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {
