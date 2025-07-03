@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -174,6 +175,15 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 				}
 				parameters.Properties.Encryption = encryption
+
+				// Set identity based on customer managed key
+				userAssignedIdentityId := model.CustomerManagedKey[0].UserAssignedIdentityId
+				parameters.Identity = &identity.SystemAndUserAssignedMap{
+					Type: identity.TypeUserAssigned,
+					IdentityIds: map[string]identity.UserAssignedIdentityDetails{
+						userAssignedIdentityId: {},
+					},
+				}
 			}
 
 			if len(model.Zones) > 0 {
@@ -300,7 +310,19 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 				}
+
 				parameters.Properties.Encryption = encryption
+
+				// Set identity based on customer managed key
+				if len(state.CustomerManagedKey) > 0 {
+					userAssignedIdentityId := state.CustomerManagedKey[0].UserAssignedIdentityId
+					parameters.Identity = &identity.SystemAndUserAssignedMap{
+						Type: identity.TypeUserAssigned,
+						IdentityIds: map[string]identity.UserAssignedIdentityDetails{
+							userAssignedIdentityId: {},
+						},
+					}
+				}
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
