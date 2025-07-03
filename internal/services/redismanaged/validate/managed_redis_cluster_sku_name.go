@@ -12,11 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
-// ManagedRedisClusterSkuName - validates if passed input string contains a valid Managed Redis Cluster Sku
 func ManagedRedisClusterSkuName(v interface{}, k string) (warnings []string, errors []error) {
-	validSku := false
-	validCapacity := false
-
 	value, ok := v.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -24,46 +20,62 @@ func ManagedRedisClusterSkuName(v interface{}, k string) (warnings []string, err
 	}
 
 	skuParts := strings.Split(value, "-")
-	validSkus := redisenterprise.PossibleValuesForSkuName()
-	validValues := "2, 4, 6, ..."
-	// Validate the SKU Name section
-	for _, str := range validSkus {
-		if skuParts[0] == str {
-			validSku = true
+
+	if len(skuParts) > 2 {
+		errors = append(errors, fmt.Errorf("expected %q to have at most 2 segments separated by '-', got %q", k, value))
+		return warnings, errors
+	}
+
+	skuName := skuParts[0]
+	validSkuName := false
+	validSkuNames := redisenterprise.PossibleValuesForSkuName()
+	for _, str := range validSkuNames {
+		if skuName == str {
+			validSkuName = true
 			break
 		}
 	}
-
-	isFlash := strings.Contains(skuParts[0], "Flash")
-
-	if isFlash {
-		validValues = "3, 9, 15, ..."
+	if !validSkuName {
+		errors = append(errors, fmt.Errorf("expected %q sku name segment to be one of [%s], got %q", k, azure.QuotedStringSlice(validSkuNames), value))
+		return warnings, errors
 	}
 
-	if len(skuParts) > 1 {
-		i, err := strconv.ParseInt(skuParts[1], 10, 32)
-		if err != nil {
-			errors = append(errors, fmt.Errorf("expected %q %q segment to fit into an int32 value, got %q", k, "capacity", skuParts[1]))
+	enterpriseOrEnterpriseFlash := strings.HasPrefix(skuName, "Enterprise_") || strings.HasPrefix(skuName, "EnterpriseFlash_")
+	if len(skuParts) == 1 && enterpriseOrEnterpriseFlash {
+		errors = append(errors, fmt.Errorf("expected %q to have a capacity segment for Enterprise_ and EnterpriseFlash_ SKUs, got %q", k, value))
+		return warnings, errors
+	}
+
+	if len(skuParts) == 2 {
+		if !enterpriseOrEnterpriseFlash {
+			errors = append(errors, fmt.Errorf("capacity segment is only valid for Enterprise_ and EnterpriseFlash_ SKUs: %q", value))
 			return warnings, errors
 		}
 
-		skuCapacity := int32(i)
-
-		if isFlash {
-			if skuCapacity%6 == 3 {
+		skuCapacity := skuParts[1]
+		validCapacityHints := "2, 4, 6, ..."
+		isEnterpriseFlash := strings.HasPrefix(skuName, "EnterpriseFlash_")
+		if isEnterpriseFlash {
+			validCapacityHints = "3, 9, 15, ..."
+		}
+		i, err := strconv.ParseInt(skuCapacity, 10, 32)
+		if err != nil {
+			errors = append(errors, fmt.Errorf("expected %q %q segment to fit into an int32 value, got %q", k, "capacity", skuCapacity))
+			return warnings, errors
+		}
+		skuCapacityInt := int32(i)
+		validCapacity := false
+		if isEnterpriseFlash {
+			if skuCapacityInt%6 == 3 {
 				validCapacity = true
 			}
-		} else if skuCapacity%2 == 0 {
+		} else if skuCapacityInt%2 == 0 {
 			validCapacity = true
 		}
-	}
-
-	if !validSku {
-		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "name", azure.QuotedStringSlice(validSkus), value))
-	}
-
-	if !validCapacity {
-		errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "capacity", validValues, value))
+		if !validCapacity {
+			errors = append(errors, fmt.Errorf("expected %q %q segment to be one of [%s], got %q", k, "capacity", validCapacityHints, value))
+			return warnings, errors
+		}
 	}
 
 	return warnings, errors

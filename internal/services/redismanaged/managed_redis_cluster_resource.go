@@ -7,8 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,11 +17,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedRedisClusterResource struct{}
@@ -152,20 +149,15 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			// TODO should fix supported SKU
-			sku := expandManagedRedisClusterSku(model.SkuName)
-
-			// If the sku type is flash check to make sure that the sku is supported in that region
-			if strings.Contains(string(sku.Name), "Flash") {
-				if err := validate.ManagedRedisClusterLocationFlashSkuSupport(model.Location); err != nil {
-					return fmt.Errorf("%s: %s", id, err)
-				}
+			sku, err := parse.ManagedRedisCacheSkuName(model.SkuName)
+			if err != nil {
+				return fmt.Errorf("parsing `sku_name`: %+v", err)
 			}
 
 			tlsVersion := redisenterprise.TlsVersion(model.MinimumTlsVersion)
 			parameters := redisenterprise.Cluster{
 				Location: model.Location,
-				Sku:      sku,
+				Sku:      pointer.From(sku),
 				Properties: &redisenterprise.ClusterProperties{
 					MinimumTlsVersion: &tlsVersion,
 				},
@@ -187,11 +179,6 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 			parameters.Identity = expandedIdentity
 
 			if len(model.Zones) > 0 {
-				// TODO cross check with API if this is still valid
-				// Zones are currently not supported in these regions
-				if err := validate.ManagedRedisClusterLocationZoneSupport(model.Location); err != nil {
-					return fmt.Errorf("%s: %s", id, err)
-				}
 				parameters.Zones = pointer.To(model.Zones)
 			}
 
@@ -371,31 +358,17 @@ func (r ManagedRedisClusterResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandManagedRedisClusterSku(v string) redisenterprise.Sku {
-	redisSku, _ := parse.RedisEnterpriseCacheSkuName(v)
-	capacity, _ := strconv.ParseInt(redisSku.Capacity, 10, 32)
-
-	return redisenterprise.Sku{
-		Name:     redisenterprise.SkuName(redisSku.Name),
-		Capacity: utils.Int64(capacity),
-	}
-}
-
 func flattenManagedRedisClusterSku(input redisenterprise.Sku) *string {
-	var name redisenterprise.SkuName
-	var capacity int64
-
-	if input.Name != "" {
-		name = input.Name
-	}
+	var skuName string
 
 	if input.Capacity != nil {
-		capacity = *input.Capacity
+		capacity := *input.Capacity
+		skuName = fmt.Sprintf("%s-%d", string(input.Name), capacity)
+	} else {
+		skuName = string(input.Name)
 	}
 
-	skuName := fmt.Sprintf("%s-%d", name, capacity)
-
-	return &skuName
+	return pointer.To(skuName)
 }
 
 func managedRedisClusterStateRefreshFunc(ctx context.Context, client *redisenterprise.RedisEnterpriseClient, id redisenterprise.RedisEnterpriseId) pluginsdk.StateRefreshFunc {

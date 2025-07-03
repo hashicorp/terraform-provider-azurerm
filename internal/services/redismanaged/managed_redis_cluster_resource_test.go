@@ -107,6 +107,20 @@ func TestAccManagedRedisCluster_withCmk(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedisCluster_withBalancedB5Sku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis_cluster", "test")
+	r := ManagedRedisClusterResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withBalancedB5Sku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ManagedRedisClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := redisenterprise.ParseRedisEnterpriseID(state.ID)
 	if err != nil {
@@ -141,7 +155,7 @@ func (r ManagedRedisClusterResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_managed_redis_cluster" "test" {
-  name                = "acctest-rec-%d"
+  name                = "acctest-mrc-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -155,7 +169,7 @@ func (r ManagedRedisClusterResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_managed_redis_cluster" "test" {
-  name                = "acctest-rec-%d"
+  name                = "acctest-mrc-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -187,7 +201,7 @@ func (r ManagedRedisClusterResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_managed_redis_cluster" "test" {
-  name                = "acctest-rec-%d"
+  name                = "acctest-mrc-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -271,7 +285,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_managed_redis_cluster" "test" {
-  name                = "acctest-rec-%[2]d"
+  name                = "acctest-mrc-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -288,4 +302,18 @@ resource "azurerm_managed_redis_cluster" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomStringOfLength(5))
+}
+
+func (r ManagedRedisClusterResource) withBalancedB5Sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_redis_cluster" "test" {
+  name                = "acctest-mrc-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku_name = "Balanced_B5"
+}
+`, r.template(data), data.RandomInteger)
 }
