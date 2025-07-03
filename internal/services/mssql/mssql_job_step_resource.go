@@ -66,6 +66,7 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 		"job_credential_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Computed:     true,
 			ValidateFunc: jobcredentials.ValidateCredentialID,
 		},
 		"job_step_index": {
@@ -104,6 +105,7 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 					"job_credential_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						Computed:     true,
 						ValidateFunc: jobcredentials.ValidateCredentialID,
 					},
 					"mssql_database_id": {
