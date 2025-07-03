@@ -172,8 +172,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
-  name = "OFake%[2]d"
-
+  name                             = "OFake%[2]d"
   display_name                     = "OFake%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
@@ -193,9 +192,10 @@ resource "azurerm_oracle_autonomous_database" "test" {
   customer_contacts                = ["test@test.com"]
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
+  allowed_ips                      = []
   long_term_backup_schedule {
     repeat_cadence           = "Monthly"
-    time_of_backup           = "2025-07-03T09:00:00Z"
+    time_of_backup           = "2025-08-03T09:00:00Z"
     retention_period_in_days = 200
     enabled                  = true
   }

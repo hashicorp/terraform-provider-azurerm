@@ -201,7 +201,7 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 
 		"mtls_connection_required": {
 			Type:     pluginsdk.TypeBool,
-			Optional: true,
+			Required: true,
 			ForceNew: true,
 		},
 
