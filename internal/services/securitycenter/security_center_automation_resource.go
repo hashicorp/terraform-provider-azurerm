@@ -6,6 +6,7 @@ package securitycenter
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -201,9 +203,12 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		r.Schema["action"].Elem.(*pluginsdk.Resource).Schema["type"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				return strings.EqualFold(oldValue, newValue)
+			},
 			ValidateFunc: validation.StringInSlice(append(automations.PossibleValuesForActionType(), "loganalytics", "logicapp", "eventhub"), false),
 		}
 	}
@@ -606,7 +611,7 @@ func flattenSecurityCenterAutomationActions(actions *[]automations.AutomationAct
 		actionLogAnalytics, isLogAnalytics := action.(automations.AutomationActionWorkspace)
 		if isLogAnalytics {
 			if actionLogAnalytics.WorkspaceResourceId == nil {
-				return nil, fmt.Errorf("Security Center automation, API returned an action with empty workspaceResourceId")
+				return nil, fmt.Errorf("security center automation, API returned an action with empty workspaceResourceId")
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogAnalytics.WorkspaceResourceId,
