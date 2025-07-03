@@ -94,14 +94,14 @@ func TestAccMsSqlJobStep_complete(t *testing.T) {
 
 func TestAccMsSqlJobStep_withManagedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
-	r := MsSqlJobStepResource{}
+	r := MsSqlJobStepTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withManagedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("job_credential_id").HasValue(""),
+				check.That(data.ResourceName).Key("job_credential_id").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -110,7 +110,7 @@ func TestAccMsSqlJobStep_withManagedIdentity(t *testing.T) {
 
 func TestAccMsSqlJobStep_updateFromCredentialToManagedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
-	r := MsSqlJobStepResource{}
+	r := MsSqlJobStepTestResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -276,27 +276,26 @@ resource "azurerm_mssql_job_credential" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r MsSqlJobStepResource) withManagedIdentity(data acceptance.TestData) string {
+func (r MsSqlJobStepTestResource) withManagedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_mssql_job_step" "test" {
-  name                 = "acctestjs-%[1]d"
+  name                 = "acctestjs-%[2]d"
   job_id               = azurerm_mssql_job.test.id
   job_target_group_id  = azurerm_mssql_job_target_group.test.id
   job_step_index       = 1
   sql_script           = "SELECT 1;"
-  # job_credential_id intentionally omitted
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlJobStepResource) withCredential(data acceptance.TestData) string {
+func (r MsSqlJobStepTestResource) withCredential(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_mssql_job_step" "test" {
-  name                 = "acctestjs-%[1]d"
+  name                 = "acctestjs-%[2]d"
   job_id               = azurerm_mssql_job.test.id
   job_target_group_id  = azurerm_mssql_job_target_group.test.id
   job_step_index       = 1
