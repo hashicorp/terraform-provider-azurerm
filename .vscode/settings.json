@@ -26,6 +26,18 @@
     ],
     "github.copilot.chat.testGeneration.instructions": [
         {
+            "file": ".github/instructions/coding-standards.instructions.md"
+        },
+        {
+            "file": ".github/instructions/coding-style.instructions.md"
+        },
+        {
+            "file": ".github/instructions/coding-patterns.instructions.md"
+        },
+        {
+            "file": ".github/instructions/terraform-provider-guidelines.instructions.md"
+        },
+        {
             "file": ".github/instructions/testing-guidelines.instructions.md"
         }
     ],
