@@ -32,7 +32,22 @@
     "github.copilot.chat.reviewSelection.enabled": true,
     "github.copilot.chat.reviewSelection.instructions": [
         {
+            "file": ".github/instructions/coding-standards.instructions.md"
+        },
+        {
             "file": ".github/instructions/coding-style.instructions.md"
+        },
+        {
+            "file": ".github/instructions/coding-patterns.instructions.md"
+        },
+        {
+            "file": ".github/instructions/terraform-documentation-guidelines.instructions.md"
+        },
+        {
+            "file": ".github/instructions/terraform-provider-guidelines.instructions.md"
+        },
+        {
+            "file": ".github/instructions/testing-guidelines.instructions.md"
         }
     ]
 }
