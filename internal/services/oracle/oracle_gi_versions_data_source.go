@@ -66,9 +66,7 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 			id := giversions.NewLocationID(subscriptionId,
 				state.Location)
 
-			options := giversions.ListByLocationOperationOptions{}
-
-			resp, err := client.ListByLocation(ctx, id, options)
+			resp, err := client.ListByLocation(ctx, id, giversions.DefaultListByLocationOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
