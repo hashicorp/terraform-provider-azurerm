@@ -32,7 +32,7 @@ func TestAccSharedImage_resourceIdentity(t *testing.T) {
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_shared_image.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_shared_image.test", tfjsonpath.New("gallery_name"), tfjsonpath.New("gallery_name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_shared_image.test", tfjsonpath.New("image_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_shared_image.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_shared_image.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},

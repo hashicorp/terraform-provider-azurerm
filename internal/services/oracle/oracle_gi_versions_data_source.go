@@ -7,13 +7,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/giversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type GiVersionsDataSource struct{}
@@ -21,28 +19,11 @@ type GiVersionsDataSource struct{}
 type GiVersionsModel struct {
 	Versions []string `tfschema:"versions"`
 	Location string   `tfschema:"location"`
-	Shape    string   `tfschema:"shape"`
-	Zone     string   `tfschema:"zone"`
 }
 
 func (d GiVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
-		"shape": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(giversions.SystemShapesExaDbXS),
-				string(giversions.SystemShapesExadataPointXNineM),
-				string(giversions.SystemShapesExadataPointXOneOneM),
-			}, false),
-			Description: "Filter the versions by system shape. Possible values are 'ExaDbXS', 'Exadata.X9M', and 'Exadata.X11M'.",
-		},
-		"zone": {
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Description: "Filter the versions by zone",
-		},
 	}
 }
 
@@ -85,15 +66,7 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 			id := giversions.NewLocationID(subscriptionId,
 				state.Location)
 
-			options := giversions.ListByLocationOperationOptions{}
-			if state.Shape != "" {
-				options.Shape = pointer.To(giversions.SystemShapes(state.Shape))
-			}
-			if state.Zone != "" {
-				options.Zone = &state.Zone
-			}
-
-			resp, err := client.ListByLocation(ctx, id, options)
+			resp, err := client.ListByLocation(ctx, id, giversions.DefaultListByLocationOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)

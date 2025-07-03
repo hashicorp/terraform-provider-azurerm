@@ -49,17 +49,17 @@ func ImporterValidatingResourceIdThen(validateFunc IDValidationFunc, thenFunc Im
 
 // ImporterValidatingIdentity validates the ID provided at import time is valid or that the resource identity data provided in the import block is valid
 // based on the expected resource ID type.
-func ImporterValidatingIdentity(id resourceids.ResourceId) *schema.ResourceImporter {
+func ImporterValidatingIdentity(id resourceids.ResourceId, idType ...ResourceTypeForIdentity) *schema.ResourceImporter {
 	thenFunc := func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
 		return []*ResourceData{d}, nil
 	}
 
-	return ImporterValidatingIdentityThen(id, thenFunc)
+	return ImporterValidatingIdentityThen(id, thenFunc, idType...)
 }
 
 // ImporterValidatingIdentityThen validates the ID provided at import time is valid or that the resource identity data provided in the import block is valid
 // based on the expected resource ID type, then runs the 'thenFunc', allowing the import to be customised.
-func ImporterValidatingIdentityThen(id resourceids.ResourceId, thenFunc ImporterFunc) *schema.ResourceImporter {
+func ImporterValidatingIdentityThen(id resourceids.ResourceId, thenFunc ImporterFunc, idType ...ResourceTypeForIdentity) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
 		StateContext: func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
@@ -79,7 +79,7 @@ func ImporterValidatingIdentityThen(id resourceids.ResourceId, thenFunc Importer
 				return thenFunc(ctx, d, meta)
 			}
 
-			if err := ValidateResourceIdentityData(d, id); err != nil {
+			if err := ValidateResourceIdentityData(d, id, idType...); err != nil {
 				return nil, err
 			}
 
