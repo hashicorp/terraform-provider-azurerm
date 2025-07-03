@@ -31,15 +31,16 @@ type ManagedRedisClusterResource struct{}
 var _ sdk.ResourceWithUpdate = ManagedRedisClusterResource{}
 
 type ManagedRedisClusterResourceModel struct {
-	Name               string               `tfschema:"name"`
-	ResourceGroupName  string               `tfschema:"resource_group_name"`
-	Location           string               `tfschema:"location"`
-	SkuName            string               `tfschema:"sku_name"`
-	Zones              []string             `tfschema:"zones"`
-	MinimumTlsVersion  string               `tfschema:"minimum_tls_version"`
-	Hostname           string               `tfschema:"hostname"`
-	Tags               map[string]string    `tfschema:"tags"`
-	CustomerManagedKey []CustomerManagedKey `tfschema:"customer_managed_key"`
+	Name               string                                     `tfschema:"name"`
+	ResourceGroupName  string                                     `tfschema:"resource_group_name"`
+	Location           string                                     `tfschema:"location"`
+	SkuName            string                                     `tfschema:"sku_name"`
+	Zones              []string                                   `tfschema:"zones"`
+	MinimumTlsVersion  string                                     `tfschema:"minimum_tls_version"`
+	Hostname           string                                     `tfschema:"hostname"`
+	Tags               map[string]string                          `tfschema:"tags"`
+	CustomerManagedKey []CustomerManagedKey                       `tfschema:"customer_managed_key"`
+	Identity           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 }
 
 type CustomerManagedKey struct {
@@ -66,6 +67,8 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.ManagedRedisClusterSkuName,
 		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"customer_managed_key": {
 			Type:     pluginsdk.TypeList,
@@ -169,6 +172,13 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
+			// Set identity
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			parameters.Identity = expandedIdentity
+
 			// Add customer managed key encryption if specified
 			if len(model.CustomerManagedKey) > 0 {
 				encryption, err := expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey)
@@ -176,15 +186,6 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 				}
 				parameters.Properties.Encryption = encryption
-
-				// Set identity based on customer managed key
-				userAssignedIdentityId := model.CustomerManagedKey[0].UserAssignedIdentityId
-				parameters.Identity = &identity.SystemAndUserAssignedMap{
-					Type: identity.TypeUserAssigned,
-					IdentityIds: map[string]identity.UserAssignedIdentityDetails{
-						userAssignedIdentityId: {},
-					},
-				}
 			}
 
 			if len(model.Zones) > 0 {
@@ -252,6 +253,12 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 
 				state.Zones = pointer.From(model.Zones)
 
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = *flattenedIdentity
+
 				if props := model.Properties; props != nil {
 					state.Hostname = pointer.From(props.HostName)
 
@@ -307,6 +314,14 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				parameters.Tags = pointer.To(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("identity") {
+				expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+				parameters.Identity = expandedIdentity
+			}
+
 			if metadata.ResourceData.HasChange("customer_managed_key") {
 				encryption, err := expandManagedRedisClusterCustomerManagedKey(state.CustomerManagedKey)
 				if err != nil {
@@ -314,17 +329,6 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				}
 
 				parameters.Properties.Encryption = encryption
-
-				// Set identity based on customer managed key
-				if len(state.CustomerManagedKey) > 0 {
-					userAssignedIdentityId := state.CustomerManagedKey[0].UserAssignedIdentityId
-					parameters.Identity = &identity.SystemAndUserAssignedMap{
-						Type: identity.TypeUserAssigned,
-						IdentityIds: map[string]identity.UserAssignedIdentityDetails{
-							userAssignedIdentityId: {},
-						},
-					}
-				}
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {

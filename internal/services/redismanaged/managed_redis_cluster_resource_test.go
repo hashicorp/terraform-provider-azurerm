@@ -277,6 +277,11 @@ resource "azurerm_managed_redis_cluster" "test" {
 
   sku_name = "Enterprise_E1-2"
 
+  identity {
+    type = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
   customer_managed_key {
     encryption_key_url         = azurerm_key_vault_key.test.id
     user_assigned_identity_id  = azurerm_user_assigned_identity.test.id
