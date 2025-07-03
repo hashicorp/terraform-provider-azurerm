@@ -1,10 +1,10 @@
 ## 4.36.0 (Unreleased)
 
 FEATURES:
-* `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
-* `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
 
 ENHANCEMENTS:
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
 * `azurerm_logic_app_workflow` - The `access_control.trigger.allowed_caller_ip_address_range` property is now optional [GH-30041]
 * dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
 * `azurerm_public_ip_prefix` - add support for the `custom_ip_prefix_id` property [GH-29851]
