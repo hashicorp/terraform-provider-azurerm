@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -115,6 +116,8 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	publishEndpoint := fmt.Sprintf("%s/api/zipdeploy?isAsync=true", host)
 	statusEndpoint := fmt.Sprintf("%s/api/deployments/latest", host)
 
+	// The deployment service can be unavailable if the app is recycling. This could take a while to come back up and timeout so instead we
+	// poll the deployment service status endpoint until it is available.
 	if err := pollDeploymentServiceStatus(ctx, host, user, passwd); err != nil {
 		return fmt.Errorf("checking deployment service status: %+v", err)
 	}
@@ -245,6 +248,7 @@ func checkDeploymentServiceStatus(ctx context.Context, r *http.Request) pluginsd
 		resp, err := http.DefaultClient.Do(reqWithTimeout)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
+				log.Printf("[DEBUG] Deployment service isn't available yet, retrying...")
 				return nil, "retrying", nil
 			}
 			return nil, "", fmt.Errorf("client error: %s", err)
@@ -252,6 +256,7 @@ func checkDeploymentServiceStatus(ctx context.Context, r *http.Request) pluginsd
 
 		if resp.StatusCode >= 500 {
 			resp.Body.Close()
+			log.Printf("[DEBUG] Deployment service came back with a %d status code, retrying...", resp.StatusCode)
 			return nil, "retrying", nil
 		}
 
