@@ -17,7 +17,6 @@ Gets a list of the shapes that can be used to launch a new DB system. The shape 
 ```hcl
 data "azurerm_oracle_db_system_shapes" "example" {
   location = "West Europe"
-  zone     = "2"
 }
 
 output "example" {
@@ -31,11 +30,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the system shapes in.
 
-* `zone` -  (Optional) The Cloud Exadata Infrastructure Azure zones.
-
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `db_system_shapes` - A `db_system_shapes` block as defined below.
 

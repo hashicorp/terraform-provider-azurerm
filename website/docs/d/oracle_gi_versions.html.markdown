@@ -30,13 +30,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the GI Versions in.
 
-* `shape` - (Optional) The model name of the Cloud Exadata Infrastructure resource. Possible values are 'ExaDbXS', 'Exadata.X9M', and 'Exadata.X11M'.
-
-* `zone` - (Optional) The Cloud Exadata Infrastructure Azure zones.
-
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `versions` - A list of valid GI software versions.
 
