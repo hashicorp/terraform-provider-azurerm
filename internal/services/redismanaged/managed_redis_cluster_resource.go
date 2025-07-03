@@ -149,6 +149,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			// TODO should fix supported SKU
 			sku := expandManagedRedisClusterSku(model.SkuName)
 
 			// If the sku type is flash check to make sure that the sku is supported in that region
@@ -187,6 +188,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.Zones) > 0 {
+				// TODO cross check with API if this is still valid
 				// Zones are currently not supported in these regions
 				if err := validate.ManagedRedisClusterLocationZoneSupport(model.Location); err != nil {
 					return fmt.Errorf("%s: %s", id, err)
