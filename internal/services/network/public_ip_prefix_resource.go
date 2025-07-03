@@ -225,9 +225,17 @@ func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if version := props.PublicIPAddressVersion; version != nil {
 				d.Set("ip_version", string(*version))
 			}
+
+			customIpPrefixId := ""
 			if props.CustomIPPrefix != nil {
-				d.Set("custom_ip_prefix_id", pointer.From(props.CustomIPPrefix.Id))
+				id, err := customipprefixes.ParseCustomIPPrefixID(pointer.From(props.CustomIPPrefix.Id))
+				if err != nil {
+					return err
+				}
+				customIpPrefixId = id.ID()
+
 			}
+			d.Set("custom_ip_prefix_id", customIpPrefixId)
 		}
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
