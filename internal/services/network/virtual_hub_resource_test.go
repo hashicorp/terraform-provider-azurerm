@@ -170,12 +170,12 @@ func (r VirtualHubResource) route(data acceptance.TestData) string {
 %s
 
 resource "azurerm_virtual_hub" "test" {
-  name                           = "acctestVHUB-%d"
-  resource_group_name            = azurerm_resource_group.test.name
-  location                       = azurerm_resource_group.test.location
-  virtual_wan_id                 = azurerm_virtual_wan.test.id
-  address_prefix                 = "10.0.1.0/24"
-  allow_branch_to_branch_traffic = true
+  name                             = "acctestVHUB-%d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  virtual_wan_id                   = azurerm_virtual_wan.test.id
+  address_prefix                   = "10.0.1.0/24"
+  branch_to_branch_traffic_enabled = true
 
   route {
     address_prefixes    = ["172.0.1.0/24"]
@@ -190,12 +190,12 @@ func (r VirtualHubResource) routeUpdated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_virtual_hub" "test" {
-  name                           = "acctestVHUB-%d"
-  resource_group_name            = azurerm_resource_group.test.name
-  location                       = azurerm_resource_group.test.location
-  virtual_wan_id                 = azurerm_virtual_wan.test.id
-  address_prefix                 = "10.0.1.0/24"
-  allow_branch_to_branch_traffic = false
+  name                             = "acctestVHUB-%d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  virtual_wan_id                   = azurerm_virtual_wan.test.id
+  address_prefix                   = "10.0.1.0/24"
+  branch_to_branch_traffic_enabled = false
 
   route {
     address_prefixes    = ["172.0.1.0/24"]

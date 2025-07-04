@@ -65,7 +65,7 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				ValidateFunc: validate.CIDR,
 			},
 
-			"allow_branch_to_branch_traffic": {
+			"branch_to_branch_traffic_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -179,7 +179,7 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := virtualwans.VirtualHub{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.VirtualHubProperties{
-			AllowBranchToBranchTraffic: pointer.To(d.Get("allow_branch_to_branch_traffic").(bool)),
+			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
 			RouteTable:                 expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List()),
 			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
 		},
@@ -265,8 +265,8 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
-	if d.HasChange("allow_branch_to_branch_traffic") {
-		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("allow_branch_to_branch_traffic").(bool))
+	if d.HasChange("branch_to_branch_traffic_enabled") {
+		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool))
 	}
 
 	if d.HasChange("route") {
@@ -347,7 +347,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("address_prefix", props.AddressPrefix)
-			d.Set("allow_branch_to_branch_traffic", pointer.From(props.AllowBranchToBranchTraffic))
+			d.Set("branch_to_branch_traffic_enabled", pointer.From(props.AllowBranchToBranchTraffic))
 			d.Set("sku", props.Sku)
 
 			if err := d.Set("route", flattenVirtualHubRoute(props.RouteTable)); err != nil {
