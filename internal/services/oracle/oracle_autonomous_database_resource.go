@@ -220,9 +220,8 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"allowed_ips": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Optional: true,
-			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
@@ -284,12 +283,6 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
-			}
-
-			if len(model.AllowedIps) > 0 {
-				if err := validate.ValidateAllowedIPsList(model.AllowedIps); err != nil {
-					return err
-				}
 			}
 
 			if len(model.CustomerContacts) > 0 {
@@ -379,6 +372,9 @@ func (r AutonomousDatabaseRegularResource) Update() sdk.ResourceFunc {
 				}
 				if metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") {
 					generalUpdate.Properties.IsAutoScalingForStorageEnabled = pointer.To(model.AutoScalingForStorageEnabled)
+				}
+				if metadata.ResourceData.HasChange("allowed_ips") {
+					generalUpdate.Properties.WhitelistedIPs = pointer.To(model.AllowedIps)
 				}
 
 				if err := client.UpdateThenPoll(ctx, *id, generalUpdate); err != nil {
@@ -522,5 +518,6 @@ func (r AutonomousDatabaseRegularResource) hasGeneralUpdates(metadata sdk.Resour
 		metadata.ResourceData.HasChange("data_storage_size_in_tbs") ||
 		metadata.ResourceData.HasChange("compute_count") ||
 		metadata.ResourceData.HasChange("auto_scaling_enabled") ||
-		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled")
+		metadata.ResourceData.HasChange("auto_scaling_for_storage_enabled") ||
+		metadata.ResourceData.HasChange("allowed_ips")
 }
