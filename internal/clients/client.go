@@ -63,6 +63,7 @@ import (
 	dataprotection "github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/client"
 	datashare "github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/client"
 	desktopvirtualization "github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/client"
+	deviceregistry "github.com/hashicorp/terraform-provider-azurerm/internal/services/deviceregistry/client"
 	devtestlabs "github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs/client"
 	digitaltwins "github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins/client"
 	dns "github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/client"
@@ -200,6 +201,7 @@ type Client struct {
 	DataProtection                    *dataprotection.Client
 	DataShare                         *datashare.Client
 	DesktopVirtualization             *desktopvirtualization.Client
+	DeviceRegistry                    *deviceregistry.Client
 	DevTestLabs                       *devtestlabs.Client
 	DigitalTwins                      *digitaltwins.Client
 	Dns                               *dns_v2018_05_01.Client
@@ -423,6 +425,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.DesktopVirtualization, err = desktopvirtualization.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DesktopVirtualization: %+v", err)
+	}
+	if client.DeviceRegistry, err = deviceregistry.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for DeviceRegistry: %+v", err)
 	}
 	if client.DevTestLabs, err = devtestlabs.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for DevTestLabs: %+v", err)
