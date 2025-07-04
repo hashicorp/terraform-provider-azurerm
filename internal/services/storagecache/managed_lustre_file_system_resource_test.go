@@ -185,11 +185,11 @@ resource "azurerm_managed_lustre_file_system" "test" {
   storage_capacity_in_tb = 8
   zones                  = ["1"]
 
-  root_squash_setting {
-    mode               = "All"
-    no_squash_nid_list = "10.0.0.[5-6]@tcp;10.0.1.2@tcp"
-    squash_gid         = 99
-    squash_uid         = 99
+  root_squash {
+    mode           = "All"
+    no_squash_nids = "10.0.0.[5-6]@tcp;10.0.1.2@tcp"
+    squash_gid     = 99
+    squash_uid     = 99
   }
 
   maintenance_window {
@@ -347,11 +347,11 @@ resource "azurerm_managed_lustre_file_system" "test" {
     import_prefix        = "/"
   }
 
-  root_squash_setting {
-    mode               = "All"
-    no_squash_nid_list = "10.0.0.[5-6]@tcp;10.0.1.2@tcp"
-    squash_gid         = 99
-    squash_uid         = 99
+  root_squash {
+    mode           = "All"
+    no_squash_nids = "10.0.0.[5-6]@tcp;10.0.1.2@tcp"
+    squash_gid     = 99
+    squash_uid     = 99
   }
 
   tags = {

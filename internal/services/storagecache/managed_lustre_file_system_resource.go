@@ -32,7 +32,7 @@ type ManagedLustreFileSystemModel struct {
 	MaintenanceWindow   []MaintenanceWindow          `tfschema:"maintenance_window"`
 	MgsAddress          string                       `tfschema:"mgs_address"`
 	SkuName             string                       `tfschema:"sku_name"`
-	RootSquashSettings  []RootSquashSetting          `tfschema:"root_squash_setting"`
+	RootSquashSettings  []RootSquashSetting          `tfschema:"root_squash"`
 	StorageCapacityInTb int64                        `tfschema:"storage_capacity_in_tb"`
 	SubnetId            string                       `tfschema:"subnet_id"`
 	Zones               []string                     `tfschema:"zones"`
@@ -52,7 +52,7 @@ type EncryptionKey struct {
 
 type RootSquashSetting struct {
 	Mode            string `tfschema:"mode"`
-	NoSquashNidList string `tfschema:"no_squash_nid_list"`
+	NoSquashNidList string `tfschema:"no_squash_nids"`
 	SquashGID       int64  `tfschema:"squash_gid"`
 	SquashUID       int64  `tfschema:"squash_uid"`
 }
@@ -161,30 +161,35 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"root_squash_setting": {
+		"root_squash": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mode": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringInSlice(amlfilesystems.PossibleValuesForAmlFilesystemSquashMode(), false),
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(amlfilesystems.AmlFilesystemSquashModeAll),
+							string(amlfilesystems.AmlFilesystemSquashModeRootOnly),
+						}, false),
 					},
-					"no_squash_nid_list": {
+					"no_squash_nids": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
 					},
 					"squash_gid": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Default:  0,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 					"squash_uid": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Default:  0,
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(1),
 					},
 				},
 			},
@@ -392,7 +397,7 @@ func (r ManagedLustreFileSystemResource) Update() sdk.ResourceFunc {
 				properties.Properties.EncryptionSettings = expandManagedLustreFileSystemEncryptionKey(model.EncryptionKey)
 			}
 
-			if metadata.ResourceData.HasChange("root_squash_setting") {
+			if metadata.ResourceData.HasChange("root_squash") {
 				properties.Properties.RootSquashSettings = expandRootSquashSettings(model.RootSquashSettings)
 			}
 
@@ -539,7 +544,9 @@ func expandManagedLustreFileSystemEncryptionKey(input []EncryptionKey) *amlfiles
 
 func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFilesystemRootSquashSettings {
 	if len(input) == 0 {
-		return nil
+		return &amlfilesystems.AmlFilesystemRootSquashSettings{
+			Mode: pointer.To(amlfilesystems.AmlFilesystemSquashModeNone),
+		}
 	}
 
 	rootSquashSetting := &input[0]
