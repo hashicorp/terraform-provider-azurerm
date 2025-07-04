@@ -231,6 +231,41 @@ func TestAccKubernetesFluxConfiguration_kustomizationPostBuildUpdate(t *testing.
 	})
 }
 
+func TestAccKubernetesFluxConfiguration_gitRepositoryProvider(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gitRepositoryProvider(data, string(fluxconfiguration.ProviderTypeAzure)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gitRepositoryProvider(data, string(fluxconfiguration.ProviderTypeGeneric)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KubernetesFluxConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fluxconfiguration.ParseScopedFluxConfigurationID(state.ID)
 	if err != nil {
@@ -842,4 +877,32 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
   ]
 }
 `, template, data.RandomInteger)
+}
+
+func (r KubernetesFluxConfigurationResource) gitRepositoryProvider(data acceptance.TestData, provider string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  git_repository {
+    url             = "https://github.com/Azure/arc-k8s-demo"
+    reference_type  = "branch"
+    reference_value = "main"
+    provider        = "%s"
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test
+  ]
+}
+`, template, data.RandomInteger, provider)
 }
