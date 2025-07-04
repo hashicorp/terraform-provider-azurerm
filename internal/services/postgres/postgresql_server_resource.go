@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -60,7 +61,7 @@ var skuList = []string{
 }
 
 func resourcePostgreSQLServer() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourcePostgreSQLServerCreate,
 		Read:   resourcePostgreSQLServerRead,
 		Update: resourcePostgreSQLServerUpdate,
@@ -233,15 +234,12 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			},
 
 			"ssl_minimal_tls_version_enforced": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(servers.MinimalTlsVersionEnumTLSOneTwo),
-				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForMinimalTlsVersionEnum(), false),
-			},
-
-			"ssl_enforcement_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Required: true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(servers.MinimalTlsVersionEnumTLSOneTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servers.MinimalTlsVersionEnumTLSOneTwo),
+				}, false),
 			},
 
 			"threat_detection_policy": {
@@ -376,6 +374,22 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			}),
 		),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["ssl_minimal_tls_version_enforced"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(servers.MinimalTlsVersionEnumTLSOneTwo),
+			ValidateFunc: validation.StringInSlice(servers.PossibleValuesForMinimalTlsVersionEnum(), false),
+		}
+		resource.Schema["ssl_enforcement_enabled"] = &pluginsdk.Schema{
+			Deprecated: "The `ssl_enforcement_enabled` property is deprecated and will be removed in v5.0 of the AzureRM provider as Azure services will require TLS1.2+ to connect.",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+		}
+	}
+
+	return resource
 }
 
 func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -419,8 +433,10 @@ func resourcePostgreSQLServerCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	ssl := servers.SslEnforcementEnumEnabled
-	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
-		ssl = servers.SslEnforcementEnumDisabled
+	if !features.FivePointOh() {
+		if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
+			ssl = servers.SslEnforcementEnumDisabled
+		}
 	}
 
 	tlsMin := servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
@@ -650,8 +666,10 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	ssl := servers.SslEnforcementEnumEnabled
-	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
-		ssl = servers.SslEnforcementEnumDisabled
+	if !features.FivePointOh() {
+		if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
+			ssl = servers.SslEnforcementEnumDisabled
+		}
 	}
 
 	tlsMin := servers.MinimalTlsVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
@@ -805,11 +823,13 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 
-			sslEnforcement := false
-			if props.SslEnforcement != nil {
-				sslEnforcement = *props.SslEnforcement == servers.SslEnforcementEnumEnabled
+			if !features.FivePointOh() {
+				sslEnforcement := false
+				if props.SslEnforcement != nil {
+					sslEnforcement = *props.SslEnforcement == servers.SslEnforcementEnumEnabled
+				}
+				d.Set("ssl_enforcement_enabled", sslEnforcement)
 			}
-			d.Set("ssl_enforcement_enabled", sslEnforcement)
 
 			if storage := props.StorageProfile; storage != nil {
 				d.Set("storage_mb", storage.StorageMB)

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -367,6 +368,9 @@ func TestAccPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_minTlsVersionOnServerUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skip this test since there is only one possible value `TLS1_2` for `ssl_minimal_tls_version_enforced`.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -459,31 +463,35 @@ func (t PostgreSQLServerResource) Exists(ctx context.Context, clients *clients.C
 }
 
 func (PostgreSQLServerResource) template(data acceptance.TestData, sku, version string) string {
+	sslEnabledBlock := ``
+	if !features.FivePointOh() {
+		sslEnabledBlock = `ssl_enforcement_enabled = true`
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  sku_name   = "%s"
-  version    = "%s"
+  sku_name   = "%[4]s"
+  version    = "%[5]s"
   storage_mb = 51200
 
-  ssl_enforcement_enabled = true
+  %[6]s
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version, sslEnabledBlock)
 }
 
 func (r PostgreSQLServerResource) basic(data acceptance.TestData, version string) string {
@@ -497,12 +505,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -510,10 +518,8 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
 
   sku_name   = "B_Gen5_1"
-  version    = "%s"
+  version    = "%[4]s"
   storage_mb = 51200
-
-  ssl_enforcement_enabled = true
 
   identity {
     type = "SystemAssigned"
@@ -537,12 +543,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -550,10 +556,8 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
 
   sku_name          = "GP_Gen5_2"
-  version           = "%s"
+  version           = "%[4]s"
   auto_grow_enabled = true
-
-  ssl_enforcement_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -574,7 +578,7 @@ resource "azurerm_postgresql_server" "import" {
   version    = azurerm_postgresql_server.test.version
   storage_mb = azurerm_postgresql_server.test.storage_mb
 
-  ssl_enforcement_enabled = azurerm_postgresql_server.test.ssl_enforcement_enabled
+
 }
 `, r.basic(data, "10.0"))
 }
@@ -620,7 +624,6 @@ resource "azurerm_postgresql_server" "test" {
 
   infrastructure_encryption_enabled = true
   public_network_access_enabled     = false
-  ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_2"
 
   threat_detection_policy {
@@ -675,8 +678,6 @@ resource "azurerm_postgresql_server" "test" {
 
   infrastructure_encryption_enabled = true
   public_network_access_enabled     = true
-  ssl_enforcement_enabled           = false
-  ssl_minimal_tls_version_enforced  = "TLSEnforcementDisabled"
 
   threat_detection_policy {
     enabled              = true
@@ -697,23 +698,22 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  sku_name   = "%s"
+  sku_name   = "%[4]s"
   storage_mb = 51200
-  version    = "%s"
+  version    = "%[5]s"
 
-  ssl_enforcement_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
 }
@@ -739,7 +739,6 @@ resource "azurerm_postgresql_server" "replica" {
   creation_source_server_id = azurerm_postgresql_server.test.id
 
   public_network_access_enabled = false
-  ssl_enforcement_enabled       = true
 }
 `, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
@@ -763,7 +762,6 @@ resource "azurerm_postgresql_server" "replica" {
   create_mode = "Default"
 
   public_network_access_enabled = false
-  ssl_enforcement_enabled       = true
 }
 `, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
@@ -789,7 +787,6 @@ resource "azurerm_postgresql_server" "replica" {
   create_mode = "Default"
 
   public_network_access_enabled = false
-  ssl_enforcement_enabled       = true
 }
 `, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
@@ -813,8 +810,6 @@ resource "azurerm_postgresql_server" "replica1" {
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
-
-  ssl_enforcement_enabled = true
 }
 
 resource "azurerm_postgresql_server" "replica2" {
@@ -827,8 +822,6 @@ resource "azurerm_postgresql_server" "replica2" {
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
-
-  ssl_enforcement_enabled = true
 }
 `, r.template(data, sku, "11"), data.RandomInteger, data.Locations.Secondary, sku)
 }
@@ -846,11 +839,9 @@ resource "azurerm_postgresql_server" "restore" {
   version    = "%[4]s"
   storage_mb = 51200
 
-  create_mode               = "PointInTimeRestore"
-  creation_source_server_id = azurerm_postgresql_server.test.id
-  restore_point_in_time     = "%[3]s"
-
-  ssl_enforcement_enabled       = true
+  create_mode                   = "PointInTimeRestore"
+  creation_source_server_id     = azurerm_postgresql_server.test.id
+  restore_point_in_time         = "%[3]s"
   public_network_access_enabled = false
 }
 `, r.gp(data, version), data.RandomInteger, restoreTime, version)
@@ -875,12 +866,10 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!updated"
 
-  sku_name   = "GP_Gen5_4"
-  version    = "%[3]s"
-  storage_mb = 640000
-
-  ssl_enforcement_enabled          = false
-  ssl_minimal_tls_version_enforced = "TLSEnforcementDisabled"
+  sku_name                         = "GP_Gen5_4"
+  version                          = "%[3]s"
+  storage_mb                       = 640000
+  ssl_minimal_tls_version_enforced = "TLS1_2"
 
   threat_detection_policy {
     enabled              = true
@@ -919,7 +908,6 @@ resource "azurerm_postgresql_server" "test" {
   auto_grow_enabled     = true
 
   public_network_access_enabled    = false
-  ssl_enforcement_enabled          = true
   ssl_minimal_tls_version_enforced = "%[4]s"
 }
 `, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
@@ -951,9 +939,7 @@ resource "azurerm_postgresql_server" "test" {
   backup_retention_days = 7
   auto_grow_enabled     = true
 
-  ssl_enforcement_enabled          = true
   ssl_minimal_tls_version_enforced = "%[4]s"
-
 }
 `, data.RandomInteger, data.Locations.Primary, version, tlsVersion)
 }
