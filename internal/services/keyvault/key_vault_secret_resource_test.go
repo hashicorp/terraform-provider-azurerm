@@ -170,7 +170,7 @@ func TestAccKeyVaultSecret_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("not_before_date").HasValue("2019-01-01T01:02:03Z"),
-				check.That(data.ResourceName).Key("expiration_date").HasValue("2020-01-01T01:02:03Z"),
+				check.That(data.ResourceName).Key("expiration_date").HasValue("2199-12-31T23:59:59Z"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.hello").HasValue("world"),
 				check.That(data.ResourceName).Key("versionless_id").HasValue(fmt.Sprintf("https://acctestkv-%s.vault.azure.net/secrets/secret-%s", data.RandomString, data.RandomString)),
@@ -466,8 +466,7 @@ resource "azurerm_key_vault_secret" "test" {
   key_vault_id    = azurerm_key_vault.test.id
   content_type    = "application/xml"
   not_before_date = "2019-01-01T01:02:03Z"
-  expiration_date = "2020-01-01T01:02:03Z"
-
+  expiration_date = "2199-12-31T23:59:59Z"
   tags = {
     "hello" = "world"
   }
