@@ -3,17 +3,17 @@
 FEATURES:
 
 ENHANCEMENTS:
-* `azurerm_kubernetes_cluster` - support for the `custom_ca_trust_certificates_base64` property [GH-29894]
-* `azurerm_api_management`: `sku_name` now supports V2 Tiers  [GH-29657]
-* `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
-* `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
-* `azurerm_logic_app_workflow` - The `access_control.trigger.allowed_caller_ip_address_range` property is now optional [GH-30041]
+* dependencies: `oracle` - update to API version `2025-03-01` [GH-29721]
 * dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
-* `azurerm_public_ip_prefix` - add support for the `custom_ip_prefix_id` property [GH-29851]
-* dependencies : `oracle` - update to API version `2025-03-01` [GH-29721]
+* `azurerm_api_management`: `sku_name` now supports V2 Tiers  [GH-29657]
+* `azurerm_kubernetes_cluster` - support for the `custom_ca_trust_certificates_base64` property [GH-29894]
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
 * `azurerm_linux_web_app` - support for the `vnet_image_pull_enabled` property [GH-29452]
 * `azurerm_linux_web_app_slot` - support for the `vnet_image_pull_enabled` property [GH-29452]
+* `azurerm_logic_app_workflow` - The `access_control.trigger.allowed_caller_ip_address_range` property is now optional [GH-30041]
 * `azurerm_netapp_volume` - add support for the `cool_access` block [GH-29915]
+* `azurerm_public_ip_prefix` - add support for the `custom_ip_prefix_id` property [GH-29851]
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
 
 BUG FIXES:
 * `azurerm_private_dns_resolver_dns_forwarding_ruleset` - fix an issue where `private_dns_resolver_outbound_endpoint_ids` failed to update [GH-30046]
