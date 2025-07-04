@@ -342,6 +342,7 @@ resource "azurerm_iothub_endpoint_cosmosdb_account" "test" {
   endpoint_uri        = azurerm_cosmosdb_account.test.endpoint
   primary_key         = azurerm_cosmosdb_account.test.primary_key
   secondary_key       = azurerm_cosmosdb_account.test.secondary_key
+  subscription_id     = data.azurerm_client_config.current.subscription_id
 
   partition_key_name     = "%s"
   partition_key_template = "%s"
@@ -375,6 +376,8 @@ func (IotHubEndpointCosmosDBAccountResource) dependencies(data acceptance.TestDa
 provider "azurerm" {
   features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "iothub" {
   name     = "acctestRG-iothub-%[2]d"
