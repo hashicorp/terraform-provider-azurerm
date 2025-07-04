@@ -102,8 +102,6 @@ The following arguments are supported:
 
 * `stop_on_disconnect_grace_period_minutes` - (Optional) The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected. Possible values are between `60` and `480`.
 
-* `virtual_network_type` - (Optional) The pool that uses a Virtual Network managed by Microsoft or a customer provided network. Possible values are `Managed` and `Unmanaged`.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project Pool.
 
 ## Attributes Reference

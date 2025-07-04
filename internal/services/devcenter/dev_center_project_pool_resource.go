@@ -40,7 +40,6 @@ type DevCenterProjectPoolResourceModel struct {
 	DevCenterAttachedNetworkName       string            `tfschema:"dev_center_attached_network_name"`
 	ManagedVirtualNetworkRegions       []string          `tfschema:"managed_virtual_network_regions"`
 	StopOnDisconnectGracePeriodMinutes int64             `tfschema:"stop_on_disconnect_grace_period_minutes"`
-	VirtualNetworkType                 string            `tfschema:"virtual_network_type"`
 	Tags                               map[string]string `tfschema:"tags"`
 }
 
@@ -99,12 +98,6 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(60, 480),
 		},
 
-		"virtual_network_type": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice(pools.PossibleValuesForVirtualNetworkType(), false),
-		},
-
 		"tags": commonschema.Tags(),
 	}
 }
@@ -154,12 +147,8 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if v := model.VirtualNetworkType; v != "" {
-				if v == string(pools.VirtualNetworkTypeManaged) && len(model.ManagedVirtualNetworkRegions) == 0 {
-					return fmt.Errorf("`managed_virtual_network_regions` is required when `virtual_network_type` is `Managed`")
-				}
-
-				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkType(v))
+			if model.ManagedVirtualNetworkRegions != nil {
+				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
 			}
 
 			if model.LocalAdministratorEnabled {
@@ -212,7 +201,6 @@ func (r DevCenterProjectPoolResource) Read() sdk.ResourceFunc {
 					state.DevCenterAttachedNetworkName = pointer.From(props.NetworkConnectionName)
 					state.ManagedVirtualNetworkRegions = flattenDevCenterProjectManagedVirtualNetworkRegions(props.ManagedVirtualNetworkRegions)
 					state.StopOnDisconnectGracePeriodMinutes = flattenDevCenterProjectPoolStopOnDisconnect(props.StopOnDisconnect)
-					state.VirtualNetworkType = string(pointer.From(props.VirtualNetworkType))
 				}
 			}
 
@@ -241,10 +229,6 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 				Properties: &pools.PoolUpdateProperties{},
 			}
 
-			if model.VirtualNetworkType == string(pools.VirtualNetworkTypeManaged) && len(model.ManagedVirtualNetworkRegions) == 0 {
-				return fmt.Errorf("`managed_virtual_network_regions` is required when `virtual_network_type` is `Managed`")
-			}
-
 			if metadata.ResourceData.HasChange("dev_box_definition_name") {
 				parameters.Properties.DevBoxDefinitionName = pointer.To(model.DevBoxDefinitionName)
 			}
@@ -263,14 +247,14 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("managed_virtual_network_regions") {
 				parameters.Properties.ManagedVirtualNetworkRegions = expandDevCenterProjectManagedVirtualNetworkRegions(model.ManagedVirtualNetworkRegions)
+
+				if model.ManagedVirtualNetworkRegions != nil {
+					parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("stop_on_disconnect_grace_period_minutes") {
 				parameters.Properties.StopOnDisconnect = expandDevCenterProjectPoolStopOnDisconnect(model.StopOnDisconnectGracePeriodMinutes)
-			}
-
-			if metadata.ResourceData.HasChange("virtual_network_type") {
-				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkType(model.VirtualNetworkType))
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
