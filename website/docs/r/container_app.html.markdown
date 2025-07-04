@@ -382,6 +382,8 @@ An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
 
+* `cors` - (Optional) A `cors` block as defined below.
+
 * `fqdn` - The FQDN of the ingress.
 
 * `external_enabled` - (Optional) Are connections to this Ingress from outside the Container App Environment enabled? Defaults to `false`.
@@ -401,6 +403,22 @@ An `ingress` block supports the following:
 ~> **Note:** if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
 
 * `client_certificate_mode` - (Optional) The client certificate mode for the Ingress. Possible values are `require`, `accept`, and `ignore`.
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Required) Specifies the list of origins that are allowed to make cross-origin calls.
+
+* `allow_credentials_enabled` - (Optional) Whether user credentials are allowed in the cross-origin request is enabled. Defaults to `false`.
+
+* `allowed_headers` - (Optional) Specifies the list of request headers that are permitted in the actual request.
+
+* `allowed_methods` - (Optional) Specifies the list of HTTP methods are allowed when accessing the resource in a cross-origin request.
+
+* `exposed_headers` - (Optional) Specifies the list of headers exposed to the browser in the response to a cross-origin request.
+
+* `max_age_in_seconds` - (Optional) Specifies the number of seconds that the browser can cache the results of a preflight request.
 
 ---
 

@@ -265,6 +265,35 @@ func TestAccAzureRMPolicySetDefinition_metadata(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicySetDefinition_policyDefinitionVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResourceTest{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.policyDefinitionVersion(data, "9.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.policyDefinitionVersion(data, "9.3.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.policyDefinitionVersion(data, "9.*.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PolicySetDefinitionResourceTest) builtIn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -842,6 +871,29 @@ PARAMETERS
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r PolicySetDefinitionResourceTest) policyDefinitionVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestpolset-%[2]d"
+  display_name = "acctestpolset-%[2]d"
+  policy_type  = "Custom"
+
+  policy_definition_reference {
+    version              = %q
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e345eecc-fa47-480f-9e88-67dcc122b164"
+    parameter_values     = <<VALUES
+    {
+       "cpuLimit": {"value": "100m"},
+       "memoryLimit": {"value": "100Mi"}
+    }
+VALUES
+  }
+}
+`, r.template(data), data.RandomInteger, version)
 }
 
 func (r PolicySetDefinitionResourceTest) template(data acceptance.TestData) string {

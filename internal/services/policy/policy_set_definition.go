@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy
 
 import (
@@ -7,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strconv"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -22,6 +26,7 @@ type PolicyDefinitionReferenceModel struct {
 	ParameterValues    string   `tfschema:"parameter_values"`
 	ReferenceID        string   `tfschema:"reference_id"`
 	PolicyGroupNames   []string `tfschema:"policy_group_names"`
+	Version            string   `tfschema:"version"`
 }
 
 type PolicyDefinitionGroupModel struct {
@@ -64,6 +69,17 @@ func policyDefinitionReferenceSchema() *pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+				},
+
+				"version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					// Note: O+C because Azure returns a version if not sent in the request.
+					Computed: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^([1-9]\d*)\.(\d+|\*)(\.\*(-preview)?)?$`),
+						"version must match `{major}.{minor}[.*][-preview]` where each segment is a number or an asterisk. The major version number must be greater than zero and `-preview` is optional.",
+					),
 				},
 			},
 		},
@@ -153,12 +169,18 @@ func expandPolicyDefinitionReference(input []PolicyDefinitionReferenceModel) ([]
 			return nil, fmt.Errorf("expanding `parameter_values`: %+v", err)
 		}
 
-		result = append(result, policysetdefinitions.PolicyDefinitionReference{
+		reference := policysetdefinitions.PolicyDefinitionReference{
 			GroupNames:                  pointer.To(v.PolicyGroupNames),
 			Parameters:                  expandedParameters,
 			PolicyDefinitionId:          v.PolicyDefinitionID,
 			PolicyDefinitionReferenceId: pointer.To(v.ReferenceID),
-		})
+		}
+
+		// The API returns an error if we send an empty string
+		if v.Version != "" {
+			reference.DefinitionVersion = pointer.To(v.Version)
+		}
+		result = append(result, reference)
 	}
 
 	return result, nil
@@ -178,6 +200,7 @@ func flattenPolicyDefinitionReference(input []policysetdefinitions.PolicyDefinit
 			ParameterValues:    parameterValues,
 			ReferenceID:        pointer.From(definition.PolicyDefinitionReferenceId),
 			PolicyGroupNames:   pointer.From(definition.GroupNames),
+			Version:            pointer.From(definition.DefinitionVersion),
 		})
 	}
 

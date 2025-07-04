@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -22,12 +23,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name gallery_application_version -properties "name" -service-package-name compute -compare-values "subscription_id:gallery_application_id,resource_group_name:gallery_application_id,gallery_name:gallery_application_id,application_name:gallery_application_id"
+
 type GalleryApplicationVersionResource struct{}
 
 var (
 	_ sdk.ResourceWithUpdate        = GalleryApplicationVersionResource{}
 	_ sdk.ResourceWithCustomizeDiff = GalleryApplicationVersionResource{}
+	_ sdk.ResourceWithIdentity      = GalleryApplicationVersionResource{}
 )
+
+func (r GalleryApplicationVersionResource) Identity() resourceids.ResourceId {
+	return &galleryapplicationversions.ApplicationVersionId{}
+}
 
 type GalleryApplicationVersionModel struct {
 	Name                 string            `tfschema:"name"`
@@ -351,6 +359,10 @@ func (r GalleryApplicationVersionResource) Read() sdk.ResourceFunc {
 					state.Source = flattenGalleryApplicationVersionSource(props.PublishingProfile.Source)
 					state.TargetRegion = flattenGalleryApplicationVersionTargetRegion(props.PublishingProfile.TargetRegions)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(state)

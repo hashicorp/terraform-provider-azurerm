@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package policy_test
 
 import (
@@ -66,6 +69,35 @@ func TestAccManagementGroupPolicySetDefinition_complete(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagementGroupPolicySetDefinition_policyDefinitionVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_set_definition", "test")
+	r := ManagementGroupPolicySetDefinitionResourceTest{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.policyDefinitionVersion(data, "9.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.policyDefinitionVersion(data, "9.3.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.policyDefinitionVersion(data, "9.*.*"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -190,6 +222,30 @@ VALUES
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ManagementGroupPolicySetDefinitionResourceTest) policyDefinitionVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_management_group_policy_set_definition" "test" {
+  name                = "acctestpolset-%[2]d"
+  display_name        = "acctestpolset-%[2]d"
+  management_group_id = azurerm_management_group.test.id
+  policy_type         = "Custom"
+
+  policy_definition_reference {
+    version              = %q
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e345eecc-fa47-480f-9e88-67dcc122b164"
+    parameter_values     = <<VALUES
+    {
+       "cpuLimit": {"value": "100m"},
+       "memoryLimit": {"value": "100Mi"}
+    }
+VALUES
+  }
+}
+`, r.template(data), data.RandomInteger, version)
 }
 
 func (r ManagementGroupPolicySetDefinitionResourceTest) template(data acceptance.TestData) string {

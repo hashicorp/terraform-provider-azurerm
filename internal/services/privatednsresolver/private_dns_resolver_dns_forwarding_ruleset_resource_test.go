@@ -132,6 +132,21 @@ resource "azurerm_subnet" "test" {
   }
 }
 
+resource "azurerm_subnet" "test2" {
+  name                 = "outbounddns2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.0.0/28"]
+
+  delegation {
+    name = "Microsoft.Network.dnsResolvers"
+    service_delegation {
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+      name    = "Microsoft.Network/dnsResolvers"
+    }
+  }
+}
+
 resource "azurerm_private_dns_resolver" "test" {
   name                = "acctest-dr-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -144,6 +159,13 @@ resource "azurerm_private_dns_resolver_outbound_endpoint" "test" {
   private_dns_resolver_id = azurerm_private_dns_resolver.test.id
   location                = azurerm_private_dns_resolver.test.location
   subnet_id               = azurerm_subnet.test.id
+}
+
+resource "azurerm_private_dns_resolver_outbound_endpoint" "test2" {
+  name                    = "acctest-droe2-%[2]d"
+  private_dns_resolver_id = azurerm_private_dns_resolver.test.id
+  location                = azurerm_private_dns_resolver.test.location
+  subnet_id               = azurerm_subnet.test2.id
 }
 `, data.Locations.Primary, data.RandomInteger)
 }
@@ -199,10 +221,13 @@ func (r PrivateDNSResolverDnsForwardingRulesetResource) update(data acceptance.T
 			%s
 
 resource "azurerm_private_dns_resolver_dns_forwarding_ruleset" "test" {
-  name                                       = "acctest-drdfr-%[2]d"
-  resource_group_name                        = azurerm_resource_group.test.name
-  location                                   = azurerm_resource_group.test.location
-  private_dns_resolver_outbound_endpoint_ids = [azurerm_private_dns_resolver_outbound_endpoint.test.id]
+  name                = "acctest-drdfr-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  private_dns_resolver_outbound_endpoint_ids = [
+    azurerm_private_dns_resolver_outbound_endpoint.test.id,
+    azurerm_private_dns_resolver_outbound_endpoint.test2.id,
+  ]
   tags = {
     key = "updated value"
   }
