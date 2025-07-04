@@ -708,8 +708,7 @@ func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.Back
 
 		if count, ok := failureCondition["count"].(int); ok {
 			circuitBreakerFailureCondition.Count = pointer.To(int64(count))
-		}
-		if percentage, ok := failureCondition["percentage"].(int); ok {
+		} else if percentage, ok := failureCondition["percentage"].(int); ok {
 			circuitBreakerFailureCondition.Percentage = pointer.To(int64(percentage))
 		}
 		if errorReasonsRaw := failureCondition["error_reasons"].([]interface{}); len(errorReasonsRaw) > 0 {
@@ -741,7 +740,7 @@ func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.Back
 		rule.FailureCondition = &circuitBreakerFailureCondition
 	}
 
-	rules[0] = rule // Add element to "list"
+	rules = append(rules, rule) // Add element to "list"
 	circuitBreaker.Rules = &rules
 
 	return &circuitBreaker
