@@ -64,42 +64,27 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"client_protocol": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(redisenterprise.ProtocolEncrypted),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(redisenterprise.ProtocolEncrypted),
-				string(redisenterprise.ProtocolPlaintext),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(redisenterprise.ProtocolEncrypted),
+			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForProtocol(), false),
 		},
 
 		"clustering_policy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(redisenterprise.ClusteringPolicyOSSCluster),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(redisenterprise.ClusteringPolicyEnterpriseCluster),
-				string(redisenterprise.ClusteringPolicyOSSCluster),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(redisenterprise.ClusteringPolicyOSSCluster),
+			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForClusteringPolicy(), false),
 		},
 
 		"eviction_policy": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  string(redisenterprise.EvictionPolicyVolatileLRU),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(redisenterprise.EvictionPolicyAllKeysLFU),
-				string(redisenterprise.EvictionPolicyAllKeysLRU),
-				string(redisenterprise.EvictionPolicyAllKeysRandom),
-				string(redisenterprise.EvictionPolicyVolatileLRU),
-				string(redisenterprise.EvictionPolicyVolatileLFU),
-				string(redisenterprise.EvictionPolicyVolatileTTL),
-				string(redisenterprise.EvictionPolicyVolatileRandom),
-				string(redisenterprise.EvictionPolicyNoEviction),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(redisenterprise.EvictionPolicyVolatileLRU),
+			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForEvictionPolicy(), false),
 		},
 
 		"module": {
