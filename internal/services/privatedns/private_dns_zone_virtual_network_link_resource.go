@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -79,6 +80,13 @@ func resourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"resolution_policy": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true, // When the `name` of `azurerm_private_dns_zone` is a private link endpoint, the service will set default value for this.
+				ValidateFunc: validation.StringInSlice(virtualnetworklinks.PossibleValuesForResolutionPolicy(), false),
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -113,6 +121,10 @@ func resourcePrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *pluginsdk.ResourceD
 			},
 			RegistrationEnabled: utils.Bool(d.Get("registration_enabled").(bool)),
 		},
+	}
+
+	if v, ok := d.GetOk("resolution_policy"); ok {
+		parameters.Properties.ResolutionPolicy = pointer.To(virtualnetworklinks.ResolutionPolicy(v.(string)))
 	}
 
 	options := virtualnetworklinks.CreateOrUpdateOperationOptions{
@@ -154,6 +166,7 @@ func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, met
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("registration_enabled", props.RegistrationEnabled)
+			d.Set("resolution_policy", pointer.From(props.ResolutionPolicy))
 
 			if network := props.VirtualNetwork; network != nil {
 				d.Set("virtual_network_id", network.Id)
