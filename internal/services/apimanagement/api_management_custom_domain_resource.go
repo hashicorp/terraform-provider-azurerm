@@ -25,9 +25,9 @@ var apiManagementCustomDomainResourceName = "azurerm_api_management_custom_domai
 
 func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: apiManagementCustomDomainCreateUpdate,
+		Create: apiManagementCustomDomainCreate,
 		Read:   apiManagementCustomDomainRead,
-		Update: apiManagementCustomDomainCreateUpdate,
+		Update: apiManagementCustomDomainUpdate,
 		Delete: apiManagementCustomDomainDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -87,14 +87,14 @@ func resourceApiManagementCustomDomain() *pluginsdk.Resource {
 				Optional:     true,
 				AtLeastOneOf: []string{"management", "portal", "developer_portal", "gateway", "scm"},
 				Elem: &pluginsdk.Resource{
-					Schema: apiManagementResourceHostnameProxySchema(),
+					Schema: apiManagementResourceCustomDomainHostnameProxySchema(),
 				},
 			},
 		},
 	}
 }
 
-func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func apiManagementCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,13 +111,11 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %s: %+v", *apiMgmtId, err)
 	}
 
-	if d.IsNewResource() {
-		if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
-			return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
-		}
+	if existing.Model != nil && existing.Model.Properties.HostnameConfigurations != nil && len(*existing.Model.Properties.HostnameConfigurations) > 1 {
+		return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.Model.Id)
 	}
 
-	existing.Model.Properties.HostnameConfigurations = expandApiManagementCustomDomains(d)
+	existing.Model.Properties.HostnameConfigurations = expandApiManagementCustomDomains(d, false)
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 	log.Printf("[DEBUG] Waiting for %s to become ready", *apiMgmtId)
@@ -128,12 +126,8 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 6,
 	}
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
-	}
 
+	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
@@ -148,7 +142,7 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *apiMgmtId, *existing.Model); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
@@ -156,7 +150,63 @@ func apiManagementCustomDomainCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become ready: %+v", id, err)
 	}
+
+	// The managed certificate is available for the Gateway endpoint only.
+	// It can only be configured when updating an existing API Management instance using patch update.
+	if _, ok := d.GetOk("gateway"); ok {
+		v := expandApiManagementCustomDomains(d, true)
+		isManagedCertificateConfigured := false
+		for _, data := range *v {
+			if pointer.From(data.CertificateSource) == apimanagementservice.CertificateSourceManaged {
+				isManagedCertificateConfigured = true
+				break
+			}
+		}
+
+		if isManagedCertificateConfigured {
+			params := apimanagementservice.ApiManagementServiceUpdateParameters{
+				Properties: &apimanagementservice.ApiManagementServiceUpdateProperties{
+					HostnameConfigurations: v,
+				},
+			}
+
+			if err := client.UpdateThenPoll(ctx, *apiMgmtId, params); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+		}
+	}
+
 	d.SetId(id.ID())
+
+	return apiManagementCustomDomainRead(d, meta)
+}
+
+func apiManagementCustomDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.CustomDomainID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	apiMgmtId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
+	if err != nil {
+		return err
+	}
+
+	if d.HasChanges("management", "portal", "developer_portal", "scm", "gateway") {
+		params := apimanagementservice.ApiManagementServiceUpdateParameters{
+			Properties: &apimanagementservice.ApiManagementServiceUpdateProperties{
+				HostnameConfigurations: expandApiManagementCustomDomains(d, true),
+			},
+		}
+
+		if err := client.UpdateThenPoll(ctx, *apiMgmtId, params); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
+	}
 
 	return apiManagementCustomDomainRead(d, meta)
 }
@@ -264,7 +314,7 @@ func apiManagementCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanagementservice.HostnameConfiguration {
+func expandApiManagementCustomDomains(input *pluginsdk.ResourceData, isPatchUpdate bool) *[]apimanagementservice.HostnameConfiguration {
 	results := make([]apimanagementservice.HostnameConfiguration, 0)
 
 	if managementRawVal, ok := input.GetOk("management"); ok {
@@ -297,6 +347,14 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 		for _, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
+			// The managed certificate is available for the Gateway endpoint only.
+			// It can only be configured when updating an existing API Management instance using patch update.
+			if cs, ok := v["certificate_source"]; ok && cs.(string) == string(apimanagementservice.CertificateSourceManaged) {
+				if !isPatchUpdate {
+					continue
+				}
+				output.CertificateSource = pointer.To(apimanagementservice.CertificateSource(cs.(string)))
+			}
 			if value, ok := v["default_ssl_binding"]; ok {
 				output.DefaultSslBinding = pointer.To(value.(bool))
 			}
@@ -349,6 +407,11 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagementservice.Hos
 		case strings.ToLower(string(apimanagementservice.HostnameTypeProxy)):
 			// only set SSL binding for proxy types
 			output["default_ssl_binding"] = pointer.From(config.DefaultSslBinding)
+			// Only `certificate_source` is set because the value of `certificate_source` needs to be specified as `Managed` only when you need to configure a managed certificate.
+			// For other values (`KeyVault`, `Custom`, `BuiltIn`), the API will automatically identify and return the identified value based on other configurations.
+			if pointer.From(config.CertificateSource) == apimanagementservice.CertificateSourceManaged {
+				output["certificate_source"] = pointer.From(config.CertificateSource)
+			}
 			gatewayResults = append(gatewayResults, output)
 			configType = "gateway"
 
