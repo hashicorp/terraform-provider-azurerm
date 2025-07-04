@@ -57,7 +57,7 @@ func dataSourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 			ConflictsWith: []string{"private_dns_zone_name"},
 		}
 
-		resource.Schema["resource_group_name"] = commonschema.ResourceGroupNameForDataSource()
+		resource.Schema["resource_group_name"] = commonschema.ResourceGroupNameOptional()
 
 		resource.Schema["private_dns_zone_name"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
@@ -65,6 +65,7 @@ func dataSourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 			Computed:      true,
 			Deprecated:    "The `private_dns_zone_name` field is deprecated in favor of `private_dns_zone_id`. This will be removed in version 5.0.",
 			ConflictsWith: []string{"private_dns_zone_id"},
+			RequiredWith:  []string{"resource_group_name"},
 		}
 	}
 

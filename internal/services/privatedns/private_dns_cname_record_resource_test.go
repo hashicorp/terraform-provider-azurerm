@@ -174,7 +174,7 @@ func (r PrivateDnsCNameRecordResource) requiresImport(data acceptance.TestData) 
 
 resource "azurerm_private_dns_cname_record" "import" {
   name            = azurerm_private_dns_cname_record.test.name
-  private_zone_id = azurerm_private_dns_cname_record.test.zone_name
+  private_zone_id = azurerm_private_dns_zone.test.id
   ttl             = 300
   record          = "contoso.com"
 }

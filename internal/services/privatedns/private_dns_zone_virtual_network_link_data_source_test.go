@@ -22,7 +22,7 @@ func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 	r := PrivateDnsZoneVirtualNetworkLinkDataSource{}
 
 	resourceName := "azurerm_private_dns_zone_virtual_network_link.test"
-	zoneID := "azurerm_private_dns_zone.id"
+	zoneName := "azurerm_private_dns_zone.test"
 	vnetName := "azurerm_virtual_network.test"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -32,7 +32,7 @@ func TestAccDataSourcePrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("id").MatchesOtherKey(check.That(resourceName).Key("id")),
 				check.That(data.ResourceName).Key("name").MatchesOtherKey(check.That(resourceName).Key("name")),
 				check.That(data.ResourceName).Key("virtual_network_id").MatchesOtherKey(check.That(vnetName).Key("id")),
-				check.That(data.ResourceName).Key("private_dns_zone_id").MatchesOtherKey(check.That(zoneID).Key("name")),
+				check.That(data.ResourceName).Key("private_dns_zone_id").MatchesOtherKey(check.That(zoneName).Key("id")),
 				check.That(data.ResourceName).Key("registration_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),

@@ -169,7 +169,7 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if err != nil {
 		return fmt.Errorf("parsing private DNS zone ID %q: %+v", rawDnsZoneId, err)
 	}
-	id := recordsets.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, recordsets.RecordTypeA, d.Get("name").(string))
+	id := recordsets.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, recordsets.RecordTypeSRV, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -185,6 +185,7 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := recordsets.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
+		Type: pointer.To(string(recordsets.RecordTypeSRV)),
 		Properties: &recordsets.RecordSetProperties{
 			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
 			Ttl:        pointer.To(int64(d.Get("ttl").(int))),

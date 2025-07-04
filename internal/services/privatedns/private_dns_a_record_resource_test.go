@@ -162,7 +162,7 @@ func (r PrivateDnsARecordResource) requiresImport(data acceptance.TestData) stri
 
 resource "azurerm_private_dns_a_record" "import" {
   name            = azurerm_private_dns_a_record.test.name
-  private_zone_id = azurerm_private_dns_a_record.test.id
+  private_zone_id = azurerm_private_dns_zone.test.id
   ttl             = 300
   records         = ["1.2.3.4", "1.2.4.5"]
 }

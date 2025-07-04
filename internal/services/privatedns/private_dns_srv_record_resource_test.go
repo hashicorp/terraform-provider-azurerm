@@ -161,7 +161,7 @@ func (r PrivateDnsSrvRecordResource) requiresImport(data acceptance.TestData) st
 
 resource "azurerm_private_dns_srv_record" "import" {
   name            = azurerm_private_dns_srv_record.test.name
-  private_zone_id = azurerm_private_dns_srv_record.test.id
+  private_zone_id = azurerm_private_dns_zone.test.id
   ttl             = 300
   record {
     priority = 1

@@ -161,7 +161,7 @@ func (r PrivateDnsPtrRecordResource) requiresImport(data acceptance.TestData) st
 
 resource "azurerm_private_dns_ptr_record" "import" {
   name            = azurerm_private_dns_ptr_record.test.name
-  private_zone_id = azurerm_private_dns_ptr_record.test.id
+  private_zone_id = azurerm_private_dns_zone.test.id
   ttl             = 300
   records         = ["test.contoso.com", "test2.contoso.com"]
 }
