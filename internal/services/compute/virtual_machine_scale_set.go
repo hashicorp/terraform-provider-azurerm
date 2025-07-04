@@ -1682,7 +1682,8 @@ func VirtualMachineScaleSetAutomatedOSUpgradePolicySchema() *pluginsdk.Schema {
 	return schema
 }
 
-func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}) *virtualmachinescalesets.AutomaticOSUpgradePolicy {
+func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(d *pluginsdk.ResourceData) *virtualmachinescalesets.AutomaticOSUpgradePolicy {
+	input := d.Get("automatic_os_upgrade_policy").([]interface{})
 	if len(input) == 0 {
 		return nil
 	}
@@ -1693,7 +1694,9 @@ func ExpandVirtualMachineScaleSetAutomaticUpgradePolicy(input []interface{}) *vi
 		EnableAutomaticOSUpgrade: pointer.To(raw["automatic_os_upgrade_enabled"].(bool)),
 	}
 	if !features.FivePointOh() {
-		policy.EnableAutomaticOSUpgrade = pointer.To(raw["enable_automatic_os_upgrade"].(bool))
+		if v, ok := d.GetOk("automatic_os_upgrade_policy.0.enable_automatic_os_upgrade"); ok {
+			policy.EnableAutomaticOSUpgrade = pointer.To(v.(bool))
+		}
 	}
 	return &policy
 }
