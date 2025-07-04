@@ -135,7 +135,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   customer_contacts   = ["test@test.com"]
 
   database_server_type = "X11M"
-  storage_server_type = "X11M-HC"
+  storage_server_type  = "X11M-HC"
 
   maintenance_window {
     days_of_week       = ["Monday"]

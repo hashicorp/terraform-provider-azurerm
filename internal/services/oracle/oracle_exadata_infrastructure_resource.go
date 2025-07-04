@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = ExadataInfraResource{}
@@ -70,7 +71,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DatabaseServerType,
+			ValidateFunc: validation.StringLenBetween(1, 255),
 		},
 
 		"display_name": {
@@ -187,7 +188,7 @@ func (ExadataInfraResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StorageServerType,
+			ValidateFunc: validation.StringLenBetween(1, 255),
 		},
 
 		"tags": commonschema.Tags(),
@@ -347,8 +348,8 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 					state.StorageCount = pointer.From(props.StorageCount)
 					state.Shape = props.Shape
 					state.MaintenanceWindow = FlattenMaintenanceWindow(props.MaintenanceWindow)
-					state.DatabaseServerType = pointer.ToString(props.DatabaseServerType)
-					state.StorageServerType = pointer.ToString(props.StorageServerType)
+					state.DatabaseServerType = pointer.From(props.DatabaseServerType)
+					state.StorageServerType = pointer.From(props.StorageServerType)
 				}
 			}
 
