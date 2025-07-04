@@ -34,6 +34,35 @@ func TestAccMachineLearningDataStoreBlobStorage_accountKey(t *testing.T) {
 	})
 }
 
+func TestAccMachineLearningDataStoreBlobStorage_serviceDataAuthIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
+	r := MachineLearningDataStoreBlobStorage{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceDataAuthIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceDataAuthIdentityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceDataAuthIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMachineLearningDataStoreBlobStorage_sasToken(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
 	r := MachineLearningDataStoreBlobStorage{}
@@ -120,6 +149,46 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   workspace_id         = azurerm_machine_learning_workspace.test.id
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   account_key          = azurerm_storage_account.test.primary_access_key
+}
+`, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_machine_learning_datastore_blobstorage" "test" {
+  name                       = "accdatastore%[2]d"
+  workspace_id               = azurerm_machine_learning_workspace.test.id
+  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  service_data_auth_identity = "WorkspaceSystemAssignedIdentity"
+}
+`, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentityUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_machine_learning_datastore_blobstorage" "test" {
+  name                       = "accdatastore%[2]d"
+  workspace_id               = azurerm_machine_learning_workspace.test.id
+  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  service_data_auth_identity = "WorkspaceUserAssignedIdentity"
 }
 `, template, data.RandomInteger)
 }
