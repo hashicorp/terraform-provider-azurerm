@@ -33,7 +33,7 @@ resource "azurerm_mssql_database" "example" {
   collation = "SQL_Latin1_General_CP1_CI_AS"
   sku_name  = "S1"
 }
-[mssql_job_step.html.markdown](mssql_job_step.html.markdown)
+
 resource "azurerm_mssql_job_agent" "example" {
   name        = "example-job-agent"
   location    = azurerm_resource_group.example.location
