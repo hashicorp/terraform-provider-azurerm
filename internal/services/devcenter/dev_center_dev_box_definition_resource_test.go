@@ -108,11 +108,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center_dev_box_definition" "test" {
-  name               = "acctest-dcet-%d"
-  location           = azurerm_resource_group.test.location
-  dev_center_id      = azurerm_dev_center.test.id
-  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
-  sku_name           = "general_i_8c32gb256ssd_v2"
+  name                      = "acctest-dcet-%d"
+  location                  = azurerm_resource_group.test.location
+  dev_center_id             = azurerm_dev_center.test.id
+  image_reference_id        = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftwindowsdesktop_windows-ent-cpc_win11-24h2-ent-cpc"
+  hibernate_support_enabled = true
+  sku_name                  = "general_i_8c32gb256ssd_v2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -122,11 +123,12 @@ func (r DevCenterDevBoxDefinitionTestResource) requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_dev_center_dev_box_definition" "import" {
-  name               = azurerm_dev_center_dev_box_definition.test.name
-  location           = azurerm_dev_center_dev_box_definition.test.location
-  dev_center_id      = azurerm_dev_center_dev_box_definition.test.dev_center_id
-  image_reference_id = azurerm_dev_center_dev_box_definition.test.image_reference_id
-  sku_name           = "general_i_8c32gb256ssd_v2"
+  name                      = azurerm_dev_center_dev_box_definition.test.name
+  location                  = azurerm_dev_center_dev_box_definition.test.location
+  dev_center_id             = azurerm_dev_center_dev_box_definition.test.dev_center_id
+  image_reference_id        = azurerm_dev_center_dev_box_definition.test.image_reference_id
+  hibernate_support_enabled = true
+  sku_name                  = "general_i_8c32gb256ssd_v2"
 }
 `, r.basic(data))
 }
@@ -140,11 +142,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center_dev_box_definition" "test" {
-  name               = "acctest-dcet-%d"
-  location           = azurerm_resource_group.test.location
-  dev_center_id      = azurerm_dev_center.test.id
-  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
-  sku_name           = "general_i_8c32gb256ssd_v2"
+  name                      = "acctest-dcet-%d"
+  location                  = azurerm_resource_group.test.location
+  dev_center_id             = azurerm_dev_center.test.id
+  image_reference_id        = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftwindowsdesktop_windows-ent-cpc_win11-24h2-ent-cpc"
+  hibernate_support_enabled = true
+  sku_name                  = "general_i_8c32gb256ssd_v2"
 
   tags = {
     Env = "Test"
@@ -162,11 +165,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center_dev_box_definition" "test" {
-  name               = "acctest-dcet-%d"
-  location           = azurerm_resource_group.test.location
-  dev_center_id      = azurerm_dev_center.test.id
-  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win11-m365-gen2"
-  sku_name           = "general_i_8c32gb512ssd_v2"
+  name                      = "acctest-dcet-%d"
+  location                  = azurerm_resource_group.test.location
+  dev_center_id             = azurerm_dev_center.test.id
+  image_reference_id        = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftwindowsdesktop_windows-ent-cpc_win11-24h2-ent-cpc"
+  hibernate_support_enabled = true
+  sku_name                  = "general_i_8c32gb512ssd_v2"
 
   tags = {
     Env = "Test2"
