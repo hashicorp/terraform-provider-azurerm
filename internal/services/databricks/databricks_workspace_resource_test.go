@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -355,7 +356,12 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkComplete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("managed_services_cmk_key_vault_id", "managed_disk_cmk_key_vault_id"),
+		data.ImportStep(func() []string {
+			if !features.FivePointOh() {
+				return []string{"managed_services_cmk_key_vault_id", "managed_disk_cmk_key_vault_id"}
+			}
+			return []string{}
+		}()...),
 	})
 }
 
@@ -377,7 +383,12 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkKeysInDifferentKeyVaultsAcross
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("managed_services_cmk_key_vault_id", "managed_disk_cmk_key_vault_id"),
+		data.ImportStep(func() []string {
+			if !features.FivePointOh() {
+				return []string{"managed_services_cmk_key_vault_id", "managed_disk_cmk_key_vault_id"}
+			}
+			return []string{}
+		}()...),
 	})
 }
 
@@ -399,7 +410,96 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("managed_services_cmk_key_vault_id"),
+		data.ImportStep(),
+	})
+}
+
+func TestAccDatabricksWorkspace_cmKWithManagedHSM(t *testing.T) {
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"managed_service": {
+			"current_subscription": testAccDatabricksWorkspace_cmkManagedHSMServicesOnly,
+			"alt_subscription":     testAccDatabricksWorkspace_cmkManagedHSMServicesOnlyAltSubscription,
+		},
+		"managed_disk": {
+			"current_subscription": testAccDatabricksWorkspace_cmkManagedHSMDiskOnly,
+			"alt_subscription":     testAccDatabricksWorkspace_cmkManagedHSMDiskOnlyAltSubscription,
+		},
+	})
+}
+
+func testAccDatabricksWorkspace_cmkManagedHSMServicesOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkManagedHSMServicesOnly(data, databricksPrincipalID, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccDatabricksWorkspace_cmkManagedHSMServicesOnlyAltSubscription(t *testing.T) {
+	altSubscription := altSubscriptionCheck()
+
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkManagedHSMServicesOnly(data, databricksPrincipalID, altSubscription),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccDatabricksWorkspace_cmkManagedHSMDiskOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkManagedHSMDiskOnly(data, databricksPrincipalID, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func testAccDatabricksWorkspace_cmkManagedHSMDiskOnlyAltSubscription(t *testing.T) {
+	altSubscription := altSubscriptionCheck()
+
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cmkManagedHSMDiskOnly(data, databricksPrincipalID, altSubscription),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -421,7 +521,7 @@ func TestAccDatabricksWorkspace_altSubscriptionCmkDiskOnly(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("managed_disk_cmk_key_vault_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -1496,11 +1596,6 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
-  static_website {
-    error_404_document = "error.html"
-    index_document     = "index.html"
-  }
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
@@ -2515,7 +2610,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 }
 
 func (DatabricksWorkspaceResource) altSubscriptionCmkComplete(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
-	return fmt.Sprintf(`
+	template := fmt.Sprintf(`
 provider "azurerm" {
   features {
     resource_group {
@@ -2543,27 +2638,6 @@ resource "azurerm_resource_group" "keyVault" {
 
   name     = "acctestRG-databricks-alt-sub-complete-%[1]d"
   location = "West Europe"
-}
-
-resource "azurerm_databricks_workspace" "test" {
-  depends_on = [azurerm_key_vault_access_policy.managed]
-
-  name                        = "acctest-databricks-pri-sub-%[1]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  sku                         = "premium"
-  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
-
-  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
-  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
-
-  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
-  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
-
-  tags = {
-    Environment = "Sandbox"
-    Pricing     = "Premium"
-  }
 }
 
 # Create this in a different subscription...
@@ -2660,10 +2734,59 @@ resource "azurerm_key_vault_access_policy" "managed" {
   ]
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_access_policy.managed]
+
+  name                        = "acctest-databricks-pri-sub-%[2]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[2]d"
+
+  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
+
+  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
+  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+`, template, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_access_policy.managed]
+
+  name                        = "acctest-databricks-pri-sub-%[2]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[2]d"
+
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
+  managed_disk_cmk_key_vault_key_id     = azurerm_key_vault_key.disk.id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (DatabricksWorkspaceResource) altSubscriptionCmkKeysInDifferentKeyVaultsAcrossDifferentSubscriptions(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
-	return fmt.Sprintf(`
+	template := fmt.Sprintf(`
 provider "azurerm" {
   features {
     resource_group {
@@ -2696,27 +2819,6 @@ resource "azurerm_resource_group" "keyVaultAlt" {
 
   name     = "acctestRG-databricks-kv-alt-sub-diff-%[1]d"
   location = "West Europe"
-}
-
-resource "azurerm_databricks_workspace" "test" {
-  depends_on = [azurerm_key_vault_access_policy.managed]
-
-  name                        = "acctest-databricks-pri-sub-%[1]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  sku                         = "premium"
-  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
-
-  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVaultAlt.id
-  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.servicesAlt.id
-
-  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
-  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
-
-  tags = {
-    Environment = "Sandbox"
-    Pricing     = "Premium"
-  }
 }
 
 resource "azurerm_key_vault" "keyVault" {
@@ -2861,9 +2963,77 @@ resource "azurerm_key_vault_access_policy" "managedAlt" {
   ]
 }
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_access_policy.managed]
+
+  name                        = "acctest-databricks-pri-sub-%[2]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[2]d"
+
+  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVaultAlt.id
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.servicesAlt.id
+
+  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
+  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+`, template, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_access_policy.managed]
+
+  name                        = "acctest-databricks-pri-sub-%[2]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[2]d"
+
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.servicesAlt.id
+  managed_disk_cmk_key_vault_key_id     = azurerm_key_vault_key.disk.id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+  `, template, data.RandomInteger)
 }
 
-func (DatabricksWorkspaceResource) altSubscriptionCmkServicesOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
+func (d DatabricksWorkspaceResource) cmkBaseTemplate(data acceptance.TestData, alt *DatabricksWorkspaceAlternateSubscription) string {
+	altConfig := ""
+	if alt != nil {
+		altConfig = fmt.Sprintf(`
+provider "azurerm-alt" {
+  features {}
+
+  tenant_id       = "%[2]s"
+  subscription_id = "%[3]s"
+}
+
+resource "azurerm_resource_group" "alt" {
+  provider = azurerm-alt
+
+  name     = "acctestRG-databricks-alt-sub-services-%[1]d"
+  location = "West Europe"
+}
+`, data.RandomInteger, alt.tenant_id, alt.subscription_id)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -2873,13 +3043,6 @@ provider "azurerm" {
   }
 }
 
-provider "azurerm-alt" {
-  features {}
-
-  tenant_id       = "%[5]s"
-  subscription_id = "%[6]s"
-}
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -2887,38 +3050,22 @@ resource "azurerm_resource_group" "test" {
   location = "West Europe"
 }
 
-resource "azurerm_resource_group" "keyVault" {
-  provider = azurerm-alt
-
-  name     = "acctestRG-databricks-alt-sub-services-%[1]d"
-  location = "West Europe"
+%s
+`, data.RandomInteger, altConfig)
 }
 
-resource "azurerm_databricks_workspace" "test" {
-  depends_on = [azurerm_key_vault_access_policy.managed]
+func (d DatabricksWorkspaceResource) altSubscriptionCmkKeyVaultTemplate(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
+	return fmt.Sprintf(`
+%[1]s
 
-  name                        = "acctest-databricks-pri-sub-%[1]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
-  sku                         = "premium"
-  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
-
-  managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
-  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
-
-  tags = {
-    Environment = "Sandbox"
-    Pricing     = "Premium"
-  }
-}
 
 # Create this in a different subscription...
 resource "azurerm_key_vault" "keyVault" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
-  location            = azurerm_resource_group.keyVault.location
-  resource_group_name = azurerm_resource_group.keyVault.name
+  name                = "kv-altsub-%[2]s"
+  location            = azurerm_resource_group.alt.location
+  resource_group_name = azurerm_resource_group.alt.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "premium"
 
@@ -2955,12 +3102,6 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Get",
     "List",
     "Create",
-    "Decrypt",
-    "Encrypt",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
     "Delete",
     "Restore",
     "Recover",
@@ -2976,7 +3117,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 
   key_vault_id = azurerm_key_vault.keyVault.id
   tenant_id    = azurerm_key_vault.keyVault.tenant_id
-  object_id    = "%[4]s"
+  object_id    = "%[3]s"
 
   key_permissions = [
     "Get",
@@ -2986,7 +3127,225 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "SetRotationPolicy",
   ]
 }
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID, alt.tenant_id, alt.subscription_id)
+`, d.cmkBaseTemplate(data, alt), data.RandomString, databricksPrincipalID)
+}
+
+func (d DatabricksWorkspaceResource) cmkManagedHSMTemplate(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
+	alt_provider := ""
+	rg_name := "test"
+	if alt != nil {
+		alt_provider = "provider = azurerm-alt"
+		rg_name = "alt"
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+
+resource "azurerm_key_vault" "test" {
+  %[2]s
+  name                       = "acckv%[3]d"
+  location                   = azurerm_resource_group.%[6]s.location
+  resource_group_name        = azurerm_resource_group.%[6]s.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+    ]
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "DeleteIssuers",
+      "Get",
+      "Purge",
+      "Update"
+    ]
+  }
+  tags = {
+    environment = "Production"
+  }
+}
+resource "azurerm_key_vault_certificate" "cert" {
+  %[2]s
+  count        = 3
+  name         = "acchsmcert${count.index}"
+  key_vault_id = azurerm_key_vault.test.id
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+    x509_certificate_properties {
+      extended_key_usage = []
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+resource "azurerm_key_vault_managed_hardware_security_module" "test" {
+  %[2]s
+  name                     = "kvHsm%[3]d"
+  resource_group_name      = azurerm_resource_group.%[6]s.name
+  location                 = azurerm_resource_group.%[6]s.location
+  sku_name                 = "Standard_B1"
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  admin_object_ids         = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled = false
+
+  security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
+  security_domain_quorum                    = 3
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "officer" {
+  %[2]s
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad23"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "cryptor" {
+  %[2]s
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad22"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "db" {
+  %[2]s
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "ff248f45-efda-4122-bec0-71460ecc8add"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
+  principal_id       = "%[5]s"
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "services" {
+  %[2]s
+  name           = "acctestHSMK-%[4]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 4096
+  key_opts       = ["sign", "unwrapKey", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.officer,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.cryptor,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.db
+  ]
+}
+`, d.cmkBaseTemplate(data, alt), alt_provider, data.RandomInteger, data.RandomString, databricksPrincipalID, rg_name)
+}
+
+func (d DatabricksWorkspaceResource) altSubscriptionCmkServicesOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_access_policy.managed]
+
+  name                        = "acctest-databricks-pri-sub-%[2]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[2]d"
+
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+`, d.altSubscriptionCmkKeyVaultTemplate(data, databricksPrincipalID, alt), data.RandomInteger)
+}
+
+// set param alt to nil if you want to use the default subscription
+func (d DatabricksWorkspaceResource) cmkManagedHSMServicesOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_databricks_workspace" "test" {
+  name                        = "acctest-databricks-pri-sub-%[2]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[2]d"
+
+  managed_services_cmk_managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.services.versioned_id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+
+`, d.cmkManagedHSMTemplate(data, databricksPrincipalID, alt), data.RandomInteger)
+}
+
+func (d DatabricksWorkspaceResource) cmkManagedHSMDiskOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
+	return fmt.Sprintf(`
+
+%[1]s
+
+resource "azurerm_databricks_workspace" "test" {
+  name                        = "acctest-databricks-pri-sub-%[2]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "databricks-pri-sub-managed-rg-%[2]d"
+
+  managed_disk_cmk_managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.services.versioned_id
+
+  tags = {
+    Environment = "Sandbox"
+    Pricing     = "Premium"
+  }
+}
+`, d.cmkManagedHSMTemplate(data, databricksPrincipalID, alt), data.RandomInteger)
 }
 
 func (DatabricksWorkspaceResource) altSubscriptionCmkDiskOnly(data acceptance.TestData, databricksPrincipalID string, alt *DatabricksWorkspaceAlternateSubscription) string {
@@ -3029,7 +3388,6 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "databricks-pri-sub-managed-rg-%[1]d"
 
-  managed_disk_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.disk.id
 
   tags = {
