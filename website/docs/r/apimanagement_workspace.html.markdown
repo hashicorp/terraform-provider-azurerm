@@ -15,7 +15,7 @@ Manages an API Management Workspace.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "East US"
+  location = "West Europe"
 }
 
 resource "azurerm_api_management" "example" {
