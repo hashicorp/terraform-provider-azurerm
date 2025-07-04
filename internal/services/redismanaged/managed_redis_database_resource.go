@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -32,9 +32,9 @@ type ManagedRedisDatabaseResourceModel struct {
 	ClientProtocol              string        `tfschema:"client_protocol"`
 	ClusteringPolicy            string        `tfschema:"clustering_policy"`
 	EvictionPolicy              string        `tfschema:"eviction_policy"`
-	Module                      []ModuleModel `tfschema:"module"`
-	LinkedDatabaseId            []string      `tfschema:"linked_database_id"`
 	LinkedDatabaseGroupNickname string        `tfschema:"linked_database_group_nickname"`
+	LinkedDatabaseId            []string      `tfschema:"linked_database_id"`
+	Module                      []ModuleModel `tfschema:"module"`
 	Port                        int64         `tfschema:"port"`
 	PrimaryAccessKey            string        `tfschema:"primary_access_key"`
 	SecondaryAccessKey          string        `tfschema:"secondary_access_key"`
@@ -53,7 +53,7 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			Default:      "default",
-			ValidateFunc: validate.RedisEnterpriseDatabaseName,
+			ValidateFunc: validate.ManagedRedisDatabaseName,
 		},
 
 		"cluster_id": {
@@ -85,6 +85,24 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			Default:      string(redisenterprise.EvictionPolicyVolatileLRU),
 			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForEvictionPolicy(), false),
+		},
+
+		"linked_database_group_nickname": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"linked_database_id"},
+		},
+
+		"linked_database_id": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			MaxItems: 5,
+			Set:      pluginsdk.HashString,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: databases.ValidateDatabaseID,
+			},
 		},
 
 		"module": {
@@ -119,24 +137,6 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-		},
-
-		"linked_database_id": {
-			Type:     pluginsdk.TypeSet,
-			Optional: true,
-			MaxItems: 5,
-			Set:      pluginsdk.HashString,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: databases.ValidateDatabaseID,
-			},
-		},
-
-		"linked_database_group_nickname": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			RequiredWith: []string{"linked_database_id"},
 		},
 
 		"port": {
@@ -230,9 +230,9 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 					ClientProtocol:   &protocol,
 					ClusteringPolicy: &clusteringPolicy,
 					EvictionPolicy:   &evictionPolicy,
-					Modules:          module,
-					GeoReplication:   linkedDatabase,
 					Port:             utils.Int64(model.Port),
+					GeoReplication:   linkedDatabase,
+					Modules:          module,
 				},
 			}
 
@@ -297,19 +297,10 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if props.ClientProtocol != nil {
-						state.ClientProtocol = string(pointer.From(props.ClientProtocol))
-					}
-
-					if props.ClusteringPolicy != nil {
-						state.ClusteringPolicy = string(pointer.From(props.ClusteringPolicy))
-					}
-
-					if props.EvictionPolicy != nil {
-						state.EvictionPolicy = string(pointer.From(props.EvictionPolicy))
-					}
-
-					state.Module = flattenArmDatabaseModuleArray(props.Modules)
+					state.ClientProtocol = string(pointer.From(props.ClientProtocol))
+					state.ClusteringPolicy = string(pointer.From(props.ClusteringPolicy))
+					state.EvictionPolicy = string(pointer.From(props.EvictionPolicy))
+					state.Port = pointer.From(props.Port)
 
 					if geoProps := props.GeoReplication; geoProps != nil {
 						if geoProps.GroupNickname != nil {
@@ -318,9 +309,7 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 						state.LinkedDatabaseId = flattenArmGeoLinkedDatabase(geoProps.LinkedDatabases)
 					}
 
-					if props.Port != nil {
-						state.Port = *props.Port
-					}
+					state.Module = flattenArmDatabaseModuleArray(props.Modules)
 				}
 			}
 
@@ -385,7 +374,7 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 				oldItems, newItems := metadata.ResourceData.GetChange("linked_database_id")
 				isForceUnlink, data := forceUnlinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
 				if isForceUnlink {
-					if err := forceUnlinkDatabase(&metadata, *data); err != nil {
+					if err := forceUnlinkDatabase(&metadata, data); err != nil {
 						return fmt.Errorf("unlinking database error: %+v", err)
 					}
 				}
@@ -545,7 +534,7 @@ func flattenArmGeoLinkedDatabase(inputDB *[]databases.LinkedDatabase) []string {
 	return results
 }
 
-func forceUnlinkItems(oldItemList []interface{}, newItemList []interface{}) (bool, *[]string) {
+func forceUnlinkItems(oldItemList []interface{}, newItemList []interface{}) (bool, []string) {
 	newItems := make(map[string]bool)
 	forceUnlinkList := make([]string, 0)
 	for _, newItem := range newItemList {
@@ -558,7 +547,7 @@ func forceUnlinkItems(oldItemList []interface{}, newItemList []interface{}) (boo
 		}
 	}
 	if len(forceUnlinkList) > 0 {
-		return true, &forceUnlinkList
+		return true, forceUnlinkList
 	}
 	return false, nil
 }
