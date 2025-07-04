@@ -299,7 +299,7 @@ resource "azurerm_service_plan" "test" {
   location               = azurerm_resource_group.test.location
   sku_name               = "B1"
   os_type                = "Windows"
-  zone_balancing_enabled = true
+
   tags = {
     environment = "AccTest"
     Foo         = "bar"

@@ -5,7 +5,6 @@ package appservice
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -415,19 +414,19 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			// Specifying the `zone_balancing_enabled` SKU tier requires Premium.
-			zoneRedundant := rd.GetRawConfig().AsValueMap()["zone_balancing_enabled"]
-			if !zoneRedundant.IsNull() {
+			// Specifying the `zone_balancing_enabled` as `true`, SKU tier requires Premium.
+			zoneBalancing := rd.Get("zone_balancing_enabled").(bool)
+			if zoneBalancing {
 				if !strings.HasPrefix(servicePlanSku, "P") {
-					return errors.New("`zone_balancing_enabled` cannot be specified when sku tier is not Premium")
+					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is not Premium")
 				}
+			}
 
-				old, new := rd.GetChange("zone_balancing_enabled")
-				if old.(bool) != new.(bool) {
-					// `zone_balancing_enabled` can be disabled and enabling it requires the capacity of sku to be greater than `1`.
-					if !old.(bool) && new.(bool) && rd.Get("worker_count").(int) < 2 {
-						metadata.ResourceDiff.ForceNew("zone_balancing_enabled")
-					}
+			old, new := rd.GetChange("zone_balancing_enabled")
+			if old.(bool) != new.(bool) {
+				// `zone_balancing_enabled` can be disabled and enabling it requires the capacity of sku to be greater than `1`.
+				if !old.(bool) && new.(bool) && rd.Get("worker_count").(int) < 2 {
+					metadata.ResourceDiff.ForceNew("zone_balancing_enabled")
 				}
 			}
 
