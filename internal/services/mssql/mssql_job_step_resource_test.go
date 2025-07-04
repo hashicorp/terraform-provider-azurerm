@@ -92,22 +92,6 @@ func TestAccMsSqlJobStep_complete(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlJobStep_withManagedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
-	r := MsSqlJobStepTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withManagedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("job_credential_id").IsEmpty(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccMsSqlJobStep_updateFromCredentialToManagedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
 	r := MsSqlJobStepTestResource{}
@@ -121,7 +105,7 @@ func TestAccMsSqlJobStep_updateFromCredentialToManagedIdentity(t *testing.T) {
 			),
 		},
 		{
-			Config: r.withManagedIdentity(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("job_credential_id").HasValue(""),
@@ -249,10 +233,21 @@ resource "azurerm_mssql_database" "test" {
   sku_name  = "S1"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-identity-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_mssql_job_agent" "test" {
   name        = "acctest-job-agent-%[1]d"
   location    = azurerm_resource_group.test.location
   database_id = azurerm_mssql_database.test.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 }
 
 resource "azurerm_mssql_job" "test" {
@@ -272,18 +267,4 @@ resource "azurerm_mssql_job_credential" "test" {
   password     = "testpassword"
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r MsSqlJobStepTestResource) withManagedIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_job_step" "test" {
-  name                 = "acctestjs-%[2]d"
-  job_id               = azurerm_mssql_job.test.id
-  job_target_group_id  = azurerm_mssql_job_target_group.test.id
-  job_step_index       = 1
-  sql_script           = "SELECT 1;"
-}
-`, r.template(data), data.RandomInteger)
 }
