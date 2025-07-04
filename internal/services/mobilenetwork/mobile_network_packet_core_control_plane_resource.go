@@ -119,6 +119,7 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: site.ValidateSiteID,
