@@ -112,6 +112,34 @@ An `authentication` block supports the following:
 
 ---
 
+* `scope` - (Optional) Connection scope in the source service. This is the Namespace Name if the source is an AKS cluster, or the Container Name if source is a Container App.
+
+* `configuration` - (Optional) The connection information consumed by applications, including secrets and connection strings. A `configuration` block as defined below.
+
+---
+
+A `configuration` block supports the following:
+
+* `action` - (Optional) The action indicates whether to apply configurations on source application. Possible values are `enable` and `optOut`.
+
+* `configuration_store` - (Optional) A `configuration_store` block as defined below.
+
+---
+
+* `app_configuration_id` - (Optional) The app configuration id to store configuration.
+
+---
+
+* `public_network_solution` - (Optional) A `public_network_solution` block as defined below.
+
+---
+
+* A `public_network_solution` block supports the following:
+
+* `action` - (Required) Indicates public network solution. Possible values are `enable` and `optOut`.
+
+---
+
 * `client_type` - (Optional) The application client type. Possible values are `none`, `dotnet`, `java`, `python`, `go`, `php`, `ruby`, `django`, `nodejs` and `springBoot`. Defaults to `none`.
 
 * `vnet_solution` - (Optional) The type of the VNet solution. Possible values are `serviceEndpoint`, `privateLink`.
@@ -123,6 +151,12 @@ An `authentication` block supports the following:
 An `secret_store` block supports the following:
 
 * `key_vault_id` - (Required) The key vault id to store secret.
+
+---
+
+An `configuration_store` block supports the following:
+
+* `app_configuration_id` - (Optional) The app configuration id to store configuration.
 
 ## Attribute Reference
 
