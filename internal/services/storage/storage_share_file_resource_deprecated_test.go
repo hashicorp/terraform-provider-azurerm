@@ -14,16 +14,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
 )
 
-type StorageShareFileResource struct{}
+type StorageShareFileResourceDeprecated struct{}
 
-func TestAccAzureRMStorageShareFile_basic(t *testing.T) {
+func TestAccAzureRMStorageShareFile_basic_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,9 +41,13 @@ func TestAccAzureRMStorageShareFile_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_basicAzureADAuth(t *testing.T) {
+func TestAccAzureRMStorageShareFile_basicAzureADAuth_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -51,9 +60,13 @@ func TestAccAzureRMStorageShareFile_basicAzureADAuth(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_requiresImport(t *testing.T) {
+func TestAccAzureRMStorageShareFile_requiresImport_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,9 +79,13 @@ func TestAccAzureRMStorageShareFile_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_complete(t *testing.T) {
+func TestAccAzureRMStorageShareFile_complete_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,9 +98,13 @@ func TestAccAzureRMStorageShareFile_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_update(t *testing.T) {
+func TestAccAzureRMStorageShareFile_update_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -111,7 +132,11 @@ func TestAccAzureRMStorageShareFile_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
+func TestAccAzureRMStorageShareFile_withFile_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -121,7 +146,7 @@ func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
 		t.Fatalf("Error populating temp file: %s", err)
 	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -135,14 +160,18 @@ func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_withEmptyFile(t *testing.T) {
+func TestAccAzureRMStorageShareFile_withEmptyFile_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	sourceBlob, err := os.CreateTemp("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -152,9 +181,13 @@ func TestAccAzureRMStorageShareFile_withEmptyFile(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_withPath(t *testing.T) {
+func TestAccAzureRMStorageShareFile_withPath_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -167,9 +200,13 @@ func TestAccAzureRMStorageShareFile_withPath(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_withPathUsingBackslashes(t *testing.T) {
+func TestAccAzureRMStorageShareFile_withPathUsingBackslashes_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -182,9 +219,13 @@ func TestAccAzureRMStorageShareFile_withPathUsingBackslashes(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageShareFile_withPathInNameUsingBackslashes(t *testing.T) {
+func TestAccAzureRMStorageShareFile_withPathInNameUsingBackslashes_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
-	r := StorageShareFileResource{}
+	r := StorageShareFileResourceDeprecated{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -197,7 +238,7 @@ func TestAccAzureRMStorageShareFile_withPathInNameUsingBackslashes(t *testing.T)
 	})
 }
 
-func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (StorageShareFileResourceDeprecated) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := files.ParseFileID(state.ID, clients.Storage.StorageDomainSuffix)
 	if err != nil {
 		return nil, err
@@ -226,7 +267,7 @@ func (StorageShareFileResource) Exists(ctx context.Context, clients *clients.Cli
 	return utils.Bool(true), nil
 }
 
-func (StorageShareFileResource) template(data acceptance.TestData) string {
+func (StorageShareFileResourceDeprecated) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -246,20 +287,20 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name               = "fileshare"
-  storage_account_id = azurerm_storage_account.test.id
-  quota              = 50
+  name                 = "fileshare"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 50
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageShareFileResource) basic(data acceptance.TestData) string {
+func (r StorageShareFileResourceDeprecated) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name              = "file"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "file"
+  storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
     hello = "world"
@@ -268,7 +309,7 @@ resource "azurerm_storage_share_file" "test" {
 `, r.template(data))
 }
 
-func (r StorageShareFileResource) basicAzureADAuth(data acceptance.TestData) string {
+func (r StorageShareFileResourceDeprecated) basicAzureADAuth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
@@ -289,14 +330,14 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name               = "fileshare"
-  storage_account_id = azurerm_storage_account.test.id
-  quota              = 50
+  name                 = "fileshare"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 50
 }
 
 resource "azurerm_storage_share_file" "test" {
-  name              = "file"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "file"
+  storage_share_id = azurerm_storage_share.test.id
 
   metadata = {
     hello = "world"
@@ -305,13 +346,13 @@ resource "azurerm_storage_share_file" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageShareFileResource) requiresImport(data acceptance.TestData) string {
+func (r StorageShareFileResourceDeprecated) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_file" "import" {
-  name              = azurerm_storage_share_file.test.name
-  storage_share_url = azurerm_storage_share_file.test.storage_share_url
+  name             = azurerm_storage_share_file.test.name
+  storage_share_id = azurerm_storage_share_file.test.storage_share_id
 
   metadata = {
     hello = "world"
@@ -320,13 +361,13 @@ resource "azurerm_storage_share_file" "import" {
 `, r.basic(data))
 }
 
-func (r StorageShareFileResource) complete(data acceptance.TestData) string {
+func (r StorageShareFileResourceDeprecated) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name              = "file"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "file"
+  storage_share_id = azurerm_storage_share.test.id
 
 
   content_type        = "test_content_type"
@@ -340,13 +381,13 @@ resource "azurerm_storage_share_file" "test" {
 `, r.template(data))
 }
 
-func (r StorageShareFileResource) withFile(data acceptance.TestData, fileName string) string {
+func (r StorageShareFileResourceDeprecated) withFile(data acceptance.TestData, fileName string) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name              = "test"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "test"
+  storage_share_id = azurerm_storage_share.test.id
 
   source      = "%[2]s"
   content_md5 = filemd5(%[2]q)
@@ -358,44 +399,44 @@ resource "azurerm_storage_share_file" "test" {
 `, r.template(data), fileName)
 }
 
-func (r StorageShareFileResource) withPath(data acceptance.TestData) string {
+func (r StorageShareFileResourceDeprecated) withPath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_directory" "parent" {
-  name              = "parent"
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "parent"
+  storage_share_id = azurerm_storage_share.test.id
 }
 
 resource "azurerm_storage_share_file" "test" {
-  name              = "test"
-  path              = azurerm_storage_share_directory.parent.name
-  storage_share_url = azurerm_storage_share.test.url
+  name             = "test"
+  path             = azurerm_storage_share_directory.parent.name
+  storage_share_id = azurerm_storage_share.test.id
 }
 `, r.template(data))
 }
 
-func (r StorageShareFileResource) withPathUsingBackslashes(data acceptance.TestData) string {
+func (r StorageShareFileResourceDeprecated) withPathUsingBackslashes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name              = "command.com"
-  path              = "c\\dos"
-  storage_share_url = azurerm_storage_share.test.url
-  depends_on        = [azurerm_storage_share_directory.dos]
+  name             = "command.com"
+  path             = "c\\dos"
+  storage_share_id = azurerm_storage_share.test.id
+  depends_on       = [azurerm_storage_share_directory.dos]
 }
-`, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
+`, StorageShareDirectoryResourceDeprecated{}.nestedWithBackslashes(data))
 }
 
-func (r StorageShareFileResource) withPathInNameUsingBackslashes(data acceptance.TestData) string {
+func (r StorageShareFileResourceDeprecated) withPathInNameUsingBackslashes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_share_file" "test" {
-  name              = "c\\dos\\command.com"
-  storage_share_url = azurerm_storage_share.test.url
-  depends_on        = [azurerm_storage_share_directory.dos]
+  name             = "c\\dos\\command.com"
+  storage_share_id = azurerm_storage_share.test.id
+  depends_on       = [azurerm_storage_share_directory.dos]
 }
-`, StorageShareDirectoryResource{}.nestedWithBackslashes(data))
+`, StorageShareDirectoryResourceDeprecated{}.nestedWithBackslashes(data))
 }
