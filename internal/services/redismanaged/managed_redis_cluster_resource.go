@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -28,17 +29,17 @@ type ManagedRedisClusterResource struct{}
 var _ sdk.ResourceWithUpdate = ManagedRedisClusterResource{}
 
 type ManagedRedisClusterResourceModel struct {
-	Name               string                                     `tfschema:"name"`
-	ResourceGroupName  string                                     `tfschema:"resource_group_name"`
-	Location           string                                     `tfschema:"location"`
-	SkuName            string                                     `tfschema:"sku_name"`
-	CustomerManagedKey []CustomerManagedKey                       `tfschema:"customer_managed_key"`
-	HighAvailability   string                                     `tfschema:"high_availability"`
-	Identity           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	MinimumTlsVersion  string                                     `tfschema:"minimum_tls_version"`
-	Tags               map[string]string                          `tfschema:"tags"`
-	Zones              []string                                   `tfschema:"zones"`
-	Hostname           string                                     `tfschema:"hostname"`
+	Name                    string                                     `tfschema:"name"`
+	ResourceGroupName       string                                     `tfschema:"resource_group_name"`
+	Location                string                                     `tfschema:"location"`
+	SkuName                 string                                     `tfschema:"sku_name"`
+	CustomerManagedKey      []CustomerManagedKey                       `tfschema:"customer_managed_key"`
+	HighAvailabilityEnabled bool                                       `tfschema:"high_availability_enabled"`
+	Identity                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	MinimumTlsVersion       string                                     `tfschema:"minimum_tls_version"`
+	Tags                    map[string]string                          `tfschema:"tags"`
+	Zones                   []string                                   `tfschema:"zones"`
+	Hostname                string                                     `tfschema:"hostname"`
 }
 
 type CustomerManagedKey struct {
@@ -87,12 +88,11 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"high_availability": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Default:      string(redisenterprise.HighAvailabilityEnabled),
-			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForHighAvailability(), false),
+		"high_availability_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Default:  true,
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -163,12 +163,17 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing `sku_name`: %+v", err)
 			}
 
+			highAvailability := redisenterprise.HighAvailabilityEnabled
+			if !model.HighAvailabilityEnabled {
+				highAvailability = redisenterprise.HighAvailabilityDisabled
+			}
+
 			parameters := redisenterprise.Cluster{
 				Location: model.Location,
 				Sku:      pointer.From(sku),
 				Properties: &redisenterprise.ClusterProperties{
 					MinimumTlsVersion: pointer.To(redisenterprise.TlsVersion(model.MinimumTlsVersion)),
-					HighAvailability:  pointer.To(redisenterprise.HighAvailability(model.HighAvailability)),
+					HighAvailability:  pointer.To(highAvailability),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -255,7 +260,7 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
-					state.HighAvailability = string(pointer.From(props.HighAvailability))
+					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
 
 					tlsVersion := ""
 					if props.MinimumTlsVersion != nil {
