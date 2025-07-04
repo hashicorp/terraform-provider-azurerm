@@ -109,15 +109,3 @@ func AdbsComputeModel(i interface{}, k string) (warnings []string, errors []erro
 
 	return []string{}, []error{}
 }
-
-func ValidateAllowedIPsList(ips []string) error {
-	if len(ips) == 0 {
-		return nil
-	}
-
-	combined := strings.Join(ips, ",")
-	if len(combined) > 1024 {
-		return fmt.Errorf("allowed_ips total length must not exceed 1024 characters")
-	}
-	return nil
-}

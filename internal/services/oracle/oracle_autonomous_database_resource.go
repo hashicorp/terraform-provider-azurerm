@@ -223,7 +223,8 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 		},
 
