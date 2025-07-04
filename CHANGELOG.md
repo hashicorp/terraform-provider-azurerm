@@ -1,3 +1,26 @@
+## 4.36.0 (Unreleased)
+
+FEATURES:
+
+ENHANCEMENTS:
+* `azurerm_virtual_hub` - add support for the `branch_to_branch_traffic_enabled` property [GH-29453]
+* dependencies: `oracle` - update to API version `2025-03-01` [GH-29721]
+* dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
+* `azurerm_api_management`: `sku_name` now supports V2 Tiers  [GH-29657]
+* `azurerm_kubernetes_cluster` - support for the `custom_ca_trust_certificates_base64` property [GH-29894]
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
+* `azurerm_linux_web_app` - support for the `vnet_image_pull_enabled` property [GH-29452]
+* `azurerm_linux_web_app_slot` - support for the `vnet_image_pull_enabled` property [GH-29452]
+* `azurerm_logic_app_workflow` - The `access_control.trigger.allowed_caller_ip_address_range` property is now optional [GH-30041]
+* `azurerm_netapp_volume` - add support for the `cool_access` block [GH-29915]
+* `azurerm_public_ip_prefix` - add support for the `custom_ip_prefix_id` property [GH-29851]
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
+
+BUG FIXES:
+* `azurerm_mobile_network_packet_core_control_plane` - the  `site_ids` property is now marked as `ForceNew` [GH-30056]
+* `azurerm_mobile_network_slice` - the `single_network_slice_selection_assistance_information` property is now updated correctly [GH-30057]
+* `azurerm_private_dns_resolver_dns_forwarding_ruleset` - fix an issue where `private_dns_resolver_outbound_endpoint_ids` failed to update [GH-30046]
+
 ## 4.35.0 (July 01, 2025)
 
 FEATURES:
