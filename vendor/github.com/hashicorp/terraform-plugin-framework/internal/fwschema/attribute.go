@@ -71,6 +71,16 @@ type Attribute interface {
 	//
 	// Write-only attributes are a managed-resource schema concept only.
 	IsWriteOnly() bool
+
+	// IsOptionalForImport should return true if the identity attribute is optional to be set by
+	// the practitioner when importing by identity. This is named differently than OptionalForImport
+	// to prevent a conflict with the relevant field name.
+	IsOptionalForImport() bool
+
+	// IsRequiredForImport should return true if the identity attribute must be set by
+	// the practitioner when importing by identity. This is named differently than RequiredForImport
+	// to prevent a conflict with the relevant field name.
+	IsRequiredForImport() bool
 }
 
 // AttributesEqual is a helper function to perform equality testing on two
@@ -110,6 +120,14 @@ func AttributesEqual(a, b Attribute) bool {
 	}
 
 	if a.IsWriteOnly() != b.IsWriteOnly() {
+		return false
+	}
+
+	if a.IsOptionalForImport() != b.IsOptionalForImport() {
+		return false
+	}
+
+	if a.IsRequiredForImport() != b.IsRequiredForImport() {
 		return false
 	}
 

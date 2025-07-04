@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -35,18 +36,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var VirtualNetworkResourceName = "azurerm_virtual_network"
 
 func resourceVirtualNetwork() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkCreate,
-		Read:   resourceVirtualNetworkRead,
-		Update: resourceVirtualNetworkUpdate,
-		Delete: resourceVirtualNetworkDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseVirtualNetworkID(id)
-			return err
-		}),
+		Create:   resourceVirtualNetworkCreate,
+		Read:     resourceVirtualNetworkRead,
+		Update:   resourceVirtualNetworkUpdate,
+		Delete:   resourceVirtualNetworkDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualNetworkId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -56,6 +56,10 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 		},
 
 		Schema: resourceVirtualNetworkSchema(),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualNetworkId{}),
+		},
 	}
 }
 
@@ -463,7 +467,13 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
 	}
 
 	return nil
