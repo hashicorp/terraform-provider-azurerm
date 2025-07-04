@@ -3,6 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
+* `azurerm_virtual_hub` - add support for the `branch_to_branch_traffic_enabled` property [GH-29453]
 * dependencies: `oracle` - update to API version `2025-03-01` [GH-29721]
 * dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
 * `azurerm_api_management`: `sku_name` now supports V2 Tiers  [GH-29657]
