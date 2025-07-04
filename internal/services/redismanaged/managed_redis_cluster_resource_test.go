@@ -208,7 +208,6 @@ resource "azurerm_managed_redis_cluster" "test" {
   minimum_tls_version = "1.2"
 
   sku_name = "Balanced_B3"
-  zones    = ["1", "2", "3"]
 
   tags = {
     ENV = "Test"
