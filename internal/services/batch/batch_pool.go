@@ -803,8 +803,19 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 		result.NodePlacementConfiguration = expandBatchPoolNodeReplacementConfig(v.([]interface{}))
 	}
 
+	var osDiskPlacement interface{}
+	var osDiskSize interface{}
+
 	if v, ok := d.GetOk("os_disk_placement"); ok {
-		result.OsDisk = expandBatchPoolOSDisk(v)
+		osDiskPlacement = v
+	}
+
+	if v, ok := d.GetOk("os_disk_size_gb"); ok {
+		osDiskSize = v
+	}
+
+	if osDiskPlacement != nil || osDiskSize != nil {
+		result.OsDisk = expandBatchPoolOSDisk(osDiskPlacement, osDiskSize)
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
@@ -847,16 +858,24 @@ func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile
 	return securityProfile
 }
 
-func expandBatchPoolOSDisk(ref interface{}) *pool.OSDisk {
-	if ref == nil {
+func expandBatchPoolOSDisk(placementRef interface{}, sizeRef interface{}) *pool.OSDisk {
+	if placementRef == nil && sizeRef == nil {
 		return nil
 	}
 
-	return &pool.OSDisk{
-		EphemeralOSDiskSettings: &pool.DiffDiskSettings{
-			Placement: pointer.To(pool.DiffDiskPlacement(ref.(string))),
-		},
+	osDisk := &pool.OSDisk{}
+
+	if placementRef != nil {
+		osDisk.EphemeralOSDiskSettings = &pool.DiffDiskSettings{
+			Placement: pointer.To(pool.DiffDiskPlacement(placementRef.(string))),
+		}
 	}
+
+	if sizeRef != nil {
+		osDisk.DiskSizeGB = pointer.To(int64(sizeRef.(int)))
+	}
+
+	return osDisk
 }
 
 func expandBatchPoolNodeReplacementConfig(list []interface{}) *pool.NodePlacementConfiguration {
