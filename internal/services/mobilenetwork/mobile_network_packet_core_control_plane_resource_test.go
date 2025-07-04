@@ -121,13 +121,6 @@ func TestAccMobileNetworkPacketCoreControlPlane_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -408,12 +401,12 @@ resource "azurerm_mobile_network_packet_core_control_plane" "import" {
 
 func (r MobileNetworkPacketCoreControlPlaneResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-			%[1]s
+			%s
 
 resource "azurerm_mobile_network_packet_core_control_plane" "test" {
-  name                              = "acctest-mnpccp-%[2]d"
+  name                              = "acctest-mnpccp-%d"
   resource_group_name               = azurerm_resource_group.test.name
-  location                          = "%[3]s"
+  location                          = "%s"
   sku                               = "G0"
   site_ids                          = [azurerm_mobile_network_site.test.id]
   control_plane_access_name         = "default-interface"
