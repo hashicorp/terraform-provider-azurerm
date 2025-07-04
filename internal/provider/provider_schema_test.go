@@ -167,10 +167,6 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 			// should be fixed in 4.0, presumably ditching `_enabled` and adding Enum validation
 			"single_sign_on_enabled": {},
 		},
-		"azurerm_netapp_volume": {
-			// should be fixed in 4.0, presumably ditching `_enabled` and making this `protocols_to_use` or something?
-			"protocols_enabled": {},
-		},
 		"azurerm_kubernetes_cluster": {
 			// this either wants `enabled` removing, or to be marked as a false-positive
 			"transparent_huge_page_enabled": {},
@@ -185,6 +181,13 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 			// this is a list of recommendations
 			"recommendations_enabled": {},
 		},
+	}
+
+	if !features.FivePointOh() {
+		// These have been addressed but while in 4.x we need to ignore them so the test can pass.
+		resourceFieldsWhichNeedToBeAddressed["azurerm_netapp_volume"] = map[string]struct{}{
+			"protocols_enabled": {},
+		}
 	}
 
 	for _, resourceName := range resourceNames {
