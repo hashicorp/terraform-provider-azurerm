@@ -367,11 +367,13 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 									"priority": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
+										Default:      0,
 										ValidateFunc: validation.IntAtLeast(1),
 									},
 									"weight": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
+										Default:      0,
 										ValidateFunc: validation.IntAtLeast(1),
 									},
 								},
