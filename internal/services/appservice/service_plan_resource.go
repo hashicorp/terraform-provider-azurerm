@@ -125,7 +125,6 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"zone_balancing_enabled": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Optional: true,
 		},
 
@@ -365,6 +364,10 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 				model.Properties.MaximumElasticWorkerCount = pointer.To(state.MaximumElasticWorkerCount)
 			}
 
+			if metadata.ResourceData.HasChange("zone_balancing_enabled") {
+				model.Properties.ZoneRedundant = pointer.To(state.ZoneBalancing)
+			}
+
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -410,6 +413,23 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or with Premium Skus that has `premium_plan_auto_scale_enabled` set to `true`")
 				}
 			}
+
+			// Specifying the `zone_balancing_enabled` as `true`, SKU tier requires Premium.
+			zoneBalancing := rd.Get("zone_balancing_enabled").(bool)
+			if zoneBalancing {
+				if !strings.HasPrefix(servicePlanSku, "P") {
+					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is not Premium")
+				}
+			}
+
+			old, new := rd.GetChange("zone_balancing_enabled")
+			if old.(bool) != new.(bool) {
+				// `zone_balancing_enabled` can be disabled and enabling it requires the capacity of sku to be greater than `1`.
+				if !old.(bool) && new.(bool) && rd.Get("worker_count").(int) < 2 {
+					metadata.ResourceDiff.ForceNew("zone_balancing_enabled")
+				}
+			}
+
 			return nil
 		},
 	}

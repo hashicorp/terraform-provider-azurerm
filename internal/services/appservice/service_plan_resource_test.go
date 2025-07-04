@@ -157,6 +157,13 @@ func TestAccServicePlan_completeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -287,11 +294,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_service_plan" "test" {
-  name                = "acctest-SP-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "B1"
-  os_type             = "Windows"
+  name                   = "acctest-SP-%[1]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  sku_name               = "B1"
+  os_type                = "Windows"
 
   tags = {
     environment = "AccTest"
@@ -435,7 +442,7 @@ resource "azurerm_service_plan" "test" {
     Foo         = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "East Asia")
 }
 
 func (r ServicePlanResource) completeUpdate(data acceptance.TestData) string {
@@ -458,13 +465,13 @@ resource "azurerm_service_plan" "test" {
   per_site_scaling_enabled = true
   worker_count             = 3
 
-  zone_balancing_enabled = true
+  zone_balancing_enabled = false
 
   tags = {
     Foo = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "East Asia")
 }
 
 func (r ServicePlanResource) requiresImport(data acceptance.TestData) string {
