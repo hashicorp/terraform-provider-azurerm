@@ -161,6 +161,13 @@ func resourceSubnet() *pluginsdk.Resource {
 				},
 			},
 
+			"sharing_scope": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(subnets.PossibleValuesForSharingScope(), false),
+			},
+
 			"delegation": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -285,6 +292,14 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
+
+	if sharingScope, ok := d.GetOk("sharing_scope"); ok {
+		if d.Get("default_outbound_access_enabled").(bool) {
+			return fmt.Errorf("`sharing_scope` cannot only be set if `default_outbound_access_enabled` is set to `false`")
+		}
+
+		properties.SharingScope = pointer.To(subnets.SharingScope(sharingScope.(string)))
+	}
 
 	properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 
@@ -494,7 +509,8 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
-			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
+			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
+			d.Set("sharing_scope", string(pointer.From(props.SharingScope)))
 
 			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 			if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
