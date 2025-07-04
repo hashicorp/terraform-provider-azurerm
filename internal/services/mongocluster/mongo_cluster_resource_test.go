@@ -18,6 +18,16 @@ import (
 
 type MongoClusterResource struct{}
 
+const (
+	adminUsername = "adminTerraform"
+	adminPassword = "QAZwsx123basic"
+	authMechanism = "SCRAM-SHA-256"
+	retryWrites   = "false"
+	maxIdleTime   = "120000"
+	serverVersion = "8.0"
+	computeTier   = "M30"
+)
+
 func TestAccMongoClusterFreeTier(t *testing.T) {
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"freeTier": { // Run tests in sequence since each subscription is limited to one free tier cluster per region and free tier is currently only available in South India.
@@ -37,11 +47,14 @@ func testAccMongoCluster_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_strings.0.value").HasValue(
-					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
-						data.RandomInteger)),
+					expectedConnectionString(data.RandomInteger, true),
+				),
+				check.That(data.ResourceName).Key("connection_strings.1.value").HasValue(
+					expectedConnectionString(data.RandomInteger, false),
+				),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -56,14 +69,14 @@ func testAccMongoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -133,6 +146,17 @@ func (r MongoClusterResource) Exists(ctx context.Context, clients *clients.Clien
 	return pointer.To(resp.Model != nil), nil
 }
 
+func expectedConnectionString(randomInt int, global bool) string {
+	host := fmt.Sprintf("acctest-mc%d", randomInt)
+	if global {
+		host += ".global"
+	}
+	return fmt.Sprintf(
+		"mongodb+srv://%s:%s@%s.mongocluster.cosmos.azure.com/?tls=true&authMechanism=%s&retrywrites=%s&maxIdleTimeMS=%s",
+		adminUsername, adminPassword, host, authMechanism, retryWrites, maxIdleTime,
+	)
+}
+
 func (r MongoClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -141,15 +165,15 @@ resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123basic"
+  administrator_username = "%s"
+  administrator_password = "%s"
   shard_count            = "1"
   compute_tier           = "Free"
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
-  version                = "6.0"
+  version                = "%s"
 }
-`, r.template(data, data.Locations.Ternary), data.RandomInteger)
+`, r.template(data, data.Locations.Ternary), data.RandomInteger, adminUsername, adminPassword, serverVersion)
 }
 
 func (r MongoClusterResource) update(data acceptance.TestData) string {
@@ -160,20 +184,20 @@ resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123update"
+  administrator_username = "%s"
+  administrator_password = "%s"
   shard_count            = "1"
-  compute_tier           = "M30"
+  compute_tier           = "%s"
   high_availability_mode = "ZoneRedundantPreferred"
   public_network_access  = "Disabled"
   storage_size_in_gb     = "64"
-  version                = "7.0"
+  version                = "%s"
 
   tags = {
     environment = "test"
   }
 }
-`, r.template(data, data.Locations.Ternary), data.RandomInteger)
+`, r.template(data, data.Locations.Ternary), data.RandomInteger, adminUsername, adminPassword, computeTier, serverVersion)
 }
 
 func (r MongoClusterResource) source(data acceptance.TestData) string {
@@ -184,15 +208,15 @@ resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "QAZwsx123update"
+  administrator_username = "%s"
+  administrator_password = "%s"
   high_availability_mode = "ZoneRedundantPreferred"
   shard_count            = "1"
-  compute_tier           = "M30"
+  compute_tier           = "%s"
   storage_size_in_gb     = "64"
-  version                = "7.0"
+  version                = "%s"
 }
-`, r.template(data, data.Locations.Ternary), data.RandomInteger)
+`, r.template(data, data.Locations.Ternary), data.RandomInteger, adminUsername, adminPassword, computeTier, serverVersion)
 }
 
 func (r MongoClusterResource) requiresImport(data acceptance.TestData) string {
@@ -222,16 +246,16 @@ resource "azurerm_mongo_cluster" "test" {
   name                   = "acctest-mc%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_username = "adminTerraform"
-  administrator_password = "testQAZwsx123"
+  administrator_username = "%s"
+  administrator_password = "%s"
   shard_count            = "1"
-  compute_tier           = "M30"
+  compute_tier           = "%s"
   high_availability_mode = "ZoneRedundantPreferred"
   storage_size_in_gb     = "64"
   preview_features       = ["GeoReplicas"]
-  version                = "7.0"
+  version                = "%s"
 }
-`, r.template(data, data.Locations.Primary), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomInteger, adminUsername, adminPassword, computeTier, serverVersion)
 }
 
 func (r MongoClusterResource) geoReplica(data acceptance.TestData) string {
