@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -138,6 +139,17 @@ func resourcePolicySetDefinitionSchema() map[string]*pluginsdk.Schema {
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
+
+					"version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						// Note: O+C because Azure sets and returns the latest version if not specified in the request.
+						Computed: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^([1-9]\d*)\.(\d+|\*)(\.\*(-preview)?)?$`),
+							"version must match `{major}.{minor}[.*][-preview]` where each segment is a number or an asterisk. The major version number must be greater than zero and `-preview` is optional.",
+						),
 					},
 				},
 			},
@@ -757,12 +769,19 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) ([]p
 			}
 		}
 
-		result = append(result, policysetdefinitions.PolicyDefinitionReference{
+		reference := policysetdefinitions.PolicyDefinitionReference{
 			PolicyDefinitionId:          v["policy_definition_id"].(string),
 			Parameters:                  pointer.To(parameters),
 			PolicyDefinitionReferenceId: pointer.To(v["reference_id"].(string)),
 			GroupNames:                  utils.ExpandStringSlice(v["policy_group_names"].(*pluginsdk.Set).List()),
-		})
+		}
+
+		// The API returns an error if we send an empty string
+		if version := v["version"].(string); version != "" {
+			reference.DefinitionVersion = pointer.To(v["version"].(string))
+		}
+
+		result = append(result, reference)
 	}
 
 	return result, nil
@@ -782,6 +801,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input []policysetdefinit
 			"parameter_values":     parameterValues,
 			"reference_id":         pointer.From(definition.PolicyDefinitionReferenceId),
 			"policy_group_names":   utils.FlattenStringSlice(definition.GroupNames),
+			"version":              pointer.From(definition.DefinitionVersion),
 		})
 	}
 	return result, nil

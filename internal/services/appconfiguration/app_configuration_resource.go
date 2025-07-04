@@ -524,23 +524,6 @@ func resourceAppConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		update.Properties.EnablePurgeProtection = pointer.To(d.Get("purge_protection_enabled").(bool))
 	}
 
-	if d.HasChange("public_network_enabled") {
-		v := d.GetRawConfig().AsValueMap()["public_network_access_enabled"]
-		if v.IsNull() && existing.Model.Properties.SoftDeleteRetentionInDays != nil {
-			return fmt.Errorf("updating %s: once Public Network Access has been explicitly Enabled or Disabled it's not possible to unset it to which means Automatic", *id)
-		}
-
-		if update.Properties == nil {
-			update.Properties = &configurationstores.ConfigurationStorePropertiesUpdateParameters{}
-		}
-
-		publicNetworkAccess := configurationstores.PublicNetworkAccessEnabled
-		if v.False() {
-			publicNetworkAccess = configurationstores.PublicNetworkAccessDisabled
-		}
-		update.Properties.PublicNetworkAccess = &publicNetworkAccess
-	}
-
 	if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}

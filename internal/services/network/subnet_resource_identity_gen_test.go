@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -28,8 +31,8 @@ func TestAccSubnet_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_subnet.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_subnet.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_subnet.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_subnet.test", tfjsonpath.New("subnet_name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_subnet.test", tfjsonpath.New("virtual_network_name"), tfjsonpath.New("virtual_network_name")),
 				},
 			},

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbsystemshapes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbsystemshapes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -172,7 +172,7 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 
 			id := dbsystemshapes.NewLocationID(subscriptionId, state.Location)
 
-			resp, err := client.ListByLocation(ctx, id)
+			resp, err := client.ListByLocation(ctx, id, dbsystemshapes.DefaultListByLocationOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)

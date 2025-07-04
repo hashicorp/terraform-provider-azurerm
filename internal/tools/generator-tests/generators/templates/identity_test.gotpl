@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package {{ToLower .ServicePackageName}}_test
 
 import (
@@ -32,9 +35,9 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				{{- if (gt (.TestParams | len) 0) }}
-				Config: r.basic(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
+				Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
 				    {{- else }}
-				Config: r.basic(data),
+				Config: r.{{ .TestName }}(data),
 				{{- end }}
 				ConfigStateChecks: []statecheck.StateCheck{
 					{{- range $name, $val := .KnownValueMap }}
