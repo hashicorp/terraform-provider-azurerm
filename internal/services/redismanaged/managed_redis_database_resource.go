@@ -27,17 +27,18 @@ type ManagedRedisDatabaseResource struct{}
 var _ sdk.ResourceWithUpdate = ManagedRedisDatabaseResource{}
 
 type ManagedRedisDatabaseResourceModel struct {
-	Name                        string        `tfschema:"name"`
-	ClusterId                   string        `tfschema:"cluster_id"`
-	ClientProtocol              string        `tfschema:"client_protocol"`
-	ClusteringPolicy            string        `tfschema:"clustering_policy"`
-	EvictionPolicy              string        `tfschema:"eviction_policy"`
-	LinkedDatabaseGroupNickname string        `tfschema:"linked_database_group_nickname"`
-	LinkedDatabaseId            []string      `tfschema:"linked_database_id"`
-	Module                      []ModuleModel `tfschema:"module"`
-	Port                        int64         `tfschema:"port"`
-	PrimaryAccessKey            string        `tfschema:"primary_access_key"`
-	SecondaryAccessKey          string        `tfschema:"secondary_access_key"`
+	Name                            string        `tfschema:"name"`
+	ClusterId                       string        `tfschema:"cluster_id"`
+	AccessKeysAuthenticationEnabled bool          `tfschema:"access_keys_authentication_enabled"`
+	ClientProtocol                  string        `tfschema:"client_protocol"`
+	ClusteringPolicy                string        `tfschema:"clustering_policy"`
+	EvictionPolicy                  string        `tfschema:"eviction_policy"`
+	LinkedDatabaseGroupNickname     string        `tfschema:"linked_database_group_nickname"`
+	LinkedDatabaseId                []string      `tfschema:"linked_database_id"`
+	Module                          []ModuleModel `tfschema:"module"`
+	Port                            int64         `tfschema:"port"`
+	PrimaryAccessKey                string        `tfschema:"primary_access_key"`
+	SecondaryAccessKey              string        `tfschema:"secondary_access_key"`
 }
 
 type ModuleModel struct {
@@ -61,6 +62,12 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Required:     true,
 			ForceNew:     true,
 			ValidateFunc: redisenterprise.ValidateRedisEnterpriseID,
+		},
+
+		"access_keys_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"client_protocol": {
@@ -211,6 +218,11 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 			evictionPolicy := databases.EvictionPolicy(model.EvictionPolicy)
 			protocol := databases.Protocol(model.ClientProtocol)
 
+			accessKeysAuth := databases.AccessKeysAuthenticationDisabled
+			if model.AccessKeysAuthenticationEnabled {
+				accessKeysAuth = databases.AccessKeysAuthenticationEnabled
+			}
+
 			linkedDatabase, err := expandArmGeoLinkedDatabase(model.LinkedDatabaseId, id.ID(), model.LinkedDatabaseGroupNickname)
 			if err != nil {
 				return fmt.Errorf("Setting geo database for database %s error: %+v", id.ID(), err)
@@ -227,12 +239,13 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 
 			parameters := databases.Database{
 				Properties: &databases.DatabaseProperties{
-					ClientProtocol:   &protocol,
-					ClusteringPolicy: &clusteringPolicy,
-					EvictionPolicy:   &evictionPolicy,
-					Port:             utils.Int64(model.Port),
-					GeoReplication:   linkedDatabase,
-					Modules:          module,
+					AccessKeysAuthentication: &accessKeysAuth,
+					ClientProtocol:           &protocol,
+					ClusteringPolicy:         &clusteringPolicy,
+					EvictionPolicy:           &evictionPolicy,
+					Port:                     utils.Int64(model.Port),
+					GeoReplication:           linkedDatabase,
+					Modules:                  module,
 				},
 			}
 
@@ -297,6 +310,7 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
+					state.AccessKeysAuthenticationEnabled = strings.EqualFold(string(pointer.From(props.AccessKeysAuthentication)), string(databases.AccessKeysAuthenticationEnabled))
 					state.ClientProtocol = string(pointer.From(props.ClientProtocol))
 					state.ClusteringPolicy = string(pointer.From(props.ClusteringPolicy))
 					state.EvictionPolicy = string(pointer.From(props.EvictionPolicy))
@@ -360,6 +374,14 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 			isGeoEnabled := false
 			if linkedDatabase != nil {
 				isGeoEnabled = true
+			}
+
+			if metadata.ResourceData.HasChange("access_keys_authentication_enabled") {
+				accessKeysAuth := databases.AccessKeysAuthenticationDisabled
+				if model.AccessKeysAuthenticationEnabled {
+					accessKeysAuth = databases.AccessKeysAuthenticationEnabled
+				}
+				parameters.Properties.AccessKeysAuthentication = &accessKeysAuth
 			}
 
 			if metadata.ResourceData.HasChange("module") {

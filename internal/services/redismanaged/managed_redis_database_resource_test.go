@@ -218,9 +218,11 @@ func (r ManagedRedisDatabaseResource) complete(data acceptance.TestData) string 
 resource "azurerm_managed_redis_database" "test" {
   cluster_id = azurerm_managed_redis_cluster.test.id
 
-  client_protocol   = "Encrypted"
-  clustering_policy = "EnterpriseCluster"
-  eviction_policy   = "NoEviction"
+  name                               = "default"
+  access_keys_authentication_enabled = true
+  client_protocol                    = "Encrypted"
+  clustering_policy                  = "EnterpriseCluster"
+  eviction_policy                    = "NoEviction"
 
   module {
     name = "RediSearch"
