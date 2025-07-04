@@ -33,7 +33,7 @@ resource "azurerm_mssql_database" "example" {
   collation = "SQL_Latin1_General_CP1_CI_AS"
   sku_name  = "S1"
 }
-
+[mssql_job_step.html.markdown](mssql_job_step.html.markdown)
 resource "azurerm_mssql_job_agent" "example" {
   name        = "example-job-agent"
   location    = azurerm_resource_group.example.location
@@ -89,8 +89,6 @@ The following arguments are supported:
 
 * `job_id` - (Required) The ID of the Elastic Job. Changing this forces a new Elastic Job Step to be created.
 
-* `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when executing this Elastic Job Step. Omit this argument to run the step under the Job Agent's managed identity (system- or user-assigned).
-
 * `job_step_index` - (Required) The index at which to insert this Elastic Job Step into the Elastic Job.
 
 ~> **Note:** This value must be greater than or equal to 1 and less than or equal to the number of job steps in the Elastic Job.
@@ -104,6 +102,8 @@ The following arguments are supported:
 ---
 
 * `initial_retry_interval_seconds` - (Optional) The initial retry interval in seconds. Defaults to `1`.
+
+* `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when executing this Elastic Job Step. Omit this argument to run the step under the Job Agent's managed identity (user-assigned).
 
 * `maximum_retry_interval_seconds` - (Optional) The maximum retry interval in seconds. Defaults to `120`.
 
