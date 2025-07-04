@@ -114,7 +114,7 @@ func TestAccMsSqlJobStep_updateFromCredentialToManagedIdentity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withCredential(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("job_credential_id").IsSet(),
@@ -152,7 +152,6 @@ func (r MsSqlJobStepTestResource) basic(data acceptance.TestData) string {
 resource "azurerm_mssql_job_step" "test" {
   name                = "acctest-job-step-%[2]d"
   job_id              = azurerm_mssql_job.test.id
-  job_credential_id   = azurerm_mssql_job_credential.test.id
   job_target_group_id = azurerm_mssql_job_target_group.test.id
 
   job_step_index = 1
@@ -174,7 +173,6 @@ func (r MsSqlJobStepTestResource) requiresImport(data acceptance.TestData) strin
 resource "azurerm_mssql_job_step" "import" {
   name                = azurerm_mssql_job_step.test.name
   job_id              = azurerm_mssql_job.test.id
-  job_credential_id   = azurerm_mssql_job_credential.test.id
   job_target_group_id = azurerm_mssql_job_target_group.test.id
 
   job_step_index = 1
@@ -286,21 +284,6 @@ resource "azurerm_mssql_job_step" "test" {
   job_target_group_id  = azurerm_mssql_job_target_group.test.id
   job_step_index       = 1
   sql_script           = "SELECT 1;"
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r MsSqlJobStepTestResource) withCredential(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_mssql_job_step" "test" {
-  name                 = "acctestjs-%[2]d"
-  job_id               = azurerm_mssql_job.test.id
-  job_target_group_id  = azurerm_mssql_job_target_group.test.id
-  job_step_index       = 1
-  sql_script           = "SELECT 1;"
-  job_credential_id    = azurerm_mssql_job_credential.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
