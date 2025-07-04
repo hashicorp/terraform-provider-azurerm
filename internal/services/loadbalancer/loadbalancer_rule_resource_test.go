@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -317,8 +318,8 @@ resource "azurerm_lb_rule" "test" {
 }
 
 func (r LoadBalancerRule) complete(data acceptance.TestData) string {
-	template := r.template(data, "Standard")
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_lb_rule" "test" {
@@ -337,7 +338,29 @@ resource "azurerm_lb_rule" "test" {
 
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
 }
-`, template, data.RandomStringOfLength(8))
+`, r.template(data, "Standard"), data.RandomStringOfLength(8))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_rule" "test" {
+  name            = "LbRule-%s"
+  loadbalancer_id = azurerm_lb.test.id
+
+  protocol      = "Tcp"
+  frontend_port = 3389
+  backend_port  = 3389
+
+  disable_outbound_snat   = true
+  floating_ip_enabled     = true
+  tcp_reset_enabled       = true
+  idle_timeout_in_minutes = 100
+  load_distribution       = "SourceIP"
+
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, r.template(data, "Standard"), data.RandomStringOfLength(8))
 }
 
 func (r LoadBalancerRule) requiresImport(data acceptance.TestData) string {
