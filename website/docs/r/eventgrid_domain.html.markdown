@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `data_residency_boundary` - (Optional) Data Residency Boundary of the resource. Possible values are `WithinGeopair` or `WithinRegion` Defaults to `WithinGeopair`.
+
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
@@ -47,6 +49,8 @@ The following arguments are supported:
 * `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below. Changing this forces a new resource to be created.
 
 * `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below. Changing this forces a new resource to be created.
+
+* `min_tls_version` - (Optional) The minimum supported TLS version for the EventGrid Domain. Possible value is `1.2`. Defaults to `1.2` for new Domains.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
