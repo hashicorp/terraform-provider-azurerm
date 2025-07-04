@@ -189,7 +189,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_dedicated_host`
 
-* The `license_type` property no longer accepts `None` as a value. Instead, simply omit the arugment.
+* The `license_type` property no longer accepts `None` as a value. Instead, simply omit the argument.
 
 ### `azurerm_orchestrated_virtual_machine_scale_set`
 
