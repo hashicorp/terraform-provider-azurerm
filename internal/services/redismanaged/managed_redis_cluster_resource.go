@@ -33,6 +33,7 @@ type ManagedRedisClusterResourceModel struct {
 	Location           string                                     `tfschema:"location"`
 	SkuName            string                                     `tfschema:"sku_name"`
 	CustomerManagedKey []CustomerManagedKey                       `tfschema:"customer_managed_key"`
+	HighAvailability   string                                     `tfschema:"high_availability"`
 	Identity           []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	MinimumTlsVersion  string                                     `tfschema:"minimum_tls_version"`
 	Tags               map[string]string                          `tfschema:"tags"`
@@ -84,6 +85,14 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+
+		"high_availability": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(redisenterprise.HighAvailabilityEnabled),
+			ValidateFunc: validation.StringInSlice(redisenterprise.PossibleValuesForHighAvailability(), false),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -154,12 +163,12 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing `sku_name`: %+v", err)
 			}
 
-			tlsVersion := redisenterprise.TlsVersion(model.MinimumTlsVersion)
 			parameters := redisenterprise.Cluster{
 				Location: model.Location,
 				Sku:      pointer.From(sku),
 				Properties: &redisenterprise.ClusterProperties{
-					MinimumTlsVersion: &tlsVersion,
+					MinimumTlsVersion: pointer.To(redisenterprise.TlsVersion(model.MinimumTlsVersion)),
+					HighAvailability:  pointer.To(redisenterprise.HighAvailability(model.HighAvailability)),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -246,6 +255,7 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 
 				if props := model.Properties; props != nil {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
+					state.HighAvailability = string(pointer.From(props.HighAvailability))
 
 					tlsVersion := ""
 					if props.MinimumTlsVersion != nil {
