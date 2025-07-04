@@ -3,6 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
+* `azurerm_kubernetes_cluster` - support for the `custom_ca_trust_certificates_base64` property [GH-29894]
 * `azurerm_api_management`: `sku_name` now supports V2 Tiers  [GH-29657]
 * `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
 * `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
