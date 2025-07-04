@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
 
 BUG FIXES:
+* `azurerm_mobile_network_packet_core_control_plane` - the  `site_ids` property is now marked as `ForceNew` [GH-30056]
 * `azurerm_mobile_network_slice` - the `single_network_slice_selection_assistance_information` property is now updated correctly [GH-30057]
 * `azurerm_private_dns_resolver_dns_forwarding_ruleset` - fix an issue where `private_dns_resolver_outbound_endpoint_ids` failed to update [GH-30046]
 
