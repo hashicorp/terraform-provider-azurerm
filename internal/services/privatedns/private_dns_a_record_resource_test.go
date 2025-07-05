@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateDnsARecordResource struct{}
@@ -102,11 +103,12 @@ func (t PrivateDnsARecordResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PrivateDnsARecordResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -129,6 +131,29 @@ resource "azurerm_private_dns_a_record" "test" {
   records             = ["1.2.3.4", "1.2.4.5"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_a_record" "test" {
+  name            = "myarecord%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["1.2.3.4", "1.2.4.5"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PrivateDnsARecordResource) requiresImport(data acceptance.TestData) string {
@@ -136,11 +161,10 @@ func (r PrivateDnsARecordResource) requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_private_dns_a_record" "import" {
-  name                = azurerm_private_dns_a_record.test.name
-  resource_group_name = azurerm_private_dns_a_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_a_record.test.zone_name
-  ttl                 = 300
-  records             = ["1.2.3.4", "1.2.4.5"]
+  name            = azurerm_private_dns_a_record.test.name
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["1.2.3.4", "1.2.4.5"]
 }
 `, r.basic(data))
 }
@@ -162,11 +186,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_a_record" "test" {
-  name                = "myarecord%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  records             = ["1.2.3.4", "1.2.4.5", "1.2.3.7"]
+  name            = "myarecord%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["1.2.3.4", "1.2.4.5", "1.2.3.7"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -188,11 +211,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_a_record" "test" {
-  name                = "myarecord%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  records             = ["1.2.3.4", "1.2.4.5"]
+  name            = "myarecord%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["1.2.3.4", "1.2.4.5"]
 
   tags = {
     environment = "Production"
@@ -219,11 +241,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_a_record" "test" {
-  name                = "myarecord%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  records             = ["1.2.3.4", "1.2.4.5"]
+  name            = "myarecord%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["1.2.3.4", "1.2.4.5"]
 
   tags = {
     environment = "staging"
