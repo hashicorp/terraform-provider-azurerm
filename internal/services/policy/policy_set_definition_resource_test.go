@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -286,6 +288,40 @@ func TestAccAzureRMPolicySetDefinition_policyDefinitionVersion(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.policyDefinitionVersion(data, "9.*.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAzureRMPolicySetDefinition_removeParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResourceTest{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.builtIn(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.additionalParameter(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.builtIn(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -965,6 +1001,59 @@ resource "azurerm_policy_definition" "test" {
 POLICY_RULE
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r PolicySetDefinitionResourceTest) additionalParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestpolset-%d"
+  policy_type  = "Custom"
+  display_name = "acctestpolset-%d"
+  parameters   = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        },
+        "allowedResourceTypes": {
+            "type": "Array",
+            "defaultValue": [
+                "Microsoft.Compute/virtualMachines"
+            ],
+            "metadata": {
+                "description": "The list of allowed resource types.",
+                "displayName": "Allowed resource types",
+                "strongType": "resourceType"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
+    parameter_values     = <<VALUES
+  {
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
+  }
+VALUES
+  }
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"
+    parameter_values     = <<VALUES
+  {
+      "listOfResourceTypesAllowed": {"value": "[parameters('allowedResourceTypes')]"}
+  }
+VALUES
+  }
+}`, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PolicySetDefinitionResourceTest) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
