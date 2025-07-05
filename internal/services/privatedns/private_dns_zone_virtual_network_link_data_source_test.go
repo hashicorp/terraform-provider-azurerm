@@ -46,7 +46,7 @@ func (PrivateDnsZoneVirtualNetworkLinkDataSource) basic(data acceptance.TestData
 
 data "azurerm_private_dns_zone_virtual_network_link" "test" {
   name                = azurerm_private_dns_zone_virtual_network_link.test.name
-  private_dns_zone_id = azurerm_private_dns_zone.test.name
+  private_dns_zone_id = azurerm_private_dns_zone.test.id
 }
 `, PrivateDnsZoneVirtualNetworkLinkResource{}.basic(data))
 }
