@@ -5,6 +5,8 @@ package provider
 
 import (
 	"fmt"
+	"reflect"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -409,6 +411,22 @@ func runInputForValidateFunction(validateFunc pluginsdk.SchemaValidateFunc, inpu
 	return len(warnings) == 0 && len(errs) == 0
 }
 
+func runInputForValidateFunctionSkipNotEmpty(validateFunc pluginsdk.SchemaValidateFunc, input string) bool {
+	if validateFunc == nil {
+		return false
+	}
+
+	// StringIsNotEmpty / StringIsNotWhiteSpace will return len(warnings) = 0 and len(errs) = 0 for `Microsoft.KeyVault` input causing false positives.
+	// if function name contains either, skip
+	name := runtime.FuncForPC(reflect.ValueOf(validateFunc).Pointer()).Name()
+	if strings.Contains(name, "StringIsNotEmpty") || strings.Contains(name, "StringIsNotWhiteSpace") {
+		return false
+	}
+
+	warnings, errs := validateFunc(input, input)
+	return len(warnings) == 0 && len(errs) == 0
+}
+
 func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	// This test validates that Resources do not contain an `encryption` block which is marked as Computed: true
 	// or a field named `enabled` or `key_source`.
@@ -428,14 +446,11 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 	}
 	sort.Strings(resourceNames)
 
-	// TODO: 4.0 - work through this list
-	resourcesWhichNeedToBeAddressed := map[string]struct{}{
-		"azurerm_automation_account":     {},
-		"azurerm_container_registry":     {},
-		"azurerm_managed_disk":           {},
-		"azurerm_media_services_account": {},
-		"azurerm_snapshot":               {},
-		"azurerm_load_test":              {},
+	resourcesWhichNeedToBeAddressed := map[string]struct{}{}
+
+	if !features.FivePointOh() {
+		resourcesWhichNeedToBeAddressed["azurerm_container_registry"] = struct{}{}
+		resourcesWhichNeedToBeAddressed["azurerm_automation_account"] = struct{}{}
 	}
 
 	for _, resourceName := range resourceNames {
@@ -445,7 +460,7 @@ func TestResourcesWithAnEncryptionBlockBehaveConsistently(t *testing.T) {
 			if _, ok := resourcesWhichNeedToBeAddressed[resourceName]; ok {
 				continue
 			}
-			t.Fatalf("the Resource %q contains an `encryption` block marked as Computed - this should be marked as non-Computed (and the key source automatically inferred): %+v", resourceName, err)
+			t.Fatalf("the Resource %q failed validation: %+v", resourceName, err)
 		}
 	}
 }
@@ -482,7 +497,7 @@ func schemaContainsAnEncryptionBlock(input map[string]*schema.Schema, isResource
 						}
 
 						// check that none of the nested fields allow `Microsoft.KeyVault` as a value
-						if supportsKeyVaultAsAValue := runInputForValidateFunction(nestedField.ValidateFunc, "Microsoft.KeyVault"); supportsKeyVaultAsAValue {
+						if supportsKeyVaultAsAValue := runInputForValidateFunctionSkipNotEmpty(nestedField.ValidateFunc, "Microsoft.KeyVault"); supportsKeyVaultAsAValue {
 							return fmt.Errorf("field %q within the block %q appears to be a Key Source (supports `Microsoft.KeyVault` as a value) - this field can be removed and defaulted based on the presence of the containing block", nestedKey, fieldName)
 						}
 					}
@@ -546,7 +561,6 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 		"azurerm_application_insights":    {},
 		"azurerm_cosmosdb_account":        {},
 		"azurerm_log_analytics_workspace": {},
-		"azurerm_search_service":          {},
 	}
 
 	for _, resourceName := range resourceNames {

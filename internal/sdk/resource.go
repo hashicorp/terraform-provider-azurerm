@@ -108,6 +108,20 @@ type ResourceWithCustomImporter interface {
 	CustomImporter() ResourceRunFunc
 }
 
+type ResourceWithIdentity interface {
+	Resource
+
+	// Identity returns the resource's identity type
+	Identity() resourceids.ResourceId
+}
+
+type ResourceWithIdentityTypeOverride interface {
+	ResourceWithIdentity
+
+	// IdentityType returns the type of resource ID, this is used to influence schema generation behaviours
+	IdentityType() pluginsdk.ResourceTypeForIdentity
+}
+
 // ResourceWithUpdate is an optional interface
 //
 // Notably the Arguments for Resources implementing this interface

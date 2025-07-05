@@ -179,7 +179,7 @@ resource "azurerm_mobile_network_slice" "test" {
   description       = "my favorite slice2"
 
   single_network_slice_selection_assistance_information {
-    slice_service_type = 1
+    slice_service_type = 2
   }
 
   tags = {

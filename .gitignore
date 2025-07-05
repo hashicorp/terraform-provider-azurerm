@@ -53,3 +53,10 @@ tf.zip
 
 # do not upload secrets
 .env
+
+# do not upload .local folder
+.local
+
+# do not upload GitHub Copilot specific folders and copilot instructions file
+.github/prompts
+.github/copilot-instructions.md

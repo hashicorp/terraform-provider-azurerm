@@ -106,6 +106,22 @@ func (td TestData) CheckWithClientWithoutResource(check ClientCheckFunc) resourc
 	)
 }
 
+func (td TestData) ImportBlockWithIDStep() resource.TestStep {
+	return resource.TestStep{
+		ResourceName:    td.ResourceName,
+		ImportState:     true,
+		ImportStateKind: resource.ImportBlockWithID,
+	}
+}
+
+func (td TestData) ImportBlockWithResourceIdentityStep() resource.TestStep {
+	return resource.TestStep{
+		ResourceName:    td.ResourceName,
+		ImportState:     true,
+		ImportStateKind: resource.ImportBlockWithResourceIdentity,
+	}
+}
+
 // ImportStep returns a Test Step which Imports the Resource, optionally
 // ignoring any fields which may not be imported (for example, as they're
 // not returned from the API)

@@ -621,7 +621,7 @@ func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionStrin
 		// Password can be empty if it isn't available in the state file (e.g. during import).
 		// In this case, we simply leave the placeholder unchanged.
 		if userPassword != "" {
-			value = regexp.MustCompile(`<user>:<password>`).ReplaceAllString(value, url.UserPassword(userName, userPassword).String())
+			value = regexp.MustCompile(`<user>:<password>`).ReplaceAllLiteralString(value, url.UserPassword(userName, userPassword).String())
 		}
 
 		results = append(results, MongoClusterConnectionString{

@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `daily_backups_to_keep` - (Optional) Provides the number of daily backups to keep, defaults to `2` which is the minimum, maximum is 1019.
 
-* `weekly_backups_to_keep` - (Optional) Provides the number of weekly backups to keep, defaults to `1` which is the minimum, maximum is 1019.
+* `weekly_backups_to_keep` - (Optional) Provides the number of weekly backups to keep, defaults to `1`. The minimum is `0` and the maximum is `1019`.
 
-* `monthly_backups_to_keep` - (Optional) Provides the number of monthly backups to keep, defaults to `1` which is the minimum, maximum is 1019.
+* `monthly_backups_to_keep` - (Optional) Provides the number of monthly backups to keep, defaults to `1`. The minimum is `0` and the maximum is `1019`.
 
 ~> **Note:** Currently, the combined (daily + weekly + monthy) retention counts cannot exceed 1019.
 

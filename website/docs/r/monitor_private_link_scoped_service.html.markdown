@@ -71,3 +71,9 @@ Azure Monitor Private Link Scoped Services can be imported using the `resource i
 ```shell
 terraform import azurerm_monitor_private_link_scoped_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/privateLinkScopes/pls1/scopedResources/sr1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights`: 2019-10-17-preview

@@ -218,6 +218,11 @@ func (p *Provider) InternalValidate() error {
 	}
 
 	for k, r := range p.ResourcesMap {
+		if r.Identity != nil {
+			if err := r.Identity.InternalIdentityValidate(); err != nil {
+				validationErrors = append(validationErrors, fmt.Errorf("resource %s identity: %s", k, err))
+			}
+		}
 		if err := r.InternalValidate(nil, true); err != nil {
 			validationErrors = append(validationErrors, fmt.Errorf("resource %s: %s", k, err))
 		}
@@ -471,6 +476,14 @@ func (p *Provider) ImportState(
 	ctx context.Context,
 	info *terraform.InstanceInfo,
 	id string) ([]*terraform.InstanceState, error) {
+	return p.ImportStateWithIdentity(ctx, info, id, nil)
+}
+
+func (p *Provider) ImportStateWithIdentity(
+	ctx context.Context,
+	info *terraform.InstanceInfo,
+	id string,
+	identity map[string]string) ([]*terraform.InstanceState, error) {
 	// Find the resource
 	r, ok := p.ResourcesMap[info.Type]
 	if !ok {
@@ -486,6 +499,16 @@ func (p *Provider) ImportState(
 	data := r.Data(nil)
 	data.SetId(id)
 	data.SetType(info.Type)
+
+	if data.identitySchema != nil {
+		identityData, err := data.Identity()
+		if err != nil {
+			return nil, err // this should not happen, as we checked above
+		}
+		identityData.raw = identity
+	} else if identity != nil {
+		return nil, fmt.Errorf("resource %s doesn't support identity import", info.Type)
+	}
 
 	// Call the import function
 	results := []*ResourceData{data}

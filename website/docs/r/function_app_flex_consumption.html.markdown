@@ -115,6 +115,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
+* `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
+
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
@@ -655,7 +657,9 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker. Defaults to `false`.
+* `use_32_bit_worker` - (Optional) Should the Linux Web App  Linux Function App use a 32-bit worker. Defaults to `false`.
+
+* `vnet_route_all_enabled` - (Optional) Should the Linux Function App route all traffic through the virtual network. Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 

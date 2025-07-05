@@ -85,7 +85,7 @@ A `content` block supports the following:
 
 A `trigger` block supports the following:
 
-* `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
+* `allowed_caller_ip_address_range` - (Optional) A list of the allowed caller IP address ranges.
 
 * `open_authentication_policy` - (Optional) A `open_authentication_policy` block as defined below.
 
@@ -163,3 +163,9 @@ Logic App Workflows can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_logic_app_workflow.workflow1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Logic/workflows/workflow1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Logic`: 2019-05-01

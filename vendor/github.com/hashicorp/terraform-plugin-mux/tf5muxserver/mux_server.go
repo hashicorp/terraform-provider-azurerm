@@ -349,6 +349,7 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 //   - Only one provider implements each data source
 //   - Only one provider implements each function
 //   - Only one provider implements each ephemeral resource
+//   - Only one provider implements each resource identity
 func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer) (*muxServer, error) {
 	result := muxServer{
 		dataSources:          make(map[string]tfprotov5.ProviderServer),
