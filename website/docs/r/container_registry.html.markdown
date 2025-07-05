@@ -250,6 +250,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
+* `data_endpoint_host_names` - A set of data endpoints associated with the container registry if data endpoints are enabled.
+
 ---
 
 An `identity` block exports the following:

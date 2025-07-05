@@ -243,6 +243,16 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"data_endpoint_host_names": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"network_rule_bypass_option": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -848,6 +858,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("zone_redundancy_enabled", *props.ZoneRedundancy == registries.ZoneRedundancyEnabled)
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
+			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
 
 			if policies := props.Policies; policies != nil {
