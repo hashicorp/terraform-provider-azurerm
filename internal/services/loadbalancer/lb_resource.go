@@ -367,7 +367,12 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]loadbalancers.Front
 			"private_ip_address_allocation": privateIPAllocationMethod,
 			"public_ip_prefix_id":           publicIpPrefixId,
 			"subnet_id":                     subnetId,
-			"zones":                         zones.FlattenUntyped(config.Zones),
+		}
+
+		flattenedZones := zones.FlattenUntyped(config.Zones)
+
+		if len(flattenedZones) > 0 {
+			out["zones"] = flattenedZones
 		}
 
 		result = append(result, out)
@@ -427,13 +432,14 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"subnet_id", "public_ip_address_id", "public_ip_prefix_id"},
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// Not using O+C here causes drift
+						Computed: true,
 						ValidateFunc: validation.Any(
 							validation.IsIPAddress,
 							validation.StringIsEmpty,
@@ -443,6 +449,8 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"private_ip_address_version": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						// Not using O+C here causes drift
+						Computed: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							string(loadbalancers.IPVersionIPvFour),
 							string(loadbalancers.IPVersionIPvSix),
@@ -452,7 +460,6 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ExactlyOneOf: []string{"subnet_id", "public_ip_address_id", "public_ip_prefix_id"},
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 
@@ -538,34 +545,17 @@ func resourceArmLoadBalancerSchema() map[string]*pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		schema["subnet_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true, // TODO: why is this computed?
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Removing O+C did not seem to cause drift
+			Computed:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		}
-		schema["private_ip_address"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // TODO: remove computed in 4.0 and use ignore_changes
-			ValidateFunc: validation.Any(
-				validation.IsIPAddress,
-				validation.StringIsEmpty,
-			),
-		}
-		schema["private_ip_address_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // TODO: why is this computed?
-			ValidateFunc: validation.StringInSlice([]string{
-				string(loadbalancers.IPVersionIPvFour),
-				string(loadbalancers.IPVersionIPvSix),
-			}, false),
-		}
-
 		schema["public_ip_address_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true, // TODO: why is this computed?
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// Removing O+C did not seem to cause drift
+			Computed:     true,
 			ValidateFunc: commonids.ValidatePublicIPAddressID,
 		}
 	}
