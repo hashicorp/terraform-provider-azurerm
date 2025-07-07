@@ -175,9 +175,7 @@ func (r DevCenterDevBoxDefinitionResource) Read() sdk.ResourceFunc {
 						state.ImageReferenceId = pointer.From(v.Id)
 					}
 
-					if v := props.HibernateSupport; v != nil {
-						state.HibernateSupport = !strings.EqualFold(string(pointer.From(v)), string(devboxdefinitions.HibernateSupportDisabled))
-					}
+					state.HibernateSupport = pointer.From(props.HibernateSupport) == devboxdefinitions.HibernateSupportEnabled
 
 					if v := props.Sku; v != nil {
 						state.SkuName = flattenDevCenterDevBoxDefinition(props.Sku)
