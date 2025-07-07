@@ -3,8 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
-* `azurerm_oracle_autonomous_database` - Add support for `allowed_ips` [GH-29412]
-* `azurerm_virtual_hub` - add support for the `branch_to_branch_traffic_enabled` property [GH-29453]
+
 * dependencies: `oracle` - update to API version `2025-03-01` [GH-29721]
 * dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
 * `azurerm_api_management`: `sku_name` now supports V2 Tiers  [GH-29657]
@@ -14,7 +13,20 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app_slot` - support for the `vnet_image_pull_enabled` property [GH-29452]
 * `azurerm_logic_app_workflow` - The `access_control.trigger.allowed_caller_ip_address_range` property is now optional [GH-30041]
 * `azurerm_netapp_volume` - add support for the `cool_access` block [GH-29915]
+* `azurerm_oracle_autonomous_database` - Add support for `allowed_ips` [GH-29412]
+* Data Source: `azurerm_oracle_autonomous_database` - add support for `compute_model` property [GH-29801]
+* Data Source: `azurerm_oracle_cloud_vm_cluster` - add support for `compute_model` property [GH-29801]
+* Data Source: `azurerm_oracle_db_servers` - add support for `compute_model` property [GH-29801]
+* Data Source: `azurerm_oracle_db_system_shapes` - add support for `are_server_types_supported` property [GH-29801]
+* Data Source: `azurerm_oracle_db_system_shapes` - add support for `compute_model` property [GH-29801]
+* Data Source: `azurerm_oracle_db_system_shapes` - add support for `display_name` property [GH-29801]
+* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for `compute_model` property [GH-29801]
+* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for `database_server_type` property [GH-29801]
+* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for `storage_server_type` property [GH-29801]
+* `azurerm_oracle_exadata_infrastructure` - add support for `database_server_type` property [GH-29801]
+* `azurerm_oracle_exadata_infrastructure` - add support for `storage_server_type` property [GH-29801]
 * `azurerm_public_ip_prefix` - add support for the `custom_ip_prefix_id` property [GH-29851]
+* `azurerm_virtual_hub` - add support for the `branch_to_branch_traffic_enabled` property [GH-29453]
 * `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
 
 BUG FIXES:
