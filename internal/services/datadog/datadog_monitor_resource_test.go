@@ -24,12 +24,12 @@ type DatadogMonitorResource struct {
 }
 
 func (r *DatadogMonitorResource) populateFromEnvironment(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
-		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
-	}
-	if os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
-		t.Skip("Skipping as ARM_TEST_DATADOG_APPLICATION_KEY is not specified")
-	}
+	//if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
+	//	t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
+	//}
+	//if os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+	//	t.Skip("Skipping as ARM_TEST_DATADOG_APPLICATION_KEY is not specified")
+	//}
 	r.datadogApiKey = os.Getenv("ARM_TEST_DATADOG_API_KEY")
 	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
 }
@@ -44,6 +44,10 @@ func TestAccDatadogMonitor_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			SkipFunc: func() (bool, error) {
+				fmt.Println(r.basic(data))
+				return false, nil
+			},
 		},
 		data.ImportStep("user",
 			"user.0.name",

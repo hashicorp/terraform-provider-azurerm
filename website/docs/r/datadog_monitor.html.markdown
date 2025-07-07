@@ -8,7 +8,8 @@ description: |-
 
 # azurerm_datadog_monitor
 
-Manages a datadog Monitor.
+Manages a datadog Monitor. This resource represents a link between Azure and your Datadog organization. This resource
+can configure Datadog monitoring for your Azure environment.
 
 ## Example Usage
 

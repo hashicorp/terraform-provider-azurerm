@@ -124,7 +124,7 @@ func resourceDatadogMonitor() *pluginsdk.Resource {
 
 			"user": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -568,12 +568,15 @@ func flattenMonitorIdentityProperties(input *monitorsresource.IdentityProperties
 }
 
 func flattenMonitorOrganizationProperties(input *monitorsresource.DatadogOrganizationProperties, d *pluginsdk.ResourceData) []interface{} {
-	organisationProperties := d.Get("datadog_organization").([]interface{})
-	if len(organisationProperties) == 0 {
+	raw, ok := d.GetOk("datadog_organization")
+	if !ok {
+		return make([]interface{}, 0)
+	}
+	organisationProperties := raw.([]interface{})
+	if len(organisationProperties) == 0 || organisationProperties[0] == nil {
 		return make([]interface{}, 0)
 	}
 	v := organisationProperties[0].(map[string]interface{})
-
 	var name string
 	if input.Name != nil {
 		name = *input.Name
