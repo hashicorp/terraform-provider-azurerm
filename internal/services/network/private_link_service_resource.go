@@ -71,6 +71,13 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				Set: pluginsdk.HashString,
 			},
 
+			"destination_ip_address": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsIPv4Address,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
+			},
+
 			// TODO 4.0: change this from enable_* to *_enabled
 			"enable_proxy_protocol": {
 				Type:     pluginsdk.TypeBool,
@@ -140,16 +147,16 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 				},
 			},
 
-			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Set: pluginsdk.HashString,
+				Set:          pluginsdk.HashString,
+				ExactlyOneOf: []string{"load_balancer_frontend_ip_configuration_ids", "destination_ip_address"},
 			},
 
 			"alias": {
@@ -203,6 +210,10 @@ func resourcePrivateLinkServiceCreate(d *pluginsdk.ResourceData, meta interface{
 			Fqdns:                                utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("destination_ip_address"); ok {
+		parameters.Properties.DestinationIPAddress = pointer.To(v.(string))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -278,8 +289,8 @@ func resourcePrivateLinkServiceUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.IPConfigurations = expandPrivateLinkServiceIPConfiguration(d.Get("nat_ip_configuration").([]interface{}))
 	}
 
-	if d.HasChange("load_balancer_frontend_ip_configuration_ids") {
-		payload.Properties.LoadBalancerFrontendIPConfigurations = expandPrivateLinkServiceFrontendIPConfiguration(d.Get("load_balancer_frontend_ip_configuration_ids").(*pluginsdk.Set).List())
+	if d.HasChange("destination_ip_address") {
+		payload.Properties.DestinationIPAddress = pointer.To(d.Get("destination_ip_address").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -339,6 +350,7 @@ func resourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{})
 		if props := model.Properties; props != nil {
 			d.Set("alias", props.Alias)
 			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+			d.Set("destination_ip_address", pointer.From(props.DestinationIPAddress))
 
 			var autoApprovalSub []interface{}
 			if autoApproval := props.AutoApproval; autoApproval != nil {

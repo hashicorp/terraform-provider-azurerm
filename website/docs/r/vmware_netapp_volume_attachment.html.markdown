@@ -12,7 +12,7 @@ Manages an Azure VMware Solution Private Cloud Netapp File Attachment.
 
 ## Example Usage
 
-~> **Note:** For Azure Azure VMware Solution Private Cloud, normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation.
+~> **Note:** For Azure VMware Solution Private Cloud, normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation.
 
 ```hcl
 provider "azurerm" {
