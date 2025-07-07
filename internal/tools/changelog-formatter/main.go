@@ -11,18 +11,20 @@ import (
 type sectionType string
 
 const (
-	sectionTypeFeatures     sectionType = "FEATURES:"
-	sectionTypeEnhancements sectionType = "ENHANCEMENTS:"
-	sectionTypeBugs         sectionType = "BUG FIXES:"
-	sectionTypeUnknown      sectionType = "UNKNOWN"
+	sectionTypeBreakingChanges sectionType = "BREAKING CHANGES:"
+	sectionTypeFeatures        sectionType = "FEATURES:"
+	sectionTypeEnhancements    sectionType = "ENHANCEMENTS:"
+	sectionTypeBugs            sectionType = "BUG FIXES:"
+	sectionTypeUnknown         sectionType = "UNKNOWN"
 )
 
 type changelog struct {
-	pre  []string
-	f    features
-	e    enhancements
-	b    bugs
-	post []string
+	pre          []string
+	breaking     []string
+	features     features
+	enhancements enhancements
+	bugs         bugs
+	post         []string
 }
 
 type features struct {
@@ -42,7 +44,7 @@ type bugs struct {
 }
 
 var (
-	sectionHeadingRegex = regexp.MustCompile(`(FEATURES.*|ENHANCEMENTS.*|BUG FIXES.*)`)
+	sectionHeadingRegex = regexp.MustCompile(`(BREAKING CHANGES.*|FEATURES.*|ENHANCEMENTS.*|BUG FIXES.*)`)
 	versionHeadingRegex = regexp.MustCompile(`## \d*\.\d*\.\d* \(\w* \d{1,2}, \d{4}\)`)
 )
 
@@ -59,12 +61,14 @@ func formatChangelog(path string) error {
 	}
 	content := strings.Split(string(bytes), "\n")
 
-	cl := &changelog{}
+	changeLog := &changelog{}
 	st := sectionTypeUnknown
 	parsingNewEntries := false
 	for idx, line := range content {
+		// Once we hit a released version's changelog heading, add the remaining content to `changelog.post`.
+		// We won't format any of the lines added here.
 		if versionHeadingRegex.MatchString(line) {
-			cl.post = content[idx:]
+			changeLog.post = content[idx:]
 			break
 		}
 
@@ -76,14 +80,16 @@ func formatChangelog(path string) error {
 		}
 
 		if line != "" && parsingNewEntries {
-			addChangelogEntry(cl, st, line)
+			addChangelogEntry(changeLog, st, line)
 		}
 
 		if !parsingNewEntries {
-			cl.pre = append(cl.pre, line)
+			// If we're not currently parsing new changelog entries, i.e we haven't encountered a `BREAKING CHANGES`, `FEATURES`, `ENHANCEMENTS`, or `BUG FIXES` heading
+			// track it in `changelog.pre`. We won't format any of the lines added here.
+			changeLog.pre = append(changeLog.pre, line)
 		}
 	}
-	newContent := rebuildChangelog(cl)
+	newContent := rebuildChangelog(changeLog)
 
 	if err := os.WriteFile(path, []byte(strings.Join(newContent, "\n")), 0o644); err != nil {
 		return fmt.Errorf("writing to `%s`", path)
@@ -94,6 +100,8 @@ func formatChangelog(path string) error {
 
 func determineSectionType(line string) sectionType {
 	switch {
+	case strings.HasPrefix(line, "BREAKING CHANGES"):
+		return sectionTypeBreakingChanges
 	case strings.HasPrefix(line, "FEATURES"):
 		return sectionTypeFeatures
 	case strings.HasPrefix(line, "ENHANCEMENTS"):
@@ -105,38 +113,42 @@ func determineSectionType(line string) sectionType {
 	}
 }
 
-func addChangelogEntry(cl *changelog, st sectionType, line string) {
+func addChangelogEntry(changeLog *changelog, st sectionType, line string) {
 	if line == "" {
 		return
 	}
 
 	switch st {
+	case sectionTypeBreakingChanges:
+		changeLog.breaking = append(changeLog.breaking, line)
 	case sectionTypeFeatures:
 		if strings.Contains(line, "Data Source") {
-			cl.f.dataSources = append(cl.f.dataSources, line)
+			changeLog.features.dataSources = append(changeLog.features.dataSources, line)
 		} else {
-			cl.f.general = append(cl.f.general, line)
+			changeLog.features.general = append(changeLog.features.general, line)
 		}
 	case sectionTypeEnhancements:
 		switch {
 		case strings.Contains(line, "dependencies"):
-			cl.e.dependencies = append(cl.e.dependencies, line)
+			changeLog.enhancements.dependencies = append(changeLog.enhancements.dependencies, line)
 		case strings.Contains(line, "Data Source"):
-			cl.e.dataSources = append(cl.e.dataSources, line)
+			changeLog.enhancements.dataSources = append(changeLog.enhancements.dataSources, line)
 		default:
-			cl.e.general = append(cl.e.general, line)
+			changeLog.enhancements.general = append(changeLog.enhancements.general, line)
 		}
 	case sectionTypeBugs:
 		if strings.Contains(line, "Data Source") {
-			cl.b.dataSources = append(cl.b.dataSources, line)
+			changeLog.bugs.dataSources = append(changeLog.bugs.dataSources, line)
 		} else {
-			cl.b.general = append(cl.b.general, line)
+			changeLog.bugs.general = append(changeLog.bugs.general, line)
 		}
 	default:
 		return
 	}
 }
 
+// formatSection ensures that a changelog section is formatted as expected.
+// The empty strings ensure there is always a newline after the heading and the last changelog entry, the entries are inserted between them.
 func formatSection(entries []string, st sectionType) []string {
 	result := []string{
 		string(st),
@@ -146,9 +158,9 @@ func formatSection(entries []string, st sectionType) []string {
 	return slices.Insert(result, 2, entries...)
 }
 
-func rebuildChangelog(cl *changelog) []string {
+func rebuildChangelog(changeLog *changelog) []string {
 	newContent := make([]string, 0)
-	newContent = append(newContent, cl.pre...)
+	newContent = append(newContent, changeLog.pre...)
 
 	sort := func(s []string) {
 		slices.SortFunc(s, func(a, b string) int {
@@ -170,15 +182,20 @@ func rebuildChangelog(cl *changelog) []string {
 		})
 	}
 
-	tmpContent := make([]string, 0)
-	if len(cl.f.dataSources) > 0 {
-		sort(cl.f.dataSources)
-		tmpContent = append(tmpContent, cl.f.dataSources...)
+	if len(changeLog.breaking) > 0 {
+		fmt.Println("changelog contains breaking changes, please sort the entries manually")
+		newContent = append(newContent, formatSection(changeLog.breaking, sectionTypeBreakingChanges)...)
 	}
 
-	if len(cl.f.general) > 0 {
-		sort(cl.f.general)
-		tmpContent = append(tmpContent, cl.f.general...)
+	tmpContent := make([]string, 0)
+	if len(changeLog.features.dataSources) > 0 {
+		sort(changeLog.features.dataSources)
+		tmpContent = append(tmpContent, changeLog.features.dataSources...)
+	}
+
+	if len(changeLog.features.general) > 0 {
+		sort(changeLog.features.general)
+		tmpContent = append(tmpContent, changeLog.features.general...)
 	}
 
 	if len(tmpContent) > 0 {
@@ -186,19 +203,19 @@ func rebuildChangelog(cl *changelog) []string {
 	}
 
 	tmpContent = make([]string, 0)
-	if len(cl.e.dependencies) > 0 {
-		sort(cl.e.dependencies)
-		tmpContent = append(tmpContent, cl.e.dependencies...)
+	if len(changeLog.enhancements.dependencies) > 0 {
+		sort(changeLog.enhancements.dependencies)
+		tmpContent = append(tmpContent, changeLog.enhancements.dependencies...)
 	}
 
-	if len(cl.e.dataSources) > 0 {
-		sort(cl.e.dataSources)
-		tmpContent = append(tmpContent, cl.e.dataSources...)
+	if len(changeLog.enhancements.dataSources) > 0 {
+		sort(changeLog.enhancements.dataSources)
+		tmpContent = append(tmpContent, changeLog.enhancements.dataSources...)
 	}
 
-	if len(cl.e.general) > 0 {
-		sort(cl.e.general)
-		tmpContent = append(tmpContent, cl.e.general...)
+	if len(changeLog.enhancements.general) > 0 {
+		sort(changeLog.enhancements.general)
+		tmpContent = append(tmpContent, changeLog.enhancements.general...)
 	}
 
 	if len(tmpContent) > 0 {
@@ -206,21 +223,21 @@ func rebuildChangelog(cl *changelog) []string {
 	}
 
 	tmpContent = make([]string, 0)
-	if len(cl.b.dataSources) > 0 {
-		sort(cl.b.dataSources)
-		tmpContent = append(tmpContent, cl.b.dataSources...)
+	if len(changeLog.bugs.dataSources) > 0 {
+		sort(changeLog.bugs.dataSources)
+		tmpContent = append(tmpContent, changeLog.bugs.dataSources...)
 	}
 
-	if len(cl.b.general) > 0 {
-		sort(cl.b.general)
-		tmpContent = append(tmpContent, cl.b.general...)
+	if len(changeLog.bugs.general) > 0 {
+		sort(changeLog.bugs.general)
+		tmpContent = append(tmpContent, changeLog.bugs.general...)
 	}
 
 	if len(tmpContent) > 0 {
 		newContent = append(newContent, formatSection(tmpContent, sectionTypeBugs)...)
 	}
 
-	return append(newContent, cl.post...)
+	return append(newContent, changeLog.post...)
 }
 
 func main() {
