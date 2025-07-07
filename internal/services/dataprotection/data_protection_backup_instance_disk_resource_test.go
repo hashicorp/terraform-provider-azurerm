@@ -89,6 +89,20 @@ func TestAccDataProtectionBackupInstanceDisk_update(t *testing.T) {
 	})
 }
 
+func TestAccDataProtectionBackupInstanceDisk_snapshotSubscriptionId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_disk", "test")
+	r := DataProtectionBackupInstanceDiskResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.snapshotSubscriptionId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DataProtectionBackupInstanceDiskResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstances.ParseBackupInstanceID(state.ID)
 	if err != nil {
@@ -211,4 +225,22 @@ resource "azurerm_data_protection_backup_instance_disk" "test" {
   backup_policy_id             = azurerm_data_protection_backup_policy_disk.test.id
 }
 `, template, data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceDiskResource) snapshotSubscriptionId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_data_protection_backup_instance_disk" "test" {
+  name                         = "acctest-dbi-%d"
+  location                     = azurerm_resource_group.test.location
+  vault_id                     = azurerm_data_protection_backup_vault.test.id
+  disk_id                      = azurerm_managed_disk.test.id
+  snapshot_resource_group_name = azurerm_resource_group.test.name
+  snapshot_subscription_id     = data.azurerm_client_config.current.subscription_id
+  backup_policy_id             = azurerm_data_protection_backup_policy_disk.test.id
+}
+`, r.template(data), data.RandomInteger)
 }

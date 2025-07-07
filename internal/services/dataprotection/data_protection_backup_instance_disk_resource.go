@@ -6,6 +6,7 @@ package dataprotection
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -20,6 +21,7 @@ import (
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -73,6 +75,25 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				Required:     true,
 				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
+
+			"snapshot_subscription_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					_, planVaultId := d.GetChange("vault_id")
+					vaultId, err := backupinstances.ParseBackupVaultID(planVaultId.(string))
+					if err != nil {
+						return false
+					}
+					if strings.EqualFold(oldValue, vaultId.SubscriptionId) && newValue == "" {
+						return true
+					}
+
+					return false
+				},
+			},
 		},
 	}
 }
@@ -108,7 +129,12 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	if err != nil {
 		return err
 	}
-	snapshotResourceGroupId := resourceParse.NewResourceGroupID(subscriptionId, d.Get("snapshot_resource_group_name").(string))
+
+	snapshotSubscriptionId := subscriptionId
+	if v := d.Get("snapshot_subscription_id").(string); v != "" {
+		snapshotSubscriptionId = v
+	}
+	snapshotResourceGroupId := resourceParse.NewResourceGroupID(snapshotSubscriptionId, d.Get("snapshot_resource_group_name").(string))
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
@@ -198,6 +224,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 						return err
 					}
 					d.Set("snapshot_resource_group_name", resourceGroupId.ResourceGroup)
+					d.Set("snapshot_subscription_id", resourceGroupId.SubscriptionId)
 				}
 			}
 		}
