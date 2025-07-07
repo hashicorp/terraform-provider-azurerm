@@ -12,7 +12,7 @@ var _ sdk.TypedServiceRegistration = Registration{}
 type Registration struct{}
 
 func (r Registration) WebsiteCategories() []string {
-	return nil
+	return []string{"Redis Managed"}
 }
 
 func (r Registration) Name() string {
