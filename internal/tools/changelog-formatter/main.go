@@ -26,7 +26,8 @@ type changelog struct {
 }
 
 type features struct {
-	general []string
+	dataSources []string
+	general     []string
 }
 
 type enhancements struct {
@@ -111,7 +112,11 @@ func addChangelogEntry(cl *changelog, st sectionType, line string) {
 
 	switch st {
 	case sectionTypeFeatures:
-		cl.f.general = append(cl.f.general, line)
+		if strings.Contains(line, "Data Source") {
+			cl.f.dataSources = append(cl.f.dataSources, line)
+		} else {
+			cl.f.general = append(cl.f.general, line)
+		}
 	case sectionTypeEnhancements:
 		switch {
 		case strings.Contains(line, "dependencies"):
@@ -165,12 +170,22 @@ func rebuildChangelog(cl *changelog) []string {
 		})
 	}
 
-	if len(cl.f.general) > 0 {
-		sort(cl.f.general)
-		newContent = append(newContent, formatSection(cl.f.general, sectionTypeFeatures)...)
+	tmpContent := make([]string, 0)
+	if len(cl.f.dataSources) > 0 {
+		sort(cl.f.dataSources)
+		tmpContent = append(tmpContent, cl.f.dataSources...)
 	}
 
-	tmpContent := make([]string, 0)
+	if len(cl.f.general) > 0 {
+		sort(cl.f.general)
+		tmpContent = append(tmpContent, cl.f.general...)
+	}
+
+	if len(tmpContent) > 0 {
+		newContent = append(newContent, formatSection(tmpContent, sectionTypeFeatures)...)
+	}
+
+	tmpContent = make([]string, 0)
 	if len(cl.e.dependencies) > 0 {
 		sort(cl.e.dependencies)
 		tmpContent = append(tmpContent, cl.e.dependencies...)
