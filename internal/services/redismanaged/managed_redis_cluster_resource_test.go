@@ -296,13 +296,13 @@ resource "azurerm_managed_redis_cluster" "test" {
   sku_name = "Balanced_B3"
 
   identity {
-    type = "UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
   customer_managed_key {
-    encryption_key_url         = azurerm_key_vault_key.test.id
-    user_assigned_identity_id  = azurerm_user_assigned_identity.test.id
+    encryption_key_url        = azurerm_key_vault_key.test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
 `, r.template(data), data.RandomInteger, data.RandomStringOfLength(5))
