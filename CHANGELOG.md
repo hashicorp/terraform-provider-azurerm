@@ -3,6 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
+* `azurerm_service_plan` - allow updating `zone_balancing_enabled` without recreating the resource in supported configurations [GH-29810]
 
 * dependencies: `oracle` - update to API version `2025-03-01` [GH-29721]
 * dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
