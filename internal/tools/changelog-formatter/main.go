@@ -122,7 +122,7 @@ func addChangelogEntry(cl *changelog, st sectionType, line string) {
 			cl.e.general = append(cl.e.general, line)
 		}
 	case sectionTypeBugs:
-		if strings.Contains(line, "Data Source:") {
+		if strings.Contains(line, "Data Source") {
 			cl.b.dataSources = append(cl.b.dataSources, line)
 		} else {
 			cl.b.general = append(cl.b.general, line)
