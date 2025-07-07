@@ -419,7 +419,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   virtual_network_id    = azurerm_virtual_network.test.id
   resource_group_name   = azurerm_resource_group.test.name
   registration_enabled  = true
-		%[3]s
+  %[3]s
 }
 `, data.RandomInteger, data.Locations.Primary, resolutionBlock)
 }
