@@ -11,7 +11,7 @@ import (
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -237,9 +237,6 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("enabled") {
 				rule.Properties.Enabled = metaModel.Enabled
-			}
-			if metadata.ResourceData.HasChange("template_name") {
-				rule.Properties.AlertRuleTemplateName = metaModel.TemplateName
 			}
 
 			param := alertrules.ThreatIntelligenceAlertRule{

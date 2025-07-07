@@ -12,8 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/localnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/localnetworkgateways"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
@@ -22,16 +23,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name local_network_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceLocalNetworkGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceLocalNetworkGatewayCreate,
-		Read:   resourceLocalNetworkGatewayRead,
-		Update: resourceLocalNetworkGatewayUpdate,
-		Delete: resourceLocalNetworkGatewayDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := localnetworkgateways.ParseLocalNetworkGatewayID(id)
-			return err
-		}),
+		Create:   resourceLocalNetworkGatewayCreate,
+		Read:     resourceLocalNetworkGatewayRead,
+		Update:   resourceLocalNetworkGatewayUpdate,
+		Delete:   resourceLocalNetworkGatewayDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&localnetworkgateways.LocalNetworkGatewayId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&localnetworkgateways.LocalNetworkGatewayId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -271,9 +275,12 @@ func resourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}
 			return err
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceLocalNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {

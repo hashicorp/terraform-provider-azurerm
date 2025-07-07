@@ -20,12 +20,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -355,6 +355,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"cost_analysis_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+			},
+
+			"custom_ca_trust_certificates_base64": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 10,
+				Elem: &pluginsdk.Schema{
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsBase64,
+				},
 			},
 
 			"default_node_pool": SchemaDefaultNodePool(),
@@ -1450,6 +1460,26 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
+			"upgrade_override": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"force_upgrade_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Required: true,
+						},
+
+						"effective_until": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsRFC3339Time,
+						},
+					},
+				},
+			},
+
 			"windows_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1641,6 +1671,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
 	storageProfile := expandStorageProfile(storageProfileRaw)
 
+	upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
+	upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
+
 	// assemble securityProfile (Defender, WorkloadIdentity, ImageCleaner, AzureKeyVaultKms)
 	securityProfile := &managedclusters.ManagedClusterSecurityProfile{}
 
@@ -1695,6 +1728,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
 	}
 
+	if customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{}); len(customCaTrustCertListRaw) > 0 {
+		securityProfile.CustomCATrustCertificates = utils.ExpandStringSlice(customCaTrustCertListRaw)
+	}
+
 	parameters := managedclusters.ManagedCluster{
 		ExtendedLocation: expandEdgeZone(d.Get("edge_zone").(string)),
 		Location:         location,
@@ -1723,6 +1760,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			OidcIssuerProfile:         oidcIssuerProfile,
 			SecurityProfile:           securityProfile,
 			StorageProfile:            storageProfile,
+			UpgradeSettings:           upgradeOverrideSetting,
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
@@ -1789,7 +1827,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		parameters.Properties.ServiceMeshProfile = serviceMeshProfile
 	}
 
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions())
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -1946,7 +1984,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AddonProfiles = addonProfiles
 	}
 
-	if d.HasChange("api_server_authorized_ip_ranges") || d.HasChange("run_command_enabled") || d.HasChange("private_cluster_public_fqdn_enabled") || d.HasChange("api_server_access_profile") {
+	if d.HasChange("run_command_enabled") || d.HasChange("private_cluster_public_fqdn_enabled") || d.HasChange("api_server_access_profile") {
 		updateCluster = true
 
 		apiServerProfile := expandKubernetesClusterAPIAccessProfile(d)
@@ -2227,6 +2265,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.SecurityProfile.AzureKeyVaultKms = azureKeyVaultKms
 	}
 
+	if d.HasChanges("custom_ca_trust_certificates_base64") {
+		updateCluster = true
+		customCaTrustCertListRaw := d.Get("custom_ca_trust_certificates_base64").([]interface{})
+		if existing.Model.Properties.SecurityProfile == nil {
+			existing.Model.Properties.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
+		}
+		existing.Model.Properties.SecurityProfile.CustomCATrustCertificates = utils.ExpandStringSlice(customCaTrustCertListRaw)
+	}
+
 	if d.HasChanges("microsoft_defender") {
 		updateCluster = true
 		microsoftDefenderRaw := d.Get("microsoft_defender").([]interface{})
@@ -2281,6 +2328,18 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("upgrade_override") {
+		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
+
+		if len(upgradeOverrideSettingRaw) == 0 {
+			return fmt.Errorf("`upgrade_override` cannot be unset")
+		}
+
+		updateCluster = true
+		upgradeOverrideSetting := expandKubernetesClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
+		existing.Model.Properties.UpgradeSettings = upgradeOverrideSetting
+	}
+
 	if d.HasChange("web_app_routing") {
 		updateCluster = true
 		existing.Model.Properties.IngressProfile = expandKubernetesClusterIngressProfile(d, d.Get("web_app_routing").([]interface{}))
@@ -2302,7 +2361,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		log.Printf("[DEBUG] Updating %s..", *id)
-		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
@@ -2324,7 +2383,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
 		existing.Model.Properties.KubernetesVersion = utils.String(kubernetesVersion)
 
-		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
+		err = clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("updating Kubernetes Version for %s: %+v", *id, err)
 		}
@@ -2366,6 +2425,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			nodePublicIpEnabled,
 			"default_node_pool.0.fips_enabled",
 			"default_node_pool.0.kubelet_config",
+			"default_node_pool.0.kubelet_disk_type",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
 			"default_node_pool.0.only_critical_addons_enabled",
@@ -2427,7 +2487,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			// delete the old default node pool if it exists
 			if defaultExisting.Model != nil {
-				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId); err != nil {
+				if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 					return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
 				}
 			}
@@ -2440,7 +2500,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("creating default %s: %+v", defaultNodePoolId, err)
 			}
 
-			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId); err != nil {
+			if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
 			}
 
@@ -2448,7 +2508,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		} else {
 			log.Printf("[DEBUG] Updating of Default Node Pool..")
 
-			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile); err != nil {
+			if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
 			}
 
@@ -2607,6 +2667,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("automatic_upgrade_channel", upgradeChannel)
 			d.Set("node_os_upgrade_channel", nodeOSUpgradeChannel)
 
+			customCaTrustCertList := make([]interface{}, 0)
+			if props.SecurityProfile != nil {
+				customCaTrustCertList = utils.FlattenStringSlice(props.SecurityProfile.CustomCATrustCertificates)
+			}
+			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
+				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
+			}
+
 			enablePrivateCluster := false
 			enablePrivateClusterPublicFQDN := false
 			runCommandEnabled := true
@@ -2724,6 +2792,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
 			if err := d.Set("windows_profile", windowsProfile); err != nil {
 				return fmt.Errorf("setting `windows_profile`: %+v", err)
+			}
+
+			upgradeOverrideSetting := flattenKubernetesClusterUpgradeOverrideSetting(props.UpgradeSettings)
+			if err := d.Set("upgrade_override", upgradeOverrideSetting); err != nil {
+				return fmt.Errorf("setting `upgrade_override`: %+v", err)
 			}
 
 			workloadAutoscalerProfile := flattenKubernetesClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
@@ -2864,7 +2937,7 @@ func resourceKubernetesClusterDelete(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id, managedclusters.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -4578,10 +4651,38 @@ func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsCli
 	// retries the creation of a node pool 3 times
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
-		if err = client.CreateOrUpdateThenPoll(ctx, id, profile); err == nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
 			return nil
 		}
 	}
 
 	return err
+}
+
+func expandKubernetesClusterUpgradeOverrideSetting(input []interface{}) *managedclusters.ClusterUpgradeSettings {
+	if len(input) == 0 || input[0] == nil {
+		// Return nil only when upgrade_override block is not set
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &managedclusters.ClusterUpgradeSettings{
+		OverrideSettings: &managedclusters.UpgradeOverrideSettings{
+			ForceUpgrade: pointer.To(raw["force_upgrade_enabled"].(bool)),
+			Until:        pointer.To(raw["effective_until"].(string)),
+		},
+	}
+}
+
+func flattenKubernetesClusterUpgradeOverrideSetting(input *managedclusters.ClusterUpgradeSettings) []interface{} {
+	if input == nil || input.OverrideSettings == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"effective_until":       pointer.From(input.OverrideSettings.Until),
+			"force_upgrade_enabled": pointer.From(input.OverrideSettings.ForceUpgrade),
+		},
+	}
 }

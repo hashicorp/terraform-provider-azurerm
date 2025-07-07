@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/galleries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/galleries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -98,7 +98,7 @@ func (r DevCenterGalleryTestResource) Exists(ctx context.Context, clients *clien
 		return nil, err
 	}
 
-	resp, err := clients.DevCenter.V20230401.Galleries.Get(ctx, *id)
+	resp, err := clients.DevCenter.V20250201.Galleries.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}

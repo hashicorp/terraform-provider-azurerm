@@ -241,7 +241,7 @@ The `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Synapse Workspace.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -267,7 +267,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the synapse Workspace.
 
-* `connectivity_endpoints` - A list of Connectivity endpoints for this Synapse Workspace.
+* `connectivity_endpoints` - A map of Connectivity endpoints for this Synapse Workspace. Possible key values are `dev`, `sql`, `sqlOnDemand`, and `web`.
 
 ---
 

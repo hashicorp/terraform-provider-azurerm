@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
+const simpleVersionRe = `v?(?P<version>[0-9]+(?:\.[0-9]+)*(?:-[A-Za-z0-9\.]+)?)`
+
 type Product struct {
 	// Name which identifies the product
 	// on releases.hashicorp.com and in Checkpoint

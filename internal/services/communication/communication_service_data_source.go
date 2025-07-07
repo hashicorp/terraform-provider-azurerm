@@ -31,6 +31,8 @@ type CommunicationServiceDataSourceModel struct {
 	SecondaryConnectionString string            `tfschema:"secondary_connection_string"`
 	SecondaryKey              string            `tfschema:"secondary_key"`
 	Tags                      map[string]string `tfschema:"tags"`
+	HostName                  string            `tfschema:"hostname"`
+	ImmutableResourceId       string            `tfschema:"immutable_resource_id"`
 }
 
 func (CommunicationServiceDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -77,6 +79,15 @@ func (CommunicationServiceDataSource) Attributes() map[string]*pluginsdk.Schema 
 		},
 
 		"tags": commonschema.TagsDataSource(),
+
+		"hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"immutable_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -114,6 +125,8 @@ func (CommunicationServiceDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.DataLocation = props.DataLocation
+					state.HostName = pointer.From(props.HostName)
+					state.ImmutableResourceId = pointer.From(props.ImmutableResourceId)
 				}
 
 				state.Tags = pointer.From(model.Tags)

@@ -10,7 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/firewallrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/firewallrules"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
@@ -20,16 +21,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name redis_firewall_rule -service-package-name redis -properties "name,resource_group_name,redis_name:redis_cache_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceRedisFirewallRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRedisFirewallRuleCreateUpdate,
-		Read:   resourceRedisFirewallRuleRead,
-		Update: resourceRedisFirewallRuleCreateUpdate,
-		Delete: resourceRedisFirewallRuleDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := firewallrules.ParseFirewallRuleID(id)
-			return err
-		}),
+		Create:   resourceRedisFirewallRuleCreateUpdate,
+		Read:     resourceRedisFirewallRuleRead,
+		Update:   resourceRedisFirewallRuleCreateUpdate,
+		Delete:   resourceRedisFirewallRuleDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&firewallrules.FirewallRuleId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&firewallrules.FirewallRuleId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -144,7 +148,7 @@ func resourceRedisFirewallRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("start_ip", model.Properties.StartIP)
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRedisFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {

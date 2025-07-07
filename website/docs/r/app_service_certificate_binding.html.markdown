@@ -109,8 +109,8 @@ In addition to the arguments listed above - the following attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Binding.
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate Binding.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Binding.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate Binding.
 
 ## Import

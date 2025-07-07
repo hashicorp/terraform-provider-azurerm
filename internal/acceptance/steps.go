@@ -106,6 +106,22 @@ func (td TestData) CheckWithClientWithoutResource(check ClientCheckFunc) resourc
 	)
 }
 
+func (td TestData) ImportBlockWithIDStep() resource.TestStep {
+	return resource.TestStep{
+		ResourceName:    td.ResourceName,
+		ImportState:     true,
+		ImportStateKind: resource.ImportBlockWithID,
+	}
+}
+
+func (td TestData) ImportBlockWithResourceIdentityStep() resource.TestStep {
+	return resource.TestStep{
+		ResourceName:    td.ResourceName,
+		ImportState:     true,
+		ImportStateKind: resource.ImportBlockWithResourceIdentity,
+	}
+}
+
 // ImportStep returns a Test Step which Imports the Resource, optionally
 // ignoring any fields which may not be imported (for example, as they're
 // not returned from the API)
@@ -146,5 +162,15 @@ func (td TestData) RequiresImportErrorStep(configBuilder func(data TestData) str
 	return resource.TestStep{
 		Config:      config,
 		ExpectError: RequiresImportError(td.ResourceType),
+	}
+}
+
+// RequiresImportAssociationErrorStep returns a Test Step which expects a Requires Import
+// error for an association resource to be returned when running this step
+func (td TestData) RequiresImportAssociationErrorStep(configBuilder func(data TestData) string) resource.TestStep {
+	config := configBuilder(td)
+	return resource.TestStep{
+		Config:      config,
+		ExpectError: RequiresImportAssociationError(td.ResourceType),
 	}
 }

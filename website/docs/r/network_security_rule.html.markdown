@@ -11,7 +11,7 @@ description: |-
 
 Manages a Network Security Rule.
 
-~> **NOTE on Network Security Groups and Network Security Rules:** Terraform currently
+~> **Note:** Terraform currently
 provides both a standalone [Network Security Rule resource](network_security_rule.html), and allows for Network Security Rules to be defined in-line within the [Network Security Group resource](network_security_group.html).
 At this time you cannot use a Network Security Group with in-line Network Security Rules in conjunction with any Network Security Rule resources. Doing so will cause a conflict of rule settings and will overwrite rules.
 
@@ -95,8 +95,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Security Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the Network Security Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Security Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Network Security Rule.
 
 ## Import
@@ -106,3 +106,9 @@ Network Security Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_network_security_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkSecurityGroups/mySecurityGroup/securityRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

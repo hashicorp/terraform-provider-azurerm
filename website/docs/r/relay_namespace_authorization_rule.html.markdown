@@ -89,3 +89,9 @@ Azure Relay Namespace Authorization Rules can be imported using the `resource id
 ```shell
 terraform import azurerm_relay_namespace_authorization_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Relay/namespaces/namespace1/authorizationRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Relay`: 2021-11-01

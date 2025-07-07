@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/sharedprivatelinkresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SearchSharedPrivateLinkServiceResource struct{}
@@ -58,7 +58,7 @@ func (r SearchSharedPrivateLinkServiceResource) Exists(ctx context.Context, clie
 		return nil, fmt.Errorf("%s was not found: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r SearchSharedPrivateLinkServiceResource) basic(data acceptance.TestData) string {
@@ -67,9 +67,17 @@ func (r SearchSharedPrivateLinkServiceResource) basic(data acceptance.TestData) 
 %s
 
 resource "azurerm_search_shared_private_link_service" "test" {
-  name               = "acctest%d"
+  name               = "acctest%[2]d"
   search_service_id  = azurerm_search_service.test.id
   subresource_name   = "blob"
+  target_resource_id = azurerm_storage_account.test.id
+  request_message    = "please approve"
+}
+
+resource "azurerm_search_shared_private_link_service" "test2" {
+  name               = "acctest2%[2]d"
+  search_service_id  = azurerm_search_service.test.id
+  subresource_name   = "file"
   target_resource_id = azurerm_storage_account.test.id
   request_message    = "please approve"
 }

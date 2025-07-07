@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,18 +27,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 const virtualHubResourceName = "azurerm_virtual_hub"
 
 func resourceVirtualHub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualHubCreate,
-		Read:   resourceVirtualHubRead,
-		Update: resourceVirtualHubUpdate,
-		Delete: resourceVirtualHubDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualwans.ParseVirtualHubID(id)
-			return err
-		}),
+		Create:   resourceVirtualHubCreate,
+		Read:     resourceVirtualHubRead,
+		Update:   resourceVirtualHubUpdate,
+		Delete:   resourceVirtualHubDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualwans.VirtualHubId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualwans.VirtualHubId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -63,6 +67,12 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CIDR,
+			},
+
+			"branch_to_branch_traffic_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"sku": {
@@ -173,8 +183,9 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := virtualwans.VirtualHub{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.VirtualHubProperties{
-			RouteTable:           expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List()),
-			HubRoutingPreference: pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
+			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
+			RouteTable:                 expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List()),
+			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -258,6 +269,10 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
+	if d.HasChange("branch_to_branch_traffic_enabled") {
+		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool))
+	}
+
 	if d.HasChange("route") {
 		payload.Properties.RouteTable = expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List())
 	}
@@ -336,6 +351,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("address_prefix", props.AddressPrefix)
+			d.Set("branch_to_branch_traffic_enabled", pointer.From(props.AllowBranchToBranchTraffic))
 			d.Set("sku", props.Sku)
 
 			if err := d.Set("route", flattenVirtualHubRoute(props.RouteTable)); err != nil {
@@ -364,9 +380,12 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			d.Set("virtual_router_auto_scale_min_capacity", props.VirtualRouterAutoScaleConfiguration.MinCapacity)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVirtualHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {

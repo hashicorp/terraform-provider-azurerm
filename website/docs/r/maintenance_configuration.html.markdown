@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `install_patches` - (Optional) An `install_patches` block as defined below.
 
--> **NOTE:** `install_patches` must be specified when `scope` is `InGuestPatch`.
+-> **Note:** `install_patches` must be specified when `scope` is `InGuestPatch`.
 
 * `in_guest_user_patch_mode` - (Optional) The in guest user patch mode. Possible values are `Platform` or `User`. Must be specified when `scope` is `InGuestPatch`.
 
@@ -117,8 +117,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Maintenance Configuration.
-* `update` - (Defaults to 30 minutes) Used when updating the Maintenance Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Maintenance Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the Maintenance Configuration.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Maintenance Configuration.
 
 ## Import
@@ -128,3 +128,9 @@ Maintenance Configuration can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_maintenance_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Maintenance/maintenanceConfigurations/example-mc
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Maintenance`: 2023-04-01

@@ -37,13 +37,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the App Configuration.
 
+* `location` - The Azure Region where the App Configuration exists.
+
+* `data_plane_proxy_authentication_mode` - The data plane proxy authentication mode.
+
+* `data_plane_proxy_private_link_delegation_enabled` - Whether data plane proxy private link delegation is enabled.
+
 * `endpoint` - The Endpoint used to access this App Configuration.
 
 * `encryption` - An `encryption` block as defined below.
 
-* `local_auth_enabled` - Whether local authentication methods is enabled.
+* `identity` - An `identity` block as defined below.
 
-* `location` - The Azure Region where the App Configuration exists.
+* `local_auth_enabled` - Whether local authentication methods are enabled.
 
 * `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
 
@@ -69,9 +75,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `primary_read_key` block exports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
 * `id` - The ID of the Access Key.
+
+* `connection_string` - The Connection String for this Access Key - consisting of the Endpoint, ID and Secret.
 
 * `secret` - The Secret of the Access Key.
 
@@ -79,9 +85,9 @@ A `primary_read_key` block exports the following:
 
 A `primary_write_key` block exports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
 * `id` - The ID of the Access Key.
+
+* `connection_string` - The Connection String for this Access Key - consisting of the Endpoint, ID and Secret.
 
 * `secret` - The Secret of the Access Key.
 
@@ -89,22 +95,21 @@ A `primary_write_key` block exports the following:
 
 A `replica` block exports the following:
 
-* `id` - The ID of the App Configuration Replica.
+* `name` - The name of the App Configuration Replica.
 
-* `endpoint` - The URL of the App Configuration Replica.
+* `id` - The ID of the App Configuration Replica.
 
 * `location` - The supported Azure location where the App Configuration Replica exists.
 
-* `name` - The name of the App Configuration Replica.
-
+* `endpoint` - The URL of the App Configuration Replica.
 
 ---
 
 A `secondary_read_key` block exports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
 * `id` - The ID of the Access Key.
+
+* `connection_string` - The Connection String for this Access Key - consisting of the Endpoint, ID and Secret.
 
 * `secret` - The Secret of the Access Key.
 
@@ -112,9 +117,9 @@ A `secondary_read_key` block exports the following:
 
 A `secondary_write_key` block exports the following:
 
-* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
-
 * `id` - The ID of the Access Key.
+
+* `connection_string` - The Connection String for this Access Key - consisting of the Endpoint, ID and Secret.
 
 * `secret` - The Secret of the Access Key.
 
@@ -123,3 +128,9 @@ A `secondary_write_key` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.AppConfiguration`: 2024-05-01

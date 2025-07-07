@@ -130,3 +130,9 @@ Logic App Integration Account Agreements can be imported using the `resource id`
 ```shell
 terraform import azurerm_logic_app_integration_account_agreement.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1/agreements/agreement1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Logic`: 2019-05-01

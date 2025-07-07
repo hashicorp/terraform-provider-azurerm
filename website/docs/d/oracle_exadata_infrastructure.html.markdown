@@ -45,11 +45,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The number of compute servers for the Cloud Exadata Infrastructure.
 
+* `compute_model` - The compute model of the Exadata Infrastructure.
+
 * `custom_action_timeout_enabled` - If true, enables the configuration of a custom action timeout (waiting period) between database servers patching operations.
 
 * `cpu_count` - The total number of CPU cores allocated.
 
 * `customer_contacts` - A `customer_contacts` block as defined below.
+
+* `database_server_type` - The database server model type of the cloud Exadata infrastructure resource.
 
 * `data_storage_size_in_tbs` - The data storage size in terabytes of the DATA disk group.
 
@@ -96,6 +100,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `shape` - The model name of the Cloud Exadata Infrastructure resource.
 
 * `storage_count` - The number of storage servers for the Cloud Exadata Infrastructure.
+
+* `storage_server_type` - The storage server model type of the cloud Exadata infrastructure resource.
 
 * `storage_server_version` - The software version of the storage servers (cells) in the Cloud Exadata Infrastructure.
 
@@ -144,3 +150,9 @@ A `maintenance_window` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cloud Exadata Infrastructure.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database`: 2025-03-01

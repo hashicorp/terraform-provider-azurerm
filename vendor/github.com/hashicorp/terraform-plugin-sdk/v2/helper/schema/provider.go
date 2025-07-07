@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/configschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/logging"
@@ -192,9 +193,21 @@ func (p *Provider) InternalValidate() error {
 	}
 
 	var validationErrors []error
+
+	// Provider schema validation
 	sm := schemaMap(p.Schema)
 	if err := sm.InternalValidate(sm); err != nil {
 		validationErrors = append(validationErrors, err)
+	}
+
+	if sm.hasWriteOnly() {
+		validationErrors = append(validationErrors, fmt.Errorf("provider schema cannot contain write-only attributes"))
+	}
+
+	// Provider meta schema validation
+	providerMeta := schemaMap(p.ProviderMetaSchema)
+	if providerMeta.hasWriteOnly() {
+		validationErrors = append(validationErrors, fmt.Errorf("provider meta schema cannot contain write-only attributes"))
 	}
 
 	// Provider-specific checks
@@ -205,6 +218,11 @@ func (p *Provider) InternalValidate() error {
 	}
 
 	for k, r := range p.ResourcesMap {
+		if r.Identity != nil {
+			if err := r.Identity.InternalIdentityValidate(); err != nil {
+				validationErrors = append(validationErrors, fmt.Errorf("resource %s identity: %s", k, err))
+			}
+		}
 		if err := r.InternalValidate(nil, true); err != nil {
 			validationErrors = append(validationErrors, fmt.Errorf("resource %s: %s", k, err))
 		}
@@ -213,6 +231,15 @@ func (p *Provider) InternalValidate() error {
 	for k, r := range p.DataSourcesMap {
 		if err := r.InternalValidate(nil, false); err != nil {
 			validationErrors = append(validationErrors, fmt.Errorf("data source %s: %s", k, err))
+		}
+
+		if len(r.ValidateRawResourceConfigFuncs) > 0 {
+			validationErrors = append(validationErrors, fmt.Errorf("data source %s cannot contain ValidateRawResourceConfigFuncs", k))
+		}
+
+		dataSourceSchema := schemaMap(r.SchemaMap())
+		if dataSourceSchema.hasWriteOnly() {
+			validationErrors = append(validationErrors, fmt.Errorf("data source %s cannot contain write-only attributes", k))
 		}
 	}
 
@@ -449,6 +476,14 @@ func (p *Provider) ImportState(
 	ctx context.Context,
 	info *terraform.InstanceInfo,
 	id string) ([]*terraform.InstanceState, error) {
+	return p.ImportStateWithIdentity(ctx, info, id, nil)
+}
+
+func (p *Provider) ImportStateWithIdentity(
+	ctx context.Context,
+	info *terraform.InstanceInfo,
+	id string,
+	identity map[string]string) ([]*terraform.InstanceState, error) {
 	// Find the resource
 	r, ok := p.ResourcesMap[info.Type]
 	if !ok {
@@ -464,6 +499,16 @@ func (p *Provider) ImportState(
 	data := r.Data(nil)
 	data.SetId(id)
 	data.SetType(info.Type)
+
+	if data.identitySchema != nil {
+		identityData, err := data.Identity()
+		if err != nil {
+			return nil, err // this should not happen, as we checked above
+		}
+		identityData.raw = identity
+	} else if identity != nil {
+		return nil, fmt.Errorf("resource %s doesn't support identity import", info.Type)
+	}
 
 	// Call the import function
 	results := []*ResourceData{data}

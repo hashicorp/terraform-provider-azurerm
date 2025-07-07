@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/natgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,6 +24,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name nat_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var natGatewayResourceName = "azurerm_nat_gateway"
 
@@ -41,10 +43,11 @@ func resourceNatGateway() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := natgateways.ParseNatGatewayID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&natgateways.NatGatewayId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&natgateways.NatGatewayId{}),
+		},
 
 		Schema: resourceNatGatewaySchema(),
 	}
@@ -235,9 +238,12 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 			d.Set("resource_guid", props.ResourceGuid)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNatGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {

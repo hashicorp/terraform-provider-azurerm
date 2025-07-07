@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudexadatainfrastructures"
 )
 
 func ComputeCount(i interface{}, k string) (warnings []string, errors []error) {

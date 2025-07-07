@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -105,6 +106,13 @@ func TestAccApiManagementApi_oauth2Authorization(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.oauth2AuthorizationUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -115,6 +123,13 @@ func TestAccApiManagementApi_openidAuthentication(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.openidAuthentication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.openidAuthenticationUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -208,20 +223,12 @@ func TestAccApiManagementApi_importSwagger(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.importSwagger(data),
+			Config: r.importSwagger(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -236,15 +243,45 @@ func TestAccApiManagementApi_importOpenapi(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("import"),
+	})
+}
+
+func TestAccApiManagementApi_importOpenapiInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
+			Config:      r.importOpenapiInvalid(data),
+			ExpectError: regexp.MustCompile("ValidationError"),
 		},
+	})
+}
+
+func TestAccApiManagementApi_updateImportOpenapiInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.importOpenapi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("import"),
+		{
+			Config:      r.importOpenapiInvalid(data),
+			ExpectError: regexp.MustCompile("ValidationError"),
+		},
+		{
+			Config: r.importOpenapi(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -259,30 +296,14 @@ func TestAccApiManagementApi_importSwaggerWithServiceUrl(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 		{
 			Config: r.importSwaggerWithServiceUrlUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -297,15 +318,7 @@ func TestAccApiManagementApi_importWsdl(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -320,15 +333,7 @@ func TestAccApiManagementApi_importWsdlWithSelector(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -343,30 +348,14 @@ func TestAccApiManagementApi_importUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("import"),
 		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
-		{
-			Config: r.importSwagger(data),
+			Config: r.importSwagger(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateVerifyIgnore: []string{
-				// not returned from the API
-				"import",
-			},
-		},
+		data.ImportStep("import"),
 	})
 }
 
@@ -377,6 +366,28 @@ func TestAccApiManagementApi_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementApi_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -607,7 +618,15 @@ resource "azurerm_api_management_api" "import" {
 `, r.basic(data))
 }
 
-func (r ApiManagementApiResource) importSwagger(data acceptance.TestData) string {
+func (r ApiManagementApiResource) importSwagger(data acceptance.TestData, ignoreImported bool) string {
+	ignoreConfig := ""
+	if ignoreImported {
+		ignoreConfig = `lifecycle {
+	ignore_changes = [description, display_name, contact, license]
+}
+`
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -624,8 +643,9 @@ resource "azurerm_api_management_api" "test" {
     content_value  = file("testdata/api_management_api_swagger.json")
     content_format = "swagger-json"
   }
+  %s
 }
-`, r.template(data, SkuNameConsumption), data.RandomInteger)
+`, r.template(data, SkuNameConsumption), data.RandomInteger, ignoreConfig)
 }
 
 func (r ApiManagementApiResource) importOpenapi(data acceptance.TestData) string {
@@ -643,6 +663,31 @@ resource "azurerm_api_management_api" "test" {
 
   import {
     content_value  = file("testdata/api_management_api_openapi.yaml")
+    content_format = "openapi"
+  }
+
+  lifecycle {
+    ignore_changes = [description]
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) importOpenapiInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "current"
+
+  import {
+    content_value  = file("testdata/api_management_api_openapi_invalid.yaml")
     content_format = "openapi"
   }
 }
@@ -778,6 +823,42 @@ resource "azurerm_api_management_api" "test" {
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
 }
 
+func (r ApiManagementApiResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "Butter Parser Update"
+  path                = "butter-parser-update"
+  protocols           = ["https"]
+  revision            = "3"
+  description         = "What is my purpose? You parse butter."
+  service_url         = "https://example.com/foo/bar/update"
+
+  subscription_key_parameter_names {
+    header = "X-Butter-Robot-API-Key"
+    query  = "location-update"
+  }
+
+  contact {
+    email = "test-update@test.com"
+    name  = "test-update"
+    url   = "https://example-update:8080"
+  }
+
+  license {
+    name = "test-license-update"
+    url  = "https://example:8080/license-update"
+  }
+
+  terms_of_service_url = "https://example:8080/service-update"
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
 func (r ApiManagementApiResource) versionSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -842,6 +923,44 @@ resource "azurerm_api_management_api" "test" {
 `, r.template(data, SkuNameConsumption), data.RandomInteger, data.RandomInteger)
 }
 
+func (r ApiManagementApiResource) oauth2AuthorizationUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_authorization_server" "test" {
+  name                         = "acctestauthsrv-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  api_management_name          = azurerm_api_management.test.name
+  display_name                 = "Test Group"
+  authorization_endpoint       = "https://azacceptance.hashicorptest.com/client/authorize"
+  client_id                    = "42424242-4242-4242-4242-424242424242"
+  client_registration_endpoint = "https://azacceptance.hashicorptest.com/client/register"
+
+  grant_types = [
+    "implicit",
+  ]
+
+  authorization_methods = [
+    "GET",
+  ]
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1update"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  oauth2_authorization {
+    authorization_server_name = azurerm_api_management_authorization_server.test.name
+    scope                     = "acctest"
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger, data.RandomInteger)
+}
+
 func (r ApiManagementApiResource) openidAuthentication(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -861,6 +980,39 @@ resource "azurerm_api_management_api" "test" {
   resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  openid_authentication {
+    openid_provider_name = azurerm_api_management_openid_connect_provider.test.name
+    bearer_token_sending_methods = [
+      "authorizationHeader",
+      "query",
+    ]
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) openidAuthenticationUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_openid_connect_provider" "test" {
+  name                = "acctest-%d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  client_id           = "00001111-2222-3333-%d"
+  client_secret       = "%d-cwdavsxbacsaxZX-%d"
+  display_name        = "Initial Name"
+  metadata_endpoint   = "https://azacceptance.hashicorptest.com/example/foo"
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1update"
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
@@ -941,6 +1093,7 @@ resource "azurerm_api_management_api" "revision" {
   resource_group_name  = azurerm_resource_group.test.name
   api_management_name  = azurerm_api_management.test.name
   revision             = "18"
+  description          = "What is my purpose? You parse butter."
   source_api_id        = "${azurerm_api_management_api.test.id};rev=3"
   revision_description = "Creating a Revision of an existing API"
   contact {

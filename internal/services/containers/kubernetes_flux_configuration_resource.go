@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -904,6 +904,10 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 	outputList := make(map[string]fluxconfiguration.KustomizationDefinition)
 	for _, v := range inputList {
 		input := v
+		// updated item in a set is considered a new item, and the old item still exists in the set but with empty values, so we need to skip it
+		if input.Name == "" {
+			continue
+		}
 		output := fluxconfiguration.KustomizationDefinition{
 			DependsOn:              &input.DependsOn,
 			Force:                  &input.Force,

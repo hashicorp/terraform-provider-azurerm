@@ -63,10 +63,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center Dev Box Definition.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center Dev Box Definition.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center Dev Box Definition.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center Dev Box Definition.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center Dev Box Definition.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Dev Box Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Center Dev Box Definition.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center Dev Box Definition.
 
 ## Import
 
@@ -75,3 +75,9 @@ An existing Dev Center Dev Box Definition can be imported into Terraform using t
 ```shell
 terraform import azurerm_dev_center_dev_box_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/devCenters/dc1/devBoxDefinitions/et1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter`: 2025-02-01
