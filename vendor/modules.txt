@@ -90,7 +90,7 @@ github.com/bgentry/speakeasy
 # github.com/btubbs/datetime v0.1.1
 ## explicit
 github.com/btubbs/datetime
-# github.com/cloudflare/circl v1.6.0
+# github.com/cloudflare/circl v1.6.1
 ## explicit; go 1.22.0
 github.com/cloudflare/circl/dh/x25519
 github.com/cloudflare/circl/dh/x448
@@ -173,7 +173,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/a
 github.com/hashicorp/go-azure-sdk/resource-manager/analysisservices/2017-08-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apidiagnostic
-github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperation
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationpolicy
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apioperationtag
@@ -218,6 +217,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/subs
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tag
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/deletedconfigurationstores
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/operations
@@ -624,8 +624,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms
 github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults
-github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/extensions
-github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration
+github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/extensions
+github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/fluxconfiguration
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/attacheddatabaseconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusterprincipalassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters
@@ -902,9 +902,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-0
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2023-09-01/deletedworkspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/operationsmanagement/2015-11-01-preview/solution
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures
-github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasebackups
 github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasecharactersets
