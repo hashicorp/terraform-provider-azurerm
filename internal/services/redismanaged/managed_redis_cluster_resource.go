@@ -179,10 +179,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.CustomerManagedKey) > 0 {
-				encryption, err := expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey)
-				if err != nil {
-					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
-				}
+				encryption := expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey)
 				parameters.Properties.Encryption = encryption
 			}
 
@@ -307,11 +304,7 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("customer_managed_key") {
-				encryption, err := expandManagedRedisClusterCustomerManagedKey(state.CustomerManagedKey)
-				if err != nil {
-					return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
-				}
-
+				encryption := expandManagedRedisClusterCustomerManagedKey(state.CustomerManagedKey)
 				parameters.Properties.Encryption = encryption
 			}
 
@@ -400,9 +393,9 @@ func managedRedisClusterStateRefreshFunc(ctx context.Context, client *redisenter
 	}
 }
 
-func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) (*redisenterprise.ClusterPropertiesEncryption, error) {
+func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) *redisenterprise.ClusterPropertiesEncryption {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	cmk := input[0]
@@ -415,7 +408,7 @@ func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) (*r
 				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityId),
 			},
 		},
-	}, nil
+	}
 }
 
 func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterPropertiesEncryption) []CustomerManagedKey {
