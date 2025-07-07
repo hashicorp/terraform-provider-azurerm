@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -73,6 +74,25 @@ func TestAccPublicIpPrefix_globalTier(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpPrefix_customIpPrefix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIpPrefixResource{}
+
+	if os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID") == "" {
+		t.Skip("ARM_TEST_CUSTOM_IP_PREFIX_ID env var not set")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customIpPrefix(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -432,4 +452,27 @@ resource "azurerm_public_ip_prefix" "test" {
   zones               = ["1", "2", "3"]
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (PublicIpPrefixResource) customIpPrefix(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_version          = "IPv6"
+  custom_ip_prefix_id = "%[3]s"
+  prefix_length       = 127
+  zones               = ["1"]
+}
+`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID"))
 }

@@ -16,8 +16,8 @@ Gets a list of the shapes that can be used to launch a new DB system. The shape 
 
 ```hcl
 data "azurerm_oracle_db_system_shapes" "example" {
-  location = "West Europe"
-  zone = "2"
+  location = "eastus"
+  zone     = "2"
 }
 
 output "example" {
@@ -31,8 +31,6 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the system shapes in.
 
-* `zone` -  (Optional) The Cloud Exadata Infrastructure Azure zones.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -42,6 +40,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 ---
 
 A `db_system_shapes` block exports the following:
+
+* `are_server_types_supported` - Indicates if the shape supports database and storage server types.
 
 * `available_core_count` - The maximum number of CPU cores that can be enabled on the DB system for this shape.
 
@@ -59,7 +59,11 @@ A `db_system_shapes` block exports the following:
 
 * `available_memory_per_node_in_gbs` - The maximum memory available per database node for this shape. Only applicable to ExaCC Elastic shapes.
 
+* `compute_model` - The compute model of the Exadata Infrastructure.
+
 * `core_count_increment` - The discrete number by which the CPU core count for this shape can be increased or decreased.
+
+* `display_name` - The display name of the shape used for the DB system.
 
 * `maximum_storage_count` - The maximum number of Exadata storage servers available for the Exadata infrastructure.
 

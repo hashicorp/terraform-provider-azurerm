@@ -20,10 +20,10 @@ type DbSystemShapesDataSource struct{}
 type DbSystemShapesModel struct {
 	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
 	Location       string               `tfschema:"location"`
-	Zone           string               `tfschema:"zone"`
 }
 
 type DbSystemShapeModel struct {
+	AreServerTypesSupported            bool    `tfschema:"are_server_types_supported"`
 	AvailableCoreCount                 int64   `tfschema:"available_core_count"`
 	AvailableCoreCountPerNode          int64   `tfschema:"available_core_count_per_node"`
 	AvailableDataStorageInTbs          int64   `tfschema:"available_data_storage_in_tbs"`
@@ -32,7 +32,9 @@ type DbSystemShapeModel struct {
 	AvailableDbNodeStorageInGbs        int64   `tfschema:"available_db_node_storage_in_gbs"`
 	AvailableMemoryInGbs               int64   `tfschema:"available_memory_in_gbs"`
 	AvailableMemoryPerNodeInGbs        int64   `tfschema:"available_memory_per_node_in_gbs"`
+	ComputeModel                       string  `tfschema:"compute_model"`
 	CoreCountIncrement                 int64   `tfschema:"core_count_increment"`
+	DisplayName                        string  `tfschema:"display_name"`
 	MaxStorageCount                    int64   `tfschema:"maximum_storage_count"`
 	MaximumNodeCount                   int64   `tfschema:"maximum_node_count"`
 	MinCoreCountPerNode                int64   `tfschema:"minimum_core_count_per_node"`
@@ -49,11 +51,6 @@ type DbSystemShapeModel struct {
 func (d DbSystemShapesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
-		"zone": {
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Description: "Filter the versions by zone",
-		},
 	}
 }
 
@@ -64,6 +61,10 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"are_server_types_supported": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
 					"available_core_count": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
@@ -96,8 +97,16 @@ func (d DbSystemShapesDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+					"compute_model": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 					"core_count_increment": {
 						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+					"display_name": {
+						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
 					"maximum_storage_count": {
@@ -178,12 +187,7 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 
 			id := dbsystemshapes.NewLocationID(subscriptionId, state.Location)
 
-			options := dbsystemshapes.ListByLocationOperationOptions{}
-			if state.Zone != "" {
-				options.Zone = &state.Zone
-			}
-
-			resp, err := client.ListByLocation(ctx, id, options)
+			resp, err := client.ListByLocation(ctx, id, dbsystemshapes.DefaultListByLocationOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
@@ -195,6 +199,7 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
 						state.DbSystemShapes = append(state.DbSystemShapes, DbSystemShapeModel{
+							AreServerTypesSupported:            pointer.From(props.AreServerTypesSupported),
 							AvailableCoreCount:                 props.AvailableCoreCount,
 							AvailableCoreCountPerNode:          pointer.From(props.AvailableCoreCountPerNode),
 							AvailableDataStorageInTbs:          pointer.From(props.AvailableDataStorageInTbs),
@@ -203,7 +208,9 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 							AvailableDbNodeStorageInGbs:        pointer.From(props.AvailableDbNodeStorageInGbs),
 							AvailableMemoryInGbs:               pointer.From(props.AvailableMemoryInGbs),
 							AvailableMemoryPerNodeInGbs:        pointer.From(props.AvailableMemoryPerNodeInGbs),
+							ComputeModel:                       pointer.FromEnum(props.ComputeModel),
 							CoreCountIncrement:                 pointer.From(props.CoreCountIncrement),
+							DisplayName:                        pointer.From(props.DisplayName),
 							MaxStorageCount:                    pointer.From(props.MaxStorageCount),
 							MaximumNodeCount:                   pointer.From(props.MaximumNodeCount),
 							MinCoreCountPerNode:                pointer.From(props.MinCoreCountPerNode),
