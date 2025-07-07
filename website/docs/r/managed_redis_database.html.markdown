@@ -35,8 +35,8 @@ resource "azurerm_managed_redis_cluster" "example1" {
 }
 
 resource "azurerm_managed_redis_database" "example" {
-  name       = "default"
-  
+  name = "default"
+
   cluster_id        = azurerm_managed_redis_cluster.example.id
   client_protocol   = "Encrypted"
   clustering_policy = "OSSCluster"
