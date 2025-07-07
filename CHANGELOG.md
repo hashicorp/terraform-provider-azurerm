@@ -3,6 +3,7 @@
 FEATURES:
 
 ENHANCEMENTS:
+* `azurerm_oracle_autonomous_database` - Add support for `allowed_ips` [GH-29412]
 * `azurerm_virtual_hub` - add support for the `branch_to_branch_traffic_enabled` property [GH-29453]
 * dependencies: `oracle` - update to API version `2025-03-01` [GH-29721]
 * dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
