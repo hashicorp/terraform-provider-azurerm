@@ -1945,7 +1945,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "VpnGw1"
 
   active_active = true
-  enable_bgp    = true
+  bgp_enabled   = true
 
   ip_configuration {
     name                 = "gw-ip1"
@@ -2023,7 +2023,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type                       = "Vpn"
   vpn_type                   = "RouteBased"
-  enable_bgp                 = false
+  bgp_enabled                = false
   active_active              = false
   private_ip_address_enabled = false
   sku                        = "VpnGw2"
