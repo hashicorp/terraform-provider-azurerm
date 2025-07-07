@@ -57,8 +57,8 @@ The following arguments are supported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment.
 
 ## Import
@@ -68,3 +68,11 @@ A Container App Environment Custom Domain Suffix can be imported using the `reso
 ```shell
 terraform import azurerm_container_app_environment_custom_domain.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myEnvironment"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App`: 2025-01-01
+
+* `Microsoft.OperationalInsights`: 2020-08-01

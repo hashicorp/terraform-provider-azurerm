@@ -11,7 +11,7 @@ description: |-
 
 Manages a Security Alert Policy for a MSSQL Server.
 
--> **NOTE** Security Alert Policy is currently only available for MS SQL databases.
+-> **Note:** Security Alert Policy is currently only available for MS SQL databases.
 
 ## Example Usage
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 -> **Note:** The `storage_account_access_key` field is required when the `storage_endpoint` field has been set.
 
--> **Note:**  Storage accounts configured with `shared_access_key_enabled = false` cannot be used for the `storage_endpoint` field.
+-> **Note:** Storage accounts configured with `shared_access_key_enabled = false` cannot be used for the `storage_endpoint` field.
 
 * `storage_account_access_key` - (Optional) Specifies the primary access key of the Threat Detection audit logs blob storage endpoint.
 
@@ -94,8 +94,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MSSQL Server Security Alert Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the MSSQL Server Security Alert Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MSSQL Server Security Alert Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the MSSQL Server Security Alert Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the MSSQL Server Security Alert Policy.
 
 ## Import
@@ -105,3 +105,9 @@ MS SQL Server Security Alert Policy can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_mssql_server_security_alert_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/servers/mssqlserver/securityAlertPolicies/Default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql`: 2023-08-01-preview

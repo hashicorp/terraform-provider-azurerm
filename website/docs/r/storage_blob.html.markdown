@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `content_md5` - (Optional) The MD5 sum of the blob contents. Cannot be defined if `source_uri` is defined, or if blob type is Append or Page. Changing this forces a new resource to be created.
 
-~> **NOTE:** This property is intended to be used with the Terraform internal [filemd5](https://www.terraform.io/docs/configuration/functions/filemd5.html) and [md5](https://www.terraform.io/docs/configuration/functions/md5.html) functions when `source` or `source_content`, respectively, are defined.
+~> **Note:** This property is intended to be used with the Terraform internal [filemd5](https://www.terraform.io/docs/configuration/functions/filemd5.html) and [md5](https://www.terraform.io/docs/configuration/functions/md5.html) functions when `source` or `source_content`, respectively, are defined.
 
 * `encryption_scope` - (Optional) The encryption scope to use for this blob.
 
@@ -77,7 +77,7 @@ The following arguments are supported:
 
 * `parallelism` - (Optional) The number of workers per CPU core to run for concurrent uploads. Defaults to `8`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `parallelism` is only applicable for Page blobs - support for [Block Blobs is blocked on the upstream issue](https://github.com/jackofallops/giovanni/issues/15).
+~> **Note:** `parallelism` is only applicable for Page blobs - support for [Block Blobs is blocked on the upstream issue](https://github.com/jackofallops/giovanni/issues/15).
 
 * `metadata` - (Optional) A map of custom blob metadata.
 
@@ -93,8 +93,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Blob.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Blob.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Blob.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Blob.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Blob.
 
 ## Import

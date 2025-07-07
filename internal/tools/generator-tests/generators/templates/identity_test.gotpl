@@ -1,0 +1,64 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package {{ToLower .ServicePackageName}}_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	{{- if (gt (.KnownValueMap | len) 0) }}
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	{{- end }}
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	{{- if (gt (.CompareValueMap | len) 0) }}
+    customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
+    {{- end }}
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
+)
+
+{{- $resourceName := .ResourceName }}
+func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_{{ ToSnake $resourceName }}", "test")
+	r := {{ ToCamel $resourceName }}Resource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.12.0-rc2"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				{{- if (gt (.TestParams | len) 0) }}
+				Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
+				    {{- else }}
+				Config: r.{{ .TestName }}(data),
+				{{- end }}
+				ConfigStateChecks: []statecheck.StateCheck{
+					{{- range $name, $val := .KnownValueMap }}
+					    {{- if (eq $name "subscription_id") }}
+					    statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact({{ $val }})),
+					    {{- else }}
+					    statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact("{{ $val }}")),
+					    {{- end }}
+					{{- end }}
+
+					{{- range $idName, $schemaName := .PropertyNameMap }}
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_{{ ToSnake $resourceName }}.test", tfjsonpath.New("{{ $idName }}"), tfjsonpath.New("{{ $schemaName }}")),
+					{{- end }}
+
+					{{- range $idName, $schemaName := .CompareValueMap }}
+					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_{{ ToSnake $resourceName}}.test", tfjsonpath.New("{{ $idName }}"), tfjsonpath.New("{{ $schemaName }}")),
+					{{- end }}
+				},
+			},
+			data.ImportBlockWithResourceIdentityStep(),
+			data.ImportBlockWithIDStep(),
+		},
+	})
+}

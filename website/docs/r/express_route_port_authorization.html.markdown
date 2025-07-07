@@ -69,3 +69,9 @@ ExpressRoute Port Authorizations can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_express_route_port_authorization.auth1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/expressRoutePorts/myExpressPort/authorizations/auth1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

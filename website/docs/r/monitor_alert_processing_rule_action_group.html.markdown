@@ -274,3 +274,9 @@ Alert Processing Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_alert_processing_rule_action_group.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AlertsManagement/actionRules/actionRule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AlertsManagement`: 2021-08-08

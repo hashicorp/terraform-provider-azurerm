@@ -82,7 +82,7 @@ A `destination` block supports the following:
 
 * `name` - (Required) The Name of the Destination where the capture should take place. At this time the only supported value is `EventHubArchive.AzureBlockBlob`.
 
--> At this time it's only possible to Capture EventHub messages to Blob Storage. There's [a Feature Request for the Azure SDK to add support for Capturing messages to Azure Data Lake here](https://github.com/Azure/azure-rest-api-specs/issues/2255).
+-> **Note:** At this time it's only possible to Capture EventHub messages to Blob Storage. There's [a Feature Request for the Azure SDK to add support for Capturing messages to Azure Data Lake here](https://github.com/Azure/azure-rest-api-specs/issues/2255).
 
 * `archive_name_format` - (Required) The Blob naming convention for archiving. e.g. `{Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}`. Here all the parameters (Namespace,EventHub .. etc) are mandatory irrespective of order
 
@@ -103,8 +103,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub.
-* `update` - (Defaults to 30 minutes) Used when updating the EventHub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub.
 * `delete` - (Defaults to 30 minutes) Used when deleting the EventHub.
 
 ## Import
@@ -114,3 +114,9 @@ EventHubs can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_eventhub.eventhub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/eventhubs/eventhub1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventHub`: 2024-01-01
