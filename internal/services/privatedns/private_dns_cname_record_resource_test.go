@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateDnsCNameRecordResource struct{}
@@ -114,11 +115,12 @@ func (t PrivateDnsCNameRecordResource) Exists(ctx context.Context, clients *clie
 		return nil, fmt.Errorf("reading Private DNS CName Record (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PrivateDnsCNameRecordResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -141,6 +143,29 @@ resource "azurerm_private_dns_cname_record" "test" {
   record              = "contoso.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_cname_record" "test" {
+  name            = "acctestcname%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  record          = "contoso.com"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PrivateDnsCNameRecordResource) requiresImport(data acceptance.TestData) string {
@@ -148,11 +173,10 @@ func (r PrivateDnsCNameRecordResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_private_dns_cname_record" "import" {
-  name                = azurerm_private_dns_cname_record.test.name
-  resource_group_name = azurerm_private_dns_cname_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_cname_record.test.zone_name
-  ttl                 = 300
-  record              = "contoso.com"
+  name            = azurerm_private_dns_cname_record.test.name
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  record          = "contoso.com"
 }
 `, r.basic(data))
 }
@@ -174,11 +198,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 0
-  record              = "test.contoso.com"
+  name            = "acctestcname%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 0
+  record          = "test.contoso.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -200,11 +223,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  record              = "contoso.com"
+  name            = "acctestcname%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  record          = "contoso.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -226,11 +248,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  record              = "contoso.com"
+  name            = "acctestcname%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  record          = "contoso.com"
 
   tags = {
     environment = "Production"
@@ -257,11 +278,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = "acctestcname%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  record              = "contoso.com"
+  name            = "acctestcname%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  record          = "contoso.com"
 
   tags = {
     environment = "staging"
