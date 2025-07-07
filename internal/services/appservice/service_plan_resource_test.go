@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServicePlanResource struct{}
@@ -157,6 +157,13 @@ func TestAccServicePlan_completeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -263,14 +270,14 @@ func (r ServicePlanResource) Exists(ctx context.Context, client *clients.Client,
 	resp, err := client.AppService.ServicePlanClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retreiving %s: %v", id, err)
 	}
 	if response.WasNotFound(resp.HttpResponse) {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 // Configs
@@ -435,7 +442,7 @@ resource "azurerm_service_plan" "test" {
     Foo         = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "East Asia")
 }
 
 func (r ServicePlanResource) completeUpdate(data acceptance.TestData) string {
@@ -458,13 +465,13 @@ resource "azurerm_service_plan" "test" {
   per_site_scaling_enabled = true
   worker_count             = 3
 
-  zone_balancing_enabled = true
+  zone_balancing_enabled = false
 
   tags = {
     Foo = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "East Asia")
 }
 
 func (r ServicePlanResource) requiresImport(data acceptance.TestData) string {

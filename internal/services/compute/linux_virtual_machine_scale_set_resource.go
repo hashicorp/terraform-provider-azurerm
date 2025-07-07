@@ -32,7 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -80,6 +79,25 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				}
 
 				return false
+			}),
+
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				networkInterfaces := diff.Get("network_interface").([]interface{})
+				for _, v := range networkInterfaces {
+					raw := v.(map[string]interface{})
+					auxiliaryMode := raw["auxiliary_mode"].(string)
+					auxiliarySku := raw["auxiliary_sku"].(string)
+
+					if auxiliaryMode != "" && auxiliarySku == "" {
+						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+					}
+
+					if auxiliarySku != "" && auxiliaryMode == "" {
+						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+					}
+				}
+
+				return nil
 			}),
 		),
 	}
@@ -383,7 +401,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		Location:         location,
 		Sku: &virtualmachinescalesets.Sku{
 			Name:     pointer.To(d.Get("sku").(string)),
-			Capacity: utils.Int64(int64(d.Get("instances").(int))),
+			Capacity: pointer.To(int64(d.Get("instances").(int))),
 
 			// doesn't appear this can be set to anything else, even Promo machines are Standard
 			Tier: pointer.To("Standard"),
@@ -769,7 +787,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if d.HasChange("instances") {
-			sku.Capacity = utils.Int64(int64(d.Get("instances").(int)))
+			sku.Capacity = pointer.To(int64(d.Get("instances").(int)))
 		}
 
 		update.Sku = sku
@@ -1095,7 +1113,7 @@ func resourceLinuxVirtualMachineScaleSetDelete(d *pluginsdk.ResourceData, meta i
 	// In order to delete the subnet, delete all the resources within the subnet. See aka.ms/deletesubnet.
 	scaleToZeroOnDelete := meta.(*clients.Client).Features.VirtualMachineScaleSet.ScaleToZeroOnDelete
 	if scaleToZeroOnDelete && resp.Model.Sku != nil {
-		resp.Model.Sku.Capacity = utils.Int64(int64(0))
+		resp.Model.Sku.Capacity = pointer.To(int64(0))
 
 		log.Printf("[DEBUG] Scaling instances to 0 prior to deletion - this helps avoids networking issues within Azure")
 		update := virtualmachinescalesets.VirtualMachineScaleSetUpdate{

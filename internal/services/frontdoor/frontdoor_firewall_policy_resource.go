@@ -4,10 +4,12 @@
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -428,6 +430,20 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsFrontDoorFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+			// the re-create would fail with the create error from the service API...
+			if IsFrontDoorDeprecatedForCreation() && d.HasChanges("name", "resource_group_name") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -470,8 +486,8 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	t := d.Get("tags").(map[string]interface{})
 
 	frontdoorWebApplicationFirewallPolicy := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
-		Name:     utils.String(name),
-		Location: utils.String(location),
+		Name:     pointer.To(name),
+		Location: pointer.To(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &webapplicationfirewallpolicies.PolicySettings{
 				EnabledState: &enabled,
@@ -484,13 +500,13 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if redirectUrl != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectURL = utils.String(redirectUrl)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectURL = pointer.To(redirectUrl)
 	}
 	if customBlockResponseBody != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = utils.String(customBlockResponseBody)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = pointer.To(customBlockResponseBody)
 	}
 	if customBlockResponseStatusCode > 0 {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = utils.Int64(int64(customBlockResponseStatusCode))
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = pointer.To(int64(customBlockResponseStatusCode))
 	}
 
 	if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy); err != nil {
@@ -600,12 +616,12 @@ func expandFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfire
 		action := custom["action"].(string)
 
 		customRule := webapplicationfirewallpolicies.CustomRule{
-			Name:                       utils.String(name),
+			Name:                       pointer.To(name),
 			Priority:                   priority,
 			EnabledState:               &enabled,
 			RuleType:                   webapplicationfirewallpolicies.RuleType(ruleType),
-			RateLimitDurationInMinutes: utils.Int64(rateLimitDurationInMinutes),
-			RateLimitThreshold:         utils.Int64(rateLimitThreshold),
+			RateLimitDurationInMinutes: pointer.To(rateLimitDurationInMinutes),
+			RateLimitThreshold:         pointer.To(rateLimitThreshold),
 			MatchConditions:            matchConditions,
 			Action:                     webapplicationfirewallpolicies.ActionType(action),
 		}
@@ -645,7 +661,7 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 			matchCondition.MatchVariable = webapplicationfirewallpolicies.MatchVariable(matchVariable)
 		}
 		if selector != "" {
-			matchCondition.Selector = utils.String(selector)
+			matchCondition.Selector = pointer.To(selector)
 		}
 
 		result = append(result, matchCondition)

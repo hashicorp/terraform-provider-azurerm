@@ -12,13 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
@@ -636,7 +635,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
 					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
-					Suspend:        utils.Bool(!model.ContinuousReconciliationEnabled),
+					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
 				},
 			}
 
@@ -746,7 +745,7 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("continuous_reconciliation_enabled") {
-				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
+				properties.Properties.Suspend = pointer.To(!model.ContinuousReconciliationEnabled)
 			}
 
 			if properties.Properties.ConfigurationProtectedSettings == nil {
@@ -921,7 +920,7 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 		}
 
 		if input.Path != "" {
-			output.Path = utils.String(input.Path)
+			output.Path = pointer.To(input.Path)
 		}
 
 		outputList[input.Name] = output
@@ -1009,7 +1008,7 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 
 	input := &inputList[0]
 	output := fluxconfiguration.BucketDefinition{
-		Insecure:              utils.Bool(!input.TlsEnabled),
+		Insecure:              pointer.To(!input.TlsEnabled),
 		SyncIntervalInSeconds: &input.SyncIntervalInSeconds,
 		TimeoutInSeconds:      &input.TimeoutInSeconds,
 	}

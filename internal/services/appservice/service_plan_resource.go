@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServicePlanResource struct{}
@@ -125,7 +124,6 @@ func (r ServicePlanResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"zone_balancing_enabled": {
 			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
 			Optional: true,
 		},
 
@@ -197,7 +195,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("App Service Environment based Service Plans can only be used with Isolated SKUs")
 				}
 				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
-					Id: utils.String(servicePlan.AppServiceEnvironmentId),
+					Id: pointer.To(servicePlan.AppServiceEnvironmentId),
 				}
 			}
 
@@ -346,7 +344,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {
-				model.Sku.Name = utils.String(state.Sku)
+				model.Sku.Name = pointer.To(state.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -363,6 +361,10 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("maximum_elastic_worker_count") {
 				model.Properties.MaximumElasticWorkerCount = pointer.To(state.MaximumElasticWorkerCount)
+			}
+
+			if metadata.ResourceData.HasChange("zone_balancing_enabled") {
+				model.Properties.ZoneRedundant = pointer.To(state.ZoneBalancing)
 			}
 
 			if err = client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
@@ -410,6 +412,23 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or with Premium Skus that has `premium_plan_auto_scale_enabled` set to `true`")
 				}
 			}
+
+			// Specifying the `zone_balancing_enabled` as `true`, SKU tier requires Premium.
+			zoneBalancing := rd.Get("zone_balancing_enabled").(bool)
+			if zoneBalancing {
+				if !strings.HasPrefix(servicePlanSku, "P") {
+					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is not Premium")
+				}
+			}
+
+			old, new := rd.GetChange("zone_balancing_enabled")
+			if old.(bool) != new.(bool) {
+				// `zone_balancing_enabled` can be disabled and enabling it requires the capacity of sku to be greater than `1`.
+				if !old.(bool) && new.(bool) && rd.Get("worker_count").(int) < 2 {
+					metadata.ResourceDiff.ForceNew("zone_balancing_enabled")
+				}
+			}
+
 			return nil
 		},
 	}

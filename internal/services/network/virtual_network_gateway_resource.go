@@ -162,14 +162,14 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
-						"public_ip_address_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: commonids.ValidatePublicIPAddressID,
-						},
+					"public_ip_address_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 			},
+		},
 
 			"policy_group": {
 				Type:     pluginsdk.TypeList,

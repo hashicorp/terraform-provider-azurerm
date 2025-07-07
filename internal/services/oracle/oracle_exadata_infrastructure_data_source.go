@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudexadatainfrastructures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudexadatainfrastructures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,8 +32,10 @@ type ExadataInfraDataModel struct {
 	AdditionalStorageCount      int64                        `tfschema:"additional_storage_count"`
 	AvailableStorageSizeInGbs   int64                        `tfschema:"available_storage_size_in_gbs"`
 	ComputeCount                int64                        `tfschema:"compute_count"`
+	ComputeModel                string                       `tfschema:"compute_model"`
 	CpuCount                    int64                        `tfschema:"cpu_count"`
 	CustomerContacts            []string                     `tfschema:"customer_contacts"`
+	DatabaseServerType          string                       `tfschema:"database_server_type"`
 	DataStorageSizeInTbs        float64                      `tfschema:"data_storage_size_in_tbs"`
 	DbNodeStorageSizeInGbs      int64                        `tfschema:"db_node_storage_size_in_gbs"`
 	DbServerVersion             string                       `tfschema:"db_server_version"`
@@ -55,6 +57,7 @@ type ExadataInfraDataModel struct {
 	Ocid                        string                       `tfschema:"ocid"`
 	Shape                       string                       `tfschema:"shape"`
 	StorageCount                int64                        `tfschema:"storage_count"`
+	StorageServerType           string                       `tfschema:"storage_server_type"`
 	StorageServerVersion        string                       `tfschema:"storage_server_version"`
 	TimeCreated                 string                       `tfschema:"time_created"`
 	TotalStorageSizeInGbs       int64                        `tfschema:"total_storage_size_in_gbs"`
@@ -114,6 +117,11 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"compute_model": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"cpu_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
@@ -125,6 +133,11 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"database_server_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"data_storage_size_in_tbs": {
@@ -320,6 +333,11 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"storage_server_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"storage_server_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -410,6 +428,9 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 					state.StorageServerVersion = pointer.From(props.StorageServerVersion)
 					state.TimeCreated = pointer.From(props.TimeCreated)
 					state.TotalStorageSizeInGbs = pointer.From(props.TotalStorageSizeInGbs)
+					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
+					state.DatabaseServerType = pointer.From(props.DatabaseServerType)
+					state.StorageServerType = pointer.From(props.StorageServerType)
 				}
 			}
 

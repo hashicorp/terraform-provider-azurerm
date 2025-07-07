@@ -4,11 +4,13 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -203,6 +205,18 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsCdnFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			if IsCdnDeprecatedForCreation() && d.HasChanges("name", "profile_name", "origin") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -247,7 +261,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("origin_host_header"); ok {
-		endpoint.EndpointProperties.OriginHostHeader = utils.String(v.(string))
+		endpoint.EndpointProperties.OriginHostHeader = pointer.To(v.(string))
 	}
 
 	if _, ok := d.GetOk("content_types_to_compress"); ok {
@@ -261,7 +275,7 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("is_compression_enabled"); ok {
-		endpoint.EndpointProperties.IsCompressionEnabled = utils.Bool(v.(bool))
+		endpoint.EndpointProperties.IsCompressionEnabled = pointer.To(v.(bool))
 	}
 
 	if optimizationType != "" {
@@ -269,11 +283,11 @@ func resourceCdnEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if originPath != "" {
-		endpoint.EndpointProperties.OriginPath = utils.String(originPath)
+		endpoint.EndpointProperties.OriginPath = pointer.To(originPath)
 	}
 
 	if probePath != "" {
-		endpoint.EndpointProperties.ProbePath = utils.String(probePath)
+		endpoint.EndpointProperties.ProbePath = pointer.To(probePath)
 	}
 
 	origins := expandAzureRmCdnEndpointOrigins(d)
@@ -386,7 +400,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if v, ok := d.GetOk("origin_host_header"); ok {
-			endpoint.EndpointProperties.OriginHostHeader = utils.String(v.(string))
+			endpoint.EndpointProperties.OriginHostHeader = pointer.To(v.(string))
 		}
 
 		if _, ok := d.GetOk("content_types_to_compress"); ok {
@@ -400,7 +414,7 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if v, ok := d.GetOk("is_compression_enabled"); ok {
-			endpoint.EndpointProperties.IsCompressionEnabled = utils.Bool(v.(bool))
+			endpoint.EndpointProperties.IsCompressionEnabled = pointer.To(v.(bool))
 		}
 
 		if optimizationType != "" {
@@ -408,11 +422,11 @@ func resourceCdnEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if originPath != "" {
-			endpoint.EndpointProperties.OriginPath = utils.String(originPath)
+			endpoint.EndpointProperties.OriginPath = pointer.To(originPath)
 		}
 
 		if probePath != "" {
-			endpoint.EndpointProperties.ProbePath = utils.String(probePath)
+			endpoint.EndpointProperties.ProbePath = pointer.To(probePath)
 		}
 
 		origins := expandAzureRmCdnEndpointOrigins(d)
@@ -569,7 +583,7 @@ func expandCdnEndpointGeoFilters(d *pluginsdk.ResourceData) *[]cdn.GeoFilter {
 
 		filter := cdn.GeoFilter{
 			Action:       cdn.GeoFilterActions(action),
-			RelativePath: utils.String(relativePath),
+			RelativePath: pointer.To(relativePath),
 			CountryCodes: &countryCodes,
 		}
 		filters = append(filters, filter)
@@ -641,20 +655,20 @@ func expandAzureRmCdnEndpointOrigins(d *pluginsdk.ResourceData) []cdn.DeepCreate
 		hostName := data["host_name"].(string)
 
 		origin := cdn.DeepCreatedOrigin{
-			Name: utils.String(name),
+			Name: pointer.To(name),
 			DeepCreatedOriginProperties: &cdn.DeepCreatedOriginProperties{
-				HostName: utils.String(hostName),
+				HostName: pointer.To(hostName),
 			},
 		}
 
 		if v, ok := data["https_port"]; ok {
 			port := v.(int)
-			origin.DeepCreatedOriginProperties.HTTPSPort = utils.Int32(int32(port))
+			origin.DeepCreatedOriginProperties.HTTPSPort = pointer.To(int32(port))
 		}
 
 		if v, ok := data["http_port"]; ok {
 			port := v.(int)
-			origin.DeepCreatedOriginProperties.HTTPPort = utils.Int32(int32(port))
+			origin.DeepCreatedOriginProperties.HTTPPort = pointer.To(int32(port))
 		}
 
 		origins = append(origins, origin)
@@ -703,7 +717,7 @@ func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface
 func expandArmCdnEndpointDeliveryPolicy(globalRulesRaw []interface{}, deliveryRulesRaw []interface{}) (*cdn.EndpointPropertiesUpdateParametersDeliveryPolicy, error) {
 	deliveryRules := make([]cdn.DeliveryRule, 0)
 	deliveryPolicy := cdn.EndpointPropertiesUpdateParametersDeliveryPolicy{
-		Description: utils.String(""),
+		Description: pointer.To(""),
 		Rules:       &deliveryRules,
 	}
 

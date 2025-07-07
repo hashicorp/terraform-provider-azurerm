@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -19,6 +21,10 @@ import (
 type CdnEndpointResource struct{}
 
 func TestAccCdnEndpoint_basic(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -34,6 +40,10 @@ func TestAccCdnEndpoint_basic(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_requiresImport(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -49,6 +59,10 @@ func TestAccCdnEndpoint_requiresImport(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_disappears(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -61,6 +75,10 @@ func TestAccCdnEndpoint_disappears(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_updateHostHeader(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -83,6 +101,10 @@ func TestAccCdnEndpoint_updateHostHeader(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_withTags(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -105,6 +127,10 @@ func TestAccCdnEndpoint_withTags(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_withoutCompression(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -120,6 +146,10 @@ func TestAccCdnEndpoint_withoutCompression(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_optimized(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -135,6 +165,10 @@ func TestAccCdnEndpoint_optimized(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -157,6 +191,10 @@ func TestAccCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_globalDeliveryRule(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -186,6 +224,10 @@ func TestAccCdnEndpoint_globalDeliveryRule(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_deliveryRule(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -222,6 +264,10 @@ func TestAccCdnEndpoint_deliveryRule(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_dnsAlias(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -237,6 +283,10 @@ func TestAccCdnEndpoint_dnsAlias(t *testing.T) {
 }
 
 func TestAccCdnEndpoint_deliveryRuleOptionalMatchValue(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -253,6 +303,10 @@ func TestAccCdnEndpoint_deliveryRuleOptionalMatchValue(t *testing.T) {
 
 // Covers https://github.com/hashicorp/terraform-provider-azurerm/issue/21450
 func TestAccCdnEndpoint_longQueryString(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -269,6 +323,10 @@ func TestAccCdnEndpoint_longQueryString(t *testing.T) {
 
 // Covers https://github.com/hashicorp/terraform-provider-azurerm/issues/22326
 func TestAccCdnEndpoint_compressionUpdate(t *testing.T) {
+	if cdn.IsCdnDeprecatedForCreation() {
+		t.Skip(cdn.CreateDeprecationMessage)
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 	r := CdnEndpointResource{}
 
@@ -320,11 +378,11 @@ func (r CdnEndpointResource) Exists(ctx context.Context, client *clients.Client,
 	resp, err := client.Cdn.EndpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving CDN Endpoint %q (Resource Group %q / Profile Name %q): %+v", id.Name, id.ResourceGroup, id.ProfileName, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -342,7 +400,7 @@ func (r CdnEndpointResource) Destroy(ctx context.Context, client *clients.Client
 		return nil, fmt.Errorf("waiting for deletion of CDN Endpoint %q (Resource Group %q / Profile %q): %+v", id.Name, id.ResourceGroup, id.ProfileName, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CdnEndpointResource) basic(data acceptance.TestData) string {

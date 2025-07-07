@@ -9,13 +9,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsQueryPackQueryResource struct{ uuid string }
@@ -29,11 +29,11 @@ func (r LogAnalyticsQueryPackQueryResource) Exists(ctx context.Context, client *
 	resp, err := client.LogAnalytics.QueryPackQueriesClient.QueriesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func TestAccLogAnalyticsQueryPackQuery_basic(t *testing.T) {
@@ -121,6 +121,7 @@ resource "azurerm_log_analytics_query_pack" "test" {
 }
 
 resource "azurerm_log_analytics_query_pack_query" "test" {
+  name          = "%[3]s"
   query_pack_id = azurerm_log_analytics_query_pack.test.id
   display_name  = "Exceptions - New in the last 24 hours"
 
@@ -139,7 +140,7 @@ resource "azurerm_log_analytics_query_pack_query" "test" {
     | order by count_ desc
   BODY
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, r.uuid)
 }
 
 func (r LogAnalyticsQueryPackQueryResource) complete(data acceptance.TestData) string {

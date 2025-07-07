@@ -1,3 +1,36 @@
+## 4.35.0 (July 01, 2025)
+
+FEATURES:
+* **New Resource**: `azurerm_email_communication_service_domain_sennder_username` ([#29340](https://github.com/hashicorp/terraform-provider-azurerm/issues/29340))
+* **New Resource**: `azurerm_management_group_policy_set_definition` ([#29863](https://github.com/hashicorp/terraform-provider-azurerm/issues/29863))
+
+ENHANCEMENTS:
+* **Data Source**: `azurerm_communication_service` - add support for the `immutable_resource_id` property ([#29912](https://github.com/hashicorp/terraform-provider-azurerm/issues/29912))
+* `azurerm_cdn_endpoint` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated ([#29299](https://github.com/hashicorp/terraform-provider-azurerm/issues/29299))
+* `azurerm_cdn_endpoint_custom_domain` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated ([#29299](https://github.com/hashicorp/terraform-provider-azurerm/issues/29299))
+* `azurerm_cdn_profile` - block creation of all Azure CDN(classic) resources while allowing existing resources to be updated ([#29299](https://github.com/hashicorp/terraform-provider-azurerm/issues/29299))
+* `azurerm_container_app_job` - add support for the `volume_mounts.sub_path` property ([#29883](https://github.com/hashicorp/terraform-provider-azurerm/issues/29883))
+* `azurerm_container_app` - add support for the `cors` property ([#29785](https://github.com/hashicorp/terraform-provider-azurerm/issues/29785))
+* `azurerm_data_protection_backup_policy_disk` - the `absolute_criteria` property now supports the `AllBackup`, `FirstOfMonth` and `FirstOfYear` values ([#29917](https://github.com/hashicorp/terraform-provider-azurerm/issues/29917))
+* `azurerm_frontdoor` - block new resource creation while allowing existing resources to be updated ([#29257](https://github.com/hashicorp/terraform-provider-azurerm/issues/29257))
+* `azurerm_frontdoor_custom_https_configuration` - block new resource creation while allowing existing resources to be updated ([#29257](https://github.com/hashicorp/terraform-provider-azurerm/issues/29257))
+* `azurerm_frontdoor_firewall_policy` - block new resource creation while allowing existing resources to be updated ([#29257](https://github.com/hashicorp/terraform-provider-azurerm/issues/29257))
+* `azurerm_frontdoor_rules_engine` - block new resource creation while allowing existing resources to be updated ([#29257](https://github.com/hashicorp/terraform-provider-azurerm/issues/29257))
+* `azurerm_function_app_flex_consumption` - add support for the `vnet_route_all_enabled` property ([#29839](https://github.com/hashicorp/terraform-provider-azurerm/issues/29839))
+* `azurerm_machine_learning_compute_cluster` - the `scale_settings` block and its sub-properties are no longer `ForceNew` ([#29878](https://github.com/hashicorp/terraform-provider-azurerm/issues/29878))
+* `azurerm_machine_learning_compute_cluster` - the `tags` property is no longer `ForceNew` ([#29878](https://github.com/hashicorp/terraform-provider-azurerm/issues/29878))
+* `azurerm_oracle_autonomous_database ` - add support for `long_term_backup_schedule` ([#29207](https://github.com/hashicorp/terraform-provider-azurerm/issues/29207)) 
+* `azurerm_policy_set_definition` - add support for the `policy_definition_reference.version` property ([#29924](https://github.com/hashicorp/terraform-provider-azurerm/issues/29924))
+* `azurerm_policy_set_definition` - migrate to use `go-azure-sdk` ([#29863](https://github.com/hashicorp/terraform-provider-azurerm/issues/29863)) 
+* `azurerm_private_link_service` - add support for the `destination_ip_address` property ([#29395](https://github.com/hashicorp/terraform-provider-azurerm/issues/29395))
+* `azurerm_purview_account` - add support for the `managed_event_hub_enabled` and `aws_external_id` properties ([#29732](https://github.com/hashicorp/terraform-provider-azurerm/issues/29732))
+* `azurerm_virtual_network_gateway` - the `ip_configuration.public_ip_address_id` property is now optional ([#30038](https://github.com/hashicorp/terraform-provider-azurerm/issues/30038))
+* `azurerm_windows_virtual_machine`: `os_disk.0.diff_disk_settings.0.placement` now supports `NvmeDisk` ([#29922](https://github.com/hashicorp/terraform-provider-azurerm/issues/29922))
+
+BUG FIXES:
+* `provider` - allow missing `subscription_id` when `use_cli` is `true` ([#29985](https://github.com/hashicorp/terraform-provider-azurerm/issues/29985))
+* `azurerm_netapp_backup_policy` - the `weekly_backups_to_keep` and `monthly_backups_to_keep` properties can now be set to `0` ([#29920](https://github.com/hashicorp/terraform-provider-azurerm/issues/29920))
+
 ## 4.34.0 (June 20, 2025)
 
 ENHANCEMENTS:
