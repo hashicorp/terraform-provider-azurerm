@@ -434,7 +434,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
-				state.ComputeModel = string(pointer.From(props.ComputeModel))
+				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
