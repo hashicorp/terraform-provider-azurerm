@@ -110,9 +110,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // IoT Hub Device Update is only available in certain locations
         "iothub" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false)),
 
-        // Lab Service is only available in certain locations
-        "labservice" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
-
         // load balancer global tire Public IP is only available in
         "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
 
@@ -121,9 +118,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Logic uses app service which is only available in certain locations
         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
-
-        // Logz is only available in certain locations
-        "logz" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 
         // Maps is only available in certain locations
         "maps" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus", false)),
