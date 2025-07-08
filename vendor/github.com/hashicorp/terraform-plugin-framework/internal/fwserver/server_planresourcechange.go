@@ -30,9 +30,11 @@ type PlanResourceChangeRequest struct {
 	Config             *tfsdk.Config
 	PriorPrivate       *privatestate.Data
 	PriorState         *tfsdk.State
+	PriorIdentity      *tfsdk.ResourceIdentity
 	ProposedNewState   *tfsdk.Plan
 	ProviderMeta       *tfsdk.Config
 	ResourceSchema     fwschema.Schema
+	IdentitySchema     fwschema.Schema
 	Resource           resource.Resource
 	ResourceBehavior   resource.ResourceBehavior
 }
@@ -44,6 +46,7 @@ type PlanResourceChangeResponse struct {
 	Diagnostics     diag.Diagnostics
 	PlannedPrivate  *privatestate.Data
 	PlannedState    *tfsdk.State
+	PlannedIdentity *tfsdk.ResourceIdentity
 	RequiresReplace path.Paths
 }
 
@@ -112,6 +115,26 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		req.PriorState = &tfsdk.State{
 			Raw:    nullTfValue,
 			Schema: req.ResourceSchema,
+		}
+	}
+
+	// If the resource supports identity and there is no prior identity data, pre-populate with a null value.
+	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
+	// TODO:ResourceIdentity: Should this be set to all unknowns?
+	if req.PriorIdentity == nil && req.IdentitySchema != nil {
+		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		req.PriorIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullIdentityTfValue.Copy(),
+		}
+	}
+
+	// Set the planned identity to the prior identity by default (can be modified later).
+	if req.PriorIdentity != nil {
+		resp.PlannedIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.PriorIdentity.Schema,
+			Raw:    req.PriorIdentity.Raw.Copy(),
 		}
 	}
 
@@ -304,9 +327,17 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			modifyPlanReq.ProviderMeta = *req.ProviderMeta
 		}
 
+		if resp.PlannedIdentity != nil {
+			modifyPlanReq.Identity = &tfsdk.ResourceIdentity{
+				Schema: resp.PlannedIdentity.Schema,
+				Raw:    resp.PlannedIdentity.Raw.Copy(),
+			}
+		}
+
 		modifyPlanResp := resource.ModifyPlanResponse{
 			Diagnostics:     resp.Diagnostics,
 			Plan:            modifyPlanReq.Plan,
+			Identity:        modifyPlanReq.Identity,
 			RequiresReplace: path.Paths{},
 			Private:         modifyPlanReq.Private,
 		}
@@ -317,6 +348,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
+		resp.PlannedIdentity = modifyPlanResp.Identity
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
 		resp.Deferred = modifyPlanResp.Deferred
@@ -336,6 +368,16 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			}
 			return
 		}
+	}
+
+	if resp.PlannedIdentity != nil && req.IdentitySchema == nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Plan Response",
+			"An unexpected error was encountered when creating the plan response. New identity data was returned by the provider planning operation, but the resource does not indicate identity support.\n\n"+
+				"This is always a problem with the provider and should be reported to the provider developer.",
+		)
+
+		return
 	}
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating

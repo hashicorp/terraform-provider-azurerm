@@ -157,6 +157,13 @@ func TestAccServicePlan_completeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -215,22 +222,6 @@ func TestAccServicePlan_memoryOptimized(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.memoryOptimized(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-// ASE tests given longer prefix to allow them to be more easily filtered out due to exceptionally long running time
-func TestAccServicePlanIsolated_appServiceEnvironmentV2(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
-	r := ServicePlanResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.aseV2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -451,7 +442,7 @@ resource "azurerm_service_plan" "test" {
     Foo         = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "East Asia")
 }
 
 func (r ServicePlanResource) completeUpdate(data acceptance.TestData) string {
@@ -474,13 +465,13 @@ resource "azurerm_service_plan" "test" {
   per_site_scaling_enabled = true
   worker_count             = 3
 
-  zone_balancing_enabled = true
+  zone_balancing_enabled = false
 
   tags = {
     Foo = "bar"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "East Asia")
 }
 
 func (r ServicePlanResource) requiresImport(data acceptance.TestData) string {
@@ -578,61 +569,6 @@ resource "azurerm_service_plan" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Secondary)
-}
-
-func (r ServicePlanResource) aseV2(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-appserviceplan-%[1]d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "ase" {
-  name                 = "asesubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_subnet" "gateway" {
-  name                 = "gatewaysubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_app_service_environment" "test" {
-  name                = "acctest-ase-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  subnet_id           = azurerm_subnet.ase.id
-}
-
-resource "azurerm_service_plan" "test" {
-  name                = "acctest-SP-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  os_type             = "Windows"
-  sku_name            = "I1"
-
-  app_service_environment_id = azurerm_app_service_environment.test.id
-
-  tags = {
-    environment = "AccTest"
-    Foo         = "bar"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ServicePlanResource) aseV3(data acceptance.TestData) string {

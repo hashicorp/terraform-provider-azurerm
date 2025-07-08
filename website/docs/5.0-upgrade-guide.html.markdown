@@ -200,6 +200,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 
+### `azurerm_kubernetes_cluster`
+
+* The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
+
+### `azurerm_kubernetes_cluster_node_pool`
+
+* The deprecated `linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `linux_os_config.transparent_huge_page` property.
+
 ### `azurerm_kusto_eventgrid_data_connection`
 
 * The deprecated `eventgrid_resource_id` property has been removed in favour of the `eventgrid_event_subscription_id` property.
@@ -224,6 +232,14 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_linux_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+
+### `azurerm_log_analytics_linked_storage_account`
+
+* The deprecated `workspace_resource_id` property has been removed and superseded by the `workspace_id` property.
+
+### `azurerm_log_analytics_workspace`
+
+* The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
 
 ### `azurerm_logic_app_standard`
 
@@ -288,6 +304,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama`
 
 * The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_policy_set_definition`
+
+* The `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
 
 ### `azurerm_redis_cache`
 
