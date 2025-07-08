@@ -68,9 +68,6 @@ The following arguments are supported:
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 
-* `virtual_network_configuration` - (Deprecated) A `virtual_network_configuration` block as defined below.
-
-~> **NOTE:** `virtual_network_configuration` is deprecated and will be removed in the future, please refer to the official [documentation](https://techcommunity.microsoft.com/blog/azuredataexplorer/deprecation-of-virtual-network-injection-for-azure-data-explorer/4198192).
 
 ~> **NOTE:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. But any changes to `virtual_network_configuration` in `Disabled` state forces a new resource to be created.
 
