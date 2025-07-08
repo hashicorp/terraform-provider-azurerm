@@ -206,6 +206,14 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `enable_internet_security` property has been removed in favour of the `internet_security_enabled` property.
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 
+### `azurerm_kubernetes_cluster`
+
+* The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
+
+### `azurerm_kubernetes_cluster_node_pool`
+
+* The deprecated `linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `linux_os_config.transparent_huge_page` property.
+
 ### `azurerm_kusto_eventgrid_data_connection`
 
 * The deprecated `eventgrid_resource_id` property has been removed in favour of the `eventgrid_event_subscription_id` property.
