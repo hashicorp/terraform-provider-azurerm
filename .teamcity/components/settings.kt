@@ -143,8 +143,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
-        // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
-        "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false)),
+        // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 5 to account for broken ones, run Monday, Wednesday, Friday - Long running, bumped to 18h 2025-07-08
+        "netapp" to testConfiguration(parallelism = 5, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false), timeout = 18),
 
         // network has increased timeout to accommodate the custom_ip_prefix resource
         "network" to testConfiguration(timeout = 24),
