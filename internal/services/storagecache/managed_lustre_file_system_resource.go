@@ -350,13 +350,16 @@ func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 					MaintenanceWindow:  expandManagedLustreFileSystemMaintenanceWindowForCreate(model.MaintenanceWindow),
 					FilesystemSubnet:   model.SubnetId,
 					StorageCapacityTiB: float64(model.StorageCapacityInTb),
-					RootSquashSettings: expandRootSquashSettings(model.RootSquashSettings),
 				},
 				Sku: &amlfilesystems.SkuName{
 					Name: pointer.To(model.SkuName),
 				},
 				Zones: pointer.To(model.Zones),
 				Tags:  pointer.To(model.Tags),
+			}
+
+			if model.RootSquashSettings != nil {
+				properties.Properties.RootSquashSettings = expandRootSquashSettings(model.RootSquashSettings)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
@@ -551,14 +554,12 @@ func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFile
 
 	rootSquashSetting := &input[0]
 
-	result := &amlfilesystems.AmlFilesystemRootSquashSettings{
+	return &amlfilesystems.AmlFilesystemRootSquashSettings{
 		Mode:             pointer.To(amlfilesystems.AmlFilesystemSquashMode(rootSquashSetting.Mode)),
 		NoSquashNidLists: pointer.To(rootSquashSetting.NoSquashNidList),
 		SquashGID:        pointer.To(rootSquashSetting.SquashGID),
 		SquashUID:        pointer.To(rootSquashSetting.SquashUID),
 	}
-
-	return result
 }
 
 func flattenRootSquashSettings(input *amlfilesystems.AmlFilesystemRootSquashSettings) []RootSquashSetting {
