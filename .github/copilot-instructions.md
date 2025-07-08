@@ -161,7 +161,7 @@ esourceNameRead
 - **Import**: Provide clear import documentation and test import functionality
 
 ### Azure-Specific Patterns
-**For comprehensive Azure-specific guidance, see `terraform-provider-guidelines.instructions.md`**
+**For comprehensive Azure-specific guidance, see `provider-guidelines.instructions.md`**
 - Use standardized resource naming patterns with resourceToken
 - Implement proper location/region handling
 - Follow Azure resource tagging conventions
@@ -295,7 +295,6 @@ if response.WasThrottled(resp.HttpResponse) {
 - Error messages must use '%+v' for verbose error output formatting
 - Error messages must be clear, concise, and provide actionable guidance
 
-
 #### CustomizeDiff Implementation Pattern
 
 **Dual Import Requirement:**
@@ -343,7 +342,6 @@ func resourceServiceName() *pluginsdk.Resource {
 - However, CustomizeDiff function signatures are **not** aliased and must use *schema.ResourceDiff
 - The pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers are available in the internal package
 - Resource and schema definitions use pluginsdk types for consistency
-
 
 ### Detailed Implementation Guidance
 

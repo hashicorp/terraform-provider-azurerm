@@ -15,10 +15,10 @@
             "file": ".github/instructions/coding-patterns.instructions.md"
         },
         {
-            "file": ".github/instructions/terraform-documentation-guidelines.instructions.md"
+            "file": ".github/instructions/documentation-guidelines.instructions.md"
         },
         {
-            "file": ".github/instructions/terraform-provider-guidelines.instructions.md"
+            "file": ".github/instructions/provider-guidelines.instructions.md"
         },
         {
             "file": ".github/instructions/testing-guidelines.instructions.md"
@@ -35,7 +35,7 @@
             "file": ".github/instructions/coding-patterns.instructions.md"
         },
         {
-            "file": ".github/instructions/terraform-provider-guidelines.instructions.md"
+            "file": ".github/instructions/provider-guidelines.instructions.md"
         },
         {
             "file": ".github/instructions/testing-guidelines.instructions.md"
@@ -53,10 +53,10 @@
             "file": ".github/instructions/coding-patterns.instructions.md"
         },
         {
-            "file": ".github/instructions/terraform-documentation-guidelines.instructions.md"
+            "file": ".github/instructions/documentation-guidelines.instructions.md"
         },
         {
-            "file": ".github/instructions/terraform-provider-guidelines.instructions.md"
+            "file": ".github/instructions/provider-guidelines.instructions.md"
         },
         {
             "file": ".github/instructions/testing-guidelines.instructions.md"
