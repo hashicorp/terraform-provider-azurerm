@@ -900,6 +900,10 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkAclBypass:                   pointer.To(networkByPass),
 			NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
+<<<<<<< HEAD
+=======
+			DisableLocalAuth:                   pointer.To(disableLocalAuthentication),
+>>>>>>> 833ec59ad7e4a6364717d409bd21031975503527
 		},
 		Tags: tags.Expand(t),
 	}
@@ -1222,6 +1226,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
+<<<<<<< HEAD
 	// Only do this update if a value has changed above...
 	if updateRequired {
 		log.Printf("[INFO] Updating AzureRM Cosmos DB Account: Updating 'DatabaseAccountCreateUpdateParameters'")
@@ -1229,6 +1234,19 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// Update the database...
 		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
+=======
+		// NOTE: these fields are expanded directly into the
+		// 'DatabaseAccountCreateUpdateParameters' below or
+		// are included in the 'DatabaseAccountCreateUpdateParameters'
+		// later, however we need to know if they changed or not...
+		if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
+			"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
+			"capacity", "create_mode", "restore", "key_vault_key_id", "managed_hsm_key_id", "mongo_server_version",
+			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
+			"kind", "tags", "automatic_failover_enabled", "analytical_storage_enabled",
+			"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled") {
+			updateRequired = true
+>>>>>>> 833ec59ad7e4a6364717d409bd21031975503527
 		}
 	} else {
 		log.Printf("[INFO] [SKIP] AzureRM Cosmos DB Account: Update 'DatabaseAccountCreateUpdateParameters' [NO CHANGE]")

@@ -151,3 +151,9 @@ Databricks Workspace Root DBFS Customer Managed Key can be imported using the `r
 ```shell
 terraform import azurerm_databricks_workspace_root_dbfs_customer_managed_key.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Databricks`: 2024-05-01

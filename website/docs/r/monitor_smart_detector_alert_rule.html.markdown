@@ -103,3 +103,9 @@ Monitor Smart Detector Alert Rule can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_smart_detector_alert_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AlertsManagement/smartDetectorAlertRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AlertsManagement`: 2019-06-01

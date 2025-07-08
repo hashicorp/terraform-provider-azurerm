@@ -167,7 +167,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 			"storage_quota_in_gb": {
 				Type:         pluginsdk.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(50, 102400),
+				ValidateFunc: validation.IntBetween(50, 1048576),
 			},
 
 			"throughput_in_mibps": {
@@ -391,8 +391,60 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Default:     false,
 				Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
 			},
+
+			"large_volume_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Indicates whether the volume is a large volume.",
+			},
+
+			"cool_access": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"retrieval_policy": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForCoolAccessRetrievalPolicy(), false),
+						},
+
+						"tiering_policy": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForCoolAccessTieringPolicy(), false),
+						},
+
+						"coolness_period_in_days": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(2, 183),
+						},
+					},
+				},
+			},
 		},
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			// Validate large volume and storage_quota_in_gb based on Azure NetApp Files requirements
+			isLargeVolume := d.Get("large_volume_enabled").(bool)
+			storageQuotaInGB := d.Get("storage_quota_in_gb").(int)
+
+			switch {
+			case isLargeVolume && storageQuotaInGB < 51200:
+				// Large volumes must be at least 50 TiB (51,200 GB)
+				return fmt.Errorf("when `large_volume_enabled` is true, `storage_quota_in_gb` must be at least 51,200 GB (50 TiB)")
+			case isLargeVolume && storageQuotaInGB > 1048576:
+				// Validate against the maximum (1 PiB / 1,048,576 GB)
+				return fmt.Errorf("`storage_quota_in_gb` must not exceed 1,048,576 GB (1 PiB); larger sizes require requesting special quota")
+			case !isLargeVolume && storageQuotaInGB > 102400:
+				// Non-large volumes cannot be larger than 100 TiB (102,400 GB)
+				return fmt.Errorf("when `large_volume_enabled` is false, `storage_quota_in_gb` must not exceed 102,400 GB (100 TiB); set `large_volume_enabled` to true for larger volumes")
+			default:
+				// All validations passed - no action needed
+			}
+
 			if d.HasChanges("service_level", "pool_name") {
 				serviceLevelChange := d.HasChange("service_level")
 				poolNameChange := d.HasChange("pool_name")
@@ -504,7 +556,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	// Validate applicability of backup policies
 	if dataProtectionReplication != nil && dataProtectionReplication.Backup != nil {
 		// Validate that backup policies are not being enforced in a data protection replication destination volume
-		if strings.EqualFold(volumeType, "dst") && dataProtectionReplication.Backup.PolicyEnforced == utils.Bool(true) {
+		if strings.EqualFold(volumeType, "dst") && dataProtectionReplication.Backup.PolicyEnforced == pointer.To(true) {
 			return fmt.Errorf("backup policy cannot be enforced on a data protection destination volume, NetApp Volume %q (Resource Group %q)", id.VolumeName, id.ResourceGroupName)
 		}
 	}
@@ -565,11 +617,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			if !strings.EqualFold(sourceVolumeId.NetAppAccountName, id.NetAppAccountName) {
 				propertyMismatch = append(propertyMismatch, "account_name")
 			}
-			if !strings.EqualFold(sourceVolumeId.CapacityPoolName, id.CapacityPoolName) {
-				propertyMismatch = append(propertyMismatch, "pool_name")
-			}
 			if len(propertyMismatch) > 0 {
-				return fmt.Errorf("following NetApp Volume properties on new Volume from Snapshot does not match Snapshot's source %s: %s", id, strings.Join(propertyMismatch, ", "))
+				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s\n", strings.Join(propertyMismatch, "\n"))
 			}
 		}
 	}
@@ -595,22 +644,31 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			SecurityStyle:             &securityStyle,
 			UsageThreshold:            storageQuotaInGB,
 			ExportPolicy:              exportPolicyRule,
-			VolumeType:                utils.String(volumeType),
-			SnapshotId:                utils.String(snapshotID),
+			VolumeType:                pointer.To(volumeType),
+			SnapshotId:                pointer.To(snapshotID),
 			DataProtection: &volumes.VolumePropertiesDataProtection{
 				Replication: dataProtectionReplication.Replication,
 				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
 				Backup:      dataProtectionBackupPolicy.Backup,
 			},
 			AvsDataStore:             &avsDataStoreEnabled,
-			SnapshotDirectoryVisible: utils.Bool(snapshotDirectoryVisible),
+			SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
+			IsLargeVolume:            pointer.To(d.Get("large_volume_enabled").(bool)),
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
 	}
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
-		parameters.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+		parameters.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
+	}
+
+	if len(d.Get("cool_access").([]interface{})) > 0 {
+		coolAccess := d.Get("cool_access").([]interface{})[0].(map[string]interface{})
+		parameters.Properties.CoolAccess = pointer.To(true)
+		parameters.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
+		parameters.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
+		parameters.Properties.CoolnessPeriod = pointer.To(int64(coolAccess["coolness_period_in_days"].(int)))
 	}
 
 	if encryptionKeySource, ok := d.GetOk("encryption_key_source"); ok {
@@ -644,7 +702,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 
 		if err = replicationClient.VolumesAuthorizeReplicationThenPoll(ctx, *replVolID, volumesreplication.AuthorizeRequest{
-			RemoteVolumeResourceId: utils.String(id.ID()),
+			RemoteVolumeResourceId: pointer.To(id.ID()),
 		},
 		); err != nil {
 			return fmt.Errorf("cannot authorize volume replication: %v", err)
@@ -688,7 +746,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("storage_quota_in_gb") {
 		storageQuotaInBytes := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
-		update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
+		update.Properties.UsageThreshold = pointer.To(storageQuotaInBytes)
 	}
 
 	if d.HasChange("export_policy_rule") {
@@ -733,7 +791,7 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("throughput_in_mibps") {
 		throughputMibps := d.Get("throughput_in_mibps")
-		update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+		update.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
 	}
 
 	if d.HasChange("smb_non_browsable_enabled") {
@@ -751,6 +809,27 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		if d.Get("smb_access_based_enumeration_enabled").(bool) {
 			smbAccessBasedEnumeration := volumes.SmbAccessBasedEnumerationEnabled
 			update.Properties.SmbAccessBasedEnumeration = &smbAccessBasedEnumeration
+		}
+	}
+
+	if d.HasChange("cool_access") {
+		if len(d.Get("cool_access").([]interface{})) > 0 {
+			coolAccess := d.Get("cool_access").([]interface{})[0].(map[string]interface{})
+			update.Properties.CoolAccess = pointer.To(true)
+
+			if d.HasChange("cool_access.0.retrieval_policy") {
+				update.Properties.CoolAccessRetrievalPolicy = pointer.To(volumes.CoolAccessRetrievalPolicy(coolAccess["retrieval_policy"].(string)))
+			}
+
+			if d.HasChange("cool_access.0.tiering_policy") {
+				update.Properties.CoolAccessTieringPolicy = pointer.To(volumes.CoolAccessTieringPolicy(coolAccess["tiering_policy"].(string)))
+			}
+
+			if d.HasChange("cool_access.0.coolness_period_in_days") {
+				update.Properties.CoolnessPeriod = pointer.To(int64(coolAccess["coolness_period_in_days"].(int)))
+			}
+		} else {
+			update.Properties.CoolAccess = pointer.To(false)
 		}
 	}
 
@@ -846,6 +925,20 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("storage_quota_in_gb", props.UsageThreshold/1073741824)
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
+		d.Set("large_volume_enabled", props.IsLargeVolume)
+
+		if pointer.From(props.CoolAccess) {
+			// enums returned from the API are inconsistent so normalize them here
+			// https://github.com/Azure/azure-rest-api-specs/issues/35371
+			coolAccess := map[string]interface{}{
+				"retrieval_policy":        normalizeCoolAccessRetrievalPolicy(pointer.From(props.CoolAccessRetrievalPolicy)),
+				"tiering_policy":          normalizeCoolAccessTieringPolicy(pointer.From(props.CoolAccessTieringPolicy)),
+				"coolness_period_in_days": pointer.From(props.CoolnessPeriod),
+			}
+			d.Set("cool_access", []interface{}{coolAccess})
+		} else {
+			d.Set("cool_access", []interface{}{})
+		}
 
 		smbNonBrowsable := false
 		if props.SmbNonBrowsable != nil {
@@ -939,7 +1032,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 				// Can't use VolumesBreakReplicationThenPoll because from time to time the LRO SDK fails,
 				// please see Pandora's issue: https://github.com/hashicorp/pandora/issues/4571
 				if _, err = replicationClient.VolumesBreakReplication(ctx, *replicaVolumeId, volumesreplication.BreakReplicationRequest{
-					ForceBreakReplication: utils.Bool(true),
+					ForceBreakReplication: pointer.To(true),
 				}); err != nil {
 					return fmt.Errorf("breaking replication for %s: %+v", *replicaVolumeId, err)
 				}
@@ -978,7 +1071,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 					Properties: &volumes.VolumePatchProperties{
 						DataProtection: &volumes.VolumePatchPropertiesDataProtection{
 							Backup: &volumes.VolumeBackupProperties{
-								PolicyEnforced: utils.Bool(false),
+								PolicyEnforced: pointer.To(false),
 							},
 						},
 					},
@@ -1023,7 +1116,7 @@ func resourceNetAppVolumeDelete(d *pluginsdk.ResourceData, meta interface{}) err
 
 	// Deleting volume and waiting for it fo fully complete the operation
 	if err = client.DeleteThenPoll(ctx, *id, volumes.DeleteOperationOptions{
-		ForceDelete: utils.Bool(true),
+		ForceDelete: pointer.To(true),
 	}); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
@@ -1076,20 +1169,20 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			kerberos5prw := v["kerberos_5p_read_write_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients:      utils.String(allowedClients),
-				Cifs:                utils.Bool(cifsEnabled),
-				Nfsv3:               utils.Bool(nfsv3Enabled),
-				Nfsv41:              utils.Bool(nfsv41Enabled),
-				Kerberos5ReadOnly:   utils.Bool(kerberos5ro),
-				Kerberos5ReadWrite:  utils.Bool(kerberos5rw),
-				Kerberos5iReadOnly:  utils.Bool(kerberos5iro),
-				Kerberos5iReadWrite: utils.Bool(kerberos5irw),
-				Kerberos5pReadOnly:  utils.Bool(kerberos5pro),
-				Kerberos5pReadWrite: utils.Bool(kerberos5prw),
-				RuleIndex:           utils.Int64(ruleIndex),
-				UnixReadOnly:        utils.Bool(unixReadOnly),
-				UnixReadWrite:       utils.Bool(unixReadWrite),
-				HasRootAccess:       utils.Bool(rootAccessEnabled),
+				AllowedClients:      pointer.To(allowedClients),
+				Cifs:                pointer.To(cifsEnabled),
+				Nfsv3:               pointer.To(nfsv3Enabled),
+				Nfsv41:              pointer.To(nfsv41Enabled),
+				Kerberos5ReadOnly:   pointer.To(kerberos5ro),
+				Kerberos5ReadWrite:  pointer.To(kerberos5rw),
+				Kerberos5iReadOnly:  pointer.To(kerberos5iro),
+				Kerberos5iReadWrite: pointer.To(kerberos5irw),
+				Kerberos5pReadOnly:  pointer.To(kerberos5pro),
+				Kerberos5pReadWrite: pointer.To(kerberos5prw),
+				RuleIndex:           pointer.To(ruleIndex),
+				UnixReadOnly:        pointer.To(unixReadOnly),
+				UnixReadWrite:       pointer.To(unixReadWrite),
+				HasRootAccess:       pointer.To(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -1136,14 +1229,14 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			rootAccessEnabled := v["root_access_enabled"].(bool)
 
 			result := volumes.ExportPolicyRule{
-				AllowedClients: utils.String(allowedClients),
-				Cifs:           utils.Bool(cifsEnabled),
-				Nfsv3:          utils.Bool(nfsv3Enabled),
-				Nfsv41:         utils.Bool(nfsv41Enabled),
-				RuleIndex:      utils.Int64(ruleIndex),
-				UnixReadOnly:   utils.Bool(unixReadOnly),
-				UnixReadWrite:  utils.Bool(unixReadWrite),
-				HasRootAccess:  utils.Bool(rootAccessEnabled),
+				AllowedClients: pointer.To(allowedClients),
+				Cifs:           pointer.To(cifsEnabled),
+				Nfsv3:          pointer.To(nfsv3Enabled),
+				Nfsv41:         pointer.To(nfsv41Enabled),
+				RuleIndex:      pointer.To(ruleIndex),
+				UnixReadOnly:   pointer.To(unixReadOnly),
+				UnixReadWrite:  pointer.To(unixReadWrite),
+				HasRootAccess:  pointer.To(rootAccessEnabled),
 			}
 
 			results = append(results, result)
@@ -1280,5 +1373,29 @@ func flattenNetAppVolumeDataProtectionBackupPolicy(input *volumes.VolumeProperti
 			"policy_enabled":   policyEnforced,
 			"backup_vault_id":  backupVaultID,
 		},
+	}
+}
+
+func normalizeCoolAccessTieringPolicy(coolAccessTieringPolicy volumes.CoolAccessTieringPolicy) string {
+	switch strings.ToLower(string(coolAccessTieringPolicy)) {
+	case "auto":
+		return string(volumes.CoolAccessTieringPolicyAuto)
+	case "snapshot-only":
+		return string(volumes.CoolAccessTieringPolicySnapshotOnly)
+	default:
+		return string(coolAccessTieringPolicy)
+	}
+}
+
+func normalizeCoolAccessRetrievalPolicy(coolAccessRetrievalPolicy volumes.CoolAccessRetrievalPolicy) string {
+	switch strings.ToLower(string(coolAccessRetrievalPolicy)) {
+	case "never":
+		return string(volumes.CoolAccessRetrievalPolicyNever)
+	case "default":
+		return string(volumes.CoolAccessRetrievalPolicyDefault)
+	case "on-read":
+		return string(volumes.CoolAccessRetrievalPolicyOnRead)
+	default:
+		return string(coolAccessRetrievalPolicy)
 	}
 }

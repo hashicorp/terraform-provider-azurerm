@@ -139,7 +139,7 @@ The following arguments are supported:
 
 * `storage` - (Optional) A `storage` block as defined below.
 
-* `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, and `8.0.21`. Changing this forces a new MySQL Flexible Server to be created.
+* `version` - (Optional) The version of the MySQL Flexible Server to use. Possible values are `5.7`, and `8.0.21`.
 
 * `zone` - (Optional) Specifies the Availability Zone in which this MySQL Flexible Server should be located. Possible values are `1`, `2` and `3`.
 
@@ -237,3 +237,9 @@ MySQL Flexible Servers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mysql_flexible_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforMySQL/flexibleServers/flexibleServer1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforMySQL`: 2023-12-30
