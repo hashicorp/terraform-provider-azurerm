@@ -109,7 +109,7 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					// creation with `free`, `premium` and `standard` is not allowed on API side, keep these values for existing resources.
+					// creation with `Premium` and `Standard` is not allowed on API side, keep these values for existing resources.
 					string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight),
 					string(workspaces.WorkspaceSkuNameEnumPerNode),
 					string(workspaces.WorkspaceSkuNameEnumPremium),
@@ -222,12 +222,12 @@ func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.Res
 			d.ForceNew("sku")
 		}
 
-		// Creation or update workspace to `free`, `standard` or `premium` sku is not allowed. Referrece: https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers
-		if strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumFree)) ||
-			strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumStandard)) ||
+		// Creation or update workspace to `standard` or `premium` SKU is not allowed. Reference:
+		// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers
+		if strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumStandard)) ||
 			strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPremium)) {
-			return fmt.Errorf("Creation of workspace with `free`, `standard` or `premium` SKU is not allowed.")
-		}
+			return fmt.Errorf("creation of log analytics workspaces with `Standard` or `Premium` SKUs is no longer supported by Azure - see https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers")
+
 	}
 
 	return nil
