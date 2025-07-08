@@ -183,22 +183,14 @@ provider "azurerm" {
 %s
 
 resource "azurerm_mobile_network_slice" "test" {
-<<<<<<< HEAD
   name               = "acctest-mns-%d"
   mobile_network_id  = azurerm_mobile_network.test.id
   location           = azurerm_mobile_network.test.location
   description        = "my favorite slice2"
   slice_service_type = 1
-=======
-  name              = "acctest-mns-%d"
-  mobile_network_id = azurerm_mobile_network.test.id
-  location          = azurerm_mobile_network.test.location
-  description       = "my favorite slice2"
-
   single_network_slice_selection_assistance_information {
     slice_service_type = 2
   }
->>>>>>> 833ec59ad7e4a6364717d409bd21031975503527
 
   tags = {
     key = "value"
