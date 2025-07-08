@@ -6,7 +6,6 @@ package devcenter
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
