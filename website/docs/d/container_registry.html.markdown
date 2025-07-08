@@ -43,7 +43,7 @@ The following attributes are exported:
 
 * `data_endpoint_enabled` - Whether dedicated data endpoints for this Container Registry are enabled?
 
-* `data_endpoint_host_names` - A set of data endpoints associated with the container registry if data endpoints are enabled.
+* `data_endpoint_host_names` - A set of data endpoint hostnames associated with the container registry if data endpoints are enabled.
 
 * `location` - The Azure Region in which this Container Registry exists.
 

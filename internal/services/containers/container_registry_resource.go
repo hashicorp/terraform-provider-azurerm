@@ -245,11 +245,9 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 			"data_endpoint_host_names": {
 				Type:     pluginsdk.TypeSet,
-				Optional: true,
 				Computed: true,
 				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type: pluginsdk.TypeString,
 				},
 			},
 
