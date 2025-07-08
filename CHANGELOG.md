@@ -4,6 +4,8 @@ FEATURES:
 * **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` [GH-28956]
 
 ENHANCEMENTS:
+* `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
+* Data Source: `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
 * `azurerm_private_dns_zone_virtual_network_link` - add support for the `resolution_policy` property [GH-29861]
 * Data Source: `azurerm_private_dns_zone_virtual_network_link` - add support for the `resolution_policy` property [GH-29861]
 * `azurerm_service_plan` - allow updating `zone_balancing_enabled` without recreating the resource in supported configurations [GH-29810]
