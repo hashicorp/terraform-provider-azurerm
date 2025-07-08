@@ -366,17 +366,24 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					return fmt.Errorf("`rolling_upgrade_policy` is required when `upgrade_mode` is set to `%s`", string(upgradeMode))
 				}
 
-				networkApiVersion := (virtualmachinescalesets.NetworkApiVersion)(diff.Get("network_api_version").(string))
-				if networkApiVersion == virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne {
-					if networkInterfaces, hasNetworkInterface := diff.GetOk("network_interface"); hasNetworkInterface {
-						for _, networkInterface := range networkInterfaces.([]interface{}) {
-							raw := networkInterface.(map[string]interface{})
-							auxiliaryMode := raw["auxiliary_mode"].(string)
-							auxiliarySku := raw["auxiliary_sku"].(string)
+				networkInterfaces := diff.Get("network_interface").([]interface{})
+				for _, networkInterface := range networkInterfaces {
+					raw := networkInterface.(map[string]interface{})
+					auxiliaryMode := raw["auxiliary_mode"].(string)
+					auxiliarySku := raw["auxiliary_sku"].(string)
 
-							if auxiliaryMode != "" || auxiliarySku != "" {
-								return fmt.Errorf("`auxiliary_mode` and `auxiliary_sku` can be set only when `network_api_version` is later than `2020-11-01`")
-							}
+					if auxiliaryMode != "" && auxiliarySku == "" {
+						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+					}
+
+					if auxiliarySku != "" && auxiliaryMode == "" {
+						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+					}
+
+					if auxiliaryMode != "" {
+						networkApiVersion := (virtualmachinescalesets.NetworkApiVersion)(diff.Get("network_api_version").(string))
+						if networkApiVersion == virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne {
+							return fmt.Errorf("`auxiliary_mode` and `auxiliary_sku` can be set only when `network_api_version` is later than `2020-11-01`")
 						}
 					}
 				}
