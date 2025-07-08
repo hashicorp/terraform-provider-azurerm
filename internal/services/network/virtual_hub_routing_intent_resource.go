@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_routing_intent -service-package-name network -properties "routing_intent_name:name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_routing_intent -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
 
 type VirtualHubRoutingIntentModel struct {
 	Name            string          `tfschema:"name"`

@@ -30,7 +30,7 @@ func TestAccDedicatedHost_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dedicated_host.test", tfjsonpath.New("host_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dedicated_host.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dedicated_host.test", tfjsonpath.New("host_group_name"), tfjsonpath.New("dedicated_host_group_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dedicated_host.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("dedicated_host_group_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dedicated_host.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("dedicated_host_group_id")),

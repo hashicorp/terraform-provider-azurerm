@@ -31,7 +31,7 @@ func TestAccBastionHost_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_bastion_host.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_bastion_host.test", tfjsonpath.New("bastion_host_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_bastion_host.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_bastion_host.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},

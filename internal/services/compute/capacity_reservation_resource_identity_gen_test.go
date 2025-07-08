@@ -30,7 +30,7 @@ func TestAccCapacityReservation_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("capacity_reservation_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("capacity_reservation_group_name"), tfjsonpath.New("capacity_reservation_group_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("capacity_reservation_group_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("capacity_reservation_group_id")),

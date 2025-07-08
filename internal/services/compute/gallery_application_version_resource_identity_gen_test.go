@@ -30,7 +30,7 @@ func TestAccGalleryApplicationVersion_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_gallery_application_version.test", tfjsonpath.New("version_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_gallery_application_version.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_gallery_application_version.test", tfjsonpath.New("application_name"), tfjsonpath.New("gallery_application_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_gallery_application_version.test", tfjsonpath.New("gallery_name"), tfjsonpath.New("gallery_application_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_gallery_application_version.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("gallery_application_id")),

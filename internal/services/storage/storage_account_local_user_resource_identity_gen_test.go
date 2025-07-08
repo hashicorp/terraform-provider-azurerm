@@ -30,7 +30,7 @@ func TestAccStorageAccountLocalUser_resourceIdentity(t *testing.T) {
 			{
 				Config: r.passwordOnly(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_account_local_user.test", tfjsonpath.New("local_user_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_storage_account_local_user.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_account_local_user.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("storage_account_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_account_local_user.test", tfjsonpath.New("storage_account_name"), tfjsonpath.New("storage_account_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_account_local_user.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("storage_account_id")),

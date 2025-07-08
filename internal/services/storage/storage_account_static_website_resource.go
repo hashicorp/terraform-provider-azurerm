@@ -23,8 +23,8 @@ import (
 type AccountStaticWebsiteResource struct{}
 
 var (
-	_ sdk.ResourceWithUpdate   = AccountStaticWebsiteResource{}
-	_ sdk.ResourceWithIdentity = AccountStaticWebsiteResource{}
+	_ sdk.ResourceWithUpdate               = AccountStaticWebsiteResource{}
+	_ sdk.ResourceWithIdentityTypeOverride = AccountStaticWebsiteResource{}
 )
 
 type AccountStaticWebsiteResourceModel struct {
@@ -77,8 +77,12 @@ func (a AccountStaticWebsiteResource) IDValidationFunc() pluginsdk.SchemaValidat
 	return commonids.ValidateStorageAccountID
 }
 
-func (s AccountStaticWebsiteResource) Identity() resourceids.ResourceId {
+func (a AccountStaticWebsiteResource) Identity() resourceids.ResourceId {
 	return &commonids.StorageAccountId{}
+}
+
+func (a AccountStaticWebsiteResource) IdentityType() pluginsdk.ResourceTypeForIdentity {
+	return pluginsdk.ResourceTypeForIdentityVirtual
 }
 
 func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
@@ -193,7 +197,7 @@ func (a AccountStaticWebsiteResource) Read() sdk.ResourceFunc {
 				state.Error404Document = website.ErrorDocument404Path
 			}
 
-			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+			if err = pluginsdk.SetResourceIdentityData(metadata.ResourceData, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
 				return err
 			}
 

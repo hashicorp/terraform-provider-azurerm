@@ -16,7 +16,29 @@ import (
 
 // These functions support generating the resource identity schema for the following types of identities and resources
 // * Hierarchical IDs (untyped and typed resources)
-// * IDs for resources with a Discriminated Type (untyped and typed resources)
+
+// ResourceTypeForIdentity is used to select different schema generation behaviours depending on the type of resource/resource ID
+type ResourceTypeForIdentity int
+
+const (
+	ResourceTypeForIdentityDefault = iota
+	ResourceTypeForIdentityVirtual
+)
+
+func identityType(idType []ResourceTypeForIdentity) ResourceTypeForIdentity {
+	var t ResourceTypeForIdentity
+
+	switch len(idType) {
+	case 0:
+		t = ResourceTypeForIdentityDefault
+	case 1:
+		t = idType[0]
+	default:
+		panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
+	}
+
+	return t
+}
 
 // segmentTypeSupported contains a list of segments that should be used to construct the resource identity schema
 // this list will need to be extended to support hierarchical resource IDs for management groups or resources
@@ -31,34 +53,35 @@ func segmentTypeSupported(segment resourceids.SegmentType) bool {
 	return slices.Contains(supportedSegmentTypes, segment)
 }
 
-// GenerateIdentitySchemaWithDiscriminatedType appends a discriminated type field to the resource identity schema generated
-// from the resource ID type
-func GenerateIdentitySchemaWithDiscriminatedType(id resourceids.ResourceId, field string) func() map[string]*schema.Schema {
-	return func() map[string]*schema.Schema {
-		identitySchema := identitySchema(id)
-
-		identitySchema[field] = &schema.Schema{
-			Type:              schema.TypeString,
-			RequiredForImport: true,
+func segmentName(segment resourceids.Segment, idType ResourceTypeForIdentity, numSegments, idx int) string {
+	switch idType {
+	case ResourceTypeForIdentityVirtual:
+		return strcase.ToSnake(segment.Name)
+	default:
+		// For the last segment, if it's a `*Name` field, we generate it as `name` rather than snake casing the segment's name
+		if (idx+1) == numSegments && strings.HasSuffix(segment.Name, "Name") {
+			return "name"
 		}
-
-		return identitySchema
+		return strcase.ToSnake(segment.Name)
 	}
 }
 
 // GenerateIdentitySchema generates the resource identity schema from the resource ID type
-func GenerateIdentitySchema(id resourceids.ResourceId) func() map[string]*schema.Schema {
+func GenerateIdentitySchema(id resourceids.ResourceId, idType ...ResourceTypeForIdentity) func() map[string]*schema.Schema {
 	return func() map[string]*schema.Schema {
-		return identitySchema(id)
+		return identitySchema(id, identityType(idType))
 	}
 }
 
-func identitySchema(id resourceids.ResourceId) map[string]*schema.Schema {
-	idSchema := make(map[string]*schema.Schema, 0)
-	for _, segment := range id.Segments() {
-		name := strcase.ToSnake(segment.Name)
+func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity) map[string]*schema.Schema {
+	idSchema := make(map[string]*schema.Schema)
 
+	segments := id.Segments()
+	numSegments := len(segments)
+	for idx, segment := range segments {
 		if segmentTypeSupported(segment.Type) {
+			name := segmentName(segment, idType, numSegments, idx)
+
 			idSchema[name] = &schema.Schema{
 				Type:              schema.TypeString,
 				RequiredForImport: true,
@@ -68,22 +91,24 @@ func identitySchema(id resourceids.ResourceId) map[string]*schema.Schema {
 	return idSchema
 }
 
-// ValidateResourceIdentityData validates the resource identity data provided by the user when peforming a plannable
+// ValidateResourceIdentityData validates the resource identity data provided by the user when performing a plannable
 // import using resource identity
-func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId) error {
+func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
 	}
 
 	identityString := "/"
-	for _, segment := range id.Segments() {
-		name := strcase.ToSnake(segment.Name)
-
+	segments := id.Segments()
+	numSegments := len(segments)
+	for idx, segment := range segments {
 		if segment.Type == resourceids.StaticSegmentType || segment.Type == resourceids.ResourceProviderSegmentType {
 			identityString += pointer.From(segment.FixedValue) + "/"
 		}
 		if segmentTypeSupported(segment.Type) {
+			name := segmentName(segment, identityType(idType), numSegments, idx)
+
 			field, ok := identity.GetOk(name)
 			if !ok {
 				return fmt.Errorf("getting %q in resource identity", name)
@@ -117,48 +142,32 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 }
 
 // SetResourceIdentityData sets the resource identity data in state
-func SetResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId) error {
+func SetResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
 	}
 
-	if err := resourceIdentityData(identity, id); err != nil {
+	if err := resourceIdentityData(identity, id, identityType(idType)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// SetResourceIdentityDataDiscriminatedType sets the resource identity data, which includes a discriminated type in state
-func SetResourceIdentityDataDiscriminatedType(d *schema.ResourceData, id resourceids.ResourceId, discriminatedType DiscriminatedType) error {
-	identity, err := d.Identity()
-	if err != nil {
-		return fmt.Errorf("getting identity: %+v", err)
-	}
-
-	if err := resourceIdentityData(identity, id); err != nil {
-		return err
-	}
-
-	if err = identity.Set(discriminatedType.Field, discriminatedType.Value); err != nil {
-		return fmt.Errorf("setting `%s` in resource identity: %+v", discriminatedType, err)
-	}
-
-	return nil
-}
-
-func resourceIdentityData(identity *schema.IdentityData, id resourceids.ResourceId) error {
+func resourceIdentityData(identity *schema.IdentityData, id resourceids.ResourceId, idType ResourceTypeForIdentity) error {
 	parser := resourceids.NewParserFromResourceIdType(id)
 	parsed, err := parser.Parse(id.ID(), true)
 	if err != nil {
 		return fmt.Errorf("parsing resource ID: %s", err)
 	}
 
-	for _, segment := range id.Segments() {
-		name := strcase.ToSnake(segment.Name)
-
+	segments := id.Segments()
+	numSegments := len(segments)
+	for idx, segment := range segments {
 		if segmentTypeSupported(segment.Type) {
+			name := segmentName(segment, idType, numSegments, idx)
+
 			field, ok := parsed.Parsed[segment.Name]
 			if !ok {
 				return fmt.Errorf("field `%s` was not found in the parsed resource ID %s", name, id)

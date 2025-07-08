@@ -31,8 +31,8 @@ func TestAccVirtualHub_resourceIdentity(t *testing.T) {
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
 					statecheck.ExpectIdentityValue("azurerm_virtual_hub.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_hub.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_hub.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_hub.test", tfjsonpath.New("virtual_hub_name"), tfjsonpath.New("name")),
 				},
 			},
 			data.ImportBlockWithResourceIdentityStep(),

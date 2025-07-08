@@ -30,7 +30,7 @@ func TestAccRouteMap_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data, "ident"),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_route_map.test", tfjsonpath.New("route_map_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_route_map.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_map.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("virtual_hub_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_map.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("virtual_hub_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_map.test", tfjsonpath.New("virtual_hub_name"), tfjsonpath.New("virtual_hub_id")),

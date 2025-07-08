@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_local_user -service-package-name storage -properties "local_user_name:name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "passwordOnly"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_local_user -service-package-name storage -properties "name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "passwordOnly"
 
 type LocalUserResource struct{}
 

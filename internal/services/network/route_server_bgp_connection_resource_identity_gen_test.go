@@ -30,7 +30,7 @@ func TestAccRouteServerBgpConnection_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_route_server_bgp_connection.test", tfjsonpath.New("connection_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_route_server_bgp_connection.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_server_bgp_connection.test", tfjsonpath.New("hub_name"), tfjsonpath.New("route_server_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_server_bgp_connection.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("route_server_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_route_server_bgp_connection.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("route_server_id")),

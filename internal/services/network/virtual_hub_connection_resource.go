@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_connection -service-package-name network -properties "hub_virtual_network_connection_name:name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_connection -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
 
 func resourceVirtualHubConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

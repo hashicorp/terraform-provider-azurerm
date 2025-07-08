@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route -service-package-name network -properties "route_name:name,route_table_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route -service-package-name network -properties "name,route_table_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

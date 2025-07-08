@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_server_bgp_connection -service-package-name network -properties "connection_name:name" -compare-values "subscription_id:route_server_id,resource_group_name:route_server_id,hub_name:route_server_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_server_bgp_connection -service-package-name network -properties "name" -compare-values "subscription_id:route_server_id,resource_group_name:route_server_id,hub_name:route_server_id"
 
 func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
