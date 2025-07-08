@@ -268,6 +268,12 @@ func (p *Provider) SetMeta(v interface{}) {
 	p.meta = v
 }
 
+// Resource returns a copy of the ResourcesMap enetry for typeName
+func (p *Provider) Resource(typeName string) (Resource, bool) {
+	resource, ok := p.ResourcesMap[typeName]
+	return *resource, ok
+}
+
 // GetSchema returns the config schema for the main provider
 // configuration, as would appear in a "provider" block in the
 // configuration files.

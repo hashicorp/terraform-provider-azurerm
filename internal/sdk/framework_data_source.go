@@ -29,8 +29,14 @@ func (r *DataSourceMetadata) Defaults(req datasource.ConfigureRequest, resp *dat
 		return
 	}
 
-	c, ok := req.ProviderData.(*clients.Client)
+	providerData, ok := req.ProviderData.(ProviderData)
 	if !ok {
+		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
+		return
+	}
+
+	c := providerData.Client
+	if c == nil {
 		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
 		return
 	}

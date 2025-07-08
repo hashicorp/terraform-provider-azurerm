@@ -16,16 +16,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	sdkschema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
 
 	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 )
 
+type v2Provider interface {
+	Meta() any
+	Resource(string) (sdkschema.Resource, bool)
+}
+
 type azureRmFrameworkProvider struct {
-	V2Provider interface{ Meta() interface{} }
+	V2Provider v2Provider
 	ProviderConfig
 }
 
@@ -42,7 +50,7 @@ func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() functio
 	}
 }
 
-func NewFrameworkProvider(primary interface{ Meta() interface{} }) provider.Provider {
+func NewFrameworkProvider(primary v2Provider) provider.Provider {
 	return &azureRmFrameworkProvider{
 		V2Provider: primary,
 	}
@@ -528,11 +536,12 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 	}
 
 	if p.V2Provider != nil {
-		v := p.V2Provider.Meta()
+		v := p.V2Provider.Meta().(*clients.Client)
+		f := p.V2Provider.Resource
 
-		response.ResourceData = v
-		response.DataSourceData = v
-		response.EphemeralResourceData = v
+		response.ResourceData = sdk.ProviderData{Client: v, ResourceFinder: f}
+		response.DataSourceData = sdk.ProviderData{Client: v, ResourceFinder: f}
+		response.EphemeralResourceData = sdk.ProviderData{Client: v, ResourceFinder: f}
 	} else {
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 
