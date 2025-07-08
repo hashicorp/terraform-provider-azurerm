@@ -65,6 +65,16 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("tls.#").HasValue("1"),
 				check.That(data.ResourceName).Key("tls.0.validate_certificate_chain").HasValue("false"),
 				check.That(data.ResourceName).Key("tls.0.validate_certificate_name").HasValue("true"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("false"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("rulename"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT1H"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.count").HasValue("2"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT1M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.min").HasValue("400"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.max").HasValue("499"),
 			),
 		},
 		data.ImportStep(),
@@ -322,6 +332,19 @@ resource "azurerm_api_management_backend" "test" {
   tls {
     validate_certificate_chain = false
     validate_certificate_name  = true
+  }
+  circuit_breaker_rule {
+    accept_retry_after = false
+    name               = "rulename"
+    trip_duration      = "PT1H"
+    failure_condition {
+      count    = 2
+      interval = "PT1M"
+      status_code_ranges {
+        min = 400
+        max = 499
+      }
+    }
   }
 }
 `, r.template(data, "all"), data.RandomInteger)
