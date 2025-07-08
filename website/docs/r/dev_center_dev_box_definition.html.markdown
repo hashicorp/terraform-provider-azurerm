@@ -51,7 +51,9 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The name of the SKU for the Dev Center Dev Box Definition.
 
-* `hibernate_support_enabled` - (Optional) Are the Dev Boxes created with this definition are capable of hibernation? Defaults to `false`. Not all images are capable of supporting hibernation. To find out more see https://aka.ms/devbox/hibernate.
+* `hibernate_support_enabled` - (Optional) Whether the Dev Boxes created with this definition are capable of hibernation. Defaults to `false`.
+
+> **Note:** Not all images are capable of supporting hibernation, for more information see https://aka.ms/devbox/hibernate.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Dev Box Definition.
 
