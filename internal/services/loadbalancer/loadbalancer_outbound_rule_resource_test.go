@@ -99,7 +99,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("private_ip_address_version"),
+		data.ImportStep(),
 	})
 }
 

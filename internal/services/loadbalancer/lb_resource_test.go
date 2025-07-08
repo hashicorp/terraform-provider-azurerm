@@ -149,7 +149,7 @@ func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
 				check.That(data.ResourceName).Key("frontend_ip_configuration.0.private_ip_address").Exists(),
 			),
 		},
-		data.ImportStep("private_ip_address", "private_ip_address_version"),
+		data.ImportStep(),
 	})
 }
 
@@ -230,7 +230,7 @@ func TestAccAzureRMLoadBalancer_PointToGatewayLB(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("private_ip_address", "private_ip_address_version"),
+		data.ImportStep(),
 	})
 }
 

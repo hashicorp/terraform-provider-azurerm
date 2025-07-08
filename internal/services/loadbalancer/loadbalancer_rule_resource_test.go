@@ -193,7 +193,7 @@ func TestAccAzureRMLoadBalancerRule_gatewayLBRule(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("private_ip_address", "private_ip_address_version"),
+		data.ImportStep(),
 	})
 }
 
@@ -208,7 +208,7 @@ func TestAccAzureRMLoadBalancerRule_gatewayLBRuleMultiple(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("private_ip_address", "private_ip_address_version"),
+		data.ImportStep(),
 	})
 }
 
