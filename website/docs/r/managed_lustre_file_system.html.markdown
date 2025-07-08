@@ -121,7 +121,7 @@ An `encryption_key` block supports the following:
 
 A `root_squash` block supports the following:
 
-* `mode` - (Required) Squash mode of the AML file system. Possible values are `None`, `RootOnly`, and `All`. 
+* `mode` - (Required) Squash mode of the AML file system. Possible values are `RootOnly`, and `All`. 
 
 * `no_squash_nids` - (Required) NID IP Address list(s) to be added to the TrustedSystems, separated by semicolons.
 
