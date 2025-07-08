@@ -6,6 +6,7 @@ package schema
 import (
 	"context"
 	"errors"
+	"fmt"
 )
 
 // ResourceImporter defines how a resource is imported in Terraform. This
@@ -77,6 +78,55 @@ func ImportStatePassthrough(d *ResourceData, m interface{}) ([]*ResourceData, er
 // ImportStatePassthroughContext is an implementation of StateContextFunc that can be
 // used to simply pass the ID directly through. This should be used only
 // in the case that an ID-only refresh is possible.
+// Please note that this implementation does not work when using resource identity as
+// an Id still has to be set and the identity might contain multiple fields
+// that are not the same as the ID.
 func ImportStatePassthroughContext(ctx context.Context, d *ResourceData, m interface{}) ([]*ResourceData, error) {
 	return []*ResourceData{d}, nil
+}
+
+// ImportStatePassthroughWithIdentity creates a StateContextFunc that supports both
+// identity-based and ID-only resource import scenarios. This function is useful
+// when a resource can be imported either by its unique ID or by an identity attribute.
+//
+// The `idAttributePath` parameter specifies the name of the identity attribute
+// to use when importing by identity. Since identity attributes are "flat",
+// `idAttributePath` should be a simple attribute name (e.g., "name" or "identifier").
+// Note that the identity attribute must be a string, as this function expects
+// to set the resource ID using the value of the specified attribute.
+//
+// If the resource is imported by ID (i.e., `d.Id()` is already set), the function
+// simply returns the resource data as-is. Otherwise, it attempts to retrieve the
+// identity attribute specified by `idAttributePath` and sets it as the resource ID.
+//
+// Parameters:
+//   - idAttributePath: The name of the identity attribute to use for setting the ID.
+//
+// Returns:
+//   - A StateContextFunc that handles the import logic.
+func ImportStatePassthroughWithIdentity(idAttributePath string) StateContextFunc {
+	return func(ctx context.Context, d *ResourceData, m interface{}) ([]*ResourceData, error) {
+		// If we import by id, we just return the resource data as is, no need to change it
+		if d.Id() != "" {
+			return []*ResourceData{d}, nil
+		}
+
+		// If we import by identity, we need to set the id based on the idAttributePath
+		identity, err := d.Identity()
+		if err != nil {
+			return nil, fmt.Errorf("error getting identity: %s", err)
+		}
+		id, exists := identity.GetOk(idAttributePath)
+		if !exists {
+			return nil, fmt.Errorf("expected identity to contain key %s", idAttributePath)
+		}
+		idStr, ok := id.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected identity key %s to be a string, was: %T", idAttributePath, id)
+		}
+
+		d.SetId(idStr)
+
+		return []*ResourceData{d}, nil
+	}
 }

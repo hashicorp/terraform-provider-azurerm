@@ -56,6 +56,30 @@ func TestAccLinuxVirtualMachineScaleSet_networkAcceleratedNetworkingUpdated(t *t
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_networkAuxiliaryModeWithoutSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.networkAuxiliaryModeWithoutSku(data),
+			ExpectError: regexp.MustCompile("when `auxiliary_mode` is set, `auxiliary_sku` must also be set"),
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_networkAuxiliarySkuWithoutMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.networkAuxiliarySkuWithoutMode(data),
+			ExpectError: regexp.MustCompile("when `auxiliary_sku` is set, `auxiliary_mode` must also be set"),
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_networkAuxiliary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -556,6 +580,92 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     name                          = "example"
     primary                       = true
     enable_accelerated_networking = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) networkAuxiliaryModeWithoutSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_D3_v2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name                          = "example"
+    primary                       = true
+    enable_accelerated_networking = true
+    auxiliary_mode                = "AcceleratedConnections"
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) networkAuxiliarySkuWithoutMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_D3_v2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name                          = "example"
+    primary                       = true
+    enable_accelerated_networking = true
+    auxiliary_sku                 = "A1"
 
     ip_configuration {
       name      = "internal"

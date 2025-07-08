@@ -1134,7 +1134,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 	}
 
 	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
-	if len(publicIPConfigsRaw) > 0 {
+	if len(publicIPConfigsRaw) > 0 && publicIPConfigsRaw[0] != nil {
 		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
 		publicIPAddressConfig := expandOrchestratedVirtualMachineScaleSetPublicIPAddress(publicIPConfigRaw)
 		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
@@ -1279,7 +1279,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	}
 
 	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
-	if len(publicIPConfigsRaw) > 0 {
+	if len(publicIPConfigsRaw) > 0 && publicIPConfigsRaw[0] != nil {
 		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
 		publicIPAddressConfig := expandOrchestratedVirtualMachineScaleSetPublicIPAddressUpdate(publicIPConfigRaw)
 		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
@@ -1396,7 +1396,7 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []interface{}, osType 
 		disk.DiskSizeGB = pointer.To(int64(osDiskSize))
 	}
 
-	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
+	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 && diffDiskSettingsRaw[0] != nil {
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &virtualmachinescalesets.DiffDiskSettings{
 			Option:    pointer.To(virtualmachinescalesets.DiffDiskOptions(diffDiskRaw["option"].(string))),
@@ -1745,7 +1745,7 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *virtua
 
 	if v := d.Get("os_profile").([]interface{}); len(v) > 0 {
 		osProfile := v[0].(map[string]interface{})
-		if winConfigRaw := osProfile["windows_configuration"].([]interface{}); len(winConfigRaw) > 0 {
+		if winConfigRaw := osProfile["windows_configuration"].([]interface{}); len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
 			winCfg := winConfigRaw[0].(map[string]interface{})
 			output["admin_password"] = winCfg["admin_password"].(string)
 		}
@@ -1809,7 +1809,7 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *virtualm
 
 	if v := d.Get("os_profile").([]interface{}); len(v) > 0 {
 		osProfile := v[0].(map[string]interface{})
-		if linConfigRaw := osProfile["linux_configuration"].([]interface{}); len(linConfigRaw) > 0 {
+		if linConfigRaw := osProfile["linux_configuration"].([]interface{}); len(linConfigRaw) > 0 && linConfigRaw[0] != nil {
 			linCfg := linConfigRaw[0].(map[string]interface{})
 			output["admin_password"] = linCfg["admin_password"].(string)
 		}

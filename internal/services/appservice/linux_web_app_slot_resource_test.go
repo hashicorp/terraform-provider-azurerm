@@ -1833,6 +1833,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+  vnet_image_pull_enabled = true
 
   site_config {
     always_on        = true

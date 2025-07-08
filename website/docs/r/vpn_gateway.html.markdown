@@ -97,6 +97,8 @@ In addition to the arguments above, the following attributes are exported:
 
 * `bgp_settings` - A `bgp_settings` block as defined below.
 
+* `ip_configuration` - An `ip_configuration` block as defined below.
+
 ---
 
 A `bgp_settings` block exports the following:
@@ -117,6 +119,16 @@ A `instance_bgp_peering_address` block exports the following:
 
 * `tunnel_ips` - The list of tunnel public IP addresses which belong to the pre-defined VPN Gateway IP configuration.
 
+---
+
+An `ip_configuration` block exports the following:
+
+* `id` - The identifier of the IP configuration for the VPN Gateway.
+
+* `private_ip_address` - The private IP address of this IP configuration.
+
+* `public_ip_address` - The public IP address of this IP configuration.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
@@ -133,3 +145,9 @@ VPN Gateways can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_vpn_gateway.gateway1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/vpnGateways/gateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

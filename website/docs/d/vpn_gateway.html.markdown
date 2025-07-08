@@ -39,6 +39,8 @@ output "azurerm_vpn_gateway_id" {
 
 * `bgp_settings` - A `bgp_settings` block as defined below.
 
+* `ip_configuration` - An `ip_configuration` block as defined below.
+
 * `scale_unit` -  The Scale Unit of this VPN Gateway.
 
 * `tags` - A mapping of tags assigned to the VPN Gateway.
@@ -82,6 +84,16 @@ A `instance_bgp_peering_address` block exports the following:
 * `default_ips` - The list of default BGP peering addresses which belong to the pre-defined VPN Gateway IP configuration.
 
 * `tunnel_ips` - The list of tunnel public IP addresses which belong to the pre-defined VPN Gateway IP configuration.
+
+---
+
+An `ip_configuration` block exports the following:
+
+* `id` - The identifier of the IP configuration for the VPN Gateway.
+
+* `private_ip_address` - The private IP address of this IP configuration.
+
+* `public_ip_address` - The public IP address of this IP configuration.
 
 ## Timeouts
 

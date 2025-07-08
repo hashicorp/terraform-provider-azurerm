@@ -10,6 +10,8 @@ description: |-
 
 Manages a Healthcare Med Tech Service Fhir Destination.
 
+## Example Usage
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"

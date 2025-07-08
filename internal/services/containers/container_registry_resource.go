@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -34,7 +35,7 @@ import (
 )
 
 func resourceContainerRegistry() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceContainerRegistryCreate,
 		Read:   resourceContainerRegistryRead,
 		Update: resourceContainerRegistryUpdate,
@@ -139,7 +140,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			"encryption": {
 				Type:       pluginsdk.TypeList,
 				Optional:   true,
-				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				MaxItems:   1,
 				Elem: &pluginsdk.Resource{
@@ -334,6 +334,12 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["encryption"].Computed = true
+	}
+
+	return r
 }
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {

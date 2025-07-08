@@ -13,7 +13,7 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.5.1"
+var defaultTerraformCoreVersion = "1.12.2"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
@@ -35,6 +35,9 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Server is only available in certain locations
         "analysisservices" to testConfiguration(locationOverride = LocationConfiguration("westus", "northeurope", "southcentralus", true)),
+
+        // PremiumV2 tier is only available in certain locations `East US 2`, `Australia East`, `Germany West Central`, `Korea Central`, `Norway East` and `UK South`
+        "apimanagement" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false)),
 
         // App Service Plans for Linux are currently unavailable in WestUS2
         "appservice" to testConfiguration(startHour = 3, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", true)),
@@ -141,7 +144,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
-        "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "eastus2", "westus2", false)),
+        "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false)),
 
         // network has increased timeout to accommodate the custom_ip_prefix resource
         "network" to testConfiguration(timeout = 24),
@@ -170,6 +173,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Purview Accounts are only available in certain locations
         "purview" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus", true)),
 
+        // Qumulo asked to use canary env for testing, eastasia is a canary region for qumulo
+        "qumulo" to testConfiguration(locationOverride = LocationConfiguration("eastasia", "centralus2euap", "westeurope", true)),
+
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
 
@@ -178,7 +184,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "servicebus" to testConfiguration(parallelism = 10),
 
         // Spring Cloud only allows a max of 10 provisioned
-        "springcloud" to testConfiguration(parallelism = 5),
+        "springcloud" to testConfiguration(parallelism = 5, daysOfWeek = "2"),
 
         // SQL has quota available in certain locations
         "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),

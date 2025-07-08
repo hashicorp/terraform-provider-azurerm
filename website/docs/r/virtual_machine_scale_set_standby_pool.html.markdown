@@ -100,4 +100,4 @@ terraform import azurerm_virtual_machine_scale_set_standby_pool.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StandbyPool`: 2024-03-01
+* `Microsoft.StandbyPool`: 2025-03-01
