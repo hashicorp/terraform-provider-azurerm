@@ -6,6 +6,7 @@ package eventgrid
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -26,15 +27,22 @@ type EventGridNamespaceTopicResourceModel struct {
 	NamespaceId          string `tfschema:"namespace_id"`
 	EventRetentionInDays int64  `tfschema:"event_retention_in_days"`
 	InputSchema          string `tfschema:"input_schema"`
+	PublisherType        string `tfschema:"publisher_type"`
 }
 
 func (r EventGridNamespaceTopicResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringLenBetween(3, 50), // ^[a-zA-Z0-9-]*$
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringIsNotEmpty,
+				validation.StringMatch(
+					regexp.MustCompile("^[a-zA-Z0-9-]{3,50}$"),
+					"Event Grid Namespace Topic name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+				),
+			),
 		},
 
 		"namespace_id": {
@@ -57,6 +65,15 @@ func (r EventGridNamespaceTopicResource) Arguments() map[string]*pluginsdk.Schem
 			Default:  "CloudEventSchemaV1_0",
 			ValidateFunc: validation.StringInSlice([]string{
 				"CloudEventSchemaV1_0",
+			}, false),
+		},
+
+		"publisher_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "Custom",
+			ValidateFunc: validation.StringInSlice([]string{
+				"Custom",
 			}, false),
 		},
 	}
@@ -116,6 +133,7 @@ func (r EventGridNamespaceTopicResource) Create() sdk.ResourceFunc {
 				Properties: &namespacetopics.NamespaceTopicProperties{
 					EventRetentionInDays: pointer.To(model.EventRetentionInDays),
 					InputSchema:          pointer.To(namespacetopics.EventInputSchema(model.InputSchema)),
+					PublisherType:        pointer.To(namespacetopics.PublisherType(model.PublisherType)),
 				},
 			}
 
@@ -193,6 +211,7 @@ func (r EventGridNamespaceTopicResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.EventRetentionInDays = int64(pointer.From(props.EventRetentionInDays))
 					state.InputSchema = string(pointer.From(props.InputSchema))
+					state.PublisherType = string(pointer.From(props.PublisherType))
 				}
 			}
 
