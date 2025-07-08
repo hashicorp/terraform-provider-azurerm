@@ -45,8 +45,8 @@ type ManagerVerifierWorkspaceReachabilityAnalysisIntentResourceModel struct {
 }
 
 type ManagerVerifierWorkspaceReachabilityAnalysisIntentIpTraffic struct {
-	DesticationIps   []string                                      `tfschema:"destination_ips"`
-	DesticationPorts []string                                      `tfschema:"destination_ports"`
+	DestinationIps   []string                                      `tfschema:"destination_ips"`
+	DestinationPorts []string                                      `tfschema:"destination_ports"`
 	Protocols        []reachabilityanalysisintents.NetworkProtocol `tfschema:"protocols"`
 	SourceIps        []string                                      `tfschema:"source_ips"`
 	SourcePorts      []string                                      `tfschema:"source_ports"`
@@ -279,8 +279,8 @@ func expandReachabilityAnalysisIntentIPTraffic(input []ManagerVerifierWorkspaceR
 	}
 
 	return reachabilityanalysisintents.IPTraffic{
-		DestinationIPs:   input[0].DesticationIps,
-		DestinationPorts: input[0].DesticationPorts,
+		DestinationIPs:   input[0].DestinationIps,
+		DestinationPorts: input[0].DestinationPorts,
 		Protocols:        input[0].Protocols,
 		SourceIPs:        input[0].SourceIps,
 		SourcePorts:      input[0].SourcePorts,
@@ -290,8 +290,8 @@ func expandReachabilityAnalysisIntentIPTraffic(input []ManagerVerifierWorkspaceR
 func flattenReachabilityAnalysisIntentIPTraffic(input reachabilityanalysisintents.IPTraffic) []ManagerVerifierWorkspaceReachabilityAnalysisIntentIpTraffic {
 	return []ManagerVerifierWorkspaceReachabilityAnalysisIntentIpTraffic{
 		{
-			DesticationIps:   input.DestinationIPs,
-			DesticationPorts: input.DestinationPorts,
+			DestinationIps:   input.DestinationIPs,
+			DestinationPorts: input.DestinationPorts,
 			Protocols:        input.Protocols,
 			SourceIps:        input.SourceIPs,
 			SourcePorts:      input.SourcePorts,

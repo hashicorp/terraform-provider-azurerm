@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `destination_resource_id` - (Required) The ID of the destination resource. The value can be the ID of either Public internet, Cosmos DB, Storage Account, SQL Server, Virtual machines, or Subnet. Changing this forces a new Network Manager Verifier Workspace Reachability Analysis Intent to be created.
 
-* `ip_traffic` - (Required) One or more `ip_traffic` blocks as defined below. Changing this forces a new Network Manager Verifier Workspace Reachability Analysis Intent to be created.
+* `ip_traffic` - (Required) An `ip_traffic` block as defined below. Changing this forces a new Network Manager Verifier Workspace Reachability Analysis Intent to be created.
 
 * `source_resource_id` - (Required) The ID of the source resource. The value can be the ID of either Public internet, Virtual machines, or Subnet. Changing this forces a new Network Manager Verifier Workspace Reachability Analysis Intent to be created.
 

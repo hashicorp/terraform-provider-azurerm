@@ -108,11 +108,11 @@ resource "azurerm_network_manager_verifier_workspace_reachability_analysis_inten
   source_resource_id      = azurerm_linux_virtual_machine.test.id
   destination_resource_id = azurerm_linux_virtual_machine.test.id
   ip_traffic {
-    source_ips        = ["10.0.2.0"]
-    source_ports      = ["80"]
-    destination_ips   = ["10.0.3.0"]
-    destination_ports = ["*"]
-    protocols         = ["Any"]
+    source_ips        = azurerm_network_manager_verifier_workspace_reachability_analysis_intent.test.ip_traffic[0].source_ips
+    source_ports      = azurerm_network_manager_verifier_workspace_reachability_analysis_intent.test.ip_traffic[0].source_ports
+    destination_ips   = azurerm_network_manager_verifier_workspace_reachability_analysis_intent.test.ip_traffic[0].destination_ips
+    destination_ports = azurerm_network_manager_verifier_workspace_reachability_analysis_intent.test.ip_traffic[0].destination_ports
+    protocols         = azurerm_network_manager_verifier_workspace_reachability_analysis_intent.test.ip_traffic[0].protocols
   }
 }
 `, r.basic(data))
