@@ -10,7 +10,7 @@ description: |-
 
 Manages a Redis Enterprise Cluster.
 
-~> **Note:** This resource has been deprecated in favor of [azurerm_managed_redis_cluster](managed_redis_cluster.html) and will be removed in 5.0. Existing configuration can be migrated by using [`moved` block](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring).
+~> **Note:** This resource has been deprecated in favor of [azurerm_managed_redis_cluster](managed_redis_cluster.html) and will be removed in 5.0. The new resource is designed to be backward compatible. Existing configuration can be migrated by changing resource type to `azurerm_managed_redis_cluster`, [removing the old state](https://developer.hashicorp.com/terraform/cli/commands/state/rm) and performing [an import](https://developer.hashicorp.com/terraform/language/import).
 
 ## Example Usage
 
