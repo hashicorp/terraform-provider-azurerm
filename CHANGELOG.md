@@ -1,6 +1,7 @@
 ## 4.36.0 (Unreleased)
 
 FEATURES:
+* **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` [GH-28956]
 
 ENHANCEMENTS:
 * `azurerm_service_plan` - allow updating `zone_balancing_enabled` without recreating the resource in supported configurations [GH-29810]
