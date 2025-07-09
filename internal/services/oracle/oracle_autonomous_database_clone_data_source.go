@@ -26,13 +26,13 @@ type AutonomousDatabaseCloneDataSourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Clone-specific properties
-	SourceId                       string `tfschema:"source_id"`
-	CloneType                      string `tfschema:"clone_type"`
-	IsReconnectCloneEnabled        bool   `tfschema:"is_reconnect_clone_enabled"`
-	IsRefreshableClone             bool   `tfschema:"is_refreshable_clone"`
-	RefreshableModel               string `tfschema:"refreshable_model"`
-	RefreshableStatus              string `tfschema:"refreshable_status"`
-	TimeUntilReconnectCloneEnabled string `tfschema:"time_until_reconnect_clone_enabled"`
+	SourceId                string `tfschema:"source_id"`
+	CloneType               string `tfschema:"clone_type"`
+	IsReconnectCloneEnabled bool   `tfschema:"is_reconnect_clone_enabled"`
+	IsRefreshableClone      bool   `tfschema:"is_refreshable_clone"`
+	RefreshableModel        string `tfschema:"refreshable_model"`
+	RefreshableStatus       string `tfschema:"refreshable_status"`
+	TimeUntilReconnectClone string `tfschema:"time_until_reconnect_clone"`
 
 	// Base properties (computed)
 	AutonomousDatabaseId         string   `tfschema:"autonomous_database_id"`
@@ -112,7 +112,7 @@ func (AutonomousDatabaseCloneDataSource) Attributes() map[string]*pluginsdk.Sche
 			Computed: true,
 		},
 
-		"time_until_reconnect_clone_enabled": {
+		"time_until_reconnect_clone": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -303,7 +303,7 @@ func (AutonomousDatabaseCloneDataSource) Read() sdk.ResourceFunc {
 				model.SourceId = props.SourceId
 				model.IsReconnectCloneEnabled = pointer.From(props.IsReconnectCloneEnabled)
 				model.IsRefreshableClone = pointer.From(props.IsRefreshableClone)
-				model.TimeUntilReconnectCloneEnabled = pointer.From(props.TimeUntilReconnectCloneEnabled)
+				model.TimeUntilReconnectClone = pointer.From(props.TimeUntilReconnectCloneEnabled)
 
 				if props.RefreshableModel != nil {
 					model.RefreshableModel = string(*props.RefreshableModel)
