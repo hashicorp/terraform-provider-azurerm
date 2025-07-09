@@ -124,7 +124,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			}, false),
 		},
 
-		//optional
+		// optional
 
 		"refreshable_model": {
 			Type:     pluginsdk.TypeString,
@@ -143,7 +143,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
-		//optional for clone from backup time stamp
+		// optional for clone from backup time stamp
 
 		"use_latest_available_backup_time_stamp": {
 			Type:     pluginsdk.TypeBool,
