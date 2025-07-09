@@ -48,6 +48,47 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"log_scrubbing": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"scrubbing_rule": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Computed: true,
+									},
+
+									"match_variable": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+
+									"selector": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.TagsDataSource(),
 
 			"resource_guid": {
@@ -94,6 +135,10 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 			// whilst this is returned in the API as FrontDoorID other resources refer to
 			// this as the Resource GUID, so we will for consistency
 			d.Set("resource_guid", pointer.From(props.FrontDoorId))
+
+			if props.LogScrubbing != nil {
+				d.Set("log_scrubbing", flattenCdnFrontDoorProfileLogScrubbing(props.LogScrubbing))
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
