@@ -895,6 +895,14 @@ func TestAccKubernetesCluster_webAppRoutingWithNginxControllerType(t *testing.T)
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.webAppRoutingWithNginxController(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -3021,6 +3029,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) webAppRoutingWithNginxController(data acceptance.TestData, controllerType string) string {
+	defaultNginxController := ""
+	if controllerType != "" {
+		defaultNginxController = fmt.Sprintf(`default_nginx_controller = "%s"`, controllerType)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3051,11 +3063,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   web_app_routing {
-    dns_zone_ids             = []
-    default_nginx_controller = "%s"
+    dns_zone_ids = []
+    %s
   }
 }
- `, data.Locations.Primary, data.RandomInteger, controllerType)
+ `, data.Locations.Primary, data.RandomInteger, defaultNginxController)
 }
 
 func (KubernetesClusterResource) azureMonitorKubernetesMetricsEnabled(data acceptance.TestData) string {
