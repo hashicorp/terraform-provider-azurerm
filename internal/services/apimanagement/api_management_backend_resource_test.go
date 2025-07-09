@@ -10,18 +10,18 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/backend"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementAuthorizationBackendResource struct{}
+type ApiManagementBackendResource struct{}
 
 func TestAccApiManagementBackend_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccApiManagementBackend_basic(t *testing.T) {
 
 func TestAccApiManagementBackend_allProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,6 +65,16 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("tls.#").HasValue("1"),
 				check.That(data.ResourceName).Key("tls.0.validate_certificate_chain").HasValue("false"),
 				check.That(data.ResourceName).Key("tls.0.validate_certificate_name").HasValue("true"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("false"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("rulename"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT1H"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.count").HasValue("2"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT1M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.min").HasValue("400"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.max").HasValue("499"),
 			),
 		},
 		data.ImportStep(),
@@ -73,7 +83,7 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 
 func TestAccApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +98,7 @@ func TestAccApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 
 func TestAccApiManagementBackend_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -133,7 +143,7 @@ func TestAccApiManagementBackend_update(t *testing.T) {
 
 func TestAccApiManagementBackend_serviceFabric(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -149,7 +159,7 @@ func TestAccApiManagementBackend_serviceFabric(t *testing.T) {
 
 func TestAccApiManagementBackend_serviceFabricCluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -164,7 +174,7 @@ func TestAccApiManagementBackend_serviceFabricCluster(t *testing.T) {
 
 func TestAccApiManagementBackend_serviceFabricClientCertificateId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -179,7 +189,7 @@ func TestAccApiManagementBackend_serviceFabricClientCertificateId(t *testing.T) 
 
 func TestAccApiManagementBackend_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -193,7 +203,7 @@ func TestAccApiManagementBackend_disappears(t *testing.T) {
 
 func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -206,7 +216,7 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	})
 }
 
-func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementBackendResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backend.ParseBackendID(state.ID)
 	if err != nil {
 		return nil, err
@@ -220,7 +230,7 @@ func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
-func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ApiManagementBackendResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backend.ParseBackendID(state.ID)
 	if err != nil {
 		return nil, err
@@ -237,7 +247,7 @@ func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, 
 	return pointer.To(true), nil
 }
 
-func (r ApiManagementAuthorizationBackendResource) basic(data acceptance.TestData, testName string) string {
+func (r ApiManagementBackendResource) basic(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -251,7 +261,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, testName), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) update(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -276,7 +286,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "update"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) allProperties(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) allProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -323,13 +333,26 @@ resource "azurerm_api_management_backend" "test" {
     validate_certificate_chain = false
     validate_certificate_name  = true
   }
+  circuit_breaker_rule {
+    accept_retry_after = false
+    name               = "rulename"
+    trip_duration      = "PT1H"
+    failure_condition {
+      count    = 2
+      interval = "PT1M"
+      status_code_ranges {
+        min = 400
+        max = 499
+      }
+    }
+  }
 }
 `, r.template(data, "all"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) serviceFabric(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) serviceFabric(data acceptance.TestData) string {
 	// nolint: dupword
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_certificate" "test" {
@@ -361,7 +384,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "sf"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) serviceFabricCluster(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) serviceFabricCluster(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -394,7 +417,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "sf"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) serviceFabricClientCertificateId(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) serviceFabricClientCertificateId(data acceptance.TestData) string {
 	// nolint: dupword
 	return fmt.Sprintf(`
 %s
@@ -428,7 +451,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "sf"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -442,7 +465,7 @@ resource "azurerm_api_management_backend" "import" {
 `, r.basic(data, "requiresimport"))
 }
 
-func (ApiManagementAuthorizationBackendResource) template(data acceptance.TestData, testName string) string {
+func (ApiManagementBackendResource) template(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -464,7 +487,7 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, testName, data.Locations.Primary, data.RandomInteger, testName)
 }
 
-func (r ApiManagementAuthorizationBackendResource) credentialsNoCertificate(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) credentialsNoCertificate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
