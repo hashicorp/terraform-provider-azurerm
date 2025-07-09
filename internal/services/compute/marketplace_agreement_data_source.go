@@ -43,6 +43,11 @@ func dataSourceMarketplaceAgreement() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"accepted": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"license_text_link": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -82,6 +87,11 @@ func dataSourceMarketplaceAgreementRead(d *pluginsdk.ResourceData, meta interfac
 		if props := model.Properties; props != nil {
 			d.Set("license_text_link", props.LicenseTextLink)
 			d.Set("privacy_policy_link", props.PrivacyPolicyLink)
+			accepted := false
+			if acc := props.Accepted; acc != nil {
+				accepted = *acc
+			}
+			d.Set("accepted", accepted)
 		}
 	}
 	return nil

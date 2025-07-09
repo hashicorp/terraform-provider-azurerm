@@ -13,10 +13,26 @@ Allows accepting the Legal Terms for a Marketplace Image.
 ## Example Usage
 
 ```hcl
+locals {
+  barracuda = {
+    publisher = "barracudanetworks"
+    offer     = "waf"
+    plan      = "hourly"
+  }
+}
+
+data "azurerm_marketplace_agreement" "barracuda" {
+  offer     = local.barracuda.offer
+  plan      = local.barracuda.plan
+  publisher = local.barracuda.publisher
+}
+
 resource "azurerm_marketplace_agreement" "barracuda" {
-  publisher = "barracudanetworks"
-  offer     = "waf"
-  plan      = "hourly"
+  count = data.azurerm_marketplace_agreement.barracuda.accepted ? 0 : 1
+
+  offer     = local.barracuda.offer
+  plan      = local.barracuda.plan
+  publisher = local.barracuda.publisher
 }
 ```
 
