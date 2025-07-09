@@ -3,6 +3,7 @@ package eventgrid
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -30,10 +31,16 @@ type EventGridPartnerRegistrationResourceModel struct {
 func (EventGridPartnerRegistrationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": &schema.Schema{
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringIsNotEmpty,
+				validation.StringMatch(
+					regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+					"EventGrid partner registration name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+				),
+			),
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"tags":                tags.Schema(),
@@ -128,7 +135,6 @@ func (r EventGridPartnerRegistrationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			metadata.SetID(id)
 			return nil
 		},
 	}

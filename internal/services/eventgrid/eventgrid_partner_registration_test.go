@@ -21,7 +21,7 @@ func TestAccEventGridPartnerRegistration_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, ""),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -36,7 +36,7 @@ func TestAccEventGridPartnerRegistration_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, ""),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -51,14 +51,14 @@ func TestAccEventGridPartnerRegistration_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, ""),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data, `{ "environment" = "updated" }`),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -81,12 +81,7 @@ func (EventgridPartnerRegistrationTestResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-const defaultTags = `{ "environment" = "test" }`
-
-func (r EventgridPartnerRegistrationTestResource) basic(data acceptance.TestData, tags string) string {
-	if tags == "" {
-		tags = defaultTags
-	}
+func (r EventgridPartnerRegistrationTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -100,9 +95,28 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_eventgrid_partner_registration" "test" {
   name                = "acctestPartnerReg-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  tags                = %[3]s
+  tags                = { "environment" = "test" }
 }
-`, data.RandomInteger, data.Locations.Primary, tags)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r EventgridPartnerRegistrationTestResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventgrid_partner_registration" "test" {
+  name                = "acctestPartnerReg-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  tags                = { "environment" = "updated", "foo" = "bar" }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r EventgridPartnerRegistrationTestResource) requiresImport(data acceptance.TestData) string {
@@ -112,7 +126,7 @@ func (r EventgridPartnerRegistrationTestResource) requiresImport(data acceptance
 resource "azurerm_eventgrid_partner_registration" "import" {
   name                = azurerm_eventgrid_partner_registration.test.name
   resource_group_name = azurerm_eventgrid_partner_registration.test.resource_group_name
-  tags                = %[2]s
+  tags                = { "environment" = "test" }
 }
-`, r.basic(data, ""), defaultTags)
+`, r.basic(data))
 }
