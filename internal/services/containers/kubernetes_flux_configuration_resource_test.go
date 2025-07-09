@@ -231,7 +231,35 @@ func TestAccKubernetesFluxConfiguration_kustomizationPostBuildUpdate(t *testing.
 	})
 }
 
-func TestAccKubernetesFluxConfiguration_gitRepositoryProvider(t *testing.T) {
+func TestAccKubernetesFluxConfiguration_gitRepositoryProviderAzure(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gitRepositoryProviderAzure(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesFluxConfiguration_gitRepositoryProviderGeneric(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gitRepositoryProviderGeneric(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesFluxConfiguration_gitRepositoryProviderUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
 	r := KubernetesFluxConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -243,14 +271,14 @@ func TestAccKubernetesFluxConfiguration_gitRepositoryProvider(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.gitRepositoryProvider(data, string(fluxconfiguration.ProviderTypeAzure)),
+			Config: r.gitRepositoryProviderAzure(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.gitRepositoryProvider(data, string(fluxconfiguration.ProviderTypeGeneric)),
+			Config: r.gitRepositoryProviderGeneric(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -879,7 +907,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r KubernetesFluxConfigurationResource) gitRepositoryProvider(data acceptance.TestData, provider string) string {
+func (r KubernetesFluxConfigurationResource) gitRepositoryProviderAzure(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -893,7 +921,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
     url             = "https://github.com/Azure/arc-k8s-demo"
     reference_type  = "branch"
     reference_value = "main"
-    provider        = "%s"
+    provider        = "Azure"
   }
 
   kustomizations {
@@ -904,5 +932,33 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
     azurerm_kubernetes_cluster_extension.test
   ]
 }
-`, template, data.RandomInteger, provider)
+`, template, data.RandomInteger)
+}
+
+func (r KubernetesFluxConfigurationResource) gitRepositoryProviderGeneric(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+				%s
+
+resource "azurerm_kubernetes_flux_configuration" "test" {
+  name       = "acctest-fc-%d"
+  cluster_id = azurerm_kubernetes_cluster.test.id
+  namespace  = "flux"
+
+  git_repository {
+    url             = "https://github.com/Azure/arc-k8s-demo"
+    reference_type  = "branch"
+    reference_value = "main"
+    provider        = "Generic"
+  }
+
+  kustomizations {
+    name = "kustomization-1"
+  }
+
+  depends_on = [
+    azurerm_kubernetes_cluster_extension.test
+  ]
+}
+`, template, data.RandomInteger)
 }
