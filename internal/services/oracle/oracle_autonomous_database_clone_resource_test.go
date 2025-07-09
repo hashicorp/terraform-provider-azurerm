@@ -225,8 +225,8 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
     Environment = "Test"
     Purpose     = "CompleteClone"
     Type        = "Full"
-  } 
- depends_on = [azurerm_oracle_autonomous_database.test]
+  }
+  depends_on = [azurerm_oracle_autonomous_database.test]
 }
 `, AdbsRegularResource{}.basic(data), data.RandomInteger)
 }

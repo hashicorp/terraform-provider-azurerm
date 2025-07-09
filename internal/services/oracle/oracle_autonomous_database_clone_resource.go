@@ -31,12 +31,14 @@ type AutonomousDatabaseCloneResourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Required for Clone
+
 	Source       string `tfschema:"source"`
 	SourceId     string `tfschema:"source_id"`
 	CloneType    string `tfschema:"clone_type"`
 	DataBaseType string `tfschema:"data_base_type"`
 
 	// Required (inherited from base)
+
 	AdminPassword                string  `tfschema:"admin_password"`
 	BackupRetentionPeriodInDays  int64   `tfschema:"backup_retention_period_in_days"`
 	CharacterSet                 string  `tfschema:"character_set"`
@@ -55,11 +57,13 @@ type AutonomousDatabaseCloneResourceModel struct {
 	VnetId                       string  `tfschema:"virtual_network_id"`
 
 	// Optional for Clone
+
 	CustomerContacts               []string `tfschema:"customer_contacts"`
 	RefreshableModel               string   `tfschema:"refreshable_model"`
 	TimeUntilReconnectCloneEnabled string   `tfschema:"time_until_reconnect_clone_enabled"`
 
 	// optional for clone from backup timestamp
+
 	Timestamp                         string `tfschema:"timestamp"`
 	UseLatestAvailableBackupTimeStamp bool   `tfschema:"use_latest_available_backup_time_stamp"`
 }
@@ -78,6 +82,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		// Clone-specific required fields
+
 		"source": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -153,6 +158,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		// Required (inherited from base)
+
 		"admin_password": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -595,7 +601,6 @@ func (AutonomousDatabaseCloneResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Second,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			if metadata.ResourceData == nil {
 				return nil
 			}
@@ -613,7 +618,7 @@ func (AutonomousDatabaseCloneResource) CustomizeDiff() sdk.ResourceFunc {
 
 			sourceWorkload, err := getSourceWorkload(ctx, sourceId, metadata)
 			if err != nil {
-				return nil
+				return err
 			}
 
 			targets, exists := workloadMatrix[sourceWorkload]
@@ -640,7 +645,6 @@ var workloadMatrix = map[string][]string{
 }
 
 func getSourceWorkload(ctx context.Context, sourceId string, metadata sdk.ResourceMetaData) (string, error) {
-
 	id, err := autonomousdatabases.ParseAutonomousDatabaseID(sourceId)
 	if err != nil {
 		return "", fmt.Errorf("invalid source_id format: %v", err)
