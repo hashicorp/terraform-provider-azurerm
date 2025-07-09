@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -378,11 +377,11 @@ func (r CdnEndpointResource) Exists(ctx context.Context, client *clients.Client,
 	resp, err := client.Cdn.EndpointsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
+			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving CDN Endpoint %q (Resource Group %q / Profile Name %q): %+v", id.Name, id.ResourceGroup, id.ProfileName, err)
 	}
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 func (r CdnEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -400,7 +399,7 @@ func (r CdnEndpointResource) Destroy(ctx context.Context, client *clients.Client
 		return nil, fmt.Errorf("waiting for deletion of CDN Endpoint %q (Resource Group %q / Profile %q): %+v", id.Name, id.ResourceGroup, id.ProfileName, err)
 	}
 
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 func (r CdnEndpointResource) basic(data acceptance.TestData) string {

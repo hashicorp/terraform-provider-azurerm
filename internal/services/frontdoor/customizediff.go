@@ -32,7 +32,7 @@ func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.
 		}
 
 		if err := customHttpsSettings(d); err != nil {
-			return fmt.Errorf("validating the configuration for custom HTTPS configuration %s: %+v", id, err)
+			return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
 		}
 	}
 

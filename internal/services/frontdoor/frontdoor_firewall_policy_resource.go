@@ -9,7 +9,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -486,8 +485,8 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	t := d.Get("tags").(map[string]interface{})
 
 	frontdoorWebApplicationFirewallPolicy := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
-		Name:     pointer.To(name),
-		Location: pointer.To(location),
+		Name:     utils.String(name),
+		Location: utils.String(location),
 		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &webapplicationfirewallpolicies.PolicySettings{
 				EnabledState: &enabled,
@@ -500,13 +499,13 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if redirectUrl != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectURL = pointer.To(redirectUrl)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectURL = utils.String(redirectUrl)
 	}
 	if customBlockResponseBody != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = pointer.To(customBlockResponseBody)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = utils.String(customBlockResponseBody)
 	}
 	if customBlockResponseStatusCode > 0 {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = pointer.To(int64(customBlockResponseStatusCode))
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseStatusCode = utils.Int64(int64(customBlockResponseStatusCode))
 	}
 
 	if err := client.PoliciesCreateOrUpdateThenPoll(ctx, id, frontdoorWebApplicationFirewallPolicy); err != nil {
@@ -616,12 +615,12 @@ func expandFrontDoorFirewallCustomRules(input []interface{}) *webapplicationfire
 		action := custom["action"].(string)
 
 		customRule := webapplicationfirewallpolicies.CustomRule{
-			Name:                       pointer.To(name),
+			Name:                       utils.String(name),
 			Priority:                   priority,
 			EnabledState:               &enabled,
 			RuleType:                   webapplicationfirewallpolicies.RuleType(ruleType),
-			RateLimitDurationInMinutes: pointer.To(rateLimitDurationInMinutes),
-			RateLimitThreshold:         pointer.To(rateLimitThreshold),
+			RateLimitDurationInMinutes: utils.Int64(rateLimitDurationInMinutes),
+			RateLimitThreshold:         utils.Int64(rateLimitThreshold),
 			MatchConditions:            matchConditions,
 			Action:                     webapplicationfirewallpolicies.ActionType(action),
 		}
@@ -661,7 +660,7 @@ func expandFrontDoorFirewallMatchConditions(input []interface{}) []webapplicatio
 			matchCondition.MatchVariable = webapplicationfirewallpolicies.MatchVariable(matchVariable)
 		}
 		if selector != "" {
-			matchCondition.Selector = pointer.To(selector)
+			matchCondition.Selector = utils.String(selector)
 		}
 
 		result = append(result, matchCondition)

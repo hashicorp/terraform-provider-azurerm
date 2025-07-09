@@ -9,13 +9,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsQueryPackQueryResource struct{ uuid string }
@@ -29,11 +29,11 @@ func (r LogAnalyticsQueryPackQueryResource) Exists(ctx context.Context, client *
 	resp, err := client.LogAnalytics.QueryPackQueriesClient.QueriesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
+			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 func TestAccLogAnalyticsQueryPackQuery_basic(t *testing.T) {

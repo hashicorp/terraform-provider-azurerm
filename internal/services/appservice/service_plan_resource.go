@@ -23,6 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServicePlanResource struct{}
@@ -195,7 +196,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("App Service Environment based Service Plans can only be used with Isolated SKUs")
 				}
 				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
-					Id: pointer.To(servicePlan.AppServiceEnvironmentId),
+					Id: utils.String(servicePlan.AppServiceEnvironmentId),
 				}
 			}
 
@@ -344,7 +345,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {
-				model.Sku.Name = pointer.To(state.Sku)
+				model.Sku.Name = utils.String(state.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {

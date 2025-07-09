@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LinuxWebAppSlotResource struct{}
@@ -1505,16 +1505,16 @@ func (r LinuxWebAppSlotResource) Exists(ctx context.Context, client *clients.Cli
 	resp, err := client.AppService.WebAppsClient.GetSlot(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
+			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Linux %s: %+v", id, err)
 	}
 
 	if response.WasNotFound(resp.HttpResponse) {
-		return pointer.To(false), nil
+		return utils.Bool(false), nil
 	}
 
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 // Configs

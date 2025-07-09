@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/workflows"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogicAppWorkflowResource struct{}
@@ -203,7 +203,7 @@ func (LogicAppWorkflowResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, fmt.Errorf("retrieving Logic App Workflow %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (LogicAppWorkflowResource) empty(data acceptance.TestData) string {

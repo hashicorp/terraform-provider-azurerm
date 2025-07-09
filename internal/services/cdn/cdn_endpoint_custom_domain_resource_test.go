@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -221,11 +220,11 @@ func (r CdnEndpointCustomDomainResource) Exists(ctx context.Context, client *cli
 	resp, err := client.Cdn.CustomDomainsClient.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
+			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -243,7 +242,7 @@ func (r CdnEndpointCustomDomainResource) Destroy(ctx context.Context, client *cl
 		return nil, fmt.Errorf("waiting for deletion of %q: %+v", id, err)
 	}
 
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 func (r CdnEndpointCustomDomainResource) basic(data acceptance.TestData) string {

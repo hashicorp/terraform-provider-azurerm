@@ -18,6 +18,7 @@ import (
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
@@ -549,7 +550,7 @@ func (r ArcKubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
 					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
-					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
+					Suspend:        utils.Bool(!model.ContinuousReconciliationEnabled),
 				},
 			}
 
@@ -659,7 +660,7 @@ func (r ArcKubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("continuous_reconciliation_enabled") {
-				properties.Properties.Suspend = pointer.To(!model.ContinuousReconciliationEnabled)
+				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
 			}
 
 			if properties.Properties.ConfigurationProtectedSettings == nil {
@@ -814,7 +815,7 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 		}
 
 		if input.Path != "" {
-			output.Path = pointer.To(input.Path)
+			output.Path = utils.String(input.Path)
 		}
 
 		outputList[input.Name] = output
@@ -863,7 +864,7 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 
 	input := &inputList[0]
 	output := fluxconfiguration.BucketDefinition{
-		Insecure:              pointer.To(!input.TlsEnabled),
+		Insecure:              utils.Bool(!input.TlsEnabled),
 		SyncIntervalInSeconds: &input.SyncIntervalInSeconds,
 		TimeoutInSeconds:      &input.TimeoutInSeconds,
 	}
