@@ -45,6 +45,25 @@ func ProtoV5ProviderFactoriesInit(ctx context.Context, providerNames ...string) 
 	return factories
 }
 
+// Refactor: move to terraform-plugin-sdk
+type SDKContext string
+
+// Refactor: move to terraform-plugin-sdk
+var SDKResourceKey SDKContext = "sdk_resource"
+
+// Refactor: move to terraform-plugin-sdk
+// NewContextWithSDKResource returns a new Context that carries value r
+func NewContextWithSDKResource(ctx context.Context, r *schema.Resource) context.Context {
+	return context.WithValue(ctx, SDKResourceKey, r)
+}
+
+// Refactor: move to terraform-plugin-sdk
+// FromContext returns the SDK Resource value stored in ctx, if any.
+func SDKResourceFromContext(ctx context.Context) (*schema.Resource, bool) {
+	r, ok := ctx.Value(SDKResourceKey).(*schema.Resource)
+	return r, ok
+}
+
 func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.ProviderServer, *schema.Provider, error) {
 	v2Provider := provider.AzureProvider()
 
@@ -53,7 +72,17 @@ func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.Provide
 		providerserver.NewProtocol5(NewFrameworkProvider(v2Provider)),
 	}
 
-	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
+	listInterceptor := func(ctx context.Context, req *tfprotov5.ListResourceRequest) context.Context {
+		typeName := req.TypeName
+		resource, ok := v2Provider.ResourcesMap[typeName]
+		if !ok {
+			return ctx
+		}
+
+		return NewContextWithSDKResource(ctx, resource)
+	}
+
+	muxServer, err := tf5muxserver.NewMuxServerWithOptions(ctx, Servers(providers...), Interceptors(listInterceptor))
 	if err != nil {
 		return nil, nil, err
 	}
