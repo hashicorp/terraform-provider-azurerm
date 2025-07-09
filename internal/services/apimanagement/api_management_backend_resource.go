@@ -294,6 +294,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 									"count": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
+										ValidateFunc: validation.IntAtLeast(1),
 										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 									},
 									"error_reasons": {
@@ -319,7 +320,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 									"percentage": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(0, 100),
+										ValidateFunc: validation.IntBetween(1, 100),
 										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 									},
 									"status_code_ranges": {
@@ -699,11 +700,14 @@ func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.Back
 		failureCondition := failureConditionRaw[0].(map[string]interface{})
 		circuitBreakerFailureCondition := backend.CircuitBreakerFailureCondition{}
 
-		if count, ok := failureCondition["count"].(int); ok {
+		if count, ok := failureCondition["count"].(int); ok && count != 0 {
 			circuitBreakerFailureCondition.Count = pointer.To(int64(count))
-		} else if percentage, ok := failureCondition["percentage"].(int); ok {
+		}
+
+		if percentage, ok := failureCondition["percentage"].(int); ok && percentage != 0 {
 			circuitBreakerFailureCondition.Percentage = pointer.To(int64(percentage))
 		}
+
 		if errorReasonsRaw := failureCondition["error_reasons"].([]interface{}); len(errorReasonsRaw) > 0 {
 			errorReasons := make([]string, 0)
 			for _, v := range errorReasonsRaw {
@@ -911,7 +915,9 @@ func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBrea
 		failureConditionResult := make(map[string]interface{})
 
 		if failureCondition.Count != nil {
-			failureConditionResult["count"] = int(*failureCondition.Count)
+			if *failureCondition.Count != 0 {
+				failureConditionResult["count"] = int(*failureCondition.Count)
+			}
 		}
 
 		if failureCondition.ErrorReasons != nil {
@@ -923,7 +929,9 @@ func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBrea
 		}
 
 		if failureCondition.Percentage != nil {
-			failureConditionResult["percentage"] = int(*failureCondition.Percentage)
+			if *failureCondition.Percentage != 0 {
+				failureConditionResult["percentage"] = int(*failureCondition.Percentage)
+			}
 		}
 
 		if statusCodeRanges := failureCondition.StatusCodeRanges; statusCodeRanges != nil {
