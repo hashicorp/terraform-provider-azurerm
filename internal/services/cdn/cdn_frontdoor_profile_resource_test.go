@@ -520,23 +520,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorProfileResource) basicPremium(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestprofile-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Premium_AzureFrontDoor"
-}
-`, template, data.RandomInteger)
-}
-
 func (r CdnFrontDoorProfileResource) basicWithSystemIdentity(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -748,7 +731,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Standard_AzureFrontDoor"
+  sku_name            = "Standard_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -781,7 +764,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -820,7 +803,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -849,7 +832,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -878,7 +861,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -907,7 +890,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -940,7 +923,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -973,7 +956,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1006,7 +989,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1049,7 +1032,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1092,7 +1075,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = false
@@ -1124,7 +1107,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   tags = {
     environment = "Test"
@@ -1147,7 +1130,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Standard_AzureFrontDoor"
+  sku_name            = "Standard_AzureFrontDoor"
 
   tags = {
     environment = "Test"
@@ -1170,7 +1153,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1199,7 +1182,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1234,7 +1217,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1262,7 +1245,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1318,7 +1301,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1352,7 +1335,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestcdnfd-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
     enabled = true
@@ -1370,7 +1353,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
       match_variable = "QueryStringArgNames"
       operator       = "EqualsAny"
       # Missing selector - should trigger validation error at index 2
-      enabled        = true
+      enabled = true
     }
   }
 }

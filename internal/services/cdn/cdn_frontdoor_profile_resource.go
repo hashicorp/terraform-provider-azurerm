@@ -181,15 +181,13 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 								if matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames) {
 									// For QueryStringArgNames, selector is required
 									if selector == "" {
-										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` is required when `match_variable` is `%s`",
-											i, matchVariable)
+										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` is required when `match_variable` is `%s`", i, matchVariable)
 									}
 								} else if matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress) ||
 									matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableRequestUri) {
 									// For RequestIPAddress and RequestUri, selector cannot be set
 									if selector != "" {
-										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` cannot be set when `match_variable` is `%s`",
-											i, matchVariable)
+										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` cannot be set when `match_variable` is `%s`", i, matchVariable)
 									}
 								}
 							}
@@ -234,10 +232,7 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("log_scrubbing"); ok {
-		logScrubbing, err := expandCdnFrontDoorProfileLogScrubbing(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `log_scrubbing`: %+v", err)
-		}
+		logScrubbing := expandCdnFrontDoorProfileLogScrubbing(v.([]interface{}))
 		props.Properties.LogScrubbing = logScrubbing
 	}
 
@@ -335,10 +330,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("log_scrubbing") {
-		logScrubbing, err := expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `log_scrubbing`: %+v", err)
-		}
+		logScrubbing := expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing").([]interface{}))
 		props.Properties.LogScrubbing = logScrubbing
 	}
 
@@ -377,9 +369,9 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 	return nil
 }
 
-func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) (*profiles.ProfileLogScrubbing, error) {
+func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) *profiles.ProfileLogScrubbing {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	inputRaw := input[0].(map[string]interface{})
@@ -389,20 +381,17 @@ func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) (*profiles.Profi
 		policyEnabled = profiles.ProfileScrubbingStateEnabled
 	}
 
-	scrubbingRules, err := expandCdnFrontDoorProfileScrubbingRules(inputRaw["scrubbing_rule"].([]interface{}))
-	if err != nil {
-		return nil, err
-	}
+	scrubbingRules := expandCdnFrontDoorProfileScrubbingRules(inputRaw["scrubbing_rule"].([]interface{}))
 
 	return &profiles.ProfileLogScrubbing{
 		State:          &policyEnabled,
 		ScrubbingRules: scrubbingRules,
-	}, nil
+	}
 }
 
-func expandCdnFrontDoorProfileScrubbingRules(input []interface{}) (*[]profiles.ProfileScrubbingRules, error) {
+func expandCdnFrontDoorProfileScrubbingRules(input []interface{}) *[]profiles.ProfileScrubbingRules {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	scrubbingRules := make([]profiles.ProfileScrubbingRules, 0)
@@ -427,7 +416,7 @@ func expandCdnFrontDoorProfileScrubbingRules(input []interface{}) (*[]profiles.P
 		scrubbingRules = append(scrubbingRules, item)
 	}
 
-	return &scrubbingRules, nil
+	return &scrubbingRules
 }
 
 func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing) []interface{} {
