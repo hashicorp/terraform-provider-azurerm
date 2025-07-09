@@ -5,6 +5,8 @@ FEATURES:
 * **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` [GH-28956]
 
 ENHANCEMENTS:
+* Data Source: `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property [GH-29995]
+* `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property [GH-29995]
 * dependencies: `servicenetworking` - update to API version `2025-01-01` [GH-30103]
 * `azurerm_log_analytics_workspace` - now returns an error during planning when creating with/updating to a `Standard` or `Premium` SKU as this is no longer supported by Azure [GH-30101]
 * `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
