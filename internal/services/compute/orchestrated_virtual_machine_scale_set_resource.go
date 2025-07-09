@@ -81,6 +81,16 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForNetworkApiVersion(), false),
 				Default:      virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne,
+				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+					// This `DiffSuppressFunc` is used to keep compatible with the legacy Orchestrated VMSS and can be removed once the legacy VMSS is removed.
+					if _, ok := d.GetOk("sku_name"); !ok {
+						if old == "" && new == string(virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne) {
+							return true
+						}
+					}
+
+					return false
+				},
 			},
 
 			"network_interface": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
@@ -1084,18 +1094,12 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 		}
 
-		if d.HasChange("network_api_version") {
+		if d.HasChange("network_api_version") || d.HasChange("network_interface") {
 			if updateProps.VirtualMachineProfile.NetworkProfile == nil {
 				updateProps.VirtualMachineProfile.NetworkProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkProfile{}
 			}
 
 			updateProps.VirtualMachineProfile.NetworkProfile.NetworkApiVersion = pointer.To(virtualmachinescalesets.NetworkApiVersion(d.Get("network_api_version").(string)))
-		}
-
-		if d.HasChange("network_interface") {
-			if updateProps.VirtualMachineProfile.NetworkProfile == nil {
-				updateProps.VirtualMachineProfile.NetworkProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkProfile{}
-			}
 
 			networkInterfacesRaw := d.Get("network_interface").([]interface{})
 			networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
