@@ -77,6 +77,13 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.max").HasValue("499"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.1.min").HasValue("500"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.1.max").HasValue("503"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.#").HasValue("6"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.0").HasValue("BackendConnectionFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.1").HasValue("ClientConnectionFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.2").HasValue("ExpressionValueEvaluationFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.3").HasValue("OperationNotFound"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.4").HasValue("SubscriptionKeyNotFound"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.5").HasValue("SubscriptionKeyInvalid"),
 			),
 		},
 		data.ImportStep(),
@@ -267,6 +274,10 @@ func TestAccApiManagementBackend_circuitBreakerRuleValues(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT5M"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.min").HasValue("400"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.max").HasValue("599"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.#").HasValue("3"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.0").HasValue("BackendConnectionFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.1").HasValue("ClientConnectionFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.2").HasValue("ExpressionValueEvaluationFailure"),
 			),
 		},
 		data.ImportStep(),
@@ -283,6 +294,10 @@ func TestAccApiManagementBackend_circuitBreakerRuleValues(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT10M"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.min").HasValue("400"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.max").HasValue("499"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.#").HasValue("3"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.0").HasValue("OperationNotFound"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.1").HasValue("SubscriptionKeyNotFound"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.2").HasValue("SubscriptionKeyInvalid"),
 			),
 		},
 		data.ImportStep(),
@@ -442,6 +457,14 @@ resource "azurerm_api_management_backend" "test" {
     failure_condition {
       count    = 2
       interval = "PT1M"
+      error_reasons = [
+        "BackendConnectionFailure",
+        "ClientConnectionFailure",
+        "ExpressionValueEvaluationFailure",
+        "OperationNotFound",
+        "SubscriptionKeyNotFound",
+        "SubscriptionKeyInvalid"
+      ]
       status_code_ranges {
         min = 400
         max = 499
@@ -649,6 +672,11 @@ resource "azurerm_api_management_backend" "test" {
     failure_condition {
       count    = 5
       interval = "PT5M"
+      error_reasons = [
+        "BackendConnectionFailure",
+        "ClientConnectionFailure",
+        "ExpressionValueEvaluationFailure"
+      ]
       status_code_ranges {
         min = 400
         max = 599
@@ -675,6 +703,11 @@ resource "azurerm_api_management_backend" "test" {
     failure_condition {
       percentage = 75
       interval   = "PT10M"
+      error_reasons = [
+        "OperationNotFound",
+        "SubscriptionKeyNotFound",
+        "SubscriptionKeyInvalid"
+      ]
       status_code_ranges {
         min = 400
         max = 499
