@@ -362,7 +362,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 									"id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
+										ValidateFunc: backend.ValidateBackendID,
 									},
 									"priority": {
 										Type:         pluginsdk.TypeInt,
