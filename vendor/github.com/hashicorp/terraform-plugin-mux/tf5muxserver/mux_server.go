@@ -26,6 +26,9 @@ type muxServer struct {
 	// Routing for ephemeral resource types
 	ephemeralResources map[string]tfprotov5.ProviderServer
 
+	// Routing for list resource types
+	listResources map[string]tfprotov5.ProviderServer
+
 	// Routing for functions
 	functions map[string]tfprotov5.ProviderServer
 
@@ -52,6 +55,13 @@ type muxServer struct {
 
 	// Underlying servers for requests that should be handled by all servers
 	servers []tfprotov5.ProviderServer
+
+	// interceptors []tfprotov5.Interceptor
+	interceptors []Interceptor
+}
+
+type Interceptor struct {
+	BeforeListResource func(context.Context, *tfprotov5.ListResourceRequest) context.Context
 }
 
 // ProviderServer is a function compatible with tf6server.Serve.
@@ -123,6 +133,41 @@ func (s *muxServer) getEphemeralResourceServer(ctx context.Context, typeName str
 	if !ok {
 		return nil, []*tfprotov5.Diagnostic{
 			ephemeralResourceMissingError(typeName),
+		}, nil
+	}
+
+	return server, s.serverDiscoveryDiagnostics, nil
+}
+
+func (s *muxServer) getListResourceServer(ctx context.Context, typeName string) (tfprotov5.ProviderServer, []*tfprotov5.Diagnostic, error) {
+	s.serverDiscoveryMutex.RLock()
+	server, ok := s.listResources[typeName]
+	discoveryComplete := s.serverDiscoveryComplete
+	s.serverDiscoveryMutex.RUnlock()
+
+	if discoveryComplete {
+		if ok {
+			return server, s.serverDiscoveryDiagnostics, nil
+		}
+
+		return nil, []*tfprotov5.Diagnostic{
+			listResourceMissingError(typeName),
+		}, nil
+	}
+
+	err := s.serverDiscovery(ctx)
+
+	if err != nil || diagnosticsHasError(s.serverDiscoveryDiagnostics) {
+		return nil, s.serverDiscoveryDiagnostics, err
+	}
+
+	s.serverDiscoveryMutex.RLock()
+	server, ok = s.listResources[typeName]
+	s.serverDiscoveryMutex.RUnlock()
+
+	if !ok {
+		return nil, []*tfprotov5.Diagnostic{
+			listResourceMissingError(typeName),
 		}, nil
 	}
 
@@ -202,7 +247,8 @@ func (s *muxServer) getResourceServer(ctx context.Context, typeName string) (tfp
 // serverDiscovery will populate the mux server "routing" for functions and
 // resource types by calling all underlying server GetMetadata RPC and falling
 // back to GetProviderSchema RPC. It is intended to only be called through
-// getDataSourceServer, getEphemeralResourceServer, getFunctionServer, and getResourceServer.
+// getDataSourceServer, getEphemeralResourceServer, getListResourceServer,
+// getFunctionServer, and getResourceServer.
 //
 // The error return represents gRPC errors, which except for the GetMetadata
 // call returning the gRPC unimplemented error, is always returned.
@@ -248,6 +294,16 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 				}
 
 				s.ephemeralResources[serverEphemeralResource.TypeName] = server
+			}
+
+			for _, serverListResource := range metadataResp.ListResources {
+				if _, ok := s.listResources[serverListResource.TypeName]; ok {
+					s.serverDiscoveryDiagnostics = append(s.serverDiscoveryDiagnostics, listResourceDuplicateError(serverListResource.TypeName))
+
+					continue
+				}
+
+				s.listResources[serverListResource.TypeName] = server
 			}
 
 			for _, serverFunction := range metadataResp.Functions {
@@ -312,6 +368,16 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 			s.ephemeralResources[typeName] = server
 		}
 
+		for typeName := range providerSchemaResp.ListResourceSchemas {
+			if _, ok := s.listResources[typeName]; ok {
+				s.serverDiscoveryDiagnostics = append(s.serverDiscoveryDiagnostics, listResourceDuplicateError(typeName))
+
+				continue
+			}
+
+			s.listResources[typeName] = server
+		}
+
 		for name := range providerSchemaResp.Functions {
 			if _, ok := s.functions[name]; ok {
 				s.serverDiscoveryDiagnostics = append(s.serverDiscoveryDiagnostics, functionDuplicateError(name))
@@ -349,11 +415,13 @@ func (s *muxServer) serverDiscovery(ctx context.Context) error {
 //   - Only one provider implements each data source
 //   - Only one provider implements each function
 //   - Only one provider implements each ephemeral resource
+//   - Only one provider implements each list resource
 //   - Only one provider implements each resource identity
 func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer) (*muxServer, error) {
 	result := muxServer{
 		dataSources:          make(map[string]tfprotov5.ProviderServer),
 		ephemeralResources:   make(map[string]tfprotov5.ProviderServer),
+		listResources:        make(map[string]tfprotov5.ProviderServer),
 		functions:            make(map[string]tfprotov5.ProviderServer),
 		resources:            make(map[string]tfprotov5.ProviderServer),
 		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
@@ -361,6 +429,51 @@ func NewMuxServer(_ context.Context, servers ...func() tfprotov5.ProviderServer)
 
 	for _, server := range servers {
 		result.servers = append(result.servers, server())
+	}
+
+	return &result, nil
+}
+
+type Option func(*muxServer)
+
+func Servers(servers ...func() tfprotov5.ProviderServer) Option {
+	return func(mux *muxServer) {
+		for _, server := range servers {
+			mux.servers = append(mux.servers, server())
+		}
+	}
+}
+
+func Interceptors(interceptors ...Interceptor) Option {
+	return func(mux *muxServer) {
+		mux.interceptors = append(mux.interceptors, interceptors...)
+	}
+}
+
+// NewMuxServerWithOptions returns a muxed server that will route gRPC requests between
+// tfprotov5.ProviderServers specified. The GetProviderSchema method of each
+// is called to verify that the overall muxed server is compatible by ensuring:
+//
+//   - All provider schemas exactly match
+//   - All provider meta schemas exactly match
+//   - Only one provider implements each managed resource
+//   - Only one provider implements each data source
+//   - Only one provider implements each function
+//   - Only one provider implements each ephemeral resource
+//   - Only one provider implements each list resource
+//   - Only one provider implements each resource identity
+func NewMuxServerWithOptions(_ context.Context, options ...Option) (*muxServer, error) {
+	result := muxServer{
+		dataSources:          make(map[string]tfprotov5.ProviderServer),
+		ephemeralResources:   make(map[string]tfprotov5.ProviderServer),
+		listResources:        make(map[string]tfprotov5.ProviderServer),
+		functions:            make(map[string]tfprotov5.ProviderServer),
+		resources:            make(map[string]tfprotov5.ProviderServer),
+		resourceCapabilities: make(map[string]*tfprotov5.ServerCapabilities),
+	}
+
+	for _, option := range options {
+		option(&result)
 	}
 
 	return &result, nil

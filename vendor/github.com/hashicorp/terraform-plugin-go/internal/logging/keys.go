@@ -60,6 +60,9 @@ const (
 	// The type of ephemeral resource being operated on, such as "random_password"
 	KeyEphemeralResourceType = "tf_ephemeral_resource_type"
 
+	// The type of list resource being operated on
+	KeyListResourceType = "tf_list_resource_type"
+
 	// Path to protocol data file, such as "/tmp/example.json"
 	KeyProtocolDataFile = "tf_proto_data_file"
 

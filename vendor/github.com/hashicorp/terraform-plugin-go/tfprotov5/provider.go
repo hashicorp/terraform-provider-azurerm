@@ -22,6 +22,10 @@ type ProviderServer interface {
 	// and data sources.
 	GetProviderSchema(context.Context, *GetProviderSchemaRequest) (*GetProviderSchemaResponse, error)
 
+	// GetResourceIdentitySchemas is called when Terraform needs to know
+	// what the provider's resource identity schemas are.
+	GetResourceIdentitySchemas(context.Context, *GetResourceIdentitySchemasRequest) (*GetResourceIdentitySchemasResponse, error)
+
 	// PrepareProviderConfig is called to give a provider a chance to
 	// modify the configuration the user specified before validation.
 	PrepareProviderConfig(context.Context, *PrepareProviderConfigRequest) (*PrepareProviderConfigResponse, error)
@@ -61,29 +65,28 @@ type ProviderServer interface {
 	// ephemeral resource is to terraform-plugin-go, so they're their own
 	// interface that is composed into ProviderServer.
 	EphemeralResourceServer
+
+	/* // Add this back once temporary interface is removed
+	   // ListResourceServer is an interface encapsulating all the list
+	   // resource-related RPC requests.
+	   ListResourceServer*/
 }
 
-// ProviderServerWithResourceIdentity is a temporary interface for servers
-// to implement Resource Identity RPC handling with:
+// ProviderServerWithListResource is a temporary interface for servers
+// to implement List Resource RPC handling with:
 //
-// - GetResourceIdentitySchemas
-// - UpgradeResourceIdentity
+// - ListResource
+// - ValidateListResourceConfig
 //
 // Deprecated: All methods will be moved into the
 // ProviderServer and ResourceServer interfaces and this interface will be removed in a future
 // version.
-type ProviderServerWithResourceIdentity interface {
+type ProviderServerWithListResource interface {
 	ProviderServer
 
-	// GetResourceIdentitySchemas is called when Terraform needs to know
-	// what the provider's resource identity schemas are.
-	GetResourceIdentitySchemas(context.Context, *GetResourceIdentitySchemasRequest) (*GetResourceIdentitySchemasResponse, error) // This will go into the ProviderServer interface
-
-	// UpgradeResourceIdentity is called when Terraform has encountered a
-	// resource with an identity state in a schema that doesn't match the schema's
-	// current version. It is the provider's responsibility to modify the
-	// identity state to upgrade it to the latest state schema.
-	UpgradeResourceIdentity(context.Context, *UpgradeResourceIdentityRequest) (*UpgradeResourceIdentityResponse, error) // This will go into the ResourceServer interface
+	// ListResourceServer is an interface encapsulating all the list
+	// resource-related RPC requests.
+	ListResourceServer
 }
 
 // GetMetadataRequest represents a GetMetadata RPC request.
@@ -111,6 +114,9 @@ type GetMetadataResponse struct {
 
 	// EphemeralResources returns metadata for all ephemeral resources.
 	EphemeralResources []EphemeralResourceMetadata
+
+	// ListResources returns metadata for all list resources.
+	ListResources []ListResourceMetadata
 }
 
 // GetProviderSchemaRequest represents a Terraform RPC request for the
@@ -163,6 +169,9 @@ type GetProviderSchemaResponse struct {
 	// shortname and an underscore. It should match the first label after
 	// `ephemeral` in a user's configuration.
 	EphemeralResourceSchemas map[string]*Schema
+
+	// ListResourceSchemas is a map of resource identity schemas and names.
+	ListResourceSchemas map[string]*Schema
 
 	// Diagnostics report errors or warnings related to returning the
 	// provider's schemas. Returning an empty slice indicates success, with

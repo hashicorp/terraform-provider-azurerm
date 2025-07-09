@@ -17,6 +17,7 @@ func GetMetadata_Response(in *tfprotov6.GetMetadataResponse) *tfplugin6.GetMetad
 		DataSources:        make([]*tfplugin6.GetMetadata_DataSourceMetadata, 0, len(in.DataSources)),
 		Diagnostics:        Diagnostics(in.Diagnostics),
 		EphemeralResources: make([]*tfplugin6.GetMetadata_EphemeralResourceMetadata, 0, len(in.EphemeralResources)),
+		ListResources:      make([]*tfplugin6.GetMetadata_ListResourceMetadata, 0, len(in.ListResources)),
 		Functions:          make([]*tfplugin6.GetMetadata_FunctionMetadata, 0, len(in.Functions)),
 		Resources:          make([]*tfplugin6.GetMetadata_ResourceMetadata, 0, len(in.Resources)),
 		ServerCapabilities: ServerCapabilities(in.ServerCapabilities),
@@ -28,6 +29,10 @@ func GetMetadata_Response(in *tfprotov6.GetMetadataResponse) *tfplugin6.GetMetad
 
 	for _, ephemeralResource := range in.EphemeralResources {
 		resp.EphemeralResources = append(resp.EphemeralResources, GetMetadata_EphemeralResourceMetadata(&ephemeralResource))
+	}
+
+	for _, listResource := range in.ListResources {
+		resp.ListResources = append(resp.ListResources, GetMetadata_ListResourceMetadata(&listResource))
 	}
 
 	for _, function := range in.Functions {
@@ -50,6 +55,7 @@ func GetProviderSchema_Response(in *tfprotov6.GetProviderSchemaResponse) *tfplug
 		DataSourceSchemas:        make(map[string]*tfplugin6.Schema, len(in.DataSourceSchemas)),
 		Diagnostics:              Diagnostics(in.Diagnostics),
 		EphemeralResourceSchemas: make(map[string]*tfplugin6.Schema, len(in.EphemeralResourceSchemas)),
+		ListResourceSchemas:      make(map[string]*tfplugin6.Schema, len(in.ListResourceSchemas)),
 		Functions:                make(map[string]*tfplugin6.Function, len(in.Functions)),
 		Provider:                 Schema(in.Provider),
 		ProviderMeta:             Schema(in.ProviderMeta),
@@ -59,6 +65,10 @@ func GetProviderSchema_Response(in *tfprotov6.GetProviderSchemaResponse) *tfplug
 
 	for name, schema := range in.EphemeralResourceSchemas {
 		resp.EphemeralResourceSchemas[name] = Schema(schema)
+	}
+
+	for name, schema := range in.ListResourceSchemas {
+		resp.ListResourceSchemas[name] = Schema(schema)
 	}
 
 	for name, schema := range in.ResourceSchemas {
