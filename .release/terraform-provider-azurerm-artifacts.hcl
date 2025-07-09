@@ -1,6 +1,5 @@
 schema = 1
 artifacts {
-  # This should match the `matrix` in .github/workflows/build.yml
   zip = [
     "terraform-provider-azurerm_${version}_darwin_amd64.zip",
     "terraform-provider-azurerm_${version}_darwin_arm64.zip",
