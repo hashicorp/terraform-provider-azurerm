@@ -110,9 +110,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // IoT Hub Device Update is only available in certain locations
         "iothub" to testConfiguration(locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false)),
 
-        // Lab Service is only available in certain locations
-        "labservice" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
-
         // load balancer global tire Public IP is only available in
         "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
 
@@ -121,9 +118,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Logic uses app service which is only available in certain locations
         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
-
-        // Logz is only available in certain locations
-        "logz" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus2", false)),
 
         // Maps is only available in certain locations
         "maps" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus", false)),
@@ -143,8 +137,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // MySQL has quota available in certain locations
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
-        // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 1 to account for broken ones, run Monday, Wednesday, Friday
-        "netapp" to testConfiguration(parallelism = 1, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false)),
+        // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 5 to account for broken ones, run Monday, Wednesday, Friday - Long running, bumped to 18h 2025-07-08
+        "netapp" to testConfiguration(parallelism = 5, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false), timeout = 18),
 
         // network has increased timeout to accommodate the custom_ip_prefix resource
         "network" to testConfiguration(timeout = 24),
