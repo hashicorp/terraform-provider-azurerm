@@ -72,9 +72,11 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.#").HasValue("1"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.count").HasValue("2"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT1M"),
-				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.#").HasValue("2"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.min").HasValue("400"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.max").HasValue("499"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.1.min").HasValue("500"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.1.max").HasValue("503"),
 			),
 		},
 		data.ImportStep(),
@@ -247,6 +249,84 @@ func (r ApiManagementBackendResource) Destroy(ctx context.Context, client *clien
 	return pointer.To(true), nil
 }
 
+func TestAccApiManagementBackend_circuitBreakerRuleValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementBackendResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.circuitBreakerWithCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("http"),
+				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("count-rule"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT30M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.count").HasValue("5"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT5M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.min").HasValue("400"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.max").HasValue("599"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.circuitBreakerWithPercentage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("http"),
+				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("percentage-rule"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT10M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.percentage").HasValue("75"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT10M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.min").HasValue("400"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_ranges.0.max").HasValue("499"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementBackend_poolWithMultipleServices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementBackendResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.poolWithMultipleServices(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool.#").HasValue("1"),
+				check.That(data.ResourceName).Key("pool.0.service.#").HasValue("3"),
+				check.That(data.ResourceName).Key("pool.0.service.0.priority").HasValue("1"),
+				check.That(data.ResourceName).Key("pool.0.service.0.weight").HasValue("50"),
+				check.That(data.ResourceName).Key("pool.0.service.1.priority").HasValue("2"),
+				check.That(data.ResourceName).Key("pool.0.service.1.weight").HasValue("30"),
+				check.That(data.ResourceName).Key("pool.0.service.2.priority").HasValue("3"),
+				check.That(data.ResourceName).Key("pool.0.service.2.weight").HasValue("20"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.poolWithMultipleServicesWithUpdatedPriorityAndWeight(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool.#").HasValue("1"),
+				check.That(data.ResourceName).Key("pool.0.service.#").HasValue("3"),
+				check.That(data.ResourceName).Key("pool.0.service.0.priority").HasValue("3"),
+				check.That(data.ResourceName).Key("pool.0.service.0.weight").HasValue("20"),
+				check.That(data.ResourceName).Key("pool.0.service.1.priority").HasValue("2"),
+				check.That(data.ResourceName).Key("pool.0.service.1.weight").HasValue("30"),
+				check.That(data.ResourceName).Key("pool.0.service.2.priority").HasValue("1"),
+				check.That(data.ResourceName).Key("pool.0.service.2.weight").HasValue("50"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ApiManagementBackendResource) basic(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
 %s
@@ -259,6 +339,28 @@ resource "azurerm_api_management_backend" "test" {
   url                 = "https://acctest"
 }
 `, r.template(data, testName), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) tripleBasic(data acceptance.TestData, testName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test2" {
+  name                = "acctestbackend2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+}
+
+resource "azurerm_api_management_backend" "test3" {
+  name                = "acctestbackend3-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+}
+`, r.basic(data, testName), data.RandomInteger, data.RandomInteger)
 }
 
 func (r ApiManagementBackendResource) update(data acceptance.TestData) string {
@@ -343,6 +445,10 @@ resource "azurerm_api_management_backend" "test" {
       status_code_ranges {
         min = 400
         max = 499
+      }
+      status_code_ranges {
+        min = 500
+        max = 503
       }
     }
   }
@@ -525,4 +631,116 @@ resource "azurerm_api_management_backend" "test" {
   }
 }
 `, r.template(data, "all"), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) circuitBreakerWithCount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+  circuit_breaker_rule {
+    name               = "count-rule"
+    trip_duration      = "PT30M"
+    failure_condition {
+      count    = 5
+      interval = "PT5M"
+      status_code_ranges {
+        min = 400
+        max = 599
+      }
+    }
+  }
+}
+`, r.template(data, "circuitBreaker"), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) circuitBreakerWithPercentage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+  circuit_breaker_rule {
+    name               = "percentage-rule"
+    trip_duration      = "PT10M"
+    failure_condition {
+      percentage = 75
+      interval   = "PT10M"
+      status_code_ranges {
+        min = 400
+        max = 499
+      }
+    }
+  }
+}
+`, r.template(data, "circuitBreaker"), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) poolWithMultipleServices(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test_pool" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  description         = "Pool backend with multiple services"
+  pool {
+    service {
+      id       = azurerm_api_management_backend.test.id
+      priority = 1
+      weight   = 50
+    }
+    service {
+      id       = azurerm_api_management_backend.test2.id
+      priority = 2
+      weight   = 30
+    }
+    service {
+      id       = azurerm_api_management_backend.test3.id
+      priority = 3
+      weight   = 20
+    }
+  }
+}
+`, r.tripleBasic(data, "pool"), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) poolWithMultipleServicesWithUpdatedPriorityAndWeight(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test_pool" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  description         = "Pool backend with multiple services"
+  pool {
+    service {
+      id       = azurerm_api_management_backend.test.id
+      priority = 1
+      weight   = 20
+    }
+    service {
+      id       = azurerm_api_management_backend.test2.id
+      priority = 1
+      weight   = 20
+    }
+    service {
+      id       = azurerm_api_management_backend.test3.id
+      priority = 1
+      weight   = 10
+    }
+  }
+}
+`, r.tripleBasic(data, "pool"), data.RandomInteger)
 }
