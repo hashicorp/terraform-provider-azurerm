@@ -57,10 +57,7 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 			oldProfiles := o.(*pluginsdk.Set)
 			newProfiles := n.(*pluginsdk.Set)
 
-			if OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles) {
-				return true
-			}
-			return false
+			return OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles)
 		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
