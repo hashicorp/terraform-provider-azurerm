@@ -1,10 +1,10 @@
 ## 4.36.0 (Unreleased)
 
 FEATURES:
+* **New Resource**: `azurerm_api_management_workspace` [GH-30033]
 * **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` [GH-28956]
 
 ENHANCEMENTS:
- * New Resource: `azurerm_api_management_workspace` [GH-30033]
 * `azurerm_log_analytics_workspace` - now returns an error during planning when creating with/updating to a `Standard` or `Premium` SKU as this is no longer supported by Azure [GH-30101]
 * `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
 * Data Source: `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
