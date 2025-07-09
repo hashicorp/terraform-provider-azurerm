@@ -92,7 +92,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Dev Center only available in some regions / has a quota of 5
         "devcenter" to testConfiguration(parallelism = 4, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", false)),
 
-        // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
+        // "hdinsight" is super expensive - G class VMs are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
 
         // Elastic can't provision many in parallel
@@ -170,8 +170,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // redisenterprise is costly - Monday, Wednesday, Friday
         "redisenterprise" to testConfiguration(daysOfWeek = "2,4,6"),
 
-        // servicebus quotas are limited and we experience failures if tests
-        // execute too quickly as we run out of namespaces in the sub
+        // servicebus quotas are limited, and we experience failures if tests execute too quickly as we run out of namespaces in the sub
         "servicebus" to testConfiguration(parallelism = 10),
 
         // Spring Cloud only allows a max of 10 provisioned
