@@ -10,6 +10,8 @@ description: |-
 
 Manages an API Management Workspace.
 
+~> **Note:** This resource is currently available only when using the Classic Premium SKU of `azurerm_api_management`. For more details, refer to [Federated API Management with Workspaces](https://learn.microsoft.com/en-us/azure/api-management/workspaces-overview).
+
 ## Example Usage
 
 ```hcl
@@ -25,7 +27,7 @@ resource "azurerm_api_management" "example" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Consumption_0"
+  sku_name = "Premium_1"
 }
 
 resource "azurerm_api_management_workspace" "example" {
