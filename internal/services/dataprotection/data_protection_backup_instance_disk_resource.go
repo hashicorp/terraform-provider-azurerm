@@ -90,6 +90,8 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 						return false
 					}
 
+					// oldValue represents the value in the state.
+					// newValue represents the value in the config, in case it is "", it means the user doesn't specify it in the config.
 					if strings.EqualFold(oldValue, vaultId.SubscriptionId) && newValue == "" {
 						return true
 					}
