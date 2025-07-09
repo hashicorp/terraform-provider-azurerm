@@ -174,13 +174,6 @@ func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.zonesSingle(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -317,11 +310,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "acctest-loadbalancer-%d"
+  name                = "acctestlb-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-  sku_tier            = "Global"
+  sku_tier            = "Regional"
 
   tags = {
     Environment = "production"
@@ -611,6 +604,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard"
+  sku_tier            = "Regional"
 
   frontend_ip_configuration {
     name                          = "Internal"
@@ -654,6 +648,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard"
+  sku_tier            = "Regional"
 
   frontend_ip_configuration {
     name                          = "Internal"
@@ -661,6 +656,7 @@ resource "azurerm_lb" "test" {
     private_ip_address_version    = "IPv4"
     private_ip_address            = "10.0.2.7"
     subnet_id                     = azurerm_subnet.test.id
+    zones                         = ["1"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
