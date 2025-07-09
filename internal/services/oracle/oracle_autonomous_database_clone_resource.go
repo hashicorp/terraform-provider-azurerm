@@ -58,9 +58,9 @@ type AutonomousDatabaseCloneResourceModel struct {
 
 	// Optional for Clone
 
-	CustomerContacts               []string `tfschema:"customer_contacts"`
-	RefreshableModel               string   `tfschema:"refreshable_model"`
-	TimeUntilReconnectCloneEnabled string   `tfschema:"time_until_reconnect_clone_enabled"`
+	CustomerContacts        []string `tfschema:"customer_contacts"`
+	RefreshableModel        string   `tfschema:"refreshable_model"`
+	TimeUntilReconnectClone string   `tfschema:"time_until_reconnect_clone"`
 
 	// optional for clone from backup timestamp
 
@@ -136,7 +136,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			}, false),
 		},
 
-		"time_until_reconnect_clone_enabled": {
+		"time_until_reconnect_clone": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
@@ -369,7 +369,7 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 					DataBaseType: autonomousdatabases.DataBaseTypeClone,
 
 					// Optional clone properties
-					TimeUntilReconnectCloneEnabled: pointer.To(model.TimeUntilReconnectCloneEnabled),
+					TimeUntilReconnectCloneEnabled: pointer.To(model.TimeUntilReconnectClone),
 
 					// Base properties
 					AdminPassword:                  pointer.To(model.AdminPassword),
@@ -453,7 +453,7 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 					state.CloneType = string(cloneProps.CloneType)
 					state.SourceId = cloneProps.SourceId
 					state.DataBaseType = string(cloneProps.DataBaseType)
-					state.TimeUntilReconnectCloneEnabled = pointer.From(cloneProps.TimeUntilReconnectCloneEnabled)
+					state.TimeUntilReconnectClone = pointer.From(cloneProps.TimeUntilReconnectCloneEnabled)
 
 					// Base properties
 					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
