@@ -116,7 +116,7 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 	return &result
 }
 
-func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile /*, consumptionDefined bool*/) []WorkloadProfileModel {
+func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []WorkloadProfileModel {
 	if input == nil || len(*input) == 0 {
 		return []WorkloadProfileModel{}
 	}
