@@ -27,7 +27,6 @@ resource "azurerm_oracle_autonomous_database_clone" "example" {
   # Optional clone features
   is_refreshable_clone = true
   refreshable_model    = "Manual"
-  customer_contacts    = ["admin@example.com"]
 
   # Database configuration
   admin_password                   = "BEstrO0ng_#11"
@@ -46,7 +45,7 @@ resource "azurerm_oracle_autonomous_database_clone" "example" {
   national_character_set           = "AL16UTF16"
   subnet_id                        = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.Network/virtualNetworks/example-vnet/subnets/oracle-subnet"
   virtual_network_id               = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.Network/virtualNetworks/example-vnet"
-
+  customer_contacts                = ["admin@example.com"]
   tags = {
     Environment = "Development"
     Purpose     = "Clone"
@@ -85,7 +84,7 @@ resource "azurerm_oracle_autonomous_database_clone" "specific_backup_clone" {
   virtual_network_id               = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-rg/providers/Microsoft.Network/virtualNetworks/example-vnet"
   tags = {
     Environment = "Production"
-    Purpose     = "BackupRestore"
+    Purpose     = "BackupClone"
   }
 }
 ```
@@ -106,21 +105,17 @@ The following arguments are supported:
 
 * `clone_type` - (Required) The type of clone to create. Possible values are `Full` and `Metadata`. Changing this forces a new Autonomous Database Clone to be created.
 
-* `source` - (Required) The source of the clone. Possible values are `None`, `Database`, `BackupFromId`, `BackupFromTimestamp`, `CloneToRefreshable`, `CrossRegionDataguard`, and `CrossRegionDisasterRecovery`. Changing this forces a new Autonomous Database Clone to be created.
+* `source` - (Required) The source of the clone. Possible values are  `Database`, `BackupFromId`, `BackupFromTimestamp`, `CloneToRefreshable`. Changing this forces a new Autonomous Database Clone to be created.
 
 * `data_base_type` - (Required) The database type for the clone. Possible values are `Clone` and `CloneFromBackupTimestamp`. Changing this forces a new Autonomous Database Clone to be created.
 
 ### Clone from database Configuration (Optional)
 
-* `is_refreshable_clone` - (Optional) Indicates whether the clone is a refreshable clone. Only applicable when `data_base_type` is `Clone`. Changing this forces a new Autonomous Database Clone to be created.
+* `refreshable_model` - (Optional) The refreshable model for the clone. Possible values are `Automatic` and `Manual`. 
 
-* `refreshable_model` - (Optional) The refreshable model for the clone. Possible values are `Automatic` and `Manual`. Only applicable when `is_refreshable_clone` is `true`. Changing this forces a new Autonomous Database Clone to be created.
+* `time_until_reconnect_clone_enabled` - (Optional) The time until reconnect clone is enabled. Must be in RFC3339 format.
 
-* `is_reconnect_clone_enabled` - (Optional) Indicates whether reconnect clone is enabled. Only applicable when `data_base_type` is `Clone`. Changing this forces a new Autonomous Database Clone to be created.
-
-* `time_until_reconnect_clone_enabled` - (Optional) (Updatable) The time until reconnect clone is enabled. Must be in RFC3339 format. Only applicable when `is_reconnect_clone_enabled` is `true`. Changing this forces a new Autonomous Database Clone to be created.
-
-### Backup Timestamp Clone Configuration (Optional)
+### Clone from Backup Timestamp specific Configuration (Optional)
 
 * `timestamp` - (Optional) The timestamp specified for the point-in-time clone of the source Autonomous Database. The timestamp must be in the past and in RFC3339 format. Only applicable when `data_base_type` is `CloneFromBackupTimestamp`. Changing this forces a new Autonomous Database Clone to be created.
 
@@ -142,7 +137,14 @@ The following arguments are supported:
 
 * `db_version` - (Required) A valid Oracle Database version for Autonomous Database. Changing this forces a new Autonomous Database Clone to be created.
 
-* `db_workload` - (Required) The Autonomous Database workload type. Possible values are `OLTP` and `DW`. Changing this forces a new Autonomous Database Clone to be created.
+* `db_workload` - (Required) The Autonomous Database workload type. Possible values are `OLTP` and `DW`, `APEX`, `AJD`. Changing this forces a new Autonomous Database Clone to be created.
+    * OLTP - indicates an Autonomous Transaction Processing database
+    * DW - indicates an Autonomous Data Warehouse database
+    * AJD - indicates an Autonomous JSON Database
+    * APEX - indicates an Autonomous Database with the Oracle APEX Application Development workload type. 
+
+~> **Note:** To clone the database with a different `db_workload` type, please refer to the documentation [here](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/autonomous-database-serverless/doc/autonomous-clone-cross-workload-type.html#GUID-527A712D-FF82-498B-AB35-8A1623E36EDD) for correct configuration steps.
+
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. Changing this forces a new Autonomous Database Clone to be created.
 

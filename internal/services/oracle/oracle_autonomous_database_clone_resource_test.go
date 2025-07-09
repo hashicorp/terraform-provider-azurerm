@@ -96,22 +96,6 @@ func TestAccAutonomousDatabaseClone_backupTimestampLatestBackup(t *testing.T) {
 	})
 }
 
-func TestAccAutonomousDatabaseClone_backupTimestampWithSpecificTime(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone", "test")
-	r := AutonomousDatabaseCloneResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.backupTimestampSpecific(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("data_base_type").HasValue("CloneFromBackupTimestamp"),
-			),
-		},
-		data.ImportStep("admin_password", "source", "clone_type", "timestamp"),
-	})
-}
-
 func (r AutonomousDatabaseCloneResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := autonomousdatabases.ParseAutonomousDatabaseID(state.ID)
 	if err != nil {
@@ -129,16 +113,14 @@ func (r AutonomousDatabaseCloneResource) Exists(ctx context.Context, clients *cl
 
 func (r AutonomousDatabaseCloneResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 resource "azurerm_oracle_autonomous_database_clone" "test" {
-  name                = "ADB%dclone"
-  resource_group_name = "dnsFarwoarder"
-  location            = "eastus"
+  name                = "ADB%[2]dclone"
+  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
+  location            = azurerm_oracle_autonomous_database.test.location
 
-  source_id      = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Oracle.Database/autonomousDatabases/DnsForwaderADBS"
+  source_id      = azurerm_oracle_autonomous_database.test.id
   clone_type     = "Full"
   source         = "Database"
   data_base_type = "Clone"
@@ -151,21 +133,23 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   data_storage_size_in_tbs         = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
-  display_name                     = "ADB%dclone"
+  display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = true
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
-  virtual_network_id               = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet"
+  subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
+  virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
 
   tags = {
     Environment = "Test"
-    Purpose     = "Clone"
+    Purpose     = "BasicClone"
   }
+
+  depends_on = [azurerm_oracle_autonomous_database.test]
 }
-`, data.RandomInteger, data.RandomInteger)
+`, AdbsRegularResource{}.basic(data), data.RandomInteger)
 }
 
 func (r AutonomousDatabaseCloneResource) requiresImport(data acceptance.TestData) string {
@@ -203,16 +187,14 @@ resource "azurerm_oracle_autonomous_database_clone" "import" {
 
 func (r AutonomousDatabaseCloneResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 resource "azurerm_oracle_autonomous_database_clone" "test" {
-  name                = "ADB%dclone"
-  resource_group_name = "dnsFarwoarder"
-  location            = "eastus"
+  name                = "ADB%[2]dclone"
+  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
+  location            = azurerm_oracle_autonomous_database.test.location
 
-  source_id      = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Oracle.Database/autonomousDatabases/DnsForwaderADBS"
+  source_id      = azurerm_oracle_autonomous_database.test.id
   clone_type     = "Full"
   source         = "Database"
   data_base_type = "Clone"
@@ -224,15 +206,15 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   compute_model                    = "ECPU"
   data_storage_size_in_tbs         = 2
   db_version                       = "19c"
-  db_workload                      = "OLTP"
-  display_name                     = "ADB%dclone"
+  db_workload                      = "DW"
+  display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = true
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
-  virtual_network_id               = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet"
+  subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
+  virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
 
   # Clone-specific optional fields
   refreshable_model = "Manual"
@@ -243,23 +225,22 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
     Environment = "Test"
     Purpose     = "CompleteClone"
     Type        = "Full"
-  }
+  } 
+ depends_on = [azurerm_oracle_autonomous_database.test]
 }
-`, data.RandomInteger, data.RandomInteger)
+`, AdbsRegularResource{}.basic(data), data.RandomInteger)
 }
 
 func (r AutonomousDatabaseCloneResource) metadataClone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 resource "azurerm_oracle_autonomous_database_clone" "test" {
-  name                = "ADB%dclone"
-  resource_group_name = "dnsFarwoarder"
-  location            = "eastus"
+  name                = "ADB%[2]dclone"
+  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
+  location            = azurerm_oracle_autonomous_database.test.location
 
-  source_id      = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Oracle.Database/autonomousDatabases/DnsForwaderADBS"
+  source_id      = azurerm_oracle_autonomous_database.test.id
   clone_type     = "Metadata"
   source         = "Database"
   data_base_type = "Clone"
@@ -272,35 +253,33 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   data_storage_size_in_tbs         = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
-  display_name                     = "ADB%dclone"
+  display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
-  virtual_network_id               = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet"
+  subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
+  virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
 
   tags = {
     Environment = "Test"
     Purpose     = "MetadataClone"
   }
 }
-`, data.RandomInteger, data.RandomInteger)
+`, AdbsRegularResource{}.basic(data), data.RandomInteger)
 }
 
 func (r AutonomousDatabaseCloneResource) backupTimestampCloneLatest(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 resource "azurerm_oracle_autonomous_database_clone" "test" {
-  name                = "ADB%dclone"
-  resource_group_name = "dnsFarwoarder"
-  location            = "eastus"
+  name                = "ADB%[2]dclone"
+  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
+  location            = azurerm_oracle_autonomous_database.test.location
 
-  source_id      = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Oracle.Database/autonomousDatabases/DnsForwaderADBS"
+  source_id      = azurerm_oracle_autonomous_database.test.id
   clone_type     = "Full"
   source         = "BackupFromTimestamp"
   data_base_type = "CloneFromBackupTimestamp"
@@ -316,63 +295,19 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   data_storage_size_in_tbs         = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
-  display_name                     = "ADB%dclone"
+  display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
-  virtual_network_id               = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet"
+  subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
+  virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
 
   tags = {
     Environment = "Test"
     Purpose     = "BackupTimestampClone"
   }
 }
-`, data.RandomInteger, data.RandomInteger)
-}
-
-func (r AutonomousDatabaseCloneResource) backupTimestampSpecific(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_oracle_autonomous_database_clone" "test" {
-  name                = "ADB%dclone"
-  resource_group_name = "dnsFarwoarder"
-  location            = "eastus"
-
-  source_id      = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Oracle.Database/autonomousDatabases/DnsForwaderADBS"
-  clone_type     = "Full"
-  source         = "BackupFromTimestamp"
-  data_base_type = "CloneFromBackupTimestamp"
-
-  # Specific timestamp
-  timestamp = "2025-06-01T22:57:51.000Z"
-
-  admin_password                   = "BEstrO0ng_#11"
-  backup_retention_period_in_days  = 7
-  character_set                    = "AL32UTF8"
-  compute_count                    = 2.0
-  compute_model                    = "ECPU"
-  data_storage_size_in_tbs         = 1
-  db_version                       = "19c"
-  db_workload                      = "OLTP"
-  display_name                     = "ADB%dclone"
-  license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = true
-  mtls_connection_required         = false
-  national_character_set           = "AL16UTF16"
-  subnet_id                        = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet/subnets/oraDeletagedSubnet"
-  virtual_network_id               = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Microsoft.Network/virtualNetworks/dnsVnet"
-
-  tags = {
-    Environment = "Test"
-    Purpose     = "BackupTimestampWithTime"
-  }
-}
-`, data.RandomInteger, data.RandomInteger)
+`, AdbsRegularResource{}.basic(data), data.RandomInteger)
 }

@@ -56,10 +56,7 @@ type AutonomousDatabaseCloneResourceModel struct {
 
 	// Optional for Clone
 	CustomerContacts               []string `tfschema:"customer_contacts"`
-	ReconnectCloneEnabled          bool     `tfschema:"reconnect_clone_enabled"`
-	IsRefreshableClone             bool     `tfschema:"is_refreshable_clone"`
 	RefreshableModel               string   `tfschema:"refreshable_model"`
-	RefreshableStatus              string   `tfschema:"refreshable_status"`
 	TimeUntilReconnectCloneEnabled string   `tfschema:"time_until_reconnect_clone_enabled"`
 
 	// optional for clone from backup timestamp
@@ -90,7 +87,6 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 				string(autonomousdatabases.SourceTypeBackupFromId),
 				string(autonomousdatabases.SourceTypeDatabase),
 				string(autonomousdatabases.SourceTypeCloneToRefreshable),
-				string(autonomousdatabases.SourceTypeNone),
 			}, false),
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				// Source is create-only and not returned by Azure API
@@ -205,13 +201,10 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"db_workload": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.WorkloadTypeDW),
-				string(autonomousdatabases.WorkloadTypeOLTP),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.ValidateCloneWorkloadType,
 		},
 
 		"display_name": {
@@ -284,21 +277,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 }
 
 func (AutonomousDatabaseCloneResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"is_reconnect_clone_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-		"is_refreshable_clone": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"refreshable_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (AutonomousDatabaseCloneResource) ModelObject() interface{} {
@@ -384,8 +363,6 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 					DataBaseType: autonomousdatabases.DataBaseTypeClone,
 
 					// Optional clone properties
-					IsReconnectCloneEnabled:        pointer.To(model.ReconnectCloneEnabled),
-					IsRefreshableClone:             pointer.To(model.IsRefreshableClone),
 					TimeUntilReconnectCloneEnabled: pointer.To(model.TimeUntilReconnectCloneEnabled),
 
 					// Base properties
@@ -470,10 +447,7 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 					state.CloneType = string(cloneProps.CloneType)
 					state.SourceId = cloneProps.SourceId
 					state.DataBaseType = string(cloneProps.DataBaseType)
-					state.ReconnectCloneEnabled = pointer.From(cloneProps.IsReconnectCloneEnabled)
-					state.IsRefreshableClone = pointer.From(cloneProps.IsRefreshableClone)
 					state.TimeUntilReconnectCloneEnabled = pointer.From(cloneProps.TimeUntilReconnectCloneEnabled)
-					state.RefreshableStatus = string(pointer.From(cloneProps.RefreshableStatus))
 
 					// Base properties
 					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
@@ -615,4 +589,91 @@ func flattenCloneCustomerContacts(input []autonomousdatabases.CustomerContact) [
 		}
 	}
 	return emails
+}
+
+func (AutonomousDatabaseCloneResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Second,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+
+			if metadata.ResourceData == nil {
+				return nil
+			}
+
+			sourceId := metadata.ResourceData.Get("source_id").(string)
+			dbWorkload := metadata.ResourceData.Get("db_workload").(string)
+
+			if sourceId == "" || dbWorkload == "" {
+				return nil
+			}
+
+			if metadata.ResourceData.Id() != "" {
+				return nil
+			}
+
+			sourceWorkload, err := getSourceWorkload(ctx, sourceId, metadata)
+			if err != nil {
+				return nil
+			}
+
+			targets, exists := workloadMatrix[sourceWorkload]
+			if !exists {
+				return fmt.Errorf("unsupported source workload: %s", sourceWorkload)
+			}
+
+			for _, target := range targets {
+				if dbWorkload == target {
+					return nil
+				}
+			}
+
+			return fmt.Errorf("invalid workload: %s->%s not allowed", sourceWorkload, dbWorkload)
+		},
+	}
+}
+
+var workloadMatrix = map[string][]string{
+	"DW":   {"OLTP", "DW"},
+	"OLTP": {"DW", "OLTP"},
+	"AJD":  {"OLTP", "DW", "APEX"},
+	"APEX": {"AJD", "OLTP", "DW"},
+}
+
+func getSourceWorkload(ctx context.Context, sourceId string, metadata sdk.ResourceMetaData) (string, error) {
+
+	id, err := autonomousdatabases.ParseAutonomousDatabaseID(sourceId)
+	if err != nil {
+		return "", fmt.Errorf("invalid source_id format: %v", err)
+	}
+
+	if metadata.Client == nil || metadata.Client.Oracle == nil || metadata.Client.Oracle.OracleClient == nil {
+		return "", fmt.Errorf("oracle client not available")
+	}
+
+	client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		return "", fmt.Errorf("failed to get source database: %v", err)
+	}
+
+	if resp.Model == nil || resp.Model.Properties == nil {
+		return "", fmt.Errorf("source database has no properties")
+	}
+
+	switch props := resp.Model.Properties.(type) {
+	case autonomousdatabases.AutonomousDatabaseProperties:
+		if props.DbWorkload != nil {
+			return string(*props.DbWorkload), nil
+		}
+	case autonomousdatabases.AutonomousDatabaseCloneProperties:
+		if props.DbWorkload != nil {
+			return string(*props.DbWorkload), nil
+		}
+	case autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties:
+		if props.DbWorkload != nil {
+			return string(*props.DbWorkload), nil
+		}
+	}
+
+	return "", fmt.Errorf("workload type not found in source database properties")
 }
