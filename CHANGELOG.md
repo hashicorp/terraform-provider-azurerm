@@ -4,6 +4,7 @@ FEATURES:
 * **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` [GH-28956]
 
 ENHANCEMENTS:
+* `azurerm_log_analytics_workspace` - now returns an error during planning when creating with/updating to a `Standard` or `Premium` SKU as this is no longer supported by Azure [GH-30101]
 * `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
 * Data Source: `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
 * `azurerm_private_dns_zone_virtual_network_link` - add support for the `resolution_policy` property [GH-29861]
