@@ -81,8 +81,9 @@ func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.Provide
 
 		return NewContextWithSDKResource(ctx, resource)
 	}
+	interceptor := tf5muxserver.Interceptor{BeforeListResource: listInterceptor}
 
-	muxServer, err := tf5muxserver.NewMuxServerWithOptions(ctx, Servers(providers...), Interceptors(listInterceptor))
+	muxServer, err := tf5muxserver.NewMuxServerWithOptions(ctx, Servers(providers...), Interceptors(interceptor))
 	if err != nil {
 		return nil, nil, err
 	}
