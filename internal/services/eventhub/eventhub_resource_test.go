@@ -263,13 +263,28 @@ func TestAccEventHub_standard(t *testing.T) {
 	})
 }
 
-func TestAccEventHub_retentionDescription(t *testing.T) {
+func TestAccEventHub_retentionDescriptionWithDeleteCleanupPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 	r := EventHubResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.retentionDescription(data),
+			Config: r.retentionDescriptionWithDeleteCleanupPolicy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventHub_retentionDescriptionWithCompactCleanupPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
+	r := EventHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.retentionDescriptionWithCompactCleanupPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -284,7 +299,7 @@ func TestAccEventHub_retentionDescriptionUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.retentionDescription(data),
+			Config: r.retentionDescriptionWithDeleteCleanupPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -574,7 +589,7 @@ resource "azurerm_eventhub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, enabledString)
 }
 
-func (EventHubResource) retentionDescription(data acceptance.TestData) string {
+func (EventHubResource) retentionDescriptionWithDeleteCleanupPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -599,6 +614,36 @@ resource "azurerm_eventhub" "test" {
   retention_description {
     cleanup_policy          = "Delete"
     retention_time_in_hours = 7
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (EventHubResource) retentionDescriptionWithCompactCleanupPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctest-EHN-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name            = "acctest-EH-%d"
+  namespace_id    = azurerm_eventhub_namespace.test.id
+  partition_count = 2
+  retention_description {
+    cleanup_policy                    = "Compact"
+    tombstone_retention_time_in_hours = 7
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

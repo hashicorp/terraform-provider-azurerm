@@ -91,13 +91,15 @@ func resourceEventHub() *pluginsdk.Resource {
 						},
 
 						"retention_time_in_hours": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:          pluginsdk.TypeInt,
+							Optional:      true,
+							ConflictsWith: []string{"retention_description.0.tombstone_retention_time_in_hours"},
 						},
 
 						"tombstone_retention_time_in_hours": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
+							Type:          pluginsdk.TypeInt,
+							Optional:      true,
+							ConflictsWith: []string{"retention_description.0.retention_time_in_hours"},
 						},
 					},
 				},
@@ -274,7 +276,7 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if _, ok := d.GetOk("retention_description"); ok {
-		parameters.Properties.RetentionDescription = expandEventHubRetentionDesciption(d)
+		parameters.Properties.RetentionDescription = expandEventHubRetentionDescription(d)
 	}
 
 	if _, ok := d.GetOk("message_retention"); ok {
@@ -344,7 +346,7 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("retention_description") {
-		parameters.Properties.RetentionDescription = expandEventHubRetentionDesciption(d)
+		parameters.Properties.RetentionDescription = expandEventHubRetentionDescription(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
@@ -432,7 +434,7 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandEventHubRetentionDesciption(d *pluginsdk.ResourceData) *eventhubs.RetentionDescription {
+func expandEventHubRetentionDescription(d *pluginsdk.ResourceData) *eventhubs.RetentionDescription {
 	inputs := d.Get("retention_description").([]interface{})
 	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
@@ -450,7 +452,7 @@ func expandEventHubRetentionDesciption(d *pluginsdk.ResourceData) *eventhubs.Ret
 		retentionDescription.RetentionTimeInHours = pointer.FromInt64(int64(retentionTimeInHours))
 	} else {
 		tombstoneRetentionTimeInHours := input["tombstone_retention_time_in_hours"].(int)
-		retentionDescription.RetentionTimeInHours = pointer.FromInt64(int64(tombstoneRetentionTimeInHours))
+		retentionDescription.TombstoneRetentionTimeInHours = pointer.FromInt64(int64(tombstoneRetentionTimeInHours))
 	}
 
 	return pointer.To(retentionDescription)
