@@ -82,11 +82,14 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					// vault_id: ID of the parent resource; must share the same subscription ID as this backup instance.
+					// Suppress diff if snapshot_subscription_id matches this backup instance's subscription.
 					_, planVaultId := d.GetChange("vault_id")
 					vaultId, err := backupinstances.ParseBackupVaultID(planVaultId.(string))
 					if err != nil {
 						return false
 					}
+
 					if strings.EqualFold(oldValue, vaultId.SubscriptionId) && newValue == "" {
 						return true
 					}
