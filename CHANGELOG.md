@@ -5,6 +5,7 @@ FEATURES:
 * **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` [GH-28956]
 
 ENHANCEMENTS:
+* Data Source: `azurerm_marketplace_agreement` - add support for the `accepted` property [GH-30118]
 * Data Source: `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property [GH-29995]
 * `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property [GH-29995]
 * dependencies: `servicenetworking` - update to API version `2025-01-01` [GH-30103]
