@@ -103,6 +103,20 @@ func TestAccDataProtectionBackupInstanceDisk_snapshotSubscriptionId(t *testing.T
 	})
 }
 
+func TestAccDataProtectionBackupInstanceDisk_snapshotSubscriptionIdCrossSubscription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_disk", "test")
+	r := DataProtectionBackupInstanceDiskResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.snapshotSubscriptionIdCrossSubscription(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r DataProtectionBackupInstanceDiskResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstances.ParseBackupInstanceID(state.ID)
 	if err != nil {
@@ -243,4 +257,60 @@ resource "azurerm_data_protection_backup_instance_disk" "test" {
   backup_policy_id             = azurerm_data_protection_backup_policy_disk.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r DataProtectionBackupInstanceDiskResource) snapshotSubscriptionIdCrossSubscription(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azuerm-alt" {
+  features {}
+  subscription_id = %[2]s
+}
+
+resource "azurerm_resource_group" "test2" {
+  provider = azurerm-alt
+  name     = "acctest-dataprotection2-%[4]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_managed_disk" "test2" {
+  provider             = azurerm-alt
+  name                 = "acctest-disk2-%[4]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+}
+
+resource "azurerm_role_assignment" "test3" {
+  scope                = azurerm_resource_group.test2.id
+  role_definition_name = "Disk Snapshot Contributor"
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
+}
+
+resource "azurerm_role_assignment" "test4" {
+  scope                = azurerm_managed_disk.test2.id
+  role_definition_name = "Disk Backup Reader"
+  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
+}
+
+resource "azurerm_data_protection_backup_instance_disk" "test" {
+  name                         = "acctest-dbi-%[4]d"
+  location                     = azurerm_resource_group.test.location
+  vault_id                     = azurerm_data_protection_backup_vault.test.id
+  disk_id                      = azurerm_managed_disk.test2.id
+  snapshot_resource_group_name = azurerm_resource_group.test2.name
+  snapshot_subscription_id     = %[2]s
+  backup_policy_id             = azurerm_data_protection_backup_policy_disk.test.id
+
+  lifecycle {
+    depend_on = [
+      azurerm_role_assignment.test3,
+      azurerm_role_assignment.test4,
+    ]
+  }
+}
+`, r.template(data), data.Subscriptions.Secondary, data.Locations.Primary, data.RandomInteger)
 }
