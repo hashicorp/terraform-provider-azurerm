@@ -1,53 +1,55 @@
-## 4.36.0 (Unreleased)
+## 4.36.0 (July 10, 2025)
 
 FEATURES:
-* **New Resource**: `azurerm_api_management_workspace` [GH-30033]
-* **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` [GH-28956]
+
+* **New Resource**: `azurerm_api_management_workspace` ([#30033](https://github.com/hashicorp/terraform-provider-azurerm/issues/30033))
+* **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` ([#28956](https://github.com/hashicorp/terraform-provider-azurerm/issues/28956))
 
 ENHANCEMENTS:
-* Data Source: `azurerm_marketplace_agreement` - add support for the `accepted` property [GH-30118]
-* Data Source: `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property [GH-29995]
-* `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property [GH-29995]
-* dependencies: `servicenetworking` - update to API version `2025-01-01` [GH-30103]
-* `azurerm_log_analytics_workspace` - now returns an error during planning when creating with/updating to a `Standard` or `Premium` SKU as this is no longer supported by Azure [GH-30101]
-* `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
-* Data Source: `azurerm_container_registry` - add support for the `data_endpoint_host_names` property [GH-30086]
-* `azurerm_private_dns_zone_virtual_network_link` - add support for the `resolution_policy` property [GH-29861]
-* Data Source: `azurerm_private_dns_zone_virtual_network_link` - add support for the `resolution_policy` property [GH-29861]
-* `azurerm_service_plan` - allow updating `zone_balancing_enabled` without recreating the resource in supported configurations [GH-29810]
 
-* dependencies: `oracle` - update to API version `2025-03-01` [GH-29721]
-* dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
-* `azurerm_api_management` - `sku_name` now supports V2 Tiers  [GH-29657]
-* `azurerm_data_protection_backup_instance_disk` - support cross subscription snapshot resource group [GH-30087]
-* `azurerm_kubernetes_cluster` - add support for the `custom_ca_trust_certificates_base64` property [GH-29894]
-* `azurerm_kubernetes_cluster` - support for the `web_app_routing.default_nginx_controller` property [GH-29879]
-* `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
-* `azurerm_linux_web_app` - support for the `vnet_image_pull_enabled` property [GH-29452]
-* `azurerm_linux_web_app_slot` - support for the `vnet_image_pull_enabled` property [GH-29452]
-* `azurerm_logic_app_workflow` - The `access_control.trigger.allowed_caller_ip_address_range` property is now optional [GH-30041]
-* `azurerm_machine_learning_datastore_blobstorage` - the `shared_access_signature` and `account_key` properties are now optional [GH-30079]
-* `azurerm_netapp_volume` - add support for the `cool_access` block [GH-29915]
-* `azurerm_oracle_autonomous_database` - Add support for `allowed_ips` [GH-29412]
-* Data Source: `azurerm_oracle_autonomous_database` - add support for `compute_model` property [GH-29801]
-* Data Source: `azurerm_oracle_cloud_vm_cluster` - add support for `compute_model` property [GH-29801]
-* Data Source: `azurerm_oracle_db_servers` - add support for the `compute_model` property [GH-29801]
-* Data Source: `azurerm_oracle_db_system_shapes` - add support for the `are_server_types_supported` property [GH-29801]
-* Data Source: `azurerm_oracle_db_system_shapes` - add support for the `compute_model` property [GH-29801]
-* Data Source: `azurerm_oracle_db_system_shapes` - add support for the `display_name` property [GH-29801]
-* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for the `compute_model` property [GH-29801]
-* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for the `database_server_type` property [GH-29801]
-* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for the `storage_server_type` property [GH-29801]
-* `azurerm_oracle_exadata_infrastructure` - add support for the `database_server_type` property [GH-29801]
-* `azurerm_oracle_exadata_infrastructure` - add support for the `storage_server_type` property [GH-29801]
-* `azurerm_public_ip_prefix` - add support for the `custom_ip_prefix_id` property [GH-29851]
-* `azurerm_virtual_hub` - add support for the `branch_to_branch_traffic_enabled` property [GH-29453]
-* `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
+* dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` ([#29896](https://github.com/hashicorp/terraform-provider-azurerm/issues/29896))
+* dependencies: `oracle` - update to API version `2025-03-01` ([#29721](https://github.com/hashicorp/terraform-provider-azurerm/issues/29721))
+* dependencies: `servicenetworking` - update to API version `2025-01-01` ([#30103](https://github.com/hashicorp/terraform-provider-azurerm/issues/30103))
+* Data Source: `azurerm_container_registry` - add support for the `data_endpoint_host_names` property ([#30086](https://github.com/hashicorp/terraform-provider-azurerm/issues/30086))
+* Data Source: `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property ([#29995](https://github.com/hashicorp/terraform-provider-azurerm/issues/29995))
+* Data Source: `azurerm_marketplace_agreement` - add support for the `accepted` property ([#30118](https://github.com/hashicorp/terraform-provider-azurerm/issues/30118))
+* Data Source: `azurerm_oracle_autonomous_database` - add support for `compute_model` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_oracle_cloud_vm_cluster` - add support for `compute_model` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_oracle_db_servers` - add support for the `compute_model` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_oracle_db_system_shapes` - add support for the `display_name` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_oracle_db_system_shapes` - add support for the `are_server_types_supported` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_oracle_db_system_shapes` - add support for the `compute_model` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for the `compute_model` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for the `database_server_type` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for the `storage_server_type` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* Data Source: `azurerm_private_dns_zone_virtual_network_link` - add support for the `resolution_policy` property ([#29861](https://github.com/hashicorp/terraform-provider-azurerm/issues/29861))
+* `azurerm_api_management` - `sku_name` now supports V2 Tiers  ([#29657](https://github.com/hashicorp/terraform-provider-azurerm/issues/29657))
+* `azurerm_container_registry` - add support for the `data_endpoint_host_names` property ([#30086](https://github.com/hashicorp/terraform-provider-azurerm/issues/30086))
+* `azurerm_data_protection_backup_instance_disk` - support cross subscription snapshot resource group ([#30087](https://github.com/hashicorp/terraform-provider-azurerm/issues/30087))
+* `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property ([#29995](https://github.com/hashicorp/terraform-provider-azurerm/issues/29995))
+* `azurerm_kubernetes_cluster` - add support for the `custom_ca_trust_certificates_base64` property ([#29894](https://github.com/hashicorp/terraform-provider-azurerm/issues/29894))
+* `azurerm_kubernetes_cluster` - support for the `web_app_routing.default_nginx_controller` property ([#29879](https://github.com/hashicorp/terraform-provider-azurerm/issues/29879))
+* `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties ([#29724](https://github.com/hashicorp/terraform-provider-azurerm/issues/29724))
+* `azurerm_linux_web_app` - support for the `vnet_image_pull_enabled` property ([#29452](https://github.com/hashicorp/terraform-provider-azurerm/issues/29452))
+* `azurerm_linux_web_app_slot` - support for the `vnet_image_pull_enabled` property ([#29452](https://github.com/hashicorp/terraform-provider-azurerm/issues/29452))
+* `azurerm_log_analytics_workspace` - now returns an error during planning when creating with/updating to a `Standard` or `Premium` SKU as this is no longer supported by Azure ([#30101](https://github.com/hashicorp/terraform-provider-azurerm/issues/30101))
+* `azurerm_logic_app_workflow` - The `access_control.trigger.allowed_caller_ip_address_range` property is now optional ([#30041](https://github.com/hashicorp/terraform-provider-azurerm/issues/30041))
+* `azurerm_machine_learning_datastore_blobstorage` - the `shared_access_signature` and `account_key` properties are now optional ([#30079](https://github.com/hashicorp/terraform-provider-azurerm/issues/30079))
+* `azurerm_netapp_volume` - add support for the `cool_access` block ([#29915](https://github.com/hashicorp/terraform-provider-azurerm/issues/29915))
+* `azurerm_oracle_autonomous_database` - Add support for `allowed_ips` ([#29412](https://github.com/hashicorp/terraform-provider-azurerm/issues/29412))
+* `azurerm_oracle_exadata_infrastructure` - add support for the `database_server_type` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* `azurerm_oracle_exadata_infrastructure` - add support for the `storage_server_type` property ([#29801](https://github.com/hashicorp/terraform-provider-azurerm/issues/29801))
+* `azurerm_private_dns_zone_virtual_network_link` - add support for the `resolution_policy` property ([#29861](https://github.com/hashicorp/terraform-provider-azurerm/issues/29861))
+* `azurerm_public_ip_prefix` - add support for the `custom_ip_prefix_id` property ([#29851](https://github.com/hashicorp/terraform-provider-azurerm/issues/29851))
+* `azurerm_service_plan` - allow updating `zone_balancing_enabled` without recreating the resource in supported configurations ([#29810](https://github.com/hashicorp/terraform-provider-azurerm/issues/29810))
+* `azurerm_virtual_hub` - add support for the `branch_to_branch_traffic_enabled` property ([#29453](https://github.com/hashicorp/terraform-provider-azurerm/issues/29453))
+* `azurerm_windows_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties ([#29724](https://github.com/hashicorp/terraform-provider-azurerm/issues/29724))
 
 BUG FIXES:
-* `azurerm_mobile_network_packet_core_control_plane` - the `site_ids` property is now marked as `ForceNew` [GH-30056]
-* `azurerm_mobile_network_slice` - the `single_network_slice_selection_assistance_information` property is now updated correctly [GH-30057]
-* `azurerm_private_dns_resolver_dns_forwarding_ruleset` - fix an issue where `private_dns_resolver_outbound_endpoint_ids` failed to update [GH-30046]
+
+* `azurerm_mobile_network_packet_core_control_plane` - the `site_ids` property is now marked as `ForceNew` ([#30056](https://github.com/hashicorp/terraform-provider-azurerm/issues/30056))
+* `azurerm_mobile_network_slice` - the `single_network_slice_selection_assistance_information` property is now updated correctly ([#30057](https://github.com/hashicorp/terraform-provider-azurerm/issues/30057))
+* `azurerm_private_dns_resolver_dns_forwarding_ruleset` - fix an issue where `private_dns_resolver_outbound_endpoint_ids` failed to update ([#30046](https://github.com/hashicorp/terraform-provider-azurerm/issues/30046))
 
 ## 4.35.0 (July 01, 2025)
 
