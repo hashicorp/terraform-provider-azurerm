@@ -221,4 +221,3 @@ Example of proper Azure value validation:
     }, false),
 },
 ```
-
