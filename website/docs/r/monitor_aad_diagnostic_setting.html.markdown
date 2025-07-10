@@ -101,3 +101,9 @@ Monitor Azure Active Directory Diagnostic Settings can be imported using the `re
 ```shell
 terraform import azurerm_monitor_aad_diagnostic_setting.example /providers/Microsoft.AADIAM/diagnosticSettings/setting1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AADIAM`: 2017-04-01

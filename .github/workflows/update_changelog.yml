@@ -28,7 +28,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifact from "Get Changelog Entry" workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # 4.2.1
         with:
           name: changelog_entry # Match name used in changelog_entry.yml upload artifact step
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -124,10 +124,16 @@ jobs:
           --repo "$GITHUB_REPOSITORY" \
           --base main \
           --head automated-changelog \
-          -l "changelog" \
           -t "CHANGELOG.md for $RELEASENUM" \
           -b "Automated changelog for next release, $RELEASENUM"
-      
+      - name: Add changelog label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+        run: |
+          gh pr edit automated-changelog \
+          --add-label "changelog"
+          
       - name: Set up Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:

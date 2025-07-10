@@ -144,6 +144,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
+### `azurerm_automation_account`
+
+* The `encryption.key_source` property has been removed.
+
 ### `azurerm_cdn_endpoint_custom_domain`
 
 * The `cdn_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.
@@ -163,6 +167,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
 * The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
 
+### `azurerm_container_registry`
+
+* The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.  
+
 ### `azurerm_cosmosdb_account`
 
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
@@ -174,6 +182,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_datadog_monitor_sso_configuration`
 
 * The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
+
+### `azurerm_data_factory_integration_runtime_self_hosted`
+
+* Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
 
 ### `azurerm_eventhub`
 
@@ -213,6 +225,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
+### `azurerm_log_analytics_linked_storage_account`
+
+* The deprecated `workspace_resource_id` property has been removed and superseded by the `workspace_id` property.
+
+### `azurerm_log_analytics_workspace`
+
+* The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
+
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
@@ -226,6 +246,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_monitor_diagnostic_setting`
 
 * The deprecated `metric.retention_policy` block has been removed.
+* The deprecated `metric` block has been removed in favour of the `enabled_metric` block.
 
 ### `azurerm_mssql_database`
 
@@ -271,6 +292,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_palo_alto_next_generation_firewall_virtual_network_panorama`
 
 * The `plan_id` property now defaults to `panw-cngfw-payg`.
+
+### `azurerm_policy_set_definition`
+
+* The `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
 
 ### `azurerm_redis_cache`
 

@@ -5,15 +5,13 @@ package client
 import (
 	"fmt"
 
-	oracle "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01"
-	oracle25 "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01"
+	oracle "github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	OracleClient   *oracle.Client
-	OracleClient25 *oracle25.Client
+	OracleClient *oracle.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -25,18 +23,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
-		return nil, fmt.Errorf("building Oracle client: %+v", err)
+		return nil, fmt.Errorf("building Database client: %+v", err)
 	}
-
-	oracleClient25, err := oracle25.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
-		o.Configure(c, o.Authorizers.ResourceManager)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("building Database client v2025 : %+v", err)
-	}
-
 	return &Client{
-		OracleClient:   oracleClient,
-		OracleClient25: oracleClient25,
+		OracleClient: oracleClient,
 	}, nil
 }
