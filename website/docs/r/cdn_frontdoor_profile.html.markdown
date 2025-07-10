@@ -74,7 +74,6 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
     scrubbing_rule {
       enabled        = true
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       selector       = "sensitive_param"
     }
   }
@@ -116,7 +115,7 @@ An `identity` block supports the following:
 
 A `log_scrubbing` block supports the following:
 
-* `enabled` - (Optional) Whether log scrubbing is enabled. Defaults to `true`.
+* `enabled` - (Optional) Is log scrubbing enabled? Defaults to `true`.
 
 * `scrubbing_rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
 
@@ -126,13 +125,15 @@ A `scrubbing_rule` block supports the following:
 
 * `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
 
-* `enabled` - (Optional) Whether this scrubbing rule is enabled. Defaults to `true`.
+* `enabled` - (Optional) Is this scrubbing rule enabled? Defaults to `true`.
 
-* `operator` - (Optional) The operator to use for matching. Currently only `EqualsAny` is supported. Defaults to `EqualsAny`.
+* `operator` - (Optional) The operator to use for matching. Possible values are `EqualsAny`.
+
+~> **Note:** The `operator` field is required when the `match_variable` is set to `RequestIPAddress` or `RequestUri` and cannot be set when the `match_variable` is set to `QueryStringArgNames`.
 
 * `selector` - (Optional) The name of the query string argument to be scrubbed.
 
-~> **Note:** The `selector` field is required when `match_variable` is set to `QueryStringArgNames`. It cannot be set when `match_variable` is `RequestIPAddress` or `RequestUri`.
+~> **Note:** The `selector` field is required when the `match_variable` is set to `QueryStringArgNames` and cannot be set when the `match_variable` is set to `RequestIPAddress` or `RequestUri`.
 
 ---
 

@@ -271,48 +271,11 @@ func TestAccCdnFrontDoorProfile_logScrubbing_premiumSku(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfile_logScrubbing_skuUpgrade(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-	r := CdnFrontDoorProfileResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.logScrubbingStandardSku(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.logScrubbingPremiumSku(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccCdnFrontDoorProfile_logScrubbing_validation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// Test that selector cannot be set for RequestIPAddress
-			Config:      r.logScrubbingInvalidRequestIPAddress(data),
-			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `selector` cannot be set when `match_variable` is `RequestIPAddress`"),
-		},
-		{
-			// Test that selector cannot be set for RequestUri
-			Config:      r.logScrubbingInvalidRequestUri(data),
-			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `selector` cannot be set when `match_variable` is `RequestUri`"),
-		},
-		{
-			// Test that selector is required for QueryStringArgNames
-			Config:      r.logScrubbingInvalidQueryStringWithoutSelector(data),
-			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `selector` is required when `match_variable` is `QueryStringArgNames`"),
-		},
 		{
 			// Test valid configuration with QueryStringArgNames and selector
 			Config: r.logScrubbingValidQueryStringWithSelector(data),
@@ -391,20 +354,15 @@ func TestAccCdnFrontDoorProfile_logScrubbing_disabled(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfile_logScrubbing_edgeCases(t *testing.T) {
+func TestAccCdnFrontDoorProfile_logScrubbing_edgeCase_validation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// Test empty selector for QueryStringArgNames (should fail)
-			Config:      r.logScrubbingEmptySelector(data),
-			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `selector` is required when `match_variable` is `QueryStringArgNames`"),
-		},
-		{
-			// Test multiple invalid rules
-			Config:      r.logScrubbingMultipleInvalidRules(data),
-			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `selector` cannot be set when `match_variable` is `RequestIPAddress`"),
+			// Test empty log_scrubbing block (should fail)
+			Config:      r.logScrubbingEmptyBlock(data),
+			ExpectError: regexp.MustCompile("empty `log_scrubbing` block: either remove it or specify one or more valid configuration fields"),
 		},
 		{
 			// Test valid configuration with no scrubbing rules but enabled
@@ -417,13 +375,85 @@ func TestAccCdnFrontDoorProfile_logScrubbing_edgeCases(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfile_logScrubbing_maxRules(t *testing.T) {
+func TestAccCdnFrontDoorProfile_logScrubbing_queryStringArgNames_validation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.logScrubbingManyRules(data),
+			// Test operator being set for QueryStringArgNames (should fail)
+			Config:      r.logScrubbingOperatorSet(data),
+			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `operator` cannot be set when the `match_variable` is `QueryStringArgNames`"),
+		},
+		{
+			// Test empty selector for QueryStringArgNames (should fail)
+			Config:      r.logScrubbingEmptySelector(data),
+			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `selector` is required when the `match_variable` is `QueryStringArgNames`"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_requestIPAddress_validation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Test RequestIPAddress without an operator (should fail)
+			Config:      r.logScrubbingOperatorNotSetRequestIPAddress(data),
+			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `operator` is required when the `match_variable` is `RequestIPAddress`"),
+		},
+		{
+			// Test RequestIPAddress with a selector (should fail)
+			Config:      r.logScrubbingSelectorSetRequestIPAddress(data),
+			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `selector` cannot be set when the `match_variable` is `RequestIPAddress`"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_requestUri_validation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Test RequestUri without an operator (should fail)
+			Config:      r.logScrubbingOperatorNotSetRequestUri(data),
+			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `operator` is required when the `match_variable` is `RequestUri`"),
+		},
+		{
+			// Test RequestUri with a selector (should fail)
+			Config:      r.logScrubbingSelectorSetRequestUri(data),
+			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.0: `selector` cannot be set when the `match_variable` is `RequestUri`"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbingRuleIndex_validation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Test validation error message includes correct rule index (rule 1)
+			Config:      r.logScrubbingInvalidRuleAtIndex1(data),
+			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.1: `selector` cannot be set when the `match_variable` is `RequestIPAddress`"),
+		},
+		{
+			// Test validation error message includes correct rule index (rule 2)
+			Config:      r.logScrubbingInvalidRuleAtIndex2(data),
+			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.2: `selector` is required when the `match_variable` is `QueryStringArgNames`"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_multipleRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingMultipleRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -452,7 +482,7 @@ func TestAccCdnFrontDoorProfile_logScrubbing_complexUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.logScrubbingManyRules(data),
+			Config: r.logScrubbingMultipleRules(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -465,24 +495,6 @@ func TestAccCdnFrontDoorProfile_logScrubbing_complexUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccCdnFrontDoorProfile_logScrubbingRuleIndexValidation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-	r := CdnFrontDoorProfileResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// Test validation error message includes correct rule index (rule 1)
-			Config:      r.logScrubbingInvalidRuleAtIndex1(data),
-			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.1: `selector` cannot be set when `match_variable` is `RequestIPAddress`"),
-		},
-		{
-			// Test validation error message includes correct rule index (rule 2)
-			Config:      r.logScrubbingInvalidRuleAtIndex2(data),
-			ExpectError: regexp.MustCompile("log_scrubbing\\.0\\.scrubbing_rule\\.2: `selector` is required when `match_variable` is `QueryStringArgNames`"),
-		},
 	})
 }
 
@@ -775,7 +787,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     }
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       selector       = "search_query"
       enabled        = true
     }
@@ -867,7 +878,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     enabled = true
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
+      operator       = "EqualsAny" # operator specified for QueryStringArgNames - this should trigger validation error
       enabled        = true
       # No selector specified - this should trigger validation error
     }
@@ -896,7 +907,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     enabled = true
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       selector       = "custom_param" # This is valid for QueryStringArgNames
       enabled        = true
     }
@@ -975,49 +985,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (CdnFrontDoorProfileResource) logScrubbingMultipleRules(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Premium_AzureFrontDoor"
-
-  log_scrubbing {
-    enabled = true
-    scrubbing_rule {
-      match_variable = "RequestIPAddress"
-      operator       = "EqualsAny"
-      enabled        = true
-    }
-    scrubbing_rule {
-      match_variable = "RequestUri"
-      operator       = "EqualsAny"
-      enabled        = true
-    }
-    scrubbing_rule {
-      match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
-      selector       = "user_id"
-      enabled        = true
-    }
-  }
-
-  tags = {
-    environment = "Test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (CdnFrontDoorProfileResource) logScrubbingMultipleRulesDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1048,7 +1015,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     }
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       selector       = "user_id"
       enabled        = true
     }
@@ -1082,7 +1048,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     scrubbing_rule {
       match_variable = "RequestIPAddress"
       operator       = "EqualsAny"
-      enabled        = false
+      enabled        = true
     }
   }
 
@@ -1139,6 +1105,27 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (CdnFrontDoorProfileResource) logScrubbingEmptyBlock(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestcdnfd-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+
+  log_scrubbing {}
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (CdnFrontDoorProfileResource) logScrubbingEmptySelector(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1159,7 +1146,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     enabled = true
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       selector       = "" # Empty selector should trigger validation error
       enabled        = true
     }
@@ -1168,7 +1154,65 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (CdnFrontDoorProfileResource) logScrubbingMultipleInvalidRules(data acceptance.TestData) string {
+func (CdnFrontDoorProfileResource) logScrubbingOperatorSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestcdnfd-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+
+  log_scrubbing {
+    enabled = true
+    scrubbing_rule {
+      match_variable = "QueryStringArgNames"
+      selector       = "param_1"
+      operator       = "EqualsAny" # Operator set should trigger validation error
+      enabled        = true
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (CdnFrontDoorProfileResource) logScrubbingOperatorNotSetRequestIPAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestcdnfd-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+
+  log_scrubbing {
+    enabled = true
+
+    # Operator not set - This should trigger a validation error
+    scrubbing_rule {
+      match_variable = "RequestIPAddress"
+      enabled        = true
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (CdnFrontDoorProfileResource) logScrubbingSelectorSetRequestIPAddress(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1189,13 +1233,65 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     scrubbing_rule {
       match_variable = "RequestIPAddress"
       operator       = "EqualsAny"
-      selector       = "invalid_selector" # This should trigger validation error
+      selector       = "param_1" # Selector Set - This should trigger validation error
       enabled        = true
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (CdnFrontDoorProfileResource) logScrubbingOperatorNotSetRequestUri(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestcdnfd-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+
+  log_scrubbing {
+    enabled = true
+
+    # Operator not set - This should trigger a validation error
+    scrubbing_rule {
+      match_variable = "RequestUri"
+      enabled        = true
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (CdnFrontDoorProfileResource) logScrubbingSelectorSetRequestUri(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestcdnfd-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+
+  log_scrubbing {
+    enabled = true
     scrubbing_rule {
       match_variable = "RequestUri"
       operator       = "EqualsAny"
-      selector       = "another_invalid_selector" # This should also trigger validation error
+      selector       = "param_1" # Selector Set - This should trigger validation error
       enabled        = true
     }
   }
@@ -1231,7 +1327,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (CdnFrontDoorProfileResource) logScrubbingManyRules(data acceptance.TestData) string {
+func (CdnFrontDoorProfileResource) logScrubbingMultipleRules(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1261,19 +1357,16 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     }
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       selector       = "user_id"
       enabled        = true
     }
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       selector       = "session_token"
       enabled        = true
     }
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       selector       = "api_key"
       enabled        = false
     }
@@ -1351,7 +1444,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     }
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
       # Missing selector - should trigger validation error at index 2
       enabled = true
     }

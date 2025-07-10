@@ -109,15 +109,15 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 									"operator": {
 										Type:     pluginsdk.TypeString,
 										Optional: true,
-										Default:  string(profiles.ScrubbingRuleEntryMatchOperatorEqualsAny),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(profiles.ScrubbingRuleEntryMatchOperatorEqualsAny),
 										}, false),
 									},
 
 									"selector": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -165,11 +165,16 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 								rule := ruleRaw.(map[string]interface{})
 
 								// Get match_variable value, handling nil case
-								matchVariableRaw, exists := rule["match_variable"]
-								if !exists || matchVariableRaw == nil {
-									continue // Skip validation if match_variable is not set
+								var matchVariable string
+								if matchVariableRaw, exists := rule["match_variable"]; exists && matchVariableRaw != nil {
+									matchVariable = matchVariableRaw.(string)
 								}
-								matchVariable := matchVariableRaw.(string)
+
+								// Get operator value, handling nil case
+								var operator string
+								if operatorRaw, exists := rule["operator"]; exists && operatorRaw != nil {
+									operator = operatorRaw.(string)
+								}
 
 								// Get selector value, handling nil case
 								var selector string
@@ -177,21 +182,31 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 									selector = selectorRaw.(string)
 								}
 
-								// Validate selector requirements based on match_variable
+								// Validate selector requirements based on match_variable and operator
 								if matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames) {
 									// For QueryStringArgNames, selector is required
 									if selector == "" {
-										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` is required when `match_variable` is `%s`", i, matchVariable)
+										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` is required when the `match_variable` is `%s`", i, matchVariable)
+									}
+									// For QueryStringArgNames, operator cannot be set
+									if operator != "" {
+										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `operator` cannot be set when the `match_variable` is `%s`", i, matchVariable)
 									}
 								} else if matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress) ||
 									matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableRequestUri) {
+									// For RequestIPAddress and RequestUri, operator is required
+									if operator == "" {
+										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `operator` is required when the `match_variable` is `%s`", i, matchVariable)
+									}
 									// For RequestIPAddress and RequestUri, selector cannot be set
 									if selector != "" {
-										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` cannot be set when `match_variable` is `%s`", i, matchVariable)
+										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` cannot be set when the `match_variable` is `%s`", i, matchVariable)
 									}
 								}
 							}
 						}
+					} else {
+						return fmt.Errorf("empty `log_scrubbing` block: either remove it or specify one or more valid configuration fields")
 					}
 				}
 
@@ -407,7 +422,10 @@ func expandCdnFrontDoorProfileScrubbingRules(input []interface{}) *[]profiles.Pr
 
 		item.State = &enabled
 		item.MatchVariable = profiles.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
-		item.SelectorMatchOperator = profiles.ScrubbingRuleEntryMatchOperator(v["operator"].(string))
+
+		if operator, ok := v["operator"]; ok && operator.(string) != "" {
+			item.SelectorMatchOperator = profiles.ScrubbingRuleEntryMatchOperator(operator.(string))
+		}
 
 		if selector, ok := v["selector"]; ok && selector.(string) != "" {
 			item.Selector = pointer.To(selector.(string))
@@ -442,8 +460,14 @@ func flattenCdnFrontDoorProfileScrubbingRules(scrubbingRules *[]profiles.Profile
 		item := map[string]interface{}{}
 		item["enabled"] = pointer.From(scrubbingRule.State) == profiles.ScrubbingRuleEntryStateEnabled
 		item["match_variable"] = scrubbingRule.MatchVariable
-		item["operator"] = scrubbingRule.SelectorMatchOperator
-		item["selector"] = pointer.From(scrubbingRule.Selector)
+
+		if scrubbingRule.SelectorMatchOperator != "" {
+			item["operator"] = scrubbingRule.SelectorMatchOperator
+		}
+
+		if scrubbingRule.Selector != nil {
+			item["selector"] = pointer.From(scrubbingRule.Selector)
+		}
 
 		result = append(result, item)
 	}
