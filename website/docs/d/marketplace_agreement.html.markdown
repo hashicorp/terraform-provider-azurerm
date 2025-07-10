@@ -42,9 +42,9 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `accepted` - Whether the Marketplace Agreement has been accepted.
-
 * `id` - The ID of the Marketplace Agreement.
+
+* `accepted` - Whether the Marketplace Agreement has been accepted.
 
 ## Timeouts
 
