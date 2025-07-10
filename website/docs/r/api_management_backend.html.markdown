@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `tls` - (Optional) A `tls` block as documented below.
 
+* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as documented below.
+
 ---
 
 A `credentials` block supports the following:
@@ -133,11 +135,49 @@ A `tls` block supports the following:
 
 ---
 
+A `circuit_breaker_rule` block supports the following.
+
+* `name` - (Required) The name of the circuit breaker rule.
+
+* `accept_retry_after` - (Optional) Should the 'Retry-After' header in the HTTP response be checked. `true` to Accept. `false` to Ignore. Default value is `false`.
+
+* `trip_duration` - (Required) How long the Circuit Breaker should be tripped for.
+
+* `failure_condition` - (Required) A `failure_condition` block as documented below.
+
+---
+
+A `failure_condition` block supports the following.
+
+* `count` - (Optional) How many failed requests should trip the Circuit Breaker.
+
+* `percentage` - (Optional) What percentage of requests must fail to trip the Circuit Breaker.
+
+~> **Note:** Either `count` or `percentage` must be set.
+
+* `interval` - (Required) The failure interval time period over which failures will be counted or assessed.
+
+* `error_reasons` - (Optional) List of [API policy built-in errors](https://learn.microsoft.com/en-us/azure/api-management/api-management-error-handling-policies#predefined-errors-for-built-in-steps) that should trip the Circuit Breaker.
+
+* `status_code_range` - (Required) One or more `status_code_range` blocks as documented below.
+
+---
+
+A `status_code_range` block supports the following.
+
+* `min` - (Required) The minimum HTTP status code for this block.
+
+* `max` - (Required) The maximum HTTP status code for this block.
+
+~> **Note:** Both `min` and `max` must be between the values of 200 and 599.
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the API Management API.
+* `id` - The ID of the API Management Backend.
 
 ## Timeouts
 
@@ -157,7 +197,9 @@ terraform import azurerm_api_management_backend.example /subscriptions/00000000-
 ```
 
 ## API Providers
+
 <!-- This section is generated, changes will be overwritten -->
+
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ApiManagement`: 2022-08-01
+* `Microsoft.ApiManagement`: 2024-05-01
