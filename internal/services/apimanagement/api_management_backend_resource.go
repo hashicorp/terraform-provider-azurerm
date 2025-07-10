@@ -160,9 +160,10 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			},
 
 			"resource_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringLenBetween(1, 2000),
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringLenBetween(1, 2000),
+				ConflictsWith: []string{"pool"},
 			},
 
 			"service_fabric_cluster": {
