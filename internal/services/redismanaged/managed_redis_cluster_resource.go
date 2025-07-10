@@ -6,7 +6,6 @@ package redismanaged
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -17,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -142,7 +143,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 
 			var model ManagedRedisClusterResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := redisenterprise.NewRedisEnterpriseID(subscriptionId, model.ResourceGroupName, model.Name)
@@ -169,7 +170,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			parameters := redisenterprise.Cluster{
-				Location: model.Location,
+				Location: location.Normalize(model.Location),
 				Sku:      pointer.From(sku),
 				Properties: &redisenterprise.ClusterProperties{
 					MinimumTlsVersion: pointer.To(redisenterprise.TlsVersion(model.MinimumTlsVersion)),
@@ -194,19 +195,13 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			log.Printf("[DEBUG] Waiting for %s to become available..", id)
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
-				Target:     []string{"Running"},
-				Refresh:    managedRedisClusterStateRefreshFunc(ctx, client, id),
-				MinTimeout: 15 * time.Second,
-				Timeout:    metadata.ResourceData.Timeout(pluginsdk.TimeoutCreate),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
+			pollerType := custompollers.NewClusterStatePoller(client, id)
+			poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for cluster %s to become available: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -258,13 +253,7 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
 					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
-
-					tlsVersion := ""
-					if props.MinimumTlsVersion != nil {
-						tlsVersion = string(*props.MinimumTlsVersion)
-					}
-					state.MinimumTlsVersion = tlsVersion
-
+					state.MinimumTlsVersion = string(pointer.From(props.MinimumTlsVersion))
 					state.Hostname = pointer.From(props.HostName)
 				}
 			}
@@ -287,7 +276,7 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 
 			var state ManagedRedisClusterResourceModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, *id)
@@ -295,8 +284,11 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if existing.Model == nil || existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: model or properties was nil", *id)
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: properties was nil", *id)
 			}
 
 			parameters := redisenterprise.ClusterUpdate{
@@ -328,17 +320,10 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			log.Printf("[DEBUG] Waiting for %s to become available", *id)
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{"Creating", "Updating", "Enabling", "Deleting", "Disabling"},
-				Target:     []string{"Running"},
-				Refresh:    managedRedisClusterStateRefreshFunc(ctx, client, *id),
-				MinTimeout: 15 * time.Second,
-				Timeout:    30 * time.Minute,
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to become available: %+v", *id, err)
+			pollerType := custompollers.NewClusterStatePoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for cluster %s to become available: %+v", id, err)
 			}
 
 			return nil
@@ -379,20 +364,6 @@ func flattenManagedRedisClusterSku(input redisenterprise.Sku) *string {
 	return pointer.To(skuName)
 }
 
-func managedRedisClusterStateRefreshFunc(ctx context.Context, client *redisenterprise.RedisEnterpriseClient, id redisenterprise.RedisEnterpriseId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-		if res.Model == nil || res.Model.Properties == nil || res.Model.Properties.ResourceState == nil {
-			return nil, "", fmt.Errorf("retrieving %s: model/resourceState was nil", id)
-		}
-
-		return res, string(*res.Model.Properties.ResourceState), nil
-	}
-}
-
 func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) *redisenterprise.ClusterPropertiesEncryption {
 	if len(input) == 0 {
 		return nil
@@ -413,29 +384,15 @@ func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) *re
 
 func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.ClusterPropertiesEncryption) []CustomerManagedKey {
 	if input == nil || input.CustomerManagedKeyEncryption == nil {
-		return []CustomerManagedKey{}
+		return make([]CustomerManagedKey, 0)
 	}
 
 	cmkEncryption := input.CustomerManagedKeyEncryption
 
-	var encryptionKeyUrl, userAssignedIdentityId string
-
-	if cmkEncryption.KeyEncryptionKeyURL != nil {
-		encryptionKeyUrl = *cmkEncryption.KeyEncryptionKeyURL
-	}
-
-	if cmkEncryption.KeyEncryptionKeyIdentity != nil && cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId != nil {
-		userAssignedIdentityId = *cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId
-	}
-
-	if encryptionKeyUrl == "" && userAssignedIdentityId == "" {
-		return []CustomerManagedKey{}
-	}
-
 	return []CustomerManagedKey{
 		{
-			EncryptionKeyUrl:       encryptionKeyUrl,
-			UserAssignedIdentityId: userAssignedIdentityId,
+			EncryptionKeyUrl:       pointer.From(cmkEncryption.KeyEncryptionKeyURL),
+			UserAssignedIdentityId: pointer.From(cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId),
 		},
 	}
 }

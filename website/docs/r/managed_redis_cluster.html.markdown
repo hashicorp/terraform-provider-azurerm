@@ -50,16 +50,6 @@ resource "azurerm_key_vault" "example" {
   sku_name            = "standard"
 
   purge_protection_enabled = true
-}
-
-resource "azurerm_key_vault_key" "example" {
-  name         = "managedrediscmk"
-  key_vault_id = azurerm_key_vault.example.id
-  key_type     = "RSA"
-  key_size     = 2048
-  key_opts = [
-    "unwrapKey", "wrapKey"
-  ]
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -88,6 +78,16 @@ resource "azurerm_key_vault_key" "example" {
       "UnwrapKey"
     ]
   }
+}
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "managedrediscmk"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts = [
+    "unwrapKey", "wrapKey"
+  ]
 }
 
 resource "azurerm_managed_redis_cluster" "example" {

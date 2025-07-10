@@ -608,7 +608,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 		return fmt.Errorf("building clients for RedisEnterprise: %+v", err)
 	}
 	if client.RedisManaged, err = redismanaged.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Redis Managed: %+v", err)
+		return fmt.Errorf("building clients for Managed Redis: %+v", err)
 	}
 	if client.Relay, err = relay.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Relay: %+v", err)
