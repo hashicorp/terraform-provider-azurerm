@@ -49,6 +49,6 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
     }
 
     fun uniqueID(provider : String) : String {
-        return "%s_SERVICE_%s_%s".format(provider.toUpperCase(), environment.toUpperCase(), packageName.toUpperCase())
+        return "%s_SERVICE_%s_%s".format(provider.uppercase(), environment.uppercase(), packageName.uppercase())
     }
 }

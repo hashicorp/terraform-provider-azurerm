@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `long_term_backup_schedule` - (Optional) A `long_term_backup_schedule` block as defined below.
 
--> **Note:** for more information see [Create Long-Term Backups on Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/backup-long-term.html#GUID-BD76E02E-AEB0-4450-A6AB-5C9EB1F4EAD0) 
+-> **Note:** for more information see [Create Long-Term Backups on Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/backup-long-term.html#GUID-BD76E02E-AEB0-4450-A6AB-5C9EB1F4EAD0)
 
 ---
 
@@ -134,5 +134,7 @@ terraform import azurerm_oracle_autonomous_database.example /subscriptions/00000
 ```
 
 ## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
 
 * `Oracle.Database`: 2025-03-01

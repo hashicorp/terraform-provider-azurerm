@@ -432,4 +432,4 @@ terraform import azurerm_api_management.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ApiManagement`: 2022-08-01
+* `Microsoft.ApiManagement`: 2024-05-01, 2022-08-01

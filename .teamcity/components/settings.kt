@@ -138,10 +138,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "mysql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // netapp has a max of 10 accounts and the max capacity of pool is 25 TiB per subscription so lets limit it to 5 to account for broken ones, run Monday, Wednesday, Friday - Long running, bumped to 18h 2025-07-08
-        "netapp" to testConfiguration(parallelism = 5, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("eastus", "eastus2", "westus2", false), timeout = 18),
-
-        // network has increased timeout to accommodate the custom_ip_prefix resource
-        "network" to testConfiguration(timeout = 24),
+        "netapp" to testConfiguration(parallelism = 5, daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("eastus", "westus2", "westus3", true), timeout = 18),
 
         // Run New Relic testcases in Canary Region to avoid generating pollution test data in Production Region, which will cause side effect in Service Partner's Database
         "newrelic" to testConfiguration(locationOverride = LocationConfiguration("centraluseuap", "eastus", "eastus", false)),
@@ -150,7 +147,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "networkfunction" to testConfiguration(locationOverride = LocationConfiguration("westus2", "eastus2", "westeurope", false)),
 
         // Network Regional Tire Public IP is only available in
-        "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
+        "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false), timeout = 24),
 
         // Orbital is only available in certain locations
         "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
@@ -179,9 +176,6 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Spring Cloud only allows a max of 10 provisioned
         "springcloud" to testConfiguration(parallelism = 5, daysOfWeek = "2"),
-
-        // SQL has quota available in certain locations
-        "sql" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
         // HPC Cache has a 4 instance per subscription quota as of early 2021
         "storagecache" to testConfiguration(parallelism = 3, daysOfWeek = "2,4,6"),
