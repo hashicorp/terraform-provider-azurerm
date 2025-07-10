@@ -85,7 +85,19 @@ func (p *ClientFilter) UnmarshalJSON(b []byte) error {
 			}
 
 		default:
-			return fmt.Errorf("unknown type %q", name)
+			{
+				var out CustomFilter
+				mpc := mapstructure.DecoderConfig{TagName: "json", Result: &out}
+				mpd, err := mapstructure.NewDecoder(&mpc)
+				if err != nil {
+					return err
+				}
+				err = mpd.Decode(filterRaw)
+				if err != nil {
+					return err
+				}
+				filtersOut = append(filtersOut, out)
+			}
 		}
 	}
 
