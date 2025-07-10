@@ -91,15 +91,15 @@ func resourceEventHub() *pluginsdk.Resource {
 						},
 
 						"retention_time_in_hours": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"retention_description.0.tombstone_retention_time_in_hours"},
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ExactlyOneOf: []string{"retention_description.0.tombstone_retention_time_in_hours", "retention_description.0.retention_time_in_hours"},
 						},
 
 						"tombstone_retention_time_in_hours": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"retention_description.0.retention_time_in_hours"},
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ExactlyOneOf: []string{"retention_description.0.retention_time_in_hours", "retention_description.0.tombstone_retention_time_in_hours"},
 						},
 					},
 				},
