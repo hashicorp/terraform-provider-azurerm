@@ -28,6 +28,7 @@ func TestAccCosmosDbMongoDatabase_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				checkAccCosmosDBAccount_cassandra("azurerm_cosmosdb_account.test"),
 				checkAccCosmosDBAccount_mongodb("azurerm_cosmosdb_account.test"),
 			),
 		},
@@ -44,6 +45,7 @@ func TestAccCosmosDbMongoDatabase_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				checkAccCosmosDBAccount_cassandra("azurerm_cosmosdb_account.test"),
 				checkAccCosmosDBAccount_mongodb("azurerm_cosmosdb_account.test"),
 			),
 		},
@@ -92,6 +94,7 @@ func TestAccCosmosDbMongoDatabase_serverless(t *testing.T) {
 			Config: r.serverless(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				checkAccCosmosDBAccount_cassandra("azurerm_cosmosdb_account.test"),
 				checkAccCosmosDBAccount_mongodb("azurerm_cosmosdb_account.test"),
 			),
 		},
@@ -162,7 +165,16 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "EnableMongo"}), data.RandomInteger)
+`, CosmosDBAccountResource{}.capabilities(data, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "EnableMongo", "EnableCassandra"}), data.RandomInteger)
+}
+
+func checkAccCosmosDBAccount_cassandra(resourceName string) acceptance.TestCheckFunc {
+	return acceptance.ComposeTestCheckFunc(
+		check.That(resourceName).Key("primary_cassandra_connection_string").Exists(),
+		check.That(resourceName).Key("secondary_cassandra_connection_string").Exists(),
+		check.That(resourceName).Key("primary_readonly_cassandra_connection_string").Exists(),
+		check.That(resourceName).Key("secondary_readonly_cassandra_connection_string").Exists(),
+	)
 }
 
 func checkAccCosmosDBAccount_mongodb(resourceName string) acceptance.TestCheckFunc {

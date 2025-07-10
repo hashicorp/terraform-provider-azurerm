@@ -341,6 +341,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_readonly_key` - The Secondary read-only key for the CosmosDB Account.
 
+* `primary_cassandra_connection_string` - Primary Cassandra connection string for the CosmosDB Account.
+
+* `secondary_cassandra_connection_string` - Secondary Cassandra connection string for the CosmosDB Account.
+
+* `primary_readonly_cassandra_connection_string` - Primary readonly Cassandra connection string for the CosmosDB Account.
+
+* `secondary_readonly_cassandra_connection_string` - Secondary readonly Cassandra connection string for the CosmosDB Account.
+
 * `primary_sql_connection_string` - Primary SQL connection string for the CosmosDB Account.
 
 * `secondary_sql_connection_string` - Secondary SQL connection string for the CosmosDB Account.

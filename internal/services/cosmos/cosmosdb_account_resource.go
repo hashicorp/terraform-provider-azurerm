@@ -44,14 +44,18 @@ import (
 var CosmosDbAccountResourceName = "azurerm_cosmosdb_account"
 
 var connStringPropertyMap = map[string]string{
-	"Primary SQL Connection String":                 "primary_sql_connection_string",
-	"Secondary SQL Connection String":               "secondary_sql_connection_string",
-	"Primary Read-Only SQL Connection String":       "primary_readonly_sql_connection_string",
-	"Secondary Read-Only SQL Connection String":     "secondary_readonly_sql_connection_string",
-	"Primary MongoDB Connection String":             "primary_mongodb_connection_string",
-	"Secondary MongoDB Connection String":           "secondary_mongodb_connection_string",
-	"Primary Read-Only MongoDB Connection String":   "primary_readonly_mongodb_connection_string",
-	"Secondary Read-Only MongoDB Connection String": "secondary_readonly_mongodb_connection_string",
+	"Primary SQL Connection String":                   "primary_sql_connection_string",
+	"Secondary SQL Connection String":                 "secondary_sql_connection_string",
+	"Primary Read-Only SQL Connection String":         "primary_readonly_sql_connection_string",
+	"Secondary Read-Only SQL Connection String":       "secondary_readonly_sql_connection_string",
+	"Primary MongoDB Connection String":               "primary_mongodb_connection_string",
+	"Secondary MongoDB Connection String":             "secondary_mongodb_connection_string",
+	"Primary Read-Only MongoDB Connection String":     "primary_readonly_mongodb_connection_string",
+	"Secondary Read-Only MongoDB Connection String":   "secondary_readonly_mongodb_connection_string",
+	"Primary Cassandra Connection String":             "primary_cassandra_connection_string",
+	"Secondary Cassandra Connection String":           "secondary_cassandra_connection_string",
+	"Primary Read-Only Cassandra Connection String":   "primary_readonly_cassandra_connection_string",
+	"Secondary Read-Only Cassandra Connection String": "secondary_readonly_cassandra_connection_string",
 }
 
 type databaseAccountCapabilities string
@@ -719,6 +723,30 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			},
 
 			"secondary_readonly_key": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_cassandra_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_cassandra_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_cassandra_connection_string": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_cassandra_connection_string": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
 				Sensitive: true,
