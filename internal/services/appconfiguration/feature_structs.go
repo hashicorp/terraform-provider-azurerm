@@ -121,14 +121,9 @@ type TargetingFilterAudience struct {
 	Groups                   []TargetingGroupParameter `json:"Groups"                   tfschema:"groups"`
 }
 
-type CustomParameter struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
 type CustomFilter struct {
-	Name       string            `json:"name"`
-	Parameters []CustomParameter `json:"parameters"`
+	Name       string            `json:"name" tfschema:"name"`
+	Parameters map[string]string `json:"parameters" tfschema:"parameters"`
 }
 
 type TargetingFeatureFilter struct {
