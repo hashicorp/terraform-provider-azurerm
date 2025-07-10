@@ -66,7 +66,7 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("tls.0.validate_certificate_chain").HasValue("false"),
 				check.That(data.ResourceName).Key("tls.0.validate_certificate_name").HasValue("true"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
-				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("false"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("true"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("rulename"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT1H"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.#").HasValue("1"),
@@ -269,6 +269,7 @@ func TestAccApiManagementBackend_circuitBreakerRuleValues(t *testing.T) {
 				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("count-rule"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("true"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT30M"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.count").HasValue("5"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT5M"),
@@ -289,6 +290,7 @@ func TestAccApiManagementBackend_circuitBreakerRuleValues(t *testing.T) {
 				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("percentage-rule"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("false"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT10M"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.percentage").HasValue("75"),
 				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT10M"),
@@ -451,7 +453,7 @@ resource "azurerm_api_management_backend" "test" {
     validate_certificate_name  = true
   }
   circuit_breaker_rule {
-    accept_retry_after = false
+    accept_retry_after = true
     name               = "rulename"
     trip_duration      = "PT1H"
     failure_condition {
@@ -668,6 +670,7 @@ resource "azurerm_api_management_backend" "test" {
   url                 = "https://acctest"
   circuit_breaker_rule {
     name               = "count-rule"
+    accept_retry_after = true
     trip_duration      = "PT30M"
     failure_condition {
       count    = 5
