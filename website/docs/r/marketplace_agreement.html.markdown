@@ -14,9 +14,9 @@ Allows accepting the Legal Terms for a Marketplace Image.
 
 ```hcl
 resource "azurerm_marketplace_agreement" "barracuda" {
-  offer     = local.barracuda.offer
-  plan      = local.barracuda.plan
-  publisher = local.barracuda.publisher
+  publisher = "barracudanetworks"
+  offer     = "waf"
+  plan      = "hourly"
 }
 ```
 
