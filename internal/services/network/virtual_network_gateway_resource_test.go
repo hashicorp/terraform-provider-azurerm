@@ -770,7 +770,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "VpnGw1AZ"
 
   active_active = true
-  enable_bgp    = true
+  bgp_enabled   = true
 
   ip_configuration {
     name                 = "gw-ip1"
