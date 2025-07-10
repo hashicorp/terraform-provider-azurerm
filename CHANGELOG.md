@@ -5,6 +5,7 @@ FEATURES:
 * **New Resource**: `azurerm_network_manager_verifier_workspace_reachability_analysis_intent` [GH-28956]
 
 ENHANCEMENTS:
+[ENHANCEMENT]* `azurerm_machine_learning_datastore_blobstorage` - the `shared_access_signature` and `account_key` properties are now optional [GH-30079]
 * Data Source: `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property [GH-29995]
 * `azurerm_dev_center_dev_box_definition` - add support for the `hibernate_support_enabled` property [GH-29995]
 * dependencies: `servicenetworking` - update to API version `2025-01-01` [GH-30103]
