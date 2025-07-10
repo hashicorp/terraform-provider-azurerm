@@ -500,6 +500,30 @@ func (c CosmosDBAccountV0toV1) Schema() map[string]*pluginsdk.Schema {
 			Sensitive: true,
 		},
 
+		"primary_cassandra_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_cassandra_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"primary_readonly_cassandra_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_readonly_cassandra_connection_string": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
 		"primary_sql_connection_string": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
