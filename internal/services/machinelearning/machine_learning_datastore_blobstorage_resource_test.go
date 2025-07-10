@@ -52,7 +52,7 @@ func TestAccMachineLearningDataStoreBlobStorage_serviceDataAuthIdentity(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("account_key", "shared_access_signature"),
 		{
 			Config: r.serviceDataAuthIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -184,11 +184,49 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  signed_version    = "2019-10-10"
+
+  resource_types {
+    service   = true
+    container = true
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = true
+  }
+
+  start  = "2022-01-01T06:17:07Z"
+  expiry = "2024-12-23T06:17:07Z"
+
+  permissions {
+    read    = true
+    write   = true
+    delete  = false
+    list    = false
+    add     = true
+    create  = true
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   name                       = "accdatastore%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
   storage_container_id       = azurerm_storage_container.test.resource_manager_id
   service_data_auth_identity = "WorkspaceUserAssignedIdentity"
+  shared_access_signature    = data.azurerm_storage_account_sas.test.sas
+  account_key                = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
 }
