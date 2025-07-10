@@ -278,7 +278,6 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 			}
 			d.Set("backend_ip_configuration_id", backendIPConfigId)
 			d.Set("backend_port", pointer.From(props.BackendPort))
-
 			d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP))
 			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
 
