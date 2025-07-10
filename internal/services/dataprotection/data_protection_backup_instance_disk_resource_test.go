@@ -6,6 +6,7 @@ package dataprotection_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -103,18 +104,42 @@ func TestAccDataProtectionBackupInstanceDisk_snapshotSubscriptionId(t *testing.T
 	})
 }
 
+type DataProtectionBackupInstanceDiskAlternateSubscription struct {
+	tenantId       string
+	subscriptionId string
+}
+
 func TestAccDataProtectionBackupInstanceDisk_snapshotSubscriptionIdCrossSubscription(t *testing.T) {
+	altSubscription := altSubscriptionCheck()
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_disk", "test")
 	r := DataProtectionBackupInstanceDiskResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.snapshotSubscriptionIdCrossSubscription(data),
+			Config: r.snapshotSubscriptionIdCrossSubscription(data, altSubscription),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 	})
+}
+
+func altSubscriptionCheck() *DataProtectionBackupInstanceDiskAlternateSubscription {
+	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altTenantID := os.Getenv("ARM_TENANT_ID")
+
+	if altSubscriptonID == "" || altTenantID == "" {
+		return nil
+	}
+
+	return &DataProtectionBackupInstanceDiskAlternateSubscription{
+		subscriptionId: altSubscriptonID,
+		tenantId:       altTenantID,
+	}
 }
 
 func (r DataProtectionBackupInstanceDiskResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -259,26 +284,54 @@ resource "azurerm_data_protection_backup_instance_disk" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstanceDiskResource) snapshotSubscriptionIdCrossSubscription(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceDiskResource) snapshotSubscriptionIdCrossSubscription(data acceptance.TestData, alt *DataProtectionBackupInstanceDiskAlternateSubscription) string {
 	return fmt.Sprintf(`
-%[1]s
-
-provider "azuerm-alt" {
+provider "azurerm" {
   features {}
-  subscription_id = %[2]s
+}
+
+provider "azurerm-alt" {
+  subscription_id = "%[3]s"
+  tenant_id       = "%[4]s"
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-dataprotection-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_data_protection_backup_vault" "test" {
+  name                = "acctest-dataprotection-vault-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  datastore_type      = "VaultStore"
+  redundancy          = "LocallyRedundant"
+  soft_delete         = "Off"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_data_protection_backup_policy_disk" "test" {
+  name                            = "acctest-dbp-%[2]d"
+  vault_id                        = azurerm_data_protection_backup_vault.test.id
+  backup_repeating_time_intervals = ["R/2021-05-20T04:54:23+00:00/PT4H"]
+  default_retention_duration      = "P7D"
 }
 
 resource "azurerm_resource_group" "test2" {
   provider = azurerm-alt
-  name     = "acctest-dataprotection2-%[4]d"
-  location = "%[3]s"
+  name     = "acctest-dataprotection2-%[2]d"
+  location = "%[1]s"
 }
 
 resource "azurerm_managed_disk" "test2" {
   provider             = azurerm-alt
-  name                 = "acctest-disk2-%[4]d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
+  name                 = "acctest-disk2-%[2]d"
+  location             = azurerm_resource_group.test2.location
+  resource_group_name  = azurerm_resource_group.test2.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"
@@ -297,20 +350,18 @@ resource "azurerm_role_assignment" "test4" {
 }
 
 resource "azurerm_data_protection_backup_instance_disk" "test" {
-  name                         = "acctest-dbi-%[4]d"
+  name                         = "acctest-dbi-%[2]d"
   location                     = azurerm_resource_group.test.location
   vault_id                     = azurerm_data_protection_backup_vault.test.id
   disk_id                      = azurerm_managed_disk.test2.id
   snapshot_resource_group_name = azurerm_resource_group.test2.name
-  snapshot_subscription_id     = %[2]s
+  snapshot_subscription_id     = "%[3]s"
   backup_policy_id             = azurerm_data_protection_backup_policy_disk.test.id
 
-  lifecycle {
-    depend_on = [
-      azurerm_role_assignment.test3,
-      azurerm_role_assignment.test4,
-    ]
-  }
+  depends_on = [
+    azurerm_role_assignment.test3,
+    azurerm_role_assignment.test4,
+  ]
 }
-`, r.template(data), data.Subscriptions.Secondary, data.Locations.Primary, data.RandomInteger)
+`, data.Locations.Primary, data.RandomInteger, alt.subscriptionId, alt.tenantId)
 }
