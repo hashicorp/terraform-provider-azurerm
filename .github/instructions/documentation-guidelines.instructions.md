@@ -366,21 +366,6 @@ description: |-
 * `list_argument` - (Optional) A list of `list_argument` blocks as defined below.
 ```
 
-#### Implementation-Specific Documentation Guidelines
-When documenting resources that may use different implementation approaches:
-
-**Feature Documentation:**
-- **Available Features**: Document only features that are actually available in the current implementation
-- **Validation Patterns**: Reflect the actual validation behavior users will experience
-- **Error Handling**: Describe error messages and handling as they actually appear to users
-- **Import Behavior**: Document the actual import functionality and resource ID format
-
-**Version Considerations:**
-- **Current Functionality**: Always document what works in the current provider version
-- **Future Features**: Avoid documenting features not yet available
-- **Migration Notes**: If implementation changes affect user experience, document the changes in release notes, not resource docs
-- **Consistency**: Maintain consistent documentation style regardless of underlying implementation
-
 #### Data Source Argument Documentation Patterns
 ```markdown
 * `argument_name` - The name/identifier used to locate the existing resource.
@@ -629,3 +614,35 @@ In addition to the Arguments listed above - the following Attributes are exporte
 - [ ] Practical lookup examples provided
 
 This documentation should be treated as the source of truth for creating and maintaining high-quality, differentiated documentation for both Terraform AzureRM provider resources and data sources.
+
+### Field Documentation Rules
+
+#### Field Ordering Standards
+- **Required fields first**: Always list required fields before optional fields in argument documentation
+- **Alphabetical within category**: Within required and optional groups, list fields alphabetically
+- **Consistent structure**: Maintain the same field ordering pattern across all block documentation
+
+#### Note Format Standards
+- **Use note blocks for conditional behavior**: When field usage depends on other field values, use note format instead of inline descriptions
+- **Note syntax**: Use `~> **Note:**` format for important behavioral information
+- **Clear conditional logic**: Explain exactly when fields are used vs ignored
+- **Separate concerns**: Keep the main field description simple, use notes for complex conditional behavior
+
+Example of proper field documentation:
+```markdown
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
+
+* `enabled` - (Optional) Whether this scrubbing rule is enabled. Defaults to `true`.
+
+* `operator` - (Optional) The operator to use for matching. Currently only `EqualsAny` is supported. Defaults to `EqualsAny`.
+
+* `selector` - (Optional) The name of the query string argument to be scrubbed.
+
+~> **Note:** The `selector` field is only used when `match_variable` is set to `QueryStringArgNames`. It is ignored when `match_variable` is `RequestIPAddress` or `RequestUri`.
+```
+
+#### Azure-Specific Documentation Standards
+- **Valid values only**: Only document values that are actually supported by the Azure service
+- **API validation**: Verify all possible values against Azure SDK constants and API documentation
+- **Cross-reference validation**: When implementing similar features across resources, ensure consistent value documentation
+- **SDK alignment**: Match documentation values with Azure SDK enum constants where applicable

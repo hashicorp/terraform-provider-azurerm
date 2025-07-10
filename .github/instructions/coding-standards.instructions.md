@@ -603,6 +603,47 @@ CustomizeDiff: pluginsdk.All(
 ),
 ```
 
+**Azure CDN Front Door Log Scrubbing Validation:**
+```go
+package cdn
+
+import (
+    "context"
+    "fmt"
+
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+CustomizeDiff: pluginsdk.All(
+    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        // Validate log scrubbing configuration
+        if scrubbingRulesRaw, ok := diff.GetOk("log_scrubbing.0.scrubbing_rules"); ok {
+            scrubbingRules := scrubbingRulesRaw.([]interface{})
+            
+            for i, ruleRaw := range scrubbingRules {
+                rule := ruleRaw.(map[string]interface{})
+                matchVariable := rule["match_variable"].(string)
+                selector := rule["selector"].(string)
+                
+                // Azure API constraint: selector is required for QueryStringArgNames
+                if matchVariable == "QueryStringArgNames" {
+                    if selector == "" {
+                        return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` is required when `match_variable` is `%s`", i, matchVariable)
+                    }
+                } else if matchVariable == "RequestIPAddress" || matchVariable == "RequestUri" {
+                    // Azure API constraint: selector cannot be set for RequestIPAddress and RequestUri
+                    if selector != "" {
+                        return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` cannot be set when `match_variable` is `%s`", i, matchVariable)
+                    }
+                }
+            }
+        }
+        return nil
+    },
+),
+```
+
 ### Migration Guidelines
 
 #### Migrating from Untyped to Typed Implementation

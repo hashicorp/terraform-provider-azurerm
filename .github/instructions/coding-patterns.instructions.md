@@ -913,6 +913,106 @@ func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error 
 }
 `
 
+#### Azure-Specific CustomizeDiff Validation Example
+
+**Log Scrubbing Rules Validation (CDN Front Door Profile):**
+```go
+import (
+    "context"
+    "fmt"
+
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceCdnFrontDoorProfileCreate,
+        Read:   resourceCdnFrontDoorProfileRead,
+        Update: resourceCdnFrontDoorProfileUpdate,
+        Delete: resourceCdnFrontDoorProfileDelete,
+
+        CustomizeDiff: pluginsdk.All(
+            // Azure-specific validation for log scrubbing rules
+            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Validate log scrubbing configuration
+                if scrubbingRulesRaw, ok := diff.GetOk("log_scrubbing.0.scrubbing_rules"); ok {
+                    scrubbingRules := scrubbingRulesRaw.([]interface{})
+                    
+                    for i, ruleRaw := range scrubbingRules {
+                        rule := ruleRaw.(map[string]interface{})
+                        matchVariable := rule["match_variable"].(string)
+                        selector := rule["selector"].(string)
+                        
+                        // Azure API constraint: selector is required for QueryStringArgNames
+                        if matchVariable == "QueryStringArgNames" {
+                            if selector == "" {
+                                return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` is required when `match_variable` is `%s`", i, matchVariable)
+                            }
+                        } else if matchVariable == "RequestIPAddress" || matchVariable == "RequestUri" {
+                            // Azure API constraint: selector cannot be set for RequestIPAddress and RequestUri
+                            if selector != "" {
+                                return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` cannot be set when `match_variable` is `%s`", i, matchVariable)
+                            }
+                        }
+                    }
+                }
+                return nil
+            },
+        ),
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definition with log scrubbing
+            "log_scrubbing": {
+                Type:     pluginsdk.TypeList,
+                Optional: true,
+                MaxItems: 1,
+                Elem: &pluginsdk.Resource{
+                    Schema: map[string]*pluginsdk.Schema{
+                        "scrubbing_rules": {
+                            Type:     pluginsdk.TypeList,
+                            Optional: true,
+                            Elem: &pluginsdk.Resource{
+                                Schema: map[string]*pluginsdk.Schema{
+                                    "match_variable": {
+                                        Type:     pluginsdk.TypeString,
+                                        Required: true,
+                                        ValidateFunc: validation.StringInSlice([]string{
+                                            "QueryStringArgNames",
+                                            "RequestIPAddress", 
+                                            "RequestUri",
+                                        }, false),
+                                    },
+                                    "selector": {
+                                        Type:     pluginsdk.TypeString,
+                                        Optional: true,
+                                    },
+                                    "operator": {
+                                        Type:     pluginsdk.TypeString,
+                                        Optional: true,
+                                        Default:  "EqualsAny",
+                                        ValidateFunc: validation.StringInSlice([]string{
+                                            "EqualsAny",
+                                        }, false),
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+}
+```
+
+**Key Points for Azure CustomizeDiff Validation:**
+- **Azure API Constraints**: Validate field combinations that are specific to Azure service requirements
+- **Clear Error Messages**: Include field paths and specific constraint violations in error messages
+- **Field Name Formatting**: Wrap field names in backticks for clarity (`selector`, `match_variable`)
+- **Conditional Logic**: Handle complex Azure resource configuration dependencies
+- **Real-World Example**: The log scrubbing validation shows how `selector` is only valid for certain `match_variable` values
 
 ### Client Management Pattern
 
@@ -1196,7 +1296,3 @@ Key testing requirements:
 - Ensure tests are idempotent and can run in parallel
 - Include import tests for all resources (`data.ImportStep()`)
 - Test Azure-specific features like resource tagging and location handling
-
-
-
-

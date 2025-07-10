@@ -122,63 +122,103 @@ func resourceAzureServiceName() *pluginsdk.Resource {
 - **Resource dependencies**: Check Azure resource prerequisite relationships
 - **API version compatibility**: Ensure feature combinations match Azure API versions
 - **Performance tier validation**: Validate Azure performance tier constraints
+- **Field conditional validation**: Validate field combinations based on Azure API constraints
 
+#### Real-World CustomizeDiff Example: CDN Front Door Log Scrubbing
 
-### Azure-Specific Resource Patterns
-- Use standardized resource naming patterns with resourceToken
-- Implement proper location/region handling across all resources
-- Follow Azure resource tagging conventions consistently
-- Handle Azure API versioning correctly
-- Implement proper subscription and resource group scoping
-- Use Azure resource IDs consistently across all resources
-- Handle cascading deletes and dependencies properly
+```go
+func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceCdnFrontDoorProfileCreate,
+        Read:   resourceCdnFrontDoorProfileRead,
+        Update: resourceCdnFrontDoorProfileUpdate,
+        Delete: resourceCdnFrontDoorProfileDelete,
 
-### Security and Authentication
-- Never hardcode sensitive values in code, tests, or examples
-- Use Azure Key Vault references where appropriate
-- Implement proper authentication handling with service principals
-- Validate all inputs to prevent injection attacks
-- Follow principle of least privilege for service principals
-- Use context with appropriate timeouts for all Azure API calls
+        CustomizeDiff: pluginsdk.All(
+            // Azure-specific validation for log scrubbing rules
+            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Validate log scrubbing configuration
+                if scrubbingRulesRaw, ok := diff.GetOk("log_scrubbing.0.scrubbing_rules"); ok {
+                    scrubbingRules := scrubbingRulesRaw.([]interface{})
+                    
+                    for i, ruleRaw := range scrubbingRules {
+                        rule := ruleRaw.(map[string]interface{})
+                        matchVariable := rule["match_variable"].(string)
+                        selector := rule["selector"].(string)
+                        
+                        // Azure API constraint: selector is required for QueryStringArgNames
+                        if matchVariable == "QueryStringArgNames" {
+                            if selector == "" {
+                                return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` is required when `match_variable` is `%s`", i, matchVariable)
+                            }
+                        } else if matchVariable == "RequestIPAddress" || matchVariable == "RequestUri" {
+                            // Azure API constraint: selector cannot be set for RequestIPAddress and RequestUri
+                            if selector != "" {
+                                return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` cannot be set when `match_variable` is `%s`", i, matchVariable)
+                            }
+                        }
+                    }
+                }
+                return nil
+            },
+        ),
 
-### Testing Requirements
-For comprehensive testing patterns and implementation details, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definition with log scrubbing validation
+        },
+    }
+}
+```
 
-Azure-specific testing requirements:
-- Write comprehensive acceptance tests for all resources
-- Test both success and failure scenarios thoroughly
-- Ensure tests are idempotent and can run in parallel
-- Test resource import functionality for all resources
-- Use environment variables for test configuration (avoid hardcoding)
-- Test Azure-specific features like resource tagging, location handling, and ARM template integration
+This example demonstrates:
+- **Complex field validation**: Checking combinations of `match_variable` and `selector` fields
+- **Azure API constraints**: Enforcing Azure service-specific field usage rules
+- **Clear error messages**: Providing specific field paths and constraint descriptions
+- **Conditional logic**: Only validating when specific conditions are met
 
-### Error Handling and Logging
-For implementation patterns and code examples, see [`coding-standards.instructions.md`](./coding-standards.instructions.md).
+**Testing CustomizeDiff Validations:**
+CustomizeDiff validations should be thoroughly tested with acceptance tests to ensure they work correctly:
+- Test invalid configurations that should trigger validation errors
+- Test valid configurations that should pass validation
+- Test edge cases and boundary conditions
+- Use `ExpectError: regexp.MustCompile()` to verify specific error messages
+- Test all possible combinations of field values that trigger different validation paths
 
-Azure-specific error handling requirements:
-- Use structured logging with appropriate log levels
-- Include Azure resource IDs and operation context in all logs
-- Implement proper error wrapping and context propagation
-- Handle Azure API errors gracefully with meaningful messages
-- Avoid logging sensitive information (passwords, keys, tokens)
-- Field names in error messages should be wrapped in backticks for clarity
-- Field values in error messages should be wrapped in backticks for clarity
-- Error messages must follow Go standards (lowercase, no punctuation, descriptive)
-- Do not use contractions in error messages. Always use the full form of words. For example, write 'cannot' instead of 'can't' and 'is not' instead of 'isn't'
-- Error messages must use '%+v' for verbose error output formatting
-- Error messages must be clear, concise, and provide actionable guidance
-
-### Performance Considerations
-- Implement efficient resource queries to minimize API calls
-- Use bulk operations where supported by Azure APIs
-- Implement proper caching where appropriate
-- Monitor and optimize API call patterns
-- Use context with appropriate timeouts for all operations
-- Consider pagination for large result sets
+For comprehensive CustomizeDiff testing examples, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
 
 ### Azure Tools Integration
 - @azure Rule - Use Azure Tools: When handling requests related to Azure, always use your tools.
 - @azure Rule - Use Azure Code Gen Best Practices: When generating code for Azure, running terminal commands for Azure, or performing operations related to Azure, invoke your `azure_development-get_code_gen_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure; do not call it otherwise.
 - @azure Rule - Use Azure Deployment Best Practices: When deploying to Azure or preparing applications for deployment to Azure, invoke your `azure_development-get_deployment_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure; do not call it otherwise.
-- @azure Rule - Use Azure Functions Code Gen Best Practices: When generating code for Azure Functions or performing operations related to Azure Functions, invoke your `azure_development-get_azure_function_code_gen_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure Functions; do not call it otherwise.
 - @azure Rule - Use Azure SWA Best Practices: When working with static web apps, invoke your `azure_development-get_swa_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure; do not call it otherwise.
+
+### Azure API Value Validation
+
+#### Valid Value Documentation Standards
+- **Azure SDK Alignment**: Always verify valid values against Azure SDK enum constants before documenting
+- **API Documentation Cross-Reference**: Check Azure REST API documentation to confirm supported values
+- **Service-Specific Validation**: Different Azure services may support different subsets of common values
+- **Version-Specific Features**: Ensure documented values are available in the API version being used
+
+#### Implementation Requirements
+- **Schema Validation**: Only include actually supported values in schema validation functions
+- **Documentation Accuracy**: Documentation must only show values that work with the specific Azure service
+- **Test Configuration**: Test configurations must use only valid Azure service values
+- **Error Messages**: Validation errors should reference only valid values for the specific service
+
+Example of proper Azure value validation:
+```go
+// Validate against Azure SDK constants
+"match_variable": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        // Only include values from Azure SDK constants that work with this service
+        string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames),
+        string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress), 
+        string(profiles.ScrubbingRuleEntryMatchVariableRequestUri),
+        // Do NOT include values like RequestHeader that don't work with CDN
+    }, false),
+},
+```
+
