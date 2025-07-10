@@ -18,6 +18,7 @@ ENHANCEMENTS:
 * dependencies: `oracle` - update to API version `2025-03-01` [GH-29721]
 * dependencies: `kubernetesconfiguration` - update to API version `2024-11-01` [GH-29896]
 * `azurerm_api_management` - `sku_name` now supports V2 Tiers  [GH-29657]
+* `azurerm_data_protection_backup_instance_disk` - support cross subscription snapshot resource group [GH-30087]
 * `azurerm_kubernetes_cluster` - add support for the `custom_ca_trust_certificates_base64` property [GH-29894]
 * `azurerm_linux_virtual_machine_scale_set` - add support for the `network_interface.auxiliary_mode` and `network_interface.auxiliary_sku` properties [GH-29724]
 * `azurerm_linux_web_app` - support for the `vnet_image_pull_enabled` property [GH-29452]
