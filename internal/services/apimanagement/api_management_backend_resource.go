@@ -324,18 +324,20 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 										ValidateFunc: validation.IntBetween(1, 100),
 										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
 									},
-									"status_code_ranges": {
+									"status_code_range": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
 										Elem: &pluginsdk.Resource{
 											Schema: map[string]*pluginsdk.Schema{
 												"min": {
-													Type:     pluginsdk.TypeInt,
-													Required: true,
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(200, 599),
 												},
 												"max": {
-													Type:     pluginsdk.TypeInt,
-													Required: true,
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(200, 599),
 												},
 											},
 										},
@@ -720,7 +722,7 @@ func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.Back
 			circuitBreakerFailureCondition.Interval = pointer.To(interval)
 		}
 
-		if statusCodeRangesRaw := failureCondition["status_code_ranges"].([]interface{}); len(statusCodeRangesRaw) > 0 {
+		if statusCodeRangesRaw := failureCondition["status_code_range"].([]interface{}); len(statusCodeRangesRaw) > 0 {
 			statusCodeRanges := make([]backend.FailureStatusCodeRange, 0)
 			for _, rangeRaw := range statusCodeRangesRaw {
 				scRange := rangeRaw.(map[string]interface{})
@@ -952,7 +954,7 @@ func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBrea
 				statusCodeRangesResult = append(statusCodeRangesResult, rangeResult)
 			}
 
-			failureConditionResult["status_code_ranges"] = statusCodeRangesResult
+			failureConditionResult["status_code_range"] = statusCodeRangesResult
 		}
 
 		result["failure_condition"] = []interface{}{failureConditionResult}
