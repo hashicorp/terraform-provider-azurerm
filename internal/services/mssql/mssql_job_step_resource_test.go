@@ -92,6 +92,29 @@ func TestAccMsSqlJobStep_complete(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlJobStep_updateFromCredentialToManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
+	r := MsSqlJobStepTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("job_credential_id").IsSet(),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("job_credential_id").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (MsSqlJobStepTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := jobsteps.ParseStepID(state.ID)
 	if err != nil {
@@ -113,7 +136,6 @@ func (r MsSqlJobStepTestResource) basic(data acceptance.TestData) string {
 resource "azurerm_mssql_job_step" "test" {
   name                = "acctest-job-step-%[2]d"
   job_id              = azurerm_mssql_job.test.id
-  job_credential_id   = azurerm_mssql_job_credential.test.id
   job_target_group_id = azurerm_mssql_job_target_group.test.id
 
   job_step_index = 1
@@ -135,7 +157,6 @@ func (r MsSqlJobStepTestResource) requiresImport(data acceptance.TestData) strin
 resource "azurerm_mssql_job_step" "import" {
   name                = azurerm_mssql_job_step.test.name
   job_id              = azurerm_mssql_job.test.id
-  job_credential_id   = azurerm_mssql_job_credential.test.id
   job_target_group_id = azurerm_mssql_job_target_group.test.id
 
   job_step_index = 1
@@ -212,10 +233,21 @@ resource "azurerm_mssql_database" "test" {
   sku_name  = "S1"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-identity-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_mssql_job_agent" "test" {
   name        = "acctest-job-agent-%[1]d"
   location    = azurerm_resource_group.test.location
   database_id = azurerm_mssql_database.test.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 }
 
 resource "azurerm_mssql_job" "test" {
