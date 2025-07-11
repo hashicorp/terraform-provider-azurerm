@@ -68,10 +68,10 @@ func resourceEventHub() *pluginsdk.Resource {
 			},
 
 			"message_retention": {
-				Type:          pluginsdk.TypeInt,
-				Optional:      true,
-				ValidateFunc:  validate.ValidateEventHubMessageRetentionCount,
-				ConflictsWith: []string{"retention_description"},
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
+				ExactlyOneOf: []string{"retention_description", "message_retention"},
 			},
 
 			"retention_description": {
