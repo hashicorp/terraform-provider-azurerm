@@ -22,6 +22,8 @@ const (
 	TypeBasicDatasetCompressionTypeTar        string = "Tar"
 	TypeBasicDatasetCompressionTypeTarGZip    string = "TarGZip"
 	TypeBasicDatasetCompressionTypeZipDeflate string = "ZipDeflate"
+	TypeBasicDatasetCompressionTypeSnappy     string = "snappy"
+	TypeBasicDatasetCompressionTypeLZ4        string = "lz4"
 )
 
 func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
@@ -465,36 +467,42 @@ func flattenDataFactoryDatasetCompression(input *datafactory.DatasetCompression)
 		return []interface{}{}
 	}
 
-	// the Azure API returns these in a different case to what we're expecting, so we need to convert these
-	compressionTypes := []string{
-		TypeBasicDatasetCompressionTypeBZip2,
-		TypeBasicDatasetCompressionTypeDeflate,
-		TypeBasicDatasetCompressionTypeGZip,
-		TypeBasicDatasetCompressionTypeTar,
-		TypeBasicDatasetCompressionTypeTarGZip,
-		TypeBasicDatasetCompressionTypeZipDeflate,
-	}
+	result := make(map[string]interface{})
+	if input.Type != nil {
+		compressionType, dynamicTypeEnabled := flattenDataFactoryExpressionResultType(input.Type)
 
-	compressionType := ""
-	if t, ok := input.Type.(string); ok {
-		for _, v := range compressionTypes {
-			if strings.EqualFold(v, t) {
-				compressionType = v
+		if !dynamicTypeEnabled {
+			// the Azure API returns these in a different case to what we're expecting, so we need to convert these
+			compressionTypes := []string{
+				TypeBasicDatasetCompressionTypeBZip2,
+				TypeBasicDatasetCompressionTypeDeflate,
+				TypeBasicDatasetCompressionTypeGZip,
+				TypeBasicDatasetCompressionTypeTar,
+				TypeBasicDatasetCompressionTypeTarGZip,
+				TypeBasicDatasetCompressionTypeZipDeflate,
+				TypeBasicDatasetCompressionTypeSnappy,
+				TypeBasicDatasetCompressionTypeLZ4,
+			}
+
+			if t, ok := input.Type.(string); ok {
+				for _, v := range compressionTypes {
+					if strings.EqualFold(v, t) {
+						compressionType = v
+					}
+				}
 			}
 		}
+		result["type"] = compressionType
+		result["dynamic_type_enabled"] = dynamicTypeEnabled
 	}
 
-	level := ""
-	if v, ok := input.Level.(string); ok {
-		level = v
+	if input.Level != nil {
+		level, dynamicLevelEnabled := flattenDataFactoryExpressionResultType(input.Level)
+		result["level"] = level
+		result["dynamic_level_enabled"] = dynamicLevelEnabled
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"type":  compressionType,
-			"level": level,
-		},
-	}
+	return []interface{}{result}
 }
 
 func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory.DatasetCompression {
@@ -505,13 +513,17 @@ func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory
 
 	props := compression[0].(map[string]interface{})
 	return &datafactory.DatasetCompression{
-		Type:  expandCompressionType(props["type"].(string)),
-		Level: props["level"].(string),
+		Type:  expandCompressionType(props["type"].(string), props["dynamic_type_enabled"].(bool)),
+		Level: expandDataFactoryExpressionResultType(props["level"].(string), props["dynamic_level_enabled"].(bool)),
 	}
 }
 
 // API expects character case for some compression type to be lower, otherwise they won't take effect
-func expandCompressionType(inputType string) string {
+func expandCompressionType(inputType string, dynamicTypeEnabled bool) interface{} {
+	if dynamicTypeEnabled {
+		return expandDataFactoryExpressionResultType(inputType, true)
+	}
+
 	compressionTypes := []string{
 		TypeBasicDatasetCompressionTypeBZip2,
 		TypeBasicDatasetCompressionTypeDeflate,
@@ -519,8 +531,8 @@ func expandCompressionType(inputType string) string {
 		TypeBasicDatasetCompressionTypeTar,
 	}
 
-	for _, compcompressionType := range compressionTypes {
-		if strings.EqualFold(compcompressionType, inputType) {
+	for _, compressionType := range compressionTypes {
+		if strings.EqualFold(compressionType, inputType) {
 			return strings.ToLower(inputType)
 		}
 	}

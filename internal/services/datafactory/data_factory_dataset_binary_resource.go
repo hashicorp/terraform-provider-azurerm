@@ -4,6 +4,7 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -211,29 +212,61 @@ func resourceDataFactoryDatasetBinary() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						// TarGZip, GZip, ZipDeflate
 						"level": {
-							Type:     pluginsdk.TypeString,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_level_enabled": {
+							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Optimal",
-								"Fastest",
-							}, false),
+							Default:  false,
 						},
 						// SFTP Specific field
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								TypeBasicDatasetCompressionTypeBZip2,
-								TypeBasicDatasetCompressionTypeDeflate,
-								TypeBasicDatasetCompressionTypeGZip,
-								TypeBasicDatasetCompressionTypeTar,
-								TypeBasicDatasetCompressionTypeTarGZip,
-								TypeBasicDatasetCompressionTypeZipDeflate,
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"dynamic_type_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
 			},
+		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if _, hasCompression := d.GetOk("compression"); hasCompression {
+				supportedCompressionTypes := []string{
+					TypeBasicDatasetCompressionTypeBZip2,
+					TypeBasicDatasetCompressionTypeDeflate,
+					TypeBasicDatasetCompressionTypeGZip,
+					TypeBasicDatasetCompressionTypeTar,
+					TypeBasicDatasetCompressionTypeTarGZip,
+					TypeBasicDatasetCompressionTypeZipDeflate,
+				}
+
+				supportedCompressionLevels := []string{
+					"Fastest",
+					"Optimal",
+				}
+
+				dynamicLevelEnabled := d.Get("compression.0.dynamic_level_enabled")
+				dynamicTypeEnabled := d.Get("compression.0.dynamic_type_enabled")
+				compressionLevel, hasCompressionLevel := d.GetOk("compression.0.level")
+				compressionType, hasCompressionType := d.GetOk("compression.0.type")
+
+				if hasCompressionType && !dynamicTypeEnabled.(bool) && !utils.SliceContainsValue(supportedCompressionTypes, compressionType.(string)) {
+					return fmt.Errorf("compression type must be a supported type when `dynamic_type_enabled` is false, supported types are: %v", supportedCompressionTypes)
+				}
+
+				if hasCompressionLevel && !dynamicLevelEnabled.(bool) && !utils.SliceContainsValue(supportedCompressionLevels, compressionLevel.(string)) {
+					return fmt.Errorf("compression level must be a supported level when `dynamic_level_enabled` is false, supported levels are: %v", supportedCompressionLevels)
+				}
+			}
+			return nil
 		},
 	}
 }
