@@ -14,7 +14,7 @@ import (
 
 // GetMetadata merges the metadata returned by the
 // tfprotov5.ProviderServers associated with muxServer into a single response.
-// Resources, data sources, ephemeral resources, and functions must be returned
+// Resources, data sources, ephemeral resources, list resources, and functions must be returned
 // from only one server or an error diagnostic is returned.
 func (s *muxServer) GetMetadata(ctx context.Context, req *tfprotov5.GetMetadataRequest) (*tfprotov5.GetMetadataResponse, error) {
 	rpc := "GetMetadata"
@@ -27,6 +27,7 @@ func (s *muxServer) GetMetadata(ctx context.Context, req *tfprotov5.GetMetadataR
 	resp := &tfprotov5.GetMetadataResponse{
 		DataSources:        make([]tfprotov5.DataSourceMetadata, 0),
 		EphemeralResources: make([]tfprotov5.EphemeralResourceMetadata, 0),
+		ListResources:      make([]tfprotov5.ListResourceMetadata, 0),
 		Functions:          make([]tfprotov5.FunctionMetadata, 0),
 		Resources:          make([]tfprotov5.ResourceMetadata, 0),
 		ServerCapabilities: serverCapabilities,
@@ -64,6 +65,17 @@ func (s *muxServer) GetMetadata(ctx context.Context, req *tfprotov5.GetMetadataR
 
 			s.ephemeralResources[ephemeralResource.TypeName] = server
 			resp.EphemeralResources = append(resp.EphemeralResources, ephemeralResource)
+		}
+
+		for _, listResource := range serverResp.ListResources {
+			if listResourceMetadataContainsTypeName(resp.ListResources, listResource.TypeName) {
+				resp.Diagnostics = append(resp.Diagnostics, listResourceDuplicateError(listResource.TypeName))
+
+				continue
+			}
+
+			s.listResources[listResource.TypeName] = server
+			resp.ListResources = append(resp.ListResources, listResource)
 		}
 
 		for _, function := range serverResp.Functions {
@@ -104,6 +116,16 @@ func datasourceMetadataContainsTypeName(metadatas []tfprotov5.DataSourceMetadata
 }
 
 func ephemeralResourceMetadataContainsTypeName(metadatas []tfprotov5.EphemeralResourceMetadata, typeName string) bool {
+	for _, metadata := range metadatas {
+		if typeName == metadata.TypeName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func listResourceMetadataContainsTypeName(metadatas []tfprotov5.ListResourceMetadata, typeName string) bool {
 	for _, metadata := range metadatas {
 		if typeName == metadata.TypeName {
 			return true
