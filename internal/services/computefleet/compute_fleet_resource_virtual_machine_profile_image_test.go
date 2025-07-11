@@ -35,8 +35,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageSourceReferenc
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -54,8 +53,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageId(t *testing.
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromImageId(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,8 +61,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageId(t *testing.
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -82,8 +79,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromCommunitySharedImageGallery(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -91,8 +87,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -110,8 +105,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromCommunitySharedImageGalleryVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -119,8 +113,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -138,8 +131,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGallery(
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromSharedImageGallery(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -147,8 +139,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGallery(
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -166,8 +157,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGalleryV
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.imageFromSharedImageGalleryVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -175,8 +165,7 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGalleryV
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -358,48 +347,6 @@ resource "azurerm_compute_fleet" "test" {
       }
     }
   }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        offer     = "0001-com-ubuntu-server-focal"
-        publisher = "canonical"
-        sku       = "20_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
 }
 `, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -466,40 +413,6 @@ resource "azurerm_compute_fleet" "image_id" {
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
         primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
-      }
-    }
-  }
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_id     = azurerm_image.linux_test.id
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        accelerated_networking_enabled    = false
-        ip_forwarding_enabled             = true
-        ip_configuration {
-          name                                   = "ipConfigTest"
-          load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary_ip_configuration_enabled       = true
-          subnet_id                              = azurerm_subnet.linux_test.id
-        }
       }
     }
   }
@@ -640,41 +553,6 @@ resource "azurerm_compute_fleet" "image_id" {
       }
     }
   }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_id     = azurerm_shared_image.linux_test.id
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        accelerated_networking_enabled    = false
-        ip_forwarding_enabled             = true
-        ip_configuration {
-          name                                   = "ipConfigTest"
-          load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary_ip_configuration_enabled       = true
-          subnet_id                              = azurerm_subnet.linux_test.id
-        }
-      }
-    }
-  }
   depends_on = [azurerm_shared_image_version.test, azurerm_shared_image_version.linux_test]
 }
 `, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
@@ -812,40 +690,6 @@ resource "azurerm_compute_fleet" "image_id" {
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
         primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
-      }
-    }
-  }
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_id     = azurerm_shared_image_version.linux_test.id
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        accelerated_networking_enabled    = false
-        ip_forwarding_enabled             = true
-        ip_configuration {
-          name                                   = "ipConfigTest"
-          load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary_ip_configuration_enabled       = true
-          subnet_id                              = azurerm_subnet.linux_test.id
-        }
       }
     }
   }
@@ -1007,41 +851,6 @@ resource "azurerm_compute_fleet" "image_id" {
       }
     }
   }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_id     = "/communityGalleries/${azurerm_shared_image_gallery.linux_test.sharing.0.community_gallery.0.name}/images/${azurerm_shared_image_version.linux_test.image_name}"
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        accelerated_networking_enabled    = false
-        ip_forwarding_enabled             = true
-        ip_configuration {
-          name                                   = "ipConfigTest"
-          load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary_ip_configuration_enabled       = true
-          subnet_id                              = azurerm_subnet.linux_test.id
-        }
-      }
-    }
-  }
 }
 `, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -1198,41 +1007,6 @@ resource "azurerm_compute_fleet" "image_id" {
         load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
         primary_ip_configuration_enabled       = true
         subnet_id                              = azurerm_subnet.test.id
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_id     = "/communityGalleries/${azurerm_shared_image_gallery.linux_test.sharing.0.community_gallery.0.name}/images/${azurerm_shared_image_version.linux_test.image_name}/versions/${azurerm_shared_image_version.linux_test.name}"
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        accelerated_networking_enabled    = false
-        ip_forwarding_enabled             = true
-        ip_configuration {
-          name                                   = "ipConfigTest"
-          load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-          primary_ip_configuration_enabled       = true
-          subnet_id                              = azurerm_subnet.linux_test.id
-        }
       }
     }
   }

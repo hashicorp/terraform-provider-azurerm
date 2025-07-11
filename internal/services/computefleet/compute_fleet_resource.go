@@ -12,37 +12,28 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurefleet/2024-11-01/fleets"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ComputeFleetResourceModel struct {
-	Name                      string                                     `tfschema:"name"`
-	ResourceGroupName         string                                     `tfschema:"resource_group_name"`
-	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	Location                  string                                     `tfschema:"location"`
-	Plan                      []PlanModel                                `tfschema:"plan"`
-	AdditionalLocationProfile []AdditionalLocationProfileModel           `tfschema:"additional_location_profile"`
-	AdditionalCapabilities    []AdditionalCapabilitiesModel              `tfschema:"additional_capabilities"`
-	VirtualMachineProfile     []VirtualMachineProfileModel               `tfschema:"virtual_machine_profile"`
-	ComputeApiVersion         string                                     `tfschema:"compute_api_version"`
-	PlatformFaultDomainCount  int64                                      `tfschema:"platform_fault_domain_count"`
-	RegularPriorityProfile    []RegularPriorityProfileModel              `tfschema:"regular_priority_profile"`
-	SpotPriorityProfile       []SpotPriorityProfileModel                 `tfschema:"spot_priority_profile"`
-	UniqueId                  string                                     `tfschema:"unique_id"`
-	VMAttributes              []VMAttributesModel                        `tfschema:"vm_attributes"`
-	VMSizesProfile            []VMSizeProfileModel                       `tfschema:"vm_sizes_profile"`
-	Tags                      map[string]string                          `tfschema:"tags"`
-	Zones                     []string                                   `tfschema:"zones"`
-}
-
-type AdditionalLocationProfileModel struct {
-	Location                      string                       `tfschema:"location"`
-	VirtualMachineProfileOverride []VirtualMachineProfileModel `tfschema:"virtual_machine_profile_override"`
+	Name                     string                                     `tfschema:"name"`
+	ResourceGroupName        string                                     `tfschema:"resource_group_name"`
+	Identity                 []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Location                 string                                     `tfschema:"location"`
+	Plan                     []PlanModel                                `tfschema:"plan"`
+	AdditionalCapabilities   []AdditionalCapabilitiesModel              `tfschema:"additional_capabilities"`
+	VirtualMachineProfile    []VirtualMachineProfileModel               `tfschema:"virtual_machine_profile"`
+	ComputeApiVersion        string                                     `tfschema:"compute_api_version"`
+	PlatformFaultDomainCount int64                                      `tfschema:"platform_fault_domain_count"`
+	RegularPriorityProfile   []RegularPriorityProfileModel              `tfschema:"regular_priority_profile"`
+	SpotPriorityProfile      []SpotPriorityProfileModel                 `tfschema:"spot_priority_profile"`
+	UniqueId                 string                                     `tfschema:"unique_id"`
+	VMSizesProfile           []VMSizeProfileModel                       `tfschema:"vm_sizes_profile"`
+	Tags                     map[string]string                          `tfschema:"tags"`
+	Zones                    []string                                   `tfschema:"zones"`
 }
 
 type AdditionalCapabilitiesModel struct {
@@ -263,39 +254,6 @@ type SpotPriorityProfileModel struct {
 	MinCapacity         int64   `tfschema:"min_capacity"`
 }
 
-type VMAttributesModel struct {
-	AcceleratorCount          []VMAttributeMinMaxIntegerModel `tfschema:"accelerator_count"`
-	AcceleratorManufacturers  []string                        `tfschema:"accelerator_manufacturers"`
-	AcceleratorSupport        string                          `tfschema:"accelerator_support"`
-	AcceleratorTypes          []string                        `tfschema:"accelerator_types"`
-	ArchitectureTypes         []string                        `tfschema:"architecture_types"`
-	BurstableSupport          string                          `tfschema:"burstable_support"`
-	CpuManufacturers          []string                        `tfschema:"cpu_manufacturers"`
-	DataDiskCount             []VMAttributeMinMaxIntegerModel `tfschema:"data_disk_count"`
-	ExcludedVMSizes           []string                        `tfschema:"excluded_vm_sizes"`
-	LocalStorageDiskTypes     []string                        `tfschema:"local_storage_disk_types"`
-	LocalStorageInGib         []VMAttributeMinMaxDoubleModel  `tfschema:"local_storage_in_gib"`
-	LocalStorageSupport       string                          `tfschema:"local_storage_support"`
-	MemoryInGib               []VMAttributeMinMaxDoubleModel  `tfschema:"memory_in_gib"`
-	MemoryInGibPerVCPU        []VMAttributeMinMaxDoubleModel  `tfschema:"memory_in_gib_per_vcpu"`
-	NetworkBandwidthInMbps    []VMAttributeMinMaxDoubleModel  `tfschema:"network_bandwidth_in_mbps"`
-	NetworkInterfaceCount     []VMAttributeMinMaxIntegerModel `tfschema:"network_interface_count"`
-	RdmaNetworkInterfaceCount []VMAttributeMinMaxIntegerModel `tfschema:"rdma_network_interface_count"`
-	RdmaSupport               string                          `tfschema:"rdma_support"`
-	VCPUCount                 []VMAttributeMinMaxIntegerModel `tfschema:"vcpu_count"`
-	VMCategories              []string                        `tfschema:"vm_categories"`
-}
-
-type VMAttributeMinMaxIntegerModel struct {
-	Max int64 `tfschema:"max"`
-	Min int64 `tfschema:"min"`
-}
-
-type VMAttributeMinMaxDoubleModel struct {
-	Max float64 `tfschema:"max"`
-	Min float64 `tfschema:"min"`
-}
-
 type VMSizeProfileModel struct {
 	Name string `tfschema:"name"`
 	Rank int64  `tfschema:"rank"`
@@ -337,20 +295,27 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"virtual_machine_profile": virtualMachineProfileSchema(),
 
-		"additional_capabilities": virtualMachineAdditionalCapabilitiesSchema(),
-
-		"additional_location_profile": {
+		"vm_sizes_profile": {
 			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"location": commonschema.LocationWithoutForceNew(),
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-					"virtual_machine_profile_override": virtualMachineProfileSchema(),
+					"rank": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 65535),
+					},
 				},
 			},
 		},
+
+		"additional_capabilities": virtualMachineAdditionalCapabilitiesSchema(),
 
 		"plan": {
 			Type:     pluginsdk.TypeList,
@@ -391,200 +356,6 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Default:  1,
 			ForceNew: true,
-		},
-
-		"vm_attributes": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			ForceNew:     true,
-			MaxItems:     1,
-			AtLeastOneOf: []string{"vm_sizes_profile", "vm_attributes"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"memory_in_gib": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinFloatSchema("memory_in_gib"),
-						},
-					},
-
-					"vcpu_count": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinIntegerSchema("vcpu_count"),
-						},
-					},
-
-					"accelerator_count": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinIntegerSchema("accelerator_count"),
-						},
-					},
-
-					"accelerator_manufacturers": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(
-								fleets.PossibleValuesForAcceleratorManufacturer(), false),
-						},
-					},
-
-					"accelerator_support": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(fleets.VMAttributeSupportExcluded),
-						ValidateFunc: validation.StringInSlice(
-							fleets.PossibleValuesForVMAttributeSupport(), false),
-					},
-
-					"accelerator_types": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(
-								fleets.PossibleValuesForAcceleratorType(), false),
-						},
-					},
-
-					"architecture_types": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(
-								fleets.PossibleValuesForArchitectureType(), false),
-						},
-					},
-
-					"burstable_support": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(fleets.VMAttributeSupportExcluded),
-						ValidateFunc: validation.StringInSlice(
-							fleets.PossibleValuesForVMAttributeSupport(), false),
-					},
-
-					"cpu_manufacturers": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(
-								fleets.PossibleValuesForCPUManufacturer(), false),
-						},
-					},
-
-					"data_disk_count": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinIntegerSchema("data_disk_count"),
-						},
-					},
-
-					"excluded_vm_sizes": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						ConflictsWith: []string{"vm_sizes_profile"},
-					},
-
-					"local_storage_disk_types": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(
-								fleets.PossibleValuesForLocalStorageDiskType(), false),
-						},
-					},
-
-					"local_storage_in_gib": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinFloatSchema("local_storage_in_gib"),
-						},
-					},
-
-					"local_storage_support": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(fleets.VMAttributeSupportIncluded),
-						ValidateFunc: validation.StringInSlice(
-							fleets.PossibleValuesForVMAttributeSupport(), false),
-					},
-
-					"memory_in_gib_per_vcpu": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinFloatSchema("memory_in_gib_per_vcpu"),
-						},
-					},
-
-					"network_bandwidth_in_mbps": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinFloatSchema("network_bandwidth_in_mbps"),
-						},
-					},
-
-					"network_interface_count": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinIntegerSchema("network_interface_count"),
-						},
-					},
-
-					"rdma_network_interface_count": {
-						Type:     pluginsdk.TypeList,
-						Optional: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: vmAttributesMaxMinIntegerSchema("rdma_network_interface_count"),
-						},
-					},
-
-					"rdma_support": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(fleets.VMAttributeSupportExcluded),
-						ValidateFunc: validation.StringInSlice(
-							fleets.PossibleValuesForVMAttributeSupport(), false),
-					},
-
-					"vm_categories": {
-						Type:     pluginsdk.TypeSet,
-						Optional: true,
-						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.StringInSlice(
-								fleets.PossibleValuesForVMCategory(), false),
-						},
-					},
-				},
-			},
 		},
 
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
@@ -683,28 +454,6 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"tags": commonschema.Tags(),
-
-		"vm_sizes_profile": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"name": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
-					"rank": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 65535),
-					},
-				},
-			},
-			ConflictsWith: []string{"vm_attributes.0.excluded_vm_sizes"},
-			AtLeastOneOf:  []string{"vm_sizes_profile", "vm_attributes"},
-		},
 	}
 }
 
@@ -729,42 +478,6 @@ func virtualMachineAdditionalCapabilitiesSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 			},
-		},
-	}
-}
-
-func vmAttributesMaxMinIntegerSchema(parent string) map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"max": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(0),
-			AtLeastOneOf: []string{"vm_attributes.0." + parent + ".0.max", "vm_attributes.0." + parent + ".0.min"},
-		},
-
-		"min": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(0),
-			AtLeastOneOf: []string{"vm_attributes.0." + parent + ".0.max", "vm_attributes.0." + parent + ".0.min"},
-		},
-	}
-}
-
-func vmAttributesMaxMinFloatSchema(parent string) map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"max": {
-			Type:         pluginsdk.TypeFloat,
-			Optional:     true,
-			ValidateFunc: validation.FloatAtLeast(0.0),
-			AtLeastOneOf: []string{"vm_attributes.0." + parent + ".0.max", "vm_attributes.0." + parent + ".0.min"},
-		},
-
-		"min": {
-			Type:         pluginsdk.TypeFloat,
-			Optional:     true,
-			ValidateFunc: validation.FloatAtLeast(0.0),
-			AtLeastOneOf: []string{"vm_attributes.0." + parent + ".0.max", "vm_attributes.0." + parent + ".0.min"},
 		},
 	}
 }
@@ -807,7 +520,6 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 				Properties: &fleets.FleetProperties{
 					RegularPriorityProfile: expandRegularPriorityProfileModel(model.RegularPriorityProfile),
 					SpotPriorityProfile:    expandSpotPriorityProfileModel(model.SpotPriorityProfile),
-					VMAttributes:           expandVMAttributesModel(model.VMAttributes),
 					VMSizesProfile:         pointer.From(expandVMSizeProfileModel(model.VMSizesProfile)),
 				},
 			}
@@ -826,12 +538,6 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 			}
 			properties.Identity = expandedIdentity
 
-			additionalLocationsProfileValue, err := expandAdditionalLocationProfileModel(model.AdditionalLocationProfile, metadata.ResourceData)
-			if err != nil {
-				return err
-			}
-			properties.Properties.AdditionalLocationsProfile = additionalLocationsProfileValue
-
 			additionalCapabilities := expandAdditionalCapabilities(model.AdditionalCapabilities)
 
 			computeProfile := fleets.ComputeProfile{
@@ -842,7 +548,7 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 				computeProfile.ComputeApiVersion = pointer.To(model.ComputeApiVersion)
 			}
 
-			baseVirtualMachineProfileValue, err := expandVirtualMachineProfileModel(model.VirtualMachineProfile, metadata.ResourceData, false, -1, len(model.VMAttributes) > 0)
+			baseVirtualMachineProfileValue, err := expandVirtualMachineProfileModel(model.VirtualMachineProfile, metadata.ResourceData)
 			if err != nil {
 				return err
 			}
@@ -900,27 +606,6 @@ func (r ComputeFleetResource) Update() sdk.ResourceFunc {
 						v.AdminPassword = pointer.To(model.VirtualMachineProfile[0].OsProfile[0].WindowsConfiguration[0].AdminPassword)
 					}
 				}
-
-				for _, configAdditionalLocationProfile := range model.AdditionalLocationProfile {
-					if len(configAdditionalLocationProfile.VirtualMachineProfileOverride) > 0 {
-						if respAdditionalLocationsProfile := props.AdditionalLocationsProfile; respAdditionalLocationsProfile != nil {
-							for _, respLocationProfile := range respAdditionalLocationsProfile.LocationProfiles {
-								if location.Normalize(configAdditionalLocationProfile.Location) == location.Normalize(respLocationProfile.Location) {
-									if os := configAdditionalLocationProfile.VirtualMachineProfileOverride[0].OsProfile; len(os) > 0 {
-										if v := respLocationProfile.VirtualMachineProfileOverride; v != nil && v.OsProfile != nil {
-											if len(os[0].WindowsConfiguration) > 0 {
-												v.OsProfile.AdminPassword = pointer.To(os[0].WindowsConfiguration[0].AdminPassword)
-											}
-											if len(os[0].LinuxConfiguration) > 0 {
-												v.OsProfile.AdminPassword = pointer.To(os[0].LinuxConfiguration[0].AdminPassword)
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -941,10 +626,6 @@ func (r ComputeFleetResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("spot_priority_profile") {
 				properties.Properties.SpotPriorityProfile = expandSpotPriorityProfileModel(model.SpotPriorityProfile)
-			}
-
-			if metadata.ResourceData.HasChange("vm_attributes") {
-				properties.Properties.VMAttributes = expandVMAttributesModel(model.VMAttributes)
 			}
 
 			if metadata.ResourceData.HasChange("vm_sizes_profile") {
@@ -1003,15 +684,9 @@ func (r ComputeFleetResource) Read() sdk.ResourceFunc {
 				state.Plan = flattenPlanModel(model.Plan)
 
 				if props := model.Properties; props != nil {
-					additionalLocationsProfileValue, err := flattenAdditionalLocationProfileModel(props.AdditionalLocationsProfile, metadata)
-					if err != nil {
-						return err
-					}
-					state.AdditionalLocationProfile = additionalLocationsProfileValue
-
 					state.AdditionalCapabilities = flattenAdditionalCapabilities(props.ComputeProfile.AdditionalVirtualMachineCapabilities)
 
-					baseVirtualMachineProfileValue, err := flattenVirtualMachineProfileModel(&props.ComputeProfile.BaseVirtualMachineProfile, metadata, false, -1)
+					baseVirtualMachineProfileValue, err := flattenVirtualMachineProfileModel(&props.ComputeProfile.BaseVirtualMachineProfile, metadata)
 					if err != nil {
 						return err
 					}
@@ -1019,11 +694,9 @@ func (r ComputeFleetResource) Read() sdk.ResourceFunc {
 
 					state.ComputeApiVersion = pointer.From(props.ComputeProfile.ComputeApiVersion)
 					state.PlatformFaultDomainCount = pointer.From(props.ComputeProfile.PlatformFaultDomainCount)
-
 					state.RegularPriorityProfile = flattenRegularPriorityProfileModel(props.RegularPriorityProfile)
 					state.SpotPriorityProfile = flattenSpotPriorityProfileModel(props.SpotPriorityProfile)
 					state.UniqueId = pointer.From(props.UniqueId)
-					state.VMAttributes = flattenVMAttributesModel(props.VMAttributes)
 					state.VMSizesProfile = flattenVMSizeProfileModel(&props.VMSizesProfile)
 				}
 				state.Tags = pointer.From(model.Tags)
@@ -1055,152 +728,6 @@ func (r ComputeFleetResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func customizeForVmAttributes(state ComputeFleetResourceModel, d sdk.ResourceMetaData) error {
-	// Once the properties of vm_attributes are added, they can not be removed
-	old, new := d.ResourceDiff.GetChange("vm_attributes.0.accelerator_count")
-	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.accelerator_count"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.accelerator_manufacturers")
-	if len(old.(*schema.Set).List()) > 0 && len(new.(*schema.Set).List()) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.accelerator_manufacturers"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.accelerator_support")
-	if old.(string) != "" && new.(string) == "" {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.accelerator_support"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.accelerator_types")
-	if len(old.(*schema.Set).List()) > 0 && len(new.(*schema.Set).List()) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.accelerator_types"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.architecture_types")
-	if len(old.(*schema.Set).List()) > 0 && len(new.(*schema.Set).List()) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.architecture_types"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.burstable_support")
-	if old.(string) != "" && new.(string) == "" {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.burstable_support"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.cpu_manufacturers")
-	if len(old.(*schema.Set).List()) > 0 && len(new.(*schema.Set).List()) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.cpu_manufacturers"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.data_disk_count")
-	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.data_disk_count"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.excluded_vm_sizes")
-	if len(old.(*pluginsdk.Set).List()) > 0 && len(new.(*pluginsdk.Set).List()) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.excluded_vm_sizes"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.local_storage_disk_types")
-	if len(old.(*schema.Set).List()) > 0 && len(new.(*schema.Set).List()) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.local_storage_disk_types"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.local_storage_in_gib")
-	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.local_storage_in_gib"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.local_storage_support")
-	if old.(string) != "" && new.(string) == "" {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.local_storage_support"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.memory_in_gib_per_vcpu")
-	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.memory_in_gib_per_vcpu"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.network_bandwidth_in_mbps")
-	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.network_bandwidth_in_mbps"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.network_interface_count")
-	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.network_interface_count"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.rdma_network_interface_count")
-	if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.rdma_network_interface_count"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.rdma_support")
-	if old.(string) != "" && new.(string) == "" {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.rdma_support"); err != nil {
-			return err
-		}
-	}
-	old, new = d.ResourceDiff.GetChange("vm_attributes.0.vm_categories")
-	if len(old.(*schema.Set).List()) > 0 && len(new.(*schema.Set).List()) == 0 {
-		if err := d.ResourceDiff.ForceNew("vm_attributes.0.vm_categories"); err != nil {
-			return err
-		}
-	}
-
-	if v := state.VMAttributes; len(v) > 0 {
-		if v[0].AcceleratorSupport == string(fleets.VMAttributeSupportExcluded) {
-			if len(v[0].AcceleratorManufacturers) > 0 {
-				return fmt.Errorf("`accelerator_manufacturers` cannot be used when `accelerator_support` is specified as `Excluded`")
-			}
-			if len(v[0].AcceleratorTypes) > 0 {
-				return fmt.Errorf("`accelerator_types` cannot be used when `accelerator_support` is specified as `Excluded`")
-			}
-			if len(v[0].AcceleratorCount) > 0 {
-				return fmt.Errorf("`accelerator_count` cannot be used when `accelerator_support` is specified as `Excluded`")
-			}
-			if len(v[0].VMCategories) > 0 && utils.SliceContainsValue(v[0].VMCategories, string(fleets.VMCategoryGpuAccelerated)) {
-				return fmt.Errorf("`GpuAccelerated` cannot be used when `accelerator_support` is specified as `Excluded`")
-			}
-		}
-
-		if v[0].LocalStorageSupport == string(fleets.VMAttributeSupportExcluded) {
-			if len(v[0].LocalStorageInGib) > 0 {
-				return fmt.Errorf("`local_storage_in_gib` cannot be used when `local_storage_support` is specified as `Excluded`")
-			}
-			if len(v[0].LocalStorageDiskTypes) > 0 {
-				return fmt.Errorf("`local_storage_disk_types` cannot be used when `local_storage_support` is specified as `Excluded`")
-			}
-		}
-
-		if v[0].RdmaSupport == string(fleets.VMAttributeSupportExcluded) {
-			if len(v[0].RdmaNetworkInterfaceCount) > 0 {
-				return fmt.Errorf("`rdma_network_interface_count` cannot be used when `rdma_support` is specified as `Excluded`")
-			}
-		}
-	}
-
-	return nil
-}
-
 func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -1208,11 +735,6 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 			var state ComputeFleetResourceModel
 			if err := metadata.DecodeDiff(&state); err != nil {
 				return fmt.Errorf("DecodeDiff: %+v", err)
-			}
-
-			err := customizeForVmAttributes(state, metadata)
-			if err != nil {
-				return err
 			}
 
 			if v := state.Identity; len(v) > 0 {
@@ -1299,54 +821,17 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("only one of `source_image_id` and `source_image_reference` in `virtual_machine_profile` must be specified")
 			}
 
-			for i, additionalLocationProfile := range state.AdditionalLocationProfile {
-				if virtualMachineProfileOverride := additionalLocationProfile.VirtualMachineProfileOverride; len(virtualMachineProfileOverride) > 0 && len(virtualMachineProfileOverride[0].OsProfile) > 0 {
-					osProfile = virtualMachineProfileOverride[0].OsProfile[0]
-					if len(osProfile.WindowsConfiguration) > 0 && len(osProfile.LinuxConfiguration) > 0 ||
-						len(osProfile.WindowsConfiguration) == 0 && len(osProfile.LinuxConfiguration) == 0 {
-						return fmt.Errorf("only one of `linux_configuration` and `windows_configuration` in `virtual_machine_profile_override` must be specified")
-					}
-
-					if state.VirtualMachineProfile[0].CapacityReservationGroupId != "" && virtualMachineProfileOverride[0].CapacityReservationGroupId == "" {
-						return fmt.Errorf("`virtual_machine_profile_override.0.capacity_reservation_group_id` is required when `virtual_machine_profile.0.capacity_reservation_group_id` is specified")
-					}
-
-					dataDisks := virtualMachineProfileOverride[0].DataDisks
-					if len(dataDisks) > 0 {
-						if dataDisks[0].CreateOption == string(fleets.DiskCreateOptionTypesEmpty) {
-							if dataDisks[0].DiskSizeInGiB == 0 {
-								return fmt.Errorf("`disk_size_in_gib` is required when`create_option` is `Empty`")
-							}
-							lunExist := metadata.ResourceDiff.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice()[i].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["data_disk"].AsValueSlice()[0].AsValueMap()["lun"]
-							if lunExist.IsNull() {
-								return fmt.Errorf("`lun` is required when`create_option` is `Empty`")
-							}
-						}
-					}
-				}
-
-				err = validateWindowsSetting(additionalLocationProfile.VirtualMachineProfileOverride, metadata.ResourceDiff, true, i)
-				if err != nil {
-					return err
-				}
-
-				err = validateLinuxSetting(additionalLocationProfile.VirtualMachineProfileOverride, metadata.ResourceDiff, true, i)
-				if err != nil {
-					return err
-				}
-			}
-
-			err = validateSecuritySetting(state.VirtualMachineProfile)
+			err := validateSecuritySetting(state.VirtualMachineProfile)
 			if err != nil {
 				return err
 			}
 
-			err = validateWindowsSetting(state.VirtualMachineProfile, metadata.ResourceDiff, false, -1)
+			err = validateWindowsSetting(state.VirtualMachineProfile, metadata.ResourceDiff)
 			if err != nil {
 				return err
 			}
 
-			err = validateLinuxSetting(state.VirtualMachineProfile, metadata.ResourceDiff, false, -1)
+			err = validateLinuxSetting(state.VirtualMachineProfile, metadata.ResourceDiff)
 			if err != nil {
 				return err
 			}
@@ -1419,152 +904,6 @@ func expandSpotPriorityProfileModel(inputList []SpotPriorityProfileModel) *fleet
 	return &output
 }
 
-func expandVMAttributesModel(inputList []VMAttributesModel) *fleets.VMAttributes {
-	if len(inputList) == 0 {
-		return nil
-	}
-	input := &inputList[0]
-	output := fleets.VMAttributes{
-		AcceleratorCount:          expandVMAttributeMinMaxIntegerModel(input.AcceleratorCount),
-		AcceleratorManufacturers:  expandAcceleratorManufacturers(input.AcceleratorManufacturers),
-		AcceleratorSupport:        pointer.To(fleets.VMAttributeSupport(input.AcceleratorSupport)),
-		AcceleratorTypes:          expandAcceleratorTypes(input.AcceleratorTypes),
-		ArchitectureTypes:         expandArchitectureTypes(input.ArchitectureTypes),
-		BurstableSupport:          pointer.To(fleets.VMAttributeSupport(input.BurstableSupport)),
-		CpuManufacturers:          expandCPUManufacturers(input.CpuManufacturers),
-		DataDiskCount:             expandVMAttributeMinMaxIntegerModel(input.DataDiskCount),
-		LocalStorageDiskTypes:     expandLocalStorageDiskTypes(input.LocalStorageDiskTypes),
-		LocalStorageInGiB:         expandVMAttributeMinMaxDoubleModel(input.LocalStorageInGib),
-		LocalStorageSupport:       pointer.To(fleets.VMAttributeSupport(input.LocalStorageSupport)),
-		MemoryInGiBPerVCPU:        expandVMAttributeMinMaxDoubleModel(input.MemoryInGibPerVCPU),
-		NetworkBandwidthInMbps:    expandVMAttributeMinMaxDoubleModel(input.NetworkBandwidthInMbps),
-		NetworkInterfaceCount:     expandVMAttributeMinMaxIntegerModel(input.NetworkInterfaceCount),
-		RdmaNetworkInterfaceCount: expandVMAttributeMinMaxIntegerModel(input.RdmaNetworkInterfaceCount),
-		RdmaSupport:               pointer.To(fleets.VMAttributeSupport(input.RdmaSupport)),
-		VMCategories:              expandVMCategories(input.VMCategories),
-		MemoryInGiB:               pointer.From(expandVMAttributeMinMaxDoubleModel(input.MemoryInGib)),
-		VCPUCount:                 pointer.From(expandVMAttributeMinMaxIntegerModel(input.VCPUCount)),
-	}
-
-	if len(input.ExcludedVMSizes) > 0 {
-		output.ExcludedVMSizes = pointer.To(input.ExcludedVMSizes)
-	}
-
-	return &output
-}
-
-func expandVMAttributeMinMaxIntegerModel(inputList []VMAttributeMinMaxIntegerModel) *fleets.VMAttributeMinMaxInteger {
-	if len(inputList) == 0 {
-		return nil
-	}
-	input := &inputList[0]
-	output := fleets.VMAttributeMinMaxInteger{
-		Max: pointer.To(input.Max),
-		Min: pointer.To(input.Min),
-	}
-
-	return &output
-}
-
-func expandVMAttributeMinMaxDoubleModel(inputList []VMAttributeMinMaxDoubleModel) *fleets.VMAttributeMinMaxDouble {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	input := &inputList[0]
-	output := fleets.VMAttributeMinMaxDouble{
-		Max: &input.Max,
-		Min: &input.Min,
-	}
-
-	return &output
-}
-
-func expandVMCategories(inputList []string) *[]fleets.VMCategory {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	outputList := make([]fleets.VMCategory, 0)
-	for _, v := range inputList {
-		if v != "" {
-			outputList = append(outputList, fleets.VMCategory(v))
-		}
-	}
-	return &outputList
-}
-
-func expandLocalStorageDiskTypes(inputList []string) *[]fleets.LocalStorageDiskType {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	outputList := make([]fleets.LocalStorageDiskType, 0)
-	for _, v := range inputList {
-		if v != "" {
-			outputList = append(outputList, fleets.LocalStorageDiskType(v))
-		}
-	}
-	return &outputList
-}
-
-func expandAcceleratorManufacturers(inputList []string) *[]fleets.AcceleratorManufacturer {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	result := make([]fleets.AcceleratorManufacturer, 0)
-
-	for _, v := range inputList {
-		if v != "" {
-			result = append(result, fleets.AcceleratorManufacturer(v))
-		}
-	}
-
-	return &result
-}
-
-func expandAcceleratorTypes(inputList []string) *[]fleets.AcceleratorType {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	outputList := make([]fleets.AcceleratorType, 0)
-	for _, v := range inputList {
-		if v != "" {
-			outputList = append(outputList, fleets.AcceleratorType(v))
-		}
-	}
-	return &outputList
-}
-
-func expandArchitectureTypes(inputList []string) *[]fleets.ArchitectureType {
-	if len(inputList) == 0 {
-		return nil
-	}
-	outputList := make([]fleets.ArchitectureType, 0)
-	for _, v := range inputList {
-		if v != "" {
-			outputList = append(outputList, fleets.ArchitectureType(v))
-		}
-	}
-	return &outputList
-}
-
-func expandCPUManufacturers(inputList []string) *[]fleets.CPUManufacturer {
-	if len(inputList) == 0 {
-		return nil
-	}
-
-	outputList := make([]fleets.CPUManufacturer, 0)
-	for _, v := range inputList {
-		if v != "" {
-			outputList = append(outputList, fleets.CPUManufacturer(v))
-		}
-	}
-	return &outputList
-}
-
 func expandVMSizeProfileModel(inputList []VMSizeProfileModel) *[]fleets.VMSizeProfile {
 	if len(inputList) == 0 {
 		return nil
@@ -1582,34 +921,6 @@ func expandVMSizeProfileModel(inputList []VMSizeProfileModel) *[]fleets.VMSizePr
 		outputList = append(outputList, output)
 	}
 	return &outputList
-}
-
-func expandAdditionalLocationProfileModel(inputList []AdditionalLocationProfileModel, d *schema.ResourceData) (*fleets.AdditionalLocationsProfile, error) {
-	if len(inputList) == 0 {
-		return nil, nil
-	}
-
-	output := fleets.AdditionalLocationsProfile{}
-	outputList := make([]fleets.LocationProfile, 0)
-	for i, v := range inputList {
-		input := v
-		output := fleets.LocationProfile{
-			Location: input.Location,
-		}
-
-		virtualMachineProfileOverrideValue, err := expandVirtualMachineProfileModel(input.VirtualMachineProfileOverride, d, true, i, true)
-		if err != nil {
-			return nil, err
-		}
-
-		output.VirtualMachineProfileOverride = virtualMachineProfileOverrideValue
-
-		outputList = append(outputList, output)
-	}
-
-	output.LocationProfiles = outputList
-
-	return &output, nil
 }
 
 func expandAdditionalCapabilities(inputList []AdditionalCapabilitiesModel) *fleets.AdditionalCapabilities {
@@ -1653,28 +964,6 @@ func flattenAdditionalCapabilities(input *fleets.AdditionalCapabilities) []Addit
 	return append(outputList, output)
 }
 
-func flattenAdditionalLocationProfileModel(input *fleets.AdditionalLocationsProfile, metadata sdk.ResourceMetaData) ([]AdditionalLocationProfileModel, error) {
-	outputList := make([]AdditionalLocationProfileModel, 0)
-	if input == nil {
-		return outputList, nil
-	}
-
-	for i, input := range input.LocationProfiles {
-		output := AdditionalLocationProfileModel{
-			Location: input.Location,
-		}
-		virtualMachineProfileOverrideValue, err := flattenVirtualMachineProfileModel(input.VirtualMachineProfileOverride, metadata, true, i)
-		if err != nil {
-			return nil, err
-		}
-
-		output.VirtualMachineProfileOverride = virtualMachineProfileOverrideValue
-		outputList = append(outputList, output)
-	}
-
-	return outputList, nil
-}
-
 func flattenRegularPriorityProfileModel(input *fleets.RegularPriorityProfile) []RegularPriorityProfileModel {
 	outputList := make([]RegularPriorityProfileModel, 0)
 	if input == nil {
@@ -1712,77 +1001,6 @@ func flattenSpotPriorityProfileModel(input *fleets.SpotPriorityProfile) []SpotPr
 	output.MaxHourlyPricePerVM = maxHourlyPricePerVM
 
 	return append(outputList, output)
-}
-
-func flattenVMAttributesModel(input *fleets.VMAttributes) []VMAttributesModel {
-	outputList := make([]VMAttributesModel, 0)
-	if input == nil {
-		return outputList
-	}
-	output := VMAttributesModel{
-		AcceleratorCount:          flattenVMAttributeMinMaxIntegerModel(input.AcceleratorCount),
-		AcceleratorManufacturers:  flattenToStringSlice(input.AcceleratorManufacturers),
-		AcceleratorTypes:          flattenToStringSlice(input.AcceleratorTypes),
-		ArchitectureTypes:         flattenToStringSlice(input.ArchitectureTypes),
-		CpuManufacturers:          flattenToStringSlice(input.CpuManufacturers),
-		DataDiskCount:             flattenVMAttributeMinMaxIntegerModel(input.DataDiskCount),
-		LocalStorageDiskTypes:     flattenToStringSlice(input.LocalStorageDiskTypes),
-		LocalStorageInGib:         flattenVMAttributeMinMaxDoubleModel(input.LocalStorageInGiB),
-		MemoryInGib:               flattenVMAttributeMinMaxDoubleModel(&input.MemoryInGiB),
-		MemoryInGibPerVCPU:        flattenVMAttributeMinMaxDoubleModel(input.MemoryInGiBPerVCPU),
-		NetworkBandwidthInMbps:    flattenVMAttributeMinMaxDoubleModel(input.NetworkBandwidthInMbps),
-		NetworkInterfaceCount:     flattenVMAttributeMinMaxIntegerModel(input.NetworkInterfaceCount),
-		RdmaNetworkInterfaceCount: flattenVMAttributeMinMaxIntegerModel(input.RdmaNetworkInterfaceCount),
-		VCPUCount:                 flattenVMAttributeMinMaxIntegerModel(&input.VCPUCount),
-		VMCategories:              flattenToStringSlice(input.VMCategories),
-		AcceleratorSupport:        string(pointer.From(input.AcceleratorSupport)),
-		BurstableSupport:          string(pointer.From(input.BurstableSupport)),
-		ExcludedVMSizes:           pointer.From(input.ExcludedVMSizes),
-		LocalStorageSupport:       string(pointer.From(input.LocalStorageSupport)),
-		RdmaSupport:               string(pointer.From(input.RdmaSupport)),
-	}
-
-	return append(outputList, output)
-}
-
-func flattenVMAttributeMinMaxIntegerModel(input *fleets.VMAttributeMinMaxInteger) []VMAttributeMinMaxIntegerModel {
-	outputList := make([]VMAttributeMinMaxIntegerModel, 0)
-	if input == nil {
-		return outputList
-	}
-	output := VMAttributeMinMaxIntegerModel{
-		Max: pointer.From(input.Max),
-		Min: pointer.From(input.Min),
-	}
-
-	return append(outputList, output)
-}
-
-func flattenVMAttributeMinMaxDoubleModel(input *fleets.VMAttributeMinMaxDouble) []VMAttributeMinMaxDoubleModel {
-	outputList := make([]VMAttributeMinMaxDoubleModel, 0)
-	if input == nil {
-		return outputList
-	}
-	output := VMAttributeMinMaxDoubleModel{
-		Max: pointer.From(input.Max),
-		Min: pointer.From(input.Min),
-	}
-
-	return append(outputList, output)
-}
-
-func flattenToStringSlice[T any](inputList *[]T) []string {
-	outputList := make([]string, 0)
-	if inputList == nil {
-		return outputList
-	}
-
-	result := make([]string, len(*inputList))
-	for i, v := range *inputList {
-		result[i] = fmt.Sprintf("%v", v)
-	}
-
-	return result
 }
 
 func flattenVMSizeProfileModel(inputList *[]fleets.VMSizeProfile) []VMSizeProfileModel {

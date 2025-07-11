@@ -23,8 +23,7 @@ func TestAccComputeFleet_virtualMachineProfileNetwork_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -56,8 +55,7 @@ func TestAccComputeFleet_virtualMachineProfileNetwork_completeForAdditionalLocat
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -115,45 +113,6 @@ resource "azurerm_compute_fleet" "test" {
       offer     = "0001-com-ubuntu-server-jammy"
       sku       = "22_04-lts"
       version   = "latest"
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "nic-test"
-        primary_network_interface_enabled = true
-
-        ip_configuration {
-          name                                   = "primary"
-          primary_ip_configuration_enabled       = true
-          subnet_id                              = azurerm_subnet.linux_test.id
-          load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.linux_test.id]
-        }
-      }
-
-      os_disk {
-        storage_account_type = "Standard_LRS"
-        caching              = "ReadWrite"
-      }
-
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
     }
   }
 }
@@ -346,78 +305,6 @@ resource "azurerm_compute_fleet" "test" {
       offer     = "0001-com-ubuntu-server-jammy"
       sku       = "22_04-lts"
       version   = "latest"
-    }
-  }
-
-  additional_location_profile {
-    location = "%[5]s"
-
-    virtual_machine_profile_override {
-      network_api_version = "2022-11-01"
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "nic-test"
-        primary_network_interface_enabled = true
-        accelerated_networking_enabled    = true
-        ip_forwarding_enabled             = true
-        auxiliary_mode                    = "AcceleratedConnections"
-        auxiliary_sku                     = "A2"
-        delete_option                     = "Delete"
-        network_security_group_id         = azurerm_network_security_group.linux_test.id
-        dns_servers                       = ["8.8.8.8", "8.8.4.4"]
-        ip_configuration {
-          name                                         = "first"
-          primary_ip_configuration_enabled             = true
-          subnet_id                                    = azurerm_subnet.linux_test.id
-          application_gateway_backend_address_pool_ids = [tolist(azurerm_application_gateway.linux_test.backend_address_pool)[0].id]
-          application_security_group_ids               = [azurerm_application_security_group.linux_test.id]
-          load_balancer_backend_address_pool_ids       = [azurerm_lb_backend_address_pool.linux_test.id]
-          public_ip_address {
-            name                    = "nic-pip-first"
-            delete_option           = "Delete"
-            domain_name_label       = "test-domain-label"
-            domain_name_label_scope = "ResourceGroupReuse"
-            idle_timeout_in_minutes = 4
-            sku_name                = "Standard_Regional"
-            version                 = "IPv4"
-            ip_tag {
-              type = "RoutingPreference"
-              tag  = "Internet"
-            }
-          }
-          version = "IPv4"
-        }
-
-        ip_configuration {
-          name                           = "second"
-          subnet_id                      = azurerm_subnet.linux_test.id
-          application_security_group_ids = [azurerm_application_security_group.linux_test.id]
-          public_ip_address {
-            name                    = "nic-pip-second"
-            idle_timeout_in_minutes = 15
-          }
-        }
-      }
-
-      os_disk {
-        storage_account_type = "Standard_LRS"
-        caching              = "ReadWrite"
-      }
-
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
     }
   }
 }

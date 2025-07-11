@@ -23,8 +23,7 @@ func TestAccComputeFleet_virtualMachineProfileExtensions_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -41,9 +40,7 @@ func TestAccComputeFleet_virtualMachineProfileExtensions_complete(t *testing.T) 
 		},
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"virtual_machine_profile.0.extension.2.protected_settings_json",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.extension.2.protected_settings_json"),
+			"virtual_machine_profile.0.extension.2.protected_settings_json"),
 	})
 }
 
@@ -59,8 +56,7 @@ func TestAccComputeFleet_virtualMachineProfileExtensions_protectedSettingsFromKe
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -129,55 +125,6 @@ resource "azurerm_compute_fleet" "test" {
       publisher            = "Microsoft.Azure.Extensions"
       type                 = "CustomScript"
       type_handler_version = "2.0"
-    }
-  }
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          password_authentication_enabled = false
-          admin_ssh_keys                  = [local.first_public_key]
-        }
-      }
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          primary_ip_configuration_enabled = true
-          subnet_id                        = azurerm_subnet.linux_test.id
-
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-      os_disk {
-        storage_account_type = "Standard_LRS"
-        caching              = "ReadWrite"
-      }
-
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      extension {
-        name                 = "CustomScript"
-        publisher            = "Microsoft.Azure.Extensions"
-        type                 = "CustomScript"
-        type_handler_version = "2.0"
-      }
     }
   }
 }
@@ -281,87 +228,6 @@ resource "azurerm_compute_fleet" "test" {
       })
     }
     extensions_time_budget_duration = "PT30M"
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          password_authentication_enabled = false
-          admin_ssh_keys                  = [local.first_public_key]
-        }
-      }
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          primary_ip_configuration_enabled = true
-          subnet_id                        = azurerm_subnet.linux_test.id
-
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-      os_disk {
-        storage_account_type = "Standard_LRS"
-        caching              = "ReadWrite"
-      }
-
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      extension_operations_enabled = true
-      extension {
-        name                               = "testOmsAgentForLinux"
-        publisher                          = "Microsoft.EnterpriseCloud.Monitoring"
-        type                               = "OmsAgentForLinux"
-        type_handler_version               = "1.12"
-        auto_upgrade_minor_version_enabled = true
-        automatic_upgrade_enabled          = true
-        failure_suppression_enabled        = true
-      }
-
-      extension {
-        name                               = "CustomScript"
-        publisher                          = "Microsoft.Azure.Extensions"
-        type                               = "CustomScript"
-        type_handler_version               = "2.0"
-        auto_upgrade_minor_version_enabled = true
-      }
-
-      extension {
-        name                                      = "Docker"
-        publisher                                 = "Microsoft.Azure.Extensions"
-        type                                      = "DockerExtension"
-        type_handler_version                      = "1.0"
-        auto_upgrade_minor_version_enabled        = true
-        extensions_to_provision_after_vm_creation = ["CustomScript"]
-        force_extension_execution_on_change       = "test"
-
-        settings_json = jsonencode({
-          "commandToExecute" = "echo $HOSTNAME"
-        })
-
-        protected_settings_json = jsonencode({
-          "managedIdentity" = {}
-        })
-      }
-      extensions_time_budget_duration = "PT30M"
-    }
   }
 }
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
@@ -500,61 +366,6 @@ resource "azurerm_compute_fleet" "test" {
       protected_settings_from_key_vault {
         secret_url      = azurerm_key_vault_secret.test.id
         source_vault_id = azurerm_key_vault.test.id
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          password_authentication_enabled = false
-          admin_ssh_keys                  = [local.first_public_key]
-        }
-      }
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          primary_ip_configuration_enabled = true
-          subnet_id                        = azurerm_subnet.linux_test.id
-
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-      os_disk {
-        storage_account_type = "Standard_LRS"
-        caching              = "ReadWrite"
-      }
-
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      extension {
-        name                 = "CustomScript"
-        publisher            = "Microsoft.Azure.Extensions"
-        type                 = "CustomScript"
-        type_handler_version = "2.1"
-
-        protected_settings_from_key_vault {
-          secret_url      = azurerm_key_vault_secret.linux_test.id
-          source_vault_id = azurerm_key_vault.linux_test.id
-        }
       }
     }
   }
