@@ -60,23 +60,6 @@ func TestAccComputeFleet_completeExceptVMSS(t *testing.T) {
 	})
 }
 
-func TestAccComputeFleet_multipleAdditionalLocationProfiles(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
-	r := ComputeFleetTestResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.additionalLocationProfiles(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.1.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
-	})
-}
-
 func TestAccComputeFleet_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
 	r := ComputeFleetTestResource{}
@@ -88,8 +71,7 @@ func TestAccComputeFleet_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.completeExceptVMSSUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -97,8 +79,7 @@ func TestAccComputeFleet_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.completeExceptVMSS(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -106,8 +87,7 @@ func TestAccComputeFleet_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -580,53 +560,6 @@ resource "azurerm_compute_fleet" "test" {
     name = "Standard_DS1"
   }
 
-  vm_attributes {
-    memory_in_gib {
-      max = 150
-      min = 1
-    }
-    vcpu_count {
-      max = 10
-      min = 1
-    }
-    data_disk_count {
-      max = 10
-      min = 1
-    }
-    local_storage_in_gib {
-      max = 100
-      min = 1
-    }
-    memory_in_gib_per_vcpu {
-      max = 10
-      min = 0
-    }
-    local_storage_support    = "Included"
-    local_storage_disk_types = ["SSD"]
-    architecture_types       = ["X64"]
-    cpu_manufacturers        = ["Intel"]
-    network_bandwidth_in_mbps {
-      max = 500
-      min = 0
-    }
-    network_interface_count {
-      max = 10
-      min = 0
-    }
-    vm_categories     = ["GeneralPurpose"]
-    burstable_support = "Excluded"
-    rdma_support      = "Included"
-    rdma_network_interface_count {
-      max = 10
-      min = 0
-    }
-    accelerator_support = "Included"
-    accelerator_count {
-      max = 3
-      min = 0
-    }
-  }
-
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
@@ -743,53 +676,6 @@ resource "azurerm_compute_fleet" "test" {
     name = "Standard_DS1"
   }
 
-  vm_attributes {
-    memory_in_gib {
-      max = 151
-      min = 0
-    }
-    vcpu_count {
-      max = 11
-      min = 0
-    }
-    data_disk_count {
-      max = 11
-      min = 0
-    }
-    local_storage_in_gib {
-      max = 101
-      min = 1
-    }
-    memory_in_gib_per_vcpu {
-      max = 11
-      min = 0
-    }
-    local_storage_support    = "Included"
-    local_storage_disk_types = ["HDD", "SSD"]
-    architecture_types       = ["X64", "ARM64"]
-    cpu_manufacturers        = ["Intel", "Microsoft"]
-    network_bandwidth_in_mbps {
-      max = 501
-      min = 0
-    }
-    network_interface_count {
-      max = 11
-      min = 0
-    }
-    vm_categories     = ["GeneralPurpose", "ComputeOptimized"]
-    burstable_support = "Included"
-    rdma_support      = "Included"
-    rdma_network_interface_count {
-      max = 11
-      min = 0
-    }
-    accelerator_support = "Included"
-    accelerator_count {
-      max = 4
-      min = 0
-    }
-  }
-
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
@@ -883,7 +769,7 @@ virtual_machine_profile {
 }
 # ignore_changes as when os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
 lifecycle {
-	ignore_changes = [virtual_machine_profile.0.os_disk, additional_location_profile.0.virtual_machine_profile_override.0.os_disk]
+	ignore_changes = [virtual_machine_profile.0.os_disk]
 }
 `
 }
@@ -924,151 +810,7 @@ virtual_machine_profile {
 }
 # ignore_changes as when os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
 lifecycle {
-	ignore_changes = [virtual_machine_profile.0.os_disk, additional_location_profile[0].virtual_machine_profile_override.0.os_disk]
+	ignore_changes = [virtual_machine_profile.0.os_disk]
 }
 `
-}
-
-func (r ComputeFleetTestResource) additionalLocationProfiles(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_resource_group" "linux_test2" {
-  name     = "acctest-rg-fleet-al2-%[2]d"
-  location = "%[6]s"
-}
-
-resource "azurerm_virtual_network" "linux_test2" {
-  name                = "acctvn-al2-%[2]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.linux_test2.location
-  resource_group_name = azurerm_resource_group.linux_test2.name
-}
-
-resource "azurerm_subnet" "linux_test2" {
-  name                 = "acctsub-%[2]d"
-  resource_group_name  = azurerm_resource_group.linux_test2.name
-  virtual_network_name = azurerm_virtual_network.linux_test2.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_public_ip" "linux_test2" {
-  name                = "acctestpublicIP%[2]d"
-  location            = azurerm_resource_group.linux_test2.location
-  resource_group_name = azurerm_resource_group.linux_test2.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  zones               = ["1"]
-}
-
-resource "azurerm_lb" "linux_test2" {
-  name                = "acctest-loadbalancer2-%[2]d"
-  location            = azurerm_resource_group.linux_test2.location
-  resource_group_name = azurerm_resource_group.linux_test2.name
-  sku                 = "Standard"
-
-  frontend_ip_configuration {
-    name                 = "internal"
-    public_ip_address_id = azurerm_public_ip.linux_test2.id
-  }
-}
-
-resource "azurerm_lb_backend_address_pool" "linux_test2" {
-  name            = "internal"
-  loadbalancer_id = azurerm_lb.linux_test2.id
-}
-
-resource "azurerm_compute_fleet" "test" {
-  name                = "acctest-fleet-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  compute_api_version = "2024-03-01"
-
-  spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
-  }
-
-  vm_sizes_profile {
-    name = "Standard_DS1_v2"
-  }
-
-  %[4]s
-
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        offer     = "0001-com-ubuntu-server-focal"
-        publisher = "canonical"
-        sku       = "20_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvmal1"
-          admin_username                  = "testal1admin1234"
-          admin_password                  = "Passwordal11234"
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProAl1Test"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfigurationAl1"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfigurationAl1"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[6]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        offer     = "0001-com-ubuntu-server-focal"
-        publisher = "canonical"
-        sku       = "20_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvmal2"
-          admin_username                  = "testal2admin1234"
-          admin_password                  = "Passwordal21234"
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProAl2Test"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfigurationAl2"
-          subnet_id                        = azurerm_subnet.linux_test2.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfigurationAl2"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
-}
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, r.basicBaseLinuxVirtualMachineProfile(), data.Locations.Secondary, data.Locations.Ternary)
 }

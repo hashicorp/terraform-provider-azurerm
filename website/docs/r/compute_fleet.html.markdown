@@ -121,15 +121,15 @@ The following arguments are supported:
 
 * `virtual_machine_profile` - (Required) A `virtual_machine_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below. Changing this forces a new resource to be created.
+* `vm_sizes_profile` - (Required) One or more `vm_sizes_profile` blocks as defined below.
 
-* `additional_location_profile` - (Optional) One or more `additional_location_profile` blocks as defined below. Changing this forces a new resource to be created.
+-> **Note:** If `spot_priority_profile` is specified, `regular_priority_profile` is not specified and `spot_priority_profile.0.maintain_enabled` is specified as to `false`, changing `vm_sizes_profile` forces a new resource to be created.
+
+* `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below. Changing this forces a new resource to be created.
 
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
 * `platform_fault_domain_count` - (Optional)  Specifies the number of fault domains that are used by the Compute Fleet. Defaults to `1`. Changing this forces a new resource to be created.
-
-* `vm_attributes` - (Optional) A `vm_attributes` block as defined below. Changing this forces a new resource to be created.
 
 * `zones` - (Optional) Specifies a list of availability zones in which the Compute Fleet is available. Changing this forces a new resource to be created.
 
@@ -142,11 +142,7 @@ The following arguments are supported:
 * `spot_priority_profile` - (Optional) A `spot_priority_profile` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Compute Fleet.
-
-* `vm_sizes_profile` - (Optional) One or more `vm_sizes_profile` blocks as defined below.
-
--> **Note:** If `spot_priority_profile` is specified, `regular_priority_profile` is not specified and `spot_priority_profile.0.maintain_enabled` is specified as to `false`, changing `vm_sizes_profile` forces a new resource to be created.
-
+* 
 ---
 
 A `virtual_machine_profile` block supports the following:
@@ -229,22 +225,6 @@ A `os_profile` block supports the following:
 
 ---
 
-A `accelerator_count` block supports the following:
-
-* `max` - (Optional) The maximum value of accelerator count.
-
-* `min` - (Optional) The minimum value of accelerator count.
-
----
-
-A `additional_location_profile` block supports the following:
-
-* `location` - (Required) The Azure Region where the Compute Fleet should exist. Changing this forces a new resource to be created.
-
-* `virtual_machine_profile_override` - (Required) The definition of the `virtual_machine_profile_override` block is the same as the `virtual_machine_profile` block. A `virtual_machine_profile` block as defined below. Changing this forces a new resource to be created.
-
----
-
 A `additional_capabilities` block supports the following:
 
 * `hibernation_enabled` - (Optional) Whether to enable the hibernation capability on the Compute Fleet.  Defaults to `false`. Changing this forces a new resource to be created.
@@ -298,14 +278,6 @@ A `data_disk` block supports the following:
 * `storage_account_type` - (Optional)  The type of storage account which should back the data disk. Possible values include `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS` and `UltraSSD_LRS`. Changing this forces a new resource to be created.
 
 * `write_accelerator_enabled` - (Optional) Whether to enable the write accelerator on the data disk. Defaults to `false`. Changing this forces a new resource to be created.
-
----
-
-A `data_disk_count` block supports the following:
-
-* `max` - (Optional) The maximum value of data disk count.
-
-* `min` - (Optional) The minimum value of data disk count.
 
 ---
 
@@ -423,49 +395,6 @@ A `linux_configuration` block supports the following:
 
 ---
 
-A `local_storage_in_gib` block supports the following:
-
-* `max` - (Optional) The maximum value of local storage in GiB.
-
-* `min` - (Optional) The minimum value of local storage in GiB.
-
----
-
-A `memory_in_gib` block supports the following:
-
-* `max` - (Optional) The maximum value of memory in GiB.
-
-* `min` - (Optional) The minimum value of memory in GiB.
-
----
-
-A `memory_in_gib_per_vcpu` block supports the following:
-
-* `max` - (Optional) The maximum value of memory per vCPU in GiB.
-
-* `min` - (Optional) The minimum value of memory per vCPU in GiB.
-
----
-
-A `network_bandwidth_in_mbps` block supports the following:
-
-* `max` - (Optional) The maximum value of network bandwidth in Mbps.
-
-* `min` - (Optional) The minimum value of network bandwidth in Mbps.
-
----
-
-
-A `network_interface_count` block supports the following:
-
-* `max` - (Optional) The maximum value of network interface count.
-
-* `min` - (Optional) The minimum value of network interface count.
-
-*
-
----
-
 A `os_disk` block supports the following:
 
 * `caching` - (Optional) The Type of caching which should be used for the internal OS Disk. Possible values are `ReadOnly` and `ReadWrite`. Changing this forces a new resource to be created.
@@ -530,14 +459,6 @@ A `public_ip_address` block supports the following:
 
 ---
 
-A `rdma_network_interface_count` block supports the following:
-
-* `max` - (Optional) The maximum value of RDMA (Remote Direct Memory Access) network interface count.
-
-* `min` - (Optional) The minimum value of RDMA (Remote Direct Memory Access) network interface count.
-
----
-
 A `regular_priority_profile` block supports the following:
 
 * `allocation_strategy` - (Optional) Specifies the allocation strategy for the Compute Fleet on which the standard virtual machines will be allocated. Defaults to `LowestPrice`. Possible values are `LowestPrice` and `Prioritized`. Changing this forces a new resource to be created.
@@ -581,92 +502,6 @@ A `spot_priority_profile` block supports the following:
 * `min_capacity` - (Optional) The minimum number of spot virtual machines in the Compute Fleet. Changing this forces a new resource to be created.
 
 * `capacity` - (Optional) The total number of the spot virtual machines in the Compute Fleet.
-
----
-
-A `vcpu_count` block supports the following:
-
-* `max` - (Optional) The maximum value of vCPU count.
-
-* `min` - (Optional) The minimum value of vCPU count.
-
----
-
-A `vm_attributes` block supports the following:
-
-* `memory_in_gib` - (Required) A `memory_in_gib` block as defined above.
-
-* `vcpu_count` - (Required) A `vcpu_count` block as defined above.
-
-* `accelerator_count` - (Optional) A `accelerator_count` block as defined above.
-
--> **Note:** Once the `accelerator_count` has been specified, removing it forces a new resource to be created.
-
-* `accelerator_manufacturers` - (Optional) Specifies a list of the accelerator manufacturers. Possible values are `AMD`, `Nvidia` and `Xilinx`.
-
--> **Note:** Once the `accelerator_manufacturers` has been specified, removing it forces a new resource to be created.
-
-* `accelerator_support` - (Optional) Specifies whether the virtual machine sizes supporting accelerator be used to build the Compute Fleet. Defaults to `Excluded`. Possible values are `Excluded`, `Included` and `Required`.
-
--> **Note:** Once the `accelerator_support` has been specified, removing it forces a new resource to be created.
-
-* `accelerator_types` - (Optional) Specifies a list of the accelerator types. Possible values are `FPGA` and `GPU`.
-
--> **Note:** Once the `accelerator_types` has been specified, removing it forces a new resource to be created.
-
-* `architecture_types` - (Optional) Specifies a list of the architecture types. Possible values are `ARM64` and `X64`.
-
--> **Note:** Once the `architecture_types` has been specified, removing it forces a new resource to be created.
-
-* `burstable_support` - (Optional) Specifies whether the virtual machine Sizes supporting burstable capability be used to build the Compute Fleet. Defaults to `Excluded`. Possible values are `Excluded`, `Included` and `Required`.
-
--> **Note:** Once the `burstable_support` has been specified, removing it forces a new resource to be created.
-
-* `cpu_manufacturers` - (Optional) Specifies a list of the virtual machine CPU manufacturers. Possible values are `AMD`, `Ampere`, `Intel` and `Microsoft`. Once specified changing this value forces a new resource to be created.
-
-* `data_disk_count` - (Optional) A `data_disk_count` block as defined above.
-
--> **Note:** Once the `data_disk_count` has been specified, removing it forces a new resource to be created.
-
-* `excluded_vm_sizes` - (Optional) Specifies a list of excluded virtual machine sizes. Conflicts with `vm_sizes_profile`.
-
--> **Note:** Once the `excluded_vm_sizes` has been specified, removing it forces a new resource to be created.
-
-* `local_storage_disk_types` - (Optional) Specifies a list of the local storage disk types supported by virtual machines. Possible values are `HDD` and `SSD`.
-
--> **Note:** Once the `local_storage_disk_types` has been specified, removing it forces a new resource to be created.
-
-* `local_storage_in_gib` - (Optional) A `local_storage_in_gib` block as defined above.
-
--> **Note:** Once the `local_storage_in_gib` has been specified, removing it forces a new resource to be created.
-
-* `local_storage_support` - (Optional) Specifies whether the virtual machine Sizes supporting local storage be used to build the Compute Fleet. Defaults to `Included`. Possible values are `Excluded`, `Included` and `Required`.
-
--> **Note:** Once the `local_storage_support` has been specified, removing it forces a new resource to be created.
-
-* `memory_in_gib_per_vcpu` - (Optional) A `memory_in_gib_per_vcpu` block as defined above.
-
--> **Note:** Once the `memory_in_gib_per_vcpu` has been specified, removing it forces a new resource to be created.
-
-* `network_bandwidth_in_mbps` - (Optional) A `network_bandwidth_in_mbps` block as defined above.
-
--> **Note:** Once the `network_bandwidth_in_mbps` has been specified, removing it forces a new resource to be created.
-
-* `network_interface_count` - (Optional) A `network_interface_count` block as defined above.
-
--> **Note:** Once the `network_interface_count` has been specified, removing it forces a new resource to be created.
-
-* `rdma_network_interface_count` - (Optional) A `rdma_network_interface_count` block as defined above.
-
--> **Note:** Once the `rdma_network_interface_count` has been specified, removing it forces a new resource to be created.
-
-* `rdma_support` - (Optional) Specifies whether the virtual machine Sizes supporting RDMA (Remote Direct Memory Access) be used to build the Compute Fleet. Defaults to `Excluded`. Possible values are `Excluded`, `Included` and `Required`.
-
--> **Note:** Once the `rdma_support` has been specified, removing it forces a new resource to be created.
-
-* `vm_categories` - (Optional) Specifies a list of the virtual machine categories. Possible values are `ComputeOptimized`, `FpgaAccelerated`, `GeneralPurpose`, `GpuAccelerated`, `HighPerformanceCompute`, `MemoryOptimized` and `StorageOptimized`.
-
--> **Note:** Once the `vm_categories` has been specified, removing it forces a new resource to be created.
 
 ---
 
