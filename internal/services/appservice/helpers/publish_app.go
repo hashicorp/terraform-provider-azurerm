@@ -6,8 +6,10 @@ package helpers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -114,6 +116,12 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	publishEndpoint := fmt.Sprintf("%s/api/zipdeploy?isAsync=true", host)
 	statusEndpoint := fmt.Sprintf("%s/api/deployments/latest", host)
 
+	// The deployment service can be unavailable if the app is recycling. This could take a while to come back up and timeout so instead we
+	// poll the deployment service status endpoint until it is available.
+	if err := pollDeploymentServiceStatus(ctx, host, user, passwd); err != nil {
+		return fmt.Errorf("checking deployment service status: %+v", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, publishEndpoint, f)
 	if err != nil {
 		return fmt.Errorf("preparing publish request: %+v", err)
@@ -198,5 +206,65 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 		}
 
 		return nil, "", fmt.Errorf("could not determine status from deployment response")
+	}
+}
+
+func pollDeploymentServiceStatus(ctx context.Context, host string, user string, passwd string) error {
+	warmupEndpoint := fmt.Sprintf("%s/deployments?warmup=true", host)
+
+	statusReq, err := http.NewRequestWithContext(ctx, http.MethodGet, warmupEndpoint, http.NoBody)
+	if err != nil {
+		return err
+	}
+
+	statusReq.SetBasicAuth(user, passwd)
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("polling deployment service context had no deadline")
+	}
+
+	deployWait := &pluginsdk.StateChangeConf{
+		Pending:    []string{"retrying"},
+		Target:     []string{"success"},
+		MinTimeout: 30 * time.Second,
+		Timeout:    time.Until(deadline),
+		Refresh:    checkDeploymentServiceStatus(ctx, statusReq),
+	}
+
+	if _, err := deployWait.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for deployment service to be ready: %+v", err)
+	}
+
+	return nil
+}
+
+func checkDeploymentServiceStatus(ctx context.Context, r *http.Request) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		attemptCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+
+		reqWithTimeout := r.Clone(attemptCtx)
+
+		resp, err := http.DefaultClient.Do(reqWithTimeout)
+		if err != nil {
+			if errors.Is(err, context.DeadlineExceeded) {
+				log.Printf("[DEBUG] Deployment service isn't available yet, retrying...")
+				return nil, "retrying", nil
+			}
+			return nil, "", fmt.Errorf("client error: %s", err)
+		}
+
+		if resp.StatusCode >= 500 {
+			resp.Body.Close()
+			log.Printf("[DEBUG] Deployment service came back with a %d status code, retrying...", resp.StatusCode)
+			return nil, "retrying", nil
+		}
+
+		if resp.StatusCode >= 400 {
+			resp.Body.Close()
+			return nil, "", fmt.Errorf("client error: %s", resp.Status)
+		}
+
+		return resp, "success", nil
 	}
 }
