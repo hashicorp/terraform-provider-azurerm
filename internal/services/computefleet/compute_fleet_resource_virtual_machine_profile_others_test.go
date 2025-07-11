@@ -23,8 +23,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_bootDiagnosticEnabled(t *te
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -40,8 +39,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_capacityReservationGroup(t 
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -57,8 +55,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_galleryApplication(t *testi
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -74,8 +71,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_licenseType(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password"),
 	})
 }
 
@@ -91,8 +87,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_scheduledEvent(t *testing.T
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -108,8 +103,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_UserData(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -125,8 +119,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_additionalCapabilitiesUltra
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -142,8 +135,7 @@ func TestAccComputeFleet_virtualMachineProfileOthers_additionalCapabilitiesHiber
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -204,51 +196,6 @@ resource "azurerm_compute_fleet" "test" {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
           idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[6]s"
-    virtual_machine_profile_override {
-      network_api_version                      = "2020-11-01"
-      boot_diagnostic_enabled                  = %[4]t
-      boot_diagnostic_storage_account_endpoint = azurerm_storage_account.linux_test.primary_blob_endpoint
-
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_disk {
-        storage_account_type = "Standard_LRS"
-        caching              = "ReadWrite"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
         }
       }
     }
@@ -368,50 +315,6 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      capacity_reservation_group_id = azurerm_capacity_reservation_group.linux_test.id
-
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-    }
-  }
   depends_on = [azurerm_capacity_reservation.test, azurerm_capacity_reservation.linux_test]
 }
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
@@ -615,57 +518,6 @@ resource "azurerm_compute_fleet" "test" {
       treat_failure_as_deployment_failure_enabled = false
     }
   }
-
-  additional_location_profile {
-    location = "%[6]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-      gallery_application {
-        version_id                                  = azurerm_gallery_application_version.linux_test.id
-        configuration_blob_uri                      = azurerm_storage_blob.linux_test2.id
-        order                                       = 1
-        tag                                         = "%[5]s"
-        automatic_upgrade_enabled                   = false
-        treat_failure_as_deployment_failure_enabled = false
-      }
-    }
-  }
 }
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.RandomString, tag, data.Locations.Secondary)
 }
@@ -735,55 +587,6 @@ resource "azurerm_compute_fleet" "test" {
     }
     license_type = "%[4]s"
   }
-
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "MicrosoftWindowsServer"
-        offer     = "WindowsServer"
-        sku       = "2016-Datacenter-Server-Core"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        windows_configuration {
-          computer_name_prefix       = "testvm"
-          admin_username             = local.admin_username
-          admin_password             = local.admin_password
-          automatic_updates_enabled  = true
-          provision_vm_agent_enabled = true
-          time_zone                  = "W. Europe Standard Time"
-
-          winrm_listener {
-            protocol = "Http"
-          }
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.windows_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-      license_type = "%[4]s"
-    }
-  }
 }
 `, r.baseAndAdditionalLocationWindowsTemplate(data), data.RandomInteger, data.Locations.Primary, lType, data.Locations.Secondary)
 }
@@ -850,51 +653,6 @@ resource "azurerm_compute_fleet" "test" {
     scheduled_event_termination_timeout_duration = "PT5M"
     scheduled_event_os_image_timeout_duration    = "PT15M"
   }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm-%[2]d"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-      scheduled_event_termination_timeout_duration = "PT5M"
-      scheduled_event_os_image_timeout_duration    = "PT15M"
-    }
-  }
 }
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -957,49 +715,6 @@ resource "azurerm_compute_fleet" "test" {
       }
     }
     user_data_base64 = base64encode("%[4]s")
-  }
-
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm-%[2]d"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-      user_data_base64 = base64encode("%[4]s")
-    }
   }
 }
 `, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, userDta, data.Locations.Secondary)
@@ -1158,61 +873,6 @@ resource "azurerm_compute_fleet" "test" {
         "port"        = 80
         "requestPath" = "/healthEndpoint"
       })
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-
-      extension {
-        name                 = "HealthExtension"
-        publisher            = "Microsoft.ManagedServices"
-        type                 = "ApplicationHealthLinux"
-        type_handler_version = "1.0"
-
-        settings_json = jsonencode({
-          "protocol"    = "http"
-          "port"        = 80
-          "requestPath" = "/healthEndpoint"
-        })
-      }
     }
   }
 }

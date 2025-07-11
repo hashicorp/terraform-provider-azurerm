@@ -23,8 +23,7 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_linuxBasic(t *testing.T)
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -41,9 +40,7 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_linuxComplete(t *testing
 		},
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"virtual_machine_profile.0.os_profile.0.custom_data_base64",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.custom_data_base64"),
+			"virtual_machine_profile.0.os_profile.0.custom_data_base64"),
 	})
 }
 
@@ -58,8 +55,7 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_windowsBasic(t *testing.
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password"),
 	})
 }
 
@@ -76,10 +72,7 @@ func TestAccComputeFleet_virtualMachineProfileOsProfile_windowsComplete(t *testi
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.admin_password",
 			"virtual_machine_profile.0.os_profile.0.custom_data_base64",
-			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.additional_unattend_content.0.xml",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.custom_data_base64",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.windows_configuration.0.additional_unattend_content.0.xml"),
+			"virtual_machine_profile.0.os_profile.0.windows_configuration.0.additional_unattend_content.0.xml"),
 	})
 }
 
@@ -113,41 +106,6 @@ resource "azurerm_compute_fleet" "test" {
 
   %[4]s
 
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "MicrosoftWindowsServer"
-        offer     = "WindowsServer"
-        sku       = "2016-Datacenter-Server-Core"
-        version   = "latest"
-      }
-
-      os_profile {
-        windows_configuration {
-          computer_name_prefix = "testvm"
-          admin_username       = local.admin_username
-          admin_password       = local.admin_password
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          primary_ip_configuration_enabled = true
-          subnet_id                        = azurerm_subnet.windows_test.id
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
 }
 `, r.baseAndAdditionalLocationWindowsTemplateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, r.basicBaseWindowsVirtualMachineProfile(), data.Locations.Secondary)
 }
@@ -251,88 +209,6 @@ resource "azurerm_compute_fleet" "test" {
       }
     }
   }
-
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "MicrosoftWindowsServer"
-        offer     = "WindowsServer"
-        sku       = "2022-datacenter-azure-edition-core"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        windows_configuration {
-          computer_name_prefix = "testvm"
-          admin_username       = local.admin_username
-          admin_password       = local.admin_password
-          additional_unattend_content {
-            setting = "FirstLogonCommands"
-            xml     = "<FirstLogonCommands><SynchronousCommand><CommandLine>shutdown /r /t 0 /c \"initial reboot\"</CommandLine><Description>reboot</Description><Order>1</Order></SynchronousCommand></FirstLogonCommands>"
-          }
-          automatic_updates_enabled         = true
-          vm_agent_platform_updates_enabled = true
-
-          patch_mode                            = "AutomaticByPlatform"
-          patch_assessment_mode                 = "ImageDefault"
-          hot_patching_enabled                  = true
-          bypass_platform_safety_checks_enabled = false
-          patch_rebooting                       = "Always"
-          provision_vm_agent_enabled            = true
-          secret {
-            key_vault_id = azurerm_key_vault.windows_test.id
-            certificate {
-              url   = azurerm_key_vault_certificate.windows_test_first.secret_id
-              store = "My"
-            }
-          }
-
-          time_zone = "W. Europe Standard Time"
-
-          winrm_listener {
-            certificate_url = azurerm_key_vault_certificate.windows_test_first.secret_id
-            protocol        = "Https"
-          }
-        }
-      }
-
-      extension {
-        name                               = "HealthExtension"
-        publisher                          = "Microsoft.ManagedServices"
-        type                               = "ApplicationHealthWindows"
-        type_handler_version               = "1.0"
-        auto_upgrade_minor_version_enabled = true
-
-        settings_json = jsonencode({
-          "protocol"    = "http"
-          "port"        = 80
-          "requestPath" = "/healthEndpoint"
-        })
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          primary_ip_configuration_enabled = true
-          subnet_id                        = azurerm_subnet.windows_test.id
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
 }
 `, r.baseAndAdditionalLocationWindowsTemplateWithOutProvider(data), r.secretWindowsResourceDependencies(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
@@ -366,43 +242,6 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   %[4]s
-
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        offer     = "0001-com-ubuntu-server-focal"
-        publisher = "canonical"
-        sku       = "20_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
-        }
-      }
-    }
-  }
 }
 `, r.baseAndAdditionalLocationLinuxTemplateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, r.basicBaseLinuxVirtualMachineProfile(), data.Locations.Secondary)
 }
@@ -487,72 +326,6 @@ resource "azurerm_compute_fleet" "test" {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
           idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        offer     = "0001-com-ubuntu-server-focal"
-        publisher = "canonical"
-        sku       = "20_04-lts-gen2"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      os_profile {
-        custom_data_base64 = "Y3VzdG9tIGRhdGEh"
-        linux_configuration {
-          computer_name_prefix                  = "testvm"
-          admin_username                        = local.admin_username
-          admin_password                        = local.admin_password
-          password_authentication_enabled       = true
-          admin_ssh_keys                        = [local.first_public_key]
-          provision_vm_agent_enabled            = true
-          vm_agent_platform_updates_enabled     = true
-          patch_mode                            = "AutomaticByPlatform"
-          patch_assessment_mode                 = "ImageDefault"
-          bypass_platform_safety_checks_enabled = true
-          patch_rebooting                       = "Always"
-          secret {
-            key_vault_id = azurerm_key_vault.linux_test.id
-            certificate {
-              url = azurerm_key_vault_certificate.linux_test_first.secret_id
-            }
-          }
-        }
-      }
-      extension {
-        name                 = "HealthExtension"
-        publisher            = "Microsoft.ManagedServices"
-        type                 = "ApplicationHealthLinux"
-        type_handler_version = "1.0"
-
-        settings_json = jsonencode({
-          "protocol"    = "http"
-          "port"        = 80
-          "requestPath" = "/healthEndpoint"
-        })
-      }
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
         }
       }
     }

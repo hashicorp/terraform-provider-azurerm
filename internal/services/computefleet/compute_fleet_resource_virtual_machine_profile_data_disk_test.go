@@ -23,8 +23,7 @@ func TestAccComputeFleet_virtualMachineProfileDataDisk_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -40,8 +39,7 @@ func TestAccComputeFleet_virtualMachineProfileDataDisk_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"additional_location_profile.0.virtual_machine_profile_override.0.os_profile.0.linux_configuration.0.admin_password"),
+			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -106,54 +104,6 @@ resource "azurerm_compute_fleet" "test" {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
           idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-
-  additional_location_profile {
-    location = "%[4]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      data_disk {
-        create_option    = "Empty"
-        disk_size_in_gib = 10
-        lun              = 0
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
         }
       }
     }
@@ -228,58 +178,6 @@ resource "azurerm_compute_fleet" "test" {
           name                    = "TestPublicIPConfiguration"
           domain_name_label       = "test-domain-label"
           idle_timeout_in_minutes = 4
-        }
-      }
-    }
-  }
-  additional_location_profile {
-    location = "%[5]s"
-    virtual_machine_profile_override {
-      network_api_version = "2020-11-01"
-      source_image_reference {
-        publisher = "Canonical"
-        offer     = "0001-com-ubuntu-server-jammy"
-        sku       = "22_04-lts"
-        version   = "latest"
-      }
-
-      os_disk {
-        caching              = "ReadWrite"
-        storage_account_type = "Standard_LRS"
-      }
-
-      data_disk {
-        create_option             = "Empty"
-        disk_size_in_gib          = 10
-        lun                       = 0
-        caching                   = "ReadOnly"
-        delete_option             = "Delete"
-        disk_encryption_set_id    = azurerm_disk_encryption_set.linux_test.id
-        storage_account_type      = "Premium_LRS"
-        write_accelerator_enabled = true
-      }
-
-      os_profile {
-        linux_configuration {
-          computer_name_prefix            = "testvm"
-          admin_username                  = local.admin_username
-          admin_password                  = local.admin_password
-          password_authentication_enabled = true
-        }
-      }
-
-      network_interface {
-        name                              = "networkProTest"
-        primary_network_interface_enabled = true
-        ip_configuration {
-          name                             = "TestIPConfiguration"
-          subnet_id                        = azurerm_subnet.linux_test.id
-          primary_ip_configuration_enabled = true
-          public_ip_address {
-            name                    = "TestPublicIPConfiguration"
-            domain_name_label       = "test-domain-label"
-            idle_timeout_in_minutes = 4
-          }
         }
       }
     }
