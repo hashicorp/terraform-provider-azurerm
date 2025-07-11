@@ -65,10 +65,10 @@ type ExadataInfraDataModel struct {
 }
 
 type DefinedFileSystemConfigurationModel struct {
-	IsBackupPartition bool   `tfschema:"is_backup_partition"`
-	isResizable       bool   `tfschema:"is_resizable"`
-	MinSizeGb         int64  `tfschema:"min_size_gb"`
-	MountPoint        string `tfschema:"mount_point"`
+	BackupPartitionEnabled bool   `tfschema:"backup_partition_enabled"`
+	ResizableEnabled       bool   `tfschema:"resizable_enabled"`
+	MinimumSizeGb          int64  `tfschema:"minimum_size_in_gb"`
+	MountPoint             string `tfschema:"mount_point"`
 }
 
 type EstimatedPatchingTimeModel struct {
@@ -370,15 +370,15 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"is_backup_partition": {
+					"backup_partition_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
-					"is_resizable": {
+					"resizable_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Computed: true,
 					},
-					"min_size_gb": {
+					"minimum_size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
@@ -539,10 +539,10 @@ func FlattenDefinedFileSystemConfiguration(input *[]cloudexadatainfrastructures.
 	if input != nil {
 		for _, item := range *input {
 			output = append(output, DefinedFileSystemConfigurationModel{
-				IsBackupPartition: pointer.From(item.IsBackupPartition),
-				isResizable:       pointer.From(item.IsResizable),
-				MinSizeGb:         pointer.From(item.MinSizeGb),
-				MountPoint:        pointer.From(item.MountPoint),
+				BackupPartitionEnabled: pointer.From(item.IsBackupPartition),
+				ResizableEnabled:       pointer.From(item.IsResizable),
+				MinimumSizeGb:          pointer.From(item.MinSizeGb),
+				MountPoint:             pointer.From(item.MountPoint),
 			})
 		}
 	}

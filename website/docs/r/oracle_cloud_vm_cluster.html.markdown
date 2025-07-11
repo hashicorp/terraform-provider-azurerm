@@ -27,7 +27,6 @@ resource "azurerm_oracle_exadata_infrastructure" "example" {
   storage_count       = "3"
   compute_count       = "2"
   zones               = ["3"]
-
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -113,7 +112,7 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Required) The ID of the Virtual Network associated with the Cloud VM Cluster. Changing this forces a new Cloud VM Cluster to be created.
 
-* `file_system_configuration_details` - (Optional) A file configuration options `file_system_configuration_details` with the Cloud VM Cluster. Changing this forces a new Cloud VM Cluster to be created.
+* `file_system_configuration_details` - (Optional) A `file_system_configuration_details` block as defined below.
 
 ---
 
@@ -161,21 +160,11 @@ A `data_collection_options` block supports the following:
 
 ---
 
-A `data_collection_options` block supports the following:
+A `file_system_configuration_details` block supports the following:
 
-* `diagnostics_events_enabled` - (Optional) Indicates whether diagnostic collection is enabled for the VM Cluster/Cloud VM Cluster/VMBM DBCS. Enabling diagnostic collection allows you to receive Events service notifications for guest VM issues. Diagnostic collection also allows Oracle to provide enhanced service and proactive support for your Exadata system. You can enable diagnostic collection during VM Cluster/Cloud VM Cluster provisioning. You can also disable or enable it at any time using the `UpdateVmCluster` or `updateCloudVmCluster` API. Changing this forces a new Cloud VM Cluster to be created.
+* `mount_point` - (Optional) The mount path of the file system.
 
-* `health_monitoring_enabled` - (Optional) Indicates whether health monitoring is enabled for the VM Cluster / Cloud VM Cluster / VMBM DBCS. Enabling health monitoring allows Oracle to collect diagnostic data and share it with its operations and support personnel. You may also receive notifications for some events. Collecting health diagnostics enables Oracle to provide proactive support and enhanced service for your system. Optionally enable health monitoring while provisioning a system. You can also disable or enable health monitoring anytime using the `UpdateVmCluster`, `UpdateCloudVmCluster` or `updateDbsystem` API. Changing this forces a new Cloud VM Cluster to be created.
-
-* `incident_logs_enabled` - (Optional) Indicates whether incident logs and trace collection are enabled for the VM Cluster / Cloud VM Cluster / VMBM DBCS. Enabling incident logs collection allows Oracle to receive Events service notifications for guest VM issues, collect incident logs and traces, and use them to diagnose issues and resolve them. Optionally enable incident logs collection while provisioning a system. You can also disable or enable incident logs collection anytime using the `UpdateVmCluster`, `updateCloudVmCluster` or `updateDbsystem` API. Changing this forces a new Cloud VM Cluster to be created.
-
----
-
-A `file_system_configuration_details` block exports the following:
-
-* `mount_point` - (Optional) Mount path.
-
-* `file_system_size_gb` - (Optional) Size of the VM in GB.
+* `file_system_size_gb` - (Optional) The size of the virtual machine's file system.
 
 ## Attributes Reference
 

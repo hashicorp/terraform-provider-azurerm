@@ -67,7 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `domain` - The domain name for the Cloud VM Cluster.
 
-* `file_system_configuration_details` - A `file_system_configuration_details` block as defined below. A filesystem configuration information for the VM cluster
+* `file_system_configuration_details` - A `file_system_configuration_details` block as defined below.
 
 * `gi_version` - A valid Oracle Grid Infrastructure (GI) software version.
 
@@ -178,9 +178,9 @@ A `iorm_config_cache` block exports the following:
 
 A `file_system_configuration_details` block exports the following:
 
-* `mount_point` - Mount path.
+* `mount_point` - The mount path of the file system.
 
-* `file_system_size_gb` - Size of the VM.
+* `file_system_size_gb` - The size of the virtual machine's file system.
 
 ## Timeouts
 
