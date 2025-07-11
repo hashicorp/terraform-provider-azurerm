@@ -31,7 +31,6 @@ func (m *mockRedisEnterpriseClient) Get(ctx context.Context, id redisenterprise.
 }
 
 func TestClusterStatePoller_Success(t *testing.T) {
-	// Arrange
 	id := redisenterprise.NewRedisEnterpriseID("12345678-1234-1234-1234-123456789012", "test-rg", "test-cluster")
 
 	mockClient := &mockRedisEnterpriseClient{
@@ -50,10 +49,8 @@ func TestClusterStatePoller_Success(t *testing.T) {
 		id:     id,
 	}
 
-	// Act
 	result, err := pollerType.Poll(context.Background())
 
-	// Assert
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -79,7 +76,6 @@ func TestClusterStatePoller_InProgress(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Arrange
 			id := redisenterprise.NewRedisEnterpriseID("12345678-1234-1234-1234-123456789012", "test-rg", "test-cluster")
 
 			mockClient := &mockRedisEnterpriseClient{
@@ -98,10 +94,8 @@ func TestClusterStatePoller_InProgress(t *testing.T) {
 				id:     id,
 			}
 
-			// Act
 			result, err := pollerType.Poll(context.Background())
 
-			// Assert
 			if err != nil {
 				t.Fatalf("expected no error, got: %v", err)
 			}
@@ -119,7 +113,6 @@ func TestClusterStatePoller_InProgress(t *testing.T) {
 }
 
 func TestClusterStatePoller_UnexpectedState(t *testing.T) {
-	// Arrange
 	id := redisenterprise.NewRedisEnterpriseID("12345678-1234-1234-1234-123456789012", "test-rg", "test-cluster")
 
 	mockClient := &mockRedisEnterpriseClient{
@@ -138,10 +131,8 @@ func TestClusterStatePoller_UnexpectedState(t *testing.T) {
 		id:     id,
 	}
 
-	// Act
 	result, err := pollerType.Poll(context.Background())
 
-	// Assert
 	if err == nil {
 		t.Fatal("expected error for unexpected state, got nil")
 	}
@@ -155,7 +146,6 @@ func TestClusterStatePoller_UnexpectedState(t *testing.T) {
 }
 
 func TestClusterStatePoller_GetError(t *testing.T) {
-	// Arrange
 	id := redisenterprise.NewRedisEnterpriseID("12345678-1234-1234-1234-123456789012", "test-rg", "test-cluster")
 
 	mockClient := &mockRedisEnterpriseClient{
@@ -167,10 +157,8 @@ func TestClusterStatePoller_GetError(t *testing.T) {
 		id:     id,
 	}
 
-	// Act
 	result, err := pollerType.Poll(context.Background())
 
-	// Assert
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
