@@ -50,7 +50,6 @@ func TestClusterStatePoller_Success(t *testing.T) {
 	}
 
 	result, err := pollerType.Poll(context.Background())
-
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -95,7 +94,6 @@ func TestClusterStatePoller_InProgress(t *testing.T) {
 			}
 
 			result, err := pollerType.Poll(context.Background())
-
 			if err != nil {
 				t.Fatalf("expected no error, got: %v", err)
 			}
