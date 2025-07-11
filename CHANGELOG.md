@@ -1,6 +1,7 @@
 ## 4.37.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_kubernetes_cluster` - add support for the `Daily` value in the `maintenance_window_auto_upgrade.frequency` property [GH-30133]
 
 FEATURES:
 
