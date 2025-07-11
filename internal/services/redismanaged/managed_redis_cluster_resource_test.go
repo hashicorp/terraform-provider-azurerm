@@ -162,12 +162,23 @@ resource "azurerm_resource_group" "test" {
   location = "eastus"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
 resource "azurerm_managed_redis_cluster" "test" {
   name                = "acctest-mrc-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
   sku_name = "Balanced_B3"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 
   tags = {
     environment = "Production"

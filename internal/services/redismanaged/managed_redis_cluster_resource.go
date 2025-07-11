@@ -279,25 +279,12 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			if existing.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
-			}
-			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: properties was nil", *id)
-			}
-
 			parameters := redisenterprise.ClusterUpdate{
-				Properties: existing.Model.Properties,
+				Properties: &redisenterprise.ClusterProperties{},
 			}
 
 			if metadata.ResourceData.HasChange("customer_managed_key") {
-				encryption := expandManagedRedisClusterCustomerManagedKey(state.CustomerManagedKey)
-				parameters.Properties.Encryption = encryption
+				parameters.Properties.Encryption = expandManagedRedisClusterCustomerManagedKey(state.CustomerManagedKey)
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
@@ -366,7 +353,7 @@ func flattenManagedRedisClusterSku(input redisenterprise.Sku) *string {
 
 func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) *redisenterprise.ClusterPropertiesEncryption {
 	if len(input) == 0 {
-		return nil
+		return &redisenterprise.ClusterPropertiesEncryption{}
 	}
 
 	cmk := input[0]
