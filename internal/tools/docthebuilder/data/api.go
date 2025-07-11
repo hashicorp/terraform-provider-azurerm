@@ -22,7 +22,7 @@ type API struct {
 }
 
 func (a API) String() string {
-	return fmt.Sprintf("* `%s`: %s", a.Name, strings.Join(a.Versions, ", "))
+	return fmt.Sprintf("* `%s` - %s", a.Name, strings.Join(a.Versions, ", "))
 }
 
 func methodsToAPIs(methods []sdkMethod) []API {
