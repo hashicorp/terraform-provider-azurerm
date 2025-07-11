@@ -1095,7 +1095,7 @@ func storageProfileSourceImageReferenceSchema() *pluginsdk.Schema {
 	}
 }
 
-func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d *schema.ResourceData, isAdditional bool, index int, withVMAttributes bool) (*fleets.BaseVirtualMachineProfile, error) {
+func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d *schema.ResourceData) (*fleets.BaseVirtualMachineProfile, error) {
 	if len(inputList) == 0 {
 		return nil, nil
 	}
@@ -1116,7 +1116,7 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 		},
 		StorageProfile: &fleets.VirtualMachineScaleSetStorageProfile{
 			ImageReference: expandImageReference(input.SourceImageReference, input.SourceImageId),
-			OsDisk:         expandOSDiskModel(input, withVMAttributes, isAdditional),
+			OsDisk:         expandOSDiskModel(input),
 			DataDisks:      expandDataDiskModel(input.DataDisks),
 		},
 	}
@@ -1146,21 +1146,10 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 		}
 	}
 
-	if isAdditional {
-		if v := d.GetRawConfig().AsValueMap()["additional_location_profile"].AsValueSlice(); len(v) > index {
-			encryptionAtHostEnabledExist := v[index].AsValueMap()["virtual_machine_profile_override"].AsValueSlice()[0].AsValueMap()["encryption_at_host_enabled"]
-			if !encryptionAtHostEnabledExist.IsNull() {
-				output.SecurityProfile = &fleets.SecurityProfile{
-					EncryptionAtHost: pointer.To(input.EncryptionAtHostEnabled),
-				}
-			}
-		}
-	} else {
-		encryptionAtHostEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["encryption_at_host_enabled"]
-		if !encryptionAtHostEnabledExist.IsNull() {
-			output.SecurityProfile = &fleets.SecurityProfile{
-				EncryptionAtHost: pointer.To(input.EncryptionAtHostEnabled),
-			}
+	encryptionAtHostEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["encryption_at_host_enabled"]
+	if !encryptionAtHostEnabledExist.IsNull() {
+		output.SecurityProfile = &fleets.SecurityProfile{
+			EncryptionAtHost: pointer.To(input.EncryptionAtHostEnabled),
 		}
 	}
 
@@ -1925,21 +1914,13 @@ func expandImageReference(inputList []SourceImageReferenceModel, imageId string)
 	}
 }
 
-func expandOSDiskModel(input *VirtualMachineProfileModel, withVMAttributes bool, isAdditional bool) *fleets.VirtualMachineScaleSetOSDisk {
+func expandOSDiskModel(input *VirtualMachineProfileModel) *fleets.VirtualMachineScaleSetOSDisk {
 	osType := fleets.OperatingSystemTypesLinux
 	if len(input.OsProfile) > 0 && len(input.OsProfile[0].WindowsConfiguration) > 0 {
 		osType = fleets.OperatingSystemTypesWindows
 	}
 
 	if input == nil || len(input.OsDisk) == 0 {
-		// For base VMSS, when `os_disk` is not specified and `vm_attributes` is specified, `OsType` and `CreateOption` are required
-		if withVMAttributes && !isAdditional {
-			return &fleets.VirtualMachineScaleSetOSDisk{
-				OsType: pointer.To(osType),
-				// these have to be hard-coded so there's no point exposing them
-				CreateOption: fleets.DiskCreateOptionTypesFromImage,
-			}
-		}
 		return nil
 	}
 
