@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
@@ -44,13 +45,24 @@ type ResourceMetadata struct {
 	Features features.UserFeatures
 }
 
+type ProviderData struct {
+	Client         *clients.Client
+	ResourceFinder func(string) (schema.Resource, bool)
+}
+
 // Defaults configures the Resource Metadata for client access, Provider Features, and subscriptionId.
 func (r *ResourceMetadata) Defaults(req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
 	}
 
-	c, ok := req.ProviderData.(*clients.Client)
+	providerData, ok := req.ProviderData.(ProviderData)
+	if !ok {
+		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
+		return
+	}
+
+	c := providerData.Client
 	if !ok {
 		resp.Diagnostics.AddError("Client Provider Data Error", fmt.Sprintf("invalid provider data supplied, got %+v", req.ProviderData))
 		return
