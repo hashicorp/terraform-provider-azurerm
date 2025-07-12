@@ -71,6 +71,46 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"log_scrubbing": {
+				Type:     pluginsdk.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"scrubbing_rule": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 100,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+
+									"match_variable": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames),
+											string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress),
+											string(profiles.ScrubbingRuleEntryMatchVariableRequestUri),
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 
 			"resource_guid": {
@@ -86,7 +126,7 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 
 				if oSku != "" {
 					if oSku.(string) == string(profiles.SkuNamePremiumAzureFrontDoor) && nSku.(string) == string(profiles.SkuNameStandardAzureFrontDoor) {
-						return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", profiles.SkuNamePremiumAzureFrontDoor, profiles.SkuNameStandardAzureFrontDoor, nSku.(string))
+						return fmt.Errorf("downgrading `sku_name` from `%s` to `%s` is not supported", profiles.SkuNamePremiumAzureFrontDoor, profiles.SkuNameStandardAzureFrontDoor)
 					}
 				}
 
@@ -124,6 +164,11 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 			Name: pointer.To(profiles.SkuName(d.Get("sku_name").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("log_scrubbing"); ok {
+		logScrubbing := expandCdnFrontDoorProfileLogScrubbing(v.([]interface{}))
+		props.Properties.LogScrubbing = logScrubbing
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
@@ -186,6 +231,10 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 			// whilst this is returned in the API as FrontDoorID other resources refer to
 			// this as the Resource GUID, so we will for consistency
 			d.Set("resource_guid", pointer.From(props.FrontDoorId))
+
+			if err := d.Set("log_scrubbing", flattenCdnFrontDoorProfileLogScrubbing(props.LogScrubbing)); err != nil {
+				return fmt.Errorf("setting `log_scrubbing`: %+v", err)
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -213,6 +262,11 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if d.HasChange("response_timeout_seconds") {
 		props.Properties.OriginResponseTimeoutSeconds = pointer.To(int64(d.Get("response_timeout_seconds").(int)))
+	}
+
+	if d.HasChange("log_scrubbing") {
+		logScrubbing := expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing").([]interface{}))
+		props.Properties.LogScrubbing = logScrubbing
 	}
 
 	if d.HasChange("identity") {
@@ -248,4 +302,85 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) *profiles.ProfileLogScrubbing {
+	if len(input) == 0 {
+		return nil
+	}
+
+	inputRaw := input[0].(map[string]interface{})
+
+	policyEnabled := profiles.ProfileScrubbingStateDisabled
+	if enabled, exists := inputRaw["enabled"]; exists && enabled.(bool) {
+		policyEnabled = profiles.ProfileScrubbingStateEnabled
+	}
+
+	scrubbingRules := expandCdnFrontDoorProfileScrubbingRules(inputRaw["scrubbing_rule"].([]interface{}))
+
+	return &profiles.ProfileLogScrubbing{
+		State:          &policyEnabled,
+		ScrubbingRules: scrubbingRules,
+	}
+}
+
+func expandCdnFrontDoorProfileScrubbingRules(input []interface{}) *[]profiles.ProfileScrubbingRules {
+	if len(input) == 0 {
+		return nil
+	}
+
+	scrubbingRules := make([]profiles.ProfileScrubbingRules, 0)
+
+	for _, rule := range input {
+		v := rule.(map[string]interface{})
+		var item profiles.ProfileScrubbingRules
+
+		ruleEnabled := profiles.ScrubbingRuleEntryStateDisabled
+		if value := v["enabled"].(bool); value {
+			ruleEnabled = profiles.ScrubbingRuleEntryStateEnabled
+		}
+
+		item.State = &ruleEnabled
+		item.MatchVariable = profiles.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
+
+		// EqualsAny is the only valid SelectorMatchOperator for log scrubbing in the Profile API
+		// so we will hardcode it here to shorten that amount of input the end users need to enter
+		item.SelectorMatchOperator = "EqualsAny"
+
+		scrubbingRules = append(scrubbingRules, item)
+	}
+
+	return &scrubbingRules
+}
+
+func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["enabled"] = pointer.From(input.State) == profiles.ProfileScrubbingStateEnabled
+	result["scrubbing_rule"] = flattenCdnFrontDoorProfileScrubbingRules(input.ScrubbingRules)
+
+	return []interface{}{result}
+}
+
+func flattenCdnFrontDoorProfileScrubbingRules(scrubbingRules *[]profiles.ProfileScrubbingRules) interface{} {
+	result := make([]interface{}, 0)
+
+	if scrubbingRules == nil || len(*scrubbingRules) == 0 {
+		return result
+	}
+
+	for _, scrubbingRule := range *scrubbingRules {
+		item := map[string]interface{}{}
+		item["enabled"] = pointer.From(scrubbingRule.State) == profiles.ScrubbingRuleEntryStateEnabled
+		item["match_variable"] = scrubbingRule.MatchVariable
+
+		// Ignore the SelectorMatchOperator here since the only valid value is EqualsAny which is hardcoded
+		// in the expandCdnFrontDoorProfileScrubbingRules function
+		result = append(result, item)
+	}
+
+	return result
 }

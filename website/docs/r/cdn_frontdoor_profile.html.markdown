@@ -12,6 +12,8 @@ Manages a Front Door (standard/premium) Profile which contains a collection of e
 
 ## Example Usage
 
+### Basic
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -22,6 +24,56 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
   name                = "example-cdn-profile"
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "Standard_AzureFrontDoor"
+
+  tags = {
+    environment = "Production"
+  }
+}
+```
+
+### Complete
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  location            = azurerm_resource_group.example.location
+  name                = "example-identity"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name                     = "example-cdn-profile"
+  resource_group_name      = azurerm_resource_group.example.name
+  sku_name                 = "Premium_AzureFrontDoor"
+  response_timeout_seconds = 120
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestIPAddress"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestUri"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "QueryStringArgNames"
+    }
+  }
 
   tags = {
     environment = "Production"
@@ -43,6 +95,8 @@ The following arguments are supported:
 
 * `response_timeout_seconds` - (Optional) Specifies the maximum response timeout in seconds. Possible values are between `16` and `240` seconds (inclusive). Defaults to `120` seconds.
 
+* `log_scrubbing` - (Optional) A `log_scrubbing` block as defined below.
+
 * `tags` - (Optional) Specifies a mapping of tags to assign to the resource.
 
 
@@ -53,6 +107,24 @@ An `identity` block supports the following:
 * `type` - (Required) The type of managed identity to assign. Possible values are `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+---
+
+A `log_scrubbing` block supports the following:
+
+* `enabled` - (Optional) Is log scrubbing enabled? Defaults to `true`.
+
+* `scrubbing_rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
+
+---
+
+A `scrubbing_rule` block supports the following:
+
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
+
+* `enabled` - (Optional) Is this scrubbing rule enabled? Defaults to `true`.
+
+~> **Note:** The `operator` field is implicitly set to `EqualsAny`, as it is the sole supported value, and is therefore not exposed as a configurable option in the provider schema.
 
 ---
 

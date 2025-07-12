@@ -21,12 +21,26 @@ import (
 
 type CdnFrontDoorProfileResource struct{}
 
-func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
+func TestAccCdnFrontDoorProfile_standardSku_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicStandardSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorProfile_premiumSku_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicPremiumSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -82,7 +96,7 @@ func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) {
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicStandardSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -221,21 +235,95 @@ func TestAccCdnFrontDoorProfile_withSystemAndUserIdentity_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfile_skuDowngradeError(t *testing.T) {
+func TestAccCdnFrontDoorProfile_skuDowngrade_validation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicPremium(data),
+			Config: r.basicPremiumSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config:      r.basic(data),
-			ExpectError: regexp.MustCompile(`downgrading from the "Premium_AzureFrontDoor" sku to the "Standard_AzureFrontDoor" sku is not supported`),
+			Config:      r.basicStandardSku(data),
+			ExpectError: regexp.MustCompile("downgrading `sku_name` from `Premium_AzureFrontDoor` to `Standard_AzureFrontDoor` is not supported"),
 		},
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_basic_standardSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingStandardSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingPremiumSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicPremiumSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingPremiumSku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_disabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -256,7 +344,22 @@ func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(true), nil
 }
 
-func (r CdnFrontDoorProfileResource) basic(data acceptance.TestData) string {
+func (CdnFrontDoorProfileResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctestAFD-%d"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r CdnFrontDoorProfileResource) basicStandardSku(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -273,7 +376,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r CdnFrontDoorProfileResource) basicPremium(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) basicPremiumSku(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -296,11 +399,14 @@ func (r CdnFrontDoorProfileResource) basicWithSystemIdentity(data acceptance.Tes
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
+
   identity {
     type = "SystemAssigned"
   }
@@ -314,11 +420,14 @@ func (r CdnFrontDoorProfileResource) basicWithUserIdentity(data acceptance.TestD
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -333,11 +442,14 @@ func (r CdnFrontDoorProfileResource) basicWithSystemAndUserIdentity(data accepta
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
+
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -347,7 +459,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 func (r CdnFrontDoorProfileResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+	config := r.basicStandardSku(data)
 	return fmt.Sprintf(`
 %s
 
@@ -410,15 +522,19 @@ func (r CdnFrontDoorProfileResource) updateWithSystemIdentity(data acceptance.Te
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                     = "acctestprofile-%d"
   resource_group_name      = azurerm_resource_group.test.name
   sku_name                 = "Premium_AzureFrontDoor"
   response_timeout_seconds = 120
+
   identity {
     type = "SystemAssigned"
   }
+
   tags = {
     ENV = "Production"
   }
@@ -432,16 +548,20 @@ func (r CdnFrontDoorProfileResource) updateWithUserIdentity(data acceptance.Test
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                     = "acctestprofile-%d"
   resource_group_name      = azurerm_resource_group.test.name
   sku_name                 = "Premium_AzureFrontDoor"
   response_timeout_seconds = 120
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
   tags = {
     ENV = "Production"
   }
@@ -450,39 +570,124 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 func (r CdnFrontDoorProfileResource) updateWithSystemAndUserIdentity(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                     = "acctestprofile-%d"
   resource_group_name      = azurerm_resource_group.test.name
   sku_name                 = "Premium_AzureFrontDoor"
   response_timeout_seconds = 120
+
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
   tags = {
     ENV = "Production"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (CdnFrontDoorProfileResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) logScrubbingStandardSku(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-afdx-%d"
-  location = "%s"
+provider "azurerm" {
+  features {}
 }
 
-resource "azurerm_user_assigned_identity" "test" {
+%s
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  name                = "acctestAFD-%d"
+  sku_name            = "Standard_AzureFrontDoor"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      match_variable = "RequestIPAddress"
+      enabled        = true
+    }
+  }
+
+  tags = {
+    environment = "Production"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorProfileResource) logScrubbingPremiumSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestprofile-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      match_variable = "QueryStringArgNames"
+      enabled        = true
+    }
+
+    scrubbing_rule {
+      match_variable = "RequestIPAddress"
+      enabled        = true
+    }
+
+    scrubbing_rule {
+      match_variable = "RequestUri"
+      enabled        = false
+    }
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorProfileResource) logScrubbingDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestprofile-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Premium_AzureFrontDoor"
+
+  log_scrubbing {
+    enabled = false
+
+    scrubbing_rule {
+      match_variable = "RequestIPAddress"
+      enabled        = true
+    }
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
