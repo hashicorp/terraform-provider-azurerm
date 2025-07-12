@@ -604,7 +604,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
+  name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
 
@@ -633,7 +633,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
+  name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Premium_AzureFrontDoor"
 
@@ -672,7 +672,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
+  name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Premium_AzureFrontDoor"
 
