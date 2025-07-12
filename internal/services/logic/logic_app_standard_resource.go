@@ -4,6 +4,7 @@
 package logic
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math"
@@ -19,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/appserviceplans"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -323,7 +325,13 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 
-	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
+	servicePlanClient := meta.(*clients.Client).AppService.ServicePlanClient
+	isASE, err := logicAppIsOnASE(ctx, servicePlanClient, d)
+	if err != nil {
+		return err
+	}
+
+	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix, isASE)
 	if err != nil {
 		return err
 	}
@@ -447,7 +455,13 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
 
-	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
+	servicePlanClient := meta.(*clients.Client).AppService.ServicePlanClient
+	isASE, err := logicAppIsOnASE(ctx, servicePlanClient, d)
+	if err != nil {
+		return err
+	}
+
+	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix, isASE)
 	if err != nil {
 		return err
 	}
@@ -465,7 +479,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	siteConfig.AppSettings = &basicAppSettings
 
 	// WEBSITE_VNET_ROUTE_ALL is superseded by a setting in site_config that defaults to false from 2021-02-01
-	appSettings, err := expandLogicAppStandardSettings(d, *storageAccountDomainSuffix)
+	appSettings, err := expandLogicAppStandardSettings(d, *storageAccountDomainSuffix, isASE)
 	if err != nil {
 		return fmt.Errorf("expanding `app_settings`: %+v", err)
 	}
@@ -793,7 +807,7 @@ func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) ([]webapps.NameValuePair, error) {
+func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string, isASE bool) ([]webapps.NameValuePair, error) {
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
@@ -820,8 +834,13 @@ func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) 
 		{Name: &storagePropName, Value: &storageConnection},
 		{Name: &functionVersionPropName, Value: &functionVersion},
 		{Name: &appKindPropName, Value: &appKindPropValue},
-		{Name: &contentSharePropName, Value: &contentShare},
-		{Name: &contentFileConnStringPropName, Value: &storageConnection},
+	}
+
+	if !isASE {
+		basicSettings = append(basicSettings, []webapps.NameValuePair{
+			{Name: &contentSharePropName, Value: &contentShare},
+			{Name: &contentFileConnStringPropName, Value: &storageConnection},
+		}...)
 	}
 
 	useExtensionBundle := d.Get("use_extension_bundle").(bool)
@@ -1474,10 +1493,10 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (webapps.SiteCo
 	return siteConfig, nil
 }
 
-func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]string, error) {
+func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string, isASE bool) (map[string]string, error) {
 	output := make(map[string]string)
 	appSettings := expandAppSettings(d)
-	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
+	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix, isASE)
 	if err != nil {
 		return nil, err
 	}
@@ -1672,4 +1691,19 @@ func reconcilePNA(d *pluginsdk.ResourceData) string {
 	}
 
 	return pna
+}
+
+// For Logic App on ASE, the app settings differ from Logic App on ASP skus. Reference: https://github.com/hashicorp/terraform-provider-azurerm/issues/29872#issuecomment-2992814581
+func logicAppIsOnASE(ctx context.Context, client *appserviceplans.AppServicePlansClient, d *pluginsdk.ResourceData) (bool, error) {
+	servicePlanId, err := commonids.ParseAppServicePlanID(d.Get("app_service_plan_id").(string))
+	if err != nil {
+		return false, err
+	}
+
+	servicePlanResp, err := client.Get(ctx, *servicePlanId)
+	if err != nil {
+		return false, fmt.Errorf("retrieving Service Plan SKU %s: %+v", *servicePlanId, err)
+	}
+
+	return servicePlanResp.Model != nil && servicePlanResp.Model.Properties != nil && servicePlanResp.Model.Properties.HostingEnvironmentProfile != nil && servicePlanResp.Model.Properties.HostingEnvironmentProfile.Id != nil, nil
 }
