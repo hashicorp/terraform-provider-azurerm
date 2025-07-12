@@ -98,6 +98,8 @@ The following arguments are supported:
 
 * `dev_center_attached_network_name` - (Required) The name of the Dev Center Attached Network in parent Project of the Dev Center Project Pool.
 
+* `managed_virtual_network_regions` - (Optional) A list of the regions of the managed Virtual Network.
+
 * `stop_on_disconnect_grace_period_minutes` - (Optional) The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected. Possible values are between `60` and `480`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project Pool.
