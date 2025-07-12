@@ -74,6 +74,7 @@ page_title: "Azure Resource Manager: azurerm_service_resource"
 description: |-
   Manages a Service Resource.
 ---
+```
 
 # azurerm_service_resource
 
@@ -133,6 +134,7 @@ resource "azurerm_service_resource" "example" {
 
 ## Arguments Reference
 
+````markdown
 The following arguments are supported:
 
 * `name` - (Required) The name of the Service Resource. Changing this forces a new resource to be created.
@@ -183,7 +185,7 @@ Service Resources can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Service/resources/resource1
 ```
-```
+````
 
 ## Data Source Documentation Template
 
@@ -196,6 +198,7 @@ page_title: "Azure Resource Manager: azurerm_service_resource"
 description: |-
   Gets information about an existing Service Resource.
 ---
+```
 
 # Data Source: azurerm_service_resource
 
@@ -239,6 +242,7 @@ resource "azurerm_other_resource" "example" {
 
 The following arguments are supported:
 
+```markdown
 * `name` - (Required) The name of this Service Resource.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Service Resource exists.
@@ -458,7 +462,7 @@ resource "azurerm_other_resource" "example" {
 ### Import Documentation
 
 #### Resource Import Format
-```markdown
+````markdown
 ## Import
 
 Service Resources can be imported using the `resource id`, e.g.
@@ -466,7 +470,7 @@ Service Resources can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Service/resources/resource1
 ```
-```
+````
 
 #### Data Source Import (Not Applicable)
 Data sources do not support import operations, so this section should be omitted from data source documentation.
@@ -632,13 +636,13 @@ Example of proper field documentation:
 ```markdown
 * `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
 
-* `enabled` - (Optional) Whether this scrubbing rule is enabled. Defaults to `true`.
+* `enabled` - (Optional) Is this scrubbing rule enabled? Defaults to `true`.
 
 * `operator` - (Optional) The operator to use for matching. Currently only `EqualsAny` is supported. Defaults to `EqualsAny`.
 
 * `selector` - (Optional) The name of the query string argument to be scrubbed.
 
-~> **Note:** The `selector` field is only used when `match_variable` is set to `QueryStringArgNames`. It is ignored when `match_variable` is `RequestIPAddress` or `RequestUri`.
+~> **Note:** The `selector` field is required when the `match_variable` is set to `QueryStringArgNames` and cannot be set when the `match_variable` is `RequestIPAddress` or `RequestUri`.
 ```
 
 #### Azure-Specific Documentation Standards

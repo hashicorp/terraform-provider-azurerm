@@ -759,7 +759,20 @@ func (r ExistingResource) Read() sdk.ResourceFunc {
 
 #### Pointer Package Usage
 
-**Use the `pointer` package instead of the `utils` package for pointer operations where applicable:**
+**Use the `pointer` package instead of the `utils` package for pointer operations where applicable:**  
+
+##### Migration Criteria  
+- **New Code**: Always use the `pointer` package for new implementations.  
+- **Existing Code**: Migrate from `utils` to `pointer` if:  
+  - The code is being actively modified or refactored.  
+  - The migration does not introduce significant risk or require extensive changes.  
+- **Legacy Compatibility**: Retain `utils` usage if:  
+  - The code is stable and not undergoing changes.  
+  - The migration would disrupt backward compatibility or require substantial effort.  
+
+Examples:  
+- **Migrate**: Updating a resource implementation to use the `pointer` package for optional Azure API parameters.  
+- **Do Not Migrate**: Stable legacy code that uses `utils` for pointer operations and is not being actively maintained. 
 
 ```go
 package servicename

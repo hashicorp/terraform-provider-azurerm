@@ -64,8 +64,10 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
 ## Constraints
 
 * **IMPORTANT**: Use the following git commands to get the diff for code review (try in order):
-  1. `git --no-pager diff --no-prefix --unified=3` - for unstaged local changes
-  2. `git --no-pager diff --no-prefix --unified=3 --staged` - for staged changes if no unstaged changes found
+  1. `git --no-pager diff --no-prefix --unified=3` - for unstaged local changes (works on Unix-like systems and Windows PowerShell/Command Prompt if Git is installed)  
+     - Windows PowerShell example: `git --no-pager diff --no-prefix --unified=3`  
+  2. `git --no-pager diff --no-prefix --unified=3 --staged` - for staged changes if no unstaged changes found  
+     - Windows PowerShell example: `git --no-pager diff --no-prefix --unified=3 --staged`
   3. **If neither command shows any changes, abandon the code review** - this prompt is specifically for reviewing local changes only. When abandoning, display: "☠️ **Argh! There be no changes here!** ☠️"
   4. **Usage Note**: Use the unstaged command during active development to review your current work, and the staged command before committing to review what will be included in your commit
 * In the provided git diff, if the line start with `+` or `-`, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with `@@`, it means that the line is a hunk header.

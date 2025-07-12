@@ -30,6 +30,7 @@ website/node_modules
 
 website/vendor
 
+# VS Code: ignore personal settings but keep shared project configuration (GitHub Copilot instructions)
 .vscode/*
 !.vscode/settings.json
 
@@ -57,9 +58,3 @@ tf.zip
 
 # do not upload .local folder
 .local
-
-# do not upload GitHub Copilot specific folders and copilot instructions file
-.github/prompts/*
-!.github/prompts/*.prompt.md
-!.github/instructions/
-!.github/prompts/

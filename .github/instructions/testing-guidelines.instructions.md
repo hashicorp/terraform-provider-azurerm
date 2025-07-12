@@ -525,13 +525,14 @@ func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) {
 
 ### Test Organization and Placement Rules
 
-#### Acceptance Test File Structure
-- **Test function placement**: All test functions must be placed before the `Exists` function in the test file
-- **Helper function placement**: Test configuration helper functions should be placed after the `Exists` function
-- **No duplicate functions**: Remove any duplicate or old test functions to maintain clean file structure
-- **Consistent ordering**: Place tests in logical order (basic, update, requires import, other scenarios)
+#### Acceptance Test File Structure  
+- **Test function placement**: All test functions must be placed before the `Exists` function in the test file. This ensures a consistent structure across test files, making it easier to locate and understand test cases. Additionally, placing test functions first improves readability by prioritizing the main test logic over helper functions.  
+- **Helper function placement**: Test configuration helper functions should be placed after the `Exists` function to separate them from the main test logic and maintain a clean structure.  
+- **No duplicate functions**: Remove any duplicate or old test functions to maintain clean file structure.  
+- **Consistent ordering**: Place tests in logical order (basic, update, requires import, other scenarios).  
+- **Exceptions for complex scenarios**: In cases where helper functions or dependencies are required earlier in the file for complex test scenarios, it is acceptable to deviate from this rule. Developers should document the rationale for such deviations within the code to ensure clarity for future maintainers.  
 
-Example of proper test file structure:
+#### Example of Proper Test File Structure:
 ```go
 package cdn_test
 

@@ -174,4 +174,4 @@ For detailed implementation patterns and comprehensive standards, see:
 - [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) - Detailed implementation patterns
 - [`coding-standards.instructions.md`](./coding-standards.instructions.md) - Comprehensive coding standards
 - [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md) - Testing guidelines
-- [`terraform-provider-guidelines.instructions.md`](./terraform-provider-guidelines.instructions.md) - Azure-specific guidelines
+- [`provider-guidelines.instructions.md`](./provider-guidelines.instructions.md) - Azure-specific guidelines
