@@ -1,3 +1,15 @@
+## 4.37.0 (Unreleased)
+
+ENHANCEMENTS:
+* `azurerm_eventhub` - add  support for the `retention_description` block [GH-29427]
+* `azurerm_kubernetes_cluster` - add support for the `Daily` value in the `maintenance_window_auto_upgrade.frequency` property [GH-30133]
+* `azurerm_storage_account` - add support for the `provisioned_billing_model_version` property [GH-29043]
+
+FEATURES:
+
+BUG FIXES:
+* `azurerm_virtual_network` - suppress a perpetual diff on `address_space` when using `ip_address_pool` [GH-30073]
+
 ## 4.36.0 (July 10, 2025)
 
 FEATURES:
