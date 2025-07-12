@@ -9,22 +9,25 @@ import (
 	"math"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourcePrivateDnsSrvRecordCreateUpdate,
 		Read:   resourcePrivateDnsSrvRecordRead,
 		Update: resourcePrivateDnsSrvRecordCreateUpdate,
@@ -56,12 +59,7 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 				ValidateFunc: validate.LowerCasedString,
 			},
 
-			// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
-
-			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"zone_name": {
+			"private_zone_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -114,6 +112,42 @@ func resourcePrivateDnsSrvRecord() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+	if !features.FivePointOh() {
+		resource.Schema["private_zone_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"zone_name", "resource_group_name"},
+			AtLeastOneOf:  []string{"zone_name", "resource_group_name", "private_zone_id"},
+		}
+		// TODO: in 4.0 make `name` case sensitive and replace `resource_group_name` and `zone_name` with `private_zone_id`
+		// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
+		resource.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			Computed:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     resourcegroups.ValidateName,
+			Deprecated:       "The `resource_group_name` field is deprecated in favor of `private_zone_id`. This will be removed in version 5.0.",
+			ConflictsWith:    []string{"private_zone_id"},
+			AtLeastOneOf:     []string{"private_zone_id", "zone_name", "resource_group_name"},
+		}
+		resource.Schema["zone_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			Deprecated:    "The `zone_name` field is deprecated in favor of `private_zone_id`. This will be removed in version 5.0.",
+			ConflictsWith: []string{"private_zone_id"},
+			AtLeastOneOf:  []string{"private_zone_id", "zone_name", "resource_group_name"},
+		}
+	}
+
+	return resource
 }
 
 func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -122,7 +156,20 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := recordsets.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), recordsets.RecordTypeSRV, d.Get("name").(string))
+	rawDnsZoneId := d.Get("private_zone_id").(string)
+	if !features.FivePointOh() && rawDnsZoneId == "" {
+		dnsZoneId := &recordsets.PrivateDnsZoneId{
+			ResourceGroupName:  d.Get("resource_group_name").(string),
+			PrivateDnsZoneName: d.Get("zone_name").(string),
+			SubscriptionId:     subscriptionId,
+		}
+		rawDnsZoneId = dnsZoneId.ID()
+	}
+	dnsZoneId, err := virtualnetworklinks.ParsePrivateDnsZoneID(rawDnsZoneId)
+	if err != nil {
+		return fmt.Errorf("parsing private DNS zone ID %q: %+v", rawDnsZoneId, err)
+	}
+	id := recordsets.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, recordsets.RecordTypeSRV, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
 		if err != nil {
@@ -137,17 +184,18 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	parameters := recordsets.RecordSet{
-		Name: utils.String(id.RelativeRecordSetName),
+		Name: pointer.To(id.RelativeRecordSetName),
+		Type: pointer.To(string(recordsets.RecordTypeSRV)),
 		Properties: &recordsets.RecordSetProperties{
 			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
-			Ttl:        utils.Int64(int64(d.Get("ttl").(int))),
+			Ttl:        pointer.To(int64(d.Get("ttl").(int))),
 			SrvRecords: expandAzureRmPrivateDnsSrvRecords(d),
 		},
 	}
 
 	options := recordsets.CreateOrUpdateOperationOptions{
-		IfMatch:     utils.String(""),
-		IfNoneMatch: utils.String(""),
+		IfMatch:     pointer.To(""),
+		IfNoneMatch: pointer.To(""),
 	}
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, options); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
@@ -177,8 +225,16 @@ func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", id.RelativeRecordSetName)
-	d.Set("zone_name", id.PrivateDnsZoneName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+	dnsZoneId := &recordsets.PrivateDnsZoneId{
+		ResourceGroupName:  id.ResourceGroupName,
+		PrivateDnsZoneName: id.PrivateDnsZoneName,
+		SubscriptionId:     meta.(*clients.Client).Account.SubscriptionId,
+	}
+	d.Set("private_zone_id", dnsZoneId.ID())
+	if !features.FivePointOh() {
+		d.Set("zone_name", id.PrivateDnsZoneName)
+		d.Set("resource_group_name", id.ResourceGroupName)
+	}
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
@@ -205,7 +261,7 @@ func resourcePrivateDnsSrvRecordDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	options := recordsets.DeleteOperationOptions{IfMatch: utils.String("")}
+	options := recordsets.DeleteOperationOptions{IfMatch: pointer.To("")}
 
 	if _, err = dnsClient.Delete(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
@@ -246,10 +302,10 @@ func expandAzureRmPrivateDnsSrvRecords(d *pluginsdk.ResourceData) *[]recordsets.
 		record := v.(map[string]interface{})
 
 		srvRecord := recordsets.SrvRecord{
-			Priority: utils.Int64(int64(record["priority"].(int))),
-			Weight:   utils.Int64(int64(record["weight"].(int))),
-			Port:     utils.Int64(int64(record["port"].(int))),
-			Target:   utils.String(record["target"].(string)),
+			Priority: pointer.To(int64(record["priority"].(int))),
+			Weight:   pointer.To(int64(record["weight"].(int))),
+			Port:     pointer.To(int64(record["port"].(int))),
+			Target:   pointer.To(record["target"].(string)),
 		}
 
 		records[i] = srvRecord

@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateDnsMxRecordResource struct{}
@@ -115,11 +116,12 @@ func (t PrivateDnsMxRecordResource) Exists(ctx context.Context, clients *clients
 		return nil, fmt.Errorf("reading Private DNS MX Record (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PrivateDnsMxRecordResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -150,6 +152,37 @@ resource "azurerm_private_dns_mx_record" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "testzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_mx_record" "test" {
+  name            = "testaccmx%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  record {
+    preference = 10
+    exchange   = "mx1.contoso.com"
+  }
+
+  record {
+    preference = 10
+    exchange   = "mx2.contoso.com"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateDnsMxRecordResource) emptyName(data acceptance.TestData) string {
@@ -169,9 +202,8 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     preference = 10
     exchange   = "mx1.contoso.com"
@@ -190,10 +222,9 @@ func (r PrivateDnsMxRecordResource) requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_private_dns_mx_record" "import" {
-  name                = azurerm_private_dns_mx_record.test.name
-  resource_group_name = azurerm_private_dns_mx_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_mx_record.test.zone_name
-  ttl                 = 300
+  name            = azurerm_private_dns_mx_record.test.name
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     preference = 10
     exchange   = "mx1.contoso.com"
@@ -223,10 +254,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
-  name                = "testaccmx%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "testaccmx%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     preference = 10
     exchange   = "mx1.contoso.com"
@@ -260,10 +290,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
-  name                = "testaccmx%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "testaccmx%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     preference = 10
     exchange   = "mx1.contoso.com"
@@ -298,10 +327,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_mx_record" "test" {
-  name                = "testaccmx%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "testaccmx%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     preference = 10
     exchange   = "mx1.contoso.com"

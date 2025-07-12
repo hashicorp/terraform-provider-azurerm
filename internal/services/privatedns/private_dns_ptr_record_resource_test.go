@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateDnsPtrRecordResource struct{}
@@ -101,11 +102,12 @@ func (t PrivateDnsPtrRecordResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("reading Private DNS PTR Record (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PrivateDnsPtrRecordResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -128,6 +130,29 @@ resource "azurerm_private_dns_ptr_record" "test" {
   records             = ["test.contoso.com", "test2.contoso.com"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "%d.0.10.in-addr.arpa"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_ptr_record" "test" {
+  name            = "%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["test.contoso.com", "test2.contoso.com"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PrivateDnsPtrRecordResource) requiresImport(data acceptance.TestData) string {
@@ -135,11 +160,10 @@ func (r PrivateDnsPtrRecordResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_private_dns_ptr_record" "import" {
-  name                = azurerm_private_dns_ptr_record.test.name
-  resource_group_name = azurerm_private_dns_ptr_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_ptr_record.test.zone_name
-  ttl                 = 300
-  records             = ["test.contoso.com", "test2.contoso.com"]
+  name            = azurerm_private_dns_ptr_record.test.name
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["test.contoso.com", "test2.contoso.com"]
 }
 `, r.basic(data))
 }
@@ -161,11 +185,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_ptr_record" "test" {
-  name                = "%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  records             = ["test.contoso.com", "test2.contoso.com", "test3.contoso.com"]
+  name            = "%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["test.contoso.com", "test2.contoso.com", "test3.contoso.com"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -187,11 +210,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_ptr_record" "test" {
-  name                = "%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  records             = ["test.contoso.com", "test2.contoso.com"]
+  name            = "%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["test.contoso.com", "test2.contoso.com"]
 
   tags = {
     environment = "Production"
@@ -218,11 +240,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_ptr_record" "test" {
-  name                = "%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
-  records             = ["test.contoso.com", "test2.contoso.com"]
+  name            = "%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  records         = ["test.contoso.com", "test2.contoso.com"]
 
   tags = {
     environment = "staging"

@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateDnsTxtRecordResource struct{}
@@ -112,11 +113,12 @@ func (t PrivateDnsTxtRecordResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("reading Private DNS TXT Record (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PrivateDnsTxtRecordResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -146,6 +148,36 @@ resource "azurerm_private_dns_txt_record" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-prvdns-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "testzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_txt_record" "test" {
+  name            = "testacctxt%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+
+  record {
+    value = "Quick brown fox"
+  }
+
+  record {
+    value = "A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......A long text......"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PrivateDnsTxtRecordResource) requiresImport(data acceptance.TestData) string {
@@ -153,10 +185,9 @@ func (r PrivateDnsTxtRecordResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_private_dns_txt_record" "import" {
-  name                = azurerm_private_dns_txt_record.test.name
-  resource_group_name = azurerm_private_dns_txt_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_txt_record.test.zone_name
-  ttl                 = 300
+  name            = azurerm_private_dns_txt_record.test.name
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
 
   record {
     value = "Quick brown fox"
@@ -186,10 +217,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_txt_record" "test" {
-  name                = "testacctxt%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "testacctxt%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
 
   record {
     value = "Quick brown fox"
@@ -223,10 +253,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_txt_record" "test" {
-  name                = "test%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "test%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
 
   record {
     value = "Quick brown fox"
@@ -261,10 +290,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_txt_record" "test" {
-  name                = "test%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "test%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
 
   record {
     value = "Quick brown fox"
