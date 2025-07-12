@@ -4,9 +4,7 @@
 package hdinsight
 
 import (
-	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"log"
 	"time"
 
@@ -22,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: this isn't a recommended way of building resources in Terraform
@@ -146,33 +143,7 @@ func resourceHDInsightHBaseCluster() *pluginsdk.Resource {
 
 			"extension": SchemaHDInsightsExtension(),
 		},
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			if features.FivePointOh() {
-				return nil
-			}
-			for _, storageAccount := range diff.Get("storage_account").([]interface{}) {
-				account := storageAccount.(map[string]interface{})
-				if (account["storage_account_id"].(string) == "" && account["storage_resource_id"].(string) == "") || (account["storage_account_id"].(string) != "" && account["storage_resource_id"].(string) != "") {
-					return fmt.Errorf("exactly one of `storage_account_id` or `storage_resource_id` must be specified in `storage_account` block")
-				}
-			}
-			for _, storageAccount := range diff.Get("storage_account_gen2").([]interface{}) {
-				account := storageAccount.(map[string]interface{})
-				if (account["storage_account_id"].(string) == "" && account["storage_resource_id"].(string) == "") || (account["storage_account_id"].(string) != "" && account["storage_resource_id"].(string) != "") {
-					return fmt.Errorf("exactly one of `storage_account_id` or `storage_resource_id` must be specified in `storage_account` block")
-				}
-			}
-
-			// Gen2 Only has managed_identity_resource_id property
-			for _, storageAccount := range diff.Get("storage_account_gen2").([]interface{}) {
-				account := storageAccount.(map[string]interface{})
-				if (account["user_assigned_identity_id"].(string) == "" && account["managed_identity_resource_id"].(string) == "") || (account["user_assigned_identity_id"].(string) != "" && account["managed_identity_resource_id"].(string) != "") {
-					return fmt.Errorf("exactly one of `user_assigned_identity_id` or `managed_identity_resource_id` must be specified in `storage_account` block")
-				}
-			}
-
-			return nil
-		}),
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(GetStorageAccountDiffShim()),
 	}
 }
 
@@ -241,12 +212,12 @@ func resourceHDInsightHBaseClusterCreate(d *pluginsdk.ResourceData, meta interfa
 
 	var configurationsRaw interface{} = configurations
 	params := clusters.ClusterCreateParametersExtended{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &clusters.ClusterCreateProperties{
 			Tier:                      pointer.To(tier),
 			OsType:                    pointer.To(clusters.OSTypeLinux),
-			ClusterVersion:            utils.String(clusterVersion),
-			MinSupportedTlsVersion:    utils.String(tls),
+			ClusterVersion:            pointer.To(clusterVersion),
+			MinSupportedTlsVersion:    pointer.To(tls),
 			NetworkProperties:         networkProperties,
 			PrivateLinkConfigurations: privateLinkConfigurations,
 			ClusterDefinition: &clusters.ClusterDefinition{

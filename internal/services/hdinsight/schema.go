@@ -4,8 +4,8 @@
 package hdinsight
 
 import (
+	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"net/url"
 	"regexp"
 	"strings"
@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -977,6 +978,37 @@ func SchemaHDInsightsGen2StorageAccounts() *pluginsdk.Schema {
 	}
 
 	return schema
+}
+
+func GetStorageAccountDiffShim() schema.CustomizeDiffFunc {
+	return pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+		if features.FivePointOh() {
+			return nil
+		}
+		for _, v := range diff.GetRawConfig().AsValueMap()["storage_account"].AsValueSlice() {
+			values := v.AsValueMap()
+			sai := values["storage_account_id"]
+			sri := values["storage_resource_id"]
+			if !sai.IsNull() && !sri.IsNull() {
+				return fmt.Errorf("at most one of `storage_account_id` or `storage_resource_id` may be specified in `storage_account` block")
+			}
+		}
+		for _, v := range diff.GetRawConfig().AsValueMap()["storage_account_gen2"].AsValueSlice() {
+			values := v.AsValueMap()
+			sai := values["storage_account_id"]
+			sri := values["storage_resource_id"]
+			if !sai.IsNull() && !sri.IsNull() {
+				return fmt.Errorf("at most one of `storage_account_id` or `storage_resource_id` may be specified in `storage_account_gen2` block")
+			}
+			uaii := values["user_assigned_identity_id"]
+			miri := values["managed_identity_resource_id"]
+			if (uaii.IsNull() && miri.IsNull()) || (!uaii.IsNull() && !miri.IsNull()) {
+				return fmt.Errorf("exactly one of `user_assigned_identity_id` or `managed_identity_resource_id` must be specified in `storage_account_gen2` block")
+			}
+		}
+
+		return nil
+	})
 }
 
 func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
