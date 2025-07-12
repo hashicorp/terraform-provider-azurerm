@@ -219,7 +219,7 @@ A `storage_account` block supports the following:
 
 -> **Note:** When the `azurerm_storage_container` resource is created with `storage_account_name`, this can be obtained from the `id` of the `azurerm_storage_container` resource. When the `azurerm_storage_container` resource is created with `storage_account_id`, please use `azurerm_storage_containers` data source to get the `data_plane_id` of the `azurerm_storage_container` resource for this field.
 
-* `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
 ---
 
@@ -229,11 +229,11 @@ A `storage_account_gen2` block supports the following:
 
 -> **Note:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
-* `storage_resource_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
 
 * `filesystem_id` - (Required) The ID of the Gen2 Filesystem. Changing this forces a new resource to be created.
 
-* `managed_identity_resource_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
+* `user_assigned_identity_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
 
 -> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 

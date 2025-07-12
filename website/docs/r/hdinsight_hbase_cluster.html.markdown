@@ -215,7 +215,7 @@ A `storage_account` block supports the following:
 
 -> **Note:** When the `azurerm_storage_container` resource is created with `storage_account_name`, this can be obtained from the `id` of the `azurerm_storage_container` resource. When the `azurerm_storage_container` resource is created with `storage_account_id`, please use `azurerm_storage_containers` data source to get the `data_plane_id` of the `azurerm_storage_container` resource for this field.
 
-* `storage_resource_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
 ---
 
@@ -225,11 +225,11 @@ A `storage_account_gen2` block supports the following:
 
 -> **Note:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
-* `storage_resource_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) The ID of the Storage Account. Changing this forces a new resource to be created.
 
 * `filesystem_id` - (Required) The ID of the Gen2 Filesystem. Changing this forces a new resource to be created.
 
-* `managed_identity_resource_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
+* `user_assigned_identity_id` - (Optional) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
 
 -> **Note:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 
@@ -241,17 +241,17 @@ A `private_link_configuration` block supports the following:
 
 * `group_id` - (Required) The ID of the private link service group.
 
-* `private_link_service_connection` - (Required) A `private_link_service_connection` block as defined below.
+* `ip_configuration` - (Required) An `ip_configuration` block as defined below.
 
 ---
 
-A `private_link_service_connection` block supports the following:
+An `ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the private link service connection.
 
 * `primary` - (Optional) Indicates whether this IP configuration is primary.
 
-* `private_ip_allocation_method` - (Optional) The private IP allocation method. The only possible value now is `Dynamic`.
+* `private_ip_allocation_method` - (Optional) The private IP allocation method. The only Possible values are `dynamic` and `static`.
 
 * `private_ip_address` - (Optional) The private IP address of the IP configuration.
 
