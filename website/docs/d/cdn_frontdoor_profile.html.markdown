@@ -60,7 +60,7 @@ An `identity` block exports the following:
 
 A `log_scrubbing` block exports the following:
 
-* `enabled` - Whether log scrubbing is enabled.
+* `enabled` - Is log scrubbing enabled?
 
 * `scrubbing_rule` - One or more `scrubbing_rule` blocks as defined below.
 
@@ -70,11 +70,7 @@ A `scrubbing_rule` block exports the following:
 
 * `match_variable` - The variable that is scrubbed from the logs.
 
-* `enabled` - Whether this scrubbing rule is enabled.
-
-* `operator` - The operator used for matching.
-
-* `selector` - The name of the query string argument that is scrubbed.
+* `enabled` - Is this scrubbing rule enabled?
 
 ## Attributes Reference
 

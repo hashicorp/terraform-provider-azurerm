@@ -62,19 +62,16 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
     scrubbing_rule {
       enabled        = true
       match_variable = "RequestIPAddress"
-      operator       = "EqualsAny"
     }
 
     scrubbing_rule {
       enabled        = true
       match_variable = "RequestUri"
-      operator       = "EqualsAny"
     }
 
     scrubbing_rule {
       enabled        = true
       match_variable = "QueryStringArgNames"
-      selector       = "sensitive_param"
     }
   }
 
@@ -127,13 +124,7 @@ A `scrubbing_rule` block supports the following:
 
 * `enabled` - (Optional) Is this scrubbing rule enabled? Defaults to `true`.
 
-* `operator` - (Optional) The operator to use for matching. Possible values are `EqualsAny`.
-
-~> **Note:** The `operator` field is required when the `match_variable` is set to `RequestIPAddress` or `RequestUri` and cannot be set when the `match_variable` is set to `QueryStringArgNames`.
-
-* `selector` - (Optional) The name of the query string argument to be scrubbed.
-
-~> **Note:** The `selector` field is required when the `match_variable` is set to `QueryStringArgNames` and cannot be set when the `match_variable` is set to `RequestIPAddress` or `RequestUri`.
+~> **Note:** The `operator` field is implicitly set to `EqualsAny`, as it is the sole supported value, and is therefore not exposed as a configurable option in the provider schema.
 
 ---
 

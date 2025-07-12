@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -105,20 +104,6 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 											string(profiles.ScrubbingRuleEntryMatchVariableRequestUri),
 										}, false),
 									},
-
-									"operator": {
-										Type:     pluginsdk.TypeString,
-										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(profiles.ScrubbingRuleEntryMatchOperatorEqualsAny),
-										}, false),
-									},
-
-									"selector": {
-										Type:         pluginsdk.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
 								},
 							},
 						},
@@ -147,71 +132,6 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 
 				return nil
 			}),
-			// Validate log scrubbing configuration
-			func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-				if logScrubbingRaw, ok := diff.GetOk("log_scrubbing"); ok {
-					logScrubbing := logScrubbingRaw.([]interface{})
-					if len(logScrubbing) > 0 && logScrubbing[0] != nil {
-						logScrubbingConfig := logScrubbing[0].(map[string]interface{})
-
-						if scrubbingRulesRaw, exists := logScrubbingConfig["scrubbing_rule"]; exists && scrubbingRulesRaw != nil {
-							scrubbingRules := scrubbingRulesRaw.([]interface{})
-
-							for i, ruleRaw := range scrubbingRules {
-								if ruleRaw == nil {
-									continue
-								}
-
-								rule := ruleRaw.(map[string]interface{})
-
-								// Get match_variable value, handling nil case
-								var matchVariable string
-								if matchVariableRaw, exists := rule["match_variable"]; exists && matchVariableRaw != nil {
-									matchVariable = matchVariableRaw.(string)
-								}
-
-								// Get operator value, handling nil case
-								var operator string
-								if operatorRaw, exists := rule["operator"]; exists && operatorRaw != nil {
-									operator = operatorRaw.(string)
-								}
-
-								// Get selector value, handling nil case
-								var selector string
-								if selectorRaw, exists := rule["selector"]; exists && selectorRaw != nil {
-									selector = selectorRaw.(string)
-								}
-
-								// Validate selector requirements based on match_variable and operator
-								if matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames) {
-									// For QueryStringArgNames, selector is required
-									if selector == "" {
-										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` is required when the `match_variable` is `%s`", i, matchVariable)
-									}
-									// For QueryStringArgNames, operator cannot be set
-									if operator != "" {
-										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `operator` cannot be set when the `match_variable` is `%s`", i, matchVariable)
-									}
-								} else if matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress) ||
-									matchVariable == string(profiles.ScrubbingRuleEntryMatchVariableRequestUri) {
-									// For RequestIPAddress and RequestUri, operator is required
-									if operator == "" {
-										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `operator` is required when the `match_variable` is `%s`", i, matchVariable)
-									}
-									// For RequestIPAddress and RequestUri, selector cannot be set
-									if selector != "" {
-										return fmt.Errorf("log_scrubbing.0.scrubbing_rule.%d: `selector` cannot be set when the `match_variable` is `%s`", i, matchVariable)
-									}
-								}
-							}
-						}
-					} else {
-						return fmt.Errorf("empty `log_scrubbing` block: either remove it or specify one or more valid configuration fields")
-					}
-				}
-
-				return nil
-			},
 		),
 	}
 }
@@ -392,7 +312,7 @@ func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) *profiles.Profil
 	inputRaw := input[0].(map[string]interface{})
 
 	policyEnabled := profiles.ProfileScrubbingStateDisabled
-	if inputRaw["enabled"].(bool) {
+	if enabled, exists := inputRaw["enabled"]; exists && enabled.(bool) {
 		policyEnabled = profiles.ProfileScrubbingStateEnabled
 	}
 
@@ -415,21 +335,17 @@ func expandCdnFrontDoorProfileScrubbingRules(input []interface{}) *[]profiles.Pr
 		v := rule.(map[string]interface{})
 		var item profiles.ProfileScrubbingRules
 
-		enabled := profiles.ScrubbingRuleEntryStateDisabled
+		ruleEnabled := profiles.ScrubbingRuleEntryStateDisabled
 		if value := v["enabled"].(bool); value {
-			enabled = profiles.ScrubbingRuleEntryStateEnabled
+			ruleEnabled = profiles.ScrubbingRuleEntryStateEnabled
 		}
 
-		item.State = &enabled
+		item.State = &ruleEnabled
 		item.MatchVariable = profiles.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
 
-		if operator, ok := v["operator"]; ok && operator.(string) != "" {
-			item.SelectorMatchOperator = profiles.ScrubbingRuleEntryMatchOperator(operator.(string))
-		}
-
-		if selector, ok := v["selector"]; ok && selector.(string) != "" {
-			item.Selector = pointer.To(selector.(string))
-		}
+		// EqualsAny is the only valid SelectorMatchOperator for log scrubbing in the Profile API
+		// so we will hardcode it here to shorten that amount of input the end users need to enter
+		item.SelectorMatchOperator = "EqualsAny"
 
 		scrubbingRules = append(scrubbingRules, item)
 	}
@@ -461,14 +377,8 @@ func flattenCdnFrontDoorProfileScrubbingRules(scrubbingRules *[]profiles.Profile
 		item["enabled"] = pointer.From(scrubbingRule.State) == profiles.ScrubbingRuleEntryStateEnabled
 		item["match_variable"] = scrubbingRule.MatchVariable
 
-		if scrubbingRule.SelectorMatchOperator != "" {
-			item["operator"] = scrubbingRule.SelectorMatchOperator
-		}
-
-		if scrubbingRule.Selector != nil {
-			item["selector"] = pointer.From(scrubbingRule.Selector)
-		}
-
+		// Ignore the SelectorMatchOperator here since the only valid value is EqualsAny which is hardcoded
+		// in the expandCdnFrontDoorProfileScrubbingRules function
 		result = append(result, item)
 	}
 

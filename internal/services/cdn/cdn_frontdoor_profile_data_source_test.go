@@ -72,23 +72,18 @@ func TestAccCdnFrontDoorProfileDataSource_basicWithSystemAndUserIdentity(t *test
 	})
 }
 
-func TestAccCdnFrontDoorProfileDataSource_withLogScrubbing(t *testing.T) {
+func TestAccCdnFrontDoorProfileDataSource_logScrubbing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_profile", "test")
 	d := CdnFrontDoorProfileDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: d.withLogScrubbing(data),
+			Config: d.basicWithLogScrubbing(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("sku_name").HasValue("Premium_AzureFrontDoor"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Standard_AzureFrontDoor"),
 				check.That(data.ResourceName).Key("log_scrubbing.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("RequestIPAddress"),
-				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.operator").HasValue("EqualsAny"),
 				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.1.match_variable").HasValue("QueryStringArgNames"),
-				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.1.selector").HasValue("search_query"),
-				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.1.operator").HasValue("EqualsAny"),
-				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.1.enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("RequestIPAddress"),
 			),
 		},
 	})
@@ -135,13 +130,12 @@ data "azurerm_cdn_frontdoor_profile" "test" {
 `, CdnFrontDoorProfileResource{}.basicWithSystemAndUserIdentity(data))
 }
 
-func (CdnFrontDoorProfileDataSource) withLogScrubbing(data acceptance.TestData) string {
+func (CdnFrontDoorProfileDataSource) basicWithLogScrubbing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
 data "azurerm_cdn_frontdoor_profile" "test" {
   name                = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorProfileResource{}.logScrubbingPremiumSku(data))
+`, CdnFrontDoorProfileResource{}.logScrubbingStandardSku(data))
 }

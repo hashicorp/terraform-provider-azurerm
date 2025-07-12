@@ -72,16 +72,6 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
 									},
-
-									"operator": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
-
-									"selector": {
-										Type:     pluginsdk.TypeString,
-										Computed: true,
-									},
 								},
 							},
 						},
