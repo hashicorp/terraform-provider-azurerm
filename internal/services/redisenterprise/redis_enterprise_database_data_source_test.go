@@ -9,11 +9,15 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type RedisEnterpriseDatabaseDataSource struct{}
 
 func TestAccRedisEnterpriseDatabaseDataSource_standard(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseDataSource{}
 
@@ -31,6 +35,9 @@ func TestAccRedisEnterpriseDatabaseDataSource_standard(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabaseDataSource_geoDatabase(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseDataSource{}
 
