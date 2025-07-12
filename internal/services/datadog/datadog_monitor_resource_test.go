@@ -9,13 +9,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DatadogMonitorResource struct {
@@ -24,12 +24,12 @@ type DatadogMonitorResource struct {
 }
 
 func (r *DatadogMonitorResource) populateFromEnvironment(t *testing.T) {
-	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
-		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
-	}
-	if os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
-		t.Skip("Skipping as ARM_TEST_DATADOG_APPLICATION_KEY is not specified")
-	}
+	//if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
+	//	t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
+	//}
+	//if os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY") == "" {
+	//	t.Skip("Skipping as ARM_TEST_DATADOG_APPLICATION_KEY is not specified")
+	//}
 	r.datadogApiKey = os.Getenv("ARM_TEST_DATADOG_API_KEY")
 	r.datadogApplicationKey = os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY")
 }
@@ -44,6 +44,10 @@ func TestAccDatadogMonitor_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			SkipFunc: func() (bool, error) {
+				fmt.Println(r.basic(data))
+				return false, nil
+			},
 		},
 		data.ImportStep("user",
 			"user.0.name",
@@ -176,11 +180,11 @@ func (r DatadogMonitorResource) Exists(ctx context.Context, client *clients.Clie
 	resp, err := client.Datadog.MonitorsResource.MonitorsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r DatadogMonitorResource) template(data acceptance.TestData) string {
@@ -215,6 +219,10 @@ resource "azurerm_datadog_monitor" "test" {
   sku_name = "Linked"
   identity {
     type = "SystemAssigned"
+  }
+  sso_configuration {
+    enterprise_application_id = "id-goes-here"
+    single_sign_on_enabled    = "Enable"
   }
 }
 `, r.template(data), data.RandomString, os.Getenv("ARM_TEST_DATADOG_API_KEY"), os.Getenv("ARM_TEST_DATADOG_APPLICATION_KEY"))

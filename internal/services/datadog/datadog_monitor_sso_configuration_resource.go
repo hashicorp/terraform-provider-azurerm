@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
@@ -27,6 +26,8 @@ import (
 
 func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_datadog_sso_configuration` resource has been superseded by the `sso_configuration` block in the`azurerm_datadog_monitor` resource. It will be removed in v5.0 of the AzureRM Provider",
+
 		Create: resourceDatadogSingleSignOnConfigurationsCreate,
 		Read:   resourceDatadogSingleSignOnConfigurationsRead,
 		Update: resourceDatadogSingleSignOnConfigurationsUpdate,
@@ -223,7 +224,7 @@ func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, 
 	payload := singlesignon.DatadogSingleSignOnResource{
 		Properties: &singlesignon.DatadogSingleSignOnProperties{
 			SingleSignOnState: pointer.To(singlesignon.SingleSignOnStatesDisable),
-			EnterpriseAppId:   utils.String(""),
+			EnterpriseAppId:   pointer.To(""),
 		},
 	}
 

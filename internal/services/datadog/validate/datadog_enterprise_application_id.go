@@ -14,7 +14,8 @@ func DatadogEnterpriseApplicationID(i interface{}, k string) (warnings []string,
 		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
-	if !regexp.MustCompile(`[0-9-]$`).MatchString(v) {
+	// https://github.com/hashicorp/terraform-provider-azurerm/issues/25904
+	if !regexp.MustCompile(`[a-z0-9-]$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("expected value of %s not match regular expression, got %v", k, v))
 		return
 	}
