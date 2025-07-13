@@ -195,10 +195,10 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Update() sdk.ResourceFunc
 			}
 
 			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s:`model` was nil", managedInstanceID)
+				return fmt.Errorf("retrieving %s: `model` was nil", managedInstanceID)
 			}
 			if resp.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s:`properties` was nil", managedInstanceID)
+				return fmt.Errorf("retrieving %s: `properties` was nil", managedInstanceID)
 			}
 
 			properties := resp.Model
@@ -296,8 +296,7 @@ func (r MsSqlManagedInstanceStartStopScheduleResource) Delete() sdk.ResourceFunc
 func expandScheduleItemModelArray(inputList []ScheduleItemModel) []schedule.ScheduleItem {
 	outputList := make([]schedule.ScheduleItem, 0, len(inputList))
 
-	for _, v := range inputList {
-		input := v
+	for _, input := range inputList {
 		output := schedule.ScheduleItem{
 			StartDay:  input.StartDay,
 			StartTime: input.StartTime,
