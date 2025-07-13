@@ -57,20 +57,15 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
   }
 
   log_scrubbing {
-    enabled = true
-
     scrubbing_rule {
-      enabled        = true
       match_variable = "RequestIPAddress"
     }
 
     scrubbing_rule {
-      enabled        = true
       match_variable = "RequestUri"
     }
 
     scrubbing_rule {
-      enabled        = true
       match_variable = "QueryStringArgNames"
     }
   }
@@ -112,9 +107,9 @@ An `identity` block supports the following:
 
 A `log_scrubbing` block supports the following:
 
-* `enabled` - (Optional) Is log scrubbing enabled? Defaults to `true`.
-
 * `scrubbing_rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
+
+~> **Note:** When the `log_scrubbing` block is present, log scrubbing will be `enabled`. When the `log_scrubbing` block is omitted, log scrubbing will be `disabled`.
 
 ---
 
@@ -122,7 +117,7 @@ A `scrubbing_rule` block supports the following:
 
 * `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
 
-* `enabled` - (Optional) Is this scrubbing rule enabled? Defaults to `true`.
+~> **Note:** When the `match_variable` field is present, the `scrubbing_rule` will be `enabled`. When the `match_variable` field is omitted, the `scrubbing_rule` will be `disabled`.
 
 ~> **Note:** The `operator` field is implicitly set to `EqualsAny`, as it is the sole supported value, and is therefore not exposed as a configurable option in the provider schema.
 

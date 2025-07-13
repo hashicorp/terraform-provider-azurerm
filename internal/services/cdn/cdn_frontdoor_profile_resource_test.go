@@ -253,7 +253,7 @@ func TestAccCdnFrontDoorProfile_skuDowngrade_validation(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfile_logScrubbing_basic_standardSku(t *testing.T) {
+func TestAccCdnFrontDoorProfile_logScrubbing_maxRules_standardSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 
@@ -262,13 +262,16 @@ func TestAccCdnFrontDoorProfile_logScrubbing_basic_standardSku(t *testing.T) {
 			Config: r.logScrubbingStandardSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
+				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.1.match_variable").HasValue("RequestIPAddress"),
+				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.2.match_variable").HasValue("RequestUri"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccCdnFrontDoorProfile_logScrubbing_basic(t *testing.T) {
+func TestAccCdnFrontDoorProfile_logScrubbing_maxRules_premiumSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 
@@ -277,6 +280,9 @@ func TestAccCdnFrontDoorProfile_logScrubbing_basic(t *testing.T) {
 			Config: r.logScrubbingPremiumSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
+				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.1.match_variable").HasValue("RequestIPAddress"),
+				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.2.match_variable").HasValue("RequestUri"),
 			),
 		},
 		data.ImportStep(),
@@ -292,6 +298,7 @@ func TestAccCdnFrontDoorProfile_logScrubbing_update(t *testing.T) {
 			Config: r.basicPremiumSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_scrubbing.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -299,13 +306,15 @@ func TestAccCdnFrontDoorProfile_logScrubbing_update(t *testing.T) {
 			Config: r.logScrubbingPremiumSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.logScrubbingDisabled(data),
+			Config: r.basicPremiumSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_scrubbing.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -318,12 +327,51 @@ func TestAccCdnFrontDoorProfile_logScrubbing_disabled(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.logScrubbingDisabled(data),
+			Config: r.basicPremiumSku(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("log_scrubbing.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_emptyBlock(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.logScrubbingEmpty(data),
+			ExpectError: regexp.MustCompile("when the `log_scrubbing` block is defined, at least one `scrubbing_rule` must be specified"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_duplicateScrubbingRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.logScrubbingDuplicateScrubbingRules(data),
+			ExpectError: regexp.MustCompile("duplicate `QueryStringArgNames` rule found in `log_scrubbing.0.scrubbing_rule.2.match_variable`"),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_ruleLimit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// This test works because the schema validation of `MaxItems: 3` executes before the provider validation
+			// since that validation is implemented within the terraform core runtime itself
+			Config:      r.logScrubbingRuleLimit(data),
+			ExpectError: regexp.MustCompile(`No more than 3 "scrubbing_rule" blocks are allowed`),
+		},
 	})
 }
 
@@ -344,7 +392,7 @@ func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(true), nil
 }
 
-func (CdnFrontDoorProfileResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%d"
@@ -377,7 +425,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 func (r CdnFrontDoorProfileResource) basicPremiumSku(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -390,7 +437,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Premium_AzureFrontDoor"
 }
-`, template, data.RandomInteger)
+
+  tags = {
+    environment = "Production"
+  }
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorProfileResource) basicWithSystemIdentity(data acceptance.TestData) string {
@@ -510,7 +561,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   response_timeout_seconds = 120
 
   tags = {
-    ENV = "Production"
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -536,7 +587,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   }
 
   tags = {
-    ENV = "Production"
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -563,7 +614,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   }
 
   tags = {
-    ENV = "Production"
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -589,35 +640,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   }
 
   tags = {
-    ENV = "Production"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorProfileResource) logScrubbingStandardSku(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestprofile-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard_AzureFrontDoor"
-
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      match_variable = "RequestIPAddress"
-      enabled        = true
-    }
-  }
-
-  tags = {
     environment = "Production"
   }
 }
@@ -638,21 +660,16 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   sku_name            = "Premium_AzureFrontDoor"
 
   log_scrubbing {
-    enabled = true
-
     scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      enabled        = true
     }
 
-    scrubbing_rule {
+	scrubbing_rule {
       match_variable = "RequestIPAddress"
-      enabled        = true
     }
 
-    scrubbing_rule {
+	scrubbing_rule {
       match_variable = "RequestUri"
-      enabled        = false
     }
   }
 
@@ -663,7 +680,41 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorProfileResource) logScrubbingDisabled(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) logScrubbingStandardSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestprofile-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
+
+  log_scrubbing {
+    scrubbing_rule {
+      match_variable = "QueryStringArgNames"
+    }
+
+	scrubbing_rule {
+      match_variable = "RequestIPAddress"
+    }
+
+	scrubbing_rule {
+      match_variable = "RequestUri"
+    }
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorProfileResource) logScrubbingEmpty(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -676,12 +727,77 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Premium_AzureFrontDoor"
 
-  log_scrubbing {
-    enabled = false
+  log_scrubbing {}
 
+  tags = {
+    environment = "Production"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorProfileResource) logScrubbingDuplicateScrubbingRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestprofile-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
+
+  log_scrubbing {
     scrubbing_rule {
+      match_variable = "QueryStringArgNames"
+    }
+
+	scrubbing_rule {
       match_variable = "RequestIPAddress"
-      enabled        = true
+    }
+
+	scrubbing_rule {
+      match_variable = "QueryStringArgNames"
+    }
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorProfileResource) logScrubbingRuleLimit(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestprofile-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard_AzureFrontDoor"
+
+  log_scrubbing {
+    scrubbing_rule {
+      match_variable = "QueryStringArgNames"
+    }
+
+	scrubbing_rule {
+      match_variable = "RequestIPAddress"
+    }
+
+	scrubbing_rule {
+      match_variable = "QueryStringArgNames"
+    }
+
+	scrubbing_rule {
+      match_variable = "QueryStringArgNames"
     }
   }
 

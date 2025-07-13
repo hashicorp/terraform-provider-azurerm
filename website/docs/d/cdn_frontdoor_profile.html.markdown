@@ -33,8 +33,8 @@ output "front_door_id" {
   value = data.azurerm_cdn_frontdoor_profile.example.id
 }
 
-output "log_scrubbing_enabled" {
-  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.enabled
+output "log_scrubbing_match_variable" {
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.scrubbing_rule.0.match_variable
 }
 ```
 
@@ -60,8 +60,6 @@ An `identity` block exports the following:
 
 A `log_scrubbing` block exports the following:
 
-* `enabled` - Is log scrubbing enabled?
-
 * `scrubbing_rule` - One or more `scrubbing_rule` blocks as defined below.
 
 ---
@@ -69,8 +67,6 @@ A `log_scrubbing` block exports the following:
 A `scrubbing_rule` block exports the following:
 
 * `match_variable` - The variable that is scrubbed from the logs.
-
-* `enabled` - Is this scrubbing rule enabled?
 
 ## Attributes Reference
 

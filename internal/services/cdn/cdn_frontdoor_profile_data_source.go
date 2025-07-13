@@ -53,21 +53,11 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
 						"scrubbing_rule": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Computed: true,
-									},
-
 									"match_variable": {
 										Type:     pluginsdk.TypeString,
 										Computed: true,
@@ -126,8 +116,8 @@ func dataSourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface
 			// this as the Resource GUID, so we will for consistency
 			d.Set("resource_guid", pointer.From(props.FrontDoorId))
 
-			if props.LogScrubbing != nil {
-				d.Set("log_scrubbing", flattenCdnFrontDoorProfileLogScrubbing(props.LogScrubbing))
+			if err := d.Set("log_scrubbing", flattenCdnFrontDoorProfileLogScrubbing(props.LogScrubbing)); err != nil {
+				return fmt.Errorf("setting `log_scrubbing`: %+v", err)
 			}
 		}
 

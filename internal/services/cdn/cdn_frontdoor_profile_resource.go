@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -77,32 +78,18 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-
 						"scrubbing_rule": {
 							Type:     pluginsdk.TypeList,
-							MaxItems: 100,
+							MaxItems: 3,
 							Optional: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  true,
-									},
-
 									"match_variable": {
 										Type:     pluginsdk.TypeString,
 										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames),
-											string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress),
-											string(profiles.ScrubbingRuleEntryMatchVariableRequestUri),
-										}, false),
+										ValidateFunc: validation.StringInSlice(
+											profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+											false),
 									},
 								},
 							},
@@ -132,6 +119,36 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 
 				return nil
 			}),
+			// Validate log scrubbing configuration
+			func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+				if logScrubbingRaw, ok := diff.GetOk("log_scrubbing"); ok {
+					logScrubbing := logScrubbingRaw.([]interface{})
+					if len(logScrubbing) > 0 && logScrubbing[0] == nil {
+						return fmt.Errorf("when the `log_scrubbing` block is defined, at least one `scrubbing_rule` must be specified")
+					}
+
+					// Validate scrubbing rules for duplicates
+					if len(logScrubbing) > 0 {
+						if config, ok := logScrubbing[0].(map[string]interface{}); ok {
+							if rulesRaw, ok := config["scrubbing_rule"].([]interface{}); ok {
+								matchVariables := make(map[string]bool)
+								for i, rule := range rulesRaw {
+									if ruleMap, ok := rule.(map[string]interface{}); ok {
+										if matchVar, ok := ruleMap["match_variable"].(string); ok && matchVar != "" {
+											if matchVariables[matchVar] {
+												return fmt.Errorf("duplicate `%s` rule found in `log_scrubbing.0.scrubbing_rule.%d.match_variable`", matchVar, i)
+											}
+											matchVariables[matchVar] = true
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				return nil
+			},
 		),
 	}
 }
@@ -166,10 +183,9 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("log_scrubbing"); ok {
-		logScrubbing := expandCdnFrontDoorProfileLogScrubbing(v.([]interface{}))
-		props.Properties.LogScrubbing = logScrubbing
-	}
+	// Always set log scrubbing - if block is omitted, it will be set to disabled
+	logScrubbing := expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing").([]interface{}))
+	props.Properties.LogScrubbing = logScrubbing
 
 	if v, ok := d.GetOk("identity"); ok {
 		i, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
@@ -265,6 +281,7 @@ func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("log_scrubbing") {
+		// Always set log scrubbing - if block is omitted, it will be set to disabled
 		logScrubbing := expandCdnFrontDoorProfileLogScrubbing(d.Get("log_scrubbing").([]interface{}))
 		props.Properties.LogScrubbing = logScrubbing
 	}
@@ -306,16 +323,18 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 
 func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) *profiles.ProfileLogScrubbing {
 	if len(input) == 0 {
-		return nil
+		// When log_scrubbing block is not configured, set to disabled
+		policyDisabled := profiles.ProfileScrubbingStateDisabled
+		return &profiles.ProfileLogScrubbing{
+			State:          &policyDisabled,
+			ScrubbingRules: nil,
+		}
 	}
 
 	inputRaw := input[0].(map[string]interface{})
 
-	policyEnabled := profiles.ProfileScrubbingStateDisabled
-	if enabled, exists := inputRaw["enabled"]; exists && enabled.(bool) {
-		policyEnabled = profiles.ProfileScrubbingStateEnabled
-	}
-
+	// When log_scrubbing block is present, always enable it
+	policyEnabled := profiles.ProfileScrubbingStateEnabled
 	scrubbingRules := expandCdnFrontDoorProfileScrubbingRules(inputRaw["scrubbing_rule"].([]interface{}))
 
 	return &profiles.ProfileLogScrubbing{
@@ -335,16 +354,13 @@ func expandCdnFrontDoorProfileScrubbingRules(input []interface{}) *[]profiles.Pr
 		v := rule.(map[string]interface{})
 		var item profiles.ProfileScrubbingRules
 
-		ruleEnabled := profiles.ScrubbingRuleEntryStateDisabled
-		if value := v["enabled"].(bool); value {
-			ruleEnabled = profiles.ScrubbingRuleEntryStateEnabled
-		}
-
+		// Rule is enabled by default when present (following "None" pattern)
+		ruleEnabled := profiles.ScrubbingRuleEntryStateEnabled
 		item.State = &ruleEnabled
 		item.MatchVariable = profiles.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
 
 		// EqualsAny is the only valid SelectorMatchOperator for log scrubbing in the Profile API
-		// so we will hardcode it here to shorten that amount of input the end users need to enter
+		// so we will hardcode it here
 		item.SelectorMatchOperator = "EqualsAny"
 
 		scrubbingRules = append(scrubbingRules, item)
@@ -354,12 +370,12 @@ func expandCdnFrontDoorProfileScrubbingRules(input []interface{}) *[]profiles.Pr
 }
 
 func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing) []interface{} {
-	if input == nil {
+	if input == nil || pointer.From(input.State) == profiles.ProfileScrubbingStateDisabled {
+		// When log scrubbing is disabled, return empty list to represent omitted configuration
 		return make([]interface{}, 0)
 	}
 
 	result := make(map[string]interface{})
-	result["enabled"] = pointer.From(input.State) == profiles.ProfileScrubbingStateEnabled
 	result["scrubbing_rule"] = flattenCdnFrontDoorProfileScrubbingRules(input.ScrubbingRules)
 
 	return []interface{}{result}
@@ -373,13 +389,11 @@ func flattenCdnFrontDoorProfileScrubbingRules(scrubbingRules *[]profiles.Profile
 	}
 
 	for _, scrubbingRule := range *scrubbingRules {
-		item := map[string]interface{}{}
-		item["enabled"] = pointer.From(scrubbingRule.State) == profiles.ScrubbingRuleEntryStateEnabled
-		item["match_variable"] = scrubbingRule.MatchVariable
-
-		// Ignore the SelectorMatchOperator here since the only valid value is EqualsAny which is hardcoded
-		// in the expandCdnFrontDoorProfileScrubbingRules function
-		result = append(result, item)
+		if scrubbingRule.State != nil && pointer.From(scrubbingRule.State) == profiles.ScrubbingRuleEntryStateEnabled {
+			item := map[string]interface{}{}
+			item["match_variable"] = scrubbingRule.MatchVariable
+			result = append(result, item)
+		}
 	}
 
 	return result
