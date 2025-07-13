@@ -133,6 +133,34 @@ resource "azurerm_netapp_volume" "example" {
 }
 ```
 
+## Example Usage with Cool Access
+
+```hcl
+resource "azurerm_netapp_volume" "example_with_cool_access" {
+  name                         = "example-netappvolume-cool"
+  location                     = azurerm_resource_group.example.location
+  resource_group_name          = azurerm_resource_group.example.name
+  account_name                 = azurerm_netapp_account.example.name
+  pool_name                    = azurerm_netapp_pool.example.name
+  volume_path                  = "my-unique-file-path-cool"
+  service_level                = "Standard"
+  subnet_id                    = azurerm_subnet.example.id
+  protocols                    = ["NFSv3"]
+  storage_quota_in_gb          = 500
+  
+  # Cool access configuration
+  cool_access_enabled          = true
+  coolness_period              = 30
+  cool_access_retrieval_policy = "Default"
+  cool_access_tiering_policy   = "Auto"
+
+  # prevent the possibility of accidental data loss
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -202,6 +230,16 @@ The following arguments are supported:
 * `large_volume_enabled` - (Optional) A boolean specifying if the volume is a large volume. Defaults to `false`.
 
 -> **Note:** Large volumes must be at least 50 TiB in size and can be up to 1,024 TiB (1 PiB). For more information, please refer to [Requirements and considerations for large volumes](https://learn.microsoft.com/en-us/azure/azure-netapp-files/large-volumes-requirements-considerations)
+
+* `cool_access_enabled` - (Optional) Specifies whether cool access is enabled for the volume. Defaults to `false`. Cool access moves infrequently accessed data from the hot tier to a cool tier, reducing storage costs.
+
+* `coolness_period` - (Optional) Specifies the number of days after which data that is not accessed by clients will be tiered to the cool tier. The minimum is 7 days and the maximum is 63 days. This parameter is required when `cool_access_enabled` is `true`.
+
+* `cool_access_retrieval_policy` - (Optional) Determines the data retrieval behavior from the cool tier to standard storage. This parameter is relevant only for volumes that can be cooled down. Possible values are `Default`, `Never`, and `OnRead`. Defaults to `Default` when not specified.
+
+* `cool_access_tiering_policy` - (Optional) Determines when data will be tiered to the cool tier. Possible values are `Auto` and `SnapshotOnly`. Defaults to `Auto` when not specified.
+
+-> **Note:** Cool access is a feature that helps reduce storage costs by automatically moving infrequently accessed data to a cool tier. For more information, please refer to [Manage Azure NetApp Files storage with cool access](https://learn.microsoft.com/en-us/azure/azure-netapp-files/manage-cool-access)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

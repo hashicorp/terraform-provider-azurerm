@@ -391,12 +391,46 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Default:     false,
 				Description: "Enable access based enumeration setting for SMB/Dual Protocol volume. When enabled, users who do not have permission to access a shared folder or file underneath it, do not see that shared resource displayed in their environment.",
 			},
-
 			"large_volume_enabled": {
 				Type:        pluginsdk.TypeBool,
 				Optional:    true,
 				Default:     false,
 				Description: "Indicates whether the volume is a large volume.",
+			},
+
+			"cool_access_enabled": {
+				Type:        pluginsdk.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Specifies whether cool access is enabled for the volume.",
+			},
+
+			"coolness_period": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(7, 63),
+				Description:  "Specifies the number of days after which data that is not accessed by clients will be tiered. The minimum is 7 days and the maximum is 63 days.",
+			},
+
+			"cool_access_retrieval_policy": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(volumes.CoolAccessRetrievalPolicyDefault),
+					string(volumes.CoolAccessRetrievalPolicyNever),
+					string(volumes.CoolAccessRetrievalPolicyOnRead),
+				}, false),
+				Description: "Determines the data retrieval behavior from the cool tier to standard storage. This parameter is relevant only for volumes that can be cooled down. Possible values are 'Default', 'Never', and 'OnRead'.",
+			},
+
+			"cool_access_tiering_policy": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(volumes.CoolAccessTieringPolicyAuto),
+					string(volumes.CoolAccessTieringPolicySnapshotOnly),
+				}, false),
+				Description: "Determines when data will be tiered. Possible values are 'Auto' and 'SnapshotOnly'.",
 			},
 		},
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
@@ -429,6 +463,15 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 				if !serviceLevelChange && poolNameChange {
 					return d.ForceNew("pool_name")
+				}
+			}
+
+			// Validate cool access configuration
+			coolAccessEnabled := d.Get("cool_access_enabled").(bool)
+			if coolAccessEnabled {
+				// When cool access is enabled, coolness_period should be set
+				if coolnessPeriod, ok := d.GetOk("coolness_period"); !ok || coolnessPeriod.(int) < 7 || coolnessPeriod.(int) > 63 {
+					return fmt.Errorf("when `cool_access_enabled` is true, `coolness_period` must be specified and must be between 7 and 63 days")
 				}
 			}
 
@@ -632,6 +675,25 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		Zones: zones,
 	}
 
+	// Cool access configuration
+	if coolAccessEnabled, ok := d.GetOk("cool_access_enabled"); ok && coolAccessEnabled.(bool) {
+		parameters.Properties.CoolAccess = pointer.To(true)
+
+		if coolnessPeriod, ok := d.GetOk("coolness_period"); ok {
+			parameters.Properties.CoolnessPeriod = pointer.To(int64(coolnessPeriod.(int)))
+		}
+
+		if retrievalPolicy, ok := d.GetOk("cool_access_retrieval_policy"); ok {
+			policy := volumes.CoolAccessRetrievalPolicy(retrievalPolicy.(string))
+			parameters.Properties.CoolAccessRetrievalPolicy = &policy
+		}
+
+		if tieringPolicy, ok := d.GetOk("cool_access_tiering_policy"); ok {
+			policy := volumes.CoolAccessTieringPolicy(tieringPolicy.(string))
+			parameters.Properties.CoolAccessTieringPolicy = &policy
+		}
+	}
+
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
 		parameters.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
 	}
@@ -777,6 +839,28 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
+	// Handle cool access configuration changes
+	if d.HasChanges("cool_access_enabled", "coolness_period", "cool_access_retrieval_policy", "cool_access_tiering_policy") {
+		coolAccessEnabled := d.Get("cool_access_enabled").(bool)
+		update.Properties.CoolAccess = pointer.To(coolAccessEnabled)
+
+		if coolAccessEnabled {
+			if coolnessPeriod, ok := d.GetOk("coolness_period"); ok {
+				update.Properties.CoolnessPeriod = pointer.To(int64(coolnessPeriod.(int)))
+			}
+
+			if retrievalPolicy, ok := d.GetOk("cool_access_retrieval_policy"); ok {
+				policy := volumes.CoolAccessRetrievalPolicy(retrievalPolicy.(string))
+				update.Properties.CoolAccessRetrievalPolicy = &policy
+			}
+
+			if tieringPolicy, ok := d.GetOk("cool_access_tiering_policy"); ok {
+				policy := volumes.CoolAccessTieringPolicy(tieringPolicy.(string))
+				update.Properties.CoolAccessTieringPolicy = &policy
+			}
+		}
+	}
+
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
@@ -870,6 +954,25 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
+
+		// Cool access properties
+		coolAccessEnabled := false
+		if props.CoolAccess != nil {
+			coolAccessEnabled = *props.CoolAccess
+		}
+		d.Set("cool_access_enabled", coolAccessEnabled)
+
+		if props.CoolnessPeriod != nil {
+			d.Set("coolness_period", int(*props.CoolnessPeriod))
+		}
+
+		if props.CoolAccessRetrievalPolicy != nil {
+			d.Set("cool_access_retrieval_policy", string(*props.CoolAccessRetrievalPolicy))
+		}
+
+		if props.CoolAccessTieringPolicy != nil {
+			d.Set("cool_access_tiering_policy", string(*props.CoolAccessTieringPolicy))
+		}
 
 		smbNonBrowsable := false
 		if props.SmbNonBrowsable != nil {

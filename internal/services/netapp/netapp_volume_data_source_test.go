@@ -30,6 +30,7 @@ func TestAccDataSourceNetAppVolume_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("encryption_key_source").HasValue("Microsoft.NetApp"),
 				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("cool_access_enabled").HasValue("false"),
 			),
 		},
 	})
@@ -44,6 +45,23 @@ func TestAccDataSourceNetAppVolume_backupPolicy(t *testing.T) {
 			Config: r.backupPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("data_protection_backup_policy.#").HasValue("1"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceNetAppVolume_coolAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_volume", "test")
+	r := NetAppVolumeDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.coolAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("cool_access_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("coolness_period").HasValue("14"),
+				check.That(data.ResourceName).Key("cool_access_retrieval_policy").HasValue("Default"),
+				check.That(data.ResourceName).Key("cool_access_tiering_policy").HasValue("Auto"),
 			),
 		},
 	})
@@ -95,4 +113,30 @@ data "azurerm_netapp_volume" "test" {
   name                = azurerm_netapp_volume.test.name
 }
 `, NetAppVolumeResource{}.backupPolicy(data))
+}
+
+func (NetAppVolumeDataSource) coolAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  alias = "all"
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    netapp {
+      prevent_volume_destruction             = false
+      delete_backups_on_backup_vault_destroy = true
+    }
+  }
+}
+
+data "azurerm_netapp_volume" "test" {
+  resource_group_name = azurerm_netapp_volume.test.resource_group_name
+  account_name        = azurerm_netapp_volume.test.account_name
+  pool_name           = azurerm_netapp_volume.test.pool_name
+  name                = azurerm_netapp_volume.test.name
+}
+`, NetAppVolumeResource{}.coolAccess(data))
 }

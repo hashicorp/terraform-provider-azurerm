@@ -71,6 +71,14 @@ The following attributes are exported:
 
 * `large_volume_enabled` - Indicates if the volume is a large volume.
 
+* `cool_access_enabled` - Indicates whether cool access is enabled for the volume.
+
+* `coolness_period` - The number of days after which data that is not accessed by clients will be tiered to the cool tier.
+
+* `cool_access_retrieval_policy` - The data retrieval behavior from the cool tier to standard storage.
+
+* `cool_access_tiering_policy` - Determines when data will be tiered to the cool tier.
+
 ---
 
 A `data_protection_replication` block exports the following:

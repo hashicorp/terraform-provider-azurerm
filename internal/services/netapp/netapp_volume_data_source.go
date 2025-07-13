@@ -163,9 +163,28 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
-
 			"large_volume_enabled": {
 				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"cool_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"coolness_period": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"cool_access_retrieval_policy": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"cool_access_tiering_policy": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
@@ -213,6 +232,25 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
+
+		// Cool access properties
+		coolAccessEnabled := false
+		if props.CoolAccess != nil {
+			coolAccessEnabled = *props.CoolAccess
+		}
+		d.Set("cool_access_enabled", coolAccessEnabled)
+
+		if props.CoolnessPeriod != nil {
+			d.Set("coolness_period", int(*props.CoolnessPeriod))
+		}
+
+		if props.CoolAccessRetrievalPolicy != nil {
+			d.Set("cool_access_retrieval_policy", string(*props.CoolAccessRetrievalPolicy))
+		}
+
+		if props.CoolAccessTieringPolicy != nil {
+			d.Set("cool_access_tiering_policy", string(*props.CoolAccessTieringPolicy))
+		}
 
 		smbNonBrowsable := false
 		if props.SmbNonBrowsable != nil {
