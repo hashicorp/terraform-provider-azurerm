@@ -680,11 +680,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
       match_variable = "QueryStringArgNames"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "RequestIPAddress"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "RequestUri"
     }
   }
@@ -714,11 +714,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
       match_variable = "QueryStringArgNames"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "RequestIPAddress"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "RequestUri"
     }
   }
@@ -770,11 +770,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
       match_variable = "QueryStringArgNames"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "RequestIPAddress"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "QueryStringArgNames"
     }
   }
@@ -804,15 +804,15 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
       match_variable = "QueryStringArgNames"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "RequestIPAddress"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "QueryStringArgNames"
     }
 
-	scrubbing_rule {
+    scrubbing_rule {
       match_variable = "QueryStringArgNames"
     }
   }
