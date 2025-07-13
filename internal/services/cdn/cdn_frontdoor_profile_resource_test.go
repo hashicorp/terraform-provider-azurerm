@@ -420,6 +420,10 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
+
+  tags = {
+    environment = "Production"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -436,11 +440,11 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Premium_AzureFrontDoor"
-}
 
   tags = {
     environment = "Production"
   }
+}
 `, r.template(data), data.RandomInteger)
 }
 
@@ -460,6 +464,10 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -483,6 +491,10 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  tags = {
+    environment = "Production"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -504,6 +516,10 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -538,7 +554,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   sku_name                 = "Premium_AzureFrontDoor"
 
   tags = {
-    ENV = "Test"
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
