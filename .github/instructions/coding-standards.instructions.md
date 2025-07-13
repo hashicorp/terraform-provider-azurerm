@@ -157,15 +157,16 @@ import (
     "fmt"
     "time"
 
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
     "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicename/parse"
-    "github.com/hashicorp/go-azure-helpers/lang/pointer"
     "github.com/hashicorp/terraform-provider-azurerm/utils/response"
 )
 
 func (r ServiceNameResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
-        Timeout: 30 * time.Minute,
+        Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
             subscriptionId := metadata.Client.Account.SubscriptionId
@@ -322,6 +323,41 @@ func resourceServiceName() *pluginsdk.Resource {
 }
 ```
 
+#### ValidateFunc Patterns
+
+If the Azure SDK package offers a `PossibleValuesForFieldName` function, use that in the `validation.StringInSlice` function instead of hardcoding the possible values manually.
+
+##### Example
+```go
+// AVOID - Hardcoded values that may become outdated
+"match_variable": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames),
+        string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress),
+        string(profiles.ScrubbingRuleEntryMatchVariableRequestUri),
+    }, false),
+},
+
+// PREFERRED - Use SDK-provided possible values function
+"match_variable": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice(
+        profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+        false,
+    ),
+},
+```
+
+**Benefits of using SDK-provided functions:**
+
+- **Automatic updates**: When Azure adds new values, they're automatically available
+- **Consistency**: Ensures validation matches what the Azure API actually accepts
+- **Maintenance**: Reduces manual updates when Azure service capabilities change
+- **Accuracy**: Eliminates risk of typos in hardcoded values
+
 ### Error Handling
 
 #### typed resource Error Patterns
@@ -332,8 +368,9 @@ import (
     "context"
     "fmt"
 
-    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
     "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
     "github.com/hashicorp/terraform-provider-azurerm/utils/response"
 )
 
@@ -371,9 +408,10 @@ import (
     "fmt"
     "log"
 
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
     "github.com/hashicorp/terraform-provider-azurerm/helpers/resource"
-    "github.com/hashicorp/go-azure-helpers/lang/pointer"
     "github.com/hashicorp/terraform-provider-azurerm/utils/response"
 )
 
@@ -838,6 +876,7 @@ import (
     "fmt"
 
     "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -878,6 +917,7 @@ import (
     "fmt"
 
     "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
     "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicename/parse"
@@ -1007,6 +1047,7 @@ import (
 // Create/Update function - Convert Terraform null to Azure "None"
 func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             var model ServiceModel
             if err := metadata.Decode(&model); err != nil {
@@ -1033,6 +1074,7 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
 // Read function - Convert Azure "None" back to Terraform null
 func (r ServiceResource) Read() sdk.ResourceFunc {
     return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             // ...retrieve resource from Azure
 
@@ -1198,6 +1240,7 @@ import (
 // GOOD - Key Vault reference pattern for typed resource
 func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             var model ServiceModel
             if err := metadata.Decode(&model); err != nil {
@@ -1263,11 +1306,12 @@ func ValidateAzureResourceName(v interface{}, k string) (warnings []string, erro
         return warnings, errors
     }
     
-    // Prevent reserved names
+    // Azure Storage Account specific reserved names
     reservedNames := []string{"admin", "root", "system", "default"}
     for _, reserved := range reservedNames {
         if strings.EqualFold(value, reserved) {
-            errors = append(errors, fmt.Errorf("property %s cannot use reserved name %s", k, reserved))
+            // Ensure all error messages follow the consistent format
+            errors = append(errors, fmt.Errorf("property `%s` cannot use reserved name `%s`", k, reserved))
             return warnings, errors
         }
     }
@@ -1375,6 +1419,7 @@ import (
 // GOOD - Proper authentication handling
 func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
             
@@ -1461,6 +1506,7 @@ import (
 // GOOD - Proper rate limiting with exponential backoff
 func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
             
@@ -1550,6 +1596,7 @@ import (
 // GOOD - Use batch operations when available
 func (r ServiceResource) Read() sdk.ResourceFunc {
     return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
             
@@ -1718,6 +1765,7 @@ func (r ServiceResource) processLargeDataset(ctx context.Context, metadata sdk.R
 // GOOD - Proper memory cleanup
 func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             // Use defer for cleanup
             defer func() {
@@ -1797,7 +1845,7 @@ import (
 // GOOD - Proper context handling
 func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
-        Timeout: 30 * time.Minute,
+        Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
             
@@ -1841,6 +1889,7 @@ import (
 // GOOD - Add timing for performance monitoring
 func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             startTime := time.Now()
             defer func() {
@@ -1954,6 +2003,13 @@ package servicename
 
 import (
     "fmt"
+    "log"
+
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-azurerm/utils/response"
 )
 
 // GOOD - Clear context and actionable information
@@ -1975,9 +2031,10 @@ import (
     "fmt"
     "log"
 
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-    "github.com/hashicorp/go-azure-helpers/lang/pointer"
     "github.com/hashicorp/terraform-provider-azurerm/utils/response"
 )
 
@@ -2031,6 +2088,7 @@ package servicename
 import (
     "fmt"
     "regexp"
+    "strings"
 )
 
 // GOOD - Specific validation context
@@ -2043,6 +2101,15 @@ func ValidateStorageAccountName(v interface{}, k string) (warnings []string, err
     
     if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(value) {
         errors = append(errors, fmt.Errorf("property `%s` can only contain lowercase letters and numbers, got `%s`", k, value))
+    }
+    
+    // Prevent reserved names that conflict with Azure system accounts
+    reservedNames := []string{"admin", "root", "system", "default"}
+    for _, reserved := range reservedNames {
+        if strings.EqualFold(value, reserved) {
+            errors = append(errors, fmt.Errorf("property `%s` cannot use reserved name `%s`", k, reserved))
+            return warnings, errors
+        }
     }
     
     return warnings, errors

@@ -390,6 +390,31 @@ A `configuration` block supports the following:
 
 ### Example Configuration Guidelines
 
+#### The "None" Value Pattern in Documentation
+
+When documenting resources that implement the "None" value pattern (where users omit optional fields instead of explicitly setting "None" values), examples should reflect this behavior:
+
+**Example Considerations:**
+- Show meaningful field access in outputs rather than fields that might be omitted due to the "None" pattern
+- For log scrubbing examples, demonstrate accessing `match_variable` rather than `enabled` since `enabled` follows the "None" pattern
+- Focus examples on fields that users actually configure and can reliably access
+
+**Good Example Pattern:**
+```hcl
+output "log_scrubbing_match_variable" {
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.scrubbing_rule.0.match_variable
+}
+```
+
+**Pattern to Avoid:**
+```hcl
+output "log_scrubbing_enabled" {
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.enabled
+}
+```
+
+The second example might not work as expected since `enabled` could be omitted when following the "None" value pattern.
+
 #### Resource Example Requirements
 - Include resource group creation
 - Use realistic but generic names
@@ -650,3 +675,13 @@ Example of proper field documentation:
 - **API validation**: Verify all possible values against Azure SDK constants and API documentation
 - **Cross-reference validation**: When implementing similar features across resources, ensure consistent value documentation
 - **SDK alignment**: Match documentation values with Azure SDK enum constants where applicable
+
+**When to Apply the "None" Pattern:**
+- Optional fields that have Azure service defaults
+- Fields where "None", "Off", or "Default" are valid Azure API values but add no user value
+- Fields that follow the provider's move away from exposing Azure default constants
+
+**When NOT to Apply the "None" Pattern:**
+- Required fields
+- Optional fields where the default behavior is not intuitive
+- Fields where users commonly need to explicitly set values
