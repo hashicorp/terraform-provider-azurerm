@@ -2011,6 +2011,7 @@ resource "azurerm_linux_web_app" "test" {
     mount_path   = "/storage/files"
   }
 
+  vnet_image_pull_enabled                        = true
   ftp_publish_basic_authentication_enabled       = false
   webdeploy_publish_basic_authentication_enabled = false
 

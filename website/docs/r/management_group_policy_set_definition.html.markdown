@@ -122,3 +122,9 @@ Policy Set Definitions can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_management_group_policy_set_definition.example /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/policySetDefinitionName
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Management`: 2025-01-01

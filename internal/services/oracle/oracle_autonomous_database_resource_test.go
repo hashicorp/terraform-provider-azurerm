@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/autonomousdatabases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,6 +100,41 @@ func TestAdbsRegularResource_updateBackupSchedule(t *testing.T) {
 	})
 }
 
+func TestAdbsRegularResource_updatePublicAcces(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
+	r := AdbsRegularResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.publicAccessUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAdbsRegularResource_publicAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
+	r := AdbsRegularResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAdbsRegularResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
@@ -116,6 +151,8 @@ func TestAdbsRegularResource_requiresImport(t *testing.T) {
 
 func (a AdbsRegularResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+
 %s
 
 provider "azurerm" {
@@ -148,6 +185,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
 
 func (a AdbsRegularResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 %s
 
 provider "azurerm" {
@@ -155,8 +193,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database" "test" {
-  name = "OFake%[2]d"
-
+  name                             = "OFake%[2]d"
   display_name                     = "OFake%[2]d"
   resource_group_name              = azurerm_resource_group.test.name
   location                         = "%[3]s"
@@ -173,12 +210,13 @@ resource "azurerm_oracle_autonomous_database" "test" {
   db_version                       = "19c"
   character_set                    = "AL32UTF8"
   national_character_set           = "AL16UTF16"
+  customer_contacts                = ["test@test.com"]
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
-  customer_contacts                = ["test@test.com"]
+  allowed_ips                      = []
   long_term_backup_schedule {
     repeat_cadence           = "Monthly"
-    time_of_backup           = "2025-07-03T09:00:00Z"
+    time_of_backup           = "2025-08-03T09:00:00Z"
     retention_period_in_days = 200
     enabled                  = true
   }
@@ -188,6 +226,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
 
 func (a AdbsRegularResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
 %s
 
 provider "azurerm" {
@@ -247,12 +286,11 @@ resource "azurerm_oracle_autonomous_database" "test" {
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_subnet.test.id
   virtual_network_id               = azurerm_virtual_network.test.id
-  customer_contacts                = ["test@test.com"]
   long_term_backup_schedule {
     repeat_cadence           = "Weekly"
     time_of_backup           = "2025-08-03T09:00:00Z"
     retention_period_in_days = 198
-    enabled                  = false
+    enabled                  = true
   }
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
@@ -284,6 +322,72 @@ resource "azurerm_oracle_autonomous_database" "import" {
   virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
 }
 `, a.basic(data))
+}
+
+func (a AdbsRegularResource) publicAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_oracle_autonomous_database" "test" {
+  name                             = "OFake%[2]d"
+  display_name                     = "OFake%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = "%[3]s"
+  compute_model                    = "ECPU"
+  compute_count                    = 2
+  license_model                    = "BringYourOwnLicense"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = true
+  data_storage_size_in_tbs         = 1
+  db_workload                      = "OLTP"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  national_character_set           = "AL16UTF16"
+  allowed_ips                      = ["140.204.126.129"]
+}
+`, a.basicTemplate(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a AdbsRegularResource) publicAccessUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_oracle_autonomous_database" "test" {
+  name                             = "OFake%[2]d"
+  display_name                     = "OFake%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = "%[3]s"
+  compute_model                    = "ECPU"
+  compute_count                    = 2
+  license_model                    = "BringYourOwnLicense"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = true
+  data_storage_size_in_tbs         = 1
+  db_workload                      = "OLTP"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  national_character_set           = "AL16UTF16"
+  allowed_ips                      = ["140.204.126.129", "140.204.124.130"]
+}
+`, a.basicTemplate(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a AdbsRegularResource) template(data acceptance.TestData) string {
@@ -322,5 +426,16 @@ resource "azurerm_subnet" "test" {
   }
 }
 
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (a AdbsRegularResource) basicTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
