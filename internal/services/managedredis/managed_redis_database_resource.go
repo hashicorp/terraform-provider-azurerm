@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package redismanaged
+package managedredis
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -189,7 +189,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			client := metadata.Client.RedisManaged.DatabaseClient
+			client := metadata.Client.ManagedRedis.DatabaseClient
 
 			var model ManagedRedisDatabaseResourceModel
 			if err := metadata.Decode(&model); err != nil {
@@ -253,7 +253,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 			if err != nil {
 				// Need to check if this was due to the cluster having the wrong sku
 				if strings.Contains(err.Error(), "The value of the parameter 'properties.modules' is invalid") {
-					clusterClient := metadata.Client.RedisManaged.Client
+					clusterClient := metadata.Client.ManagedRedis.Client
 					resp, err := clusterClient.Get(ctx, *clusterId)
 					if err != nil {
 						return fmt.Errorf("retrieving %s: %+v", *clusterId, err)
@@ -281,7 +281,7 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedisManaged.DatabaseClient
+			client := metadata.Client.ManagedRedis.DatabaseClient
 
 			id, err := databases.ParseDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -341,7 +341,7 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedisManaged.DatabaseClient
+			client := metadata.Client.ManagedRedis.DatabaseClient
 
 			id, err := databases.ParseDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -416,8 +416,8 @@ func (r ManagedRedisDatabaseResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedisManaged.DatabaseClient
-			clusterClient := metadata.Client.RedisManaged.Client
+			client := metadata.Client.ManagedRedis.DatabaseClient
+			clusterClient := metadata.Client.ManagedRedis.Client
 
 			id, err := databases.ParseDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -495,7 +495,7 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []ModuleModel {
 }
 
 func forceUnlinkDatabase(meta *sdk.ResourceMetaData, unlinkedDbRaw []string) error {
-	client := meta.Client.RedisManaged.DatabaseClient
+	client := meta.Client.ManagedRedis.DatabaseClient
 	ctx, cancel := timeouts.ForUpdate(meta.Client.StopContext, meta.ResourceData)
 	defer cancel()
 	log.Printf("[INFO] Preparing to unlink a linked database")

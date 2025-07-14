@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package redismanaged
+package managedredis
 
 import (
 	"context"
@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/custompollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -138,7 +138,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedisManaged.Client
+			client := metadata.Client.ManagedRedis.Client
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model ManagedRedisClusterResourceModel
@@ -214,7 +214,7 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedisManaged.Client
+			client := metadata.Client.ManagedRedis.Client
 
 			id, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -267,7 +267,7 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedisManaged.Client
+			client := metadata.Client.ManagedRedis.Client
 
 			id, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
 			if err != nil {
@@ -322,7 +322,7 @@ func (r ManagedRedisClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedisManaged.Client
+			client := metadata.Client.ManagedRedis.Client
 
 			id, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
 			if err != nil {

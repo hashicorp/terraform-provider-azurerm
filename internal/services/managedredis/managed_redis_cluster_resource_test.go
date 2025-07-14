@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package redismanaged_test
+package managedredis_test
 
 import (
 	"context"
@@ -123,7 +123,7 @@ func (r ManagedRedisClusterResource) Exists(ctx context.Context, client *clients
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.RedisManaged.Client.Get(ctx, *id)
+	resp, err := client.ManagedRedis.Client.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

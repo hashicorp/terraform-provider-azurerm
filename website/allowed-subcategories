@@ -71,6 +71,7 @@ Logic App
 Machine Learning
 Maintenance
 Managed Applications
+Managed Redis
 Management
 Maps
 Messaging
@@ -97,7 +98,6 @@ Recovery Services
 Red Hat OpenShift
 Redis
 Redis Enterprise
-Redis Managed
 Search
 Security Center
 Sentinel

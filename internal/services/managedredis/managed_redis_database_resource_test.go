@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package redismanaged_test
+package managedredis_test
 
 import (
 	"context"
@@ -144,7 +144,7 @@ func (r ManagedRedisDatabaseResource) Exists(ctx context.Context, client *client
 		return nil, err
 	}
 
-	resp, err := client.RedisManaged.DatabaseClient.Get(ctx, *id)
+	resp, err := client.ManagedRedis.DatabaseClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return utils.Bool(false), nil

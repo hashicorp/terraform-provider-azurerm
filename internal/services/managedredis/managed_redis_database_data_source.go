@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package redismanaged
+package managedredis
 
 import (
 	"context"
@@ -86,7 +86,7 @@ func (r ManagedRedisDatabaseDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.RedisManaged.DatabaseClient
+			client := metadata.Client.ManagedRedis.DatabaseClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model ManagedRedisDatabaseDataSourceModel

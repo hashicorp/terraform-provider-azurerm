@@ -79,6 +79,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mixedreality"
@@ -109,7 +110,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redisenterprise"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redismanaged"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/search"
@@ -191,6 +191,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedhsm.Registration{},
+		managedredis.Registration{},
 		mobilenetwork.Registration{},
 		mongocluster.Registration{},
 		monitor.Registration{},
@@ -212,7 +213,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},
-		redismanaged.Registration{},
 		resource.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},

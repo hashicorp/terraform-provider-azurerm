@@ -1,5 +1,5 @@
 ---
-subcategory: "Redis Managed"
+subcategory: "Managed Redis"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_redis_cluster"
 description: |-
