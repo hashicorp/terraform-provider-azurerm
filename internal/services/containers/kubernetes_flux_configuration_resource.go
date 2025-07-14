@@ -551,13 +551,9 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 					},
 
 					"provider": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice(
-							[]string{
-								string(fluxconfiguration.ProviderTypeAzure),
-								string(fluxconfiguration.ProviderTypeGeneric),
-							}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForProviderType(), false),
 					},
 
 					"ssh_private_key_base64": {
