@@ -120,7 +120,7 @@ resource "azurerm_compute_fleet" "test" {
   spot_priority_profile {
     min_capacity     = 0
     maintain_enabled = false
-    capacity         = 0
+    capacity         = 1
   }
 
   vm_sizes_profile {

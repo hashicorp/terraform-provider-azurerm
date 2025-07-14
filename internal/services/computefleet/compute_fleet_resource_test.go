@@ -504,7 +504,7 @@ func (r ComputeFleetTestResource) completeExceptVMSS(data acceptance.TestData) s
 	return fmt.Sprintf(`
 	%[1]s
 
-resource "azurerm_marketplace_agreement" "barracuda" {
+data "azurerm_marketplace_agreement" "barracuda" {
   publisher = "micro-focus"
   offer     = "arcsight-logger"
   plan      = "arcsight_logger_72_byol"
@@ -547,12 +547,12 @@ resource "azurerm_compute_fleet" "test" {
     max_hourly_price_per_vm = -1
     min_capacity            = 0
     maintain_enabled        = false
-    capacity                = 0
+    capacity                = 1
   }
 
   regular_priority_profile {
     allocation_strategy = "LowestPrice"
-    capacity            = 0
+    capacity            = 1
     min_capacity        = 0
   }
 
@@ -620,7 +620,7 @@ func (r ComputeFleetTestResource) completeExceptVMSSUpdate(data acceptance.TestD
 	return fmt.Sprintf(`
 	%[1]s
 
-resource "azurerm_marketplace_agreement" "barracuda" {
+data "azurerm_marketplace_agreement" "barracuda" {
   publisher = "micro-focus"
   offer     = "arcsight-logger"
   plan      = "arcsight_logger_72_byol"
@@ -668,7 +668,7 @@ resource "azurerm_compute_fleet" "test" {
 
   regular_priority_profile {
     allocation_strategy = "LowestPrice"
-    capacity            = 0
+    capacity            = 1
     min_capacity        = 0
   }
 

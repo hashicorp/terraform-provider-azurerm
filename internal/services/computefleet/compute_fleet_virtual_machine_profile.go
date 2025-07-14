@@ -595,10 +595,11 @@ func osProfileSchema() *pluginsdk.Schema {
 				},
 
 				"linux_configuration": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
-					MaxItems: 1,
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					ForceNew:     true,
+					MaxItems:     1,
+					ExactlyOneOf: []string{"virtual_machine_profile.0.os_profile.0.linux_configuration", "virtual_machine_profile.0.os_profile.0.windows_configuration"},
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"admin_username": {
@@ -645,14 +646,6 @@ func osProfileSchema() *pluginsdk.Schema {
 								Optional: true,
 								ForceNew: true,
 								Default:  false,
-							},
-
-							"patch_assessment_mode": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								// 'patchSettings.assessmentMode' cannot be set to 'AutomaticByPlatform' as its not supported on Virtual Machine Scale Sets.
-								ValidateFunc: validation.StringInSlice([]string{string(fleets.LinuxPatchAssessmentModeImageDefault)}, false),
 							},
 
 							"patch_mode": {
@@ -717,10 +710,11 @@ func osProfileSchema() *pluginsdk.Schema {
 				},
 
 				"windows_configuration": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
-					MaxItems: 1,
+					Type:         pluginsdk.TypeList,
+					Optional:     true,
+					ForceNew:     true,
+					MaxItems:     1,
+					ExactlyOneOf: []string{"virtual_machine_profile.0.os_profile.0.linux_configuration", "virtual_machine_profile.0.os_profile.0.windows_configuration"},
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"admin_username": {
@@ -786,14 +780,6 @@ func osProfileSchema() *pluginsdk.Schema {
 								Optional: true,
 								ForceNew: true,
 								Default:  false,
-							},
-
-							"patch_assessment_mode": {
-								Type:     pluginsdk.TypeString,
-								Optional: true,
-								ForceNew: true,
-								// 'patchSettings.assessmentMode' cannot be set to 'AutomaticByPlatform' as its not supported on Virtual Machine Scale Sets.
-								ValidateFunc: validation.StringInSlice([]string{string(fleets.WindowsPatchAssessmentModeImageDefault)}, false),
 							},
 
 							"patch_mode": {
@@ -1479,7 +1465,10 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 			DisablePasswordAuthentication: pointer.To(!lConfig[0].PasswordAuthenticationEnabled),
 			ProvisionVMAgent:              pointer.To(lConfig[0].ProvisionVMAgentEnabled),
 			EnableVMAgentPlatformUpdates:  pointer.To(lConfig[0].VMAgentPlatformUpdatesEnabled),
-			PatchSettings:                 &fleets.LinuxPatchSettings{},
+			PatchSettings: &fleets.LinuxPatchSettings{
+				// 'AssessmentMode' can only be set `ImageDefault` on Virtual Machine Scale Sets.
+				AssessmentMode: pointer.To(fleets.LinuxPatchAssessmentModeImageDefault),
+			},
 		}
 
 		// AutomaticByPlatformSettings cannot be set if the PatchMode is not `AutomaticByPlatform`
@@ -1491,9 +1480,6 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 			if lConfig[0].PatchRebooting != "" {
 				linuxConfig.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(fleets.LinuxVMGuestPatchAutomaticByPlatformRebootSetting(lConfig[0].PatchRebooting))
 			}
-		}
-		if lConfig[0].PatchAssessmentMode != "" {
-			linuxConfig.PatchSettings.AssessmentMode = pointer.To(fleets.LinuxPatchAssessmentMode(lConfig[0].PatchAssessmentMode))
 		}
 		if lConfig[0].PatchMode != "" {
 			linuxConfig.PatchSettings.PatchMode = pointer.To(fleets.LinuxVMGuestPatchMode(lConfig[0].PatchMode))
@@ -1537,6 +1523,8 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 			ProvisionVMAgent:             pointer.To(winConfig[0].ProvisionVMAgentEnabled),
 			PatchSettings: &fleets.PatchSettings{
 				EnableHotpatching: pointer.To(winConfig[0].HotPatchingEnabled),
+				// 'AssessmentMode' can only be set `ImageDefault` on Virtual Machine Scale Sets.
+				AssessmentMode: pointer.To(fleets.WindowsPatchAssessmentModeImageDefault),
 			},
 		}
 
@@ -1577,9 +1565,6 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 				windowsConfig.PatchSettings.AutomaticByPlatformSettings.RebootSetting = pointer.To(fleets.WindowsVMGuestPatchAutomaticByPlatformRebootSetting(winConfig[0].PatchRebooting))
 			}
 		}
-		if winConfig[0].PatchAssessmentMode != "" {
-			windowsConfig.PatchSettings.AssessmentMode = pointer.To(fleets.WindowsPatchAssessmentMode(winConfig[0].PatchAssessmentMode))
-		}
 		if winConfig[0].PatchMode != "" {
 			windowsConfig.PatchSettings.PatchMode = pointer.To(fleets.WindowsVMGuestPatchMode(winConfig[0].PatchMode))
 		}
@@ -1602,7 +1587,6 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 	input := &inputList[0]
 	if v := input.OsProfile[0].WindowsConfiguration; len(v) > 0 {
 		patchMode := v[0].PatchMode
-		patchAssessmentMode := v[0].PatchAssessmentMode
 		hotPatchingEnabled := v[0].HotPatchingEnabled
 		provisionVMAgentEnabled := v[0].ProvisionVMAgentEnabled
 
@@ -1616,10 +1600,6 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 
 		if input.ExtensionOperationsEnabled && !provisionVMAgentEnabled {
 			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent_enabled` is set to `false`")
-		}
-
-		if patchAssessmentMode == string(fleets.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgentEnabled {
-			return fmt.Errorf("when the `patch_assessment_mode` field is set to %q the `provision_vm_agent_enabled` must always be set to `true`", fleets.WindowsPatchAssessmentModeAutomaticByPlatform)
 		}
 
 		isHotPatchEnabledImage := isValidHotPatchSourceImageReference(input.SourceImageReference)
@@ -1690,7 +1670,6 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 	input := &inputList[0]
 	if v := input.OsProfile[0].LinuxConfiguration; len(v) > 0 {
 		patchMode := v[0].PatchMode
-		patchAssessmentMode := v[0].PatchAssessmentMode
 		provisionVMAgentEnabled := v[0].ProvisionVMAgentEnabled
 
 		rebootSetting := v[0].PatchRebooting
@@ -1703,10 +1682,6 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 
 		if input.ExtensionOperationsEnabled && !provisionVMAgentEnabled {
 			return fmt.Errorf("`extension_operations_enabled` cannot be set to `true` when `provision_vm_agent_enabled` is set to `false`")
-		}
-
-		if patchAssessmentMode == string(fleets.WindowsPatchAssessmentModeAutomaticByPlatform) && !provisionVMAgentEnabled {
-			return fmt.Errorf("when the `patch_assessment_mode` field is set to %q the `provision_vm_agent_enabled` must always be set to `true`", fleets.LinuxPatchAssessmentModeAutomaticByPlatform)
 		}
 
 		hasHealthExtension := false
@@ -2232,7 +2207,6 @@ func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *sch
 
 		if p := v.PatchSettings; p != nil {
 			windowsConfig.PatchMode = string(pointer.From(p.PatchMode))
-			windowsConfig.PatchAssessmentMode = string(pointer.From(p.AssessmentMode))
 			if a := p.AutomaticByPlatformSettings; a != nil {
 				windowsConfig.BypassPlatformSafetyChecksEnabled = pointer.From(a.BypassPlatformSafetyChecksOnUserSchedule)
 				windowsConfig.PatchRebooting = string(pointer.From(a.RebootSetting))
@@ -2256,7 +2230,6 @@ func flattenOSProfileModel(input *fleets.VirtualMachineScaleSetOSProfile, d *sch
 		}
 
 		if p := v.PatchSettings; p != nil {
-			linuxConfig.PatchAssessmentMode = string(pointer.From(p.AssessmentMode))
 			linuxConfig.PatchMode = string(pointer.From(p.PatchMode))
 			if a := p.AutomaticByPlatformSettings; a != nil {
 				linuxConfig.BypassPlatformSafetyChecksEnabled = pointer.From(a.BypassPlatformSafetyChecksOnUserSchedule)

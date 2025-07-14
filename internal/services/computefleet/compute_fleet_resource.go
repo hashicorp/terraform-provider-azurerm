@@ -147,7 +147,6 @@ type LinuxConfigurationModel struct {
 	Secret                            []LinuxSecretModel `tfschema:"secret"`
 	PasswordAuthenticationEnabled     bool               `tfschema:"password_authentication_enabled"`
 	VMAgentPlatformUpdatesEnabled     bool               `tfschema:"vm_agent_platform_updates_enabled"`
-	PatchAssessmentMode               string             `tfschema:"patch_assessment_mode"`
 	PatchMode                         string             `tfschema:"patch_mode"`
 	BypassPlatformSafetyChecksEnabled bool               `tfschema:"bypass_platform_safety_checks_enabled"`
 	PatchRebooting                    string             `tfschema:"patch_rebooting"`
@@ -182,7 +181,6 @@ type WindowsConfigurationModel struct {
 	AdditionalUnattendContent         []AdditionalUnattendContentModel `tfschema:"additional_unattend_content"`
 	AutomaticUpdatesEnabled           bool                             `tfschema:"automatic_updates_enabled"`
 	VMAgentPlatformUpdatesEnabled     bool                             `tfschema:"vm_agent_platform_updates_enabled"`
-	PatchAssessmentMode               string                           `tfschema:"patch_assessment_mode"`
 	PatchMode                         string                           `tfschema:"patch_mode"`
 	BypassPlatformSafetyChecksEnabled bool                             `tfschema:"bypass_platform_safety_checks_enabled"`
 	PatchRebooting                    string                           `tfschema:"patch_rebooting"`
@@ -246,12 +244,12 @@ type RegularPriorityProfileModel struct {
 }
 
 type SpotPriorityProfileModel struct {
-	AllocationStrategy  string  `tfschema:"allocation_strategy"`
-	Capacity            int64   `tfschema:"capacity"`
-	EvictionPolicy      string  `tfschema:"eviction_policy"`
-	MaintainEnabled     bool    `tfschema:"maintain_enabled"`
-	MaxHourlyPricePerVM float64 `tfschema:"max_hourly_price_per_vm"`
-	MinCapacity         int64   `tfschema:"min_capacity"`
+	AllocationStrategy      string  `tfschema:"allocation_strategy"`
+	Capacity                int64   `tfschema:"capacity"`
+	EvictionPolicy          string  `tfschema:"eviction_policy"`
+	MaintainCapacityEnabled bool    `tfschema:"maintain_enabled"`
+	MaxHourlyPricePerVM     float64 `tfschema:"max_hourly_price_per_vm"`
+	MinCapacity             int64   `tfschema:"min_capacity"`
 }
 
 type VMSizeProfileModel struct {
@@ -298,6 +296,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		"vm_sizes_profile": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MaxItems: 15,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -376,6 +375,12 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			AtLeastOneOf: []string{"regular_priority_profile", "spot_priority_profile"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 10000),
+					},
+
 					"allocation_strategy": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -385,15 +390,11 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"min_capacity": {
-						Type:     pluginsdk.TypeInt,
-						ForceNew: true,
-						Optional: true,
-					},
-
-					"capacity": {
 						Type:         pluginsdk.TypeInt,
+						ForceNew:     true,
 						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 10000),
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
 			},
@@ -406,6 +407,12 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			AtLeastOneOf: []string{"regular_priority_profile", "spot_priority_profile"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"capacity": {
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntBetween(1, 10000),
+					},
+
 					"allocation_strategy": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -441,13 +448,8 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ForceNew:     true,
+						Default:      0,
 						ValidateFunc: validation.IntAtLeast(0),
-					},
-
-					"capacity": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 10000),
 					},
 				},
 			},
@@ -538,10 +540,8 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 			}
 			properties.Identity = expandedIdentity
 
-			additionalCapabilities := expandAdditionalCapabilities(model.AdditionalCapabilities)
-
 			computeProfile := fleets.ComputeProfile{
-				AdditionalVirtualMachineCapabilities: additionalCapabilities,
+				AdditionalVirtualMachineCapabilities: expandAdditionalCapabilities(model.AdditionalCapabilities),
 				PlatformFaultDomainCount:             pointer.To(model.PlatformFaultDomainCount),
 			}
 			if model.ComputeApiVersion != "" {
@@ -751,7 +751,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if len(state.SpotPriorityProfile) > 0 {
-				if state.SpotPriorityProfile[0].MaintainEnabled {
+				if state.SpotPriorityProfile[0].MaintainCapacityEnabled {
 					if state.SpotPriorityProfile[0].MinCapacity > 0 {
 						return fmt.Errorf("`spot_priority_profile.0.min_capacity` is unable to be specified if `spot_priority_profile.0.maintain_enabled` is enabled")
 					}
@@ -784,10 +784,6 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			if len(state.VMSizesProfile) > 15 {
-				return fmt.Errorf("the VM sizes count of `vm_sizes_profile` cannot be greater than `15`")
-			}
-
 			if v := state.VirtualMachineProfile[0].DataDisks; len(v) > 0 {
 				storageAccountType := v[0].StorageAccountType
 				ultraSSDEnabled := false
@@ -812,11 +808,6 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			vmProfile := state.VirtualMachineProfile[0]
-			osProfile := vmProfile.OsProfile[0]
-			if len(osProfile.WindowsConfiguration) > 0 && len(osProfile.LinuxConfiguration) > 0 ||
-				len(osProfile.WindowsConfiguration) == 0 && len(osProfile.LinuxConfiguration) == 0 {
-				return fmt.Errorf("only one of `linux_configuration` and `windows_configuration` in `virtual_machine_profile` must be specified")
-			}
 			if vmProfile.SourceImageId != "" && len(vmProfile.SourceImageReference) > 0 {
 				return fmt.Errorf("only one of `source_image_id` and `source_image_reference` in `virtual_machine_profile` must be specified")
 			}
@@ -894,11 +885,11 @@ func expandSpotPriorityProfileModel(inputList []SpotPriorityProfileModel) *fleet
 		AllocationStrategy: pointer.To(fleets.SpotAllocationStrategy(input.AllocationStrategy)),
 		Capacity:           pointer.To(input.Capacity),
 		EvictionPolicy:     pointer.To(fleets.EvictionPolicy(input.EvictionPolicy)),
-		Maintain:           pointer.To(input.MaintainEnabled),
+		Maintain:           pointer.To(input.MaintainCapacityEnabled),
 		MinCapacity:        pointer.To(input.MinCapacity),
 	}
 
-	if input.MaxHourlyPricePerVM > 0 {
+	if input.MaxHourlyPricePerVM > 0 || input.MaxHourlyPricePerVM == -1 {
 		output.MaxPricePerVM = pointer.To(input.MaxHourlyPricePerVM)
 	}
 	return &output
@@ -986,11 +977,11 @@ func flattenSpotPriorityProfileModel(input *fleets.SpotPriorityProfile) []SpotPr
 	}
 
 	output := SpotPriorityProfileModel{
-		AllocationStrategy: string(pointer.From(input.AllocationStrategy)),
-		Capacity:           pointer.From(input.Capacity),
-		EvictionPolicy:     string(pointer.From(input.EvictionPolicy)),
-		MaintainEnabled:    pointer.From(input.Maintain),
-		MinCapacity:        pointer.From(input.MinCapacity),
+		AllocationStrategy:      string(pointer.From(input.AllocationStrategy)),
+		Capacity:                pointer.From(input.Capacity),
+		EvictionPolicy:          string(pointer.From(input.EvictionPolicy)),
+		MaintainCapacityEnabled: pointer.From(input.Maintain),
+		MinCapacity:             pointer.From(input.MinCapacity),
 	}
 
 	// defaulted since MaxHourlyPricePerVM isn't returned if it's unset

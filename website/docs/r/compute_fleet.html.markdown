@@ -64,9 +64,9 @@ resource "azurerm_compute_fleet" "example" {
   location            = azurerm_resource_group.example.location
 
   spot_priority_profile {
-    min_capacity     = 0
-    maintain_enabled = false
-    capacity         = 1
+    min_capacity              = 0
+    maintain_capacity_enabled = false
+    capacity                  = 1
   }
 
   vm_sizes_profile {
@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `vm_sizes_profile` - (Required) One or more `vm_sizes_profile` blocks as defined below.
 
--> **Note:** If `spot_priority_profile` is specified, `regular_priority_profile` is not specified and `spot_priority_profile.0.maintain_enabled` is specified as to `false`, changing `vm_sizes_profile` forces a new resource to be created.
+-> **Note:** If `spot_priority_profile` is specified, `regular_priority_profile` is not specified and `spot_priority_profile.0.maintain_capacity_enabled` is specified as to `false`, changing `vm_sizes_profile` forces a new resource to be created.
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below. Changing this forces a new resource to be created.
 
@@ -381,8 +381,6 @@ A `linux_configuration` block supports the following:
 
 -> **Note:** When an `admin_password` is specified `password_authentication_enabled` must be set to `true`. 
 
-* `patch_assessment_mode` - (Optional) Specifies the mode of virtual machine Guest Patching for the virtual machines that are associated to the Compute Fleet. The only possible value is `ImageDefault`. Changing this forces a new resource to be created.
-
 * `patch_mode` - (Optional)  Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByPlatform` and `ImageDefault`. Changing this forces a new resource to be created.
 
 * `provision_vm_agent_enabled` - (Optional) Whether to provision the virtual machine agent on each virtual machine in the Scale Set. Defaults to `true`. Changing this forces a new resource to be created.
@@ -461,11 +459,11 @@ A `public_ip_address` block supports the following:
 
 A `regular_priority_profile` block supports the following:
 
+* `capacity` - (Required) The total number of the standard virtual machines in the Compute Fleet.
+
 * `allocation_strategy` - (Optional) Specifies the allocation strategy for the Compute Fleet on which the standard virtual machines will be allocated. Defaults to `LowestPrice`. Possible values are `LowestPrice` and `Prioritized`. Changing this forces a new resource to be created.
 
-* `capacity` - (Optional) The total number of the standard virtual machines in the Compute Fleet.
-
-* `min_capacity` - (Optional) The minimum number of standard virtual machines in the Compute Fleet. Changing this forces a new resource to be created.
+* `min_capacity` - (Optional) The minimum number of standard virtual machines in the Compute Fleet. Defaults to `0`. Changing this forces a new resource to be created.
 
 ---
 
@@ -491,17 +489,19 @@ A `source_image_reference` block supports the following:
 
 A `spot_priority_profile` block supports the following:
 
+* `capacity` - (Required) The total number of the spot virtual machines in the Compute Fleet.
+
 * `allocation_strategy` - (Optional) Specifies the allocation strategy for the Compute Fleet on which the Azure spot virtual machines will be allocated. Defaults to `PriceCapacityOptimized`. Possible values are `LowestPrice`, `PriceCapacityOptimized`, `CapacityOptimized`. Changing this forces a new resource to be created.
 
 * `eviction_policy` - (Optional) The policy which should be used by spot virtual machines that are evicted from the Compute Fleet. Defaults to `Delete`. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
 
-* `maintain_enabled` - (Optional) Whether to enable the continuous goal seeking for the desired capacity and restoration of evicted spot virtual machines. Defaults to `true`. Changing this forces a new resource to be created.
+* `maintain_capacity_enabled` - (Optional) Whether to enable the continuous goal seeking for the desired capacity and restoration of evicted spot virtual machines. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `max_hourly_price_per_vm` - (Optional) The maximum price per hour of each spot virtual machine. Defaults to `-1`. Changing this forces a new resource to be created.
 
-* `min_capacity` - (Optional) The minimum number of spot virtual machines in the Compute Fleet. Changing this forces a new resource to be created.
+-> **Note:** A value of `-1` indicates that the Azure Spot VM will not be evicted due to price changes.
 
-* `capacity` - (Optional) The total number of the spot virtual machines in the Compute Fleet.
+* `min_capacity` - (Optional) The minimum number of spot virtual machines in the Compute Fleet. Defaults to `0`. Changing this forces a new resource to be created.
 
 ---
 
@@ -528,8 +528,6 @@ A `windows_configuration` block supports the following:
 * `bypass_platform_safety_checks_enabled` - (Optional) Whether to bypass platform safety checks. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `hot_patching_enabled` - (Optional) Whether to enable the customers to patch the virtual machines without requiring a reboot. Defaults to `false`. Changing this forces a new resource to be created.
-
-* `patch_assessment_mode` - (Optional) Specifies the mode of virtual machine Guest Patching for the virtual machines that are associated to the Compute Fleet. The only possible value is `ImageDefault`. Changing this forces a new resource to be created.
 
 * `patch_mode` - (Optional)  Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByOS`, `AutomaticByPlatform` and `Manual`. Changing this forces a new resource to be created.
 
