@@ -227,6 +227,10 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
 		},
 		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "none"),
+		},
+		data.ImportStep(),
 	})
 }
 
